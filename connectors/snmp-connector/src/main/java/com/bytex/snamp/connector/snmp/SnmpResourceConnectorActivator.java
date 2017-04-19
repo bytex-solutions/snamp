@@ -8,6 +8,7 @@ import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import org.snmp4j.log.OSGiLogFactory;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
 
@@ -28,10 +29,10 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     @SpecialUse(SpecialUse.Case.OSGi)
     public SnmpResourceConnectorActivator() {
         super(SnmpResourceConnectorActivator::createConnector,
-                simpleDependencies(ThreadPoolRepository.class),
+                requiredServices(SnmpResourceConnector.class).require(ThreadPoolRepository.class),
                 new SupportServiceManager<?, ?>[]{
                         configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
-                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService, simpleDependencies(ConfigurationManager.class))
+                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService, requiredServices(SnmpResourceConnector.class).require(ConfigurationManager.class))
                 });
     }
 
@@ -42,10 +43,11 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         return Duration.ofMillis(timeout);
     }
 
+    @Nonnull
     private static SnmpResourceConnector createConnector(final String resourceName,
                                                          final ManagedResourceInfo configuration,
                                                          final DependencyManager dependencies) throws IOException {
-        final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class)
+        final ConfigurationManager configManager = dependencies.getService(ConfigurationManager.class)
                 .orElseThrow(AssertionError::new);
 
         final SnmpResourceConnector result =
@@ -58,7 +60,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
 
     private static SnmpFeatureDiscoveryService newDiscoveryService(final DependencyManager dependencies) throws IOException {
         @SuppressWarnings("unchecked")
-        final ConfigurationManager configManager = dependencies.getDependency(ConfigurationManager.class)
+        final ConfigurationManager configManager = dependencies.getService(ConfigurationManager.class)
                 .orElseThrow(AssertionError::new);
         return new SnmpFeatureDiscoveryService(configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
     }

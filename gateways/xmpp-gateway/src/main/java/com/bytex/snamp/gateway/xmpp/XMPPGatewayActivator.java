@@ -10,7 +10,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
 public final class XMPPGatewayActivator extends GatewayActivator<XMPPGateway> {
     public XMPPGatewayActivator() {
         super(XMPPGatewayActivator::newGateway,
-                simpleDependencies(),
+                noRequiredServices(),
                 new SupportServiceManager<?, ?>[]{configurationDescriptor(XMPPGatewayConfigurationProvider::new)});
     }
 

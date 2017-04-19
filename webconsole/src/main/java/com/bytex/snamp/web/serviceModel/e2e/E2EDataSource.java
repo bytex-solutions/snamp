@@ -2,6 +2,7 @@ package com.bytex.snamp.web.serviceModel.e2e;
 
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.ComputingService;
+import com.bytex.snamp.web.serviceModel.RESTController;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.Consumes;
@@ -18,10 +19,8 @@ import java.io.IOException;
  * @since 1.0
  */
 @Path("/")
-public final class E2EDataSource extends ComputingService<E2EView, Object, Dashboard> {
-    public static final String NAME = "E2E";
-    public static final String URL_CONTEXT = "/e2e";
-
+public final class E2EDataSource extends ComputingService<E2EView, Object, Dashboard> implements RESTController {
+    private static final String URL_CONTEXT = "/e2e";
     private final TopologyAnalyzer analyzer;
 
     public E2EDataSource(@Nonnull final TopologyAnalyzer topologyAnalyzer) throws IOException {
@@ -39,6 +38,11 @@ public final class E2EDataSource extends ComputingService<E2EView, Object, Dashb
     public Response reset() {
         analyzer.reset();
         return Response.noContent().build();
+    }
+
+    @Override
+    public String getUrlContext() {
+        return URL_CONTEXT;
     }
 
     /**

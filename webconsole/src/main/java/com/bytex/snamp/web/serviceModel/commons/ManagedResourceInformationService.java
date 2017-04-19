@@ -7,7 +7,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
-import org.osgi.framework.Constants;
+import com.bytex.snamp.web.serviceModel.RESTController;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -24,10 +24,8 @@ import java.util.logging.Level;
  * @since 2.0
  */
 @Path("/")
-public final class ManagedResourceInformationService extends AbstractWebConsoleService implements Constants {
-    public static final String NAME = "managedResources";
-    public static final String URL_CONTEXT = "/managedResources";
-
+public final class ManagedResourceInformationService extends AbstractWebConsoleService implements RESTController {
+    private static final String URL_CONTEXT = "/managedResources";
     private final ResourceGroupTracker tracker;
 
     public ManagedResourceInformationService() {
@@ -44,6 +42,11 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
         } catch (final Exception e) {
             getLogger().log(Level.SEVERE, "Unable to start tracking resources", e);
         }
+    }
+
+    @Override
+    public String getUrlContext() {
+        return URL_CONTEXT;
     }
 
     @GET

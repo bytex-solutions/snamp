@@ -1,7 +1,8 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
+import com.bytex.snamp.web.serviceModel.ComputingService;
+import com.bytex.snamp.web.serviceModel.RESTController;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.BundleContext;
@@ -21,9 +22,8 @@ import java.util.Map;
  * @since 2.0
  */
 @Path("/")
-public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashboard> {
-    public static final String NAME = "charts";
-    public static final String URL_CONTEXT = "/charts";
+public final class ChartDataSource extends ComputingService<Chart[], Map<String, Collection<ChartData>>, Dashboard> implements RESTController {
+    private static final String URL_CONTEXT = "/charts";
 
     public ChartDataSource() {
         super(Dashboard.class);
@@ -33,7 +33,7 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
     @Path("/compute")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map<String, Collection<ChartData>> getChartData(final Chart[] charts) throws WebApplicationException {
+    public Map<String, Collection<ChartData>> compute(final Chart[] charts) throws WebApplicationException {
         final BundleContext context = getBundleContext();
         final Multimap<String, ChartData> result = HashMultimap.create(charts.length, 3);
         for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context))
@@ -57,11 +57,13 @@ public final class ChartDataSource extends AbstractPrincipalBoundedService<Dashb
         return result.asMap();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void initialize() {
+    }
+
+    @Override
+    public String getUrlContext() {
+        return URL_CONTEXT;
     }
 
     @Nonnull

@@ -10,6 +10,7 @@ import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.NotificationSerializer;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
+import com.bytex.snamp.web.serviceModel.RESTController;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
@@ -33,10 +34,9 @@ import java.util.logging.Level;
  * Provides delivery of all notifications to the web console.
  */
 @Path("/")
-public final class NotificationService extends AbstractPrincipalBoundedService<NotificationSettings> implements NotificationListener {
-    public static final String NAME = "notifications";
-    public static final String URL_CONTEXT = '/' + NAME;
-
+public final class NotificationService extends AbstractPrincipalBoundedService<NotificationSettings> implements NotificationListener, RESTController {
+    private static final String URL_CONTEXT = "/notifications";
+    
     @JsonTypeName("resourceNotification")
     public final class NotificationMessage extends WebConsoleServiceMessage{
         private static final long serialVersionUID = -9189834497935677635L;
@@ -102,6 +102,16 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         } catch (final Exception e) {
             getLogger().log(Level.SEVERE, "Unable to start notification listener service", e);
         }
+    }
+
+    /**
+     * Gets URL context of the service.
+     *
+     * @return URL context of the service.
+     */
+    @Override
+    public String getUrlContext() {
+        return URL_CONTEXT;
     }
 
     @Nonnull

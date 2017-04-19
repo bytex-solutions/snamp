@@ -33,25 +33,25 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ConfigurationServiceManager extends ProvidedService<ConfigurationManager, PersistentConfigurationManager>{
 
         private ConfigurationServiceManager() {
-            super(ConfigurationManager.class, simpleDependencies(ConfigurationAdmin.class));
+            super(ConfigurationManager.class, requiredServices(PersistentConfigurationManager.class).require(ConfigurationAdmin.class));
         }
 
         @Override
         @Nonnull
         protected PersistentConfigurationManager activateService(final Map<String, Object> identity) {
-            return new PersistentConfigurationManager(dependencies.getDependency(ConfigurationAdmin.class).orElseThrow(AssertionError::new));
+            return new PersistentConfigurationManager(dependencies.getService(ConfigurationAdmin.class).orElseThrow(AssertionError::new));
         }
     }
 
     private static final class ClusterMemberProvider extends ProvidedService<ClusterMember, GridMember>{
         private ClusterMemberProvider(){
-            super(ClusterMember.class, simpleDependencies(HazelcastInstance.class));
+            super(ClusterMember.class, requiredServices(GridMember.class).require(HazelcastInstance.class));
         }
 
         @Override
         @Nonnull
         protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
-            final HazelcastInstance hazelcast = dependencies.getDependency(HazelcastInstance.class).orElseThrow(AssertionError::new);
+            final HazelcastInstance hazelcast = dependencies.getService(HazelcastInstance.class).orElseThrow(AssertionError::new);
             final GridMember member = new GridMember(hazelcast);
             member.start();
             return member;
@@ -66,7 +66,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepository, ThreadPoolRepositoryImpl> {
 
         private ThreadPoolRepositoryProvider() {
-            super(ThreadPoolRepository.class, simpleDependencies(), ManagedService.class);
+            super(ThreadPoolRepository.class, noRequiredServices(), ManagedService.class);
         }
 
         @Override

@@ -66,25 +66,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
     }
 
-    /**
-     * Represents state of the service publication.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    public enum ProvidedServiceState{
-
-        /**
-         * Service is not published.
-         */
-        NOT_PUBLISHED,
-
-        /**
-         * Service is published.
-         */
-        PUBLISHED
-    }
-
     private static final class WeakServiceListener extends WeakEventListener<ServiceListener, ServiceEvent> implements ServiceListener {
         WeakServiceListener(@Nonnull final ServiceListener listener){
             super(listener);
@@ -168,45 +149,35 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event) {
             //avoid cyclic reference tracking
-            if(registration != null &&
+            if (registration != null &&
                     Objects.equals(registration.getReference(), event.getServiceReference())) return;
             int resolvedDependencies = 0;
-            for(final RequiredService<?> dependency: dependencies){
-                dependency.processServiceEvent(context, event.getServiceReference(), event.getType());
-                if(dependency.isResolved()) resolvedDependencies += 1;
-            }
-            switch (getState()){
-                case PUBLISHED:
-                    //dependency lost but service is activated
-                    if(resolvedDependencies != dependencies.size()) {
-                        final ProvidedServiceLoggingScope logger = ProvidedServiceLoggingScope.unregister(this);
-                        try {
-                            if (registration != null) {
-                                final T serviceInstance = registration.get();
-                                registration.unregister();
-                                cleanupService(serviceInstance, false);
-                            }
-                        } catch (final Exception e) {
-                            logger.unableToCleanupService(getServiceContract(), e);
-                        } finally {
-                            registration = null;
-                            logger.close();
-                        }
+            for (final RequiredService<?> dependency : dependencies)
+                if (dependency.processServiceEvent(event.getServiceReference(), event.getType()))
+                    resolvedDependencies += 1;
+            if (registration == null) {   //not published
+                if (resolvedDependencies == dependencies.size()) {
+                    final ProvidedServiceLoggingScope logger = ProvidedServiceLoggingScope.expose(this);
+                    try {
+                        activateAndRegisterService(context);
+                    } catch (final Exception e) {
+                        logger.unableToActivateService(getServiceContract(), e);
+                    } finally {
+                        logger.close();
                     }
-                    return;
-                case NOT_PUBLISHED:
-                    if(resolvedDependencies == dependencies.size()) {
-                        final ProvidedServiceLoggingScope logger = ProvidedServiceLoggingScope.expose(this);
-                        try {
-                            activateAndRegisterService(context);
-                        } catch (final Exception e) {
-                            logger.unableToActivateService(getServiceContract(), e);
-                            if (registration != null) registration.unregister();
-                            registration = null;
-                        } finally {
-                            logger.close();
-                        }
-                    }
+                }
+            } else if (resolvedDependencies != dependencies.size()) {
+                final ProvidedServiceLoggingScope logger = ProvidedServiceLoggingScope.unregister(this);
+                try {
+                    final T serviceInstance = registration.get();
+                    registration.close();
+                    cleanupService(serviceInstance, false);
+                } catch (final Exception e) {
+                    logger.unableToCleanupService(getServiceContract(), e);
+                } finally {
+                    registration = null;
+                    logger.close();
+                }
             }
         }
 
@@ -230,19 +201,18 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         /**
          * Gets state of this service provider.
-         * @return The state of this service provider.[
+         * @return The state of this service provider.
          */
-        public final ProvidedServiceState getState() {
-            final ServiceRegistrationHolder<S, T> registration = this.registration;
-            return registration == null || registration.isUnregistered() ?
-                    ProvidedServiceState.NOT_PUBLISHED :
-                    ProvidedServiceState.PUBLISHED;
+        public final boolean isPublished() {
+            final ServiceRegistrationHolder<?, ?> registration = this.registration;
+            return registration != null && registration.isPublished();
         }
 
         private synchronized void activateAndRegisterService(final BundleContext context) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(3);
-            registration = new ServiceRegistrationHolder<>(context, activateService(identity), identity, serviceContracts
-            );
+            final T serviceInstance = activateService(identity);
+            //registration happens after instantiation of the service
+            registration = new ServiceRegistrationHolder<>(context, serviceInstance, identity, serviceContracts);
         }
 
         private synchronized void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
@@ -288,7 +258,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     cleanupService(serviceInstance, true);
             } finally {
                 //releases all dependencies
-                dependencies.unbind(context);
+                dependencies.unbind();
                 properties = EMPTY_ACTIVATION_PROPERTY_READER;
                 activationContext = null;
             }

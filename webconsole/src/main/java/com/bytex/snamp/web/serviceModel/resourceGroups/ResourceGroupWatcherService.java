@@ -12,6 +12,7 @@ import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
+import com.bytex.snamp.web.serviceModel.RESTController;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -32,9 +33,8 @@ import java.util.logging.Level;
  * @version 2.0
  */
 @Path("/")
-public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements EventAcceptor {
-    public static final String NAME = "resource-group-watcher";
-    public static final String URL_CONTEXT = '/' + NAME;
+public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements RESTController, EventAcceptor {
+    private static final String URL_CONTEXT = "/resource-group-watcher";
 
     @JsonTypeName("healthStatusChanged")
     public final class GroupStatusChangedMessage extends WebConsoleServiceMessage{
@@ -119,6 +119,11 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         } catch (final Exception e) {
             getLogger().log(Level.SEVERE, "Unable to start tracking health status", e);
         }
+    }
+
+    @Override
+    public String getUrlContext() {
+        return URL_CONTEXT;
     }
 
     @GET

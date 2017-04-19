@@ -19,7 +19,6 @@ import org.osgi.service.log.LogReaderService;
 import javax.annotation.Nonnull;
 import javax.management.JMException;
 import javax.servlet.Servlet;
-import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
 
@@ -47,7 +46,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private static final class LogReaderServiceDependency extends RequiredServiceAccessor<LogReaderService>{
+    private static final class LogReaderServiceDependency extends RequiredServiceAccessor<LogReaderService> {
         private final LogListener listener;
 
         private LogReaderServiceDependency(final LogListener listener) {
@@ -56,20 +55,18 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
 
         @Override
-        protected boolean match(final ServiceReference<?> reference) {
+        protected boolean match(final ServiceReference<LogReaderService> reference) {
             return true;
         }
 
         @Override
-        protected void bind(final LogReaderService serviceInstance, final Dictionary<String, ?> properties) {
-            super.bind(serviceInstance, properties);
+        protected void bind(final LogReaderService serviceInstance) {
             serviceInstance.addLogListener(listener);
         }
 
         @Override
-        protected void unbind() {
-            getService().removeLogListener(listener);
-            super.unbind();
+        protected void unbind(final LogReaderService serviceInstance) {
+            serviceInstance.removeLogListener(listener);
         }
     }
 

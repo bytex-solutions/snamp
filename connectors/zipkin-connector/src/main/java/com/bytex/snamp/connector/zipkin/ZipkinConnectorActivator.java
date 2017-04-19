@@ -18,7 +18,7 @@ import java.util.Map;
 public final class ZipkinConnectorActivator extends ManagedResourceActivator<ZipkinConnector> {
     private static final class ZipkinServletProvider extends SupportServiceManager<ServletSupportService, ZipkinServlet>{
         private ZipkinServletProvider(){
-            super(ServletSupportService.class, simpleDependencies(), Servlet.class);
+            super(ServletSupportService.class, noRequiredServices(), Servlet.class);
         }
 
         @Nonnull

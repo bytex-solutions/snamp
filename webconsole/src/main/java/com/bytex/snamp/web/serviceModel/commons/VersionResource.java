@@ -3,6 +3,7 @@ package com.bytex.snamp.web.serviceModel.commons;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
+import com.bytex.snamp.web.serviceModel.RESTController;
 import org.codehaus.jackson.JsonNode;
 
 import javax.ws.rs.GET;
@@ -16,9 +17,8 @@ import javax.ws.rs.core.MediaType;
  * @since 2.0
  */
 @Path("/")
-public final class VersionResource extends AbstractWebConsoleService {
-    public static final String NAME = "versionInformation";
-    public static final String URL_CONTEXT = "/version";
+public final class VersionResource extends AbstractWebConsoleService implements RESTController {
+    private static final String URL_CONTEXT = "/version";
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -30,5 +30,15 @@ public final class VersionResource extends AbstractWebConsoleService {
     @Override
     protected void initialize() {
 
+    }
+
+    /**
+     * Gets URL context of the service.
+     *
+     * @return URL context of the service.
+     */
+    @Override
+    public String getUrlContext() {
+        return URL_CONTEXT;
     }
 }

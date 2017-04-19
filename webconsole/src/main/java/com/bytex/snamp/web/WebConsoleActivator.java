@@ -4,18 +4,24 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
+import com.bytex.snamp.web.serviceModel.RESTController;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
+import com.bytex.snamp.web.serviceModel.logging.LogNotifierController;
 import com.bytex.snamp.web.serviceModel.notifications.NotificationService;
 import com.bytex.snamp.web.serviceModel.resourceGroups.ResourceGroupWatcherService;
+import org.ops4j.pax.logging.PaxLoggingService;
+import org.ops4j.pax.logging.spi.PaxAppender;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.servlet.Servlet;
 import java.io.IOException;
 import java.util.Map;
@@ -28,7 +34,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     private static final class WebConsoleServletProvider extends ProvidedService<WebConsoleEngine, WebConsoleEngineImpl>{
         private WebConsoleServletProvider(){
-            super(WebConsoleEngine.class, simpleDependencies(), Servlet.class);
+            super(WebConsoleEngine.class, noRequiredServices(), Servlet.class);
         }
 
         @Override
@@ -38,135 +44,191 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
             identity.put("alias", WebConsoleEngineImpl.CONTEXT);
             return registry;
         }
+    }
+
+    private static abstract class WebConsoleServiceProvider<S extends WebConsoleService, T extends S> extends ProvidedService<S, T>{
+        private static final String SERVICE_NAME_PROPERTY = "webConsoleServiceName";
+        private final String serviceName;
+
+        WebConsoleServiceProvider(@Nonnull final Class<S> mainContract,
+                                  @Nonnull final String serviceName,
+                                  final RequiredService<?>... dependencies) {
+            super(mainContract, dependencies, WebConsoleService.class);
+            this.serviceName = serviceName;
+        }
+
+        WebConsoleServiceProvider(@Nonnull final Class<S> mainContract,
+                                  @Nonnull final String serviceName,
+                                  final RequiredService<?>[] dependencies,
+                                  final Class<? super S> subContract) {
+            super(mainContract, dependencies, WebConsoleService.class, subContract);
+            this.serviceName = serviceName;
+        }
+
+        @Nonnull
+        abstract T activateService() throws Exception;
+
+        @OverridingMethodsMustInvokeSuper
+        void fillIdentity(final Map<String, Object> identity){
+            identity.put(SERVICE_NAME_PROPERTY, serviceName);
+        }
+
+        @Nonnull
+        @Override
+        protected final T activateService(final Map<String, Object> identity) throws Exception {
+            fillIdentity(identity);
+            return activateService();
+        }
 
         @Override
-        protected void cleanupService(final WebConsoleEngineImpl serviceInstance, final boolean stopBundle) throws Exception {
+        protected final void cleanupService(final T serviceInstance, final boolean stopBundle) throws Exception {
             serviceInstance.close();
+        }
+    }
+
+    private static final class WebConsoleServiceDependency extends RequiredServiceAccessor<RESTController>{
+        private final String name;
+
+        WebConsoleServiceDependency(@Nonnull final String serviceName) {
+            super(RESTController.class);
+            name = serviceName;
+        }
+
+        @Override
+        protected boolean match(final ServiceReference<RESTController> reference) {
+            return name.equals(reference.getProperty(WebConsoleServiceProvider.SERVICE_NAME_PROPERTY));
+        }
+    }
+
+    private static final class WebConsoleServiceServletProvider extends ProvidedService<Servlet, WebConsoleServiceServlet> {
+        private static final String ROOT_CONTEXT = "/snamp/web/api";
+
+        WebConsoleServiceServletProvider(@Nonnull final String serviceName) {
+            super(Servlet.class, new WebConsoleServiceDependency(serviceName));
+        }
+
+        @Nonnull
+        @Override
+        protected WebConsoleServiceServlet activateService(final Map<String, Object> identity) {
+            final RESTController serviceImpl = dependencies.getDependency(WebConsoleServiceDependency.class)
+                    .flatMap(WebConsoleServiceDependency::getService)
+                    .orElseThrow(AssertionError::new);
+            identity.put("alias", ROOT_CONTEXT + serviceImpl.getUrlContext());
+            return new WebConsoleServiceServlet(serviceImpl);
+        }
+
+        @Override
+        protected void cleanupService(final WebConsoleServiceServlet servlet, final boolean stopBundle) {
+            servlet.destroy();
         }
     }
 
     //=============Predefined services for WebConsole======
-    private static final class NotificationServiceProvider extends ProvidedService<WebConsoleService, NotificationService>{
-        private NotificationServiceProvider(){
-            super(WebConsoleService.class);
+    private static final class NotificationServiceProvider extends WebConsoleServiceProvider<RESTController, NotificationService>{
+        private static final String SERVICE_NAME = "notifications";
+
+        private NotificationServiceProvider() {
+            super(RESTController.class, SERVICE_NAME);
         }
 
-        @Override
         @Nonnull
-        protected NotificationService activateService(final Map<String, Object> identity) throws Exception {
-            identity.put(WebConsoleService.NAME, NotificationService.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, NotificationService.URL_CONTEXT);
+        @Override
+        NotificationService activateService() {
             return new NotificationService();
         }
     }
 
-    private static final class GroupWatcherServiceProvider extends ProvidedService<WebConsoleService, ResourceGroupWatcherService>{
+    private static final class GroupWatcherServiceProvider extends WebConsoleServiceProvider<RESTController, ResourceGroupWatcherService>{
+        private static final String SERVICE_NAME = "resourceGroupWatcher";
+
         private GroupWatcherServiceProvider(){
-            super(WebConsoleService.class);
+            super(RESTController.class, SERVICE_NAME);
         }
 
-        @Override
         @Nonnull
-        protected ResourceGroupWatcherService activateService(final Map<String, Object> identity) {
-            identity.put(WebConsoleService.NAME, ResourceGroupWatcherService.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, ResourceGroupWatcherService.URL_CONTEXT);
+        @Override
+        ResourceGroupWatcherService activateService() {
             return new ResourceGroupWatcherService();
         }
-
-        @Override
-        protected void cleanupService(final ResourceGroupWatcherService serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.close();
-        }
     }
 
-    private static final class E2EDataSourceProvider extends ProvidedService<WebConsoleService, E2EDataSource>{
-        private E2EDataSourceProvider(){
-            super(WebConsoleService.class, simpleDependencies(TopologyAnalyzer.class));
+    private static final class E2EDataSourceProvider extends WebConsoleServiceProvider<RESTController, E2EDataSource>{
+        private static final String SERVICE_NAME = "E2E";
+
+        private E2EDataSourceProvider() {
+            super(RESTController.class, SERVICE_NAME, requiredServices(E2EDataSource.class).require(TopologyAnalyzer.class));
         }
 
-        @Override
         @Nonnull
-        protected E2EDataSource activateService(final Map<String, Object> identity) throws IOException {
-            identity.put(WebConsoleService.NAME, E2EDataSource.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, E2EDataSource.URL_CONTEXT);
-            return new E2EDataSource(dependencies.getDependency(TopologyAnalyzer.class).orElseThrow(AssertionError::new));
-        }
-
         @Override
-        protected void cleanupService(final E2EDataSource serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.close();
+        E2EDataSource activateService() throws IOException {
+            return new E2EDataSource(dependencies.getService(TopologyAnalyzer.class).orElseThrow(AssertionError::new));
         }
     }
 
-    private static final class ChartDataSourceProvider extends ProvidedService<WebConsoleService, ChartDataSource>{
+    private static final class ChartDataSourceProvider extends WebConsoleServiceProvider<RESTController, ChartDataSource>{
+        private static final String SERVICE_NAME = "chartDataProvider";
+
         private ChartDataSourceProvider(){
-            super(WebConsoleService.class);
+            super(RESTController.class, SERVICE_NAME);
         }
 
-        @Override
         @Nonnull
-        protected ChartDataSource activateService(final Map<String, Object> identity) {
-            identity.put(WebConsoleService.NAME, ChartDataSource.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, ChartDataSource.URL_CONTEXT);
+        @Override
+        ChartDataSource activateService() {
             return new ChartDataSource();
         }
-
-        @Override
-        protected void cleanupService(final ChartDataSource serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.close();
-        }
     }
 
-    private static final class ManagedResourceInformationServiceProvider extends ProvidedService<WebConsoleService, ManagedResourceInformationService>{
+    private static final class ManagedResourceInformationServiceProvider extends WebConsoleServiceProvider<RESTController, ManagedResourceInformationService>{
+        private static final String SERVICE_NAME = "managedResourceInformationProvider";
+
         private ManagedResourceInformationServiceProvider(){
-            super(WebConsoleService.class, simpleDependencies(WebConsoleEngine.class));
+            super(RESTController.class, SERVICE_NAME);
         }
 
-        @Override
         @Nonnull
-        protected ManagedResourceInformationService activateService(final Map<String, Object> identity) {
-            identity.put(WebConsoleService.NAME, ManagedResourceInformationService.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, ManagedResourceInformationService.URL_CONTEXT);
+        @Override
+        ManagedResourceInformationService activateService() throws Exception {
             return new ManagedResourceInformationService();
         }
-
-        @Override
-        protected void cleanupService(final ManagedResourceInformationService serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.close();
-        }
     }
 
-    private static final class VersionResourceProvider extends ProvidedService<WebConsoleService, VersionResource>{
+    private static final class VersionResourceProvider extends WebConsoleServiceProvider<RESTController, VersionResource>{
+        private static final String SERVICE_NAME = "versionInformation";
+
         private VersionResourceProvider(){
-            super(WebConsoleService.class, simpleDependencies(WebConsoleEngine.class));
+            super(RESTController.class, SERVICE_NAME);
         }
 
-        @Override
         @Nonnull
-        protected VersionResource activateService(final Map<String, Object> identity) {
-            identity.put(WebConsoleService.NAME, VersionResource.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, VersionResource.URL_CONTEXT);
+        @Override
+        VersionResource activateService() {
             return new VersionResource();
         }
     }
 
-    private static final class LogNotifierProvider extends ProvidedService<WebConsoleService, LogNotifier> {
+    private static final class LogNotifierProvider extends WebConsoleServiceProvider<LogNotifierController, LogNotifier> {
+        private static final String SERVICE_NAME = "logNotifier";
+
         private LogNotifierProvider() {
-            super(WebConsoleService.class, simpleDependencies(WebConsoleEngine.class, ThreadPoolRepository.class));
+            super(LogNotifierController.class,
+                    SERVICE_NAME,
+                    requiredServices(LogNotifier.class).require(ThreadPoolRepository.class),
+                    PaxAppender.class);
         }
 
         @Override
+        void fillIdentity(final Map<String, Object> identity) {
+            identity.put(PaxLoggingService.APPENDER_NAME_PROPERTY, "SnampWebConsoleLogAppender");
+            super.fillIdentity(identity);
+        }
+
         @Nonnull
-        protected LogNotifier activateService(final Map<String, Object> identity) {
-            identity.put(WebConsoleService.NAME, LogNotifier.NAME);
-            identity.put(WebConsoleService.URL_CONTEXT, LogNotifier.URL_CONTEXT);
-            final ThreadPoolRepository repository = dependencies.getDependency(ThreadPoolRepository.class).orElseThrow(AssertionError::new);
-            return new LogNotifier(repository.getThreadPool(THREAD_POOL_NAME, true));
-        }
-
         @Override
-        protected void cleanupService(final LogNotifier serviceInstance, final boolean stopBundle) throws Exception {
-            serviceInstance.close();
+        LogNotifier activateService() throws Exception {
+            final ThreadPoolRepository repository = dependencies.getService(ThreadPoolRepository.class).orElseThrow(AssertionError::new);
+            return new LogNotifier(repository.getThreadPool(THREAD_POOL_NAME, true));
         }
     }
 
@@ -174,12 +236,25 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     public WebConsoleActivator() {
         super(new WebConsoleServletProvider(),
                 new LogNotifierProvider(),
+                new WebConsoleServiceServletProvider(LogNotifierProvider.SERVICE_NAME),
+
                 new VersionResourceProvider(),
+                new WebConsoleServiceServletProvider(VersionResourceProvider.SERVICE_NAME),
+
                 new ManagedResourceInformationServiceProvider(),
+                new WebConsoleServiceServletProvider(ManagedResourceInformationServiceProvider.SERVICE_NAME),
+
                 new ChartDataSourceProvider(),
+                new WebConsoleServiceServletProvider(ChartDataSourceProvider.SERVICE_NAME),
+
                 new E2EDataSourceProvider(),
+                new WebConsoleServiceServletProvider(E2EDataSourceProvider.SERVICE_NAME),
+
                 new GroupWatcherServiceProvider(),
-                new NotificationServiceProvider());
+                new WebConsoleServiceServletProvider(GroupWatcherServiceProvider.SERVICE_NAME),
+
+                new NotificationServiceProvider(),
+                new WebConsoleServiceServletProvider(NotificationServiceProvider.SERVICE_NAME));
     }
 
     @Override

@@ -15,7 +15,7 @@ public final class DefaultSupervisorActivator extends SupervisorActivator<Defaul
     @SpecialUse(SpecialUse.Case.OSGi)
     public DefaultSupervisorActivator() {
         super(DefaultSupervisorActivator::createSupervisor,
-                simpleDependencies(ConfigurationManager.class),
+                requiredServices(DefaultSupervisor.class).require(ConfigurationManager.class),
                 new SupportServiceManager<?, ?>[]{
                         configurationDescriptor(DefaultSupervisorConfigurationDescriptionProvider::new)
                 });
@@ -24,6 +24,6 @@ public final class DefaultSupervisorActivator extends SupervisorActivator<Defaul
     private static DefaultSupervisor createSupervisor(final String groupName,
                                                       final DependencyManager dependencies){
         return new DefaultSupervisor(groupName,
-                dependencies.getDependency(ConfigurationManager.class).orElseThrow(AssertionError::new));
+                dependencies.getService(ConfigurationManager.class).orElseThrow(AssertionError::new));
     }
 }

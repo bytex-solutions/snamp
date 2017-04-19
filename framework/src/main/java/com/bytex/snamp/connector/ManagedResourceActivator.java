@@ -424,7 +424,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
-        bundleLevelDependencies.add(ConfigurationManager.class);
+        bundleLevelDependencies.add(ConfigurationManager.class, context);
     }
 
     @Override
@@ -433,7 +433,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         activationProperties.publish(CONNECTOR_TYPE_HOLDER, connectorType);
         activationProperties.publish(LOGGER_HOLDER, logger);
         {
-            final CMManagedResourceParser parser = dependencies.getDependency(ConfigurationManager.class)
+            final CMManagedResourceParser parser = dependencies.getService(ConfigurationManager.class)
                     .flatMap(manager -> manager.queryObject(CMManagedResourceParser.class))
                     .orElseThrow(AssertionError::new);
             activationProperties.publish(MANAGED_RESOURCE_PARSER_HOLDER, parser);

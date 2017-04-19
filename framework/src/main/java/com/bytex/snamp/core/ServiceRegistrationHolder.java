@@ -7,7 +7,6 @@ import org.osgi.framework.ServiceRegistration;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import javax.management.InstanceNotFoundException;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -20,12 +19,12 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
-public class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T>, SafeCloseable {
+final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T>, SafeCloseable {
     private final ServiceRegistration<?> registration;
     private T serviceInstance;
 
     @SafeVarargs
-    protected ServiceRegistrationHolder(@Nonnull final BundleContext context,
+    ServiceRegistrationHolder(@Nonnull final BundleContext context,
                               @Nonnull final T service,
                               @Nonnull final Dictionary<String, ?> identity,
                               final Class<? super S>... serviceContracts) {
@@ -37,11 +36,11 @@ public class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistr
     }
 
     @Override
-    public final void setProperties(final Dictionary<String, ?> properties) {
+    public void setProperties(final Dictionary<String, ?> properties) {
         registration.setProperties(properties);
     }
 
-    final Hashtable<String, ?> dumpProperties() {
+    Hashtable<String, ?> dumpProperties() {
         final String[] propertyNames = registration.getReference().getPropertyKeys();
         final Hashtable<String, Object> result = new Hashtable<>(propertyNames.length * 2);
         for (final String propertyName : propertyNames)
@@ -60,12 +59,8 @@ public class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistr
         return (ServiceReference<S>) registration.getReference();
     }
 
-    public final ServiceHolder<S> createReferenceHolder(final BundleContext context) throws InstanceNotFoundException {
-        return new ServiceHolder<>(context, getReference());
-    }
-
     @Override
-    public final void unregister() {
+    public void unregister() {
         close();
     }
 
@@ -87,7 +82,7 @@ public class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistr
         return registration.toString();
     }
 
-    final boolean isUnregistered() {
-        return serviceInstance == null;
+    boolean isPublished() {
+        return serviceInstance != null;
     }
 }

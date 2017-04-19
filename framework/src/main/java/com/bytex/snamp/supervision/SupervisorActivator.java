@@ -217,7 +217,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
-        bundleLevelDependencies.add(ConfigurationManager.class);
+        bundleLevelDependencies.add(ConfigurationManager.class, context);
     }
 
     /**
@@ -234,7 +234,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         activationProperties.publish(SUPERVISOR_TYPE_HOLDER, supervisorType);
         activationProperties.publish(LOGGER_HOLDER, logger);
         {
-            final CMSupervisorParser parser = dependencies.getDependency(ConfigurationManager.class)
+            final CMSupervisorParser parser = dependencies.getService(ConfigurationManager.class)
                     .flatMap(manager -> manager.queryObject(CMSupervisorParser.class))
                     .orElseThrow(AssertionError::new);
             activationProperties.publish(SUPERVISOR_PARSER_HOLDER, parser);

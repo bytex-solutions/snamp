@@ -543,11 +543,17 @@ public final class ArrayUtils {
         return length -> length == 0 ? (T[]) emptyArrayImpl(elementType) : ObjectArrays.newArray(elementType, length);
     }
 
-    public static <I, O> O[] transform(final I[] array, final Class<O> elementType, final Function<? super I, ? extends O> transformer){
-        final O[] result = ObjectArrays.newArray(elementType, array.length);
-        for(int index = 0; index < array.length; index++)
-            result[index] = transformer.apply(array[index]);
-        return result;
+    @SuppressWarnings("unchecked")
+    public static <I, O> O[] transform(final I[] array, final Class<O> elementType, final Function<? super I, ? extends O> transformer) {
+        switch (array.length) {
+            case 0:
+                return (O[]) emptyArrayImpl(elementType);
+            default:
+                final O[] result = ObjectArrays.newArray(elementType, array.length);
+                for (int index = 0; index < array.length; index++)
+                    result[index] = transformer.apply(array[index]);
+                return result;
+        }
     }
 
     public static <T> T[] transformByteArray(final byte[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){

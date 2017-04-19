@@ -15,7 +15,7 @@ public final class HttpGatewayActivator extends GatewayActivator<HttpGateway> {
     @SpecialUse(SpecialUse.Case.OSGi)
     public HttpGatewayActivator() {
         super(HttpGatewayActivator::newGateway,
-                simpleDependencies(HttpService.class),
+                requiredServices(HttpGateway.class).require(HttpService.class),
                 new SupportServiceManager<?, ?>[]{
                         configurationDescriptor(HttpGatewayConfigurationDescriptor::new)
                 });
@@ -24,6 +24,6 @@ public final class HttpGatewayActivator extends GatewayActivator<HttpGateway> {
     @SuppressWarnings("unchecked")
     private static HttpGateway newGateway(final String instanceName,
                                           final DependencyManager dependencies) {
-        return new HttpGateway(instanceName, dependencies.getDependency(HttpService.class).orElseThrow(AssertionError::new));
+        return new HttpGateway(instanceName, dependencies.getService(HttpService.class).orElseThrow(AssertionError::new));
     }
 }
