@@ -53,16 +53,6 @@
             <artifactId>core</artifactId>
             <version>${snamp.instrumentation.version}</version>
             <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-core-asl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.codehaus.jackson</groupId>
-                    <artifactId>jackson-mapper-asl</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -80,16 +70,6 @@
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy</artifactId>
-            <classifier>indy</classifier>
-        </dependency>
-        <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>scripting</artifactId>
-            <version>${snamp.scripting.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>

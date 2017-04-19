@@ -11,7 +11,7 @@
     <feature name="snamp-data-analysis" description="Data Analysis services" version="${snamp.analysis.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-framework</feature>
         <feature version="${snamp.instrumentation.version}">snamp-instrumentation</feature>
-        <feature version="${snamp.version}">snamp-scripting-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-json-support</feature>
         <bundle>mvn:com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru/${concurrentlinkedhashmap.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/data-analysis/${snamp.analysis.version}</bundle>
     </feature>

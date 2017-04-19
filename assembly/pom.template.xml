@@ -49,14 +49,7 @@
                         <feature>scr</feature>
                         <feature>wrapper</feature>
                         <!--SNAMP Features-->
-                        <feature>jersey-server</feature>
-                        <feature>orientdb-server</feature>
                         <feature>snamp-core</feature>
-                        <feature>snamp-security</feature>
-                        <feature>snamp-web-support</feature>
-                        <feature>snamp-scripting-support</feature>
-                        <feature>snamp-ssh-support</feature>
-                        <feature>snamp-snmp-support</feature>
                     </installedFeatures>
                 </configuration>
             </plugin>

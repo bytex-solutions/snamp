@@ -2,14 +2,10 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-platform">
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
     <repository>mvn:org.apache.karaf.features/framework/${karaf.version}/xml/features</repository>
-
-    <feature name="jersey-core" description="Jersey 1.x core components" version="${jersey.version}">
-        <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
-        <bundle start="true">mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
-    </feature>
     
     <feature name="jersey-server" description="Jersey 1.x server-side libraries" version="${jersey.version}">
-        <feature version="${jersey.version}">jersey-core</feature>
+        <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
+        <bundle start="true">mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
         <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
     </feature>
@@ -35,7 +31,7 @@
         <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
     </feature>
 
-    <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}" install="auto">
+    <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
         <details>${project.description}</details>
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
         <!-- Third-party features -->
@@ -60,17 +56,17 @@
     <feature name="snamp-web-support" description="SNAMP support bundles for Web" version="${project.version}">
         <details>SNAMP support bundles for Web</details>
         <feature version="${project.version}">snamp-json-support</feature>
+        <feature version="${jersey.version}">jersey-server</feature>
         <bundle>mvn:io.netty/netty/${netty.version}</bundle>
         <bundle>mvn:org.codehaus.jettison/jettison/${jettison.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-jaxrs/${jackson.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-xc/${jackson.version}</bundle>
-        <feature version="${jersey.version}">jersey-core</feature>
         <bundle>mvn:com.sun.jersey/jersey-json/${jersey.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-client/${jersey.version}</bundle>
     </feature>
 
     <feature name="snamp-scripting-support" description="SNAMP support bundles for scripting" version="${project.version}">
-        <feature version="${project.version}" >snamp-core</feature>
+        <feature version="${project.version}" >snamp-framework</feature>
         <bundle>mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.codehaus.groovy/groovy-xml/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.codehaus.groovy/groovy-json/${groovy.version}/jar/indy</bundle>
