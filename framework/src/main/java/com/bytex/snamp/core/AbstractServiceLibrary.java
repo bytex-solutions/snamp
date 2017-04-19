@@ -215,7 +215,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             registration = new ServiceRegistrationHolder<>(context, serviceInstance, identity, serviceContracts);
         }
 
-        private synchronized void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
+        synchronized void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
             this.properties = properties;
             activationContext = context;
             if (dependencies.isEmpty()) //instantiate and register service now because there are no dependencies, no dependency tracking is required
@@ -232,7 +232,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             }
         }
 
-        private synchronized void unregister(final BundleContext context) throws Exception {
+        synchronized void unregister(final BundleContext context) throws Exception {
             if (dependencyTracker != null) {
                 context.removeServiceListener(dependencyTracker);
                 dependencyTracker.clear();     //help GC

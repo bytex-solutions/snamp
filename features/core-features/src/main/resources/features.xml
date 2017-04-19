@@ -3,9 +3,13 @@
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
     <repository>mvn:org.apache.karaf.features/framework/${karaf.version}/xml/features</repository>
 
-    <feature name="jersey-server" description="Jersey 1.x server-side libraries" version="${jersey.version}">
+    <feature name="jersey-core" description="Jersey 1.x core components" version="${jersey.version}">
         <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
         <bundle start="true">mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
+    </feature>
+    
+    <feature name="jersey-server" description="Jersey 1.x server-side libraries" version="${jersey.version}">
+        <feature version="${jersey.version}">jersey-core</feature>
         <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
         <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
     </feature>
@@ -17,6 +21,7 @@
     </feature>
 
     <feature name="orientdb-server" description="OrientDB NoSQL Database" version="${orientdb.version}">
+        <bundle>mvn:com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru/${concurrentlinkedhashmap.version}</bundle>
         <bundle>mvn:com.orientechnologies/orientdb-core/${orientdb.version}</bundle>
         <bundle>mvn:com.orientechnologies/orientdb-tools/${orientdb.version}</bundle>
         <bundle>mvn:com.orientechnologies/orientdb-client/${orientdb.version}</bundle>
@@ -24,13 +29,15 @@
         <bundle>mvn:com.orientechnologies/orientdb-distributed/${orientdb.version}</bundle>
     </feature>
 
-    <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
-        <details>${project.description}</details>
-        <!-- Third-party bundles -->
+    <feature name="snamp-framework" description="SNAMP Framework libraries" version="${project.version}">
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle>mvn:com.google.code.findbugs/jsr305/${jsr305.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
+    </feature>
+
+    <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}" install="auto">
+        <details>${project.description}</details>
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
-        <bundle>mvn:com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru/1.4.2</bundle>
         <!-- Third-party features -->
         <feature version="[${karaf.version}, ${karaf.maxVersion})">eventadmin</feature>
         <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
@@ -39,7 +46,7 @@
         <feature version="${orientdb.version}">orientdb-server</feature>
         <!--SNAMP dependencies-->
         <feature version="${project.version}">snamp-json-support</feature>
-        <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
+        <feature version="${project.version}">snamp-framework</feature>
         <bundle start="true">mvn:com.bytex.snamp/security/${snamp.security.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
     </feature>
@@ -57,6 +64,7 @@
         <bundle>mvn:org.codehaus.jettison/jettison/${jettison.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-jaxrs/${jackson.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-xc/${jackson.version}</bundle>
+        <feature version="${jersey.version}">jersey-core</feature>
         <bundle>mvn:com.sun.jersey/jersey-json/${jersey.version}</bundle>
         <bundle>mvn:com.sun.jersey/jersey-client/${jersey.version}</bundle>
     </feature>
