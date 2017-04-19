@@ -89,6 +89,8 @@ export class REST {
 
     public static RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
 
+    public static THREAD_POOL_CONFIG = REST.CFG_PATH + "/threadPools";
+
     public static RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
 
     public static COMPONENTS_MANAGEMENT = REST.ROOT_PATH + "/components";

@@ -928,15 +928,14 @@ var factory_1 = __webpack_require__("./src/app/watchers/model/factory.ts");
 var watcher_1 = __webpack_require__("./src/app/watchers/model/watcher.ts");
 var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scriptlet.data.object.ts");
 var colored_checker_1 = __webpack_require__("./src/app/watchers/model/colored.checker.ts");
-var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var attribute_1 = __webpack_require__("./src/app/charts/model/attribute.ts");
-__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
-__webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
+__webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
 var MainComponent = (function () {
-    function MainComponent(apiClient, _router, modal, overlay, vcRef) {
-        this._router = _router;
+    function MainComponent(http, modal, overlay, vcRef) {
+        this.http = http;
         this.modal = modal;
         this.components = [];
         this.watchers = [];
@@ -951,7 +950,6 @@ var MainComponent = (function () {
         this.activeChecker = new scriptlet_data_object_1.ScriptletDataObject();
         this.checkersType = EntityWithDescription.generateCheckersTypes();
         this.triggerLanguages = ["Groovy", "JavaScript"];
-        this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
     }
     MainComponent.prototype.saveCurrentTrigger = function () {
@@ -971,12 +969,15 @@ var MainComponent = (function () {
         });
         // find all the components
         this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
-            .map(function (res) { return res.json(); })
+            .map(function (res) {
+            return res.json();
+        })
             .subscribe(function (data) {
             _this.components = data;
         });
     };
-    MainComponent.prototype.ngAfterViewInit = function () { };
+    MainComponent.prototype.ngAfterViewInit = function () {
+    };
     MainComponent.prototype.initTriggerModal = function () {
         // clean the data if the component was already initialized
         if (this.triggerInitialized) {
@@ -1106,7 +1107,6 @@ var MainComponent = (function () {
             showStepURLhash: false,
             transitionEffect: 'fade'
         });
-        var _thisReference = this;
         $(this.getTriggerWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
             console.log(stepNumber);
         });
@@ -1118,7 +1118,6 @@ var MainComponent = (function () {
             showStepURLhash: false,
             transitionEffect: 'fade'
         });
-        var _thisReference = this;
         $(this.getCheckersWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
             console.log(stepNumber);
         });
@@ -1149,10 +1148,10 @@ var MainComponent = (function () {
             template: __webpack_require__("./src/app/watchers/templates/main.html"),
             styles: [__webpack_require__("./src/app/watchers/templates/css/main.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _e) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _b) || Object, (typeof (_c = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _c) || Object, (typeof (_d = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _d) || Object])
     ], MainComponent);
     return MainComponent;
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d;
 }());
 exports.MainComponent = MainComponent;
 var EntityWithDescription = (function () {

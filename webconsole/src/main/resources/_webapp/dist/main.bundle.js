@@ -87800,6 +87800,7 @@ var REST = (function () {
     REST.CFG_PATH = REST.ROOT_PATH + "/configuration";
     REST.GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
     REST.RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
+    REST.THREAD_POOL_CONFIG = REST.CFG_PATH + "/threadPools";
     REST.RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
     REST.COMPONENTS_MANAGEMENT = REST.ROOT_PATH + "/components";
     REST.AVAILABLE_GATEWAY_LIST = REST.COMPONENTS_MANAGEMENT + "/gateways";

@@ -11,16 +11,12 @@ import { FullSaveComponent }  from './configuration.fullsave';
 import { SnampLogSettingsComponent } from "./configuration.logsettings";
 import { HttpModule } from '@angular/http';
 import { CookieService } from 'angular2-cookie/core';
-
 import { BindingTable } from './components/binding-table.component'
-
 import { VexModalModule } from 'angular2-modal/plugins/vex';
 import { ModalModule } from 'angular2-modal';
 import { TooltipModule } from 'ng2-tooltip';
 import { RouterModule } from '@angular/router';
-
 import { SharedConfigurationModule, CommonSnampUtilsModule } from '../app.module';
-
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 
 
