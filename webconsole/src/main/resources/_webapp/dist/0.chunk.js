@@ -38206,10 +38206,10 @@ var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var SnampCfgComponent = (function () {
-    function SnampCfgComponent(apiClient, overlay, vcRef, modal) {
+    function SnampCfgComponent(http, overlay, vcRef, modal) {
+        this.http = http;
         this.modal = modal;
         this.components = [];
-        this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
     }
     SnampCfgComponent.prototype.ngOnInit = function () {
@@ -38231,7 +38231,7 @@ var SnampCfgComponent = (function () {
     SnampCfgComponent.prototype.startComponent = function (selected) {
         var _this = this;
         $('#overlay').fadeIn();
-        this.http.post(app_restClient_1.REST.ENABLE_COMPONENT(selected.class, selected.type), "")
+        this.http.post(app_restClient_1.REST.ENABLE_COMPONENT(selected._class, selected.type), "")
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
             console.log("started " + selected.type + " component. result from server is " + data);
@@ -38253,7 +38253,7 @@ var SnampCfgComponent = (function () {
     SnampCfgComponent.prototype.stopComponent = function (selected) {
         var _this = this;
         $('#overlay').fadeIn();
-        this.http.post(app_restClient_1.REST.DISABLE_COMPONENT(selected.class, selected.type), "")
+        this.http.post(app_restClient_1.REST.DISABLE_COMPONENT(selected._class, selected.type), "")
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
             console.log("stopped " + selected.type + " component. result from server is " + data);
@@ -38291,7 +38291,7 @@ var SnampComponent = (function () {
         this.state = "";
         this.version = "";
         this.type = "";
-        this.class = "";
+        this._class = "";
         if (parameters["name"] != undefined) {
             this.name = parameters["name"];
         }
@@ -38308,9 +38308,12 @@ var SnampComponent = (function () {
             this.type = parameters["type"];
         }
         if (parameters["class"] != undefined) {
-            this.class = parameters["class"];
+            this._class = SnampComponent.typeToResourceClassName(parameters["class"]) + "s";
         }
     }
+    SnampComponent.typeToResourceClassName = function (type) {
+        return type.substring(0, type.indexOf("Type")).toLowerCase();
+    };
     return SnampComponent;
 }());
 

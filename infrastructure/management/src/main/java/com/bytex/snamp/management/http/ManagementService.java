@@ -77,7 +77,7 @@ public final class ManagementService extends AbstractManagementService {
                         .put("description", entry.toString(Locale.getDefault()))
                         .put("state", ManagementUtils.getStateString(entry))
                         .put("version", entry.getVersion().toString())
-                        .put("class", "resource")
+                        .put("class", ManagementUtils.getComponentSystemType(entry, INTERNAL_COMPONENT_TYPE_NAME))
                         .put("type", typeResolver.apply(entry))
                         .build())
                 .forEach(output::add);

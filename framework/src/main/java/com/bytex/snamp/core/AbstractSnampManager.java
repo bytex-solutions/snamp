@@ -189,6 +189,15 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         public String toString() {
             return getType();
         }
+
+        /**
+         * Returns component type holder.
+         * @see com.bytex.snamp.core.SnampComponentDescriptor class constants.
+         * @return One of the defined constants for possible component type
+         */
+        public final String getComponentTypeHolder() {
+            return this.componentTypeHolder;
+        }
     }
 
     public static abstract class SupervisorDescriptor extends TypedComponentDescriptor{
