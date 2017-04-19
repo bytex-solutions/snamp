@@ -3,8 +3,10 @@ package com.bytex.snamp.supervision.openstack;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
+import com.bytex.snamp.supervision.openstack.discovery.OpenStackDiscoveryService;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
+import org.openstack4j.api.identity.v3.ServiceEndpointService;
 import org.openstack4j.api.types.ServiceType;
 import org.openstack4j.openstack.OSFactory;
 
@@ -15,6 +17,7 @@ import org.openstack4j.openstack.OSFactory;
  * @since 2.0
  */
 final class OpenStackSupervisor extends DefaultSupervisor {
+    private OSClientV3 openStackClient;
 
     OpenStackSupervisor(final String groupName) {
         super(groupName);
@@ -29,6 +32,9 @@ final class OpenStackSupervisor extends DefaultSupervisor {
         return client.getSupportedServices().contains(ServiceType.CLUSTERING);
     }
 
+    private static void enableSnampDiscoveryEndpoint(final ServiceEndpointService endpoints){
+    }
+
     /**
      * Starts the tracking resources.
      * <p>
@@ -41,7 +47,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
     @Override
     protected void start(final SupervisorInfo configuration) throws Exception {
         final OpenStackSupervisorDescriptionProvider parser = getDescriptionProvider();
-        final OSClientV3 openStackClient = OSFactory.builderV3()
+        openStackClient = OSFactory.builderV3()
                 .provider(parser.parseCloudProvider(configuration))
                 .endpoint(parser.parseApiEndpoint(configuration))
                 .scopeToProject(parser.parseProject(configuration), parser.parseProjectDomain(configuration))
@@ -51,13 +57,25 @@ final class OpenStackSupervisor extends DefaultSupervisor {
             final String message = String.format("OpenStack installation %s doesn't support clustering via Senlin. Supervisor for group %s is not started", openStackClient.getEndpoint(), groupName);
             throw new OS4JException(message);
         }
-
+        //register SNAMP as endpoint
+        enableSnampDiscoveryEndpoint(openStackClient.identity().serviceEndpoints());
+        //setup discovery service
+        if(parser.isAutoDiscovery(configuration))
+            overrideDiscoveryService(new OpenStackDiscoveryService(groupName));
         final boolean enableElastMan = parser.isElasticityManagementEnabled(configuration);
         super.start(configuration);
     }
 
     private void stopElasticityManager() throws Exception{
 
+    }
+
+    private static void disableSnampDiscoveryEndpoint(final ServiceEndpointService endpoints){
+
+    }
+
+    private void disableSnampDiscoveryEndpoint(){
+        disableSnampDiscoveryEndpoint(openStackClient.identity().serviceEndpoints());
     }
 
     /**
@@ -69,6 +87,10 @@ final class OpenStackSupervisor extends DefaultSupervisor {
      */
     @Override
     protected void stop() throws Exception {
-        Utils.closeAll(() -> super.stop(), this::stopElasticityManager);
+        try {
+            Utils.closeAll(() -> super.stop(), this::stopElasticityManager, this::disableSnampDiscoveryEndpoint);
+        } finally {
+            openStackClient = null;
+        }
     }
 }

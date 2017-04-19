@@ -11,7 +11,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public class InvalidAttributeValue extends MalfunctionStatus {
+public final class InvalidAttributeValue extends ResourceMalfunction {
     public static final int CODE = 3;
     private static final long serialVersionUID = -84085262684742050L;
     private final Attribute attribute;

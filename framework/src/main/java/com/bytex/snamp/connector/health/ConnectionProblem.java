@@ -10,7 +10,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public class ConnectionProblem extends MalfunctionStatus {
+public final class ConnectionProblem extends ResourceMalfunction {
     public static final int CODE = 1;
     private static final long serialVersionUID = -3765564303828054111L;
     private final IOException error;
@@ -20,7 +20,7 @@ public class ConnectionProblem extends MalfunctionStatus {
         this.error = Objects.requireNonNull(error);
     }
 
-    public final IOException getError(){
+    public IOException getError(){
         return error;
     }
 

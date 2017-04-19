@@ -10,7 +10,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public class ResourceIsNotAvailable extends MalfunctionStatus {
+public final class ResourceIsNotAvailable extends ResourceMalfunction {
     public static final int CODE = 2;
     private static final long serialVersionUID = -1368848980168422995L;
     private final JMException error;

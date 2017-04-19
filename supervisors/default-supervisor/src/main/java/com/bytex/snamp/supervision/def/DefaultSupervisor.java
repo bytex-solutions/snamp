@@ -1,7 +1,6 @@
 package com.bytex.snamp.supervision.def;
 
 import com.bytex.snamp.concurrent.WeakRepeater;
-import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
@@ -61,33 +60,54 @@ public class DefaultSupervisor extends AbstractSupervisor {
     @Aggregation
     private DefaultResourceDiscoveryService discoveryService;
     private HealthStatusUpdater updater;
-    private final ConfigurationManager configurationManager;
 
     public DefaultSupervisor(@Nonnull final String groupName){
         super(groupName);
-        this.configurationManager = null;
     }
 
-    protected DefaultSupervisor(@Nonnull final String groupName,
-                                @Nonnull final ConfigurationManager configManager){
-        super(groupName);
-        this.configurationManager = configManager;
-    }
-
-    protected final void setCheckerFactory(@Nonnull final AttributeCheckerFactory value){
+    protected final void overrideCheckerFactory(@Nonnull final AttributeCheckerFactory value){
         checkerFactory = value;
     }
 
-    protected final void setTriggerFactory(@Nonnull final TriggerFactory value){
+    private void setupCheckerFactory(){
+        if(checkerFactory == null)
+            overrideCheckerFactory(new AttributeCheckerFactory());
+        else
+            getLogger().info(String.format("AttributeCheckerFactory is overridden with %s", checkerFactory));
+    }
+
+    protected final void overrideTriggerFactory(@Nonnull final TriggerFactory value){
         triggerFactory = value;
     }
 
-    protected final void setHealthStatusProvider(@Nonnull final DefaultHealthStatusProvider value){
+    private void setupTriggerFactory(){
+        if(triggerFactory == null)
+            overrideTriggerFactory(new TriggerFactory());
+        else
+            getLogger().info(String.format("TriggerFactory is overridden with %s", triggerFactory));
+    }
+
+    protected final void overrideHealthStatusProvider(@Nonnull final DefaultHealthStatusProvider value){
         healthStatusProvider = value;
     }
 
-    protected final void setDiscoveryService(@Nonnull final DefaultResourceDiscoveryService value){
+    private void setupHealthStatusProvider(){
+        if(healthStatusProvider == null)
+            overrideHealthStatusProvider(new DefaultHealthStatusProvider(groupName));
+        else
+            getLogger().info(String.format("HealthStatusProvider is overridden with %s", healthStatusProvider));
+    }
+
+    protected final void overrideDiscoveryService(@Nonnull final DefaultResourceDiscoveryService value){
+        value.setSource(this);
         discoveryService = value;
+    }
+
+    private void setupDiscoveryService(){
+        if(discoveryService == null)
+            overrideDiscoveryService(new DefaultResourceDiscoveryService(groupName));
+        else
+            getLogger().info(String.format("ResourceDiscoveryService is overridden with %s", discoveryService));
     }
 
     private void updateHealthStatus() {
@@ -123,6 +143,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
      * @throws Exception Unable to stop tracking resources.
      */
     @Override
+    @OverridingMethodsMustInvokeSuper
     protected void stop() throws Exception {
         try {
             Utils.closeAll(updater::terminate, healthStatusProvider);
@@ -141,7 +162,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
      * @param healthCheckInfo Health check configuration.
      * @throws ScriptletCompilationException Unable to compile one or more scriptlets (triggers or attribute checkers).
      */
-    protected final void setupHealthCheck(@Nonnull final HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
+    private void setupHealthCheck(@Nonnull final HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
         assert healthStatusProvider != null : "Health status provided is not initialized";
         assert triggerFactory != null : "Trigger factory is not defined";
         healthStatusProvider.setTrigger(triggerFactory.compile(healthCheckInfo.getTrigger()));
@@ -165,19 +186,14 @@ public class DefaultSupervisor extends AbstractSupervisor {
      * @throws Exception Unable to start tracking.
      */
     @Override
+    @OverridingMethodsMustInvokeSuper
     protected void start(final SupervisorInfo configuration) throws Exception {
         final DefaultSupervisorConfigurationDescriptionProvider parser = getDescriptionProvider();
-        setCheckerFactory(new AttributeCheckerFactory());
-        setHealthStatusProvider(new DefaultHealthStatusProvider(groupName));
-        setTriggerFactory(new TriggerFactory());
+        setupCheckerFactory();
+        setupTriggerFactory();
+        setupHealthStatusProvider();
+        setupDiscoveryService();
         setupHealthCheck(configuration.getHealthCheckConfig());
-        if (configurationManager == null) {
-            getLogger().warning("Configuration manager is not available. Default discovery service is disabled");
-        } else {
-            final DefaultResourceDiscoveryService discoveryService = new DefaultResourceDiscoveryService(groupName, configurationManager);
-            discoveryService.setSource(this);
-            setDiscoveryService(discoveryService);
-        }
         //start updater thread
         updater = new HealthStatusUpdater(parser.parseCheckPeriod(configuration), this);
         updater.run();

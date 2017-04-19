@@ -459,7 +459,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * @param bnd The bundle to check.
      * @return {@literal true}, if the specified bundle is a part of SNAMP; otherwise, {@literal false}.
      */
-    public static boolean isSnampComponent(final Bundle bnd){
+    private static boolean isSnampComponent(final Bundle bnd){
         if(Gateway.isGatewayBundle(bnd) || Supervisor.isSupervisorBundle(bnd) ||
                 ManagedResourceConnector.isResourceConnectorBundle(bnd)) return false;
         final String importPackages = bnd.getHeaders().get(Constants.IMPORT_PACKAGE);
