@@ -3,7 +3,6 @@ import { ApiClient, REST } from '../../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Binding } from './model.binding';
-import { OnInit } from '@angular/core';
 
 import 'rxjs/add/observable/throw';
 

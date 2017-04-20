@@ -18,6 +18,7 @@ import { TooltipModule } from 'ng2-tooltip';
 import { RouterModule } from '@angular/router';
 import { SharedConfigurationModule, CommonSnampUtilsModule } from '../app.module';
 import { Ng2SmartTableModule } from 'ng2-smart-table';
+import { ThreadPoolsComponent } from "./configuration.thread.pools";
 
 
 // must read http://blog.angular-university.io/angular2-ngmodule/
@@ -87,3 +88,10 @@ export class FullSaveModule { }
   providers:    PROVIDERS
 })
 export class NotificationsModule { }
+
+@NgModule({
+  imports:      IMPORTS.concat([RouterModule.forChild([{ path: '', component: ThreadPoolsComponent }])]),
+  declarations: [ ThreadPoolsComponent ],
+  providers:    PROVIDERS
+})
+export class ThreadPoolModule { }

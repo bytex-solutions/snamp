@@ -161,6 +161,11 @@ export class REST {
         return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
     }
 
+    // certain tread pool configuration by name
+    public static THREAD_POOL_BY_NAME(name:string):string {
+        return REST.THREAD_POOL_CONFIG + "/" + name;
+    }
+
     // SNAMP WEB API SECTION (belongs to webconsole module)
     public static ROOT_WEB_API_PATH: string = "/snamp/web/api";
 

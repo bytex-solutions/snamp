@@ -1965,6 +1965,21 @@ exports.push([module.i, "/* grid-item\r\n------------------------- */\r\n\r\n.gr
 
 /***/ },
 
+/***/ "./node_modules/css-loader/index.js!./src/app/configuration/templates/css/threadpools.css":
+/***/ function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
+// imports
+
+
+// module
+exports.push([module.i, ".activeTr {\r\n    border: 1px solid #2f9c0a;\r\n}", ""]);
+
+// exports
+
+
+/***/ },
+
 /***/ "./node_modules/ieee754/index.js":
 /***/ function(module, exports) {
 
@@ -37749,6 +37764,7 @@ var ng2_tooltip_1 = __webpack_require__("./node_modules/ng2-tooltip/index.js");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var app_module_1 = __webpack_require__("./src/app/app.module.ts");
 var ng2_smart_table_1 = __webpack_require__("./node_modules/ng2-smart-table/build/ng2-smart-table.js");
+var configuration_thread_pools_1 = __webpack_require__("./src/app/configuration/configuration.thread.pools.ts");
 // must read http://blog.angular-university.io/angular2-ngmodule/
 var IMPORTS = [
     app_module_1.CommonSnampUtilsModule,
@@ -37863,6 +37879,20 @@ var NotificationsModule = (function () {
     return NotificationsModule;
 }());
 exports.NotificationsModule = NotificationsModule;
+var ThreadPoolModule = (function () {
+    function ThreadPoolModule() {
+    }
+    ThreadPoolModule = __decorate([
+        core_1.NgModule({
+            imports: IMPORTS.concat([router_1.RouterModule.forChild([{ path: '', component: configuration_thread_pools_1.ThreadPoolsComponent }])]),
+            declarations: [configuration_thread_pools_1.ThreadPoolsComponent],
+            providers: PROVIDERS
+        }), 
+        __metadata('design:paramtypes', [])
+    ], ThreadPoolModule);
+    return ThreadPoolModule;
+}());
+exports.ThreadPoolModule = ThreadPoolModule;
 
 
 /***/ },
@@ -38339,6 +38369,174 @@ var SnampComponent = (function () {
 
 /***/ },
 
+/***/ "./src/app/configuration/configuration.thread.pools.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
+var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var model_thread_pool_1 = __webpack_require__("./src/app/configuration/model/model.thread.pool.ts");
+var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
+var ThreadPoolsComponent = (function () {
+    function ThreadPoolsComponent(http, overlay, vcRef, modal) {
+        this.http = http;
+        this.modal = modal;
+        this.threadPools = [];
+        overlay.defaultViewContainer = vcRef;
+    }
+    ThreadPoolsComponent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.http.get(app_restClient_1.REST.THREAD_POOL_CONFIG)
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            _this.threadPools = model_thread_pool_1.ThreadPool.makeBunchFromJson(data);
+            if (_this.threadPools.length > 0) {
+                _this.setActiveThreadPool(_this.threadPools[0]);
+            }
+        });
+    };
+    ThreadPoolsComponent.prototype.setActiveThreadPool = function (pool) {
+        this.selectedThreadPool = pool;
+        this.threadPool = this.selectedThreadPool.clone();
+    };
+    ThreadPoolsComponent.prototype.removeThreadPoolFromArray = function (pool) {
+        for (var i = 0; i < this.threadPools.length; i++) {
+            if (this.threadPools[i].guid == pool.guid) {
+                this.threadPools.splice(i, 1);
+                if (this.threadPools.length > 0) {
+                    this.setActiveThreadPool(this.threadPools[0]);
+                }
+                console.log("Thread pool has been removed");
+                break;
+            }
+        }
+    };
+    ThreadPoolsComponent.prototype.saveThreadPoolToServer = function (pool) {
+        var _this = this;
+        this.http.put(app_restClient_1.REST.THREAD_POOL_BY_NAME(pool.name), pool.toJSON())
+            .map(function (response) { return response.json(); })
+            .subscribe(function () {
+            // if this is the new pool - push it to the array for displaying it in the template
+            if (!model_entity_1.Entity.containsInArray(pool, _this.threadPools)) {
+                _this.threadPools.push(pool);
+            }
+            _this.setActiveThreadPool(pool);
+        });
+    };
+    ThreadPoolsComponent.prototype.isActivePool = function (pool) {
+        return pool.guid == this.selectedThreadPool.guid;
+    };
+    ThreadPoolsComponent.prototype.cloneThreadPool = function (pool) {
+        var _this = this;
+        this.modal.prompt()
+            .className('default')
+            .message('Clone thread pool')
+            .placeholder('Please set the name for a new thread pool')
+            .open()
+            .then(function (dialog) { return dialog.result; })
+            .then(function (result) {
+            var _newThreadPool = pool.clone();
+            _newThreadPool.name = result;
+            _this.http.put(app_restClient_1.REST.THREAD_POOL_BY_NAME(result), _newThreadPool.toJSON())
+                .map(function (response) { return response.json(); })
+                .subscribe(function () {
+                _this.threadPools.push(_newThreadPool);
+                _this.setActiveThreadPool(_newThreadPool);
+            });
+        })
+            .catch(function () { });
+    };
+    ThreadPoolsComponent.prototype.editThreadPool = function (pool) {
+        this.setActiveThreadPool(pool);
+        $(ThreadPoolsComponent.modalDialogId).modal("show");
+    };
+    ThreadPoolsComponent.prototype.removeThreadPool = function (pool) {
+        var _this = this;
+        this.modal.confirm()
+            .className('default')
+            .message('Thread pool is going to be removed. Proceed?')
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this.http.delete(app_restClient_1.REST.THREAD_POOL_BY_NAME(pool.name))
+                    .map(function (res) { return res.text(); })
+                    .subscribe(function () { return _this.removeThreadPoolFromArray(pool); });
+                return response;
+            })
+                .catch(function () {
+                console.log("User preferred to decline thread pool removing");
+            });
+        });
+    };
+    ThreadPoolsComponent.prototype.addNewThreadPool = function () {
+        var _this = this;
+        this.modal.prompt()
+            .className('default')
+            .message('New thread pool')
+            .placeholder('Please set the name for a new thread pool')
+            .open()
+            .then(function (dialog) { return dialog.result; })
+            .then(function (result) {
+            var _newThreadPool = new model_thread_pool_1.ThreadPool(result, {});
+            _this.setActiveThreadPool(_newThreadPool);
+            $(ThreadPoolsComponent.modalDialogId).modal("show");
+        })
+            .catch(function () { });
+    };
+    ThreadPoolsComponent.prototype.cancelThreadDialog = function () {
+        if (this.threadPools.length > 0) {
+            this.setActiveThreadPool(this.threadPools[0]);
+        }
+        $(ThreadPoolsComponent.modalDialogId).modal("hide");
+    };
+    ThreadPoolsComponent.prototype.saveThreadDialog = function () {
+        var _this = this;
+        // if we already have this pool in the array and its name has been changed - confirm user about consequences
+        if (this.threadPool.name != this.selectedThreadPool.name
+            && model_entity_1.Entity.containsInArray(this.threadPool, this.threadPools)) {
+            this.modal.confirm()
+                .className('default')
+                .message('You have renamed thread pool. It will affect all linked components. Proceed?')
+                .open()
+                .then(function (resultPromise) {
+                return resultPromise.result
+                    .then(function (response) {
+                    _this.saveThreadPoolToServer(_this.threadPool);
+                    $(ThreadPoolsComponent.modalDialogId).modal("hide");
+                    return response;
+                })
+                    .catch(function () {
+                    console.log("User preferred to decline thread pool saving");
+                });
+            });
+        }
+        else {
+            this.saveThreadPoolToServer(this.threadPool);
+            $(ThreadPoolsComponent.modalDialogId).modal("hide");
+        }
+    };
+    ThreadPoolsComponent.modalDialogId = "#editThreadPoolModal";
+    ThreadPoolsComponent = __decorate([
+        core_1.Component({
+            moduleId: module.i,
+            template: __webpack_require__("./src/app/configuration/templates/threadpools.html"),
+            styles: [__webpack_require__("./src/app/configuration/templates/css/threadpools.css")]
+        }), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
+    ], ThreadPoolsComponent);
+    return ThreadPoolsComponent;
+    var _a, _b, _c, _d;
+}());
+exports.ThreadPoolsComponent = ThreadPoolsComponent;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
 /***/ "./src/app/configuration/model/model.resourceGroup.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -38408,6 +38606,144 @@ exports.ResourceGroup = ResourceGroup;
 
 /***/ },
 
+/***/ "./src/app/configuration/model/model.thread.pool.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
+var ThreadPool = (function (_super) {
+    __extends(ThreadPool, _super);
+    /**
+     * Constructor with default values.
+     *
+     * threadPriority = DEFAULT_THREAD_PRIORITY.
+     * minPoolSize = DEFAULT_MIN_POOL_SIZE.
+     * maxPoolSize = DEFAULT_MAX_POOL_SIZE.
+     * queueSize = INFINITE_QUEUE_SIZE.
+     * keepAliveTime = DEFAULT_KEEP_ALIVE_TIME.
+     * @param name - name for the entity.
+     * @param params - parameters key value map for the entity.
+     */
+    function ThreadPool(name, params) {
+        _super.call(this, name, params);
+        this.threadPriority = 5;
+        this.minPoolSize = 1;
+        this.maxPoolSize = 2;
+        this.queueSize = 5;
+        this.keepAliveTime = 1;
+    }
+    Object.defineProperty(ThreadPool.prototype, "threadPriority", {
+        get: function () {
+            return this._threadPriority;
+        },
+        set: function (value) {
+            this._threadPriority = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ThreadPool.prototype, "minPoolSize", {
+        get: function () {
+            return this._minPoolSize;
+        },
+        set: function (value) {
+            this._minPoolSize = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ThreadPool.prototype, "maxPoolSize", {
+        get: function () {
+            return this._maxPoolSize;
+        },
+        set: function (value) {
+            this._maxPoolSize = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ThreadPool.prototype, "queueSize", {
+        get: function () {
+            return this._queueSize;
+        },
+        set: function (value) {
+            this._queueSize = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ThreadPool.prototype, "keepAliveTime", {
+        get: function () {
+            return this._keepAliveTime;
+        },
+        set: function (value) {
+            this._keepAliveTime = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ThreadPool.prototype, "useInfiniteQueue", {
+        get: function () {
+            return this._useInfiniteQueue;
+        },
+        set: function (value) {
+            this._useInfiniteQueue = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ThreadPool.prototype.clone = function () {
+        return $.extend({}, this);
+    };
+    ThreadPool.prototype.toJSON = function () {
+        var _value = {};
+        if (this.parameters.length > 0) {
+            _value["parameters"] = this.stringifyParameters();
+        }
+        _value["threadPriority"] = this.threadPriority;
+        _value["minPoolSize"] = this.minPoolSize;
+        _value["maxPoolSize"] = this.maxPoolSize;
+        _value["keepAliveTime"] = this.keepAliveTime;
+        _value["queueSize"] = this.useInfiniteQueue ? ThreadPool.MAX_INT_NUMBER : this.queueSize;
+        return _value;
+    };
+    ThreadPool.makeFromJson = function (name, _json) {
+        var _tp = new ThreadPool(name, _json["parameters"]);
+        if (_json["threadPriority"] != undefined) {
+            _tp.threadPriority = _json["threadPriority"];
+        }
+        if (_json["minPoolSize"] != undefined) {
+            _tp.minPoolSize = _json["minPoolSize"];
+        }
+        if (_json["maxPoolSize"] != undefined) {
+            _tp.maxPoolSize = _json["maxPoolSize"];
+        }
+        if (_json["queueSize"] != undefined) {
+            _tp.queueSize = _json["queueSize"];
+        }
+        if (_json["keepAliveTime"] != undefined) {
+            _tp.keepAliveTime = _json["keepAliveTime"];
+        }
+        _tp.useInfiniteQueue = (_tp.queueSize == ThreadPool.MAX_INT_NUMBER);
+        return _tp;
+    };
+    ThreadPool.makeBunchFromJson = function (_json) {
+        var _tps = [];
+        for (var key in _json) {
+            _tps.push(ThreadPool.makeFromJson(key, _json[key]));
+        }
+        return _tps;
+    };
+    ThreadPool.MAX_INT_NUMBER = 2147483647;
+    return ThreadPool;
+}(model_entity_1.Entity));
+exports.ThreadPool = ThreadPool;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
 /***/ "./src/app/configuration/templates/css/checkbox.css":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -38443,6 +38779,21 @@ exports.ResourceGroup = ResourceGroup;
 
 
         var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/templates/css/snampcfg.css");
+
+        if (typeof result === "string") {
+            module.exports = result;
+        } else {
+            module.exports = result.toString();
+        }
+    
+
+/***/ },
+
+/***/ "./src/app/configuration/templates/css/threadpools.css":
+/***/ function(module, exports, __webpack_require__) {
+
+
+        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/templates/css/threadpools.css");
 
         if (typeof result === "string") {
             module.exports = result;
@@ -38499,6 +38850,13 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 140
 /***/ function(module, exports) {
 
 module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Log view</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Log table'\" [column]=\"'12'\">\r\n          <a class=\"btn btn-app\" (click)=\"clearAllLogs()\" style=\"float: right;\">\r\n            <i class=\"fa fa-trash\"></i> Clear\r\n          </a>\r\n          <div style=\"margin-top: 10px\">\r\n              <ng2-smart-table [settings]=\"settings\" [source]=\"source\"></ng2-smart-table>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
+
+/***/ },
+
+/***/ "./src/app/configuration/templates/threadpools.html":
+/***/ function(module, exports) {
+
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n    <div>\r\n        <div class=\"page-title\">\r\n            <div class=\"title_left\">\r\n                <h3>Setup thread pools</h3>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"clearfix\"></div>\r\n\r\n        <!-- Modal for edit the selected (or new) thread pool -->\r\n        <div class=\"modal fade\" id=\"editThreadPoolModal\" role=\"dialog\" aria-labelledby=\"editThreadPoolLabel\"\r\n             *ngIf=\"selectedThreadPool != undefined\">\r\n            <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n                <div class=\"modal-content\">\r\n                    <div class=\"modal-header\">\r\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span\r\n                                aria-hidden=\"true\">&times;</span></button>\r\n                        <h4 class=\"modal-title leftAlign\" id=\"editThreadPoolLabel\">Edit thread pool {{selectedThreadPool.name}}</h4>\r\n                        <br/>\r\n                        <div class=\"modal-body\">\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"poolNameInput\">\r\n                                        Thread pool name <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"text\"\r\n                                                class=\"form-control\"\r\n                                                id=\"poolNameInput\"\r\n                                                placeholder=\"Input the name for thread pool\"\r\n                                                [(ngModel)]=\"threadPool.name\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"threadPrioritiesInput\">\r\n                                        Thread priorities <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                min=\"1\"\r\n                                                max=\"10\"\r\n                                                class=\"form-control\"\r\n                                                id=\"threadPrioritiesInput\"\r\n                                                placeholder=\"Input thread priority for thread pool\"\r\n                                                [(ngModel)]=\"threadPool.threadPriority\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"minPoolSizeInput\">\r\n                                        Minimum pool size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"minPoolSizeInput\"\r\n                                                placeholder=\"Input minimal pool size\"\r\n                                                [(ngModel)]=\"threadPool.minPoolSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"maxPoolSizeInput\">\r\n                                        Maximum pool size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"maxPoolSizeInput\"\r\n                                                placeholder=\"Input maximal pool size\"\r\n                                                [(ngModel)]=\"threadPool.maxPoolSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"keepAliveTimeInput\">\r\n                                        Keep alive time <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"keepAliveTimeInput\"\r\n                                                placeholder=\"Input time to keep thread alive\"\r\n                                                [(ngModel)]=\"threadPool.keepAliveTime\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label class=\"control-label col-md-5 col-sm-5 col-xs-12\">\r\n                                        Infinite queue size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <ui-switch\r\n                                                [(ngModel)]=\"threadPool.useInfiniteQueue\"\r\n                                                [size]=\"'small'\">\r\n                                        </ui-switch>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\" *ngIf=\"!threadPool.useInfiniteQueue\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"queueSizeInput\">\r\n                                        Queue size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"queueSizeInput\"\r\n                                                placeholder=\"Input queue size\"\r\n                                                [(ngModel)]=\"threadPool.queueSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n                                    <button class=\"btn\" (click)=\"cancelThreadDialog()\">\r\n                                        Cancel\r\n                                    </button>\r\n                                </div>\r\n                                <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n                                    <button class=\"btn btn-primary\" (click)=\"saveThreadDialog()\">\r\n                                        Save\r\n                                    </button>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"row\" style=\"margin-top: 30px\">\r\n            <panel [header]=\"'List of available thread pools'\" [column]=\"'12'\">\r\n                <table class=\"table table-hover table-bordered\">\r\n                    <thead class=\"thead-inverse\">\r\n                    <tr>\r\n                        <th>Actions</th>\r\n                        <th>Name</th>\r\n                        <th>Thread Priority</th>\r\n                        <th>Max pool size</th>\r\n                        <th>Min pool size</th>\r\n                        <th>Queue size</th>\r\n                        <th>Keep alive time</th>\r\n                    </tr>\r\n                    </thead>\r\n                    <tbody>\r\n                    <tr *ngFor=\"let pool of threadPools\" [class.activeTr]=\"isActivePool(pool)\">\r\n                        <td>\r\n                              <span\r\n                                      class=\"glyphicon glyphicon-copy btn btn-xs btn-primary\"\r\n                                      (click)=\"cloneThreadPool(pool)\"\r\n                                      [tooltip]=\"'Clone thread pool'\"\r\n                                      aria-hidden=\"true\">\r\n                              </span>\r\n                            <span\r\n                                    class=\"glyphicon glyphicon-pencil btn btn-xs btn-primary\"\r\n                                    (click)=\"editThreadPool(pool)\"\r\n                                    [tooltip]=\"'Modify thread pool'\"\r\n                                    aria-hidden=\"true\">\r\n                              </span>\r\n                            <span\r\n                                    class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                    (click)=\"removeThreadPool(pool)\"\r\n                                    [tooltip]=\"'Remove thread pool'\"\r\n                                    aria-hidden=\"true\">\r\n                              </span>\r\n                        </td>\r\n                        <th scope=\"row\">{{pool.name}}</th>\r\n                        <td>{{pool.threadPriority}}</td>\r\n                        <td>{{pool.minPoolSize}}</td>\r\n                        <td>{{pool.maxPoolSize}}</td>\r\n                        <td>{{pool.queueSize}}</td>\r\n                        <td>{{pool.keepAliveTime}}</td>\r\n                    </tr>\r\n                    <tr>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td>\r\n                            <button\r\n                                    style=\"float:right;\"\r\n                                    class=\"btn btn-primary btn-sm\"\r\n                                    (click)=\"addNewThreadPool()\">+ New thread pool\r\n                            </button>\r\n                        </td>\r\n                    </tr>\r\n                    </tbody>\r\n                </table>\r\n            </panel>\r\n        </div>\r\n    </div>\r\n</div>"
 
 /***/ }
 
