@@ -77,6 +77,7 @@ export class ThreadPool extends Entity {
         this.maxPoolSize = 2;
         this.queueSize = 5;
         this.keepAliveTime = 1;
+        this.useInfiniteQueue = false;
     }
 
     public clone():ThreadPool {
@@ -94,6 +95,10 @@ export class ThreadPool extends Entity {
         _value["keepAliveTime"] = this.keepAliveTime;
         _value["queueSize"] = this.useInfiniteQueue ? ThreadPool.MAX_INT_NUMBER : this.queueSize;
         return _value;
+    }
+
+    public queueSizeRepresentation():string {
+        return this.useInfiniteQueue ? "∞" : this.queueSize.toString();
     }
 
     public static makeFromJson(name:string, _json:any):ThreadPool {

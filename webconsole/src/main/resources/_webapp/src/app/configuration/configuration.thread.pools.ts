@@ -85,7 +85,7 @@ export class ThreadPoolsComponent implements OnInit {
                 let _newThreadPool:ThreadPool = pool.clone();
                 _newThreadPool.name = result;
                 this.http.put(REST.THREAD_POOL_BY_NAME(result), _newThreadPool.toJSON())
-                    .map((response:Response) => response.json())
+                    .map((response:Response) => response.text())
                     .subscribe(() => {
                         this.threadPools.push(_newThreadPool);
                         this.setActiveThreadPool(_newThreadPool);
@@ -128,7 +128,6 @@ export class ThreadPoolsComponent implements OnInit {
             .then(result => {
                 let _newThreadPool:ThreadPool = new ThreadPool(result, {});
                 this.setActiveThreadPool(_newThreadPool);
-                console.log(this.threadPool, $(ThreadPoolsComponent.modalDialogId));
                 $(ThreadPoolsComponent.modalDialogId).modal("show");
 
             })
