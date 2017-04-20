@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents default implementation of {@link HealthStatusProvider}.
@@ -69,8 +70,12 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     //controls batch update of health status
     private static final class BatchUpdateState extends ThreadLocal<Collection<HealthStatus>>{
+        boolean isActive() {
+            return get() != null;
+        }
+
         void startBatchUpdate() {
-            if (get() != null)
+            if (isActive())
                 throw new IllegalStateException("Batch update is already started");
             else
                 set(new LinkedList<>());
@@ -203,6 +208,11 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         return new BatchUpdateScope();
     }
 
+    protected final <E extends Throwable> void requireBatchUpdate(final Supplier<E> exceptionFactory) throws E {
+        if(!batchUpdateState.isActive())
+            throw exceptionFactory.get();
+    }
+
     /**
      * Starts batch update of health status.
      * @return Batch update scope used to finalize updating.
@@ -251,7 +261,8 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     }
 
     /**
-     * Updates health status using all resources associated with the group.
+     * Queries health status of every resource and compute single health status.
+     * @param resources A set of resources used to obtain health status.
      */
     public void updateStatus(final Set<String> resources) {
         try (final SafeCloseable batchUpdate = startBatchUpdate()) {
@@ -274,7 +285,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         checkers.clear();
     }
 
-    private BundleContext getBundleContext(){
+    protected final BundleContext getBundleContext(){
         return Utils.getBundleContextOfObject(this);
     }
 
