@@ -21,7 +21,7 @@ import java.util.stream.StreamSupport;
  * @since 2.0
  */
 @ThreadSafe
-public abstract class AbstractWeakEventListenerList<L extends EventListener, E extends EventObject> {
+public abstract class AbstractWeakEventListenerList<L extends EventListener, E extends EventObject> implements Iterable<L> {
     private volatile WeakEventListener<L, E>[] listeners;
 
     /**
@@ -366,6 +366,7 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
      * @return a {@code Spliterator} over the elements in this collection
      * @since 1.2
      */
+    @Override
     public final Spliterator<L> spliterator() {
         return stream().spliterator();
     }
@@ -376,6 +377,7 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
      * @return an Iterator.
      */
     @Nonnull
+    @Override
     public final Iterator<L> iterator() {
         final WeakEventListener<L, ?>[] snapshot = listeners;
         return snapshot.length == 0 ?

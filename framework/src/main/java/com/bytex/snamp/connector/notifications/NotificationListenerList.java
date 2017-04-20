@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.notifications;
 
+import com.bytex.snamp.AbstractWeakEventListenerList;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -7,8 +8,6 @@ import javax.management.ListenerNotFoundException;
 import javax.management.Notification;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Represents list of notification listeners.
@@ -19,13 +18,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @since 1.0
  */
 @ThreadSafe
-public class NotificationListenerList implements NotificationListener {
-    private final List<NotificationListenerHolder> listeners;
-
-    public NotificationListenerList(){
-        listeners = new CopyOnWriteArrayList<>();
-    }
-
+public final class NotificationListenerList extends AbstractWeakEventListenerList<NotificationListener, Notification> implements NotificationListener {
     /**
      * Adds a listener to this MBean.
      *
@@ -45,7 +38,7 @@ public class NotificationListenerList implements NotificationListener {
     public final void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) throws IllegalArgumentException {
-        listeners.add(new NotificationListenerHolder(listener, filter, handback));
+        add(listener, l -> new NotificationListenerHolder(l, filter, handback));
     }
 
     /**
@@ -64,33 +57,8 @@ public class NotificationListenerList implements NotificationListener {
      * @see javax.management.NotificationEmitter#removeNotificationListener
      */
     public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
-        if (!listeners.removeIf(holder -> holder.equals(listener)))
+        if (!remove(listener))
             throw JMExceptionUtils.listenerNotFound(listener);
-    }
-
-    /**
-     * Intercepts notification.
-     * @param notification The original notification.
-     * @return The modified notification.
-     */
-    protected Notification intercept(final Notification notification){
-        return notification;
-    }
-
-    /**
-     * Submits listener invocation.
-     * <p>
-     *     You can override this method and submit
-     *     listener invocation into the separated thread.
-     *     By default, the listener is invoked in the caller thread.
-     * @param listener The listener to invoke.
-     * @param notification The notification to be passed into the listener.
-     * @param handback An object associated with the listener at subscription time.
-     */
-    protected void handleNotification(final NotificationListener listener,
-                                      final Notification notification,
-                                      final Object handback){
-        listener.handleNotification(notification, handback);
     }
 
     /**
@@ -105,19 +73,6 @@ public class NotificationListenerList implements NotificationListener {
      */
     @Override
     public final void handleNotification(final Notification notification, final Object handback) {
-        listeners.forEach(holder -> holder.handleNotification(notification, handback));
-    }
-
-    public final void handleNotification(final NotificationListenerInvoker invoker,
-                                      final Notification notification,
-                                      final Object handback) {
-        invoker.invoke(notification, handback, listeners);
-    }
-
-    /**
-     * Removes all listeners from this list.
-     */
-    public final void clear() {
-        listeners.clear();
+        forEach(listener -> listener.handleNotification(notification, handback));
     }
 }

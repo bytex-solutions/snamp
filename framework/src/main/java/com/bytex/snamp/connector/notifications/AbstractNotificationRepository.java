@@ -215,7 +215,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     final void fireListenersNoIntercept(final Notification n){
         n.setSource(getSource());
-        listeners.handleNotification(getListenerInvoker(), n, null);
+        getListenerInvoker().invoke(n, null, listeners);
         metrics.update();
     }
 
