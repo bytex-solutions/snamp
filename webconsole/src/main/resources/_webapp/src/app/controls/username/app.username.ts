@@ -1,5 +1,5 @@
-import { Component} from '@angular/core';
-import { ApiClient } from '../services/app.restClient';
+import { Component } from '@angular/core';
+import { ApiClient } from '../../services/app.restClient';
 import { Response } from '@angular/http';
 
 import 'rxjs/add/operator/map';

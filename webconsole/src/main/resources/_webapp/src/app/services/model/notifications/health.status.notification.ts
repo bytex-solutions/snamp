@@ -14,6 +14,7 @@ export class HealthStatusNotification extends AbstractNotification {
 
     private _prevStatus:HealthStatus;
     private _currentStatus:HealthStatus;
+    private _groupName:string;
 
     constructor() {
         super();
@@ -22,9 +23,10 @@ export class HealthStatusNotification extends AbstractNotification {
     }
 
     htmlDetails(): string {
-        let _details:string = "The status before: <br/>";
+        let _details:string = "<strong>Group name:</strong>" + this.groupName + "<br/>"
+        _details += "<strong>The status before: </strong><br/>";
         _details += this.prevStatus.htmlDetails();
-        _details += "Current status: <br/>";
+        _details += "<strong>Current status: </strong><br/>";
         _details += this.currentStatus.htmlDetails();
         return _details;
     }
@@ -45,8 +47,16 @@ export class HealthStatusNotification extends AbstractNotification {
         this._currentStatus = value;
     }
 
+    get groupName(): string {
+        return this._groupName;
+    }
+
+    set groupName(value: string) {
+        this._groupName = value;
+    }
+
     shortDescription(): string {
-        return "Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
+        return "Group: " + this.groupName +  ".Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
     }
 
     fillFromJson(_json: any): void {
@@ -55,6 +65,9 @@ export class HealthStatusNotification extends AbstractNotification {
         }
         if (_json["newStatus"] != undefined) {
             this.currentStatus = StatusFactory.healthStatusFromJSON(_json["newStatus"]['@type'], _json["newStatus"]);
+        }
+        if (_json["groupName"] != undefined) {
+            this.groupName = _json["groupName"];
         }
         this.level = "WARN"; // always make it quite important (because no level is being received from backend)
     }

@@ -663,6 +663,375 @@ exports.CookieService = CookieService;
 
 /***/ },
 
+/***/ "./node_modules/angular2-jwt/angular2-jwt.js":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
+__webpack_require__("./node_modules/rxjs/add/observable/fromPromise.js");
+__webpack_require__("./node_modules/rxjs/add/observable/defer.js");
+__webpack_require__("./node_modules/rxjs/add/operator/mergeMap.js");
+var AuthConfigConsts = (function () {
+    function AuthConfigConsts() {
+    }
+    return AuthConfigConsts;
+}());
+AuthConfigConsts.DEFAULT_TOKEN_NAME = 'token';
+AuthConfigConsts.DEFAULT_HEADER_NAME = 'Authorization';
+AuthConfigConsts.HEADER_PREFIX_BEARER = 'Bearer ';
+exports.AuthConfigConsts = AuthConfigConsts;
+var AuthConfigDefaults = {
+    headerName: AuthConfigConsts.DEFAULT_HEADER_NAME,
+    headerPrefix: null,
+    tokenName: AuthConfigConsts.DEFAULT_TOKEN_NAME,
+    tokenGetter: function () { return localStorage.getItem(AuthConfigDefaults.tokenName); },
+    noJwtError: false,
+    noClientCheck: false,
+    globalHeaders: [],
+    noTokenScheme: false
+};
+/**
+ * Sets up the authentication configuration.
+ */
+var AuthConfig = (function () {
+    function AuthConfig(config) {
+        config = config || {};
+        this._config = objectAssign({}, AuthConfigDefaults, config);
+        if (this._config.headerPrefix) {
+            this._config.headerPrefix += ' ';
+        }
+        else if (this._config.noTokenScheme) {
+            this._config.headerPrefix = '';
+        }
+        else {
+            this._config.headerPrefix = AuthConfigConsts.HEADER_PREFIX_BEARER;
+        }
+        if (config.tokenName && !config.tokenGetter) {
+            this._config.tokenGetter = function () { return localStorage.getItem(config.tokenName); };
+        }
+    }
+    AuthConfig.prototype.getConfig = function () {
+        return this._config;
+    };
+    return AuthConfig;
+}());
+exports.AuthConfig = AuthConfig;
+var AuthHttpError = (function (_super) {
+    __extends(AuthHttpError, _super);
+    function AuthHttpError() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    return AuthHttpError;
+}(Error));
+exports.AuthHttpError = AuthHttpError;
+/**
+ * Allows for explicit authenticated HTTP requests.
+ */
+var AuthHttp = (function () {
+    function AuthHttp(options, http, defOpts) {
+        var _this = this;
+        this.http = http;
+        this.defOpts = defOpts;
+        this.config = options.getConfig();
+        this.tokenStream = new Observable_1.Observable(function (obs) {
+            obs.next(_this.config.tokenGetter());
+        });
+    }
+    AuthHttp.prototype.mergeOptions = function (providedOpts, defaultOpts) {
+        var newOptions = defaultOpts || new http_1.RequestOptions();
+        if (this.config.globalHeaders) {
+            this.setGlobalHeaders(this.config.globalHeaders, providedOpts);
+        }
+        newOptions = newOptions.merge(new http_1.RequestOptions(providedOpts));
+        return newOptions;
+    };
+    AuthHttp.prototype.requestHelper = function (requestArgs, additionalOptions) {
+        var options = new http_1.RequestOptions(requestArgs);
+        if (additionalOptions) {
+            options = options.merge(additionalOptions);
+        }
+        return this.request(new http_1.Request(this.mergeOptions(options, this.defOpts)));
+    };
+    AuthHttp.prototype.requestWithToken = function (req, token) {
+        if (!this.config.noClientCheck && !tokenNotExpired(undefined, token)) {
+            if (!this.config.noJwtError) {
+                return new Observable_1.Observable(function (obs) {
+                    obs.error(new AuthHttpError('No JWT present or has expired'));
+                });
+            }
+        }
+        else {
+            req.headers.set(this.config.headerName, this.config.headerPrefix + token);
+        }
+        return this.http.request(req);
+    };
+    AuthHttp.prototype.setGlobalHeaders = function (headers, request) {
+        if (!request.headers) {
+            request.headers = new http_1.Headers();
+        }
+        headers.forEach(function (header) {
+            var key = Object.keys(header)[0];
+            var headerValue = header[key];
+            request.headers.set(key, headerValue);
+        });
+    };
+    AuthHttp.prototype.request = function (url, options) {
+        var _this = this;
+        if (typeof url === 'string') {
+            return this.get(url, options); // Recursion: transform url from String to Request
+        }
+        // else if ( ! url instanceof Request ) {
+        //   throw new Error('First argument must be a url string or Request instance.');
+        // }
+        // from this point url is always an instance of Request;
+        var req = url;
+        // Create a cold observable and load the token just in time
+        return Observable_1.Observable.defer(function () {
+            var token = _this.config.tokenGetter();
+            if (token instanceof Promise) {
+                return Observable_1.Observable.fromPromise(token).mergeMap(function (jwtToken) { return _this.requestWithToken(req, jwtToken); });
+            }
+            else {
+                return _this.requestWithToken(req, token);
+            }
+        });
+    };
+    AuthHttp.prototype.get = function (url, options) {
+        return this.requestHelper({ body: '', method: http_1.RequestMethod.Get, url: url }, options);
+    };
+    AuthHttp.prototype.post = function (url, body, options) {
+        return this.requestHelper({ body: body, method: http_1.RequestMethod.Post, url: url }, options);
+    };
+    AuthHttp.prototype.put = function (url, body, options) {
+        return this.requestHelper({ body: body, method: http_1.RequestMethod.Put, url: url }, options);
+    };
+    AuthHttp.prototype.delete = function (url, options) {
+        return this.requestHelper({ body: '', method: http_1.RequestMethod.Delete, url: url }, options);
+    };
+    AuthHttp.prototype.patch = function (url, body, options) {
+        return this.requestHelper({ body: body, method: http_1.RequestMethod.Patch, url: url }, options);
+    };
+    AuthHttp.prototype.head = function (url, options) {
+        return this.requestHelper({ body: '', method: http_1.RequestMethod.Head, url: url }, options);
+    };
+    AuthHttp.prototype.options = function (url, options) {
+        return this.requestHelper({ body: '', method: http_1.RequestMethod.Options, url: url }, options);
+    };
+    return AuthHttp;
+}());
+AuthHttp = __decorate([
+    core_1.Injectable(),
+    __metadata("design:paramtypes", [AuthConfig, http_1.Http, http_1.RequestOptions])
+], AuthHttp);
+exports.AuthHttp = AuthHttp;
+/**
+ * Helper class to decode and find JWT expiration.
+ */
+var JwtHelper = (function () {
+    function JwtHelper() {
+    }
+    JwtHelper.prototype.urlBase64Decode = function (str) {
+        var output = str.replace(/-/g, '+').replace(/_/g, '/');
+        switch (output.length % 4) {
+            case 0: {
+                break;
+            }
+            case 2: {
+                output += '==';
+                break;
+            }
+            case 3: {
+                output += '=';
+                break;
+            }
+            default: {
+                throw 'Illegal base64url string!';
+            }
+        }
+        return this.b64DecodeUnicode(output);
+    };
+    // credits for decoder goes to https://github.com/atk
+    JwtHelper.prototype.b64decode = function (str) {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        var output = '';
+        str = String(str).replace(/=+$/, '');
+        if (str.length % 4 == 1) {
+            throw new Error("'atob' failed: The string to be decoded is not correctly encoded.");
+        }
+        for (
+        // initialize result and counters
+        var bc = 0, bs = void 0, buffer = void 0, idx = 0; 
+        // get next character
+        buffer = str.charAt(idx++); 
+        // character found in table? initialize bit storage and add its ascii value;
+        ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+            // and if not first of each 4 characters,
+            // convert the first 8 bits to one ascii character
+            bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0) {
+            // try to find character in table (0-63, not found => -1)
+            buffer = chars.indexOf(buffer);
+        }
+        return output;
+    };
+    // https://developer.mozilla.org/en/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
+    JwtHelper.prototype.b64DecodeUnicode = function (str) {
+        return decodeURIComponent(Array.prototype.map.call(this.b64decode(str), function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+    };
+    JwtHelper.prototype.decodeToken = function (token) {
+        var parts = token.split('.');
+        if (parts.length !== 3) {
+            throw new Error('JWT must have 3 parts');
+        }
+        var decoded = this.urlBase64Decode(parts[1]);
+        if (!decoded) {
+            throw new Error('Cannot decode the token');
+        }
+        return JSON.parse(decoded);
+    };
+    JwtHelper.prototype.getTokenExpirationDate = function (token) {
+        var decoded;
+        decoded = this.decodeToken(token);
+        if (!decoded.hasOwnProperty('exp')) {
+            return null;
+        }
+        var date = new Date(0); // The 0 here is the key, which sets the date to the epoch
+        date.setUTCSeconds(decoded.exp);
+        return date;
+    };
+    JwtHelper.prototype.isTokenExpired = function (token, offsetSeconds) {
+        var date = this.getTokenExpirationDate(token);
+        offsetSeconds = offsetSeconds || 0;
+        if (date == null) {
+            return false;
+        }
+        // Token expired?
+        return !(date.valueOf() > (new Date().valueOf() + (offsetSeconds * 1000)));
+    };
+    return JwtHelper;
+}());
+exports.JwtHelper = JwtHelper;
+/**
+ * Checks for presence of token and that token hasn't expired.
+ * For use with the @CanActivate router decorator and NgIf
+ */
+function tokenNotExpired(tokenName, jwt) {
+    if (tokenName === void 0) { tokenName = AuthConfigConsts.DEFAULT_TOKEN_NAME; }
+    var token = jwt || localStorage.getItem(tokenName);
+    var jwtHelper = new JwtHelper();
+    return token != null && !jwtHelper.isTokenExpired(token);
+}
+exports.tokenNotExpired = tokenNotExpired;
+exports.AUTH_PROVIDERS = [
+    {
+        provide: AuthHttp,
+        deps: [http_1.Http, http_1.RequestOptions],
+        useFactory: function (http, options) {
+            return new AuthHttp(new AuthConfig(), http, options);
+        }
+    }
+];
+function provideAuth(config) {
+    return [
+        {
+            provide: AuthHttp,
+            deps: [http_1.Http, http_1.RequestOptions],
+            useFactory: function (http, options) {
+                return new AuthHttp(new AuthConfig(config), http, options);
+            }
+        }
+    ];
+}
+exports.provideAuth = provideAuth;
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+function toObject(val) {
+    if (val === null || val === undefined) {
+        throw new TypeError('Object.assign cannot be called with null or undefined');
+    }
+    return Object(val);
+}
+function objectAssign(target) {
+    var source = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        source[_i - 1] = arguments[_i];
+    }
+    var from;
+    var to = toObject(target);
+    var symbols;
+    for (var s = 1; s < arguments.length; s++) {
+        from = Object(arguments[s]);
+        for (var key in from) {
+            if (hasOwnProperty.call(from, key)) {
+                to[key] = from[key];
+            }
+        }
+        if (Object.getOwnPropertySymbols) {
+            symbols = Object.getOwnPropertySymbols(from);
+            for (var i = 0; i < symbols.length; i++) {
+                if (propIsEnumerable.call(from, symbols[i])) {
+                    to[symbols[i]] = from[symbols[i]];
+                }
+            }
+        }
+    }
+    return to;
+}
+/**
+ * Module for angular2-jwt
+ * @experimental
+ */
+var AuthModule = AuthModule_1 = (function () {
+    function AuthModule(parentModule) {
+        if (parentModule) {
+            throw new Error('AuthModule is already loaded. Import it in the AppModule only');
+        }
+    }
+    AuthModule.forRoot = function (config) {
+        return {
+            ngModule: AuthModule_1,
+            providers: [
+                { provide: AuthConfig, useValue: config }
+            ]
+        };
+    };
+    return AuthModule;
+}());
+AuthModule = AuthModule_1 = __decorate([
+    core_1.NgModule({
+        imports: [http_1.HttpModule],
+        providers: [AuthHttp, JwtHelper]
+    }),
+    __param(0, core_1.Optional()), __param(0, core_1.SkipSelf()),
+    __metadata("design:paramtypes", [AuthModule])
+], AuthModule);
+exports.AuthModule = AuthModule;
+var AuthModule_1;
+//# sourceMappingURL=angular2-jwt.js.map
+
+/***/ },
+
 /***/ "./node_modules/angular2-modal/esm/angular2-modal.module.js":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -4502,7 +4871,7 @@ exports.push([module.i, "@keyframes vex-fadein {\r\n  0% {\r\n    opacity: 0; }\
 
 /***/ },
 
-/***/ "./node_modules/css-loader/index.js!./src/app/controls/inline-edit.component.css":
+/***/ "./node_modules/css-loader/index.js!./src/app/controls/editor/inline-edit.component.css":
 /***/ function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
@@ -4511,21 +4880,6 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 // module
 exports.push([module.i, "a {\r\n text-decoration: none;\r\n color: #428bca;\r\n border-bottom: dashed 1px #428bca;\r\n cursor: pointer;\r\n line-height: 2;\r\n margin-right: 5px;\r\n margin-left: 5px;\r\n}\r\n.inlineEditForm{\r\n display: inline-block;\r\n white-space: nowrap;\r\n margin: 0;\r\n}\r\n#inlineEditWrapper{\r\n display: inline-block;\r\n}\r\n.inlineEditForm input, select{\r\n width: 110%;\r\n display: inline;\r\n}\r\n.editInvalid{\r\n color: #a94442;\r\n margin-bottom: 0;\r\n}\r\n.error{\r\n border-color: #a94442;\r\n}\r\n[hidden] {\r\n display: none;\r\n}", ""]);
-
-// exports
-
-
-/***/ },
-
-/***/ "./node_modules/css-loader/index.js!./src/app/menu/vex.css":
-/***/ function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
-// imports
-
-
-// module
-exports.push([module.i, "@keyframes vex-flyin {\r\n  0% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); } }\r\n\r\n@-webkit-keyframes vex-flyin {\r\n  0% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); } }\r\n\r\n@-moz-keyframes vex-flyin {\r\n  0% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); } }\r\n\r\n@-ms-keyframes vex-flyin {\r\n  0% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); } }\r\n\r\n@-o-keyframes vex-flyin {\r\n  0% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); }\r\n  100% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); } }\r\n\r\n@keyframes vex-flyout {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); }\r\n  100% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); } }\r\n\r\n@-webkit-keyframes vex-flyout {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); }\r\n  100% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); } }\r\n\r\n@-moz-keyframes vex-flyout {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); }\r\n  100% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); } }\r\n\r\n@-ms-keyframes vex-flyout {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); }\r\n  100% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); } }\r\n\r\n@-o-keyframes vex-flyout {\r\n  0% {\r\n    opacity: 1;\r\n    transform: translateY(0);\r\n    -webkit-transform: translateY(0);\r\n    -moz-transform: translateY(0);\r\n    -ms-transform: translateY(0);\r\n    -o-transform: translateY(0); }\r\n  100% {\r\n    opacity: 0;\r\n    transform: translateY(-40px);\r\n    -webkit-transform: translateY(-40px);\r\n    -moz-transform: translateY(-40px);\r\n    -ms-transform: translateY(-40px);\r\n    -o-transform: translateY(-40px); } }\r\n\r\n@keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n@-webkit-keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n@-moz-keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n@-ms-keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n@-o-keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n.vex.vex-theme-default {\r\n  padding-top: 160px;\r\n  padding-bottom: 160px; }\r\n  .vex.vex-theme-default.vex-closing .vex-content {\r\n    animation: vex-flyout 0.5s;\r\n    -webkit-animation: vex-flyout 0.5s;\r\n    -moz-animation: vex-flyout 0.5s;\r\n    -ms-animation: vex-flyout 0.5s;\r\n    -o-animation: vex-flyout 0.5s;\r\n    -webkit-backface-visibility: hidden; }\r\n  .vex.vex-theme-default .vex-content {\r\n    animation: vex-flyin 0.5s;\r\n    -webkit-animation: vex-flyin 0.5s;\r\n    -moz-animation: vex-flyin 0.5s;\r\n    -ms-animation: vex-flyin 0.5s;\r\n    -o-animation: vex-flyin 0.5s;\r\n    -webkit-backface-visibility: hidden; }\r\n  .vex.vex-theme-default .vex-content {\r\n    -moz-border-radius: 5px;\r\n    -webkit-border-radius: 5px;\r\n    border-radius: 5px;\r\n    font-family: \"Helvetica Neue\", sans-serif;\r\n    background: #f0f0f0;\r\n    color: #444;\r\n    padding: 1em;\r\n    position: relative;\r\n    margin: 0 auto;\r\n    max-width: 100%;\r\n    width: 450px;\r\n    font-size: 1.1em;\r\n    line-height: 1.5em; }\r\n    .vex.vex-theme-default .vex-content h1, .vex.vex-theme-default .vex-content h2, .vex.vex-theme-default .vex-content h3, .vex.vex-theme-default .vex-content h4, .vex.vex-theme-default .vex-content h5, .vex.vex-theme-default .vex-content h6, .vex.vex-theme-default .vex-content p, .vex.vex-theme-default .vex-content ul, .vex.vex-theme-default .vex-content li {\r\n      color: inherit; }\r\n  .vex.vex-theme-default .vex-close {\r\n    -moz-border-radius: 5px;\r\n    -webkit-border-radius: 5px;\r\n    border-radius: 5px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n    cursor: pointer; }\r\n    .vex.vex-theme-default .vex-close:before {\r\n      -moz-border-radius: 3px;\r\n      -webkit-border-radius: 3px;\r\n      border-radius: 3px;\r\n      position: absolute;\r\n      content: \"\\D7\";\r\n      font-size: 26px;\r\n      font-weight: normal;\r\n      line-height: 31px;\r\n      height: 30px;\r\n      width: 30px;\r\n      text-align: center;\r\n      top: 3px;\r\n      right: 3px;\r\n      color: #bbb;\r\n      background: transparent; }\r\n    .vex.vex-theme-default .vex-close:hover:before, .vex.vex-theme-default .vex-close:active:before {\r\n      color: #777;\r\n      background: #e0e0e0; }\r\n  .vex.vex-theme-default .vex-dialog-form .vex-dialog-message {\r\n    margin-bottom: .5em; }\r\n  .vex.vex-theme-default .vex-dialog-form .vex-dialog-input {\r\n    margin-bottom: 1em; }\r\n    .vex.vex-theme-default .vex-dialog-form .vex-dialog-input textarea, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"date\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"datetime\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"datetime-local\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"email\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"month\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"number\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"password\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"search\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"tel\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"text\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"time\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"url\"], .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"week\"] {\r\n      -moz-border-radius: 3px;\r\n      -webkit-border-radius: 3px;\r\n      border-radius: 3px;\r\n      background: #fff;\r\n      width: 100%;\r\n      padding: .25em .67em;\r\n      border: 0;\r\n      font-family: inherit;\r\n      font-weight: inherit;\r\n      font-size: inherit;\r\n      min-height: 2.5em;\r\n      margin: 0 0 .25em; }\r\n      .vex.vex-theme-default .vex-dialog-form .vex-dialog-input textarea:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"date\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"datetime\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"datetime-local\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"email\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"month\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"number\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"password\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"search\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"tel\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"text\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"time\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"url\"]:focus, .vex.vex-theme-default .vex-dialog-form .vex-dialog-input input[type=\"week\"]:focus {\r\n        -moz-box-shadow: inset 0 0 0 2px #8dbdf1;\r\n        -webkit-box-shadow: inset 0 0 0 2px #8dbdf1;\r\n        box-shadow: inset 0 0 0 2px #8dbdf1;\r\n        outline: none; }\r\n  .vex.vex-theme-default .vex-dialog-form .vex-dialog-buttons {\r\n    *zoom: 1; }\r\n    .vex.vex-theme-default .vex-dialog-form .vex-dialog-buttons:after {\r\n      content: \"\";\r\n      display: table;\r\n      clear: both; }\r\n  .vex.vex-theme-default .vex-dialog-button {\r\n    -moz-border-radius: 3px;\r\n    -webkit-border-radius: 3px;\r\n    border-radius: 3px;\r\n    border: 0;\r\n    float: right;\r\n    margin: 0 0 0 .5em;\r\n    font-family: inherit;\r\n    text-transform: uppercase;\r\n    letter-spacing: .1em;\r\n    font-size: .8em;\r\n    line-height: 1em;\r\n    padding: .75em 2em; }\r\n    .vex.vex-theme-default .vex-dialog-button.vex-last {\r\n      margin-left: 0; }\r\n    .vex.vex-theme-default .vex-dialog-button:focus {\r\n      animation: vex-pulse 1.1s infinite;\r\n      -webkit-animation: vex-pulse 1.1s infinite;\r\n      -moz-animation: vex-pulse 1.1s infinite;\r\n      -ms-animation: vex-pulse 1.1s infinite;\r\n      -o-animation: vex-pulse 1.1s infinite;\r\n      -webkit-backface-visibility: hidden;\r\n      outline: none; }\r\n      @media (max-width: 568px) {\r\n        .vex.vex-theme-default .vex-dialog-button:focus {\r\n          animation: none;\r\n          -webkit-animation: none;\r\n          -moz-animation: none;\r\n          -ms-animation: none;\r\n          -o-animation: none;\r\n          -webkit-backface-visibility: hidden; } }\r\n    .vex.vex-theme-default .vex-dialog-button.vex-dialog-button-primary {\r\n      background: #3288e6;\r\n      color: #fff; }\r\n    .vex.vex-theme-default .vex-dialog-button.vex-dialog-button-secondary {\r\n      background: #e0e0e0;\r\n      color: #777; }\r\n\r\n.vex-loading-spinner.vex-theme-default {\r\n  -moz-box-shadow: 0 0 0 0.5em #f0f0f0, 0 0 1px 0.5em rgba(0, 0, 0, 0.3);\r\n  -webkit-box-shadow: 0 0 0 0.5em #f0f0f0, 0 0 1px 0.5em rgba(0, 0, 0, 0.3);\r\n  box-shadow: 0 0 0 0.5em #f0f0f0, 0 0 1px 0.5em rgba(0, 0, 0, 0.3);\r\n  -moz-border-radius: 100%;\r\n  -webkit-border-radius: 100%;\r\n  border-radius: 100%;\r\n  background: #f0f0f0;\r\n  border: .2em solid transparent;\r\n  border-top-color: #bbb;\r\n  top: -1.1em;\r\n  bottom: auto; }\r\n\r\n\r\n  @keyframes vex-fadein {\r\n    0% {\r\n      opacity: 0; }\r\n    100% {\r\n      opacity: 1; } }\r\n\r\n  @-webkit-keyframes vex-fadein {\r\n    0% {\r\n      opacity: 0; }\r\n    100% {\r\n      opacity: 1; } }\r\n\r\n  @-moz-keyframes vex-fadein {\r\n    0% {\r\n      opacity: 0; }\r\n    100% {\r\n      opacity: 1; } }\r\n\r\n  @-ms-keyframes vex-fadein {\r\n    0% {\r\n      opacity: 0; }\r\n    100% {\r\n      opacity: 1; } }\r\n\r\n  @-o-keyframes vex-fadein {\r\n    0% {\r\n      opacity: 0; }\r\n    100% {\r\n      opacity: 1; } }\r\n\r\n  @keyframes vex-fadeout {\r\n    0% {\r\n      opacity: 1; }\r\n    100% {\r\n      opacity: 0; } }\r\n\r\n  @-webkit-keyframes vex-fadeout {\r\n    0% {\r\n      opacity: 1; }\r\n    100% {\r\n      opacity: 0; } }\r\n\r\n  @-moz-keyframes vex-fadeout {\r\n    0% {\r\n      opacity: 1; }\r\n    100% {\r\n      opacity: 0; } }\r\n\r\n  @-ms-keyframes vex-fadeout {\r\n    0% {\r\n      opacity: 1; }\r\n    100% {\r\n      opacity: 0; } }\r\n\r\n  @-o-keyframes vex-fadeout {\r\n    0% {\r\n      opacity: 1; }\r\n    100% {\r\n      opacity: 0; } }\r\n\r\n  @keyframes vex-rotation {\r\n    0% {\r\n      transform: rotate(0deg);\r\n      -webkit-transform: rotate(0deg);\r\n      -moz-transform: rotate(0deg);\r\n      -ms-transform: rotate(0deg);\r\n      -o-transform: rotate(0deg); }\r\n    100% {\r\n      transform: rotate(359deg);\r\n      -webkit-transform: rotate(359deg);\r\n      -moz-transform: rotate(359deg);\r\n      -ms-transform: rotate(359deg);\r\n      -o-transform: rotate(359deg); } }\r\n\r\n  @-webkit-keyframes vex-rotation {\r\n    0% {\r\n      transform: rotate(0deg);\r\n      -webkit-transform: rotate(0deg);\r\n      -moz-transform: rotate(0deg);\r\n      -ms-transform: rotate(0deg);\r\n      -o-transform: rotate(0deg); }\r\n    100% {\r\n      transform: rotate(359deg);\r\n      -webkit-transform: rotate(359deg);\r\n      -moz-transform: rotate(359deg);\r\n      -ms-transform: rotate(359deg);\r\n      -o-transform: rotate(359deg); } }\r\n\r\n  @-moz-keyframes vex-rotation {\r\n    0% {\r\n      transform: rotate(0deg);\r\n      -webkit-transform: rotate(0deg);\r\n      -moz-transform: rotate(0deg);\r\n      -ms-transform: rotate(0deg);\r\n      -o-transform: rotate(0deg); }\r\n    100% {\r\n      transform: rotate(359deg);\r\n      -webkit-transform: rotate(359deg);\r\n      -moz-transform: rotate(359deg);\r\n      -ms-transform: rotate(359deg);\r\n      -o-transform: rotate(359deg); } }\r\n\r\n  @-ms-keyframes vex-rotation {\r\n    0% {\r\n      transform: rotate(0deg);\r\n      -webkit-transform: rotate(0deg);\r\n      -moz-transform: rotate(0deg);\r\n      -ms-transform: rotate(0deg);\r\n      -o-transform: rotate(0deg); }\r\n    100% {\r\n      transform: rotate(359deg);\r\n      -webkit-transform: rotate(359deg);\r\n      -moz-transform: rotate(359deg);\r\n      -ms-transform: rotate(359deg);\r\n      -o-transform: rotate(359deg); } }\r\n\r\n  @-o-keyframes vex-rotation {\r\n    0% {\r\n      transform: rotate(0deg);\r\n      -webkit-transform: rotate(0deg);\r\n      -moz-transform: rotate(0deg);\r\n      -ms-transform: rotate(0deg);\r\n      -o-transform: rotate(0deg); }\r\n    100% {\r\n      transform: rotate(359deg);\r\n      -webkit-transform: rotate(359deg);\r\n      -moz-transform: rotate(359deg);\r\n      -ms-transform: rotate(359deg);\r\n      -o-transform: rotate(359deg); } }\r\n\r\n  .vex, .vex *, .vex *:before, .vex *:after {\r\n    -moz-box-sizing: border-box;\r\n    -webkit-box-sizing: border-box;\r\n    box-sizing: border-box; }\r\n\r\n  .vex {\r\n    position: fixed;\r\n    overflow: auto;\r\n    -webkit-overflow-scrolling: touch;\r\n    z-index: 1111;\r\n    top: 0;\r\n    right: 0;\r\n    bottom: 0;\r\n    left: 0; }\r\n\r\n  .vex-scrollbar-measure {\r\n    position: absolute;\r\n    top: -9999px;\r\n    width: 50px;\r\n    height: 50px;\r\n    overflow: scroll; }\r\n\r\n  .vex-overlay {\r\n    background: #000;\r\n    filter: alpha(opacity=40);\r\n    -ms-filter: \"progid:DXImageTransform.Microsoft.Alpha(Opacity=40)\"; }\r\n\r\n  .vex-overlay {\r\n    animation: vex-fadein 0.5s;\r\n    -webkit-animation: vex-fadein 0.5s;\r\n    -moz-animation: vex-fadein 0.5s;\r\n    -ms-animation: vex-fadein 0.5s;\r\n    -o-animation: vex-fadein 0.5s;\r\n    -webkit-backface-visibility: hidden;\r\n    position: fixed;\r\n    background: rgba(0, 0, 0, 0.4);\r\n    top: 0;\r\n    right: 0;\r\n    bottom: 0;\r\n    left: 0; }\r\n    .vex.vex-closing .vex-overlay {\r\n      animation: vex-fadeout 0.5s;\r\n      -webkit-animation: vex-fadeout 0.5s;\r\n      -moz-animation: vex-fadeout 0.5s;\r\n      -ms-animation: vex-fadeout 0.5s;\r\n      -o-animation: vex-fadeout 0.5s;\r\n      -webkit-backface-visibility: hidden; }\r\n\r\n  .vex-content {\r\n    animation: vex-fadein 0.5s;\r\n    -webkit-animation: vex-fadein 0.5s;\r\n    -moz-animation: vex-fadein 0.5s;\r\n    -ms-animation: vex-fadein 0.5s;\r\n    -o-animation: vex-fadein 0.5s;\r\n    -webkit-backface-visibility: hidden;\r\n    background: #fff; }\r\n    .vex.vex-closing .vex-content {\r\n      animation: vex-fadeout 0.5s;\r\n      -webkit-animation: vex-fadeout 0.5s;\r\n      -moz-animation: vex-fadeout 0.5s;\r\n      -ms-animation: vex-fadeout 0.5s;\r\n      -o-animation: vex-fadeout 0.5s;\r\n      -webkit-backface-visibility: hidden; }\r\n\r\n  .vex-close:before {\r\n    font-family: Arial, sans-serif;\r\n    content: \"\\D7\"; }\r\n\r\n  .vex-dialog-form {\r\n    margin: 0; }\r\n\r\n  .vex-dialog-button {\r\n    text-rendering: optimizeLegibility;\r\n    -moz-appearance: none;\r\n    -webkit-appearance: none;\r\n    cursor: pointer;\r\n    -webkit-tap-highlight-color: transparent; }\r\n\r\n  .vex-loading-spinner {\r\n    animation: vex-rotation 0.7s linear infinite;\r\n    -webkit-animation: vex-rotation 0.7s linear infinite;\r\n    -moz-animation: vex-rotation 0.7s linear infinite;\r\n    -ms-animation: vex-rotation 0.7s linear infinite;\r\n    -o-animation: vex-rotation 0.7s linear infinite;\r\n    -webkit-backface-visibility: hidden;\r\n    -moz-box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);\r\n    -webkit-box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);\r\n    box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);\r\n    position: fixed;\r\n    z-index: 1112;\r\n    margin: auto;\r\n    top: 0;\r\n    right: 0;\r\n    bottom: 0;\r\n    left: 0;\r\n    height: 2em;\r\n    width: 2em;\r\n    background: #fff; }\r\n\r\n  body.vex-open {\r\n    overflow: hidden; }", ""]);
 
 // exports
 
@@ -76325,6 +76679,18 @@ exports.Scheduler = Scheduler;
 
 /***/ },
 
+/***/ "./node_modules/rxjs/add/observable/defer.js":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
+var defer_1 = __webpack_require__("./node_modules/rxjs/observable/defer.js");
+Observable_1.Observable.defer = defer_1.defer;
+//# sourceMappingURL=defer.js.map
+
+/***/ },
+
 /***/ "./node_modules/rxjs/add/observable/empty.js":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -76358,6 +76724,18 @@ var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
 var from_1 = __webpack_require__("./node_modules/rxjs/observable/from.js");
 Observable_1.Observable.from = from_1.from;
 //# sourceMappingURL=from.js.map
+
+/***/ },
+
+/***/ "./node_modules/rxjs/add/observable/fromPromise.js":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
+var fromPromise_1 = __webpack_require__("./node_modules/rxjs/observable/fromPromise.js");
+Observable_1.Observable.fromPromise = fromPromise_1.fromPromise;
+//# sourceMappingURL=fromPromise.js.map
 
 /***/ },
 
@@ -76654,6 +77032,106 @@ var RefCountSubscriber = (function (_super) {
 
 /***/ },
 
+/***/ "./node_modules/rxjs/observable/DeferObservable.js":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
+var subscribeToResult_1 = __webpack_require__("./node_modules/rxjs/util/subscribeToResult.js");
+var OuterSubscriber_1 = __webpack_require__("./node_modules/rxjs/OuterSubscriber.js");
+/**
+ * We need this JSDoc comment for affecting ESDoc.
+ * @extends {Ignored}
+ * @hide true
+ */
+var DeferObservable = (function (_super) {
+    __extends(DeferObservable, _super);
+    function DeferObservable(observableFactory) {
+        _super.call(this);
+        this.observableFactory = observableFactory;
+    }
+    /**
+     * Creates an Observable that, on subscribe, calls an Observable factory to
+     * make an Observable for each new Observer.
+     *
+     * <span class="informal">Creates the Observable lazily, that is, only when it
+     * is subscribed.
+     * </span>
+     *
+     * <img src="./img/defer.png" width="100%">
+     *
+     * `defer` allows you to create the Observable only when the Observer
+     * subscribes, and create a fresh Observable for each Observer. It waits until
+     * an Observer subscribes to it, and then it generates an Observable,
+     * typically with an Observable factory function. It does this afresh for each
+     * subscriber, so although each subscriber may think it is subscribing to the
+     * same Observable, in fact each subscriber gets its own individual
+     * Observable.
+     *
+     * @example <caption>Subscribe to either an Observable of clicks or an Observable of interval, at random</caption>
+     * var clicksOrInterval = Rx.Observable.defer(function () {
+     *   if (Math.random() > 0.5) {
+     *     return Rx.Observable.fromEvent(document, 'click');
+     *   } else {
+     *     return Rx.Observable.interval(1000);
+     *   }
+     * });
+     * clicksOrInterval.subscribe(x => console.log(x));
+     *
+     * @see {@link create}
+     *
+     * @param {function(): Observable|Promise} observableFactory The Observable
+     * factory function to invoke for each Observer that subscribes to the output
+     * Observable. May also return a Promise, which will be converted on the fly
+     * to an Observable.
+     * @return {Observable} An Observable whose Observers' subscriptions trigger
+     * an invocation of the given Observable factory function.
+     * @static true
+     * @name defer
+     * @owner Observable
+     */
+    DeferObservable.create = function (observableFactory) {
+        return new DeferObservable(observableFactory);
+    };
+    DeferObservable.prototype._subscribe = function (subscriber) {
+        return new DeferSubscriber(subscriber, this.observableFactory);
+    };
+    return DeferObservable;
+}(Observable_1.Observable));
+exports.DeferObservable = DeferObservable;
+var DeferSubscriber = (function (_super) {
+    __extends(DeferSubscriber, _super);
+    function DeferSubscriber(destination, factory) {
+        _super.call(this, destination);
+        this.factory = factory;
+        this.tryDefer();
+    }
+    DeferSubscriber.prototype.tryDefer = function () {
+        try {
+            this._callFactory();
+        }
+        catch (err) {
+            this._error(err);
+        }
+    };
+    DeferSubscriber.prototype._callFactory = function () {
+        var result = this.factory();
+        if (result) {
+            this.add(subscribeToResult_1.subscribeToResult(this, result));
+        }
+    };
+    return DeferSubscriber;
+}(OuterSubscriber_1.OuterSubscriber));
+//# sourceMappingURL=DeferObservable.js.map
+
+/***/ },
+
 /***/ "./node_modules/rxjs/observable/ErrorObservable.js":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -76893,6 +77371,17 @@ var MulticastObservable = (function (_super) {
 }(Observable_1.Observable));
 exports.MulticastObservable = MulticastObservable;
 //# sourceMappingURL=MulticastObservable.js.map
+
+/***/ },
+
+/***/ "./node_modules/rxjs/observable/defer.js":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var DeferObservable_1 = __webpack_require__("./node_modules/rxjs/observable/DeferObservable.js");
+exports.defer = DeferObservable_1.DeferObservable.create;
+//# sourceMappingURL=defer.js.map
 
 /***/ },
 
@@ -84147,14 +84636,16 @@ var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var bootstrap_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
 var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
+var app_user_profile_1 = __webpack_require__("./src/app/services/app.user.profile.ts");
 var PNotify = __webpack_require__("./node_modules/pnotify/src/pnotify.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.mobile.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.buttons.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.desktop.js");
 var App = (function () {
-    function App(overlay, title, vcRef, modal, _snampLogService, _router) {
+    function App(overlay, title, vcRef, modal, _snampLogService, _profile, _router) {
         this.modal = modal;
         this._snampLogService = _snampLogService;
+        this._profile = _profile;
         this._router = _router;
         this.notificationCount = 0;
         this.activeEvent = undefined;
@@ -84164,6 +84655,7 @@ var App = (function () {
     }
     App.prototype.ngAfterViewInit = function () {
         var _this = this;
+        console.log("User profile decoded is: ", this._profile.decodeProfile());
         this.ws = new angular2_websocket_1.$WebSocket("ws://localhost:8181/snamp/console/events", [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
         this.ws.getDataStream()
             .map(function (msg) { return JSON.parse(msg.data); })
@@ -84213,10 +84705,10 @@ var App = (function () {
             template: __webpack_require__("./src/app/app.component.html"),
             providers: [platform_browser_1.Title]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof platform_browser_1.Title !== 'undefined' && platform_browser_1.Title) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof bootstrap_1.Modal !== 'undefined' && bootstrap_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _e) || Object, (typeof (_f = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _f) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof platform_browser_1.Title !== 'undefined' && platform_browser_1.Title) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof bootstrap_1.Modal !== 'undefined' && bootstrap_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _e) || Object, (typeof (_f = typeof app_user_profile_1.UserProfileService !== 'undefined' && app_user_profile_1.UserProfileService) === 'function' && _f) || Object, (typeof (_g = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _g) || Object])
     ], App);
     return App;
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
 }());
 exports.App = App;
 
@@ -84234,32 +84726,39 @@ var common_1 = __webpack_require__("./node_modules/@angular/common/index.js");
 var forms_1 = __webpack_require__("./node_modules/@angular/forms/index.js");
 var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+// main components
 var environment_1 = __webpack_require__("./src/app/environment.ts");
 var app_routes_1 = __webpack_require__("./src/app/app.routes.ts");
 var app_component_1 = __webpack_require__("./src/app/app.component.ts");
-var footer_component_1 = __webpack_require__("./src/app/controls/footer.component.ts");
-var sidebar_component_1 = __webpack_require__("./src/app/menu/sidebar.component.ts");
-var topnavbar_component_1 = __webpack_require__("./src/app/menu/topnavbar.component.ts");
-var app_username_1 = __webpack_require__("./src/app/controls/app.username.ts");
+// injectable services
 var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var app_chartService_1 = __webpack_require__("./src/app/services/app.chartService.ts");
 var app_viewService_1 = __webpack_require__("./src/app/services/app.viewService.ts");
-var ng2_fontawesome_1 = __webpack_require__("./node_modules/ng2-fontawesome/index.js");
+var app_user_profile_1 = __webpack_require__("./src/app/services/app.user.profile.ts");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
-var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
-var ng2_dropdown_1 = __webpack_require__("./node_modules/ng2-dropdown/index.js");
-var ui_switch_component_1 = __webpack_require__("./src/app/controls/ui-switch.component.ts");
-var panel_component_1 = __webpack_require__("./src/app/controls/panel.component.ts");
-var configuration_pipes_1 = __webpack_require__("./src/app/configuration/configuration.pipes.ts");
-var inline_edit_component_1 = __webpack_require__("./src/app/controls/inline-edit.component.ts");
+// controls
+var ui_switch_component_1 = __webpack_require__("./src/app/controls/switcher/ui-switch.component.ts");
+var panel_component_1 = __webpack_require__("./src/app/controls/panel/panel.component.ts");
+var inline_edit_component_1 = __webpack_require__("./src/app/controls/editor/inline-edit.component.ts");
+var app_username_1 = __webpack_require__("./src/app/controls/username/app.username.ts");
+var footer_component_1 = __webpack_require__("./src/app/controls/footer/footer.component.ts");
+//menu items
+var sidebar_component_1 = __webpack_require__("./src/app/menu/sidebar/sidebar.component.ts");
+var topnavbar_component_1 = __webpack_require__("./src/app/menu/topbar/topnavbar.component.ts");
+// configuration components
 var parameters_table_component_1 = __webpack_require__("./src/app/configuration/components/parameters-table.component.ts");
 var resource_subentities_table_component_1 = __webpack_require__("./src/app/configuration/components/resource-subentities-table.component.ts");
 var add_entity_component_1 = __webpack_require__("./src/app/configuration/components/add-entity.component.ts");
+var configuration_pipes_1 = __webpack_require__("./src/app/configuration/configuration.pipes.ts");
+// 3rd side components
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var bootstrap_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
 var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var ng2_tooltip_1 = __webpack_require__("./node_modules/ng2-tooltip/index.js");
 var angular2_moment_1 = __webpack_require__("./node_modules/angular2-moment/index.js");
+var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
+var ng2_dropdown_1 = __webpack_require__("./node_modules/ng2-dropdown/index.js");
+var ng2_fontawesome_1 = __webpack_require__("./node_modules/ng2-fontawesome/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 // Application wide providers
 var APP_PROVIDERS = [
@@ -84268,6 +84767,7 @@ var APP_PROVIDERS = [
     app_chartService_1.ChartService,
     core_2.CookieService,
     app_viewService_1.ViewService,
+    app_user_profile_1.UserProfileService,
     vex_1.providers
 ];
 var AppModule = (function () {
@@ -85611,7 +86111,7 @@ var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
 var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
-var inline_edit_component_1 = __webpack_require__("./src/app/controls/inline-edit.component.ts");
+var inline_edit_component_1 = __webpack_require__("./src/app/controls/editor/inline-edit.component.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/map.js");
 __webpack_require__("./node_modules/rxjs/add/operator/do.js");
 __webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
@@ -86700,94 +87200,11 @@ exports.TypedEntity = TypedEntity;
 
 /***/ },
 
-/***/ "./src/app/controls/app.username.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
-__webpack_require__("./node_modules/rxjs/add/operator/map.js");
-__webpack_require__("./node_modules/rxjs/add/operator/do.js");
-__webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
-var UsernameComponent = (function () {
-    function UsernameComponent(apiClient) {
-        var _this = this;
-        this.apiClient = apiClient;
-        apiClient.get('/snamp/security/login/username')
-            .map(function (res) { return res.text(); })
-            .subscribe(function (res) {
-            _this.username = res;
-            // until we got the very first authenticated response from the service -
-            // all the layout will be hided with overlay
-            $('#overlay').fadeOut();
-            $('#mainBodyContainer').fadeIn();
-        }, function (err) {
-            if (err.status == 500) {
-                window.location.href = "login.html?tokenExpired=true";
-            }
-        });
-    }
-    UsernameComponent = __decorate([
-        core_1.Component({
-            selector: 'username',
-            template: '{{username}}'
-        }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
-    ], UsernameComponent);
-    return UsernameComponent;
-    var _a;
-}());
-exports.UsernameComponent = UsernameComponent;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
-/***/ "./src/app/controls/footer.component.html":
-/***/ function(module, exports) {
-
-module.exports = "   <!-- footer content -->\r\n        <footer>\r\n          <div class=\"pull-right\">\r\n            SNAMP web configuration console by <a href=\"http://bytex.solutions\">Bytex solutions</a>\r\n          </div>\r\n          <div class=\"clearfix\"></div>\r\n        </footer>\r\n        <!-- /footer content -->\r\n"
-
-/***/ },
-
-/***/ "./src/app/controls/footer.component.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var Footer = (function () {
-    // TypeScript public modifiers
-    function Footer() {
-    }
-    Footer.prototype.ngOnInit = function () {
-        console.log('hello `Footer` component');
-    };
-    Footer = __decorate([
-        core_1.Component({
-            selector: 'custom-footer',
-            // We need to tell Angular's Dependency Injection which providers are in our app.
-            providers: [],
-            // Our list of styles in our component. We may add more to compose many styles together
-            styles: [__webpack_require__("./src/app/app.style.css")],
-            // Every Angular template is first compiled by the browser before Angular runs it's compiler
-            template: __webpack_require__("./src/app/controls/footer.component.html")
-        }), 
-        __metadata('design:paramtypes', [])
-    ], Footer);
-    return Footer;
-}());
-exports.Footer = Footer;
-
-
-/***/ },
-
-/***/ "./src/app/controls/inline-edit.component.css":
+/***/ "./src/app/controls/editor/inline-edit.component.css":
 /***/ function(module, exports, __webpack_require__) {
 
 
-        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/controls/inline-edit.component.css");
+        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/controls/editor/inline-edit.component.css");
 
         if (typeof result === "string") {
             module.exports = result;
@@ -86798,14 +87215,14 @@ exports.Footer = Footer;
 
 /***/ },
 
-/***/ "./src/app/controls/inline-edit.component.html":
+/***/ "./src/app/controls/editor/inline-edit.component.html":
 /***/ function(module, exports) {
 
 module.exports = "<div id=\"inlineEditWrapper\">\r\n\r\n    <!-- editable value -->\r\n    <a (click)=\"edit(value)\" [hidden]=\"editing\">{{ value }}</a>\r\n\r\n    <!-- inline edit form -->\r\n    <form  #inlineEditForm=\"ngForm\" class=\"inlineEditForm form-inline\" (ngSubmit)=\"onSubmit(value)\" [hidden]=\"!editing\">\r\n        <div class=\"form-group\">\r\n\r\n            <!-- inline edit control  -->\r\n            <input #inlineEditControl class=\"form-control\" [(ngModel)]=\"value\" [ngModelOptions]=\"{standalone: true}\"/>\r\n\r\n            <!-- inline edit save and cancel buttons -->\r\n            <span>\r\n                <button type=\"submit\" class=\"btn btn-primary\"><span class=\"glyphicon glyphicon-ok\"></span></button>\r\n                <div class=\"btn btn-default pointerElement\" (click)=\"cancel(value)\"><span class=\"glyphicon glyphicon-remove\"></span></div>\r\n           </span>\r\n\r\n        </div>\r\n    </form>\r\n</div>\r\n"
 
 /***/ },
 
-/***/ "./src/app/controls/inline-edit.component.ts":
+/***/ "./src/app/controls/editor/inline-edit.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86880,8 +87297,8 @@ var InlineEditComponent = (function () {
             moduleId: module.i,
             selector: 'inline-edit',
             providers: [INLINE_EDIT_CONTROL_VALUE_ACCESSOR],
-            styles: [__webpack_require__("./src/app/controls/inline-edit.component.css")],
-            template: __webpack_require__("./src/app/controls/inline-edit.component.html")
+            styles: [__webpack_require__("./src/app/controls/editor/inline-edit.component.css")],
+            template: __webpack_require__("./src/app/controls/editor/inline-edit.component.html")
         }), 
         __metadata('design:paramtypes', [(typeof (_b = typeof core_1.ElementRef !== 'undefined' && core_1.ElementRef) === 'function' && _b) || Object, (typeof (_c = typeof core_1.Renderer !== 'undefined' && core_1.Renderer) === 'function' && _c) || Object])
     ], InlineEditComponent);
@@ -86893,14 +87310,44 @@ exports.InlineEditComponent = InlineEditComponent;
 
 /***/ },
 
-/***/ "./src/app/controls/panel.component.html":
+/***/ "./src/app/controls/footer/footer.component.html":
+/***/ function(module, exports) {
+
+module.exports = "<!-- footer content -->\r\n<footer>\r\n    <div class=\"pull-right\">\r\n        SNAMP web configuration console by <a href=\"https://bytex.solutions\">Bytex solutions OU</a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n</footer>\r\n<!-- /footer content -->\r\n"
+
+/***/ },
+
+/***/ "./src/app/controls/footer/footer.component.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var Footer = (function () {
+    function Footer() {
+    }
+    Footer = __decorate([
+        core_1.Component({
+            selector: 'custom-footer',
+            template: __webpack_require__("./src/app/controls/footer/footer.component.html")
+        }), 
+        __metadata('design:paramtypes', [])
+    ], Footer);
+    return Footer;
+}());
+exports.Footer = Footer;
+
+
+/***/ },
+
+/***/ "./src/app/controls/panel/panel.component.html":
 /***/ function(module, exports) {
 
 module.exports = "<div class=\"col-md-{{column}} col-sm-{{column}} col-xs-{{column}}\">\r\n  <div class=\"x_panel tile\">\r\n    <div class=\"x_title\">\r\n      <h2><i *ngIf=\"icon != undefined\" class=\"fa fa-{{icon}}\"></i>{{header}}</h2>\r\n      <ul class=\"nav navbar-right panel_toolbox\">\r\n        <li>\r\n          <a class=\"collapse-link\" (click)=\"collapseClicked($event)\"><i class=\"fa fa-chevron-up\"></i></a>\r\n        </li>\r\n        <li *ngIf=\"showCloseButton\">\r\n          <a class=\"close-link\" (click)=\"closeClicked($event)\"><i class=\"fa fa-close\"></i></a>\r\n        </li>\r\n      </ul>\r\n      <div class=\"clearfix\"></div>\r\n    </div>\r\n    <div class=\"x_content\">\r\n      <ng-content></ng-content>\r\n    </div>\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
-/***/ "./src/app/controls/panel.component.ts":
+/***/ "./src/app/controls/panel/panel.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -86951,7 +87398,7 @@ var PanelComponent = (function () {
         core_1.Component({
             moduleId: module.i,
             selector: 'panel',
-            template: __webpack_require__("./src/app/controls/panel.component.html"),
+            template: __webpack_require__("./src/app/controls/panel/panel.component.html"),
         }), 
         __metadata('design:paramtypes', [])
     ], PanelComponent);
@@ -86963,7 +87410,7 @@ exports.PanelComponent = PanelComponent;
 
 /***/ },
 
-/***/ "./src/app/controls/ui-switch.component.ts":
+/***/ "./src/app/controls/switcher/ui-switch.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87109,6 +87556,50 @@ exports.UiSwitchComponent = UiSwitchComponent;
 
 /***/ },
 
+/***/ "./src/app/controls/username/app.username.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+__webpack_require__("./node_modules/rxjs/add/operator/map.js");
+__webpack_require__("./node_modules/rxjs/add/operator/do.js");
+__webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
+var UsernameComponent = (function () {
+    function UsernameComponent(apiClient) {
+        var _this = this;
+        this.apiClient = apiClient;
+        apiClient.get('/snamp/security/login/username')
+            .map(function (res) { return res.text(); })
+            .subscribe(function (res) {
+            _this.username = res;
+            // until we got the very first authenticated response from the service -
+            // all the layout will be hided with overlay
+            $('#overlay').fadeOut();
+            $('#mainBodyContainer').fadeIn();
+        }, function (err) {
+            if (err.status == 500) {
+                window.location.href = "login.html?tokenExpired=true";
+            }
+        });
+    }
+    UsernameComponent = __decorate([
+        core_1.Component({
+            selector: 'username',
+            template: '{{username}}'
+        }), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
+    ], UsernameComponent);
+    return UsernameComponent;
+    var _a;
+}());
+exports.UsernameComponent = UsernameComponent;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
 /***/ "./src/app/environment.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -87161,14 +87652,14 @@ __export(__webpack_require__("./src/app/app.module.ts"));
 
 /***/ },
 
-/***/ "./src/app/menu/sidebar.component.html":
+/***/ "./src/app/menu/sidebar/sidebar.component.html":
 /***/ function(module, exports) {
 
 module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <!-- menu profile quick info -->\r\n    <div class=\"profile\">\r\n      <div class=\"profile_pic\">\r\n        <img src=\"assets/img/anyUser.png\" alt=\"...\" class=\"img-circle profile_img\">\r\n      </div>\r\n      <div class=\"profile_info\">\r\n        <span>Welcome,</span>\r\n        <h2><username></username></h2>\r\n      </div>\r\n    </div>\r\n    <!-- /menu profile quick info -->\r\n\r\n    <br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" class=\"clickableAnchor\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" class=\"clickableAnchor\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"thread-pools\" routerLinkActive=\"active\">Thread pools</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisor - Health statuses</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" class=\"clickableAnchor\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" class=\"clickableAnchor\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Health statuses</a></li>\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
-/***/ "./src/app/menu/sidebar.component.ts":
+/***/ "./src/app/menu/sidebar/sidebar.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87239,8 +87730,7 @@ var Sidebar = (function () {
     Sidebar = __decorate([
         core_1.Component({
             selector: 'side-bar',
-            styles: [__webpack_require__("./src/app/app.style.css"), __webpack_require__("./src/app/menu/vex.css")],
-            template: __webpack_require__("./src/app/menu/sidebar.component.html"),
+            template: __webpack_require__("./src/app/menu/sidebar/sidebar.component.html"),
             encapsulation: core_1.ViewEncapsulation.None,
             entryComponents: [
                 vex_1.DialogFormModal
@@ -87257,14 +87747,14 @@ exports.Sidebar = Sidebar;
 
 /***/ },
 
-/***/ "./src/app/menu/topnavbar.component.html":
+/***/ "./src/app/menu/topbar/topnavbar.component.html":
 /***/ function(module, exports) {
 
 module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            <username></username>\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"javascript:;\">Profile</a></li>\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{logs.length}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.shortDescription()}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
-/***/ "./src/app/menu/topnavbar.component.ts":
+/***/ "./src/app/menu/topbar/topnavbar.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -87336,8 +87826,7 @@ var TopNavBar = (function () {
         core_1.Component({
             selector: 'topnav-bar',
             providers: [core_2.CookieService],
-            styles: [__webpack_require__("./src/app/app.style.css")],
-            template: __webpack_require__("./src/app/menu/topnavbar.component.html"),
+            template: __webpack_require__("./src/app/menu/topbar/topnavbar.component.html"),
             encapsulation: core_1.ViewEncapsulation.None
         }), 
         __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _b) || Object, (typeof (_c = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _c) || Object, (typeof (_d = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof bootstrap_1.Modal !== 'undefined' && bootstrap_1.Modal) === 'function' && _f) || Object])
@@ -87348,21 +87837,6 @@ var TopNavBar = (function () {
 exports.TopNavBar = TopNavBar;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
-/***/ "./src/app/menu/vex.css":
-/***/ function(module, exports, __webpack_require__) {
-
-
-        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/menu/vex.css");
-
-        if (typeof result === "string") {
-            module.exports = result;
-        } else {
-            module.exports = result.toString();
-        }
-    
 
 /***/ },
 
@@ -87863,6 +88337,37 @@ exports.REST = REST;
 
 /***/ },
 
+/***/ "./src/app/services/app.user.profile.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
+var core_2 = __webpack_require__("./node_modules/angular2-cookie/core.js");
+var angular2_jwt_1 = __webpack_require__("./node_modules/angular2-jwt/angular2-jwt.js");
+var UserProfileService = (function () {
+    function UserProfileService(_cookieService) {
+        this._cookieService = _cookieService;
+        this.jwtHelper = new angular2_jwt_1.JwtHelper();
+    }
+    UserProfileService.prototype.decodeProfile = function () {
+        return this.jwtHelper.decodeToken(this._cookieService.get("snamp-auth-token"));
+    };
+    UserProfileService.prototype.isUserHasAdminRole = function () {
+        return this.decodeProfile()["roles"].indexOf("admin") >= 0;
+    };
+    UserProfileService = __decorate([
+        core_1.Injectable(), 
+        __metadata('design:paramtypes', [(typeof (_a = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _a) || Object])
+    ], UserProfileService);
+    return UserProfileService;
+    var _a;
+}());
+exports.UserProfileService = UserProfileService;
+
+
+/***/ },
+
 /***/ "./src/app/services/app.viewService.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -88140,7 +88645,7 @@ var InvalidAttributeValue = (function (_super) {
         return "Invalid attribute (" + this.attribute.name + ")  value: " + this.attribute.value;
     };
     InvalidAttributeValue.prototype.getShortDescription = function () {
-        return "Invalid attribute";
+        return "Invalid attribute " + this.attribute.name + "within resource " + this.resourceName;
     };
     InvalidAttributeValue.prototype.htmlDetails = function () {
         var _details = "";
@@ -88489,9 +88994,10 @@ var HealthStatusNotification = (function (_super) {
         this.currentStatus = new ok_status_1.OkStatus;
     }
     HealthStatusNotification.prototype.htmlDetails = function () {
-        var _details = "The status before: <br/>";
+        var _details = "<strong>Group name:</strong>" + this.groupName + "<br/>";
+        _details += "<strong>The status before: </strong><br/>";
         _details += this.prevStatus.htmlDetails();
-        _details += "Current status: <br/>";
+        _details += "<strong>Current status: </strong><br/>";
         _details += this.currentStatus.htmlDetails();
         return _details;
     };
@@ -88515,8 +89021,18 @@ var HealthStatusNotification = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(HealthStatusNotification.prototype, "groupName", {
+        get: function () {
+            return this._groupName;
+        },
+        set: function (value) {
+            this._groupName = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     HealthStatusNotification.prototype.shortDescription = function () {
-        return "Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
+        return "Group: " + this.groupName + ".Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
     };
     HealthStatusNotification.prototype.fillFromJson = function (_json) {
         if (_json["previousStatus"] != undefined) {
@@ -88524,6 +89040,9 @@ var HealthStatusNotification = (function (_super) {
         }
         if (_json["newStatus"] != undefined) {
             this.currentStatus = factory_1.StatusFactory.healthStatusFromJSON(_json["newStatus"]['@type'], _json["newStatus"]);
+        }
+        if (_json["groupName"] != undefined) {
+            this.groupName = _json["groupName"];
         }
         this.level = "WARN"; // always make it quite important (because no level is being received from backend)
     };

@@ -4,7 +4,7 @@ import { ApiClient }     from '../services/app.restClient';
 import { TooltipModule } from 'ng2-tooltip';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
-import { PanelComponent } from '../controls/panel.component';
+import { PanelComponent } from '../controls/panel/panel.component';
 import { Routes, RouterModule } from '@angular/router';
 import { ModalModule } from 'angular2-modal';
 import {

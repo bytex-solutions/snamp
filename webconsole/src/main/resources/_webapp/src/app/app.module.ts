@@ -5,43 +5,46 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
 
+// main components
 import { ENV_PROVIDERS } from './environment';
 import { ROUTES } from './app.routes';
 import { App } from './app.component';
-import { Footer } from './controls/footer.component';
-import { Sidebar } from './menu/sidebar.component';
-import { TopNavBar } from './menu/topnavbar.component';
-import { UsernameComponent } from './controls/app.username';
+
+// injectable services
 import { SnampLogService } from './services/app.logService';
 import { ChartService } from './services/app.chartService';
 import { ViewService } from './services/app.viewService';
-import { FontAwesomeDirective } from 'ng2-fontawesome';
+import { UserProfileService } from "./services/app.user.profile";
 import { ApiClient } from './services/app.restClient'
-import { CookieService } from 'angular2-cookie/core';
-import { DropdownModule } from "ng2-dropdown";
 
-import { UiSwitchComponent } from './controls/ui-switch.component';
+// controls
+import { UiSwitchComponent } from './controls/switcher/ui-switch.component';
+import { PanelComponent } from './controls/panel/panel.component';
+import { InlineEditComponent } from './controls/editor/inline-edit.component';
+import { UsernameComponent } from './controls/username/app.username';
+import { Footer } from './controls/footer/footer.component';
 
-import { PanelComponent } from './controls/panel.component';
+//menu items
+import { Sidebar } from './menu/sidebar/sidebar.component';
+import { TopNavBar } from './menu/topbar/topnavbar.component';
 
-import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
-import { InlineEditComponent } from './controls/inline-edit.component';
+// configuration components
 import { ParametersTable } from './configuration/components/parameters-table.component';
 import { ResourceEntitiesTable } from './configuration/components/resource-subentities-table.component';
 import { AddEntity } from './configuration/components/add-entity.component';
+import { KeysPipe, RequiredParametersFilter, OptionalParametersFilter } from './configuration/configuration.pipes';
+
+// 3rd side components
 import { ModalModule } from 'angular2-modal';
 import { BootstrapModalModule } from 'angular2-modal/plugins/bootstrap';
-
 import { LocalStorageModule } from 'angular-2-local-storage';
-
 import { TooltipModule } from 'ng2-tooltip';
-
 import { MomentModule } from 'angular2-moment';
+import { CookieService } from 'angular2-cookie/core';
+import { DropdownModule } from "ng2-dropdown";
+import { FontAwesomeDirective } from 'ng2-fontawesome';
+import { VexModalModule, providers } from 'angular2-modal/plugins/vex';
 
-import {
-  VexModalModule,
-  providers
-} from 'angular2-modal/plugins/vex';
 
 
 // Application wide providers
@@ -51,6 +54,7 @@ const APP_PROVIDERS = [
   ChartService,
   CookieService,
   ViewService,
+  UserProfileService,
   providers
 ];
 

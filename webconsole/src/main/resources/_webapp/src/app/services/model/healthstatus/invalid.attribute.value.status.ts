@@ -9,7 +9,7 @@ export class InvalidAttributeValue extends MalfunctionStatus {
     }
 
     public getShortDescription():string {
-        return "Invalid attribute";
+        return "Invalid attribute " + this.attribute.name + "within resource " + this.resourceName;
     }
 
     public htmlDetails():string {

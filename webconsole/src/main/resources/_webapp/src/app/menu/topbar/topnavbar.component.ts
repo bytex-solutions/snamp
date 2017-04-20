@@ -1,14 +1,13 @@
 import { Component, ChangeDetectorRef, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import { CookieService } from 'angular2-cookie/core';
-import { SnampLogService } from '../services/app.logService';
+import { SnampLogService } from '../../services/app.logService';
 import { Modal } from 'angular2-modal/plugins/bootstrap';
 import { Overlay } from 'angular2-modal';
-import { AbstractNotification } from "../services/model/notifications/abstract.notification";
+import { AbstractNotification } from "../../services/model/notifications/abstract.notification";
 
 @Component({
   selector: 'topnav-bar',
   providers: [ CookieService ],
-  styleUrls: [ '../app.style.css' ],
   templateUrl: './topnavbar.component.html',
   encapsulation: ViewEncapsulation.None
 })

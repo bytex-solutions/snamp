@@ -1,6 +1,6 @@
 import { Component, ViewEncapsulation } from '@angular/core';
-import { ViewService } from '../services/app.viewService';
-import { ChartService } from '../services/app.chartService';
+import { ViewService } from '../../services/app.viewService';
+import { ChartService } from '../../services/app.chartService';
 import { Router } from '@angular/router';
 import 'rxjs/add/observable/of';
 import {
@@ -11,7 +11,6 @@ import {
 
 @Component({
   selector: 'side-bar',
-  styleUrls: [ '../app.style.css', './vex.css'],
   templateUrl: './sidebar.component.html',
   encapsulation: ViewEncapsulation.None,
   entryComponents: [
