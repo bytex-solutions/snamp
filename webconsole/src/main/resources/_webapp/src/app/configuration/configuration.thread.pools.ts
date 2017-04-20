@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Overlay } from 'angular2-modal';
@@ -23,6 +23,7 @@ export class ThreadPoolsComponent implements OnInit {
     constructor(private http: ApiClient,
                 overlay: Overlay,
                 vcRef: ViewContainerRef,
+                private cd: ChangeDetectorRef,
                 private modal: Modal) {
         overlay.defaultViewContainer = vcRef;
     }
@@ -41,6 +42,7 @@ export class ThreadPoolsComponent implements OnInit {
     private setActiveThreadPool(pool:ThreadPool):void {
         this.selectedThreadPool = pool;
         this.threadPool = this.selectedThreadPool.clone();
+        this.cd.detectChanges();
     }
 
     private removeThreadPoolFromArray(pool:ThreadPool):void {
@@ -58,7 +60,7 @@ export class ThreadPoolsComponent implements OnInit {
 
     private saveThreadPoolToServer(pool:ThreadPool):void {
         this.http.put(REST.THREAD_POOL_BY_NAME(pool.name), pool.toJSON())
-            .map((response:Response) => response.json())
+            .map((response:Response) => response.text())
             .subscribe(() => {
                 // if this is the new pool - push it to the array for displaying it in the template
                 if (!Entity.containsInArray(pool, this.threadPools)) {
@@ -126,6 +128,7 @@ export class ThreadPoolsComponent implements OnInit {
             .then(result => {
                 let _newThreadPool:ThreadPool = new ThreadPool(result, {});
                 this.setActiveThreadPool(_newThreadPool);
+                console.log(this.threadPool, $(ThreadPoolsComponent.modalDialogId));
                 $(ThreadPoolsComponent.modalDialogId).modal("show");
 
             })
