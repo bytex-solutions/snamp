@@ -2,7 +2,7 @@ import { Component, Input, OnInit, EventEmitter, Output } from '@angular/core';
 import { TypedEntity } from '../model/model.typedEntity';
 
 import { ApiClient, REST } from '../../services/app.restClient';
-import { KeyValue, Entity } from '../model/model.entity';
+import { KeyValue } from '../model/model.entity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -15,10 +15,10 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
 @Component({
-  moduleId: module.id,
-  selector: 'newEntity',
-  templateUrl: './templates/add-entity.component.html',
-  styleUrls: ['./templates/css/add-entity.component.css']
+    moduleId: module.id,
+    selector: 'newEntity',
+    templateUrl: './templates/add-entity.component.html',
+    styleUrls: ['./templates/css/add-entity.component.css']
 })
 export class AddEntity implements OnInit {
     @Input() entities: TypedEntity[];
@@ -34,16 +34,14 @@ export class AddEntity implements OnInit {
     availableEntities:EntityDescriptor[] = [];
     _innerType:string;
 
-    constructor(private http:ApiClient){
-
-    };
+    constructor(private http:ApiClient){};
 
     ngOnInit() {
-         if (this.type == "resourceGroup") {
+        if (this.type == "resourceGroup") {
             this._innerType = "connectors";
-          } else {
-              this._innerType = this.type;
-          }
+        } else {
+            this._innerType = this.type;
+        }
         this.http.get(REST.AVAILABLE_ENTITIES_BY_TYPE(this._innerType))
             .map((res:Response) => res.json())
             .subscribe(data => {
@@ -58,16 +56,16 @@ export class AddEntity implements OnInit {
 
     selectType(selected:EntityDescriptor) {
         this.selectedType = selected;
-         this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this._innerType, selected.type))
+        this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this._innerType, selected.type))
             .map((res: Response) => {
                 let data = res.json();
                 let returnValue:ParamDescriptor[] = [];
                 for (let obj in data) {
-                   returnValue.push(new ParamDescriptor(data[obj]));
+                    returnValue.push(new ParamDescriptor(data[obj]));
                 }
                 return returnValue;
             });
-         this.paramDescriptors
+        this.paramDescriptors
             .subscribe((res:ParamDescriptor[]) => {
                 this.params = [];
                 this.containsRequiredParam = false;
@@ -81,11 +79,11 @@ export class AddEntity implements OnInit {
                             paramValue = obj.defaultValue;
                         }
                         this.params.push(new KeyValue(obj.name, paramValue));
-                     }
+                    }
                 }
                 this.readyForSave = TypedEntity.checkForRequiredFilled(this.params, res)
                     && this.nameSelected() && this.selectedType != undefined;
-             });
+            });
 
 
     }
@@ -95,7 +93,7 @@ export class AddEntity implements OnInit {
     }
 
     addEntity() {
-      let newEntity:TypedEntity;
+        let newEntity:TypedEntity;
         if (this.type == "gateway") {
             newEntity = new Gateway(
                 this.http,
@@ -109,14 +107,14 @@ export class AddEntity implements OnInit {
                     this.onSave.emit(newEntity);
                 });
         } else if(this.type == "resource") {
-             let connectionString:string = this.selectedConnectionString;
-             if (connectionString == undefined || connectionString.length < 4) {
+            let connectionString:string = this.selectedConnectionString;
+            if (connectionString == undefined || connectionString.length < 4) {
                 connectionString = ParamDescriptor.stubValue;
-             }
-             newEntity = new Resource(
+            }
+            newEntity = new Resource(
                 this.http,
                 this.selectedName,
-                Resource.stringify(this.selectedType.type, connectionString, this.params)
+                Resource.toJSON(this.selectedType.type, connectionString, this.params)
             );
             this.http.put(REST.RESOURCE_BY_NAME(newEntity.name), newEntity.stringify())
                 .subscribe(res => {

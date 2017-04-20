@@ -161,6 +161,11 @@ export class REST {
         return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
     }
 
+    // setting resource thread pool by resource name
+    public static RESOURCE_THREAD_POOL(resourceName: string): string {
+        return REST.RESOURCE_BY_NAME(resourceName) + "/parameters/threadPool";
+    }
+
     // certain tread pool configuration by name
     public static THREAD_POOL_BY_NAME(name:string):string {
         return REST.THREAD_POOL_CONFIG + "/" + name;
@@ -208,7 +213,7 @@ export class REST {
 
     // endpoint for certain supervisor
     public static SUPERVISOR_BY_NAME(name: string): string {
-        return REST.SUPERVISORS_CONFIG + "/" + name;
+        return REST.SUPERVISORS_CONFIG + "/" + encodeURIComponent(name);
     }
 
     // all supervisors statuses

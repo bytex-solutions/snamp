@@ -13,12 +13,12 @@
             </div>
             <div class="col-md-6">
               <select
-                id="resourceSelection"
-                class="select2_group form-control">
+                      id="resourceSelection"
+                      class="select2_group form-control">
                 <optgroup label="Resources" *ngIf="resources.length > 0">
                   <option
-                    *ngFor="let resource of resources"
-                    [value]="resource.name">
+                          *ngFor="let resource of resources"
+                          [value]="resource.name">
                     {{resource.name}}
                   </option>
                 </optgroup>
@@ -26,9 +26,9 @@
             </div>
             <div class="col-md-2">
               <newEntity
-                [entities]="connectors"
-                (onSave)="initSelectionComponent()"
-                [type]="'connector'">
+                      [entities]="connectors"
+                      (onSave)="initSelectionComponent()"
+                      [type]="'connector'">
               </newEntity>
             </div>
           </div>
@@ -52,8 +52,8 @@
                     style="height: auto;"
                     class="form-control">
               <option
-                *ngFor="let resource of availableResources"
-                [value]="resource.type">
+                      *ngFor="let resource of availableResources"
+                      [value]="resource.type">
                 {{resource.name}}
               </option>
             </select>
@@ -66,17 +66,34 @@
           </panel>
         </div>
 
-        <div class="row">
-          <panel [header]="'Resource group'" [column]="'12'" *ngIf="availableGroups && availableGroups.length > 0">
+        <div class="row" *ngIf="availableGroups && availableGroups.length > 0">
+          <panel [header]="'Resource group'" [column]="'12'" >
             <select
-              id="resourceGroup"
-              [(ngModel)]="activeResource.groupName"
-              (change)="changeGroup($event)"
-              class="form-control">
+                    id="resourceGroup"
+                    [(ngModel)]="activeResource.groupName"
+                    (change)="changeGroup($event)"
+                    class="form-control">
               <option
-                *ngFor="let name of availableGroups"
-                [value]="name">
+                      *ngFor="let name of availableGroups"
+                      [value]="name">
                 {{name}}
+              </option>
+            </select>
+          </panel>
+        </div>
+
+        <div class="row" *ngIf="availableGroups && availableGroups.length > 0">
+          <panel [header]="'Thread pool settings'" [column]="'12'" >
+            <select
+                    id="threadPoolInput"
+                    [(ngModel)]="activeResource.threadPool"
+                    (change)="changeThreadPool($event)"
+                    class="form-control">
+              <option value="">Default thread pool</option>
+              <option
+                      *ngFor="let threadPool of availableThreadPools"
+                      [value]="threadPool.name">
+                {{threadPool.name}}
               </option>
             </select>
           </panel>
@@ -93,28 +110,28 @@
       <div class="col-md-4">
         <div class="row">
 
-        <div class="col-md-12">
+          <div class="col-md-12">
             <panel [header]="'Entities'" [column]="'12'">
-            <div class="row" style="min-height: 80px;">
+              <div class="row" style="min-height: 80px;">
 
-              <div class="col-md-4 col-md-offset-8"  [tooltip]="'Enable for auto wiring entities to ' + activeResource.name">
-                <div class="count" style="display:inline-block; font-size: large;">Smart mode</div>
-                <div style="display: inline-block;">
-                  <ui-switch
-                    [(ngModel)]="activeResource.smartMode"
-                    (change)="triggerSmartMode($event)"
-                    [size]="'small'">
-                  </ui-switch>
+                <div class="col-md-4 col-md-offset-8"  [tooltip]="'Enable for auto wiring entities to ' + activeResource.name">
+                  <div class="count" style="display:inline-block; font-size: large;">Smart mode</div>
+                  <div style="display: inline-block;">
+                    <ui-switch
+                            [(ngModel)]="activeResource.smartMode"
+                            (change)="triggerSmartMode($event)"
+                            [size]="'small'">
+                    </ui-switch>
+                  </div>
+                  <p></p>
                 </div>
-                <p></p>
-              </div>
 
-              <div class="col-md-12" *ngIf="!activeResource.smartMode">
+                <div class="col-md-12" *ngIf="!activeResource.smartMode">
                   <div
-                    class="panel-group group-accordeon"
-                    id="accordionBindings"
-                    role="tablist"
-                    aria-multiselectable="true">
+                          class="panel-group group-accordeon"
+                          id="accordionBindings"
+                          role="tablist"
+                          aria-multiselectable="true">
                     <div class="panel panel-default">
                       <div class="panel-heading" role="tab" id="headingOne">
                         <h4 class="panel-title">
@@ -126,9 +143,9 @@
                       <div id="collapseAttributes" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
                         <div class="panel-body">
                           <resourceEntity
-                            [entities]="activeResource.attributes"
-                            [entityType]="'attribute'"
-                            [resource]="activeResource">
+                                  [entities]="activeResource.attributes"
+                                  [entityType]="'attribute'"
+                                  [resource]="activeResource">
                           </resourceEntity>
                         </div>
                       </div>
@@ -144,9 +161,9 @@
                       <div id="collapseEvents" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                         <div class="panel-body">
                           <resourceEntity
-                            [entities]="activeResource.events"
-                            [entityType]="'event'"
-                            [resource]="activeResource">
+                                  [entities]="activeResource.events"
+                                  [entityType]="'event'"
+                                  [resource]="activeResource">
                           </resourceEntity>
                         </div>
                       </div>
@@ -162,22 +179,20 @@
                       <div id="collapseOperations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
                         <div class="panel-body">
                           <resourceEntity
-                            [entities]="activeResource.operations"
-                            [entityType]="'operation'"
-                            [resource]="activeResource">
+                                  [entities]="activeResource.operations"
+                                  [entityType]="'operation'"
+                                  [resource]="activeResource">
                           </resourceEntity>
                         </div>
                       </div>
                     </div>
                   </div>
+                </div>
               </div>
-            </div>
-          </panel>
+            </panel>
+          </div>
         </div>
       </div>
-
     </div>
-
   </div>
 </div>
-

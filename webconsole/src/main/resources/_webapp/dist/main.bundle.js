@@ -85533,7 +85533,7 @@ var AddEntity = (function () {
             if (connectionString == undefined || connectionString.length < 4) {
                 connectionString = model_paramDescriptor_1.ParamDescriptor.stubValue;
             }
-            newEntity = new model_resource_1.Resource(this.http, this.selectedName, model_resource_1.Resource.stringify(this.selectedType.type, connectionString, this.params));
+            newEntity = new model_resource_1.Resource(this.http, this.selectedName, model_resource_1.Resource.toJSON(this.selectedType.type, connectionString, this.params));
             this.http.put(app_restClient_1.REST.RESOURCE_BY_NAME(newEntity.name), newEntity.stringify())
                 .subscribe(function (res) {
                 _this.entities.push(newEntity);
@@ -86504,6 +86504,7 @@ var Resource = (function (_super) {
         this.connectionString = "";
         this.smartMode = false;
         this.groupName = "";
+        this.threadPool = "";
         this.attributes = [];
         this.events = [];
         this.operations = [];
@@ -86522,6 +86523,11 @@ var Resource = (function (_super) {
         if (this.contains("group")) {
             this.groupName = this.getParameter("group").value;
             this.removeParameter("group");
+        }
+        // set the group
+        if (this.contains("threadPool")) {
+            this.threadPool = this.getParameter("threadPool").value;
+            this.removeParameter("threadPool");
         }
         // filling attributes
         if (parameters["attributes"] != undefined) {
@@ -86556,7 +86562,7 @@ var Resource = (function (_super) {
     Resource.prototype.getName = function () {
         return "connector";
     };
-    Resource.stringify = function (type, cstring, params) {
+    Resource.toJSON = function (type, cstring, params) {
         var returnValue = {};
         returnValue["type"] = type;
         returnValue["connectionString"] = cstring;
@@ -87793,6 +87799,10 @@ var REST = (function () {
     REST.RESOURCE_SUBENTITY = function (resourceName, entityType) {
         return REST.ROOT_PATH + "/resource/" + encodeURIComponent(resourceName) + "/" + encodeURIComponent(entityType) + "/description";
     };
+    // setting resource thread pool by resource name
+    REST.RESOURCE_THREAD_POOL = function (resourceName) {
+        return REST.RESOURCE_BY_NAME(resourceName) + "/parameters/threadPool";
+    };
     // certain tread pool configuration by name
     REST.THREAD_POOL_BY_NAME = function (name) {
         return REST.THREAD_POOL_CONFIG + "/" + name;
@@ -87809,7 +87819,7 @@ var REST = (function () {
     };
     // endpoint for certain supervisor
     REST.SUPERVISOR_BY_NAME = function (name) {
-        return REST.SUPERVISORS_CONFIG + "/" + name;
+        return REST.SUPERVISORS_CONFIG + "/" + encodeURIComponent(name);
     };
     REST.ROOT_PATH = "/snamp/management";
     REST.CFG_PATH = REST.ROOT_PATH + "/configuration";

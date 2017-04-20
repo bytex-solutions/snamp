@@ -11,6 +11,7 @@ export class Resource extends TypedEntity {
     connectionString:string = "";
     smartMode:boolean = false;
     groupName:string = "";
+    threadPool:string = "";
     attributes:Attribute[] = [];
     events:Event[] = [];
     operations:Operation[] = [];
@@ -32,6 +33,12 @@ export class Resource extends TypedEntity {
         if (this.contains("group")) {
             this.groupName = this.getParameter("group").value;
             this.removeParameter("group");
+        }
+
+        // set the group
+        if (this.contains("threadPool")) {
+            this.threadPool = this.getParameter("threadPool").value;
+            this.removeParameter("threadPool");
         }
 
         // filling attributes
@@ -71,7 +78,7 @@ export class Resource extends TypedEntity {
         return "connector";
     }
 
-    public static stringify(type:string, cstring:string, params: KeyValue[]):any {
+    public static toJSON(type:string, cstring:string, params: KeyValue[]):any {
         let returnValue:any = {};
         returnValue["type"] = type;
         returnValue["connectionString"] = cstring;
