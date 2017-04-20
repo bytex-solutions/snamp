@@ -211,7 +211,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         try{
             if(!readOnlyTest)
                 connector.setAttribute(new Attribute(attributeName, attributeValue));
-            final T newValue = Convert.toTypeToken(connector.getAttribute(attributeName), attributeType);
+            final T newValue = Convert.toType(connector.getAttribute(attributeName), attributeType).orElseThrow(AssertionError::new);
             assertNotNull(newValue);
             assertTrue(String.format("%s != %s", attributeValue, newValue), comparator.equate(attributeValue, newValue));
         }

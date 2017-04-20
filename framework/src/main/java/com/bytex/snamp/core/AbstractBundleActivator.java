@@ -140,10 +140,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
 
         @Override
         public <T> T getProperty(@Nonnull final ActivationProperty<T> propertyDef) {
-            final Object value = get(propertyDef);
-            return Convert.isInstance(value, propertyDef.getType()) ?
-                    Convert.toTypeToken(value, propertyDef.getType()) :
-                    propertyDef.getDefaultValue();
+            return Convert.toType(get(propertyDef), propertyDef.getType()).orElseGet(propertyDef::getDefaultValue);
         }
 
         @Override

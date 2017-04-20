@@ -10,6 +10,7 @@ import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.jmx.WellKnownType;
 
 import javax.management.*;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import java.io.Serializable;
 import java.time.Duration;
@@ -101,7 +102,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     public <T> T resolveName(final String name, final SimpleType<T> expectedType) throws Exception {
-        return Convert.toOpenType(resolveAs(name, WellKnownType.getType(expectedType)), expectedType);
+        return Convert.toType(resolveAs(name, WellKnownType.getType(expectedType)), expectedType).orElseThrow(OpenDataException::new);
     }
 
     /**

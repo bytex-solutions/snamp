@@ -193,14 +193,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @throws javax.management.ReflectionException Internal connector error.
      * @throws javax.management.InvalidAttributeValueException Attribute type mismatch.
      */
-    public final  <T> T getValue(final TypeToken<T> valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
-        final Object result = getValue();
-        try {
-            return Convert.toTypeToken(result, valueType);
-        }
-        catch (final ClassCastException e){
-            throw new InvalidAttributeValueException(e.getMessage());
-        }
+    public final  <T> T getValue(final TypeToken<T> valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
+        return Convert.toType(getValue(), valueType).orElseThrow(InvalidAttributeValueException::new);
     }
 
     /**

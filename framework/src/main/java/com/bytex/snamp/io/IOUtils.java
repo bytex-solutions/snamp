@@ -88,7 +88,7 @@ public final class IOUtils {
                                                          final TypeToken<T> expectedType,
                                                          final ClassResolver resolver) throws IOException {
         try (final ObjectInputStream deserializer = new CustomObjectInputStream(serializedForm, resolver)) {
-            return Convert.toTypeToken(deserializer.readObject(), expectedType);
+            return Convert.toType(deserializer.readObject(), expectedType).orElseThrow(ClassCastException::new);
         } catch (final ClassNotFoundException e) {
             throw new IOException(e);
         }

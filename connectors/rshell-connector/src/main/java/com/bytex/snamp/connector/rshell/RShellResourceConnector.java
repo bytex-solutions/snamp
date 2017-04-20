@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.Convert.toTypeToken;
+import static com.bytex.snamp.Convert.toType;
 
 /**
  * Represents RShell resource connector.
@@ -117,8 +117,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
 
         @Override
         protected Object invoke(CommandExecutionChannel channel, Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
-            final List<? extends Map<String, ?>> rows = toTypeToken(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
-            return rows != null ? OpenTypeHelpers.toTabularData((TabularType) getReturnOpenType(), rows) : null;
+            final List<? extends Map<String, ?>> rows = toType(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN)
+                    .orElseThrow(OpenDataException::new);
+            return OpenTypeHelpers.toTabularData((TabularType) getReturnOpenType(), rows);
         }
     }
 
@@ -144,8 +145,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
 
         @Override
         protected Object invoke(CommandExecutionChannel channel, Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
-            final Map<String, ?> dict = toTypeToken(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN);
-            return dict != null ? convert(dict) : null;
+            final Map<String, ?> dict = toType(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN)
+                    .orElseThrow(OpenDataException::new);
+            return convert(dict);
         }
     }
 
@@ -227,8 +229,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
 
         @Override
         protected Object getValue(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
-            final List<? extends Map<String, ?>> rows = toTypeToken(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN);
-            return rows != null ? OpenTypeHelpers.toTabularData((TabularType) getOpenType(), rows) : null;
+            final List<? extends Map<String, ?>> rows = toType(commandProfile.readFromChannel(channel, channelParams), TypeTokens.TABLE_TYPE_TOKEN)
+                    .orElseThrow(OpenDataException::new);
+            return OpenTypeHelpers.toTabularData((TabularType) getOpenType(), rows);
         }
 
         @Override
@@ -261,8 +264,9 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
 
         @Override
         protected CompositeData getValue(final CommandExecutionChannel channel, final Map<String, ?> channelParams) throws IOException, ScriptException, OpenDataException {
-            final Map<String, ?> dict = toTypeToken(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN);
-            return dict != null ? convert(dict) : null;
+            final Map<String, ?> dict = toType(commandProfile.readFromChannel(channel, channelParams), TypeTokens.DICTIONARY_TYPE_TOKEN)
+                    .orElseThrow(OpenDataException::new);
+            return convert(dict);
         }
     }
 

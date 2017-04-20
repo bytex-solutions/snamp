@@ -3,7 +3,6 @@ package com.bytex.snamp.jmx;
 import com.bytex.snamp.Convert;
 
 import javax.management.ImmutableDescriptor;
-import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenMBeanParameterInfo;
 import javax.management.openmbean.OpenMBeanParameterInfoSupport;
 import javax.management.openmbean.OpenType;
@@ -30,8 +29,8 @@ public final class OpenMBeanParameterInfoSupplier<T> implements Supplier<OpenMBe
             super(String.format("Parameter %s cannot be null", nullParameter.getName()));
         }
 
-        private OperationArgumentException(final OpenType<?> expectedType, final OpenDataException e){
-            super(String.format("Illegal type of the actual argument. Expected type: %s", expectedType), e);
+        private OperationArgumentException(final OpenType<?> expectedType){
+            super(String.format("Illegal type of the actual argument. Expected type: %s", expectedType));
         }
     }
 
@@ -112,11 +111,8 @@ public final class OpenMBeanParameterInfoSupplier<T> implements Supplier<OpenMBe
      */
     public T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
         if (arguments.containsKey(parameter.getName())) {
-            try {
-                return Convert.toOpenType(arguments.get(parameter.getName()), getOpenType());
-            } catch (final OpenDataException e) {
-                throw new OperationArgumentException(getOpenType(), e);
-            }
+            return Convert.toType(arguments.get(parameter.getName()), getOpenType())
+                    .orElseThrow(() -> new OperationArgumentException(getOpenType()));
         } else if (isNullable() || getDefaultValue() != null)
             return getDefaultValue();
         else

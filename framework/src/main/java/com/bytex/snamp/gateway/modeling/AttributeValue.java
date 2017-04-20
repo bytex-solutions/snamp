@@ -80,13 +80,7 @@ public class AttributeValue extends Attribute implements AttributeValueReader {
      */
     @Override
     public final <T> T getValue(final TypeToken<T> valueType) throws InvalidAttributeValueException {
-        final Object result = getValue();
-        try {
-            return Convert.toTypeToken(result, valueType);
-        }
-        catch (final ClassCastException e){
-            throw new InvalidAttributeValueException(e.getMessage());
-        }
+        return Convert.toType(getValue(), valueType).orElseThrow(InvalidAttributeValueException::new);
     }
 
     /**

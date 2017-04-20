@@ -157,8 +157,8 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
 
     @Override
     public void statusChanged(@Nonnull final HealthStatusChangedEvent event, final Object handback) {
-        assert handback instanceof String;
-        sendBroadcastMessage(new GroupStatusChangedMessage(event, (String) handback));
+        final String groupName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
+        sendBroadcastMessage(new GroupStatusChangedMessage(event, groupName));
     }
 
     @Override

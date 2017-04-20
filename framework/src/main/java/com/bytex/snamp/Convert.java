@@ -11,7 +11,6 @@ import com.google.common.reflect.TypeToken;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -523,18 +522,8 @@ public final class Convert {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T toTypeToken(final Object value, final TypeToken<T> target) throws ClassCastException {
-        final class TypeTokenCastException extends ClassCastException{
-            private static final long serialVersionUID = -1754975745564795992L;
-
-            private TypeTokenCastException(final Object value, final TypeToken<?> target){
-                super(String.format("Unable to cast %s to %s", value, target));
-            }
-        }
-        
-        if (isInstance(value, target))
-            return (T) value;
-        else throw new TypeTokenCastException(value, target);
+    public static <T> Optional<T> toType(final Object value, final TypeToken<T> target) {
+        return isInstance(value, target) ? Optional.of((T) value) : Optional.empty();
     }
 
     /**
@@ -543,13 +532,10 @@ public final class Convert {
      * @param value Value to cast.
      * @param type JMX Open Type. Cannot be {@literal null}.
      * @return Converter value.
-     * @throws OpenDataException Unable to cast value to the specified JMX Open Type.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T toOpenType(final Object value, final OpenType<T> type) throws OpenDataException{
-        if(type.isValue(value))
-            return (T)value;
-        else throw new OpenDataException(String.format("Unable cast %s to %s", value, type));
+    public static <T> Optional<T> toType(final Object value, final OpenType<T> type){
+        return type.isValue(value) ? Optional.of((T) value) : Optional.empty();
     }
 
     public static <I> Optional<I> toType(final Object obj,
