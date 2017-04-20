@@ -26,8 +26,8 @@ final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracke
     }
 
     @Override
-    public void statusChanged(@Nonnull final HealthStatusChangedEvent event) {
-        getConfiguration().values().forEach(listener -> listener.statusChanged(event));
+    public void statusChanged(@Nonnull final HealthStatusChangedEvent event, final Object handback) {
+        getConfiguration().values().forEach(listener -> listener.statusChanged(event, handback));
     }
 
     @Override

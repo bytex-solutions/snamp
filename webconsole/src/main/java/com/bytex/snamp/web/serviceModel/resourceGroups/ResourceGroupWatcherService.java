@@ -156,7 +156,7 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     }
 
     @Override
-    public void statusChanged(@Nonnull final HealthStatusChangedEvent event) {
+    public void statusChanged(@Nonnull final HealthStatusChangedEvent event, final Object handback) {
         sendBroadcastMessage(new GroupStatusChangedMessage(event));
     }
 
