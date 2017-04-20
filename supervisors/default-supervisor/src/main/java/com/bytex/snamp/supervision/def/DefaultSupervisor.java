@@ -1,12 +1,12 @@
 package com.bytex.snamp.supervision.def;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
-import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
@@ -114,16 +114,16 @@ public class DefaultSupervisor extends AbstractSupervisor {
         final DefaultHealthStatusProvider provider = healthStatusProvider;
         if (provider == null)
             return;
-        for (final String resourceName : getResources())
-            ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName).ifPresent(client -> {
-                final HealthStatus status;
-                try {
-                    status = provider.updateStatus(resourceName, client);
-                } finally {
-                    client.close();
-                }
-                getLogger().fine(String.format("Health status for resource %s is %s", resourceName, status));
-            });
+        try (final SafeCloseable batchUpdate = provider.startBatchUpdate()) {
+            for (final String resourceName : getResources())
+                ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName).ifPresent(client -> {
+                    try {
+                        provider.updateStatus(resourceName, client);
+                    } finally {
+                        client.close();
+                    }
+                });
+        }
     }
 
     @Override

@@ -9,11 +9,11 @@ import java.util.Locale;
  * @since 2.0
  */
 public final class ClusterRecovering extends ClusterMalfunction {
-    public static final int CODE = 4;
+    public static final int CODE = 5;
     private static final long serialVersionUID = 2582624192520381081L;
 
     public ClusterRecovering(final String clusterName) {
-        super(clusterName, 4, false);
+        super(clusterName, CODE, false);
     }
 
     /**
@@ -25,6 +25,6 @@ public final class ClusterRecovering extends ClusterMalfunction {
      */
     @Override
     public String toString(final Locale locale) {
-        return null;
+        return String.format("Cluster %s is recovering and may be unavailable", getClusterName());
     }
 }

@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import javax.management.openmbean.InvalidKeyException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -116,13 +117,13 @@ public final class DistributedServices {
     private static <S> S processClusterNode(final BundleContext context,
                                             final Function<? super ClusterMember, S> processor,
                                             final Supplier<S> def) {
-        return ServiceHolder.tryCreate(context, ClusterMember.class).map(holder -> {
+        return Optional.ofNullable(context).flatMap(ctx -> ServiceHolder.tryCreate(ctx, ClusterMember.class).map(holder -> {
             try {
                 return processor.apply(holder.get());
             } finally {
-                holder.release(context);
+                holder.release(ctx);
             }
-        }).orElseGet(def);
+        })).orElseGet(def);
     }
 
     public static <S extends SharedObject> S getDistributedObject(final BundleContext context,

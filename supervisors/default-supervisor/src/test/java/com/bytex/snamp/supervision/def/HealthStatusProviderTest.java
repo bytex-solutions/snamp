@@ -1,5 +1,6 @@
 package com.bytex.snamp.supervision.def;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
@@ -47,14 +48,12 @@ public class HealthStatusProviderTest extends Assert {
     }
 
     public static final class TestResourceConnector extends ManagedResourceConnectorBean{
-        static final String RESOURCE_NAME = "myResource";
-
         private long memory;
         private double cpu;
         private boolean notAvailable;
 
-        private TestResourceConnector() throws IntrospectionException {
-            super(RESOURCE_NAME);
+        private TestResourceConnector(final String resourceName) throws IntrospectionException {
+            super(resourceName);
             cpu = memory = 0L;
         }
 
@@ -95,28 +94,51 @@ public class HealthStatusProviderTest extends Assert {
         });
         final TestHealthStatusProvider watcher = new TestHealthStatusProvider("myGroup");
         watcher.setupHealthCheck(watcherConfiguration.getHealthCheckConfig());
-        final TestResourceConnector connector = new TestResourceConnector();
-        connector.queryObject(AttributeSupport.class).ifPresent(attributes -> {
+        //setup first resource
+        final String FIRST_RESOURCE_NAME = "resource1";
+        final TestResourceConnector connector1 = new TestResourceConnector(FIRST_RESOURCE_NAME);
+        connector1.queryObject(AttributeSupport.class).ifPresent(attributes -> {
             attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
             attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
         });
-        connector.setMemory(500);
-        watcher.updateStatus(TestResourceConnector.RESOURCE_NAME, connector);
+        //setup second resource
+        final String SECOND_RESOURCE_NAME = "resource2";
+        final TestResourceConnector connector2 = new TestResourceConnector(SECOND_RESOURCE_NAME);
+        connector1.queryObject(AttributeSupport.class).ifPresent(attributes -> {
+            attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
+            attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
+        });
+        //
+        connector1.setMemory(500);
+        connector2.setMemory(0);
+        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
+        watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
         assertTrue(watcher.getStatus() instanceof OkStatus);
-        connector.setCPU(100500);
-        watcher.updateStatus(TestResourceConnector.RESOURCE_NAME, connector);
+        connector1.setCPU(100500);
+        connector2.setCPU(0);
+        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
+        watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
         assertTrue(watcher.getStatus() instanceof OkStatus);
-        connector.setMemory(1000);
-        watcher.updateStatus(TestResourceConnector.RESOURCE_NAME, connector);
+        connector1.setMemory(1000);
+        connector2.setMemory(500);
+        try(final SafeCloseable updateScope = watcher.startBatchUpdate()) {
+            watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
+            watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
+        }
         assertTrue(watcher.getStatus() instanceof InvalidAttributeValue);
-        connector.setMemory(50);
-        watcher.updateStatus(TestResourceConnector.RESOURCE_NAME, connector);
+        connector1.setMemory(50);
+        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
+        watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
         assertTrue(watcher.getStatus() instanceof OkStatus);
-        connector.setNotAvailable(true);
-        watcher.updateStatus(TestResourceConnector.RESOURCE_NAME, connector);
-        connector.setNotAvailable(false);
+        connector1.setNotAvailable(true);
+        try(final SafeCloseable updateScope = watcher.startBatchUpdate()) {
+            watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
+            watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
+        } finally {
+            connector1.setNotAvailable(false);
+        }
         assertTrue(watcher.getStatus() instanceof ResourceIsNotAvailable);
-        watcher.removeResource(TestResourceConnector.RESOURCE_NAME);
+        watcher.removeResource(FIRST_RESOURCE_NAME);
         assertTrue(watcher.getStatus() instanceof OkStatus);
     }
 }

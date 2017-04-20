@@ -10,7 +10,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class ConnectionProblem extends ResourceMalfunction {
+public final class ConnectionProblem extends MalfunctionStatus {
     public static final int CODE = 1;
     private static final long serialVersionUID = -3765564303828054111L;
     private final IOException error;

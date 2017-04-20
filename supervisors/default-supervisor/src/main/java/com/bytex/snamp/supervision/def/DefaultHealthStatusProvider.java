@@ -1,5 +1,6 @@
 package com.bytex.snamp.supervision.def;
 
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -21,6 +22,9 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.JMException;
+import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -66,18 +70,51 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         }
     }
 
+    //controls batch update of health status
+    private static final class BatchUpdateState extends ThreadLocal<Collection<HealthStatus>>{
+        void startBatchUpdate() {
+            if (get() != null)
+                throw new IllegalStateException("Batch update is already started");
+            else
+                set(new LinkedList<>());
+        }
+
+        boolean addStatus(final HealthStatus status) {
+            final Collection<HealthStatus> statuses = get();
+            if (statuses == null)
+                return false;
+            else {
+                statuses.add(status);
+                return true;
+            }
+        }
+
+        HealthStatus endBatchUpdate(){
+            final Collection<HealthStatus> statuses = get();
+            if(statuses == null)
+                throw new IllegalStateException("Batch update was not started");
+            else
+                remove();
+            final HealthStatus batchStatus = statuses.stream().reduce(OkStatus.of(), HealthStatus::worst);
+            statuses.clear();   //help GC
+            return batchStatus;
+        }
+    }
+
     private final ConcurrentMap<String, AttributeChecker> checkers;
     private final WeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> listeners;
     private volatile HealthStatus status;
     private HealthStatusTrigger trigger;
     private final String groupName;
+    private final BatchUpdateState batchUpdateState;
 
     public DefaultHealthStatusProvider(@Nonnull final String groupName) {
         checkers = new ConcurrentHashMap<>();
-        status = new OkStatus();
+        status = OkStatus.of("");
         trigger = HealthStatusTrigger.IDENTITY;
         listeners = WeakEventListenerList.create(HealthStatusEventListener::statusChanged);
         this.groupName = groupName;
+        batchUpdateState = new BatchUpdateState();
     }
 
     public final String getGroupName(){
@@ -93,35 +130,83 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         return DistributedServices.isActiveNode(getBundleContext()) ? trigger.statusChanged(prev, next) : next;
     }
 
-    protected final HealthStatus updateStatus(final Function<? super HealthStatus, ? extends HealthStatus> statusUpdater) {
+    protected final void updateStatus(final Function<? super HealthStatus, ? extends HealthStatus> statusUpdater) {
         final HealthStatus newStatus, prevStatus;
         synchronized (this) {   //calling of the trigger should be enqueued
             final HealthStatus tempNewStatus = statusUpdater.apply(prevStatus = status);
-            if (tempNewStatus.compareTo(prevStatus) == 0)
-                return prevStatus;
-            newStatus = invokeTrigger(prevStatus, tempNewStatus);
-            if (newStatus.compareTo(prevStatus) == 0)
-                return prevStatus;
+            /*
+                If status after processing was not changed then exit from the method without any notifications.
+                Additionally, unchanged health status will not be added into batch update.
+                Also, if this method is called inside of batch update scope then provided health status will be enqueued
+                for further aggregation
+            */
+            if (tempNewStatus.compareTo(prevStatus) == 0 || batchUpdateState.addStatus(tempNewStatus))
+                return;
+            else {
+                newStatus = invokeTrigger(prevStatus, tempNewStatus);
+                if (newStatus.compareTo(prevStatus) == 0)
+                    return;
+            }
             status = newStatus;
         }
         listeners.fire(new DefaultHealthStatusChangedEvent(newStatus, prevStatus));
-        return newStatus;
     }
 
-    protected final HealthStatus updateStatus(final HealthStatus newStatus) {
-        return updateStatus(existing -> newStatus);
+    protected final void updateStatus(final HealthStatus newStatus) {
+        updateStatus(existing -> newStatus);
     }
 
-    private HealthStatus updateStatus(final String resourceName, final JMException error) {
-        return updateStatus(new ResourceIsNotAvailable(resourceName, error));
+    private void updateStatus(final String resourceName, final JMException error) {
+        updateStatus(new ResourceIsNotAvailable(resourceName, error));
     }
 
-    public HealthStatus updateStatus(final String resourceName, final ManagedResourceConnector connector) {
+    private void endBatchUpdate() {
+        updateStatus(batchUpdateState.endBatchUpdate());
+    }
+
+    private static SafeCloseable createBatchUpdateScope(final DefaultHealthStatusProvider provider) {
+        final class BatchUpdateScope extends WeakReference<DefaultHealthStatusProvider> implements SafeCloseable {
+            private final Thread initiator;
+
+            private BatchUpdateScope() {
+                super(provider);
+                initiator = Thread.currentThread();
+            }
+
+            @Override
+            public void close() {
+                final DefaultHealthStatusProvider provider = get();
+                if (provider == null)
+                    throw new IllegalStateException("Health status provider is dead");
+                else if (!Thread.currentThread().equals(initiator))
+                    throw new IllegalStateException("Batch update should be finalized by the same thread it was started by");
+                else {
+                    clear();  //help GC
+                    provider.endBatchUpdate();
+                }
+            }
+        }
+        return new BatchUpdateScope();
+    }
+
+    /**
+     * Starts batch update of health status.
+     * @return Batch update scope used to finalize updating.
+     */
+    public final SafeCloseable startBatchUpdate(){
+        batchUpdateState.startBatchUpdate();
+        return createBatchUpdateScope(this);
+    }
+
+    public final void updateStatus(final String resourceName,
+                                           @Nonnull final ManagedResourceConnector connector) {
         //1. Using health check provided by connector itself
         HealthStatus newStatus = connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus)
-                .orElseGet(() -> new OkStatus(resourceName));
-        if (!(newStatus instanceof OkStatus))
-            return updateStatus(newStatus);
+                .orElseGet(() -> OkStatus.of(resourceName));
+        if (!(newStatus instanceof OkStatus)) {
+            updateStatus(newStatus);
+            return;
+        }
         //2. read attributes from connector
         final AttributeList attributes;
         {
@@ -130,7 +215,8 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
                 try {
                     attributes = support.get().getAttributes();
                 } catch (final JMException e) {
-                    return updateStatus(resourceName, e);
+                    updateStatus(resourceName, e);
+                    return;
                 }
             else
                 attributes = new AttributeList();
@@ -139,13 +225,13 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         for (final Attribute attribute : attributes.asList()) {
             final AttributeChecker checker = checkers.get(attribute.getName());
             if (checker != null)
-                newStatus = checker.getStatus(attribute).createStatus(resourceName, attribute).combine(newStatus);
+                newStatus = checker.getStatus(attribute).createStatus(resourceName, attribute).worst(newStatus);
         }
-        return updateStatus(newStatus);
+        updateStatus(newStatus);  
     }
 
     public void removeResource(final String resourceName) {
-        updateStatus(existing -> existing.getResourceName().equals(resourceName) ? new OkStatus(resourceName) : existing);
+        updateStatus(existing -> existing.getResourceName().map(resourceName::equals).orElse(false) ? OkStatus.of() : existing);
     }
 
     public final void addChecker(final String attributeName, final AttributeChecker checker){
@@ -165,7 +251,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
      */
     @Override
     public void reset() {
-        status = new OkStatus();
+        status = OkStatus.of("");
     }
 
     /**
@@ -201,6 +287,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     @Override
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
+        batchUpdateState.remove();
         listeners.clear();
         checkers.clear();
     }

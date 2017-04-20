@@ -15,7 +15,7 @@ public enum AttributeCheckStatus {
     OK {
         @Override
         public OkStatus createStatus(final String resourceName, final Attribute attribute) {
-            return new OkStatus(resourceName);
+            return OkStatus.of(resourceName);
         }
     },
     SUSPICIOUS {

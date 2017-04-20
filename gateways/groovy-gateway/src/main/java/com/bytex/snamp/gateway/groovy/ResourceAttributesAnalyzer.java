@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.groovy;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
@@ -10,6 +9,7 @@ import com.bytex.snamp.internal.Utils;
 import groovy.lang.Closure;
 import org.osgi.framework.InvalidSyntaxException;
 
+import javax.annotation.Nonnull;
 import javax.management.DescriptorRead;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
@@ -35,13 +35,13 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
      */
     public static class FilterAndProcessAttributeStatement implements Predicate, AttributeStatement{
         private final Predicate checker;
-        private final WriteOnceRef<AttributeValueHandler<Object, ?>> successHandler;
-        private final WriteOnceRef<AttributeValueHandler<? super Throwable, ? extends RuntimeException>> errorHandler;
+        private AttributeValueHandler<Object, ?> successHandler;
+        private AttributeValueHandler<? super Throwable, ? extends RuntimeException> errorHandler;
 
         protected FilterAndProcessAttributeStatement(final Predicate checker) {
             this.checker = Objects.requireNonNull(checker);
-            this.successHandler = new WriteOnceRef<>(AttributeValueHandler.empty());
-            this.errorHandler = new WriteOnceRef<>(AttributeValueHandler.empty());
+            successHandler = null;
+            errorHandler = null;
         }
 
         /**
@@ -55,8 +55,8 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
             return checker.test(attributeValue);
         }
 
-        public final FilterAndProcessAttributeStatement failure(final AttributeValueHandler<? super Throwable, ? extends RuntimeException> handler){
-            errorHandler.set(Objects.requireNonNull(handler));
+        public final FilterAndProcessAttributeStatement failure(@Nonnull final AttributeValueHandler<? super Throwable, ? extends RuntimeException> handler){
+            errorHandler = handler;
             return this;
         }
 
@@ -65,8 +65,8 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
             return failure(Closures.toAttributeHandler(handler));
         }
 
-        public final FilterAndProcessAttributeStatement then(final AttributeValueHandler<Object, ?> handler){
-            successHandler.set(Objects.requireNonNull(handler));
+        public final FilterAndProcessAttributeStatement then(@Nonnull final AttributeValueHandler<Object, ?> handler){
+            successHandler = handler;
             return this;
         }
 
@@ -78,19 +78,19 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
         private void onError(final String resourceName,
                              final MBeanAttributeInfo metadata,
                              final Throwable e) {
-            final AttributeValueHandler<? super Throwable, ? extends RuntimeException> handler = errorHandler.get();
-            handler.handle(resourceName, metadata, e);
+            if(errorHandler != null)
+            errorHandler.handle(resourceName, metadata, e);
         }
 
         private void onSuccess(final String resourceName,
                                final MBeanAttributeInfo metadata,
                                final Object attributeValue) {
-            final AttributeValueHandler<Object, ?> hander = successHandler.get();
-            try {
-                hander.handle(resourceName, metadata, attributeValue);
-            }catch (final Throwable e){
-                onError(resourceName, metadata, e);
-            }
+            if (successHandler != null)
+                try {
+                    successHandler.handle(resourceName, metadata, attributeValue);
+                } catch (final Throwable e) {
+                    onError(resourceName, metadata, e);
+                }
         }
     }
 
