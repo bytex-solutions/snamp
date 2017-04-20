@@ -7,17 +7,12 @@ import com.bytex.snamp.supervision.openstack.SenlinClusterServiceHandler;
 import org.openstack4j.api.senlin.SenlinClusterService;
 import org.openstack4j.model.senlin.Cluster;
 
-import javax.annotation.Nonnull;
-
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
 public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProvider implements SenlinClusterServiceHandler {
-    public OpenStackHealthStatusProvider(@Nonnull final String groupName) {
-        super(groupName);
-    }
 
     @Override
     public void handle(final String clusterID, final SenlinClusterService clusterService) {
@@ -26,14 +21,14 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
             final ClusterMalfunctionStatus status;
             switch (cluster.getStatus()) {
                 case RECOVERING:
-                    status = new ClusterRecoveryStatus(getGroupName());
+                    status = new ClusterRecoveryStatus(cluster.getName());
                     break;
                 case CRITICAL:
                 case ERROR:
-                    status = new ProblemWithCluster(getGroupName(), true);
+                    status = new ProblemWithCluster(cluster.getName(), true);
                     break;
                 case WARNING:
-                    status = new ProblemWithCluster(getGroupName(), false);
+                    status = new ProblemWithCluster(cluster.getName(), false);
                     break;
                 default:
                     return;

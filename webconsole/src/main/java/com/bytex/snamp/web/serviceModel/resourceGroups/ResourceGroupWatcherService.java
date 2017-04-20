@@ -43,10 +43,10 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         private final HealthStatus newStatus;
         private final String groupName;
 
-        private GroupStatusChangedMessage(final HealthStatusChangedEvent event) {
+        private GroupStatusChangedMessage(final HealthStatusChangedEvent event, final String groupName) {
             this.previousStatus = event.getPreviousStatus();
             this.newStatus = event.getNewStatus();
-            this.groupName = event.getGroupName();
+            this.groupName = groupName;
         }
 
         @JsonProperty("groupName")
@@ -157,7 +157,8 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
 
     @Override
     public void statusChanged(@Nonnull final HealthStatusChangedEvent event, final Object handback) {
-        sendBroadcastMessage(new GroupStatusChangedMessage(event));
+        assert handback instanceof String;
+        sendBroadcastMessage(new GroupStatusChangedMessage(event, (String) handback));
     }
 
     @Override

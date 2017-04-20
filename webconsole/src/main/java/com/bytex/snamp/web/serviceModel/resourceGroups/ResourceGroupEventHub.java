@@ -36,7 +36,7 @@ final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracke
     }
 
     private void addSupervisor(final String groupName, @WillNotClose final Supervisor supervisor){
-        supervisor.queryObject(HealthStatusProvider.class).ifPresent(provider -> provider.addHealthStatusEventListener(this));
+        supervisor.queryObject(HealthStatusProvider.class).ifPresent(provider -> provider.addHealthStatusEventListener(this, groupName));
         supervisor.addSupervisionEventListener(this);
     }
 

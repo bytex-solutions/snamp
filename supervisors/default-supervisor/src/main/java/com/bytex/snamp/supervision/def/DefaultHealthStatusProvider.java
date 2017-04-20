@@ -52,11 +52,6 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         }
 
         @Override
-        public String getGroupName() {
-            return DefaultHealthStatusProvider.this.getGroupName();
-        }
-
-        @Override
         public DefaultHealthStatusProvider getSource() {
             return DefaultHealthStatusProvider.this;
         }
@@ -127,20 +122,14 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     private final HealthStatusEventListenerList listeners;
     private volatile HealthStatus status;
     private HealthStatusTrigger trigger;
-    private final String groupName;
     private final BatchUpdateState batchUpdateState;
 
-    public DefaultHealthStatusProvider(@Nonnull final String groupName) {
+    public DefaultHealthStatusProvider() {
         checkers = new ConcurrentHashMap<>();
         status = OkStatus.getInstance();
         trigger = HealthStatusTrigger.IDENTITY;
         listeners = new HealthStatusEventListenerList();
-        this.groupName = groupName;
         batchUpdateState = new BatchUpdateState();
-    }
-
-    public final String getGroupName(){
-        return groupName;
     }
 
     public final void setTrigger(@Nonnull final HealthStatusTrigger value){
