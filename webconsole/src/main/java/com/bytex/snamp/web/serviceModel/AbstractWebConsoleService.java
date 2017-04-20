@@ -1,6 +1,6 @@
 package com.bytex.snamp.web.serviceModel;
 
-import com.bytex.snamp.WeakEventListenerList;
+import com.bytex.snamp.AbstractWeakEventListenerList;
 import com.bytex.snamp.core.LoggerProvider;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.osgi.framework.BundleContext;
@@ -20,7 +20,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  */
 public abstract class AbstractWebConsoleService implements WebConsoleService {
-    private final WeakEventListenerList<WebConsoleSession, WebMessage> listeners = WeakEventListenerList.create(WebConsoleSession::sendMessage);
+    private final AbstractWeakEventListenerList<WebConsoleSession, WebMessage> listeners = AbstractWeakEventListenerList.create(WebConsoleSession::sendMessage);
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
     protected class WebConsoleServiceMessage extends WebMessage {

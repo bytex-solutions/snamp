@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.xmpp;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
@@ -28,37 +27,14 @@ import static com.bytex.snamp.concurrent.LockManager.lockAndApply;
  * @since 1.0
  */
 final class XMPPModelOfNotifications  implements NotificationSet<XMPPNotificationAccessor>, NotificationListener {
-    private static final class WeakNotificationListener extends WeakEventListener<NotificationListener, NotificationEvent> implements NotificationListener{
-        private WeakNotificationListener(final NotificationListener listener) {
-            super(listener);
-        }
-
-        @Override
-        protected void invoke(final NotificationListener listener, final NotificationEvent event) {
-            listener.handleNotification(event);
-        }
-
-        @Override
-        public void handleNotification(final NotificationEvent event) {
-            invoke(event);
-        }
-    }
-
-    private static final class NotificationListenerList extends WeakEventListenerList<NotificationListener, NotificationEvent> {
-        @Override
-        protected WeakNotificationListener createWeakEventListener(final NotificationListener listener) {
-            return new WeakNotificationListener(listener);
-        }
-    }
-
     private final Map<String, ResourceNotificationList<XMPPNotificationAccessor>> notifications;
     private final ReadWriteLock lock;
-    private final NotificationListenerList listeners;
+    private final WeakEventListenerList<NotificationListener, NotificationEvent> listeners;
 
     XMPPModelOfNotifications(){
         notifications = new HashMap<>(10);
         lock = new ReentrantReadWriteLock();
-        listeners = new NotificationListenerList();
+        listeners = new WeakEventListenerList<>(NotificationListener::handleNotification);
     }
 
     /**

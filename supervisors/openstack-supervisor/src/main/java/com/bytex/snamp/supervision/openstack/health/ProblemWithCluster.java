@@ -1,26 +1,23 @@
-package com.bytex.snamp.connector.health;
+package com.bytex.snamp.supervision.openstack.health;
 
-import java.io.IOException;
+import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
+
 import java.util.Locale;
-import java.util.Objects;
 
 /**
- * Represents some connection problems.
+ * Represents some problem with cluster.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public final class ConnectionProblem extends ResourceMalfunctionStatus {
-    private static final long serialVersionUID = -3765564303828054111L;
-    private final IOException error;
+final class ProblemWithCluster extends ClusterMalfunctionStatus {
+    private static final long serialVersionUID = -8376473095942011064L;
+    private final boolean critical;
 
-    public ConnectionProblem(final String resourceName, final IOException error) {
-        super(resourceName, SEVERITY + 1);
-        this.error = Objects.requireNonNull(error);
-    }
-
-    public IOException getError(){
-        return error;
+    public ProblemWithCluster(final String clusterName,
+                              final boolean critical){
+        super(clusterName);
+        this.critical = critical;
     }
 
     /**
@@ -32,7 +29,9 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
      */
     @Override
     public String toString(final Locale locale) {
-        return String.format("Connection problems detected. Caused by %s", error);
+        return critical ?
+                "Cluster crashed" :
+                "Cluster nodes partially unavailable";
     }
 
     /**
@@ -42,6 +41,6 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
      */
     @Override
     public boolean isCritical() {
-        return true;
+        return critical;
     }
 }

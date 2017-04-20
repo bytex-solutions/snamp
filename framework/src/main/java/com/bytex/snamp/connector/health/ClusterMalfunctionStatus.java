@@ -6,14 +6,17 @@ package com.bytex.snamp.connector.health;
  * @version 2.0
  * @since 2.0
  */
-public abstract class ClusterMalfunction extends MalfunctionStatus {
+public abstract class ClusterMalfunctionStatus extends MalfunctionStatus {
     private static final long serialVersionUID = -4762866679904079839L;
     private final String clusterName;
+    static final int SEVERITY = Integer.MAX_VALUE / 2;
 
-    protected ClusterMalfunction(final String clusterName,
-                                 final int statusCode,
-                                 final boolean critical) {
-        super("", statusCode, critical);
+    protected ClusterMalfunctionStatus(final String clusterName) {
+        this(SEVERITY, clusterName);
+    }
+
+    public ClusterMalfunctionStatus(final int severity, final String clusterName) {
+        super(severity);
         this.clusterName = clusterName;
     }
 

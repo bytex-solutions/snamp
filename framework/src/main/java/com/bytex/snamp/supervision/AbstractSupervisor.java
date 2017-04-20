@@ -68,7 +68,7 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
         super(ManagedResourceConnector.class, new SupervisorInternalState());
         this.groupName = nullToEmpty(groupName);
         supervisorType = Supervisor.getSupervisorType(getClass());
-        listeners = WeakEventListenerList.create(SupervisionEventListener::handle);
+        listeners = new WeakEventListenerList<>(SupervisionEventListener::handle);
     }
 
     /**

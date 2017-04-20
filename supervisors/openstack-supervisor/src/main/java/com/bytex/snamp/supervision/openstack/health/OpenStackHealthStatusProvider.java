@@ -1,8 +1,7 @@
 package com.bytex.snamp.supervision.openstack.health;
 
-import com.bytex.snamp.connector.health.ClusterDown;
-import com.bytex.snamp.connector.health.ClusterRecovering;
-import com.bytex.snamp.connector.health.MalfunctionStatus;
+import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
+import com.bytex.snamp.connector.health.ClusterRecoveryStatus;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.openstack.SenlinClusterServiceHandler;
 import org.openstack4j.api.senlin.SenlinClusterService;
@@ -24,22 +23,22 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
     public void handle(final String clusterID, final SenlinClusterService clusterService) {
         final Cluster cluster = clusterService.get(clusterID);
         if (cluster != null) {
-            final MalfunctionStatus status;
+            final ClusterMalfunctionStatus status;
             switch (cluster.getStatus()) {
                 case RECOVERING:
-                    status = new ClusterRecovering(getGroupName());
+                    status = new ClusterRecoveryStatus(getGroupName());
                     break;
                 case CRITICAL:
                 case ERROR:
-                    status = new ClusterDown(getGroupName(), true);
+                    status = new ProblemWithCluster(getGroupName(), true);
                     break;
                 case WARNING:
-                    status = new ClusterDown(getGroupName(), false);
+                    status = new ProblemWithCluster(getGroupName(), false);
                     break;
                 default:
                     return;
             }
-            status.putData(cluster.getMetadata());
+            status.getData().putAll(cluster.getMetadata());
             updateStatus(status);
         }
     }

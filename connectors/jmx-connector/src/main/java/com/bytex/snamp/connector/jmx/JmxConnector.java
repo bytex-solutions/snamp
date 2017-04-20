@@ -726,7 +726,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
         try {
             return connectionManager.handleConnection(connection -> {
                 connection.getMBeanCount();      //call method using RMI
-                return OkStatus.of(resourceName);
+                return OkStatus.getInstance();
             });
         } catch (final InterruptedException e) {
             return new ResourceIsNotAvailable(resourceName, new ReflectionException(e));

@@ -11,5 +11,5 @@ import java.util.EventListener;
  */
 @FunctionalInterface
 public interface HealthStatusEventListener extends EventListener {
-    void statusChanged(@Nonnull final HealthStatusChangedEvent event);
+    void statusChanged(@Nonnull final HealthStatusChangedEvent event, final Object handback);
 }

@@ -11,16 +11,27 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class InvalidAttributeValue extends MalfunctionStatus {
-    public static final int CODE = 3;
+public final class InvalidAttributeValue extends ResourceMalfunctionStatus {
     private static final long serialVersionUID = -84085262684742050L;
     private final Attribute attribute;
+    private final boolean critical;
 
     public InvalidAttributeValue(final String resourceName,
                                  final Attribute attribute,
                                  final boolean critical){
-        super(resourceName, CODE, critical);
+        super(resourceName);
+        this.critical = critical;
         this.attribute = Objects.requireNonNull(attribute);
+    }
+
+    /**
+     * Indicates that resource is in critical state (potentially unavailable).
+     *
+     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean isCritical() {
+        return critical;
     }
 
     public Attribute getAttribute(){

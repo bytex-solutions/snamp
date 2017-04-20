@@ -1,14 +1,14 @@
 package com.bytex.snamp.supervision.def;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.WeakEventListenerList;
+import com.bytex.snamp.AbstractWeakEventListenerList;
+import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
-import com.bytex.snamp.connector.health.HealthStatus;
-import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.connector.health.ResourceIsNotAvailable;
+import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.internal.Utils;
@@ -22,10 +22,12 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.JMException;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -95,14 +97,34 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
                 throw new IllegalStateException("Batch update was not started");
             else
                 remove();
-            final HealthStatus batchStatus = statuses.stream().reduce(OkStatus.of(), HealthStatus::worst);
+            final HealthStatus batchStatus = statuses.stream().reduce(OkStatus.getInstance(), HealthStatus::worst);
             statuses.clear();   //help GC
             return batchStatus;
         }
     }
 
+    private static final class WeakHealthStatusEventListener extends WeakEventListener<HealthStatusEventListener, HealthStatusChangedEvent>{
+        private final Object handback;
+
+        WeakHealthStatusEventListener(@Nonnull final HealthStatusEventListener listener, final Object handback) {
+            super(listener);
+            this.handback = handback;
+        }
+
+        @Override
+        protected void invoke(@Nonnull final HealthStatusEventListener listener, @Nonnull final HealthStatusChangedEvent event) {
+            listener.statusChanged(event, handback);
+        }
+    }
+
+    private static final class HealthStatusEventListenerList extends AbstractWeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent>{
+        void add(final HealthStatusEventListener listener, final Object handback) {
+            add(listener, l -> new WeakHealthStatusEventListener(l, handback));
+        }
+    }
+
     private final ConcurrentMap<String, AttributeChecker> checkers;
-    private final WeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> listeners;
+    private final HealthStatusEventListenerList listeners;
     private volatile HealthStatus status;
     private HealthStatusTrigger trigger;
     private final String groupName;
@@ -110,9 +132,9 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     public DefaultHealthStatusProvider(@Nonnull final String groupName) {
         checkers = new ConcurrentHashMap<>();
-        status = OkStatus.of("");
+        status = OkStatus.getInstance();
         trigger = HealthStatusTrigger.IDENTITY;
-        listeners = WeakEventListenerList.create(HealthStatusEventListener::statusChanged);
+        listeners = new HealthStatusEventListenerList();
         this.groupName = groupName;
         batchUpdateState = new BatchUpdateState();
     }
@@ -157,7 +179,10 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     }
 
     private void updateStatus(final String resourceName, final JMException error) {
-        updateStatus(new ResourceIsNotAvailable(resourceName, error));
+        if (error.getCause() instanceof IOException)
+            updateStatus(new ConnectionProblem(resourceName, (IOException) error.getCause()));
+        else
+            updateStatus(new ResourceIsNotAvailable(resourceName, error));
     }
 
     private void endBatchUpdate() {
@@ -201,8 +226,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     public final void updateStatus(final String resourceName,
                                            @Nonnull final ManagedResourceConnector connector) {
         //1. Using health check provided by connector itself
-        HealthStatus newStatus = connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus)
-                .orElseGet(() -> OkStatus.of(resourceName));
+        HealthStatus newStatus = connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::getInstance);
         if (!(newStatus instanceof OkStatus)) {
             updateStatus(newStatus);
             return;
@@ -231,7 +255,26 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     }
 
     public void removeResource(final String resourceName) {
-        updateStatus(existing -> existing.getResourceName().map(resourceName::equals).orElse(false) ? OkStatus.of() : existing);
+        updateStatus(existing -> Convert.toType(existing, ResourceMalfunctionStatus.class)
+                .map(ResourceMalfunctionStatus::getResourceName)
+                .map(resourceName::equals)
+                .orElse(false) ? OkStatus.getInstance() : existing);
+    }
+
+    /**
+     * Updates health status using all resources associated with the group.
+     */
+    public void updateStatus(final Set<String> resources) {
+        try (final SafeCloseable batchUpdate = startBatchUpdate()) {
+            for (final String resourceName : resources)
+                ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName).ifPresent(client -> {
+                    try {
+                        updateStatus(resourceName, client);
+                    } finally {
+                        client.close();
+                    }
+                });
+        }
     }
 
     public final void addChecker(final String attributeName, final AttributeChecker checker){
@@ -251,7 +294,18 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
      */
     @Override
     public void reset() {
-        status = OkStatus.of("");
+        status = OkStatus.getInstance();
+    }
+
+    /**
+     * Adds listener of health status.
+     *
+     * @param listener Listener of health status to add.
+     * @param handback Handback object that will be returned into listener.
+     */
+    @Override
+    public final void addHealthStatusEventListener(@Nonnull final HealthStatusEventListener listener, final Object handback) {
+        listeners.add(listener, handback);
     }
 
     /**
@@ -260,8 +314,8 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
      * @param listener Listener of health status to add.
      */
     @Override
-    public final void addHealthStatusEventListener(final HealthStatusEventListener listener) {
-        listeners.add(listener);
+    public final void addHealthStatusEventListener(@Nonnull final HealthStatusEventListener listener) {
+        addHealthStatusEventListener(listener, null);
     }
 
     /**
@@ -280,7 +334,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
      * @param listener Listener of health status to remove.
      */
     @Override
-    public final void removeHealthStatusEventListener(final HealthStatusEventListener listener) {
+    public final void removeHealthStatusEventListener(@Nonnull final HealthStatusEventListener listener) {
         listeners.remove(listener);
     }
 

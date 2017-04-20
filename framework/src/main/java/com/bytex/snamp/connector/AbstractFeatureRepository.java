@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.metrics.Metric;
@@ -27,42 +26,19 @@ import static com.bytex.snamp.ArrayUtils.arrayConstructor;
  */
 @ThreadSafe
 public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F>, SafeCloseable {
-    private static final class WeakResourceEventListener extends WeakEventListener<ResourceEventListener, ResourceEvent> implements ResourceEventListener{
-        private WeakResourceEventListener(final ResourceEventListener listener) {
-            super(listener);
-        }
-
-        @Override
-        protected void invoke(@Nonnull final ResourceEventListener listener, @Nonnull final ResourceEvent event) {
-            listener.resourceModified(event);
-        }
-
-        @Override
-        public void resourceModified(@Nonnull final ResourceEvent event) {
-            invoke(event);
-        }
-    }
-
-    private static final class ResourceEventListenerList extends WeakEventListenerList<ResourceEventListener, ResourceEvent> {
-        @Override
-        protected WeakResourceEventListener createWeakEventListener(final ResourceEventListener listener) {
-            return new WeakResourceEventListener(listener);
-        }
-    }
-
     /**
      * Metadata of the resource feature stored in repository.
      */
     private final Class<F> metadataType;
-    private final ResourceEventListenerList resourceEventListeners;
+    private final WeakEventListenerList<ResourceEventListener, ResourceEvent> resourceEventListeners;
     private final String resourceName;
 
     protected <G extends Enum<G>> AbstractFeatureRepository(final String resourceName,
-                                                            final Class<F> metadataType,
+                                                            @Nonnull final Class<F> metadataType,
                                                             final Class<G> resourceGroupDef) {
         super(resourceGroupDef);
         this.metadataType = Objects.requireNonNull(metadataType);
-        this.resourceEventListeners = new ResourceEventListenerList();
+        this.resourceEventListeners = new WeakEventListenerList<>(ResourceEventListener::resourceModified);
         this.resourceName = resourceName;
     }
 

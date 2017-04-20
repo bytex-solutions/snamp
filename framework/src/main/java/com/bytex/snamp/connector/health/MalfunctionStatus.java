@@ -1,40 +1,33 @@
 package com.bytex.snamp.connector.health;
 
-import javax.annotation.Nonnull;
+import com.google.common.collect.ImmutableMap;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
- * Something wrong with managed resource.
+ * Indicates some malfunction.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
 public abstract class MalfunctionStatus extends HealthStatus {
-    private static final long serialVersionUID = -1766747580186741189L;
-    private final boolean critical;
+    private static final long serialVersionUID = 1718771285813234068L;
+    private final Map<String, Object> data;
 
-    protected MalfunctionStatus(final String resourceName,
-                                final int statusCode,
-                                final boolean critical) {
-        super(resourceName, statusCode);
-        this.critical = critical;
+    MalfunctionStatus(final int severity) {
+        super(severity);
+        data = new HashMap<>();
     }
 
     /**
-     * Indicates that managed resource is in critical state (potentially unavailable).
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
+     * Gets additional data associated with this status.
+     *
+     * @return Map with additional data associated with this instance.
      */
-    @Override
-    public boolean isCritical() {
-        return critical;
-    }
-
-    @Override
-    public int compareTo(@Nonnull final HealthStatus other) {
-        switch (other.getStatusCode()) {
-            case OkStatus.CODE:
-                return 1;
-            default:
-                return Boolean.compare(isCritical(), other.isCritical());
-        }
+    public final Map<String, Object> getData() {
+        return firstNonNull(data, ImmutableMap.of());
     }
 }

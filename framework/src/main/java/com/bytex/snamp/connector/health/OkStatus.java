@@ -1,9 +1,8 @@
 package com.bytex.snamp.connector.health;
 
-import javax.annotation.Nonnull;
-import java.util.Locale;
+import com.bytex.snamp.concurrent.LazyWeakReference;
 
-import static com.google.common.base.Strings.nullToEmpty;
+import java.util.Locale;
 
 /**
  * Indicates that everything is OK.
@@ -11,39 +10,26 @@ import static com.google.common.base.Strings.nullToEmpty;
  * @version 2.0
  * @since 2.0
  */
-public class OkStatus extends HealthStatus {
-    public static final int CODE = 0;
+public final class OkStatus extends HealthStatus {
+    private static final LazyWeakReference<OkStatus> INSTANCE = new LazyWeakReference<>();
     private static final long serialVersionUID = 5391122005596632004L;
 
-    private OkStatus(final String resourceName) {
-        super(resourceName, CODE);
+    private OkStatus() {
+        super(0);
     }
 
     /**
-     * Represents OK status associated with the specified resource name.
-     * @param resourceName Resource name.
-     * @return A new instance of OK status.
+     * Gets instance of {@link OkStatus}.
+     *
+     * @return Singleton instance.
      */
-    public static OkStatus of(final String resourceName) {
-        return new OkStatus(nullToEmpty(resourceName));
-    }
-
-    /**
-     * Represents OK status
-     * @return
-     */
-    public static OkStatus of(){
-        return of(null);
+    public static OkStatus getInstance() {
+        return INSTANCE.lazyGet(OkStatus::new);
     }
 
     @Override
-    public final boolean isCritical() {
+    public boolean isCritical() {
         return false;
-    }
-
-    @Override
-    public final int compareTo(@Nonnull final HealthStatus other) {
-        return other instanceof OkStatus ? 0 : -1;
     }
 
     @Override

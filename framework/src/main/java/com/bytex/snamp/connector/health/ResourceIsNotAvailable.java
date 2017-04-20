@@ -10,16 +10,25 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class ResourceIsNotAvailable extends MalfunctionStatus {
-    public static final int CODE = 2;
+public final class ResourceIsNotAvailable extends ResourceMalfunctionStatus {
     private static final long serialVersionUID = -1368848980168422995L;
     private final JMException error;
     private final String resourceName;
 
     public ResourceIsNotAvailable(final String resourceName, final JMException e){
-        super(resourceName, CODE, true);
+        super(resourceName, SEVERITY + 1);
         error = Objects.requireNonNull(e);
         this.resourceName = Objects.requireNonNull(resourceName);
+    }
+
+    /**
+     * Indicates that resource is in critical state (potentially unavailable).
+     *
+     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
+     */
+    @Override
+    public boolean isCritical() {
+        return true;
     }
 
     public JMException getError(){

@@ -1,26 +1,18 @@
 package com.bytex.snamp.connector.health;
 
-import java.io.IOException;
 import java.util.Locale;
-import java.util.Objects;
 
 /**
- * Represents some connection problems.
+ * Indicates that the cluster is in recovery state and may be unavailable.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public final class ConnectionProblem extends ResourceMalfunctionStatus {
-    private static final long serialVersionUID = -3765564303828054111L;
-    private final IOException error;
+public final class ClusterRecoveryStatus extends ClusterMalfunctionStatus {
+    private static final long serialVersionUID = 3186397258235973954L;
 
-    public ConnectionProblem(final String resourceName, final IOException error) {
-        super(resourceName, SEVERITY + 1);
-        this.error = Objects.requireNonNull(error);
-    }
-
-    public IOException getError(){
-        return error;
+    public ClusterRecoveryStatus(final String clusterName) {
+        super(SEVERITY - 1, clusterName);
     }
 
     /**
@@ -32,7 +24,7 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
      */
     @Override
     public String toString(final Locale locale) {
-        return String.format("Connection problems detected. Caused by %s", error);
+        return "Cluster is in recovery state and may be unavailable";
     }
 
     /**
@@ -42,6 +34,6 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
      */
     @Override
     public boolean isCritical() {
-        return true;
+        return false;
     }
 }

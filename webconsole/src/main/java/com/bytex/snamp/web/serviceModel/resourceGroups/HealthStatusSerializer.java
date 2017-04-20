@@ -22,9 +22,9 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
         output.put(TYPE_FIELD, "OK");
     }
 
-    private static void putCommonFields(final MalfunctionStatus status, final String type, final ObjectNode output) {
+    private static void putCommonFields(final ResourceMalfunctionStatus status, final String type, final ObjectNode output) {
         output.put(TYPE_FIELD, type);
-        status.getResourceName().ifPresent(resourceName -> output.put(RESOURCE_NAME_FIELD, resourceName));
+        output.put(RESOURCE_NAME_FIELD, status.getResourceName());
         output.put(IS_CRITICAL_FIELD, status.isCritical());
         final ObjectNode data = ThreadLocalJsonFactory.getFactory().objectNode();
         status.getData().forEach((key, value) -> data.put(key, new POJONode(value)));
@@ -58,8 +58,8 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
             serialize((ResourceIsNotAvailable) status, node);
         else if (status instanceof ConnectionProblem)
             serialize((ConnectionProblem) status, node);
-        else if (status instanceof MalfunctionStatus) { //unknown status
-            putCommonFields((MalfunctionStatus) status, "UnknownMalfunction", node);
+        else if (status instanceof ResourceMalfunctionStatus) { //unknown status
+            putCommonFields((ResourceMalfunctionStatus) status, "UnknownMalfunction", node);
             node.put("details", status.toString());
         }
         node.serialize(jgen, provider);

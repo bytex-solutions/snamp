@@ -75,14 +75,14 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             Thread.sleep(1000L);
             status = supervisor.queryObject(HealthStatusProvider.class).map(HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status instanceof InvalidAttributeValue);
-            assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
+            assertEquals(TEST_RESOURCE_NAME, Convert.toType(status, InvalidAttributeValue.class).orElseThrow(AssertionError::new).getResourceName());
             assertFalse(status.isCritical());
 
             testAttribute("3.0", TypeToken.of(Integer.class), 2001);
             Thread.sleep(1000L);
             status = supervisor.queryObject(HealthStatusProvider.class).map(HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status instanceof InvalidAttributeValue);
-            assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
+            assertEquals(TEST_RESOURCE_NAME, Convert.toType(status, InvalidAttributeValue.class).orElseThrow(AssertionError::new).getResourceName());
             assertTrue(status.isCritical());
         }
     }
@@ -102,7 +102,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             Thread.sleep(1000L);
             status = supervisor.queryObject(HealthStatusProvider.class).map(HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status instanceof InvalidAttributeValue);
-            assertEquals(TEST_RESOURCE_NAME, status.getResourceName());
+            assertEquals(TEST_RESOURCE_NAME, Convert.toType(status, InvalidAttributeValue.class).orElseThrow(AssertionError::new).getResourceName());
             assertTrue(status.isCritical());
         }
     }

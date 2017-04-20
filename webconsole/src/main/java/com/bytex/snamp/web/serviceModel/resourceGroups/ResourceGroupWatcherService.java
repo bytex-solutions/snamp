@@ -101,7 +101,9 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         private static final long serialVersionUID = 2645921325913575632L;
 
         void putStatus(final String groupName, final Supervisor supervisor) {
-            final HealthStatus status = supervisor.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::of);
+            final HealthStatus status = supervisor.queryObject(HealthCheckSupport.class)
+                    .map(HealthCheckSupport::getStatus)
+                    .orElseGet(OkStatus::getInstance);
             put(groupName, status);
         }
     }

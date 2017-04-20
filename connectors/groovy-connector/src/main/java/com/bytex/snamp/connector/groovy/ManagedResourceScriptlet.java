@@ -40,7 +40,7 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
         attributes = AbstractKeyedObjects.create(GroovyAttributeBuilder::name);
         events = AbstractKeyedObjects.create(GroovyEventBuilder::name);
         operations = AbstractKeyedObjects.create(GroovyOperationBuilder::name);
-        listeners = WeakEventListenerList.create((l, n) -> l.handleNotification(n, this));
+        listeners = new WeakEventListenerList<>((l, n) -> l.handleNotification(n, this));
     }
 
     final void addEventListener(final NotificationListener listener){
