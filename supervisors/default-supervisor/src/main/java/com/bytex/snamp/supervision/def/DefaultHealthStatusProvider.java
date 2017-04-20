@@ -1,8 +1,8 @@
 package com.bytex.snamp.supervision.def;
 
+import com.bytex.snamp.AbstractWeakEventListenerList;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.AbstractWeakEventListenerList;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Represents default implementation of {@link HealthStatusProvider}.
@@ -206,11 +205,6 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
             }
         }
         return new BatchUpdateScope();
-    }
-
-    protected final <E extends Throwable> void requireBatchUpdate(final Supplier<E> exceptionFactory) throws E {
-        if(!batchUpdateState.isActive())
-            throw exceptionFactory.get();
     }
 
     /**

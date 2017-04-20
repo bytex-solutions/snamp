@@ -26,8 +26,7 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         this.clusterID = clusterID;
     }
 
-    private void updateClusterStatus(final Cluster cluster) {
-        requireBatchUpdate(IllegalStateException::new); //this method can be called inside batch update only
+    private void updateClusterStatus(final Cluster cluster) { //this method can be called inside batch update only
         final ClusterMalfunctionStatus status;
         switch (cluster.getStatus()) {
             case RECOVERING:
