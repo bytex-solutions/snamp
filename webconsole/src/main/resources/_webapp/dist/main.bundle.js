@@ -4841,36 +4841,6 @@ exports.push([module.i, "/* http://prismjs.com/download.html?themes=prism-coy&la
 
 /***/ },
 
-/***/ "./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/vex-theme-wireframe.css":
-/***/ function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
-// imports
-
-
-// module
-exports.push([module.i, "@keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n@-webkit-keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n@-moz-keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n@-ms-keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n@-o-keyframes vex-pulse {\r\n  0% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; }\r\n  70% {\r\n    -moz-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    -webkit-box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25);\r\n    box-shadow: inset 0 0 0 300px rgba(255, 255, 255, 0.25); }\r\n  100% {\r\n    -moz-box-shadow: inset 0 0 0 300px transparent;\r\n    -webkit-box-shadow: inset 0 0 0 300px transparent;\r\n    box-shadow: inset 0 0 0 300px transparent; } }\r\n\r\n.vex.vex-theme-wireframe {\r\n  padding-top: 160px;\r\n  padding-bottom: 160px; }\r\n  .vex.vex-theme-wireframe .vex-overlay {\r\n    background: rgba(255, 255, 255, 0.4); }\r\n  .vex.vex-theme-wireframe .vex-content {\r\n    font-family: \"Helvetica Neue\", sans-serif;\r\n    background: #fff;\r\n    color: #000;\r\n    border: 2px solid #000;\r\n    padding: 2em;\r\n    position: relative;\r\n    margin: 0 auto;\r\n    max-width: 100%;\r\n    width: 400px;\r\n    font-size: 1.1em;\r\n    line-height: 1.5em; }\r\n    .vex.vex-theme-wireframe .vex-content h1, .vex.vex-theme-wireframe .vex-content h2, .vex.vex-theme-wireframe .vex-content h3, .vex.vex-theme-wireframe .vex-content h4, .vex.vex-theme-wireframe .vex-content h5, .vex.vex-theme-wireframe .vex-content h6, .vex.vex-theme-wireframe .vex-content p, .vex.vex-theme-wireframe .vex-content ul, .vex.vex-theme-wireframe .vex-content li {\r\n      color: inherit; }\r\n  .vex.vex-theme-wireframe .vex-close {\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n    cursor: pointer; }\r\n    .vex.vex-theme-wireframe .vex-close:before {\r\n      position: absolute;\r\n      content: \"\\D7\";\r\n      font-size: 40px;\r\n      font-weight: normal;\r\n      line-height: 80px;\r\n      height: 80px;\r\n      width: 80px;\r\n      text-align: center;\r\n      top: 3px;\r\n      right: 3px;\r\n      color: #000; }\r\n    .vex.vex-theme-wireframe .vex-close:hover:before, .vex.vex-theme-wireframe .vex-close:active:before {\r\n      color: #000; }\r\n  .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-message {\r\n    margin-bottom: 1.5em; }\r\n  .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input {\r\n    margin-bottom: 1em; }\r\n    .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input textarea, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"date\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"datetime\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"datetime-local\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"email\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"month\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"number\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"password\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"search\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"tel\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"text\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"time\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"url\"], .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"week\"] {\r\n      background: #fff;\r\n      width: 100%;\r\n      padding: .25em .67em;\r\n      font-family: inherit;\r\n      font-weight: inherit;\r\n      font-size: inherit;\r\n      min-height: 2.5em;\r\n      margin: 0 0 .25em;\r\n      border: 2px solid #000; }\r\n      .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input textarea:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"date\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"datetime\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"datetime-local\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"email\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"month\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"number\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"password\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"search\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"tel\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"text\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"time\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"url\"]:focus, .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-input input[type=\"week\"]:focus {\r\n        border-style: dashed;\r\n        outline: none; }\r\n  .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-buttons {\r\n    *zoom: 1; }\r\n    .vex.vex-theme-wireframe .vex-dialog-form .vex-dialog-buttons:after {\r\n      content: \"\";\r\n      display: table;\r\n      clear: both; }\r\n  .vex.vex-theme-wireframe .vex-dialog-button {\r\n    -moz-border-radius: 0;\r\n    -webkit-border-radius: 0;\r\n    border-radius: 0;\r\n    border: 0;\r\n    float: right;\r\n    margin: 0 0 0 .5em;\r\n    font-family: inherit;\r\n    text-transform: uppercase;\r\n    letter-spacing: .1em;\r\n    font-size: .8em;\r\n    line-height: 1em;\r\n    padding: .75em 2em; }\r\n    .vex.vex-theme-wireframe .vex-dialog-button.vex-last {\r\n      margin-left: 0; }\r\n    .vex.vex-theme-wireframe .vex-dialog-button:focus {\r\n      animation: vex-pulse 1.1s infinite;\r\n      -webkit-animation: vex-pulse 1.1s infinite;\r\n      -moz-animation: vex-pulse 1.1s infinite;\r\n      -ms-animation: vex-pulse 1.1s infinite;\r\n      -o-animation: vex-pulse 1.1s infinite;\r\n      -webkit-backface-visibility: hidden;\r\n      outline: none; }\r\n      @media (max-width: 568px) {\r\n        .vex.vex-theme-wireframe .vex-dialog-button:focus {\r\n          animation: none;\r\n          -webkit-animation: none;\r\n          -moz-animation: none;\r\n          -ms-animation: none;\r\n          -o-animation: none;\r\n          -webkit-backface-visibility: hidden; } }\r\n    .vex.vex-theme-wireframe .vex-dialog-button.vex-dialog-button-primary {\r\n      background: #000;\r\n      color: #fff;\r\n      border: 2px solid transparent; }\r\n    .vex.vex-theme-wireframe .vex-dialog-button.vex-dialog-button-secondary {\r\n      background: #fff;\r\n      color: #000;\r\n      border: 2px solid #000; }\r\n\r\n.vex-loading-spinner.vex-theme-wireframe {\r\n  height: 2.5em;\r\n  width: 2.5em; }", ""]);
-
-// exports
-
-
-/***/ },
-
-/***/ "./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/vex.css":
-/***/ function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
-// imports
-
-
-// module
-exports.push([module.i, "@keyframes vex-fadein {\r\n  0% {\r\n    opacity: 0; }\r\n  100% {\r\n    opacity: 1; } }\r\n\r\n@-webkit-keyframes vex-fadein {\r\n  0% {\r\n    opacity: 0; }\r\n  100% {\r\n    opacity: 1; } }\r\n\r\n@-moz-keyframes vex-fadein {\r\n  0% {\r\n    opacity: 0; }\r\n  100% {\r\n    opacity: 1; } }\r\n\r\n@-ms-keyframes vex-fadein {\r\n  0% {\r\n    opacity: 0; }\r\n  100% {\r\n    opacity: 1; } }\r\n\r\n@-o-keyframes vex-fadein {\r\n  0% {\r\n    opacity: 0; }\r\n  100% {\r\n    opacity: 1; } }\r\n\r\n@keyframes vex-fadeout {\r\n  0% {\r\n    opacity: 1; }\r\n  100% {\r\n    opacity: 0; } }\r\n\r\n@-webkit-keyframes vex-fadeout {\r\n  0% {\r\n    opacity: 1; }\r\n  100% {\r\n    opacity: 0; } }\r\n\r\n@-moz-keyframes vex-fadeout {\r\n  0% {\r\n    opacity: 1; }\r\n  100% {\r\n    opacity: 0; } }\r\n\r\n@-ms-keyframes vex-fadeout {\r\n  0% {\r\n    opacity: 1; }\r\n  100% {\r\n    opacity: 0; } }\r\n\r\n@-o-keyframes vex-fadeout {\r\n  0% {\r\n    opacity: 1; }\r\n  100% {\r\n    opacity: 0; } }\r\n\r\n@keyframes vex-rotation {\r\n  0% {\r\n    transform: rotate(0deg);\r\n    -webkit-transform: rotate(0deg);\r\n    -moz-transform: rotate(0deg);\r\n    -ms-transform: rotate(0deg);\r\n    -o-transform: rotate(0deg); }\r\n  100% {\r\n    transform: rotate(359deg);\r\n    -webkit-transform: rotate(359deg);\r\n    -moz-transform: rotate(359deg);\r\n    -ms-transform: rotate(359deg);\r\n    -o-transform: rotate(359deg); } }\r\n\r\n@-webkit-keyframes vex-rotation {\r\n  0% {\r\n    transform: rotate(0deg);\r\n    -webkit-transform: rotate(0deg);\r\n    -moz-transform: rotate(0deg);\r\n    -ms-transform: rotate(0deg);\r\n    -o-transform: rotate(0deg); }\r\n  100% {\r\n    transform: rotate(359deg);\r\n    -webkit-transform: rotate(359deg);\r\n    -moz-transform: rotate(359deg);\r\n    -ms-transform: rotate(359deg);\r\n    -o-transform: rotate(359deg); } }\r\n\r\n@-moz-keyframes vex-rotation {\r\n  0% {\r\n    transform: rotate(0deg);\r\n    -webkit-transform: rotate(0deg);\r\n    -moz-transform: rotate(0deg);\r\n    -ms-transform: rotate(0deg);\r\n    -o-transform: rotate(0deg); }\r\n  100% {\r\n    transform: rotate(359deg);\r\n    -webkit-transform: rotate(359deg);\r\n    -moz-transform: rotate(359deg);\r\n    -ms-transform: rotate(359deg);\r\n    -o-transform: rotate(359deg); } }\r\n\r\n@-ms-keyframes vex-rotation {\r\n  0% {\r\n    transform: rotate(0deg);\r\n    -webkit-transform: rotate(0deg);\r\n    -moz-transform: rotate(0deg);\r\n    -ms-transform: rotate(0deg);\r\n    -o-transform: rotate(0deg); }\r\n  100% {\r\n    transform: rotate(359deg);\r\n    -webkit-transform: rotate(359deg);\r\n    -moz-transform: rotate(359deg);\r\n    -ms-transform: rotate(359deg);\r\n    -o-transform: rotate(359deg); } }\r\n\r\n@-o-keyframes vex-rotation {\r\n  0% {\r\n    transform: rotate(0deg);\r\n    -webkit-transform: rotate(0deg);\r\n    -moz-transform: rotate(0deg);\r\n    -ms-transform: rotate(0deg);\r\n    -o-transform: rotate(0deg); }\r\n  100% {\r\n    transform: rotate(359deg);\r\n    -webkit-transform: rotate(359deg);\r\n    -moz-transform: rotate(359deg);\r\n    -ms-transform: rotate(359deg);\r\n    -o-transform: rotate(359deg); } }\r\n\r\n.vex, .vex *, .vex *:before, .vex *:after {\r\n  -moz-box-sizing: border-box;\r\n  -webkit-box-sizing: border-box;\r\n  box-sizing: border-box; }\r\n\r\n.vex {\r\n  position: fixed;\r\n  overflow: auto;\r\n  -webkit-overflow-scrolling: touch;\r\n  z-index: 1111;\r\n  top: 0;\r\n  right: 0;\r\n  bottom: 0;\r\n  left: 0; }\r\n\r\n.vex-scrollbar-measure {\r\n  position: absolute;\r\n  top: -9999px;\r\n  width: 50px;\r\n  height: 50px;\r\n  overflow: scroll; }\r\n\r\n.vex-overlay {\r\n  background: #000;\r\n  filter: alpha(opacity=40);\r\n  -ms-filter: \"progid:DXImageTransform.Microsoft.Alpha(Opacity=40)\"; }\r\n\r\n.vex-overlay {\r\n  animation: vex-fadein 0.5s;\r\n  -webkit-animation: vex-fadein 0.5s;\r\n  -moz-animation: vex-fadein 0.5s;\r\n  -ms-animation: vex-fadein 0.5s;\r\n  -o-animation: vex-fadein 0.5s;\r\n  -webkit-backface-visibility: hidden;\r\n  position: fixed;\r\n  background: rgba(0, 0, 0, 0.4);\r\n  top: 0;\r\n  right: 0;\r\n  bottom: 0;\r\n  left: 0; }\r\n  .vex.vex-closing .vex-overlay {\r\n    animation: vex-fadeout 0.5s;\r\n    -webkit-animation: vex-fadeout 0.5s;\r\n    -moz-animation: vex-fadeout 0.5s;\r\n    -ms-animation: vex-fadeout 0.5s;\r\n    -o-animation: vex-fadeout 0.5s;\r\n    -webkit-backface-visibility: hidden; }\r\n\r\n.vex-content {\r\n  animation: vex-fadein 0.5s;\r\n  -webkit-animation: vex-fadein 0.5s;\r\n  -moz-animation: vex-fadein 0.5s;\r\n  -ms-animation: vex-fadein 0.5s;\r\n  -o-animation: vex-fadein 0.5s;\r\n  -webkit-backface-visibility: hidden;\r\n  background: #fff; }\r\n  .vex.vex-closing .vex-content {\r\n    animation: vex-fadeout 0.5s;\r\n    -webkit-animation: vex-fadeout 0.5s;\r\n    -moz-animation: vex-fadeout 0.5s;\r\n    -ms-animation: vex-fadeout 0.5s;\r\n    -o-animation: vex-fadeout 0.5s;\r\n    -webkit-backface-visibility: hidden; }\r\n\r\n.vex-close:before {\r\n  font-family: Arial, sans-serif;\r\n  content: \"\\D7\"; }\r\n\r\n.vex-dialog-form {\r\n  margin: 0; }\r\n\r\n.vex-dialog-button {\r\n  text-rendering: optimizeLegibility;\r\n  -moz-appearance: none;\r\n  -webkit-appearance: none;\r\n  cursor: pointer;\r\n  -webkit-tap-highlight-color: transparent; }\r\n\r\n.vex-loading-spinner {\r\n  animation: vex-rotation 0.7s linear infinite;\r\n  -webkit-animation: vex-rotation 0.7s linear infinite;\r\n  -moz-animation: vex-rotation 0.7s linear infinite;\r\n  -ms-animation: vex-rotation 0.7s linear infinite;\r\n  -o-animation: vex-rotation 0.7s linear infinite;\r\n  -webkit-backface-visibility: hidden;\r\n  -moz-box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);\r\n  -webkit-box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);\r\n  box-shadow: 0 0 1em rgba(0, 0, 0, 0.1);\r\n  position: fixed;\r\n  z-index: 1112;\r\n  margin: auto;\r\n  top: 0;\r\n  right: 0;\r\n  bottom: 0;\r\n  left: 0;\r\n  height: 2em;\r\n  width: 2em;\r\n  background: #fff; }\r\n\r\nbody.vex-open {\r\n  overflow: hidden; }", ""]);
-
-// exports
-
-
-/***/ },
-
 /***/ "./node_modules/css-loader/index.js!./src/app/controls/editor/inline-edit.component.css":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -85007,6 +84977,7 @@ var AbstractChart = (function () {
         this.setRow(1);
         this.setSizeX(2);
         this.setSizeY(2);
+        this._stopUpdate = false;
     }
     AbstractChart.prototype.getGroupName = function () {
         return this.preferences["groupName"];
@@ -85026,17 +84997,20 @@ var AbstractChart = (function () {
     AbstractChart.prototype.setSizeY = function (n) {
         this.preferences["gridcfg"]['sizey'] = n;
     };
-    AbstractChart.prototype.simplifyData = function () {
-        var _value = [];
-        for (var i = 0; i < this.chartData.length; i++) {
-            _value.push(this.chartData[i].attributeValue);
-        }
-        return _value;
+    Object.defineProperty(AbstractChart.prototype, "updateStopped", {
+        get: function () {
+            return this._stopUpdate;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    AbstractChart.prototype.toggleUpdate = function () {
+        this._stopUpdate = !this._stopUpdate;
     };
     AbstractChart.prototype.subscribeToSubject = function (_obs) {
         var _this = this;
         _obs.subscribe(function (data) {
-            if ($('#' + _this.id).length) {
+            if ($('#' + _this.id).length && !_this.updateStopped) {
                 _this.newValue(data); // if the chart is visible - update
             }
         });
@@ -85313,6 +85287,9 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         return _value;
     };
     HorizontalBarChartOfAttributeValues.prototype.draw = function () {
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
         // refresh data to be actual in this phase
         this._svgReadyData = this.prepareDatasets();
         var _thisReference = this;
@@ -85444,6 +85421,9 @@ var LineChartOfAttributeValues = (function (_super) {
         }
     };
     LineChartOfAttributeValues.prototype.draw = function () {
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
         var _thisReference = this;
         nv.addGraph(function () {
             var chart = nv.models.lineWithFocusChart();
@@ -85686,6 +85666,9 @@ var PanelOfAttributeValues = (function (_super) {
         }
     };
     PanelOfAttributeValues.prototype.draw = function () {
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
         var ctx = $("#" + this.id);
         var _result = $('<dl class="border-around"></dl>');
         _result.attr("id", "panel_" + this.id);
@@ -85782,6 +85765,9 @@ var PieChartOfAttributeValues = (function (_super) {
         return _value;
     };
     PieChartOfAttributeValues.prototype.draw = function () {
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
         // refresh data to be actual in this phase
         this._svgReadyData = this.prepareDatasets();
         var _sam = this.getAxisY().getLabelRepresentation();
@@ -85895,6 +85881,9 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
         return _value;
     };
     VerticalBarChartOfAttributeValues.prototype.draw = function () {
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
         // refresh data to be actual in this phase
         this._svgReadyData = this.prepareDatasets();
         var _thisReference = this;
@@ -86160,7 +86149,7 @@ var ParametersTable = (function () {
         this.entity.isParamRequired(parameter.key).subscribe(function (res) {
             if (res) {
                 _this.modal.confirm()
-                    .className('wireframe')
+                    .className('default')
                     .isBlocking(true)
                     .keyboard(27)
                     .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
@@ -86193,7 +86182,7 @@ var ParametersTable = (function () {
         }
         if (this.entity.getParameter(paramKey) != undefined) {
             this.modal.confirm()
-                .className('wireframe')
+                .className('default')
                 .isBlocking(true)
                 .keyboard(27)
                 .message("Appending existing parameter. Edit dialog for parameter will display instead. Proceed?")
@@ -86248,10 +86237,6 @@ var ParametersTable = (function () {
             moduleId: module.i,
             selector: 'parameters',
             template: __webpack_require__("./src/app/configuration/components/templates/parameters-table.component.html"),
-            styles: [
-                __webpack_require__("./src/app/configuration/components/templates/css/vex.css"),
-                __webpack_require__("./src/app/configuration/components/templates/css/vex-theme-wireframe.css")
-            ],
             encapsulation: core_1.ViewEncapsulation.None
         }), 
         __metadata('design:paramtypes', [(typeof (_f = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _f) || Object, (typeof (_g = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _g) || Object])
@@ -86430,7 +86415,7 @@ var ResourceEntitiesTable = (function () {
         var _this = this;
         this.modal.confirm()
             .isBlocking(true)
-            .className('wireframe')
+            .className('default')
             .keyboard(27)
             .message("Remove " + entity.getName() + " " + entity.name + "?")
             .open()
@@ -86460,7 +86445,7 @@ var ResourceEntitiesTable = (function () {
         this.activeEntity.isParamRequired(parameter.key).subscribe(function (res) {
             if (res) {
                 _this.modal.confirm()
-                    .className('wireframe')
+                    .className('default')
                     .isBlocking(true)
                     .keyboard(27)
                     .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
@@ -86499,11 +86484,7 @@ var ResourceEntitiesTable = (function () {
             moduleId: module.i,
             selector: 'resourceEntity',
             template: __webpack_require__("./src/app/configuration/components/templates/resource-subentities-table.component.html"),
-            styles: [
-                __webpack_require__("./src/app/configuration/components/templates/css/vex.css"),
-                __webpack_require__("./src/app/configuration/components/templates/css/vex-theme-wireframe.css"),
-                __webpack_require__("./src/app/configuration/components/templates/css/prism.css")
-            ]
+            styles: [__webpack_require__("./src/app/configuration/components/templates/css/prism.css")]
         }), 
         __metadata('design:paramtypes', [(typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object])
     ], ResourceEntitiesTable);
@@ -86543,36 +86524,6 @@ module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade
 
 
         var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/prism.css");
-
-        if (typeof result === "string") {
-            module.exports = result;
-        } else {
-            module.exports = result.toString();
-        }
-    
-
-/***/ },
-
-/***/ "./src/app/configuration/components/templates/css/vex-theme-wireframe.css":
-/***/ function(module, exports, __webpack_require__) {
-
-
-        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/vex-theme-wireframe.css");
-
-        if (typeof result === "string") {
-            module.exports = result;
-        } else {
-            module.exports = result.toString();
-        }
-    
-
-/***/ },
-
-/***/ "./src/app/configuration/components/templates/css/vex.css":
-/***/ function(module, exports, __webpack_require__) {
-
-
-        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/vex.css");
 
         if (typeof result === "string") {
             module.exports = result;

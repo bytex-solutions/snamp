@@ -73,11 +73,14 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
     }
 
     public draw():void {
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
          // refresh data to be actual in this phase
          this._svgReadyData = this.prepareDatasets();
-         var _thisReference = this;
+         let _thisReference = this;
           nv.addGraph(function() {
-            var chart = nv.models.discreteBarChart()
+              let chart = nv.models.discreteBarChart()
                 .x(function(d) { return d.label })
                 .y(function(d) { return d.value })
                 .staggerLabels(true)

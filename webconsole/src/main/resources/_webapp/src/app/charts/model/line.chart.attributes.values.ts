@@ -68,31 +68,34 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
 
 
     public draw():void    {
-       var _thisReference = this;
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
+        let _thisReference = this;
         nv.addGraph(function() {
-          var chart = nv.models.lineWithFocusChart();
-          chart.interactiveUpdateDelay(0);
-          d3.rebind('clipVoronoi');
-          chart.clipVoronoi(false);
+            let chart = nv.models.lineWithFocusChart();
+            chart.interactiveUpdateDelay(0);
+            d3.rebind('clipVoronoi');
+            chart.clipVoronoi(false);
 
-          chart.xAxis.tickFormat(function(d){
+            chart.xAxis.tickFormat(function(d){
                 return d3.time.format('%X')(new Date(d));
-          });
+            });
 
-          chart.xScale(d3.time.scale());
+            chart.xScale(d3.time.scale());
 
-          chart.yAxis
-              .tickFormat(d3.format('d'))
-              .axisLabel((<AttributeValueAxis>_thisReference.getAxisY()).sourceAttribute.unitOfMeasurement);
+            chart.yAxis
+                .tickFormat(d3.format('d'))
+                .axisLabel((<AttributeValueAxis>_thisReference.getAxisY()).sourceAttribute.unitOfMeasurement);
 
-          chart.x2Axis.tickFormat(function (d) { return ''; });
+            chart.x2Axis.tickFormat(function (d) { return ''; });
 
-          d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
-            .transition().call(chart);
+            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
+                .transition().call(chart);
 
-          nv.utils.windowResize(chart.update);
-          _thisReference._chartObject = chart;
-          return chart;
+            nv.utils.windowResize(chart.update);
+            _thisReference._chartObject = chart;
+            return chart;
         });
     }
 

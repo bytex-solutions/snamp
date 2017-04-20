@@ -64,29 +64,32 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
     }
 
     public draw():void {
-         // refresh data to be actual in this phase
-         this._svgReadyData = this.prepareDatasets();
-         let _sam:string = (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation();
-         var _thisReference = this;
-         nv.addGraph(function() {
-             var pieChart = nv.models.pieChart()
-                 .x(function(d) { return d.key })
-                 .y(function(d) { return d.y })
-                 .donut(true)
-                 .padAngle(.08)
-                 .cornerRadius(5)
-                 .showLabels(true)
-                 .id('donut1');
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
+        // refresh data to be actual in this phase
+        this._svgReadyData = this.prepareDatasets();
+        let _sam:string = (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation();
+        let _thisReference = this;
+        nv.addGraph(function() {
+            let pieChart = nv.models.pieChart()
+                .x(function(d) { return d.key })
+                .y(function(d) { return d.y })
+                .donut(true)
+                .padAngle(.08)
+                .cornerRadius(5)
+                .showLabels(true)
+                .id('donut1');
 
-             pieChart.pie.labelType('value').title(_sam);
+            pieChart.pie.labelType('value').title(_sam);
 
-             d3.select("#" + _thisReference.id)
-                 .datum(_thisReference._svgReadyData)
-                 .call(pieChart);
+            d3.select("#" + _thisReference.id)
+                .datum(_thisReference._svgReadyData)
+                .call(pieChart);
 
-             _thisReference._chartObject = pieChart;
-             return pieChart;
-         });
+            _thisReference._chartObject = pieChart;
+            return pieChart;
+        });
     }
 
     public toJSON():any {

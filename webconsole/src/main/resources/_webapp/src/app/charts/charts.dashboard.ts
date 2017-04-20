@@ -30,34 +30,36 @@ import 'select2';
 })
 export class Dashboard {
 
-    private http:ApiClient;
+    private timerId:any = undefined;
 
-    timerId:any = undefined;
+    private components:Observable<string[]>;
+    private selectedComponent:string = "";
 
-    components:Observable<string[]>;
-    selectedComponent:string = "";
+    private metrics:Observable<AttributeInformation[]>;
+    private selectedMetric:AttributeInformation;
 
-    metrics:Observable<AttributeInformation[]>;
-    selectedMetric:AttributeInformation;
+    private instances:Observable<string[]>;
+    private selectedInstances:string[] = [];
+    private allInstances:string[] = [];
+    private selectedAllInstances:boolean = true;
 
-    instances:Observable<string[]>;
-    selectedInstances:string[] = [];
-    allInstances:string[] = [];
-    selectedAllInstances:boolean = true;
+    private selectedChartType:string = "bar";
 
-    selectedChartType:string = "bar";
+    private chartName:string = "newChart";
 
-    chartName:string = "newChart";
-
-    initialized = false;
+    private initialized = false;
 
     private _charts:AbstractChart[] = [];
 
-    public groupName:string = "";
+    private groupName:string = "";
 
-    intervals:TimeInterval[] = TimeInterval.generateIntervals();
+    private intervals:TimeInterval[] = TimeInterval.generateIntervals();
 
-    timeInterval:TimeInterval = undefined;
+    private timeInterval:TimeInterval = undefined;
+
+    private static select2Id:string = "#instancesSelect";
+    private static chartModalId:string = "#addChartModal";
+    private static wizardId:string = "#smartwizardForChart";
 
     private gridConfig: NgGridConfig = <NgGridConfig>{
         'margins': [10],
@@ -84,13 +86,12 @@ export class Dashboard {
     };
 
 
-    constructor(apiClient: ApiClient,
+    constructor(private http: ApiClient,
           overlay: Overlay,
           vcRef: ViewContainerRef,
           private _chartService:ChartService,
           private route: ActivatedRoute) {
 
-        this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
         this.timeInterval = this.intervals[0];
    }
@@ -115,16 +116,16 @@ export class Dashboard {
             this.ngOnInit();
 
             // reset wizard
-            $(this.getSmartWizardIdentifier()).off("showStep");
-            $(this.getSmartWizardIdentifier()).smartWizard("reset");
+            $(Dashboard.wizardId).off("showStep");
+            $(Dashboard.wizardId).smartWizard("reset");
             this.initWizard();
 
-            if ($("#instancesSelect").data('select2')) {
-                $("#instancesSelect").select2("destroy");
+            if ($(Dashboard.select2Id).data('select2')) {
+                $(Dashboard.select2Id).select2("destroy");
             }
         }
         // open the modal
-        $("#addChartModal").modal("show");
+        $(Dashboard.chartModalId).modal("show");
         // and next time user adds the chart - we will reinit all the dialog
         this.initialized = true;
    }
@@ -163,7 +164,7 @@ export class Dashboard {
                 }
                 this.timerId = setInterval(function(){
                     _thisReference._chartService.receiveChartDataForGroupName(gn);
-                }, 1000);
+                }, 500);
              });
         $(document).ready(function(){
              _thisReference.initWizard();
@@ -171,7 +172,7 @@ export class Dashboard {
    }
 
    private initWizard():void {
-        $(this.getSmartWizardIdentifier()).smartWizard({
+        $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
             useURLhash: false,
             showStepURLhash: false,
@@ -180,7 +181,7 @@ export class Dashboard {
 
         let _thisReference:any = this;
 
-        $(this.getSmartWizardIdentifier()).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
+        $(Dashboard.wizardId).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
             if (stepNumber == 3) {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2) {
@@ -290,11 +291,6 @@ export class Dashboard {
         }
    }
 
-
-    private getSmartWizardIdentifier():string {
-      return "#smartwizardForChart";
-    }
-
    addChartToDashboard():void {
         let _instances:string[] = ((this.selectedAllInstances) ? this.allInstances : this.selectedInstances);
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
@@ -305,7 +301,7 @@ export class Dashboard {
         }
         this._chartService.newChart(chart);
         this._charts = this._chartService.getChartsByGroupName(this.groupName);
-        $("#addChartModal").modal("hide");
+        $(Dashboard.chartModalId).modal("hide");
 
          let _thisReference:any = this;
          setTimeout(function() {
@@ -324,12 +320,18 @@ export class Dashboard {
    	    this._charts = this._chartService.getChartsByGroupName(this.groupName);
    	}
 
-    ngOnDestroy() {
+    ngOnDestroy():void {
         clearInterval(this.timerId);
     }
 
     isInstanceSelected(instance:string):boolean {
         return (this.selectedInstances.indexOf(instance) >= 0);
+    }
+
+    toggleDrawingChart(chart:AbstractChart):void {
+        chart.toggleUpdate();
+        $('#toggleDraw' + chart.id + ' i').attr('class', chart.updateStopped ? 'fa fa-play-circle-o' : 'fa fa-pause-circle-o');
+        $('#toggleDraw' + chart.id).parents('div.x_panel').find('div.overlay-holder').fadeToggle('slow');
     }
 }
 

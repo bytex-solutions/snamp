@@ -1,15 +1,13 @@
-import { Component, Input ,ViewChild, ElementRef, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 
 import { ApiClient, REST } from '../../services/app.restClient';
-import { KeyValue, Entity } from '../model/model.entity';
+import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
 import { SubEntity } from '../model/model.subEntity';
 import { Attribute } from '../model/model.attribute';
 import { Event } from '../model/model.event';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Operation } from '../model/model.operation';
-import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
@@ -19,26 +17,13 @@ import 'smartwizard';
 import 'select2';
 const Prism = require('prismjs');
 
-import { Overlay } from 'angular2-modal';
-import {
-  VEXBuiltInThemes,
-  Modal,
-  DialogPreset,
-  DialogFormModal,
-  DialogPresetBuilder,
-  VEXModalContext,
-  VexModalModule
-} from 'angular2-modal/plugins/vex';
+import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 
 @Component({
   moduleId: module.id,
   selector: 'resourceEntity',
   templateUrl: './templates/resource-subentities-table.component.html',
-  styleUrls: [
-      './templates/css/vex.css',
-      './templates/css/vex-theme-wireframe.css',
-      './templates/css/prism.css'
-    ]
+  styleUrls: [ './templates/css/prism.css' ]
 })
 export class ResourceEntitiesTable implements OnInit {
     @Input() resource:TypedEntity;
@@ -77,7 +62,7 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     ngAfterViewInit() {
-       var _this = this;
+       let _this = this;
        let _hiddenSteps:number[] = [];
        if (this.entityType == "event") {
           _hiddenSteps.push(1);
@@ -128,7 +113,7 @@ export class ResourceEntitiesTable implements OnInit {
                     if (param.loading) return param.text;
                     if (param.element.nodeName == "OPTGROUP") return param.text;
                     if (param.id == "custom") return param.text;
-                    var markup = "<div class='select2-result-repository clearfix'>" +
+                    let markup = "<div class='select2-result-repository clearfix'>" +
                       "<div class='select2-result-repository__meta'>" +
                         "<div class='select2-result-repository__title'>" + param.element.value + "</div>";
 
@@ -199,7 +184,7 @@ export class ResourceEntitiesTable implements OnInit {
     remove(entity:SubEntity) {
          this.modal.confirm()
             .isBlocking(true)
-            .className(<VEXBuiltInThemes>'wireframe')
+            .className(<VEXBuiltInThemes>'default')
             .keyboard(27)
             .message("Remove " + entity.getName() + " " + entity.name + "?")
             .open()
@@ -231,7 +216,7 @@ export class ResourceEntitiesTable implements OnInit {
         this.activeEntity.isParamRequired(parameter.key).subscribe((res:boolean) => {
              if (res) {
                 this.modal.confirm()
-                    .className(<VEXBuiltInThemes>'wireframe')
+                    .className(<VEXBuiltInThemes>'default')
                     .isBlocking(true)
                     .keyboard(27)
                     .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")

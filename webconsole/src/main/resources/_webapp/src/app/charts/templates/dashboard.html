@@ -192,18 +192,31 @@
 
       <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px; width: calc(100% - 45px) !important;">
 
-          <div class="x_panel" *ngFor="let chart of _charts; let i = index" [(ngGridItem)]="chart.preferences['gridcfg']" (onChangeStop)="onChangeStop(i, $event)">
+          <div class="x_panel"
+               *ngFor="let chart of _charts; let i = index"
+               [(ngGridItem)]="chart.preferences['gridcfg']"
+               (onChangeStop)="onChangeStop(i, $event)"
+               [attr.chartPanelId]="chart.id">
 
               <div class="x_title title handle">
                 <h2>{{chart.name}}</h2>
                 <ul class="nav navbar-right panel_toolbox">
                   <li>
+                    <a [attr.id]="'toggleDraw' + chart.id" class="toggle-link" (click)="toggleDrawingChart(chart)"><i class="fa fa-pause-circle-o"></i></a>
                     <a class="close-link" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
                   </li>
                 </ul>
                 <div class="clearfix"></div>
               </div>
               <div class="x_content" id="wrapper" style="position: relative; width: 100%; height: calc(100% - 10px) !important;">
+                <div class="overlay-holder">
+                  <div class="overlay-content">
+                    <div>
+                      <i class="fa fa-pause-circle" aria-hidden="true"></i>
+                      <p>update paused</p>
+                    </div>
+                  </div>
+                </div>
                 <svg [attr.id]="chart.id"></svg>
               </div>
             </div>
@@ -213,4 +226,3 @@
     </div>
   </div>
 </div>
-

@@ -1,35 +1,21 @@
-import { Component, Input ,ViewChild, ElementRef, OnInit, ViewContainerRef, ViewEncapsulation, ViewChildren, QueryList } from '@angular/core';
+import { Component, Input ,ViewChild, ElementRef, OnInit, ViewEncapsulation, ViewChildren, QueryList } from '@angular/core';
 import { ApiClient, REST } from '../../services/app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
 import { InlineEditComponent } from '../../controls/editor/inline-edit.component';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
-import { Overlay } from 'angular2-modal';
-import {
-  VEXBuiltInThemes,
-  Modal,
-  DialogPreset,
-  DialogFormModal,
-  DialogPresetBuilder,
-  VEXModalContext,
-  VexModalModule
-} from 'angular2-modal/plugins/vex';
+import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 
 @Component({
   moduleId: module.id,
   selector: 'parameters',
   templateUrl: './templates/parameters-table.component.html',
-  styleUrls: [
-    './templates/css/vex.css',
-    './templates/css/vex-theme-wireframe.css'
-  ],
   encapsulation: ViewEncapsulation.None
 })
 export class ParametersTable implements OnInit {
@@ -48,7 +34,7 @@ export class ParametersTable implements OnInit {
 
     constructor(public http:ApiClient, public modal: Modal) {}
 
-    ngOnInit() {
+    ngOnInit():void {
         this.entity.paramDescriptors.subscribe((descriptors:ParamDescriptor[]) => {
             for (let i in descriptors) {
                if (descriptors[i].required) {
@@ -67,23 +53,23 @@ export class ParametersTable implements OnInit {
         return REST.ENTITY_PARAMETERS(this.entity.getName(), this.entity.name, key);
     }
 
-    saveParameter(parameter:KeyValue) {
+    saveParameter(parameter:KeyValue):void {
         this.http.put(this.getUrlForParameter(parameter.key), parameter.value)
             .map((res: Response) => res.text())
             .subscribe(data => this.entity.setParameter(parameter));
     }
 
-    removeParameter(parameter:KeyValue) {
+    removeParameter(parameter:KeyValue):void {
         this.http.delete(this.getUrlForParameter(parameter.key))
                 .map((res: Response) => res.text())
                 .subscribe(data => this.entity.removeParameter(parameter.key));
     }
 
-    checkAndRemoveParameter(parameter:KeyValue) {
+    checkAndRemoveParameter(parameter:KeyValue):void {
         this.entity.isParamRequired(parameter.key).subscribe((res:boolean) => {
              if (res) {
                 this.modal.confirm()
-                    .className(<VEXBuiltInThemes>'wireframe')
+                    .className(<VEXBuiltInThemes>'default')
                     .isBlocking(true)
                     .keyboard(27)
                     .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
@@ -102,7 +88,7 @@ export class ParametersTable implements OnInit {
         });
     }
 
-    addNewParameter() {
+    addNewParameter():void {
         let paramKey:string = "";
         let paramValue:string = this.stubValue;
         if (this.selectedParam == undefined) {
@@ -114,7 +100,7 @@ export class ParametersTable implements OnInit {
         }
         if (this.entity.getParameter(paramKey) != undefined) {
             this.modal.confirm()
-                .className(<VEXBuiltInThemes>'wireframe')
+                .className(<VEXBuiltInThemes>'default')
                 .isBlocking(true)
                 .keyboard(27)
                 .message("Appending existing parameter. Edit dialog for parameter will display instead. Proceed?")
@@ -134,11 +120,11 @@ export class ParametersTable implements OnInit {
         }
     }
 
-    flushSelected() {
+    flushSelected():void {
         this.selectedParam = undefined;
     }
 
-    clear() {
+    clear():void {
         this.listParamValue.nativeElement.value = "";
         if (this.customParamValue != undefined) {
             this.customParamValue.nativeElement.value = this.stubValue;

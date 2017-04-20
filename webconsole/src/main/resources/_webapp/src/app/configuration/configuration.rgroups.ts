@@ -1,46 +1,29 @@
 import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { ResourceGroup } from './model/model.resourceGroup';
-import { KeyValue } from './model/model.entity';
-import { Binding } from './model/model.binding';
 import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
 import { Overlay } from 'angular2-modal';
-import {
-  VEXBuiltInThemes,
-  Modal,
-  DialogPreset,
-  DialogFormModal,
-  DialogPresetBuilder,
-  VEXModalContext,
-  VexModalModule
-} from 'angular2-modal/plugins/vex';
+import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 
 @Component({
   moduleId: module.id,
   templateUrl: './templates/rgroups.html',
-  styleUrls: [
-    './templates/css/checkbox.css',
-    './components/templates/css/vex.css',
-    './components/templates/css/vex-theme-wireframe.css'
-  ]
+  styleUrls: [ './templates/css/checkbox.css' ]
 })
 export class RGroupsComponent implements OnInit {
 
    resources:ResourceGroup[] = [];
    activeResource:ResourceGroup;
    oldTypeValue:string = "";
-   http:ApiClient;
    availableResources :any[] = [];
    oldSmartMode = false;
 
-   constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
-        this.http = apiClient;
+   constructor(private http: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
         overlay.defaultViewContainer = vcRef;
    }
 
@@ -96,7 +79,7 @@ export class RGroupsComponent implements OnInit {
     changeType(event:any) {
       this.modal.confirm()
         .isBlocking(true)
-        .className(<VEXBuiltInThemes>'wireframe')
+        .className(<VEXBuiltInThemes>'default')
         .keyboard(27)
         .message("If you change resource type - all resources will be removed. Are you sure?")
         .open()

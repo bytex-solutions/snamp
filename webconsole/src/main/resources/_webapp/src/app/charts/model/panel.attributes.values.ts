@@ -33,11 +33,11 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
-        var _chr = $("#panel_" + this.id);
+        let _chr = $("#panel_" + this.id);
         if (_chr != undefined) {
             if (_index == -1) {
                 _chr.append('<dt>' + _data.instanceName + '</dt>');
-                var _newDD = $('<dd>' + _data.attributeValue + '</dd>');
+                let _newDD = $('<dd>' + _data.attributeValue + '</dd>');
                 _newDD.attr("id", "ddInstance" + _data.instanceName);
                 _chr.append(_newDD);
             } else {
@@ -47,14 +47,17 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
     }
 
     public draw():void    {
-        var ctx = $("#" + this.id);
-        var _result = $('<dl class="border-around"></dl>');
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
+        let ctx = $("#" + this.id);
+        let _result = $('<dl class="border-around"></dl>');
         _result.attr("id", "panel_" + this.id);
         ctx.parent().append(_result);
         ctx.remove();
         for (let i = 0; i < this.chartData.length; i++) {
             _result.append('<dt>' + this.chartData[i].instanceName + '</dt>');
-            var _newDD = $('<dd>' + this.chartData[i].attributeValue + '</dd>');
+            let _newDD = $('<dd>' + this.chartData[i].attributeValue + '</dd>');
             _newDD.attr("id", "ddInstance" + this.chartData[i].instanceName);
             _result.append(_newDD);
         }

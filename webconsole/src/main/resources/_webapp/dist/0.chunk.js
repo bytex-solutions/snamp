@@ -37959,13 +37959,13 @@ __webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var RGroupsComponent = (function () {
-    function RGroupsComponent(apiClient, overlay, vcRef, modal) {
+    function RGroupsComponent(http, overlay, vcRef, modal) {
+        this.http = http;
         this.modal = modal;
         this.resources = [];
         this.oldTypeValue = "";
         this.availableResources = [];
         this.oldSmartMode = false;
-        this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
     }
     RGroupsComponent.prototype.ngOnInit = function () {
@@ -38016,7 +38016,7 @@ var RGroupsComponent = (function () {
         var _this = this;
         this.modal.confirm()
             .isBlocking(true)
-            .className('wireframe')
+            .className('default')
             .keyboard(27)
             .message("If you change resource type - all resources will be removed. Are you sure?")
             .open()
@@ -38072,11 +38072,7 @@ var RGroupsComponent = (function () {
         core_1.Component({
             moduleId: module.i,
             template: __webpack_require__("./src/app/configuration/templates/rgroups.html"),
-            styles: [
-                __webpack_require__("./src/app/configuration/templates/css/checkbox.css"),
-                __webpack_require__("./src/app/configuration/components/templates/css/vex.css"),
-                __webpack_require__("./src/app/configuration/components/templates/css/vex-theme-wireframe.css")
-            ]
+            styles: [__webpack_require__("./src/app/configuration/templates/css/checkbox.css")]
         }), 
         __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
     ], RGroupsComponent);

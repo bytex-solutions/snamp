@@ -40,12 +40,12 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to an array
             this._svgReadyData.push({
-                    key: _data.instanceName,
-                    values: [{
-                        label: _data.attributeValue,
-                        value: _data.attributeName
-                    }]
-                });
+                key: _data.instanceName,
+                values: [{
+                    label: _data.attributeValue,
+                    value: _data.attributeName
+                }]
+            });
         } else {
             for (let i = 0; i < this._svgReadyData.length; i++) {
                 if (this._svgReadyData[i].key == _data.instanceName) {
@@ -74,28 +74,31 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
     }
 
     public draw():void {
-         // refresh data to be actual in this phase
-         this._svgReadyData = this.prepareDatasets();
-         var _thisReference = this;
-          nv.addGraph(function() {
-            var chart = nv.models.multiBarHorizontalChart()
+        if (this.updateStopped) {
+            return; //do not draw if stop was pressed
+        }
+        // refresh data to be actual in this phase
+        this._svgReadyData = this.prepareDatasets();
+        let _thisReference = this;
+        nv.addGraph(function() {
+            let chart = nv.models.multiBarHorizontalChart()
                 .x(function(d) { return d.label })
                 .y(function(d) { return d.value })
                 .barColor(d3.scale.category20().range())
                 .showValues(true)
                 .stacked(false);
 
-             chart.yAxis
-                 .tickFormat(d3.format('d'));
+            chart.yAxis
+                .tickFormat(d3.format('d'));
 
-             d3.select('#' + _thisReference.id)
-                 .datum(_thisReference._svgReadyData)
-                 .call(chart);
+            d3.select('#' + _thisReference.id)
+                .datum(_thisReference._svgReadyData)
+                .call(chart);
 
-             nv.utils.windowResize(chart.update);
-             _thisReference._chartObject = chart;
-             return chart;
-           });
+            nv.utils.windowResize(chart.update);
+            _thisReference._chartObject = chart;
+            return chart;
+        });
     }
 
     public toJSON():any {

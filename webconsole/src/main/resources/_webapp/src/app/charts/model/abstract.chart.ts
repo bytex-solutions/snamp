@@ -23,6 +23,8 @@ export abstract class AbstractChart {
     public chartData: ChartData[] = [];
     public abstract toJSON():any;
 
+    private _stopUpdate:boolean;
+
     public getGroupName():string {
         return this.preferences["groupName"];
     }
@@ -47,6 +49,14 @@ export abstract class AbstractChart {
         this.preferences["gridcfg"]['sizey'] = n;
     }
 
+    public get updateStopped():boolean {
+        return this._stopUpdate;
+    }
+
+    public toggleUpdate():void {
+        this._stopUpdate = !this._stopUpdate;
+    }
+
     constructor() {
         this.preferences["gridcfg"] = {};
         this.preferences["gridcfg"]['dragHandle'] = '.handle';
@@ -54,6 +64,7 @@ export abstract class AbstractChart {
         this.setRow(1);
         this.setSizeX(2);
         this.setSizeY(2);
+        this._stopUpdate = false;
     }
 
     // different types of charts should be rendered in different ways
@@ -62,17 +73,9 @@ export abstract class AbstractChart {
     // when new value comes - we should process it. see abstract.chart.attributes.values as a default implementation
     public abstract newValue(_data:ChartData):void;
 
-    protected simplifyData():any[] {
-        let _value:any[] = [];
-        for (let i = 0; i < this.chartData.length; i++) {
-            _value.push(this.chartData[i].attributeValue);
-        }
-        return _value;
-    }
-
     public subscribeToSubject(_obs:Observable<ChartData>):void {
         _obs.subscribe((data:ChartData) => {
-            if($('#' + this.id).length) {
+            if($('#' + this.id).length && !this.updateStopped) {
                 this.newValue(data); // if the chart is visible - update
             }
         });
