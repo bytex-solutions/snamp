@@ -35,7 +35,7 @@ public final class NotificationListenerList extends AbstractWeakEventListenerLis
      *
      * @see #removeNotificationListener
      */
-    public final void addNotificationListener(final NotificationListener listener,
+    public void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) throws IllegalArgumentException {
         add(listener, l -> new NotificationListenerHolder(l, filter, handback));
@@ -56,7 +56,7 @@ public final class NotificationListenerList extends AbstractWeakEventListenerLis
      * @see #addNotificationListener
      * @see javax.management.NotificationEmitter#removeNotificationListener
      */
-    public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+    public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
         if (!remove(listener))
             throw JMExceptionUtils.listenerNotFound(listener);
     }
@@ -72,7 +72,7 @@ public final class NotificationListenerList extends AbstractWeakEventListenerLis
      *                     addNotificationListener call and resent, without modification, to the
      */
     @Override
-    public final void handleNotification(final Notification notification, final Object handback) {
+    public void handleNotification(final Notification notification, final Object handback) {
         forEach(listener -> listener.handleNotification(notification, handback));
     }
 }
