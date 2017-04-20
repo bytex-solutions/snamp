@@ -41,7 +41,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
 
         @Override
         protected void doAction() throws InterruptedException {
-            getReferenceOrTerminate().updateHealthStatus();
+            getReferenceOrTerminate().supervise();
         }
 
         void terminate() throws TimeoutException, InterruptedException {
@@ -108,7 +108,11 @@ public class DefaultSupervisor extends AbstractSupervisor {
             getLogger().info(String.format("ResourceDiscoveryService is overridden with %s", discoveryService));
     }
 
-    private void updateHealthStatus() {
+    /**
+     * Executes automatically using scheduling time.
+     */
+    @OverridingMethodsMustInvokeSuper
+    protected void supervise() {
         final DefaultHealthStatusProvider provider = healthStatusProvider;
         if(provider != null)
             provider.updateStatus(getResources());
