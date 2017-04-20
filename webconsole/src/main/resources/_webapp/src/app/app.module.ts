@@ -21,8 +21,8 @@ import { ApiClient } from './services/app.restClient'
 import { UiSwitchComponent } from './controls/switcher/ui-switch.component';
 import { PanelComponent } from './controls/panel/panel.component';
 import { InlineEditComponent } from './controls/editor/inline-edit.component';
-import { UsernameComponent } from './controls/username/app.username';
 import { Footer } from './controls/footer/footer.component';
+import { UserProfileComponent } from "./controls/userinfo/user.info.panel";
 
 //menu items
 import { Sidebar } from './menu/sidebar/sidebar.component';
@@ -45,8 +45,6 @@ import { DropdownModule } from "ng2-dropdown";
 import { FontAwesomeDirective } from 'ng2-fontawesome';
 import { VexModalModule, providers } from 'angular2-modal/plugins/vex';
 
-
-
 // Application wide providers
 const APP_PROVIDERS = [
   ApiClient,
@@ -67,7 +65,7 @@ const APP_PROVIDERS = [
     Sidebar,
     TopNavBar,
     FontAwesomeDirective,
-    UsernameComponent,
+    UserProfileComponent,
     KeysPipe
   ],
   imports: [

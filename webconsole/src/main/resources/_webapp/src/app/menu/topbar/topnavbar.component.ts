@@ -4,10 +4,10 @@ import { SnampLogService } from '../../services/app.logService';
 import { Modal } from 'angular2-modal/plugins/bootstrap';
 import { Overlay } from 'angular2-modal';
 import { AbstractNotification } from "../../services/model/notifications/abstract.notification";
+import { UserProfileService } from "../../services/app.user.profile";
 
 @Component({
   selector: 'topnav-bar',
-  providers: [ CookieService ],
   templateUrl: './topnavbar.component.html',
   encapsulation: ViewEncapsulation.None
 })
@@ -19,6 +19,7 @@ export class TopNavBar {
                 vcRef: ViewContainerRef,
                 private _cookieService:CookieService,
                 private _snampLogService:SnampLogService,
+                private _userProfileService:UserProfileService,
                 private cd: ChangeDetectorRef,
                 public modal: Modal) {
       overlay.defaultViewContainer = vcRef;
@@ -29,7 +30,7 @@ export class TopNavBar {
       this._snampLogService.clear();
     }
 
-    toggleClicked(event: MouseEvent) {
+    toggleClicked():void {
         let body = $('body');
         let menu = $('#sidebar-menu');
         if (body.hasClass('nav-md')) {
@@ -42,11 +43,15 @@ export class TopNavBar {
         body.toggleClass('nav-md nav-sm');
     }
 
-    clearAlerts() {
+    clearAlerts():void {
       this.logs = [];
     }
 
-    clickDetails(logEntry:AbstractNotification) {
+    getUserName():string {
+        return this._userProfileService.getUserName();
+    }
+
+    clickDetails(logEntry:AbstractNotification):void {
        this.modal.alert()
            .size('lg')
            .title("Details for notification")
@@ -56,7 +61,7 @@ export class TopNavBar {
            .open();
     }
 
-    removeMessage(log:AbstractNotification) {
+    removeMessage(log:AbstractNotification):void {
         let liElement:any = $("#" + log.id);
         let _thisReference = this;
         liElement.slideUp("slow", function() {
@@ -69,7 +74,7 @@ export class TopNavBar {
         });
     }
 
-    ngAfterViewInit() {
+    ngAfterViewInit():void {
        this._snampLogService.getLogObs()
           .subscribe((newLog:AbstractNotification) => {
             this.logs.unshift(newLog);

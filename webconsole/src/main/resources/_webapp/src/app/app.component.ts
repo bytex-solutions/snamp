@@ -37,8 +37,7 @@ export class App {
     }
 
     public notificationCount:number = 0;
-    public activeEvent:any = undefined;
-    stack_bottomright:any = {"dir1": "up", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
+    private stack_bottomright:any = {"dir1": "up", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
 
     ngAfterViewInit() {
         console.log("User profile decoded is: ", this._profile.decodeProfile());

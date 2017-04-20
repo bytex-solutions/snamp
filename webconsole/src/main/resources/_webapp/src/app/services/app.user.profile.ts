@@ -15,4 +15,8 @@ export class UserProfileService {
     public isUserHasAdminRole():boolean {
         return this.decodeProfile()["roles"].indexOf("admin") >= 0;
     }
+
+    public getUserName():string {
+        return this.decodeProfile()["sub"];
+    }
 }

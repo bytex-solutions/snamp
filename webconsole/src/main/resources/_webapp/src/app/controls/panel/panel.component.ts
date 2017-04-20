@@ -1,4 +1,4 @@
-import { Component, Input, AfterViewInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
     moduleId: module.id,
@@ -16,8 +16,8 @@ export class PanelComponent {
     }
 
     collapseClicked(event: MouseEvent) {
-       var target = event.srcElement;
-       var $BOX_PANEL = $(target).closest('.x_panel'),
+       let target = event.srcElement;
+        let $BOX_PANEL = $(target).closest('.x_panel'),
            $ICON = $(target).find('i'),
            $BOX_CONTENT = $BOX_PANEL.find('.x_content');
 

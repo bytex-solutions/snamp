@@ -80,23 +80,25 @@ export class ApiClient {
 }
 
 export class REST {
-    public static ROOT_PATH = "/snamp/management";
+    public static LOGIN_PATH:string = "/snamp/security/login/username";
 
-    public static CFG_PATH = REST.ROOT_PATH + "/configuration";
+    public static ROOT_PATH:string = "/snamp/management";
 
-    public static GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
+    public static CFG_PATH:string = REST.ROOT_PATH + "/configuration";
 
-    public static RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
+    public static GATEWAY_CONFIG:string = REST.CFG_PATH + "/gateway";
 
-    public static THREAD_POOL_CONFIG = REST.CFG_PATH + "/threadPools";
+    public static RESOURCE_CONFIG:string = REST.CFG_PATH + "/resource";
 
-    public static RGROUP_CONFIG = REST.CFG_PATH + "/resourceGroup";
+    public static THREAD_POOL_CONFIG:string = REST.CFG_PATH + "/threadPools";
 
-    public static COMPONENTS_MANAGEMENT = REST.ROOT_PATH + "/components";
+    public static RGROUP_CONFIG:string = REST.CFG_PATH + "/resourceGroup";
 
-    public static AVAILABLE_GATEWAY_LIST = REST.COMPONENTS_MANAGEMENT + "/gateways";
+    public static COMPONENTS_MANAGEMENT:string = REST.ROOT_PATH + "/components";
 
-    public static AVAILABLE_RESOURCE_LIST = REST.COMPONENTS_MANAGEMENT + "/connectors";
+    public static AVAILABLE_GATEWAY_LIST:string = REST.COMPONENTS_MANAGEMENT + "/gateways";
+
+    public static AVAILABLE_RESOURCE_LIST:string = REST.COMPONENTS_MANAGEMENT + "/connectors";
 
     public static AVAILABLE_ENTITIES_BY_TYPE(entityType: string): string {
         return REST.COMPONENTS_MANAGEMENT + "/" + encodeURIComponent(entityType) + "s";
@@ -146,7 +148,7 @@ export class REST {
         return REST.RESOURCE_BY_NAME(entityName) + "/connectionString";
     }
 
-    public static RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
+    public static RGROUP_LIST:string = REST.RGROUP_CONFIG + "/list";
 
     public static RESOURCE_GROUP(name: string): string {
         return REST.RESOURCE_BY_NAME(name) + "/group";
@@ -171,16 +173,16 @@ export class REST {
     }
 
     // SNAMP WEB API SECTION (belongs to webconsole module)
-    public static ROOT_WEB_API_PATH: string = "/snamp/web/api";
+    public static ROOT_WEB_API_PATH:string = "/snamp/web/api";
 
     // web console api (chart related and others)
-    public static CHART_DASHBOARD: string = REST.ROOT_WEB_API_PATH + "/charts/settings";
+    public static CHART_DASHBOARD:string = REST.ROOT_WEB_API_PATH + "/charts/settings";
 
     // web console api (chart related and others)
-    public static CHARTS_COMPUTE: string = REST.ROOT_WEB_API_PATH + "/charts/compute";
+    public static CHARTS_COMPUTE:string = REST.ROOT_WEB_API_PATH + "/charts/compute";
 
     // receiving all groups of managed resources
-    public static CHART_COMPONENTS: string = REST.ROOT_WEB_API_PATH + "/managedResources/components";
+    public static CHART_COMPONENTS:string = REST.ROOT_WEB_API_PATH + "/managedResources/components";
 
     //
     public static CHART_INSTANCES(componentName: string): string {
@@ -196,19 +198,19 @@ export class REST {
     }
 
     // web console api (view related and others)
-    public static VIEWS_DASHBOARD: string = REST.ROOT_WEB_API_PATH + "/e2e/settings";
+    public static VIEWS_DASHBOARD:string = REST.ROOT_WEB_API_PATH + "/e2e/settings";
 
     // compute e2e view
-    public static COMPUTE_VIEW: string = REST.ROOT_WEB_API_PATH + "/e2e/compute";
+    public static COMPUTE_VIEW:string = REST.ROOT_WEB_API_PATH + "/e2e/compute";
 
     // reset e2e view
-    public static RESET_VIEW: string = REST.ROOT_WEB_API_PATH + "/e2e/reset";
+    public static RESET_VIEW:string = REST.ROOT_WEB_API_PATH + "/e2e/reset";
 
     // path for storing/receiving full snamp configuration as a json
-    public static CURRENT_CONFIG: string = REST.ROOT_PATH + "/configuration";
+    public static CURRENT_CONFIG:string = REST.ROOT_PATH + "/configuration";
 
     // configuration path for supervisors
-    public static SUPERVISORS_CONFIG: string = REST.CFG_PATH + "/supervisor";
+    public static SUPERVISORS_CONFIG:string = REST.CFG_PATH + "/supervisor";
 
     // endpoint for certain supervisor
     public static SUPERVISOR_BY_NAME(name: string): string {
@@ -216,11 +218,11 @@ export class REST {
     }
 
     // all supervisors statuses
-    public static SUPERVISORS_STATUS: string = REST.ROOT_WEB_API_PATH + "/resource-group-watcher/groups/status";
+    public static SUPERVISORS_STATUS:string = REST.ROOT_WEB_API_PATH + "/resource-group-watcher/groups/status";
 
     // notification settings
-    public static NOTIFICATIONS_SETTINGS: string = REST.ROOT_WEB_API_PATH + "/notifications/settings";
+    public static NOTIFICATIONS_SETTINGS:string = REST.ROOT_WEB_API_PATH + "/notifications/settings";
 
     // list of the available notifications types
-    public static NOTIFICATIONS_TYPES: string = REST.ROOT_WEB_API_PATH + "/notifications/types";
+    public static NOTIFICATIONS_TYPES:string = REST.ROOT_WEB_API_PATH + "/notifications/types";
 }
