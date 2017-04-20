@@ -23,7 +23,7 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
     @Override
     public void fillResourceConfig(final ManagedResourceConfiguration resource) {
         //overwrite all properties in resource but hold user-defined properties
-        resource.putAll(this);
+        this.forEach(resource::putIfAbsent);
         //overwrite all attributes
         resource.getAttributes().putAll(getAttributes());
         //overwrite all events
