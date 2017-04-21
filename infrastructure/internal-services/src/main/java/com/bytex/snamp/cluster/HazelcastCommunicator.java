@@ -1,7 +1,6 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.ComputationPipeline;
 import com.bytex.snamp.core.Communicator;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
@@ -58,7 +57,7 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
         }
     }
 
-    private static class MessageReceiver<V> extends CompletableFuture<V> implements ComputationPipeline<V>, MessageListener<TransferObject>, SafeCloseable{
+    private static class MessageReceiver<V> extends CompletableFuture<V> implements MessageListener<TransferObject>, SafeCloseable{
         private final Predicate<? super HazelcastIncomingMessage> filter;
         private final String subscription;
         private final ITopic<TransferObject> topic;

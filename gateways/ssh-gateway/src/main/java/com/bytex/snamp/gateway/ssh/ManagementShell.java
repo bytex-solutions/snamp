@@ -3,7 +3,6 @@ package com.bytex.snamp.gateway.ssh;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.core.LoggerProvider;
 import jline.console.ConsoleReader;
 import org.apache.sshd.common.Factory;
@@ -122,24 +121,18 @@ final class ManagementShell implements Command, SessionAware {
         }
     }
 
-    private final WriteOnceRef<InputStream> inStream;
-    private final WriteOnceRef<OutputStream> outStream;
-    private final WriteOnceRef<OutputStream> errStream;
+    private InputStream inStream;
+    private OutputStream outStream;
+    private OutputStream errStream;
     private final GatewayController controller;
-    private final WriteOnceRef<ExitCallback> exitCallback;
-    private final WriteOnceRef<Interpreter> interpreter;
-    private final WriteOnceRef<Session> session;
+    private ExitCallback exitCallback;
+    private Interpreter interpreter;
+    private Session session;
     private final ExecutorService executor;
 
     private ManagementShell(final GatewayController controller,
                             final ExecutorService executor) {
         this.controller = Objects.requireNonNull(controller, "controller is null.");
-        inStream = new WriteOnceRef<>();
-        outStream = new WriteOnceRef<>();
-        errStream = new WriteOnceRef<>();
-        exitCallback = new WriteOnceRef<>();
-        interpreter = new WriteOnceRef<>();
-        session = new WriteOnceRef<>();
         this.executor = executor;
     }
 
@@ -155,7 +148,7 @@ final class ManagementShell implements Command, SessionAware {
      */
     @Override
     public void setInputStream(final InputStream value) {
-        inStream.set(value);
+        inStream = Objects.requireNonNull(value);
     }
 
     /**
@@ -165,7 +158,7 @@ final class ManagementShell implements Command, SessionAware {
      */
     @Override
     public void setOutputStream(final OutputStream value) {
-        outStream.set(value);
+        outStream = Objects.requireNonNull(value);
     }
 
     /**
@@ -175,7 +168,7 @@ final class ManagementShell implements Command, SessionAware {
      */
     @Override
     public void setErrorStream(final OutputStream value) {
-        errStream.set(value);
+        errStream = Objects.requireNonNull(value);
     }
 
     /**
@@ -185,7 +178,7 @@ final class ManagementShell implements Command, SessionAware {
      */
     @Override
     public void setExitCallback(final ExitCallback value) {
-        exitCallback.set(value);
+        exitCallback = Objects.requireNonNull(value);
     }
 
     /**
@@ -203,14 +196,8 @@ final class ManagementShell implements Command, SessionAware {
      */
     @Override
     public void start(final Environment env) {
-        final Interpreter i = new Interpreter(controller,
-                inStream.get(),
-                outStream.get(),
-                errStream.get(),
-                exitCallback.get(),
-                executor);
-        i.start();
-        interpreter.set(i);
+        interpreter = new Interpreter(controller, inStream, outStream, errStream, exitCallback, executor);
+        interpreter.start();
     }
 
     /**
@@ -220,18 +207,18 @@ final class ManagementShell implements Command, SessionAware {
      */
     @Override
     public void destroy() {
-        final Interpreter i = interpreter.get();
-        i.interrupt();
+        interpreter.interrupt();
+        interpreter = null;
     }
 
     /**
      * Set the server session in which this shell will be executed.
      *
-     * @param session The server session to be associated with this shell.
+     * @param value The server session to be associated with this shell.
      */
     @Override
-    public void setSession(final ServerSession session) {
-        this.session.set(session);
+    public void setSession(final ServerSession value) {
+        session = Objects.requireNonNull(value);
     }
 
     private static String[] splitArguments(final String value){

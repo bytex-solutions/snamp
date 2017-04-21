@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.groovy;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import groovy.lang.Closure;
@@ -24,11 +23,11 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
 
     public static class FilterAndProcessNotificationStatement implements Predicate<Notification> {
         private final Predicate<Notification> condition;
-        private final WriteOnceRef<NotificationListener> handler;
+        private NotificationListener handler;
 
         protected FilterAndProcessNotificationStatement(final Predicate<Notification> condition){
             this.condition = Objects.requireNonNull(condition);
-            this.handler = new WriteOnceRef<>(NotificationListener.NO_OP);
+            this.handler = NotificationListener.NO_OP;
         }
 
         @Override
@@ -37,7 +36,7 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
         }
 
         public final void then(final NotificationListener listener){
-            handler.set(listener);
+            handler = listener;
         }
 
         @SpecialUse(SpecialUse.Case.SCRIPTING)
@@ -46,9 +45,7 @@ public class ResourceNotificationsAnalyzer implements ResourceFeaturesAnalyzer, 
         }
 
         void onSuccess(final NotificationEvent event){
-            final NotificationListener listener = this.handler.get();
-            if(listener != null)
-                listener.handleNotification(event);
+            handler.handleNotification(event);
         }
     }
 

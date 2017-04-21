@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,8 +7,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * @author Roman Sakno
@@ -55,13 +53,18 @@ public final class SimpleMetricsTest extends Assert {
     public void concurrentTest2() throws ExecutionException, InterruptedException {
         final AttributeMetricRecorder writer = new AttributeMetricRecorder();
         final int numOfThreads = Runtime.getRuntime().availableProcessors() + 1;
-        final Future[] threads = new FutureThread[numOfThreads];
-        for(int i = 0; i < numOfThreads; i++)
-            threads[i] = FutureThread.start(() -> {
+        final ExecutorService executor = Executors.newFixedThreadPool(numOfThreads);
+        Future<?> firstTask = null;
+        for(int i = 0; i < numOfThreads; i++) {
+            final Future<?> f = executor.submit(() -> {
                 writer.updateReads();
                 writer.updateWrites();
             });
-        threads[0].get();
+            if(firstTask == null)
+                firstTask = f;
+        }
+        assertNotNull(firstTask);
+        firstTask.get();
         assertTrue(writer.writes().getTotalRate() > 0);
         assertTrue(writer.reads().getTotalRate() > 0);
     }
@@ -70,14 +73,14 @@ public final class SimpleMetricsTest extends Assert {
     public void concurrentTest() throws ExecutionException, InterruptedException {
         final AttributeMetricRecorder writer = new AttributeMetricRecorder();
         final int numOfThreads = Runtime.getRuntime().availableProcessors() + 1;
-        final Future[] threads = new FutureThread[numOfThreads];
-        for(int i = 0; i < numOfThreads; i++)
-            threads[i] = FutureThread.start(() -> {
+        final ExecutorService executor = Executors.newFixedThreadPool(numOfThreads);
+        for (int i = 0; i < numOfThreads; i++)
+            executor.submit(() -> {
                 writer.updateReads();
                 writer.updateWrites();
             });
-        for(int i = 0; i < numOfThreads; i++)
-            threads[i].get();
+        executor.shutdown();
+        assertTrue(executor.awaitTermination(5, TimeUnit.SECONDS));
         assertEquals(numOfThreads, writer.reads().getTotalRate());
         assertEquals(numOfThreads, writer.writes().getTotalRate());
         assertEquals(numOfThreads, writer.reads().getLastRate(MetricsInterval.MINUTE));

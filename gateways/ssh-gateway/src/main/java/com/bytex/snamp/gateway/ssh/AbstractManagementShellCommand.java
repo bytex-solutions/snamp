@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.BasicParser;
@@ -91,13 +90,28 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
         }
     }
 
+    private static final class CarriageReturnFix extends FilterOutputStream{
+        CarriageReturnFix(final OutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(final int b) throws IOException {
+            switch (b){
+                case '\n':
+                case '\r':return;
+                default: super.write(b);
+            }
+        }
+    }
+
     @Override
     public final Command createSshCommand(final String[] arguments) {
         return new Command() {
-            private final WriteOnceRef<OutputStream> outStream = new WriteOnceRef<>();
-            private final WriteOnceRef<OutputStream> errorStream = new WriteOnceRef<>();
-            private final WriteOnceRef<ExitCallback> callback = new WriteOnceRef<>();
-            private final WriteOnceRef<Future> commandExecutor = new WriteOnceRef<>();
+            private OutputStream outStream;
+            private OutputStream errorStream;
+            private ExitCallback callback;
+            private Future<?> commandExecutor;
 
             @Override
             @MethodStub
@@ -107,54 +121,39 @@ abstract class AbstractManagementShellCommand extends BasicParser implements Man
 
             @Override
             public void setOutputStream(final OutputStream out) {
-                outStream.set(out);
+                outStream = out;
             }
 
             @Override
             public void setErrorStream(final OutputStream err) {
-                errorStream.set(err);
+                errorStream = err;
             }
 
             @Override
-            public void setExitCallback(final ExitCallback callback) {
-                this.callback.set(callback);
+            public void setExitCallback(final ExitCallback value) {
+                callback = value;
             }
 
             @Override
             public void start(final Environment env) throws IOException {
-                commandExecutor.set(getExecutionService().submit(new Runnable() {
-                    private final OutputStream out = new FilterOutputStream(outStream.get()){
-                        @Override
-                        public void write(final int b) throws IOException {
-                            switch (b){
-                                case '\n':
-                                case '\r':return;
-                                default: super.write(b);
-                            }
-                        }
-                    };
-                    private final OutputStream err = TtyOutputStream.needToApply() ?
-                            new TtyOutputStream(errorStream.get()) : errorStream.get();
-                    private final ExitCallback exitCallback = callback.get();
-
-                    @Override
-                    public void run() {
-                        try (final PrintWriter out = new PrintWriter(new OutputStreamWriter(this.out, StandardCharsets.UTF_8));
-                             final PrintWriter err = new PrintWriter(new OutputStreamWriter(this.out, StandardCharsets.UTF_8))) {
-                            AbstractManagementShellCommand.this.doCommand(arguments, out, err);
-                        }
-
-                        finally {
-                            exitCallback.onExit(0);
-                        }
+                final OutputStream err = TtyOutputStream.needToApply() ? new TtyOutputStream(errorStream) : errorStream;
+                final ExitCallback exitCallback = callback;
+                final OutputStream out = new CarriageReturnFix(outStream);
+                commandExecutor = getExecutionService().submit(() -> {
+                    try (final PrintWriter outWriter = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+                         final PrintWriter errWriter = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+                        AbstractManagementShellCommand.this.doCommand(arguments, outWriter, errWriter);
+                    } finally {
+                        exitCallback.onExit(0);
                     }
-                }));
+                });
             }
 
             @Override
             public void destroy() {
-                final Future task = commandExecutor.get();
-                if (task != null) task.cancel(true);
+                final Future<?> task = commandExecutor;
+                if (task != null)
+                    task.cancel(true);
             }
         };
     }

@@ -1,6 +1,5 @@
 package com.bytex.snamp.testing.connector.rshell;
 
-import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.OperationConfiguration;
@@ -21,6 +20,9 @@ import javax.management.JMException;
 import javax.management.openmbean.CompositeData;
 import javax.script.ScriptException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @author Roman Sakno
@@ -64,11 +66,11 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         assertNotNull(connector);
         try {
             final AttributeSupport attributes = connector.queryObject(AttributeSupport.class).orElseThrow(AssertionError::new);
-            @SuppressWarnings("unchecked")
-            final FutureThread<Object>[] tables = new FutureThread[10];
+            final ExecutorService executor = Executors.newFixedThreadPool(3);
+            final Future<?>[] tables = new Future<?>[10];
             for (int i = 0; i < tables.length; i++)
-                tables[i] = FutureThread.start(() -> attributes.getAttribute("ms"));
-            for (final FutureThread<Object> thread : tables) {
+                tables[i] = executor.submit(() -> attributes.getAttribute("ms"));
+            for (final Future<?> thread : tables) {
                 final Object table = thread.get();
                 assertNotNull(table);
                 assertTrue(table instanceof CompositeData);

@@ -224,7 +224,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         }
     }
 
-    private static final class MessageFuture<V> extends CompletableFuture<V> implements ComputationPipeline<V>, MessageListenerNode{
+    private static final class MessageFuture<V> extends CompletableFuture<V> implements MessageListenerNode{
         private final NodePosition position;
         private final Function<? super IncomingMessage, ? extends V> messageParser;
 

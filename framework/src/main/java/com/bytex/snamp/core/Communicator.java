@@ -1,12 +1,12 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.ComputationPipeline;
 
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -121,7 +121,7 @@ public interface Communicator extends SharedObject {
 
     <V> V receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
 
-    <V> ComputationPipeline<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser);
+    <V> CompletableFuture<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser);
 
     SafeCloseable addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter);
 
@@ -131,7 +131,7 @@ public interface Communicator extends SharedObject {
 
     <V> V sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
 
-    <V> ComputationPipeline<V> sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException;
+    <V> CompletableFuture<V> sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException;
 
     static Predicate<IncomingMessage> responseWithMessageID(final long messageID){
         return MessageType.RESPONSE.and(msg -> msg.getMessageID() == messageID);

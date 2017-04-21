@@ -1,6 +1,5 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.concurrent.FutureThread;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.io.IOUtils;
@@ -14,11 +13,14 @@ import java.io.StringReader;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 public final class PersistentStorageTest extends Assert {
     private GridMember instance1;
@@ -103,24 +105,28 @@ public final class PersistentStorageTest extends Assert {
     @Test
     public void differentTypesTest() throws ExecutionException, InterruptedException {
         final String KEY = "Frank Underwood";
-        final FutureThread<Void> thread = FutureThread.start(() -> {
+        final ExecutorService executor = Executors.newFixedThreadPool(2);
+        final Future<Boolean> task = executor.submit(() -> {
             final KeyValueStorage storage1 =
-                    FutureThread.start(() -> instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE)).get();
+                    executor.submit(() -> instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE)).get();
             assertNotNull(storage1);
             storage1.getOrCreateRecord(KEY, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
 
-            final KeyValueStorage.SerializableRecordView customRecord = storage1.getRecord(KEY, KeyValueStorage.SerializableRecordView.class).get();
+            final KeyValueStorage.SerializableRecordView customRecord = storage1.getRecord(KEY, KeyValueStorage.SerializableRecordView.class)
+                    .orElseThrow(AssertionError::new);
             customRecord.setValue(new StringBuffer("Hello, world!"));
             assertTrue(customRecord.getValue() instanceof StringBuffer);
 
-            final KeyValueStorage.MapRecordView mapRecord = storage1.getRecord(KEY, KeyValueStorage.MapRecordView.class).get();
+            final KeyValueStorage.MapRecordView mapRecord = storage1.getRecord(KEY, KeyValueStorage.MapRecordView.class)
+                    .orElseThrow(AssertionError::new);
             mapRecord.setAsMap(ImmutableMap.of("key1", "value1", "key2", "value2"));
             final Map<String, ?> map = mapRecord.getAsMap();
             assertNotNull(map);
             assertEquals("value1", map.get("key1"));
             assertEquals("value2", map.get("key2"));
 
-            final KeyValueStorage.JsonRecordView jsonRecord = storage1.getRecord(KEY, KeyValueStorage.JsonRecordView.class).get();
+            final KeyValueStorage.JsonRecordView jsonRecord = storage1.getRecord(KEY, KeyValueStorage.JsonRecordView.class)
+                    .orElseThrow(AssertionError::new);
             jsonRecord.setAsJson(new StringReader("{\"a\": 10, \"b\": {\"c\": true}}"));
             final String json = IOUtils.toString(jsonRecord.getAsJson());
             assertNotNull(json);
@@ -138,9 +144,9 @@ public final class PersistentStorageTest extends Assert {
 
             assertTrue(storage1.exists(KEY));
             assertTrue(storage1.delete(KEY));
-            return null;
+            return true;
         });
-        thread.get();
+        assertTrue(task.get());
     }
 
     @Test
