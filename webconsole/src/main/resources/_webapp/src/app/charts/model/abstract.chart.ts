@@ -25,6 +25,8 @@ export abstract class AbstractChart {
 
     private _stopUpdate:boolean;
 
+    private _pausedTime:Date;
+
     public getGroupName():string {
         return this.preferences["groupName"];
     }
@@ -55,6 +57,15 @@ export abstract class AbstractChart {
 
     public toggleUpdate():void {
         this._stopUpdate = !this._stopUpdate;
+        this.pausedTime = new Date();
+    }
+
+    get pausedTime(): Date {
+        return this._pausedTime;
+    }
+
+    set pausedTime(value: Date) {
+        this._pausedTime = value;
     }
 
     constructor() {
@@ -65,6 +76,7 @@ export abstract class AbstractChart {
         this.setSizeX(2);
         this.setSizeY(2);
         this._stopUpdate = false;
+        this.pausedTime = new Date();
     }
 
     // different types of charts should be rendered in different ways

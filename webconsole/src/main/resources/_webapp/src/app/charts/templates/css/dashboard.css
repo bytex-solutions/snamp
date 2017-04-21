@@ -109,7 +109,6 @@ select.form-control:not([size]):not([multiple]) {
 	background-color: rgba(0, 0, 0, 0.3);
 }
 
-
 .grid-item.moving {
     z-index: z-index + 1;
 }
@@ -126,12 +125,17 @@ select.form-control:not([size]):not([multiple]) {
 .x_title h2 {
     font-size: inherit !important;
     color: black;
-    width: calc(100% - 40px);
+    display: inline;
+}
+
+.x_title h5 {
+    display: inline;
+    margin-left: 15px;
 }
 
 .x_title {
     border-bottom: 2px solid #E6E9ED;
-    padding: 0 !important;
+    padding: 0 0 7px 0 !important;
     margin-bottom: 0 !important;
     font-style: italic;
 }
@@ -140,6 +144,19 @@ select.form-control:not([size]):not([multiple]) {
     display: inline;
 }
 
+ul.panel_toolbox i.fa{
+    color:black;
+}
+
+ul.panel_toolbox i.fa-pause-circle-o {
+    color:red;
+}
+
+ul.panel_toolbox i.fa-play-circle-o {
+    color:green;
+}
+
+/** not used, but may be in the future...
 .overlay-holder {
     display: none;
     width: 100%;
@@ -169,3 +186,4 @@ select.form-control:not([size]):not([multiple]) {
 .overlay-content div i.fa {
     font-size: 2em;
 }
+**/

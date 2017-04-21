@@ -331,7 +331,6 @@ export class Dashboard {
     toggleDrawingChart(chart:AbstractChart):void {
         chart.toggleUpdate();
         $('#toggleDraw' + chart.id + ' i').attr('class', chart.updateStopped ? 'fa fa-play-circle-o' : 'fa fa-pause-circle-o');
-        $('#toggleDraw' + chart.id).parents('div.x_panel').find('div.overlay-holder').fadeToggle('slow');
     }
 }
 

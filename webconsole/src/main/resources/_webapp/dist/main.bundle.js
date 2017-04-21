@@ -84978,6 +84978,7 @@ var AbstractChart = (function () {
         this.setSizeX(2);
         this.setSizeY(2);
         this._stopUpdate = false;
+        this.pausedTime = new Date();
     }
     AbstractChart.prototype.getGroupName = function () {
         return this.preferences["groupName"];
@@ -85006,7 +85007,18 @@ var AbstractChart = (function () {
     });
     AbstractChart.prototype.toggleUpdate = function () {
         this._stopUpdate = !this._stopUpdate;
+        this.pausedTime = new Date();
     };
+    Object.defineProperty(AbstractChart.prototype, "pausedTime", {
+        get: function () {
+            return this._pausedTime;
+        },
+        set: function (value) {
+            this._pausedTime = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     AbstractChart.prototype.subscribeToSubject = function (_obs) {
         var _this = this;
         _obs.subscribe(function (data) {
