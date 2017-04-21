@@ -195,12 +195,6 @@ public final class Utils {
         threadPool.execute(runnableForEach(spliterator, action));
     }
 
-    public static <T> void parallelForEach(final Iterable<T> collection,
-                                              final Consumer<? super T> action,
-                                              final Executor threadPool){
-        parallelForEach(collection.spliterator(), action, threadPool);
-    }
-
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private static Object callUncheckedImpl(final Callable<?> callable) throws Exception{
         return callable.call();

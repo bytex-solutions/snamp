@@ -28,10 +28,6 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
         this.listenerHashCode = listener.hashCode();
     }
 
-    final Runnable asRunnable(final E event) {
-        return () -> invoke(event);
-    }
-
     /**
      * Invokes event listener and pass event state object into it.
      * @param event Event state object to be handled by listener.

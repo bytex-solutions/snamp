@@ -332,7 +332,7 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
             case 3:
             case 4:
                 for (final WeakEventListener<?, E> listener : snapshot)
-                    executor.execute(listener.asRunnable(event));
+                    executor.execute(() -> listener.invoke(event));
             default:
                 Utils.parallelForEach(Arrays.spliterator(snapshot), listener -> listener.invoke(event), executor);
         }
