@@ -125,7 +125,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         notification.setSource(this);
         notification.setSequenceNumber(sequenceNumberProvider.getAsLong());
         attributes.handleNotification(notification, this::attributeProcessed);
-        notifications.handleNotification(notification);
+        notifications.accept(notification);
     }
 
     private Logger getLogger(){
@@ -151,7 +151,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
                         attribute.getType(),
                         newAttributeValue.get(),
                         newAttributeValue.get());
-                notifications.handleNotification(notification);
+                notifications.accept(notification);
             }
         }
     }

@@ -1,11 +1,14 @@
 package com.bytex.snamp.connector.groovy;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.connector.notifications.*;
+import com.bytex.snamp.connector.notifications.AccurateNotificationRepository;
+import com.bytex.snamp.connector.notifications.NotificationContainer;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanException;
 import javax.management.Notification;
 import javax.management.NotificationListener;
@@ -13,14 +16,12 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents Groovy-based notification.
  */
 final class GroovyNotificationRepository extends AccurateNotificationRepository<GroovyEvent> implements NotificationListener {
-    private final NotificationListenerInvoker listenerInvoker;
+    private final Executor listenerInvoker;
     private final SharedCounter sequenceNumberGenerator;
     private final ManagedResourceScriptlet scriptlet;
 
@@ -30,28 +31,25 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
                                  final BundleContext context) {
         super(resourceName, GroovyEvent.class, true);
         this.scriptlet = Objects.requireNonNull(scriptlet);
-        this.listenerInvoker = createListenerInvoker(threadPool, scriptlet.getLogger());
+        this.listenerInvoker = threadPool;
         this.sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
         scriptlet.addEventListener(this);
+    }
+
+    /**
+     * Gets an executor used to execute event listeners.
+     *
+     * @return Executor service.
+     */
+    @Override
+    @Nonnull
+    protected Executor getListenerExecutor() {
+        return listenerInvoker;
     }
 
     @Override
     public Collection<? extends GroovyEvent> expandNotifications() {
         return scriptlet.expandEvents();
-    }
-
-    private static NotificationListenerInvoker createListenerInvoker(final Executor executor, final Logger logger) {
-        return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> logger.log(Level.SEVERE, "Unable to process JMX notification.", e));
-    }
-
-    /**
-     * Gets the invoker used to executed notification listeners.
-     *
-     * @return The notification listener invoker.
-     */
-    @Override
-    protected NotificationListenerInvoker getListenerInvoker() {
-        return listenerInvoker;
     }
 
     @Override

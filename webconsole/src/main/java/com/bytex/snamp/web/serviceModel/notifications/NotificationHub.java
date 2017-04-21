@@ -1,5 +1,6 @@
 package com.bytex.snamp.web.serviceModel.notifications;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.gateway.NotificationEvent;
@@ -19,27 +20,23 @@ import static com.bytex.snamp.gateway.modeling.NotificationAccessor.extractFromN
  * Represents notification hub used to listen notifications from all managed resources.
  */
 final class NotificationHub extends AbstractManagedResourceTracker<NotificationListener> implements javax.management.NotificationListener {
-    private void addNotificationListener(final NotificationSupport support, final String resourceName){
-        support.addNotificationListener(this, null, resourceName);
-    }
 
     @Override
     protected void addResource(final ManagedResourceConnectorClient client) {
+        final String resourceName = client.getManagedResourceName();
         client.queryObject(NotificationSupport.class)
-                .ifPresent(support -> addNotificationListener(support, client.getManagedResourceName()));
-    }
-
-    private void removeNotificationListener(final NotificationSupport support){
-        try {
-            support.removeNotificationListener(this);
-        } catch (final ListenerNotFoundException e) {
-            getLogger().log(Level.WARNING, e.getMessage(), e);
-        }
+                .ifPresent(support -> support.addNotificationListener(this, null, resourceName));
     }
 
     @Override
     protected void removeResource(final ManagedResourceConnectorClient client) {
-        client.queryObject(NotificationSupport.class).ifPresent(this::removeNotificationListener);
+        client.queryObject(NotificationSupport.class).ifPresent(support -> {
+            try {
+                support.removeNotificationListener(this);
+            } catch (final ListenerNotFoundException e) {
+                getLogger().log(Level.WARNING, e.getMessage(), e);
+            }
+        });
     }
 
     @Override
@@ -57,8 +54,7 @@ final class NotificationHub extends AbstractManagedResourceTracker<NotificationL
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        assert handback instanceof String;  //handback is always resourceName
-        final String resourceName = (String) handback;
+        final String resourceName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
         extractFromNotification(notification, NotificationSupport.class)
                 .map(support -> support.getNotificationInfo(notification.getType()))
                 .ifPresent(metadata -> handleNotification(new NotificationEvent(resourceName, metadata, notification)));

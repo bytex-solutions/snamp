@@ -114,7 +114,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
     private static final class JavaBeanNotificationRepository extends AbstractNotificationRepository<AbstractNotificationInfo> {
         private final Set<? extends ManagementNotificationType<?>> notifTypes;
-        private final NotificationListenerInvoker listenerInvoker;
         private final SharedCounter sequenceNumberGenerator;
 
         private JavaBeanNotificationRepository(final String resourceName,
@@ -122,15 +121,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final BundleContext context) {
             super(resourceName, AbstractNotificationInfo.class, false);
             this.notifTypes = Objects.requireNonNull(notifTypes);
-            this.listenerInvoker = NotificationListenerInvokerFactory.createSequentialInvoker();
             this.sequenceNumberGenerator = context == null ?  //may be null when executing through unit tests
                     DistributedServices.getProcessLocalCounter("notifications-".concat(resourceName)) :
                     DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
-        }
-
-        @Override
-        protected NotificationListenerInvoker getListenerInvoker() {
-            return listenerInvoker;
         }
 
         @Override

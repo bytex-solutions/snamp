@@ -33,6 +33,7 @@ public final class ChartDataSource extends ComputingService<Chart[], Map<String,
     @Path("/compute")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Override
     public Map<String, Collection<ChartData>> compute(final Chart[] charts) throws WebApplicationException {
         final BundleContext context = getBundleContext();
         final Multimap<String, ChartData> result = HashMultimap.create(charts.length, 3);

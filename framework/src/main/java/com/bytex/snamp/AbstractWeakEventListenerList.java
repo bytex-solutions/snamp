@@ -8,7 +8,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -21,7 +24,7 @@ import java.util.stream.StreamSupport;
  * @since 2.0
  */
 @ThreadSafe
-public abstract class AbstractWeakEventListenerList<L extends EventListener, E extends EventObject> implements Iterable<L> {
+public abstract class AbstractWeakEventListenerList<L extends EventListener, E extends EventObject> implements Iterable<L>, Consumer<E> {
     private volatile WeakEventListener<L, E>[] listeners;
 
     /**
@@ -294,6 +297,16 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
             listenerRef.invoke(event);
     }
 
+    /**
+     * Alias for {@link #fire(EventObject)}.
+     * @param event An event object.
+     * @since 2.0
+     */
+    @Override
+    public final void accept(final E event) {
+        fire(event);
+    }
+
     public final void fire(final Supplier<? extends E> eventSupplier){
         final WeakEventListener<L, E>[] snapshot = this.listeners;
         if(snapshot.length > 0) {
@@ -310,7 +323,19 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
      */
     public final void fireAsync(final E event, final Executor executor) {
         final WeakEventListener<L, E>[] snapshot = this.listeners;
-        Utils.parallelForEach(Arrays.spliterator(snapshot), listener -> listener.invoke(event), executor);
+        //optimization cases
+        switch (snapshot.length) {
+            case 0:
+                return;
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                for (final WeakEventListener<?, E> listener : snapshot)
+                    executor.execute(listener.asRunnable(event));
+            default:
+                Utils.parallelForEach(Arrays.spliterator(snapshot), listener -> listener.invoke(event), executor);
+        }
     }
 
     /**

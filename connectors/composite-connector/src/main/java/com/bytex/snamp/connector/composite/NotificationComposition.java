@@ -5,9 +5,11 @@ import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +29,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         This state used to attach and remove listeners
      */
     private final Multimap<String, String> subscription;
-    private final NotificationListenerInvoker listenerInvoker;
+    private final Executor listenerInvoker;
 
     NotificationComposition(final String resourceName,
                             final NotificationSupportProvider provider,
@@ -35,7 +37,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         super(resourceName, CompositeNotification.class, false);
         this.provider = Objects.requireNonNull(provider);
         this.subscription = HashMultimap.create();
-        listenerInvoker = NotificationListenerInvokerFactory.createParallelInvoker(threadPool);
+        listenerInvoker = threadPool;
     }
 
     @Override
@@ -45,11 +47,16 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
             fire(NotificationDescriptor.getName(compositeNotification), notification.getMessage(), notification.getSequenceNumber(), notification.getTimeStamp(), notification.getUserData());
     }
 
+    /**
+     * Gets an executor used to execute event listeners.
+     *
+     * @return Executor service.
+     */
+    @Nonnull
     @Override
-    protected NotificationListenerInvoker getListenerInvoker() {
+    protected Executor getListenerExecutor() {
         return listenerInvoker;
     }
-
 
     @Override
     protected CompositeNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws MBeanException, ReflectionException, AbsentCompositeConfigurationParameterException {

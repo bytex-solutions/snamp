@@ -6,9 +6,9 @@ import com.google.common.collect.ImmutableSet;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import javax.management.NotificationListener;
 import java.lang.ref.WeakReference;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * @author Roman Sakno
@@ -17,11 +17,11 @@ import java.util.Set;
  */
 final class JmxNotificationAccessor extends NotificationAccessor implements JmxFeatureBindingInfo<MBeanNotificationInfo> {
     private final String resourceName;
-    private final WeakReference<NotificationListener> listenerRef;
+    private final WeakReference<Consumer<Notification>> listenerRef;
 
     JmxNotificationAccessor(final String resourceName,
                             final MBeanNotificationInfo metadata,
-                            final NotificationListener destination) {
+                            final Consumer<Notification> destination) {
         super(metadata);
         this.resourceName = resourceName;
         listenerRef = new WeakReference<>(destination);
@@ -42,9 +42,11 @@ final class JmxNotificationAccessor extends NotificationAccessor implements JmxF
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        notification.setSource(resourceName);
-        final NotificationListener listener = listenerRef.get();
-        if (listener != null) listener.handleNotification(notification, handback);
+        final Consumer<Notification> listener = listenerRef.get();
+        if (listener != null) {
+            notification.setSource(resourceName);
+            listener.accept(notification);
+        }
     }
 
     /**

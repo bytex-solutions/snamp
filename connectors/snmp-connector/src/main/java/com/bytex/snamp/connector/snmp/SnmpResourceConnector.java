@@ -82,8 +82,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
     private static final class SnmpNotificationRepository extends AccurateNotificationRepository<SnmpNotificationInfo> implements CommandResponder{
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
-        private final NotificationListenerInvoker listenerInvoker;
         private final SharedCounter sequenceNumberGenerator;
+        private final Executor listenerInvoker;
 
         private SnmpNotificationRepository(final String resourceName,
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
@@ -92,13 +92,19 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     SnmpNotificationInfo.class,
                     false);
             this.client = client;
-            final Executor executor = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
+            listenerInvoker = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
             sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
-            listenerInvoker = createListenerInvoker(executor, getLogger());
         }
 
-        private static NotificationListenerInvoker createListenerInvoker(final Executor executor, final Logger logger) {
-            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> logger.log(Level.SEVERE, "Unable to process SNMP notification", e));
+        /**
+         * Gets an executor used to execute event listeners.
+         *
+         * @return Executor service.
+         */
+        @Nonnull
+        @Override
+        protected Executor getListenerExecutor() {
+            return listenerInvoker;
         }
 
         private Logger getLogger(){
@@ -130,16 +136,6 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     getLogger().log(Level.WARNING, String.format("Subscription to SNMP event %s failed",
                             metadata.getNotificationID()), e);
                 }
-        }
-
-        /**
-         * Gets the invoker used to executed notification listeners.
-         *
-         * @return The notification listener invoker.
-         */
-        @Override
-        protected NotificationListenerInvoker getListenerInvoker() {
-            return listenerInvoker;
         }
 
         private void processPdu(final PDU event){

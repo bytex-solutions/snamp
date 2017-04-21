@@ -4,6 +4,7 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
 import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
@@ -12,11 +13,13 @@ import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -91,6 +94,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final NotificationMetricRecorder metrics;
     private Aggregator notificationSource;
     private final boolean expandable;
+    private final LazyStrongReference<Executor> defaultExecutor;
 
     /**
      * Initializes a new notification manager.
@@ -106,6 +110,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         listeners = new NotificationListenerList();
         metrics = new NotificationMetricRecorder();
         this.expandable = expandable;
+        defaultExecutor = new LazyStrongReference<>();
     }
 
     private static String extractNotificationType(final MBeanNotificationInfo metadata) {
@@ -123,10 +128,13 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     /**
-     * Gets the invoker used to executed notification listeners.
-     * @return The notification listener invoker.
+     * Gets an executor used to execute event listeners.
+     * @return Executor service.
      */
-    protected abstract NotificationListenerInvoker getListenerInvoker();
+    @Nonnull
+    protected Executor getListenerExecutor(){
+        return defaultExecutor.lazyGet(MoreExecutors::newDirectExecutorService);
+    }
 
     protected final void fire(final BiConsumer<? super M, ? super NotificationCollector> sender){
         final NotificationCollector collector = new NotificationCollector();
@@ -215,7 +223,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     final void fireListenersNoIntercept(final Notification n){
         n.setSource(getSource());
-        getListenerInvoker().invoke(n, null, listeners);
+        listeners.fireAsync(n, getListenerExecutor());
         metrics.update();
     }
 
@@ -499,6 +507,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public void close() {
+        defaultExecutor.reset();
         listeners.clear();
         notificationSource = null;
         metrics.reset();

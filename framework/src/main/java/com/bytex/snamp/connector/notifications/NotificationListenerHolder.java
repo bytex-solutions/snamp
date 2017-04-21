@@ -32,7 +32,10 @@ final class NotificationListenerHolder extends WeakEventListener<NotificationLis
      */
     @Override
     protected void invoke(@Nonnull final NotificationListener listener, @Nonnull final Notification notification) {
-        if(filter == null || filter.isNotificationEnabled(notification))
+        if(filter == null || filter.isNotificationEnabled(notification)) {
+            final Object origin = notification.getSource();
             listener.handleNotification(notification, handback);
+            notification.setSource(origin);
+        }
     }
 }

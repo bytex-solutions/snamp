@@ -18,6 +18,7 @@ import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptorRead;
 import com.bytex.snamp.core.LoggerProvider;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.io.IOException;
@@ -407,7 +408,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
 
     private static final class JmxNotificationRepository extends AbstractNotificationRepository<JmxNotificationInfo> implements NotificationListener, ConnectionEstablishedEventHandler {
         private final JmxConnectionManager connectionManager;
-        private final NotificationListenerInvoker listenerInvoker;
+        private final Executor listenerInvoker;
         private final ObjectName globalObjectName;
 
         private JmxNotificationRepository(final String resourceName,
@@ -419,25 +420,22 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);
-            listenerInvoker = createListenerInvoker(threadPool, getLogger());
+            listenerInvoker = threadPool;
         }
 
-        private static NotificationListenerInvoker createListenerInvoker(final Executor executor, final Logger logger){
-            return NotificationListenerInvokerFactory.createParallelExceptionResistantInvoker(executor, (e, source) -> logger.log(Level.SEVERE, "Unable to process JMX notification", e));
+        /**
+         * Gets an executor used to execute event listeners.
+         *
+         * @return Executor service.
+         */
+        @Override
+        @Nonnull
+        protected Executor getListenerExecutor() {
+            return listenerInvoker;
         }
 
         private Logger getLogger(){
             return LoggerProvider.getLoggerForObject(this);
-        }
-
-        /**
-         * Gets the invoker used to executed notification listeners.
-         *
-         * @return The notification listener invoker.
-         */
-        @Override
-        protected NotificationListenerInvoker getListenerInvoker() {
-            return listenerInvoker;
         }
 
         private Set<ObjectName> getNotificationTargets() {

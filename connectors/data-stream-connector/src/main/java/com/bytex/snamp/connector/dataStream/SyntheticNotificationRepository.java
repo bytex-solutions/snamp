@@ -1,22 +1,19 @@
 package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.concurrent.WriteOnceRef;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationListenerInvoker;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.instrumentation.measurements.jmx.TimeMeasurementNotification;
 import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotification;
 
+import javax.annotation.Nonnull;
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
-import javax.management.NotificationListener;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-
-import static com.bytex.snamp.internal.Utils.parallelForEach;
 
 /**
  * Represents repository of notifications metadata.
@@ -24,30 +21,16 @@ import static com.bytex.snamp.internal.Utils.parallelForEach;
  * @since 2.0
  * @version 2.0
  */
-public class SyntheticNotificationRepository extends AbstractNotificationRepository<SyntheticNotificationInfo> {
-    private static final class MessageDrivenNotificationListenerInvoker extends WriteOnceRef<ExecutorService> implements NotificationListenerInvoker{
-
-        @Override
-        public void invoke(final Notification n, final Object handback, final Iterable<? extends NotificationListener> listeners) {
-            final Consumer<? super NotificationListener> listenerConsumer = listener -> listener.handleNotification(n, handback);
-            final ExecutorService threadPool = get();
-            if(threadPool == null)
-                listeners.forEach(listenerConsumer);
-            else
-                parallelForEach(listeners, listenerConsumer, threadPool);
-        }
-    }
-
-    private final MessageDrivenNotificationListenerInvoker threadPool;
+public class SyntheticNotificationRepository extends AbstractNotificationRepository<SyntheticNotificationInfo> implements Consumer<Notification> {
     private DataStreamConnectorConfigurationDescriptionProvider configurationParser;
+    private Executor listenerInvoker;
 
     public SyntheticNotificationRepository(final String resourceName) {
         super(resourceName, SyntheticNotificationInfo.class, false);
-        threadPool = new MessageDrivenNotificationListenerInvoker();
     }
 
     final void init(final ExecutorService threadPool, final DataStreamConnectorConfigurationDescriptionProvider configurationParser) {
-        this.threadPool.set(threadPool);
+        listenerInvoker = threadPool;
         this.configurationParser = configurationParser;
     }
 
@@ -61,18 +44,21 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
             return null;
     }
 
-    public void handleNotification(final Notification notification) {
+    @Override
+    public void accept(final Notification notification) {
         fire(notification.getType(), holder -> prepareNotification(holder, notification));
     }
 
     /**
-     * Gets the invoker used to executed notification listeners.
+     * Gets an executor used to execute event listeners.
      *
-     * @return The notification listener invoker.
+     * @return Executor service.
      */
+    @Nonnull
     @Override
-    protected final NotificationListenerInvoker getListenerInvoker() {
-        return threadPool;
+    protected Executor getListenerExecutor() {
+        final Executor executor = listenerInvoker;
+        return executor == null ? super.getListenerExecutor() : executor;
     }
 
     @Override
@@ -105,7 +91,7 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
     @Override
     public void close() {
         super.close();
-        threadPool.clear();
+        listenerInvoker = null;
         configurationParser = null;
     }
 }
