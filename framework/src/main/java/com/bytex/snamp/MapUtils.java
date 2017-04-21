@@ -92,25 +92,27 @@ public final class MapUtils {
         return props;
     }
 
+    @SafeVarargs
     public static <K, V> Map<K, V> readOnlyMap(final Function<? super K, ? extends V> keyGetter,
-                                                        final K... keys){
+                                               final K... keys){
         return new FixedKeysMap<>(keyGetter, null, ImmutableSet.copyOf(keys));
     }
 
     public static <K, V> Map<K, V> readOnlyMap(final Function<? super K, ? extends V> keyGetter,
-                                                        final Collection<? extends K> keys){
+                                                        final Set<? extends K> keys){
         return new FixedKeysMap<>(keyGetter, null, ImmutableSet.copyOf(keys));
     }
 
+    @SafeVarargs
     public static <K, V> Map<K, V> readWriteMap(final Function<? super K, ? extends V> keyGetter,
-                                                         final BiFunction<? super K, ? super V, ? extends V> keySetter,
-                                                         final K... keys){
+                                                final BiFunction<? super K, ? super V, ? extends V> keySetter,
+                                                final K... keys){
         return new FixedKeysMap<>(keyGetter, Objects.requireNonNull(keySetter), ImmutableSet.copyOf(keys));
     }
 
     public static <K, V> Map<K, V> readWriteMap(final Function<? super K, ? extends V> keyGetter,
                                                          final BiFunction<? super K, ? super V, ? extends V> keySetter,
-                                                         final Collection<? extends K> keys){
+                                                         final Set<? extends K> keys){
         return new FixedKeysMap<>(keyGetter, Objects.requireNonNull(keySetter), ImmutableSet.copyOf(keys));
     }
 }
