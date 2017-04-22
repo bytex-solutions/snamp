@@ -222,16 +222,6 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
         return storagePath.getName();
     }
 
-    /**
-     * Determines whether this service is backed by persistent storage.
-     *
-     * @return {@literal true}, if this service is backed by persistent storage; otherwise, {@literal false}.
-     */
-    @Override
-    public boolean isPersistent() {
-        return true;
-    }
-
     private  <R extends Record> Optional<R> getRecord(final String key, final Class<R> recordView) {
         try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
             return Optional.ofNullable(records.get(key)).map(recordView::cast);

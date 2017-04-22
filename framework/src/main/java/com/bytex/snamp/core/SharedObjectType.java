@@ -62,10 +62,6 @@ public class SharedObjectType<S extends SharedObject> {
         return persistent;
     }
 
-    public final boolean isInstance(final SharedObject object){
-        return persistent == object.isPersistent() && objectType.isInstance(object);
-    }
-
     public final Optional<S> cast(final SharedObject obj) {
         return Convert.toType(obj, objectType);
     }

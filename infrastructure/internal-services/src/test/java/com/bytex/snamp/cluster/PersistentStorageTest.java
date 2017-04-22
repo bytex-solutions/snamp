@@ -48,7 +48,6 @@ public final class PersistentStorageTest extends Assert {
     @Test
     public void indexTest() {
         final KeyValueStorage storage = instance1.getService("$testStorage", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
-        assertTrue(storage.isPersistent());
         for(int i = 0; i < 100; i++) {
             assertNotNull(storage.getOrCreateRecord(i, KeyValueStorage.TextRecordView.class, record -> record.setAsText("Hello, world")));
         }
@@ -62,7 +61,6 @@ public final class PersistentStorageTest extends Assert {
     @Test
     public void getOrCreateRecordTest() {
         final KeyValueStorage storage = instance1.getService("$testStorage", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
-        assertTrue(storage.isPersistent());
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         record.setAsText("Hello, world");
         record = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).get();
@@ -74,8 +72,6 @@ public final class PersistentStorageTest extends Assert {
     public void differentCollectionsTest(){
         final KeyValueStorage storage1 = instance1.getService("$testStorage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
         final KeyValueStorage storage2 = instance1.getService("$testStorage2", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
-        assertTrue(storage1.isPersistent());
-        assertTrue(storage2.isPersistent());
         KeyValueStorage.TextRecordView record1 = storage1.getOrCreateRecord(100500, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         KeyValueStorage.TextRecordView record2 = storage2.getOrCreateRecord(100500, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         assertNotEquals(record1, record2);

@@ -35,9 +35,4 @@ abstract class HazelcastSharedObject<S extends DistributedObject> extends GridSh
         if (obj != null)
             obj.destroy();
     }
-
-    @Override
-    public final boolean isPersistent() {
-        return false;
-    }
 }

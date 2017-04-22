@@ -497,11 +497,6 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         return idGenerator.getName();
     }
 
-    @Override
-    public boolean isPersistent() {
-        return false;
-    }
-
     boolean hasNoSubscribers(){
         return firstNode.getNext() == lastNode;
     }

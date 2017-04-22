@@ -57,9 +57,4 @@ final class InMemoryBox extends AtomicReference<Object> implements Box<Object>, 
     public String getName() {
         return name;
     }
-
-    @Override
-    public boolean isPersistent() {
-        return false;
-    }
 }

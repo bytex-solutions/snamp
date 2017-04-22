@@ -12,10 +12,4 @@ public interface SharedObject {
      * @return Name of this distributed service.
      */
     String getName();
-
-    /**
-     * Determines whether this service is backed by persistent storage.
-     * @return {@literal true}, if this service is backed by persistent storage; otherwise, {@literal false}.
-     */
-    boolean isPersistent();
 }

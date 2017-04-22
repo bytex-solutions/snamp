@@ -47,7 +47,6 @@ public final class DistributedServicesTest extends Assert {
     @Test
     public void storageTest() throws InterruptedException {
         final KeyValueStorage storage = instance1.getService("testStorage", SharedObjectType.KV_STORAGE).orElseThrow(AssertionError::new);
-        assertFalse(storage.isPersistent());
         KeyValueStorage.TextRecordView textRecord = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         textRecord.setAsText("Hello, world");
         textRecord = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).get();

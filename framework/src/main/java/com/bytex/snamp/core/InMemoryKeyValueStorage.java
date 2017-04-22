@@ -28,11 +28,6 @@ final class InMemoryKeyValueStorage extends ConcurrentHashMap<Comparable<?>, InM
         return name;
     }
 
-    @Override
-    public boolean isPersistent() {
-        return false;
-    }
-
     /**
      * Gets record associated with the specified key.
      *

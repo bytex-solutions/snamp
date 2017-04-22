@@ -87,16 +87,6 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     }
 
     /**
-     * Determines whether this service is backed by persistent storage.
-     *
-     * @return {@literal true}, if this service is backed by persistent storage; otherwise, {@literal false}.
-     */
-    @Override
-    public boolean isPersistent() {
-        return true;
-    }
-
-    /**
      * Gets record associated with the specified key.
      *
      * @param key        The key of the record. Cannot be {@literal null}.

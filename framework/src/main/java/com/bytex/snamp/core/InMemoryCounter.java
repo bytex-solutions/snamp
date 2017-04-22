@@ -25,9 +25,4 @@ final class InMemoryCounter extends AtomicLong implements SharedCounter {
     public String getName() {
         return counterName;
     }
-
-    @Override
-    public boolean isPersistent() {
-        return false;
-    }
 }
