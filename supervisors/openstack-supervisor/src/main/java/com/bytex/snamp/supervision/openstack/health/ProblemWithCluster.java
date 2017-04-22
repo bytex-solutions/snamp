@@ -1,8 +1,10 @@
 package com.bytex.snamp.supervision.openstack.health;
 
 import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
+import org.openstack4j.model.senlin.Cluster;
 
 import java.util.Locale;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents some problem with cluster.
@@ -13,11 +15,24 @@ import java.util.Locale;
 final class ProblemWithCluster extends ClusterMalfunctionStatus {
     private static final long serialVersionUID = -8376473095942011064L;
     private final boolean critical;
+    private final String details;
 
-    public ProblemWithCluster(final String clusterName,
-                              final boolean critical){
+    ProblemWithCluster(final String clusterName,
+                       final Cluster cluster){
         super(clusterName);
-        this.critical = critical;
+        switch (cluster.getStatus()){
+            case CRITICAL:
+            case ERROR:
+                critical = true;
+                break;
+            default:
+                critical = false;
+        }
+        final String reason = cluster.getStatusReason();
+        if(isNullOrEmpty(reason))
+            details = critical ? "Cluster crashed" : "Cluster nodes partially unavailable";
+        else
+            details = reason;
     }
 
     /**
@@ -29,9 +44,7 @@ final class ProblemWithCluster extends ClusterMalfunctionStatus {
      */
     @Override
     public String toString(final Locale locale) {
-        return critical ?
-                "Cluster crashed" :
-                "Cluster nodes partially unavailable";
+        return details;
     }
 
     /**

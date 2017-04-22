@@ -256,12 +256,13 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     /**
      * Queries health status of every resource and compute single health status.
+     * @param context A context used to query resources from OSGi service registry.
      * @param resources A set of resources used to obtain health status.
      */
-    public void updateStatus(final Set<String> resources) {
+    public void updateStatus(final BundleContext context, final Set<String> resources) {
         try (final SafeCloseable batchUpdate = startBatchUpdate()) {
             for (final String resourceName : resources)
-                ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName).ifPresent(client -> {
+                ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
                     try {
                         updateStatus(resourceName, client);
                     } finally {

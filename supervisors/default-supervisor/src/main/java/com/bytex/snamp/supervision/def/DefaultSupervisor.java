@@ -108,14 +108,15 @@ public class DefaultSupervisor extends AbstractSupervisor {
             getLogger().info(String.format("ResourceDiscoveryService is overridden with %s", discoveryService));
     }
 
+    private void updateHealthStatus(final DefaultHealthStatusProvider provider){
+        provider.updateStatus(getBundleContext(), getResources());
+    }
+
     /**
      * Executes automatically using scheduling time.
      */
-    @OverridingMethodsMustInvokeSuper
     protected void supervise() {
-        final DefaultHealthStatusProvider provider = healthStatusProvider;
-        if(provider != null)
-            provider.updateStatus(getResources());
+        queryObject(DefaultHealthStatusProvider.class).ifPresent(this::updateHealthStatus);
     }
 
     @Override
