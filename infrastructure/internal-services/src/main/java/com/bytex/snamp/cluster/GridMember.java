@@ -3,7 +3,7 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedObject;
-import com.bytex.snamp.core.SharedObjectDefinition;
+import com.bytex.snamp.core.SharedObjectType;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -75,15 +75,15 @@ public final class GridMember implements ClusterMember, AutoCloseable {
     }
 
     @Immutable
-    private static final class GridServiceKey<S extends SharedObject> extends SharedObjectDefinition<S> {
+    private static final class GridServiceKey<S extends SharedObject> extends SharedObjectType<S> {
         private final String serviceName;
 
-        private GridServiceKey(final String serviceName, final SharedObjectDefinition<S> definition) {
+        private GridServiceKey(final String serviceName, final SharedObjectType<S> definition) {
             super(definition);
             this.serviceName = serviceName;
         }
 
-        private boolean represents(final SharedObjectDefinition<?> definition){
+        private boolean represents(final SharedObjectType<?> definition){
             return Objects.equals(getType(), definition.getType()) && isPersistent() == definition.isPersistent();
         }
 
@@ -201,15 +201,15 @@ public final class GridMember implements ClusterMember, AutoCloseable {
 
     private GridSharedObject getOrCreateSharedObject(final GridServiceKey<?> key, final boolean forceCreate) {
         getLogger().fine(() -> String.format("Querying service %s", key));
-        if (key.represents(SHARED_COUNTER))
+        if (key.represents(SharedObjectType.COUNTER))
             return new HazelcastCounter(hazelcast, key.serviceName);
-        else if (key.represents(COMMUNICATOR))
+        else if (key.represents(SharedObjectType.COMMUNICATOR))
             return new HazelcastCommunicator(hazelcast, key.serviceName);
-        else if (key.represents(SHARED_BOX))
+        else if (key.represents(SharedObjectType.BOX))
             return new HazelcastBox(hazelcast, key.serviceName);
-        else if (key.represents(KV_STORAGE))
+        else if (key.represents(SharedObjectType.KV_STORAGE))
             return new HazelcastKeyValueStorage(hazelcast, key.serviceName);
-        else if (key.represents(PERSISTENT_KV_STORAGE))
+        else if (key.represents(SharedObjectType.PERSISTENT_KV_STORAGE))
             return new OrientKeyValueStorage(databaseHost.getSnampDatabase(), key.serviceName, forceCreate);
         else {
             getLogger().warning(() -> String.format("Requested service %s is not supported", key));
@@ -225,7 +225,7 @@ public final class GridMember implements ClusterMember, AutoCloseable {
      * @return Distributed service; or {@literal null}, if service is not supported.
      */
     @Override
-    public <S extends SharedObject> S getService(final String serviceName, final SharedObjectDefinition<S> serviceType) {
+    public <S extends SharedObject> Optional<S> getService(final String serviceName, final SharedObjectType<S> serviceType) {
         GridSharedObject result;
         try {
             result = sharedObjects.get(new GridServiceKey<>(serviceName, serviceType));
@@ -243,7 +243,7 @@ public final class GridMember implements ClusterMember, AutoCloseable {
      * @param serviceType Type of the service to release.
      */
     @Override
-    public void releaseService(final String serviceName, final SharedObjectDefinition<?> serviceType) {
+    public void releaseService(final String serviceName, final SharedObjectType<?> serviceType) {
         final GridServiceKey<?> serviceKey = new GridServiceKey<>(serviceName, serviceType);
         getLogger().info(() -> String.format("Destroying distributed service %s", serviceKey));
         GridSharedObject sharedObject = sharedObjects.asMap().remove(serviceKey);

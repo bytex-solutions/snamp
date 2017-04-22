@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import static com.bytex.snamp.core.ClusterMember.SHARED_COUNTER;
+import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -76,7 +76,8 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
-        sequenceNumberProvider = getDistributedObject(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName), SHARED_COUNTER);
+        sequenceNumberProvider = getDistributedObject(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName), COUNTER)
+                .orElseThrow(AssertionError::new);
     }
 
     protected final String getInstanceName(){

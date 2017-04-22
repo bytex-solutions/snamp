@@ -1,7 +1,7 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.core.SharedObjectType;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -47,8 +47,7 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void indexTest() {
-        final KeyValueStorage storage = instance1.getService("$testStorage", ClusterMember.PERSISTENT_KV_STORAGE);
-        assertNotNull(storage);
+        final KeyValueStorage storage = instance1.getService("$testStorage", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
         assertTrue(storage.isPersistent());
         for(int i = 0; i < 100; i++) {
             assertNotNull(storage.getOrCreateRecord(i, KeyValueStorage.TextRecordView.class, record -> record.setAsText("Hello, world")));
@@ -62,8 +61,7 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void getOrCreateRecordTest() {
-        final KeyValueStorage storage = instance1.getService("$testStorage", ClusterMember.PERSISTENT_KV_STORAGE);
-        assertNotNull(storage);
+        final KeyValueStorage storage = instance1.getService("$testStorage", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
         assertTrue(storage.isPersistent());
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         record.setAsText("Hello, world");
@@ -74,10 +72,8 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void differentCollectionsTest(){
-        final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
-        final KeyValueStorage storage2 = instance1.getService("$testStorage2", ClusterMember.PERSISTENT_KV_STORAGE);
-        assertNotNull(storage1);
-        assertNotNull(storage2);
+        final KeyValueStorage storage1 = instance1.getService("$testStorage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
+        final KeyValueStorage storage2 = instance1.getService("$testStorage2", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
         assertTrue(storage1.isPersistent());
         assertTrue(storage2.isPersistent());
         KeyValueStorage.TextRecordView record1 = storage1.getOrCreateRecord(100500, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
@@ -94,8 +90,7 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void theSameCollectionTest(){
-        final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
-        assertNotNull(storage1);
+        final KeyValueStorage storage1 = instance1.getService("$testStorage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
         KeyValueStorage.TextRecordView record1 = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         record1.setAsText("Hello, world!");
         KeyValueStorage.TextRecordView record2 = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
@@ -108,7 +103,7 @@ public final class PersistentStorageTest extends Assert {
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         final Future<Boolean> task = executor.submit(() -> {
             final KeyValueStorage storage1 =
-                    executor.submit(() -> instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE)).get();
+                    executor.submit(() -> instance1.getService("$testStorage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new)).get();
             assertNotNull(storage1);
             storage1.getOrCreateRecord(KEY, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
 
@@ -151,8 +146,7 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void readAllRecordsTest() throws InterruptedException {
-        final KeyValueStorage storage1 = instance1.getService("$testStorage1", ClusterMember.PERSISTENT_KV_STORAGE);
-        assertNotNull(storage1);
+        final KeyValueStorage storage1 = instance1.getService("$testStorage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
         storage1.updateOrCreateRecord("1", KeyValueStorage.TextRecordView.class, record -> record.setAsText("Frank Underwood"));
         storage1.updateOrCreateRecord("2", KeyValueStorage.TextRecordView.class, record -> record.setAsText("Barry Burton"));
         Thread.sleep(10_000);

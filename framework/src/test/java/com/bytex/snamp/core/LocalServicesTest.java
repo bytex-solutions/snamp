@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import static com.bytex.snamp.core.DistributedServices.getProcessLocalObject;
-import static com.bytex.snamp.core.ClusterMember.*;
 
 /**
  * @author Roman Sakno
@@ -22,8 +21,7 @@ import static com.bytex.snamp.core.ClusterMember.*;
 public final class LocalServicesTest extends Assert {
     @Test
     public void boxTest(){
-        final Box<Object> box = getProcessLocalObject("testBox", SHARED_BOX);
-        assertNotNull(box);
+        final Box<Object> box = getProcessLocalObject("testBox", SharedObjectType.BOX).orElseThrow(AssertionError::new);
         Object result = box.setIfAbsent(() -> "Str");
         assertEquals("Str", result);
         result = box.setIfAbsent(() -> "Frank Underwood");
@@ -32,15 +30,14 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void idGeneratorTest(){
-        assertEquals(0L, getProcessLocalObject("gen1", SHARED_COUNTER).getAsLong());
-        assertEquals(1L, getProcessLocalObject("gen1", SHARED_COUNTER).getAsLong());
-        assertEquals(0L, getProcessLocalObject("gen2", SHARED_COUNTER).getAsLong());
+        assertEquals(0L, getProcessLocalObject("gen1", SharedObjectType.COUNTER).orElseThrow(AssertionError::new).getAsLong());
+        assertEquals(1L, getProcessLocalObject("gen1", SharedObjectType.COUNTER).orElseThrow(AssertionError::new).getAsLong());
+        assertEquals(0L, getProcessLocalObject("gen2", SharedObjectType.COUNTER).orElseThrow(AssertionError::new).getAsLong());
     }
 
     @Test
     public void storageTest(){
-        final KeyValueStorage storage = getProcessLocalObject("localStorage", KV_STORAGE);
-        assertNotNull(storage);
+        final KeyValueStorage storage = getProcessLocalObject("localStorage", SharedObjectType.KV_STORAGE).orElseThrow(AssertionError::new);
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("a", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         assertNotNull(record);
         record.setAsText("Hello, world!");
@@ -51,7 +48,7 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void communicatorTest() throws InterruptedException, ExecutionException, TimeoutException {
-        final Communicator com = DistributedServices.getProcessLocalObject("localCommunicator", COMMUNICATOR);
+        final Communicator com = DistributedServices.getProcessLocalObject("localCommunicator", SharedObjectType.COMMUNICATOR).orElseThrow(AssertionError::new);
         assertTrue(com instanceof InMemoryCommunicator);//test message box
         try (final Communicator.MessageBox<String> box = com.createMessageBox(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString)) {
             com.sendSignal("First");

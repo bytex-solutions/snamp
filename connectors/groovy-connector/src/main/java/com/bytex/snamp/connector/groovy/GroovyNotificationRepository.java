@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import static com.bytex.snamp.core.ClusterMember.SHARED_COUNTER;
+import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 
 /**
@@ -34,7 +34,7 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
         super(resourceName, GroovyEvent.class, true);
         this.scriptlet = Objects.requireNonNull(scriptlet);
         this.listenerInvoker = threadPool;
-        this.sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), SHARED_COUNTER);
+        this.sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
         scriptlet.addEventListener(this);
     }
 

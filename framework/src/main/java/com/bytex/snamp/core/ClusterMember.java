@@ -1,5 +1,7 @@
 package com.bytex.snamp.core;
 
+import java.util.Optional;
+
 /**
  * Represents SNAMP service that represents single SNAMP member in the cluster.
  * You can discover this service via OSGi service registry.
@@ -16,30 +18,6 @@ package com.bytex.snamp.core;
  * @see SharedCounter
  */
 public interface ClusterMember extends ClusterMemberInfo, SupportService {
-    /**
-     * Represents definition of non-persistent cluster-wide generator of unique identifiers.
-     */
-    SharedObjectDefinition<SharedCounter> SHARED_COUNTER = new SharedObjectDefinition<>(SharedCounter.class, false);
-
-    /**
-     * Represents definition of non-durable communication service.
-     */
-    SharedObjectDefinition<Communicator> COMMUNICATOR = new SharedObjectDefinition<>(Communicator.class, false);
-
-    /**
-     * Represents definition of distributed non-persistent scalar storage.
-     */
-    SharedObjectDefinition<SharedBox> SHARED_BOX = new SharedObjectDefinition<>(SharedBox.class, false);
-
-    /**
-     * Represents definition of distributed non-persistent key/value storage.
-     */
-    SharedObjectDefinition<KeyValueStorage> KV_STORAGE = new SharedObjectDefinition<>(KeyValueStorage.class, false);
-
-    /**
-     * Represents definition of distributed persistent key/value storage.
-     */
-    SharedObjectDefinition<KeyValueStorage> PERSISTENT_KV_STORAGE = new SharedObjectDefinition<>(KeyValueStorage.class, true);
 
 
     /**
@@ -53,13 +31,14 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
      * @param serviceName Service name.
      * @param serviceType Service type.
      * @param <S>         Type of the service contract.
-     * @return Distributed service; or {@literal null}, if service is not supported.
-     * @see #SHARED_COUNTER
-     * @see #KV_STORAGE
-     * @see #COMMUNICATOR
-     * @see #SHARED_BOX
+     * @return Distributed service.
+     *
+     * @see SharedObjectType#COUNTER
+     * @see SharedObjectType#KV_STORAGE
+     * @see SharedObjectType#COMMUNICATOR
+     * @see SharedObjectType#BOX
      */
-    <S extends SharedObject> S getService(final String serviceName, final SharedObjectDefinition<S> serviceType);
+    <S extends SharedObject> Optional<S> getService(final String serviceName, final SharedObjectType<S> serviceType);
 
     /**
      * Destroys the specified service
@@ -67,5 +46,5 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
      * @param serviceName Name of the service to release.
      * @param serviceType Type of the service to release.
      */
-    void releaseService(final String serviceName, final SharedObjectDefinition<?> serviceType);
+    void releaseService(final String serviceName, final SharedObjectType<?> serviceType);
 }

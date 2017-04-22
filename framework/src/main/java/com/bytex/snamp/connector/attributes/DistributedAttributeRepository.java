@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
-import static com.bytex.snamp.core.ClusterMember.KV_STORAGE;
+import static com.bytex.snamp.core.SharedObjectType.KV_STORAGE;
 import static com.bytex.snamp.core.DistributedServices.isActiveNode;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -81,7 +81,8 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
         super(resourceName, attributeMetadataType, expandable);
         syncThread = new SynchronizationJob<>(syncPeriod, this);
         syncThread.run();
-        storage = getDistributedObject(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX), KV_STORAGE);
+        storage = getDistributedObject(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX), KV_STORAGE)
+                .orElseThrow(AssertionError::new);
         assert storage.isViewSupported(KeyValueStorage.SerializableRecordView.class);
     }
 

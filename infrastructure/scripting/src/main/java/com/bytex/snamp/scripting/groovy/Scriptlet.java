@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.core.ClusterMember.COMMUNICATOR;
+import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
 import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 import static com.bytex.snamp.core.DistributedServices.isActiveNode;
 
@@ -305,6 +305,6 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
 
     @Override
     public final Communicator getCommunicator(final String sessionName) {
-        return getDistributedObject(getBundleContext(), sessionName, COMMUNICATOR);
+        return getDistributedObject(getBundleContext(), sessionName, COMMUNICATOR).orElseThrow(AssertionError::new);
     }
 }

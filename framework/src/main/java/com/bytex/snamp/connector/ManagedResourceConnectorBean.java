@@ -33,7 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
-import static com.bytex.snamp.core.ClusterMember.SHARED_COUNTER;
+import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -125,7 +125,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final BundleContext context) {
             super(resourceName, AbstractNotificationInfo.class, false);
             this.notifTypes = Objects.requireNonNull(notifTypes);
-            this.sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), SHARED_COUNTER);
+            this.sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), COUNTER)
+                    .orElseThrow(AssertionError::new);
         }
 
         @Override

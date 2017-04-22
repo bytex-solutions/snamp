@@ -10,7 +10,6 @@ import javax.annotation.concurrent.Immutable;
 import javax.management.openmbean.InvalidKeyException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 /**
@@ -21,15 +20,15 @@ import java.util.function.Function;
  */
 public final class DistributedServices {
     @Immutable
-    private static final class LocalServiceKey<S extends SharedObject> extends SharedObjectDefinition<S> {
+    private static final class LocalServiceKey<S extends SharedObject> extends SharedObjectType<S> {
         private final String serviceName;
 
-        private LocalServiceKey(final String serviceName, final SharedObjectDefinition<S> definition) {
+        private LocalServiceKey(final String serviceName, final SharedObjectType<S> definition) {
             super(definition);
             this.serviceName = serviceName;
         }
 
-        private boolean represents(final SharedObjectDefinition<?> definition){
+        private boolean represents(final SharedObjectType<?> definition){
             return Objects.equals(getType(), definition.getType()) && isPersistent() == definition.isPersistent();
         }
 
@@ -65,15 +64,15 @@ public final class DistributedServices {
 
                 @Override
                 public SharedObject load(@Nonnull final LocalServiceKey<?> key) throws InvalidKeyException {
-                    if(key.represents(ClusterMember.SHARED_COUNTER))
+                    if(key.represents(SharedObjectType.COUNTER))
                         return new InMemoryCounter(key.serviceName);
-                    else if(key.represents(ClusterMember.COMMUNICATOR))
+                    else if(key.represents(SharedObjectType.COMMUNICATOR))
                         return new InMemoryCommunicator(key.serviceName);
-                    else if(key.represents(ClusterMember.SHARED_BOX))
+                    else if(key.represents(SharedObjectType.BOX))
                         return new InMemoryBox(key.serviceName);
-                    else if(key.represents(ClusterMember.KV_STORAGE))
+                    else if(key.represents(SharedObjectType.KV_STORAGE))
                         return new InMemoryKeyValueStorage(key.serviceName);
-                    else if(key.represents(ClusterMember.PERSISTENT_KV_STORAGE))
+                    else if(key.represents(SharedObjectType.PERSISTENT_KV_STORAGE))
                         return new FileBasedKeyValueStorage(key.serviceName);
                     else throw new InvalidKeyException(String.format("Service %s is not supported", key));
                 }
@@ -83,13 +82,9 @@ public final class DistributedServices {
         throw new InstantiationError();
     }
 
-    public static <S extends SharedObject> S getProcessLocalObject(final String serviceName, final SharedObjectDefinition<S> serviceType) {
+    public static <S extends SharedObject> Optional<S> getProcessLocalObject(final String serviceName, final SharedObjectType<S> serviceType) {
         final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
-        try {
-            return serviceType.cast(LOCAL_SERVICES.get(key));
-        } catch (final ExecutionException e) {
-            return null;
-        }
+        return serviceType.cast(LOCAL_SERVICES.getUnchecked(key));
     }
 
     private static <S> Optional<S> processClusterNode(final BundleContext context,
@@ -103,9 +98,9 @@ public final class DistributedServices {
         }));
     }
 
-    public static <S extends SharedObject> S getDistributedObject(final BundleContext context,
+    public static <S extends SharedObject> Optional<S> getDistributedObject(final BundleContext context,
                                                                   final String serviceName,
-                                                                  final SharedObjectDefinition<S> serviceType) {
+                                                                  final SharedObjectType<S> serviceType) {
         return processClusterNode(context, node -> node.getService(serviceName, serviceType))
                 .orElseGet(() -> getProcessLocalObject(serviceName, serviceType));
     }

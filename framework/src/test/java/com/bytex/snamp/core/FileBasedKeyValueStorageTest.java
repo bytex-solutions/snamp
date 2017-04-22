@@ -13,7 +13,7 @@ import org.junit.Test;
 public final class FileBasedKeyValueStorageTest extends Assert {
     @Test
     public void readWriteTest(){
-        final KeyValueStorage storage = DistributedServices.getDistributedObject(null, "storage1", ClusterMember.PERSISTENT_KV_STORAGE);
+        final KeyValueStorage storage = DistributedServices.getProcessLocalObject("storage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
         assertTrue(storage instanceof FileBasedKeyValueStorage);
         KeyValueStorage.MapRecordView mapRecord = storage.getOrCreateRecord(42L, KeyValueStorage.MapRecordView.class, KeyValueStorage.MapRecordView.INITIALIZER);
         mapRecord.setAsMap(ImmutableMap.of("key1", "value1", "key2", "value2"));

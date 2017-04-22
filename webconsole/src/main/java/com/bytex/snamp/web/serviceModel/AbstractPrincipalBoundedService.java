@@ -1,8 +1,8 @@
 package com.bytex.snamp.web.serviceModel;
 
-import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.core.SharedObjectType;
 import com.bytex.snamp.internal.Utils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.osgi.framework.BundleContext;
@@ -41,7 +41,8 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
         userDataStorage = DistributedServices.getDistributedObject(
                 context,
                 storageName,
-                ClusterMember.PERSISTENT_KV_STORAGE);
+                SharedObjectType.PERSISTENT_KV_STORAGE)
+                .orElseThrow(AssertionError::new);
     }
 
     @Path("/settings")

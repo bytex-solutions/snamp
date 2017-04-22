@@ -1,13 +1,15 @@
 package com.bytex.snamp.security.web;
 
 import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.core.SharedBox;
 import org.osgi.framework.BundleContext;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Optional;
 import java.util.function.Supplier;
 
-import static com.bytex.snamp.core.ClusterMember.SHARED_BOX;
+import static com.bytex.snamp.core.SharedObjectType.BOX;
 import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 
 /**
@@ -35,6 +37,7 @@ final class TokenSecretHolder extends SecureRandom implements Supplier<BigIntege
     }
 
     String getSecret(final BundleContext context) {
-        return String.valueOf(getDistributedObject(context, JWT_SECRET_BOX_NAME, SHARED_BOX).setIfAbsent(this));
+        final Optional<SharedBox> secretHolder = getDistributedObject(context, JWT_SECRET_BOX_NAME, BOX);
+        return String.valueOf(secretHolder.map(box -> box.setIfAbsent(this)).orElseGet(this::get));
     }
 }

@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 import static com.bytex.snamp.configuration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE;
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
-import static com.bytex.snamp.core.ClusterMember.SHARED_COUNTER;
+import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 
 
@@ -97,7 +97,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     false);
             this.client = client;
             listenerInvoker = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
-            sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), SHARED_COUNTER);
+            sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
         }
 
         /**
