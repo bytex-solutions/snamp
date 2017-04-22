@@ -1,7 +1,8 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.core.Communicator;
-import com.bytex.snamp.core.DistributedServices;
+import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
+import static com.bytex.snamp.core.ClusterMember.COMMUNICATOR;
 
 /**
  * @author Roman Sakno
@@ -10,6 +11,6 @@ import com.bytex.snamp.core.DistributedServices;
  */
 abstract class MessageCommand extends SnampShellCommand  {
     final Communicator getCommunicator(){
-        return DistributedServices.getDistributedCommunicator(getBundleContext(), "SnampShellCommunicator");
+        return getDistributedObject(getBundleContext(), "SnampShellCommunicator", COMMUNICATOR);
     }
 }

@@ -4,7 +4,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.AccurateNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
 
@@ -16,6 +15,9 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+
+import static com.bytex.snamp.core.ClusterMember.SHARED_COUNTER;
+import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 
 /**
  * Represents Groovy-based notification.
@@ -32,7 +34,7 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
         super(resourceName, GroovyEvent.class, true);
         this.scriptlet = Objects.requireNonNull(scriptlet);
         this.listenerInvoker = threadPool;
-        this.sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
+        this.sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), SHARED_COUNTER);
         scriptlet.addEventListener(this);
     }
 

@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * Represents a set of distributed services.
@@ -84,7 +83,7 @@ public final class DistributedServices {
         throw new InstantiationError();
     }
 
-    private static <S extends SharedObject> S getProcessLocalObject(final String serviceName, final SharedObjectDefinition<S> serviceType) {
+    public static <S extends SharedObject> S getProcessLocalObject(final String serviceName, final SharedObjectDefinition<S> serviceType) {
         final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
         try {
             return serviceType.cast(LOCAL_SERVICES.get(key));
@@ -93,85 +92,22 @@ public final class DistributedServices {
         }
     }
 
-    public static Communicator getProcessLocalCommunicator(final String channelName){
-        return getProcessLocalObject(channelName, ClusterMember.COMMUNICATOR);
-    }
-
-    public static SharedBox getProcessLocalBox(final String boxName){
-        return getProcessLocalObject(boxName, ClusterMember.SHARED_BOX);
-    }
-
-    /**
-     * Gets local ID generator that doesn't share counter across cluster.
-     * @param generatorName The name of generator.
-     * @return ID generator instance.
-     */
-    public static SharedCounter getProcessLocalCounter(final String generatorName){
-        return getProcessLocalObject(generatorName, ClusterMember.SHARED_COUNTER);
-    }
-
-    public static KeyValueStorage getProcessLocalStorage(final String storageName){
-        return getProcessLocalObject(storageName, ClusterMember.KV_STORAGE);
-    }
-
-    private static <S> S processClusterNode(final BundleContext context,
-                                            final Function<? super ClusterMember, S> processor,
-                                            final Supplier<S> def) {
+    private static <S> Optional<S> processClusterNode(final BundleContext context,
+                                            final Function<? super ClusterMember, S> processor) {
         return Optional.ofNullable(context).flatMap(ctx -> ServiceHolder.tryCreate(ctx, ClusterMember.class).map(holder -> {
             try {
                 return processor.apply(holder.get());
             } finally {
                 holder.release(ctx);
             }
-        })).orElseGet(def);
+        }));
     }
 
     public static <S extends SharedObject> S getDistributedObject(final BundleContext context,
                                                                   final String serviceName,
                                                                   final SharedObjectDefinition<S> serviceType) {
-        return processClusterNode(context, node -> node.getService(serviceName, serviceType), () -> getProcessLocalObject(serviceName, serviceType));
-    }
-
-    /**
-     * Gets distributed {@link Communicator}.
-     * @param context Context of the caller OSGi bundle.
-     * @param channelName Name of the communicator.
-     * @return Distributed or process-local communicator.
-     */
-    public static Communicator getDistributedCommunicator(final BundleContext context, final String channelName){
-        return getDistributedObject(context, channelName, ClusterMember.COMMUNICATOR);
-    }
-
-    /**
-     * Gets distributed {@link KeyValueStorage}.
-     * @param context Context of the caller OSGi bundle.
-     * @param collectionName Name of the distributed collection.
-     * @return Distributed or process-local storage.
-     */
-    public static KeyValueStorage getDistributedStorage(final BundleContext context,
-                                                                            final String collectionName){
-        return getDistributedObject(context, collectionName, ClusterMember.KV_STORAGE);
-    }
-
-    /**
-     * Gets distributed {@link SharedCounter}.
-     * @param context Context of the caller OSGi bundle.
-     * @param generatorName Name of the generator to obtain.
-     * @return Distributed or process-local generator.
-     */
-    public static SharedCounter getDistributedCounter(final BundleContext context,
-                                                      final String generatorName){
-        return getDistributedObject(context, generatorName, ClusterMember.SHARED_COUNTER);
-    }
-
-    /**
-     * Gets distributed {@link SharedBox}.
-     * @param context Context of the caller OSGi bundle.
-     * @param boxName Name of the generator to obtain.
-     * @return Distributed or process-local generator.
-     */
-    public static SharedBox getDistributedBox(final BundleContext context, final String boxName){
-        return getDistributedObject(context, boxName, ClusterMember.SHARED_BOX);
+        return processClusterNode(context, node -> node.getService(serviceName, serviceType))
+                .orElseGet(() -> getProcessLocalObject(serviceName, serviceType));
     }
 
     /**
@@ -180,7 +116,7 @@ public final class DistributedServices {
      * @return {@literal true}, the caller code hosted in active cluster node; otherwise, {@literal false}.
      */
     public static boolean isActiveNode(final BundleContext context) {
-        return processClusterNode(context, ClusterMember::isActive, LocalMember.INSTANCE::isActive);
+        return processClusterNode(context, ClusterMember::isActive).orElseGet(LocalMember.INSTANCE::isActive);
     }
 
     /**
@@ -189,7 +125,7 @@ public final class DistributedServices {
      * @return {@literal true}, if this method is called in clustered environment; otherwise, {@literal false}.
      */
     public static boolean isInCluster(final BundleContext context) {
-        return processClusterNode(context, Objects::nonNull, () -> false);
+        return processClusterNode(context, Objects::nonNull).orElse(false);
     }
 
     /**
@@ -198,6 +134,6 @@ public final class DistributedServices {
      * @return Name of the cluster node.
      */
     public static String getLocalMemberName(final BundleContext context){
-        return processClusterNode(context, ClusterMember::getName, LocalMember.INSTANCE::getName);
+        return processClusterNode(context, ClusterMember::getName).orElseGet(LocalMember.INSTANCE::getName);
     }
 }

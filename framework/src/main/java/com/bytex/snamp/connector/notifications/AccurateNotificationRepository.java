@@ -13,6 +13,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
+import static com.bytex.snamp.core.ClusterMember.COMMUNICATOR;
 
 /**
  * Represents special version of notification repository that can be used by resource connector with unicast model of handling notifications.
@@ -40,7 +42,7 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
      */
     protected AccurateNotificationRepository(final String resourceName, final Class<M> notifMetadataType, final boolean expandable) {
         super(resourceName, notifMetadataType, expandable);
-        final Communicator communicator = DistributedServices.getDistributedCommunicator(getBundleContext(), CHANNEL_NAME);
+        final Communicator communicator = getDistributedObject(getBundleContext(), CHANNEL_NAME, COMMUNICATOR);
         subscription = communicator.addMessageListener(this, notificationFilter(resourceName));
         this.sender = communicator::sendSignal;
     }

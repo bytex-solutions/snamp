@@ -11,6 +11,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import static com.bytex.snamp.core.DistributedServices.getProcessLocalObject;
+import static com.bytex.snamp.core.ClusterMember.*;
 
 /**
  * @author Roman Sakno
@@ -20,7 +22,8 @@ import java.util.function.Consumer;
 public final class LocalServicesTest extends Assert {
     @Test
     public void boxTest(){
-        final Box<Object> box = DistributedServices.getProcessLocalBox("testBox");
+        final Box<Object> box = getProcessLocalObject("testBox", SHARED_BOX);
+        assertNotNull(box);
         Object result = box.setIfAbsent(() -> "Str");
         assertEquals("Str", result);
         result = box.setIfAbsent(() -> "Frank Underwood");
@@ -29,14 +32,14 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void idGeneratorTest(){
-        assertEquals(0L, DistributedServices.getProcessLocalCounter("gen1").getAsLong());
-        assertEquals(1L, DistributedServices.getProcessLocalCounter("gen1").getAsLong());
-        assertEquals(0L, DistributedServices.getProcessLocalCounter("gen2").getAsLong());
+        assertEquals(0L, getProcessLocalObject("gen1", SHARED_COUNTER).getAsLong());
+        assertEquals(1L, getProcessLocalObject("gen1", SHARED_COUNTER).getAsLong());
+        assertEquals(0L, getProcessLocalObject("gen2", SHARED_COUNTER).getAsLong());
     }
 
     @Test
     public void storageTest(){
-        final KeyValueStorage storage = DistributedServices.getProcessLocalStorage("localStorage");
+        final KeyValueStorage storage = getProcessLocalObject("localStorage", KV_STORAGE);
         assertNotNull(storage);
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("a", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         assertNotNull(record);
@@ -48,7 +51,7 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void communicatorTest() throws InterruptedException, ExecutionException, TimeoutException {
-        final Communicator com = DistributedServices.getProcessLocalCommunicator("localCommunicator");
+        final Communicator com = DistributedServices.getProcessLocalObject("localCommunicator", COMMUNICATOR);
         assertTrue(com instanceof InMemoryCommunicator);//test message box
         try (final Communicator.MessageBox<String> box = com.createMessageBox(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString)) {
             com.sendSignal("First");

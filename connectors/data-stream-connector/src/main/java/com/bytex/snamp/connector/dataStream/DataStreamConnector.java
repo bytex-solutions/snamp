@@ -8,7 +8,6 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
-import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
 
@@ -25,6 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import static com.bytex.snamp.core.ClusterMember.SHARED_COUNTER;
+import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -75,7 +76,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
-        sequenceNumberProvider = DistributedServices.getDistributedCounter(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName));
+        sequenceNumberProvider = getDistributedObject(getBundleContextOfObject(this), "SequenceGenerator-".concat(resourceName), SHARED_COUNTER);
     }
 
     protected final String getInstanceName(){

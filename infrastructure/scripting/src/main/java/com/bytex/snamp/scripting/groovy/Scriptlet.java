@@ -8,7 +8,6 @@ import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.core.Communicator;
-import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -24,6 +23,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+
+import static com.bytex.snamp.core.ClusterMember.COMMUNICATOR;
+import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
+import static com.bytex.snamp.core.DistributedServices.isActiveNode;
 
 /**
  * Represents implementation of {@link Scriptlet}.
@@ -297,11 +300,11 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
 
     @Override
     public final boolean isActiveClusterNode() {
-        return DistributedServices.isActiveNode(getBundleContext());
+        return isActiveNode(getBundleContext());
     }
 
     @Override
     public final Communicator getCommunicator(final String sessionName) {
-        return DistributedServices.getDistributedCommunicator(getBundleContext(), sessionName);
+        return getDistributedObject(getBundleContext(), sessionName, COMMUNICATOR);
     }
 }

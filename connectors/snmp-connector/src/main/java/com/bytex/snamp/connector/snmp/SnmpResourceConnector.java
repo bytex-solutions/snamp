@@ -14,8 +14,9 @@ import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.connector.notifications.*;
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
+import com.bytex.snamp.connector.notifications.AccurateNotificationRepository;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.internal.Utils;
@@ -51,6 +52,9 @@ import java.util.stream.Collectors;
 import static com.bytex.snamp.configuration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE;
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
+import static com.bytex.snamp.core.ClusterMember.SHARED_COUNTER;
+import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
+
 
 /**
  * Represents SNMP-compliant managed resource.
@@ -93,7 +97,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     false);
             this.client = client;
             listenerInvoker = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
-            sequenceNumberGenerator = DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
+            sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), SHARED_COUNTER);
         }
 
         /**

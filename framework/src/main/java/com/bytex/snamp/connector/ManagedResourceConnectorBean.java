@@ -15,10 +15,12 @@ import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.connector.notifications.*;
+import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
+import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
-import com.bytex.snamp.core.DistributedServices;
 import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
 
@@ -31,6 +33,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
+import static com.bytex.snamp.core.ClusterMember.SHARED_COUNTER;
+import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -121,9 +125,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final BundleContext context) {
             super(resourceName, AbstractNotificationInfo.class, false);
             this.notifTypes = Objects.requireNonNull(notifTypes);
-            this.sequenceNumberGenerator = context == null ?  //may be null when executing through unit tests
-                    DistributedServices.getProcessLocalCounter("notifications-".concat(resourceName)) :
-                    DistributedServices.getDistributedCounter(context, "notifications-".concat(resourceName));
+            this.sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), SHARED_COUNTER);
         }
 
         @Override

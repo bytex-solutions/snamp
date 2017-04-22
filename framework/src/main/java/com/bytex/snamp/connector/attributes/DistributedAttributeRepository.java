@@ -10,7 +10,8 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.core.DistributedServices.getDistributedStorage;
+import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
+import static com.bytex.snamp.core.ClusterMember.KV_STORAGE;
 import static com.bytex.snamp.core.DistributedServices.isActiveNode;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
@@ -80,7 +81,7 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
         super(resourceName, attributeMetadataType, expandable);
         syncThread = new SynchronizationJob<>(syncPeriod, this);
         syncThread.run();
-        storage = getDistributedStorage(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX));
+        storage = getDistributedObject(getBundleContext(), getResourceName().concat(STORAGE_NAME_POSTFIX), KV_STORAGE);
         assert storage.isViewSupported(KeyValueStorage.SerializableRecordView.class);
     }
 
@@ -133,7 +134,7 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
      * Gets key used to store the snapshot of the attribute in the cluster-wide storage.
      * @param attribute Cluster-wide attribute. Cannot be {@literal null}.
      * @return Key name used to store the state of the attribute in the cluster-wide storage; or none, if this attribute doesn't support cluster-wide synchronization.
-     * @implNote In the default implementation this method always returns storage key using method {@link AttributeDescriptor#getName(String)}.
+     * @implNote In the default implementation this method always returns storage key using method {@link AttributeDescriptor#getName(MBeanAttributeInfo)}.
      */
     protected Optional<String> getStorageKey(final M attribute){
         return Optional.of(AttributeDescriptor.getName(attribute));
