@@ -1,6 +1,8 @@
 package com.bytex.snamp.web;
 
 import com.bytex.snamp.ImportClass;
+import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.sun.jersey.api.core.DefaultResourceConfig;
@@ -21,7 +23,7 @@ import javax.ws.rs.core.Application;
 final class WebConsoleServiceServlet extends ServletContainer {
 
     WebConsoleServiceServlet(@Nonnull final RESTController service) {
-        super(createConfig(service, WebConsoleSecurityFilter.forRestAPI()));
+        super(createConfig(service, WebConsoleSecurityFilter.forRestAPI(ClusterMember.get(Utils.getBundleContextOfObject(service)))));
     }
 
     private static Application createConfig(final RESTController service, final WebSecurityFilter filter) {

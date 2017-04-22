@@ -1,5 +1,6 @@
 package com.bytex.snamp.testing.gateway.influx;
 
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
 
 import javax.ws.rs.*;
@@ -7,7 +8,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
-import static com.bytex.snamp.core.DistributedServices.getProcessLocalObject;
 
 /**
  * @author Roman Sakno
@@ -20,7 +20,7 @@ public class InfluxWriteMock extends InfluxMethodMock {
     static final String INFLUX_CHANNEL = "InfluxDB-channel";
 
     public InfluxWriteMock(){
-        communicator = getProcessLocalObject(INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        communicator = ClusterMember.get(null).getService(INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
     }
 
     @POST

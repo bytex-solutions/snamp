@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.connector.notifications.NotificationContainer;
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.gateway.modeling.AttributeSet;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.instrumentation.measurements.Measurement;
@@ -29,9 +29,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 abstract class NotificationPoint extends NotificationAccessor {
+    private final ClusterMember clusterMember;
 
-    NotificationPoint(final MBeanNotificationInfo metadata) {
+    NotificationPoint(final MBeanNotificationInfo metadata, final ClusterMember clusterMember) {
         super(metadata);
+        this.clusterMember = clusterMember;
     }
 
     abstract String getResourceName();
@@ -86,7 +88,7 @@ abstract class NotificationPoint extends NotificationAccessor {
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         //only active cluster node is responsible for reporting
-        if(DistributedServices.isActiveNode(getBundleContextOfObject(this))) {
+        if(clusterMember.isActive()) {
             if(notification instanceof NotificationContainer)
                 handleNotification(((NotificationContainer) notification).get(), handback);
             if (notification instanceof AttributeChangeNotification)

@@ -1,7 +1,7 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.management.jmx.ResignOperation;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -19,7 +19,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
         name = "cluster-member",
     description = "Show status of the local cluster member")
 @Service
-public class ClusterMemberStatusCommand extends SnampShellCommand {
+public class ClusterMemberStatusCommand extends ClusterMemberCommand {
     @Option(name = "-r", aliases = {"--resign"}, required = false, description = "Starts leader election")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean startElection = false;
@@ -33,9 +33,9 @@ public class ClusterMemberStatusCommand extends SnampShellCommand {
             else
                 appendln(result, "This node is not in a cluster member");
         }
-        appendln(result, "Is cluster member: %s", DistributedServices.isInCluster(getBundleContext()));
-        appendln(result, "Active Member: %s", DistributedServices.isActiveNode(getBundleContext()));
-        append(result, "Member Name: %s", DistributedServices.getLocalMemberName(getBundleContext()));
+        appendln(result, "Is cluster member: %s", ClusterMember.isInCluster(getBundleContext()));
+        appendln(result, "Active Member: %s", clusterMember.isActive());
+        append(result, "Member Name: %s", clusterMember.getName());
         return result;
     }
 }

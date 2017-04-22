@@ -67,7 +67,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
      */
     public HttpManagementTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
-        authenticator = new TestAuthenticator();
+        authenticator = new TestAuthenticator(getTestBundleContext());
         mapper = new ObjectMapper();
     }
 

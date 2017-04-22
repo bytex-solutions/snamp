@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.http;
 
 import com.bytex.snamp.ImportClass;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
@@ -18,13 +19,13 @@ public final class ManagementServlet extends ServletContainer {
     private static final long serialVersionUID = -2354174814566144236L;
     public static final String CONTEXT = "/snamp/management";
 
-    public ManagementServlet(){
-        super(createAppConfig());
+    public ManagementServlet(final ClusterMember clusterMember){
+        super(createAppConfig(clusterMember));
     }
 
-    private static Application createAppConfig(){
+    private static Application createAppConfig(final ClusterMember clusterMember){
         final DefaultResourceConfig result = new DefaultResourceConfig();
-        final WebSecurityFilter filter = new WebSecurityFilter();
+        final WebSecurityFilter filter = new WebSecurityFilter(clusterMember);
         result.getContainerRequestFilters().add(filter);
         result.getContainerResponseFilters().add(filter);
         result.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);

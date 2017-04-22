@@ -1,5 +1,6 @@
 package com.bytex.snamp.web;
 
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.security.web.JWTokenLocation;
 import com.bytex.snamp.security.web.WebSecurityFilter;
 
@@ -10,15 +11,15 @@ import com.bytex.snamp.security.web.WebSecurityFilter;
  * @since 2.0
  */
 final class WebConsoleSecurityFilter extends WebSecurityFilter {
-    private WebConsoleSecurityFilter(final JWTokenLocation... tokenLocations) {
-        super(tokenLocations);
+    private WebConsoleSecurityFilter(final ClusterMember clusterMember, final JWTokenLocation... tokenLocations) {
+        super(clusterMember, tokenLocations);
     }
 
-    static WebConsoleSecurityFilter forWebSocket(){
-        return new WebConsoleSecurityFilter(JWTokenLocation.COOKIE, JWTokenLocation.AUTHORIZATION_HEADER);
+    static WebConsoleSecurityFilter forWebSocket(final ClusterMember clusterMember){
+        return new WebConsoleSecurityFilter(clusterMember, JWTokenLocation.COOKIE, JWTokenLocation.AUTHORIZATION_HEADER);
     }
 
-    static WebConsoleSecurityFilter forRestAPI(){
-        return new WebConsoleSecurityFilter(JWTokenLocation.AUTHORIZATION_HEADER);
+    static WebConsoleSecurityFilter forRestAPI(final ClusterMember clusterMember){
+        return new WebConsoleSecurityFilter(clusterMember, JWTokenLocation.AUTHORIZATION_HEADER);
     }
 }

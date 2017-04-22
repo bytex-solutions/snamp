@@ -1,8 +1,10 @@
 package com.bytex.snamp.testing.web;
 
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.security.web.JWTAuthenticator;
 import com.bytex.snamp.security.web.WebSecurityFilter;
+import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
@@ -24,6 +26,10 @@ public final class TestAuthenticator extends JWTAuthenticator {
     private static final String TEST_USER_NAME = "karaf";
     private static final String TEST_PASSWORD = "karaf";
     private static final String AUTH_COOKIE = WebSecurityFilter.DEFAULT_AUTH_COOKIE;
+
+    public TestAuthenticator(final BundleContext testContext) {
+        super(ClusterMember.get(testContext));
+    }
 
     public HttpCookie authenticateTestUser() throws IOException {
         return authenticateClient(TEST_USER_NAME, TEST_PASSWORD);

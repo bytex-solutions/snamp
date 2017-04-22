@@ -17,6 +17,7 @@ import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
 import com.bytex.snamp.connector.notifications.AccurateNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.internal.Utils;
@@ -53,7 +54,6 @@ import static com.bytex.snamp.configuration.AttributeConfiguration.TIMEOUT_FOR_S
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
-import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 
 
 /**
@@ -97,7 +97,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     false);
             this.client = client;
             listenerInvoker = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
-            sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
+
+            sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
         }
 
         /**

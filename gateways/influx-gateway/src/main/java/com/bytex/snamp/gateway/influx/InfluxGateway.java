@@ -2,7 +2,7 @@ package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.concurrent.Repeater;
 import com.bytex.snamp.concurrent.WeakRepeater;
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import org.influxdb.InfluxDB;
@@ -29,17 +29,19 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 final class InfluxGateway extends AbstractGateway {
     private static final class PointsUploader extends WeakRepeater<InfluxGateway>{
         private final String threadName;
+        private final ClusterMember clusterMember;
 
         private PointsUploader(final Duration period, final InfluxGateway gateway){
             super(period, gateway);
             threadName = "PointsUploader-".concat(gateway.instanceName);
+            clusterMember = ClusterMember.get(getBundleContextOfObject(gateway));
         }
 
         @Override
         protected void doAction() throws JMException, InterruptedException {
             final InfluxGateway gateway = getReferenceOrTerminate();
             //only active cluster node is responsible for reporting
-            if (DistributedServices.isActiveNode(getBundleContextOfObject(gateway)))
+            if (clusterMember.isActive())
                 gateway.dumpAttributes();
         }
 
@@ -67,7 +69,7 @@ final class InfluxGateway extends AbstractGateway {
     InfluxGateway(final String instanceName) {
         super(instanceName);
         attributes = new InfluxModelOfAttributes();
-        notifications = new InfluxModelOfNotifications(attributes);
+        notifications = new InfluxModelOfNotifications(attributes, ClusterMember.get(getBundleContext()));
     }
 
     @SuppressWarnings("unchecked")

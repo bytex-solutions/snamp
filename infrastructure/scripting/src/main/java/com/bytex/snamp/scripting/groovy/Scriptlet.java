@@ -7,6 +7,7 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.ServiceHolder;
@@ -25,8 +26,6 @@ import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
-import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
-import static com.bytex.snamp.core.DistributedServices.isActiveNode;
 
 /**
  * Represents implementation of {@link Scriptlet}.
@@ -36,6 +35,7 @@ import static com.bytex.snamp.core.DistributedServices.isActiveNode;
  */
 public abstract class Scriptlet extends Script implements ScriptingAPI {
     private static final String BUNDLE_CONTEXT_VAR = "bundleContext";
+    private ClusterMember clusterMember;
 
     private static abstract class AttributeOperation<E extends JMException> implements Acceptor<ManagedResourceConnector, E> {
         private final String attributeName;
@@ -198,6 +198,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
     }
 
     public final void setBundleContext(final BundleContext value){
+        clusterMember = ClusterMember.get(value);
         setProperty(BUNDLE_CONTEXT_VAR, value);
     }
 
@@ -300,11 +301,11 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
 
     @Override
     public final boolean isActiveClusterNode() {
-        return isActiveNode(getBundleContext());
+        return clusterMember.isActive();
     }
 
     @Override
     public final Communicator getCommunicator(final String sessionName) {
-        return getDistributedObject(getBundleContext(), sessionName, COMMUNICATOR).orElseThrow(AssertionError::new);
+        return clusterMember.getService(sessionName, COMMUNICATOR).orElseThrow(AssertionError::new);
     }
 }

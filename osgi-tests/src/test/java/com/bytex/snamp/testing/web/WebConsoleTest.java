@@ -235,7 +235,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 new ObjectName(SECOND_BEAN_NAME), new TestOpenMBean(),
                 new ObjectName(THIRD_BEAN_NAME), new TestOpenMBean()
         );
-        authenticator = new TestAuthenticator();
+        authenticator = new TestAuthenticator(getTestBundleContext());
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,

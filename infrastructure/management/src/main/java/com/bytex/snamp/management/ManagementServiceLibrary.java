@@ -2,8 +2,10 @@ package com.bytex.snamp.management;
 
 import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ExposedServiceHandler;
 import com.bytex.snamp.core.SnampManager;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.FrameworkMBean;
 import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
 import com.bytex.snamp.management.http.ManagementServlet;
@@ -154,7 +156,8 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         @Override
         protected ManagementServlet activateService(final Map<String, Object> identity) {
             identity.put("alias", ManagementServlet.CONTEXT);
-            return new ManagementServlet();
+            final ClusterMember clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
+            return new ManagementServlet(clusterMember);
         }
 
         @Override

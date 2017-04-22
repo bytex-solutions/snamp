@@ -1,6 +1,12 @@
 package com.bytex.snamp.core;
 
+import org.osgi.framework.BundleContext;
+
+import javax.annotation.Nonnull;
+import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Represents SNAMP service that represents single SNAMP member in the cluster.
@@ -18,8 +24,6 @@ import java.util.Optional;
  * @see SharedCounter
  */
 public interface ClusterMember extends ClusterMemberInfo, SupportService {
-
-
     /**
      * Marks this node as passive and execute leader election.
      */
@@ -47,4 +51,74 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
      * @param serviceType Type of the service to release.
      */
     void releaseService(final String serviceName, final SharedObjectType<?> serviceType);
+
+    static ClusterMember get(final BundleContext context) {
+        if (context == null)
+            return LocalMember.getInstance();
+        else
+            return new ClusterMember() {
+                private <S> S processClusterNode(final Function<? super ClusterMember, S> processor) {
+                    final Optional<ServiceHolder<ClusterMember>> memberRef = ServiceHolder.tryCreate(context, ClusterMember.class);
+                    if (memberRef.isPresent()) {
+                        final ServiceHolder<ClusterMember> member = memberRef.get();
+                        try {
+                            return processor.apply(member.get());
+                        } finally {
+                            member.release(context);
+                        }
+                    } else
+                        return processor.apply(LocalMember.getInstance());
+                }
+
+                @Override
+                public void resign() {
+                    processClusterNode(member -> {
+                        member.resign();
+                        return null;
+                    });
+                }
+
+                @Override
+                public <S extends SharedObject> Optional<S> getService(final String serviceName, final SharedObjectType<S> serviceType) {
+                    return processClusterNode(member -> member.getService(serviceName, serviceType));
+                }
+
+                @Override
+                public void releaseService(final String serviceName, final SharedObjectType<?> serviceType) {
+                    processClusterNode(member -> {
+                        member.releaseService(serviceName, serviceType);
+                        return null;
+                    });
+                }
+
+                @Override
+                public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+                    return processClusterNode(member -> member.queryObject(objectType));
+                }
+
+                @Override
+                public boolean isActive() {
+                    return processClusterNode(ClusterMember::isActive);
+                }
+
+                @Override
+                public String getName() {
+                    return processClusterNode(ClusterMember::getName);
+                }
+
+                @Override
+                public InetSocketAddress getAddress() {
+                    return processClusterNode(ClusterMember::getAddress);
+                }
+
+                @Override
+                public Map<String, ?> getAttributes() {
+                    return processClusterNode(ClusterMember::getAttributes);
+                }
+            };
+    }
+
+    static boolean isInCluster(final BundleContext context) {
+        return !get(context).queryObject(LocalMember.class).isPresent();
+    }
 }

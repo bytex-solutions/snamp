@@ -91,7 +91,8 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         @Nonnull
         protected SecurityServlet activateService(final Map<String, Object> identity) {
             identity.put("alias", SecurityServlet.CONTEXT);
-            return new SecurityServlet();
+            final ClusterMember clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
+            return new SecurityServlet(clusterMember);
         }
 
         @Override

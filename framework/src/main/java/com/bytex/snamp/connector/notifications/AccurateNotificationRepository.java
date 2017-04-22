@@ -1,8 +1,8 @@
 package com.bytex.snamp.connector.notifications;
 
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
-import com.bytex.snamp.core.DistributedServices;
 import org.osgi.framework.BundleContext;
 
 import javax.management.MBeanNotificationInfo;
@@ -12,9 +12,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
  * Represents special version of notification repository that can be used by resource connector with unicast model of handling notifications.
@@ -31,6 +30,7 @@ import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
 public abstract class AccurateNotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> implements Consumer<Communicator.IncomingMessage> {
     private final SafeCloseable subscription;
     private final Consumer<? super Notification> sender;
+    private final ClusterMember clusterMember;
     private static final String CHANNEL_NAME = "AccurateNotifications";
 
     /**
@@ -42,7 +42,8 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
      */
     protected AccurateNotificationRepository(final String resourceName, final Class<M> notifMetadataType, final boolean expandable) {
         super(resourceName, notifMetadataType, expandable);
-        final Communicator communicator = getDistributedObject(getBundleContext(), CHANNEL_NAME, COMMUNICATOR)
+        clusterMember = ClusterMember.get(getBundleContext());
+        final Communicator communicator = clusterMember.getService(CHANNEL_NAME, COMMUNICATOR)
                 .orElseThrow(AssertionError::new);
         subscription = communicator.addMessageListener(this, notificationFilter(resourceName));
         this.sender = communicator::sendSignal;
@@ -69,7 +70,7 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
      */
     @Override
     protected final boolean isSuspended() {
-        return !DistributedServices.isActiveNode(getBundleContext());
+        return clusterMember.isActive();
     }
 
     private void fireListeners(final Notification n) {

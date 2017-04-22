@@ -45,7 +45,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
 
         @Override
         public ClusterMemberInfo getSender() {
-            return LocalMember.INSTANCE;
+            return LocalMember.getInstance();
         }
 
         @Override

@@ -4,7 +4,7 @@ import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.dataStream.DataStreamConnector;
 import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParser;
 import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParserLoader;
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Binding;
@@ -37,9 +37,11 @@ final class ZipkinConnector extends DataStreamConnector implements AsyncSpanCons
 
     private volatile Exception closeException;
     private CollectorComponent zipkinCollector;
+    private final ClusterMember clusterMember;
 
     private ZipkinConnector(final String resourceName, final ManagedResourceInfo configuration, final ZipkinConnectorConfigurationDescriptionProvider provider) throws URISyntaxException {
         super(resourceName, configuration, provider);
+        clusterMember = ClusterMember.get(getBundleContextOfObject(this));
         zipkinCollector = provider.createCollector(configuration.getConnectionString(), createStorage());
         if(zipkinCollector != null) {
             zipkinCollector.start();
@@ -72,7 +74,7 @@ final class ZipkinConnector extends DataStreamConnector implements AsyncSpanCons
             @Override
             public AsyncSpanConsumer asyncSpanConsumer() {
                 //only active cluster node can consume spans
-                if (DistributedServices.isActiveNode(getBundleContextOfObject(ZipkinConnector.this)))
+                if (clusterMember.isActive())
                     return ZipkinConnector.this;
                 else
                     return (spans, callback) -> {

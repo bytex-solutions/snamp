@@ -1,11 +1,9 @@
 package com.bytex.snamp.web.serviceModel;
 
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.core.SharedObjectType;
-import com.bytex.snamp.internal.Utils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.*;
@@ -36,10 +34,8 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
     protected AbstractPrincipalBoundedService(final Class<USERDATA> userDataType) {
         mapper = new ObjectMapper();
         this.userDataType = Objects.requireNonNull(userDataType);
-        final BundleContext context = Utils.getBundleContextOfObject(this);
         final String storageName = userDataType.getName();
-        userDataStorage = DistributedServices.getDistributedObject(
-                context,
+        userDataStorage = ClusterMember.get(getBundleContext()).getService(
                 storageName,
                 SharedObjectType.PERSISTENT_KV_STORAGE)
                 .orElseThrow(AssertionError::new);

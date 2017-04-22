@@ -4,6 +4,7 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.gateway.GatewayActivator;
@@ -27,7 +28,6 @@ import java.util.Hashtable;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
-import static com.bytex.snamp.core.DistributedServices.getProcessLocalObject;
 
 /**
  * @author Roman Sakno
@@ -102,7 +102,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
         measurement.setInstanceName(INSTANCE_NAME);
         sendMeasurement(measurement);
         //now we expect that the notification will be recorded into InfluxDB
-        final Communicator communicator = getProcessLocalObject(InfluxWriteMock.INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        final Communicator communicator = ClusterMember.get(null).getService(InfluxWriteMock.INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
         final Serializable points = communicator.receiveMessage(Communicator.ANY_MESSAGE, Communicator.IncomingMessage::getPayload, Duration.ofSeconds(2));
         assertTrue(points instanceof String);
         assertTrue(points.toString().startsWith("usedRAM,connectionString=javaApp-1,connectionType=http,managedResource=test-target value=100500i"));

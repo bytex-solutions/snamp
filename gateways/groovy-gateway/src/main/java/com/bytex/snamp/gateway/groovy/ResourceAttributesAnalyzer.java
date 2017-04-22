@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.bytex.snamp.gateway.modeling.PeriodicPassiveChecker;
@@ -140,6 +140,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
     }
 
     private final Set<AttributeSelectStatement> selectionStatements;
+    private final ClusterMember clusterMember;
 
     /**
      * Initializes a new attribute value sender.
@@ -152,6 +153,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
                                       final ModelOfAttributes<TAccessor> attributes) {
         super(period, attributes);
         selectionStatements = new LinkedHashSet<>(10);
+        clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
     }
 
     protected AttributeSelectStatement createSelector(final String expression) throws InvalidSyntaxException {
@@ -169,7 +171,7 @@ public class ResourceAttributesAnalyzer<TAccessor extends AttributeAccessor> ext
     @Override
     public final boolean accept(final String resourceName, final TAccessor accessor) {
         //abort if passive node
-        if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
+        if (clusterMember.isActive()) {
             selectionStatements.stream()
                     .filter(group -> group.match((DescriptorRead) accessor))
                     .forEach(group -> group.process(resourceName, accessor));

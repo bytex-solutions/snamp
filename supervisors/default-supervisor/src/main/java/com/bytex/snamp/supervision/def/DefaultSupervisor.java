@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
@@ -91,7 +92,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
 
     private void setupHealthStatusProvider(){
         if(healthStatusProvider == null)
-            overrideHealthStatusProvider(new DefaultHealthStatusProvider());
+            overrideHealthStatusProvider(new DefaultHealthStatusProvider(ClusterMember.get(getBundleContext())));
         else
             getLogger().info(String.format("HealthStatusProvider is overridden with %s", healthStatusProvider));
     }

@@ -10,8 +10,7 @@ import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
-import com.bytex.snamp.core.DistributedServices;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusEventListener;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
@@ -24,10 +23,7 @@ import javax.management.AttributeList;
 import javax.management.JMException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
@@ -127,13 +123,15 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     private volatile HealthStatus status;
     private HealthStatusTrigger trigger;
     private final BatchUpdateState batchUpdateState;
+    private final ClusterMember clusterMember;
 
-    public DefaultHealthStatusProvider() {
+    public DefaultHealthStatusProvider(@Nonnull final ClusterMember clusterMember) {
         checkers = new ConcurrentHashMap<>();
         status = OkStatus.getInstance();
         trigger = HealthStatusTrigger.IDENTITY;
         listeners = new HealthStatusEventListenerList();
         batchUpdateState = new BatchUpdateState();
+        this.clusterMember = Objects.requireNonNull(clusterMember);
     }
 
     public final void setTrigger(@Nonnull final HealthStatusTrigger value){
@@ -142,7 +140,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     private HealthStatus invokeTrigger(final HealthStatus prev, final HealthStatus next){
         //trigger can be executed on active node only
-        return DistributedServices.isActiveNode(getBundleContext()) ? trigger.statusChanged(prev, next) : next;
+        return clusterMember.isActive() ? trigger.statusChanged(prev, next) : next;
     }
 
     protected final void updateStatus(final Function<? super HealthStatus, ? extends HealthStatus> statusUpdater) {
@@ -278,10 +276,6 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     public final void removeCheckers(){
         checkers.clear();
-    }
-
-    protected final BundleContext getBundleContext(){
-        return Utils.getBundleContextOfObject(this);
     }
 
     /**

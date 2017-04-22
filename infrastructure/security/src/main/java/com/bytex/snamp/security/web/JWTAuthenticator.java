@@ -1,6 +1,7 @@
 package com.bytex.snamp.security.web;
 
 import com.auth0.jwt.JWTVerifyException;
+import com.bytex.snamp.core.ClusterMember;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.AccountException;
@@ -9,8 +10,7 @@ import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Principal;
-
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import java.util.Objects;
 
 /**
  * Represents abstract class for REST controllers with
@@ -19,6 +19,11 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  */
 public class JWTAuthenticator {
+    private final ClusterMember clusterMember;
+
+    public JWTAuthenticator(final ClusterMember clusterMember){
+        this.clusterMember = Objects.requireNonNull(clusterMember);
+    }
 
     /**
      * Issue auth token string.
@@ -32,7 +37,7 @@ public class JWTAuthenticator {
     }
 
     protected String getTokenSecret(){
-        return TokenSecretHolder.getInstance().getSecret(getBundleContextOfObject(this));
+        return TokenSecretHolder.getInstance().getSecret(clusterMember);
     }
 
     public final Principal verify(final String userName, final String jwToken) throws GeneralSecurityException, IOException {

@@ -17,6 +17,7 @@ import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.health.ResourceIsNotAvailable;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,6 +35,10 @@ public class HealthStatusProviderTest extends Assert {
     private static final class TestHealthStatusProvider extends DefaultHealthStatusProvider{
         private final AttributeCheckerFactory checkerFactory = new AttributeCheckerFactory();
         private final TriggerFactory triggerFactory = new TriggerFactory();
+
+        TestHealthStatusProvider() {
+            super(ClusterMember.get(null));
+        }
 
         void setupHealthCheck(@Nonnull final SupervisorInfo.HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
             setTrigger(triggerFactory.compile(healthCheckInfo.getTrigger()));

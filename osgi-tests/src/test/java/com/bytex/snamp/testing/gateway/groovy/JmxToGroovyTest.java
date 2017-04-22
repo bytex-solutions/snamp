@@ -1,6 +1,7 @@
 package com.bytex.snamp.testing.gateway.groovy;
 
 import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
@@ -24,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
-import static com.bytex.snamp.core.DistributedServices.getProcessLocalObject;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -37,9 +37,11 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String INSTANCE_NAME = "groovy-gateway";
     private static final String GATEWAY_NAME = "groovy";
     private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
+    private final ClusterMember processLocalMember;
 
     public JmxToGroovyTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
+        processLocalMember = ClusterMember.get(null);
     }
 
     private static String getGroovyScriptPath(){
@@ -48,14 +50,14 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void stringAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = getProcessLocalObject(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
         final String result = channel.sendRequest("changeStringAttribute", Communicator::getPayloadAsString, Duration.ofSeconds(10));
         assertEquals("Frank Underwood", result);
     }
 
     @Test
     public void booleanAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = getProcessLocalObject(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
         final Serializable result = channel.sendRequest("changeBooleanAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(10));
         assertTrue(result instanceof Boolean);
         assertEquals(Boolean.TRUE, result);
@@ -63,7 +65,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void integerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = getProcessLocalObject(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
         final Serializable result = channel.sendRequest("changeIntegerAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(10));
         assertTrue(result instanceof Integer);
         assertEquals(1020, result);
@@ -71,7 +73,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void bigIntegerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = getProcessLocalObject(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
         final Serializable result = channel.sendRequest("changeBigIntegerAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(2));
         assertTrue(result instanceof BigInteger);
         assertEquals(BigInteger.valueOf(1020L), result);
@@ -79,7 +81,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Test
     public void notificationTest() throws ExecutionException, TimeoutException, InterruptedException {
-        final Communicator channel = getProcessLocalObject(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
         final String MESSAGE = "changeStringAttributeSilent";
         final Future<Serializable> awaitor = channel.receiveMessage(Communicator.MessageType.RESPONSE, Communicator.IncomingMessage::getPayload);
         channel.sendMessage(MESSAGE, Communicator.MessageType.REQUEST);

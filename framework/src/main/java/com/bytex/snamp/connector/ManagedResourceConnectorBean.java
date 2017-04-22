@@ -21,6 +21,7 @@ import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
 
@@ -34,7 +35,6 @@ import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
-import static com.bytex.snamp.core.DistributedServices.getDistributedObject;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -125,7 +125,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final BundleContext context) {
             super(resourceName, AbstractNotificationInfo.class, false);
             this.notifTypes = Objects.requireNonNull(notifTypes);
-            this.sequenceNumberGenerator = getDistributedObject(context, "notifications-".concat(resourceName), COUNTER)
+            this.sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER)
                     .orElseThrow(AssertionError::new);
         }
 

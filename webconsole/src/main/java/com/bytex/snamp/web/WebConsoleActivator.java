@@ -3,6 +3,8 @@ package com.bytex.snamp.web;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
@@ -40,7 +42,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         @Override
         @Nonnull
         protected WebConsoleEngineImpl activateService(final Map<String, Object> identity) throws InvalidSyntaxException {
-            final WebConsoleEngineImpl registry = new WebConsoleEngineImpl();
+            final WebConsoleEngineImpl registry = new WebConsoleEngineImpl(ClusterMember.get(Utils.getBundleContextOfObject(this)));
             identity.put("alias", WebConsoleEngineImpl.CONTEXT);
             return registry;
         }

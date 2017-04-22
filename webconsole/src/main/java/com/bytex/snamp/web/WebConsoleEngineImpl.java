@@ -1,6 +1,7 @@
 package com.bytex.snamp.web;
 
 import com.bytex.snamp.Convert;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SimpleFilterBuilder;
 import com.bytex.snamp.internal.Utils;
@@ -31,8 +32,8 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
     static final String CONTEXT = "/snamp/console/events";
     private transient final WebSecurityFilter securityFilter;
 
-    WebConsoleEngineImpl() {
-        securityFilter = WebConsoleSecurityFilter.forWebSocket();
+    WebConsoleEngineImpl(final ClusterMember clusterMember) {
+        securityFilter = WebConsoleSecurityFilter.forWebSocket(clusterMember);
     }
 
     private ServiceReference<WebConsoleService>[] getServices() {

@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway.nrdp;
 import ch.shamu.jsendnrdp.NRDPServerConnectionSettings;
 import ch.shamu.jsendnrdp.domain.NagiosCheckResult;
 import ch.shamu.jsendnrdp.domain.State;
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
@@ -70,17 +70,19 @@ final class NRDPGateway extends AbstractGateway {
 
     private static final class NSCAPeriodPassiveCheckSender extends PeriodicPassiveChecker<NRDPAttributeAccessor> {
         private final ConcurrentPassiveCheckSender checkSender;
+        private final ClusterMember clusterMember;
 
         NSCAPeriodPassiveCheckSender(final Duration period,
                                      final ConcurrentPassiveCheckSender sender,
                                      final NRDPAttributeModelOfAttributes attributes) {
             super(period, attributes);
             checkSender = Objects.requireNonNull(sender);
+            clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
         }
 
         @Override
         public boolean accept(final String resourceName, final NRDPAttributeAccessor accessor) {
-            if (DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this))) {
+            if (clusterMember.isActive()) {
                 checkSender.send(accessor, resourceName);
                 return true;
             } else return false;

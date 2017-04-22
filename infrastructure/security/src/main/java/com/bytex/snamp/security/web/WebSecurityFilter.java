@@ -1,5 +1,6 @@
 package com.bytex.snamp.security.web;
 
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableList;
 import com.sun.jersey.api.core.HttpRequestContext;
@@ -20,8 +21,6 @@ import java.security.SignatureException;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-
 /**
  * Filter for JWT based auth - refreshes token in case it has 1/3 time to live.
  * @author Evgeniy Kirichenko
@@ -39,10 +38,15 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
     private final String authCookieName;
     private final String securedPath;
     private final ImmutableList<JWTokenExtractor> extractors;
+    private final ClusterMember clusterMember;
 
-    private WebSecurityFilter(final String authCookieName, final String securedPath, final JWTokenLocation... tokenLocations) {
+    private WebSecurityFilter(final String authCookieName,
+                              final String securedPath,
+                              final ClusterMember clusterMember,
+                              final JWTokenLocation... tokenLocations) {
         this.authCookieName = Objects.requireNonNull(authCookieName);
         this.securedPath = Objects.requireNonNull(securedPath);
+        this.clusterMember = Objects.requireNonNull(clusterMember);
         if (tokenLocations.length == 0)
             extractors = ImmutableList.of(new AuthorizationTokenExtractor());
         else {
@@ -59,12 +63,14 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
         }
     }
 
-    public WebSecurityFilter(final String authCookieName, final JWTokenLocation... tokenLocations){
-        this(authCookieName, "/", tokenLocations);
+    public WebSecurityFilter(final String authCookieName,
+                             final ClusterMember clusterMember,
+                             final JWTokenLocation... tokenLocations){
+        this(authCookieName, "/", clusterMember, tokenLocations);
     }
 
-    public WebSecurityFilter(final JWTokenLocation... tokenLocations) {
-        this(DEFAULT_AUTH_COOKIE, tokenLocations);
+    public WebSecurityFilter(final ClusterMember clusterMember, final JWTokenLocation... tokenLocations) {
+        this(DEFAULT_AUTH_COOKIE, clusterMember, tokenLocations);
     }
 
     protected boolean authenticationRequired(final HttpRequestContext request){
@@ -76,7 +82,7 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
     }
 
     protected String getTokenSecret(){
-        return TokenSecretHolder.getInstance().getSecret(getBundleContextOfObject(this));
+        return TokenSecretHolder.getInstance().getSecret(clusterMember);
     }
 
     private JwtSecurityContext createSecurityContext(final HttpRequestContext request) {
