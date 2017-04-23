@@ -15,7 +15,7 @@ public abstract class ClusterMalfunctionStatus extends MalfunctionStatus {
         this(SEVERITY, clusterName);
     }
 
-    public ClusterMalfunctionStatus(final int severity, final String clusterName) {
+    ClusterMalfunctionStatus(final int severity, final String clusterName) {
         super(severity);
         this.clusterName = clusterName;
     }

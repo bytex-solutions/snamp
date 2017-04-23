@@ -123,7 +123,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     private volatile HealthStatus status;
     private HealthStatusTrigger trigger;
     private final BatchUpdateState batchUpdateState;
-    private final ClusterMember clusterMember;
+    protected final ClusterMember clusterMember;
 
     public DefaultHealthStatusProvider(@Nonnull final ClusterMember clusterMember) {
         checkers = new ConcurrentHashMap<>();

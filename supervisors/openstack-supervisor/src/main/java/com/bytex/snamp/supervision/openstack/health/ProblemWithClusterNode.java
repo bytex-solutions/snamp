@@ -1,39 +1,34 @@
 package com.bytex.snamp.supervision.openstack.health;
 
-import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
-import org.openstack4j.model.senlin.Cluster;
+import com.bytex.snamp.connector.health.ResourceMalfunctionStatus;
+import org.openstack4j.model.senlin.Node;
 
 import java.util.Locale;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
- * Represents some problem with cluster.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class ProblemWithCluster extends ClusterMalfunctionStatus {
-    private static final long serialVersionUID = -8376473095942011064L;
-    private final boolean critical;
+final class ProblemWithClusterNode extends ResourceMalfunctionStatus {
+    private static final long serialVersionUID = -5029802853159238367L;
     private final String details;
+    private final boolean critical;
 
-    private ProblemWithCluster(final String clusterName,
-                       final String details,
-                       final boolean critical){
-        super(clusterName);
+    private ProblemWithClusterNode(final String resourceName,
+                           final String details,
+                                   final boolean critical) {
+        super(resourceName);
         this.critical = critical;
         if(isNullOrEmpty(details))
-            this.details = critical ? "Cluster crashed" : "Cluster nodes partially unavailable";
+            this.details = critical ? "Node is not available" : "Node is in non-critical state";
         else
             this.details = details;
     }
 
-    static ProblemWithCluster critical(final Cluster cluster){
-        return new ProblemWithCluster(cluster.getName(), cluster.getStatusReason(), true);
-    }
-
-    static ProblemWithCluster warning(final Cluster cluster){
-        return new ProblemWithCluster(cluster.getName(), cluster.getStatusReason(), false);
+    static ProblemWithClusterNode error(final Node node){
+        return new ProblemWithClusterNode(node.getName(), node.getStatusReason(), true);
     }
 
     /**
