@@ -1,14 +1,17 @@
 package com.bytex.snamp.supervision.openstack;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
 import com.bytex.snamp.supervision.openstack.discovery.OpenStackDiscoveryService;
+import com.bytex.snamp.supervision.openstack.health.OpenStackHealthStatusProvider;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
-import org.openstack4j.api.identity.v3.ServiceEndpointService;
 import org.openstack4j.api.senlin.SenlinClusterService;
 import org.openstack4j.api.types.ServiceType;
+import org.openstack4j.model.senlin.Cluster;
 import org.openstack4j.openstack.OSFactory;
 
 /**
@@ -20,6 +23,7 @@ import org.openstack4j.openstack.OSFactory;
 final class OpenStackSupervisor extends DefaultSupervisor {
     @Aggregation    //non-cached
     private SenlinClusterService clusterService;
+    private String clusterID;
 
     OpenStackSupervisor(final String groupName) {
         super(groupName);
@@ -46,6 +50,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
     @Override
     protected void start(final SupervisorInfo configuration) throws Exception {
         final OpenStackSupervisorDescriptionProvider parser = getDescriptionProvider();
+        clusterID = parser.parseClusterID(configuration);
         final OSClientV3 openStackClient = OSFactory.builderV3()
                 .provider(parser.parseCloudProvider(configuration))
                 .endpoint(parser.parseApiEndpoint(configuration))
@@ -57,6 +62,12 @@ final class OpenStackSupervisor extends DefaultSupervisor {
             throw new OS4JException(message);
         }
         clusterService = openStackClient.senlin().cluster();
+        final Cluster cluster = clusterService.get(clusterID);
+        getLogger().info(String.format("Cluster %s is associated with group %s. Cluster status: %s(%s)",
+                clusterID,
+                groupName,
+                cluster.getStatus(),
+                cluster.getStatusReason()));
         //setup discovery service
         if(parser.isAutoDiscovery(configuration))
             overrideDiscoveryService(new OpenStackDiscoveryService(groupName));
@@ -68,8 +79,19 @@ final class OpenStackSupervisor extends DefaultSupervisor {
 
     }
 
-    private static void disableSnampDiscoveryEndpoint(final ServiceEndpointService endpoints){
-
+    /**
+     * Executes automatically using scheduling time.
+     */
+    @Override
+    protected void supervise() {
+        final SenlinClusterService clusterService = this.clusterService;
+        if (clusterService == null)
+            return;
+        final OpenStackHealthStatusProvider provider = queryObject(DefaultHealthStatusProvider.class)
+                .flatMap(p -> Convert.toType(p, OpenStackHealthStatusProvider.class))
+                .orElse(null);
+        if (provider != null)
+            provider.updateStatus(getBundleContext(), clusterService.get(clusterID), getResources());
     }
 
     /**

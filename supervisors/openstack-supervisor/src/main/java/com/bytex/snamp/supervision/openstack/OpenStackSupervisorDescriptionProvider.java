@@ -27,6 +27,7 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     private static final String PROJECT_PARAM = "project";
     private static final String PROJECT_DOMAIN_PARAM = "projectDomain";
     private static final String REGION_PARAM = "region";
+    private static final String CLUSTER_ID_PARAM = "clusterID";
     private static final String ELASTMAN_PARAM = "elasticityManagement";
     private static final String AUTO_DISCOVERY_PARAM = "autoDiscovery";
 
@@ -77,6 +78,11 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
             default:
                 return CloudProvider.UNKNOWN;
         }
+    }
+
+    String parseClusterID(final Map<String, String> configuration) throws OpenStackAbsentConfigurationParameterException {
+        return getValue(configuration, CLUSTER_ID_PARAM, Function.identity())
+                .orElseThrow(() -> new OpenStackAbsentConfigurationParameterException(CLUSTER_ID_PARAM));
     }
 
     Identifier parseUserDomain(final Map<String, String> configuration) {
