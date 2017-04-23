@@ -31,6 +31,16 @@ final class ProblemWithClusterNode extends ResourceMalfunctionStatus {
         return new ProblemWithClusterNode(node.getName(), node.getStatusReason(), true);
     }
 
+    static ProblemWithClusterNode migrating(final Node node) {
+        return new ProblemWithClusterNode(node.getName(), "The server is currently being migrated", true);
+    }
+
+    static ProblemWithClusterNode reboot(final Node node, final boolean hardReboot) {
+        return new ProblemWithClusterNode(node.getName(),
+                hardReboot ? "The server is hard rebooting" : "The server is in a soft reboot state. A reboot command was passed to the operating system",
+                hardReboot);
+    }
+
     /**
      * Returns the localized description of this object.
      *

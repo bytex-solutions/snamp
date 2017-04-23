@@ -65,6 +65,15 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
             case ERROR:
                 status = ProblemWithClusterNode.error(node);
                 break;
+            case MIGRATING:
+                status = ProblemWithClusterNode.migrating(node);
+                break;
+            case REBOOT:
+                status = ProblemWithClusterNode.reboot(node, false);
+                break;
+            case HARD_REBOOT:
+                status = ProblemWithClusterNode.reboot(node, true);
+                break;
             default:
                 return;
         }

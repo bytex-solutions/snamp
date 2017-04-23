@@ -77,8 +77,13 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
         else if (status instanceof ClusterMalfunctionStatus) {
             putClusterMalfunctionFields((ClusterMalfunctionStatus) status, "ClusterMalfunction", node);
             node.put("details", status.toString());
+        }
+        else if(status instanceof ResourceMalfunctionStatus){
+            putResourceMalfunctionFields((ResourceMalfunctionStatus) status, "ResourceMalfunction", node);
+            node.put("details", status.toString());
         } else { //unknown status
-            putCommonFields((ResourceMalfunctionStatus) status, "Unknown", node);
+            node.put(TYPE_FIELD, "Unknown");
+            node.put(IS_CRITICAL_FIELD, status.isCritical());
             node.put("details", status.toString());
         }
         node.serialize(jgen, provider);
