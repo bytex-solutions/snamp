@@ -20,7 +20,7 @@
         <li dropdown>
           <a href="javascript:;" class="dropdown-toggle info-number" dropdown-open id="userNotificaion">
             <i class="fa fa-envelope-o"></i>
-            <span class="badge bg-green">{{logs.length}}</span>
+            <span class="badge bg-green">{{getLogsCountLabel()}}</span>
           </a>
           <ul id="menu1" class="dropdown-menu list-unstyled msg_list" dropdown-not-closable-zone>
             <li *ngIf="logs && logs.length > 0">

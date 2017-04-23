@@ -1,5 +1,6 @@
 import { ChartData } from './chart.data';
 import { Observable } from 'rxjs/Observable';
+const Chart = require('chart.js');
 
 export abstract class AbstractChart {
     public static VBAR:string = "verticalBarChartOfAttributeValues";
@@ -77,6 +78,7 @@ export abstract class AbstractChart {
         this.setSizeY(2);
         this._stopUpdate = false;
         this.pausedTime = new Date();
+        Chart.defaults.global.maintainAspectRatio = false;
     }
 
     // different types of charts should be rendered in different ways
@@ -103,6 +105,7 @@ export abstract class AbstractChart {
         });
     }
 
+    // do not use this method until it's really necessary
     public fitToContainer():void {
         let canvas:any = document.getElementById(this.id);
         if (canvas != undefined) {

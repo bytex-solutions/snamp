@@ -22,6 +22,7 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
     }
 
     public newValue(_data:ChartData):void {
+        if (document.hidden) return;
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {

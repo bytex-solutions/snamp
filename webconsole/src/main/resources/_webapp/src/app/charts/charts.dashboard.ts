@@ -312,9 +312,6 @@ export class Dashboard {
    	onChangeStop(index: number, event: NgGridItemEvent): void {
    		this._charts[index].preferences["gridcfg"] = event;
    		this._chartService.saveDashboard();
-        if (!this.isLineChartType(this._charts[index])) {
-            this._charts[index].fitToContainer();
-        }
    	}
 
    	removeChart(chartName:string):void {

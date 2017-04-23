@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, HostListener } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
@@ -8,9 +8,18 @@ import { NotificationFactory } from "./model/notifications/factory";
 
 @Injectable()
 export class SnampLogService {
-    private MAX_SIZE:number = 300;
+    // Flush the buffer if the user is closing browser
+    @HostListener('window:beforeunload', ['$event'])
+    beforeunloadHandler(event) {
+        if (this.buffer.length > 0) {
+            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
+        }
+    }
+
+    private MAX_SIZE:number = 500;
     private SPLICE_COUNT:number = 30; // how many elements will we delete from the end of the array
     private RECENT_COUNT:number = 15; // default count of the recent message
+    private buffer:AbstractNotification[] = []; // buffer to write logs on before setting it back to the storage
     private KEY:string = "snampLogs";
     private logObs:Subject<AbstractNotification>;
 
@@ -49,9 +58,11 @@ export class SnampLogService {
     }
 
     public pushLog(log:AbstractNotification) {
-        let logArray:AbstractNotification[] = this.getArray();
-        logArray.unshift(log);
-        this.localStorageService.set(this.KEY, logArray);
+        this.buffer.unshift(log);
+        if (this.buffer.length > this.SPLICE_COUNT) {
+            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
+            this.buffer = [];
+        }
         this.logObs.next(log);
     }
 

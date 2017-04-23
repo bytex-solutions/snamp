@@ -96796,6 +96796,7 @@ exports.ChartOfAttributeValues = ChartOfAttributeValues;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
+var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var AbstractChart = (function () {
     function AbstractChart() {
         this.preferences = {};
@@ -96809,6 +96810,7 @@ var AbstractChart = (function () {
         this.setSizeY(2);
         this._stopUpdate = false;
         this.pausedTime = new Date();
+        Chart.defaults.global.maintainAspectRatio = false;
     }
     AbstractChart.prototype.getGroupName = function () {
         return this.preferences["groupName"];
@@ -96865,6 +96867,7 @@ var AbstractChart = (function () {
             }
         });
     };
+    // do not use this method until it's really necessary
     AbstractChart.prototype.fitToContainer = function () {
         var canvas = document.getElementById(this.id);
         if (canvas != undefined) {
@@ -97098,6 +97101,8 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         return new instance_axis_1.InstanceNameAxis();
     };
     HorizontalBarChartOfAttributeValues.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {
@@ -97120,9 +97125,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
                 this._chartObject.data.datasets[0].borderColor = this._borderColorData;
                 this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
             }
-            if (!document.hidden) {
-                this._chartObject.update();
-            }
+            this._chartObject.update();
         }
     };
     HorizontalBarChartOfAttributeValues.prototype.doDraw = function () {
@@ -97148,7 +97151,6 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
                 }
             }
         });
-        this.fitToContainer();
     };
     HorizontalBarChartOfAttributeValues.prototype.toJSON = function () {
         var _value = {};
@@ -97478,6 +97480,8 @@ var PanelOfAttributeValues = (function (_super) {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
     PanelOfAttributeValues.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {
@@ -97562,6 +97566,8 @@ var PieChartOfAttributeValues = (function (_super) {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
     PieChartOfAttributeValues.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {
@@ -97584,9 +97590,7 @@ var PieChartOfAttributeValues = (function (_super) {
                 this._chartObject.data.datasets[0].borderColor = this._borderColorData;
                 this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
             }
-            if (!document.hidden) {
-                this._chartObject.update();
-            }
+            this._chartObject.update();
         }
     };
     PieChartOfAttributeValues.prototype.doDraw = function () {
@@ -97614,7 +97618,6 @@ var PieChartOfAttributeValues = (function (_super) {
                 }
             }
         });
-        this.fitToContainer();
     };
     PieChartOfAttributeValues.prototype.toJSON = function () {
         var _value = {};
@@ -97663,6 +97666,8 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
     VerticalBarChartOfAttributeValues.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {
@@ -97685,9 +97690,7 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
                 this._chartObject.data.datasets[0].borderColor = this._borderColorData;
                 this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
             }
-            if (!document.hidden) {
-                this._chartObject.update();
-            }
+            this._chartObject.update();
         }
     };
     VerticalBarChartOfAttributeValues.prototype.doDraw = function () {
@@ -97712,7 +97715,6 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
                 }
             }
         });
-        this.fitToContainer();
     };
     VerticalBarChartOfAttributeValues.prototype.toJSON = function () {
         var _value = {};
@@ -99526,7 +99528,7 @@ exports.Sidebar = Sidebar;
 /***/ "./src/app/menu/topbar/topnavbar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            {{getUserName()}}\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"javascript:;\">Profile</a></li>\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{logs.length}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.shortDescription()}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            {{getUserName()}}\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"javascript:;\">Profile</a></li>\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{getLogsCountLabel()}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.shortDescription()}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
@@ -99595,14 +99597,21 @@ var TopNavBar = (function () {
             }
         });
     };
+    TopNavBar.prototype.getLogsCountLabel = function () {
+        return this.logs.length.toString() + (this.logs.length >= TopNavBar.maxLogsToDisplay ? "+" : "");
+    };
     TopNavBar.prototype.ngAfterViewInit = function () {
         var _this = this;
         this._snampLogService.getLogObs()
             .subscribe(function (newLog) {
             _this.logs.unshift(newLog);
+            if (_this.logs.length > TopNavBar.maxLogsToDisplay) {
+                _this.logs.pop();
+            }
             _this.cd.detectChanges();
         });
     };
+    TopNavBar.maxLogsToDisplay = 50;
     TopNavBar = __decorate([
         core_1.Component({
             selector: 'topnav-bar',
@@ -99856,14 +99865,21 @@ var factory_1 = __webpack_require__("./src/app/services/model/notifications/fact
 var SnampLogService = (function () {
     function SnampLogService(localStorageService) {
         this.localStorageService = localStorageService;
-        this.MAX_SIZE = 300;
+        this.MAX_SIZE = 500;
         this.SPLICE_COUNT = 30; // how many elements will we delete from the end of the array
         this.RECENT_COUNT = 15; // default count of the recent message
+        this.buffer = []; // buffer to write logs on before setting it back to the storage
         this.KEY = "snampLogs";
         var welcomeMessage = new log_notification_1.LogNotification();
         welcomeMessage.message = "SNAMP WEB UI has started successfully";
         this.logObs = new Subject_1.Subject();
     }
+    // Flush the buffer if the user is closing browser
+    SnampLogService.prototype.beforeunloadHandler = function (event) {
+        if (this.buffer.length > 0) {
+            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
+        }
+    };
     SnampLogService.prototype.getLogObs = function () {
         return this.logObs.asObservable().share();
     };
@@ -99890,9 +99906,11 @@ var SnampLogService = (function () {
         this.pushLog(welcomeMessage);
     };
     SnampLogService.prototype.pushLog = function (log) {
-        var logArray = this.getArray();
-        logArray.unshift(log);
-        this.localStorageService.set(this.KEY, logArray);
+        this.buffer.unshift(log);
+        if (this.buffer.length > this.SPLICE_COUNT) {
+            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
+            this.buffer = [];
+        }
         this.logObs.next(log);
     };
     SnampLogService.prototype.getLastLogs = function (count) {
@@ -99914,6 +99932,12 @@ var SnampLogService = (function () {
     SnampLogService.prototype.clear = function () {
         this.localStorageService.clearAll();
     };
+    __decorate([
+        core_1.HostListener('window:beforeunload', ['$event']), 
+        __metadata('design:type', Function), 
+        __metadata('design:paramtypes', [Object]), 
+        __metadata('design:returntype', void 0)
+    ], SnampLogService.prototype, "beforeunloadHandler", null);
     SnampLogService = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object])

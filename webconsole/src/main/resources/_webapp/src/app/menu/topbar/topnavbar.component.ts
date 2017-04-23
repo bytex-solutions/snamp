@@ -15,6 +15,8 @@ export class TopNavBar {
 
     public logs:AbstractNotification[] = [];
 
+    private static maxLogsToDisplay:number = 50;
+
     constructor(overlay: Overlay,
                 vcRef: ViewContainerRef,
                 private _cookieService:CookieService,
@@ -74,10 +76,17 @@ export class TopNavBar {
         });
     }
 
+    getLogsCountLabel():string {
+        return this.logs.length.toString() + (this.logs.length >= TopNavBar.maxLogsToDisplay ? "+" : "");
+    }
+
     ngAfterViewInit():void {
        this._snampLogService.getLogObs()
           .subscribe((newLog:AbstractNotification) => {
             this.logs.unshift(newLog);
+            if (this.logs.length > TopNavBar.maxLogsToDisplay) {
+                this.logs.pop();
+            }
             this.cd.detectChanges();
         });
     }

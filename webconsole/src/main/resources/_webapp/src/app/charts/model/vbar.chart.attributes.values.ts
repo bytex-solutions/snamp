@@ -26,6 +26,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
     }
 
     public newValue(_data:ChartData):void {
+        if (document.hidden) return;
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {
@@ -48,13 +49,11 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 this._chartObject.data.datasets[0].borderColor = this._borderColorData;
                 this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
             }
-            if (!document.hidden) {
-                this._chartObject.update();
-            }
+            this._chartObject.update();
         }
     }
 
-    public doDraw():void    {
+    public doDraw():void {
         this._chartObject = new Chart($("#" + this.id), {
             type: "bar",
             data: {
@@ -76,7 +75,6 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 }
             }
         });
-        this.fitToContainer();
     }
 
     public toJSON():any {
