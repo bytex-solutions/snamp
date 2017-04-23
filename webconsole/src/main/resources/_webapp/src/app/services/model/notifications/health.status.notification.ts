@@ -69,6 +69,6 @@ export class HealthStatusNotification extends AbstractNotification {
         if (_json["groupName"] != undefined) {
             this.groupName = _json["groupName"];
         }
-        this.level = "WARN"; // always make it quite important (because no level is being received from backend)
+        this.level = this.currentStatus.isCritical() ? "error" : "warn"; // always make it quite important (because no level is being received from backend)
     }
 }

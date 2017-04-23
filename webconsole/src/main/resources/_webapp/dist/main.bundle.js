@@ -100718,6 +100718,7 @@ var NotificationFactory = (function () {
                 _notification = Object.assign(new health_status_notification_1.HealthStatusNotification(), _json);
                 _notification.prevStatus = factory_1.StatusFactory.healthStatusFromObject(_json['_prevStatus']);
                 _notification.currentStatus = factory_1.StatusFactory.healthStatusFromObject(_json['_currentStatus']);
+                _notification.level = _notification.currentStatus.isCritical() ? 'error' : 'warn';
                 break;
             case abstract_notification_1.AbstractNotification.RESOURCE:
                 _notification = Object.assign(new resource_notification_1.ResourceNotification(), _json);
@@ -100852,7 +100853,7 @@ var HealthStatusNotification = (function (_super) {
         if (_json["groupName"] != undefined) {
             this.groupName = _json["groupName"];
         }
-        this.level = "WARN"; // always make it quite important (because no level is being received from backend)
+        this.level = this.currentStatus.isCritical() ? "error" : "warn"; // always make it quite important (because no level is being received from backend)
     };
     return HealthStatusNotification;
 }(abstract_notification_1.AbstractNotification));
