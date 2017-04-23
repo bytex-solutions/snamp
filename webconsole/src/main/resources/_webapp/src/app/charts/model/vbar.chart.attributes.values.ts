@@ -4,14 +4,12 @@ import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
 import { ChartData } from './chart.data';
 
-const d3 = require('d3');
-const nv = require('nvd3');
+const Chart = require('chart.js');
 
 export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.VBAR;
 
     private _chartObject:any = undefined;
-    private _svgReadyData:any = undefined;
 
     public createDefaultAxisX() {
         return new InstanceNameAxis();
@@ -25,7 +23,6 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         super();
         this.setSizeX(3);
         this.setSizeY(3);
-        this._svgReadyData = this.prepareDatasets();
     }
 
     public newValue(_data:ChartData):void {
@@ -37,60 +34,48 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 break;
             }
         }
+        let updateColors:boolean = false;
         if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to an array
-            this._svgReadyData[0].values.push({
-                    label: _data.instanceName,
-                    value: _data.attributeName
-                });
-        } else {
-            for (let i = 0; i < this._svgReadyData[0].values.length; i++) {
-                if (this._svgReadyData[0].values[i].label == _data.instanceName) {
-                    this._svgReadyData[0].values[i].value = _data.attributeValue;
-                }
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+            _index = this.chartData.length - 1; // and set it to the end of the array
+            updateColors = true;
+        }
+        if (this._chartObject != undefined) {
+            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            if (updateColors) {
+                this.updateColors();
+                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
+                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
+            }
+            if (!document.hidden) {
+                this._chartObject.update();
             }
         }
-
-        if (this._chartObject != undefined) {
-            this._chartObject.update();
-        }
     }
 
-    private prepareDatasets():any {
-        let chartName:string = (<AttributeValueAxis> this.getAxisY()).getLabelRepresentation();
-        let _value:any = [];
-        _value.push({
-            key: chartName,
-            values: []
+    public doDraw():void    {
+        this._chartObject = new Chart($("#" + this.id), {
+            type: "bar",
+            data: {
+                labels: this.instances,
+                datasets: [{
+                    label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
+                    data: this.chartData.map(data => data.attributeValue),
+                    backgroundColor : this._backgroundColors,
+                    borderColor: this._borderColorData,
+                    hoverBackgroundColor: this._backgroundHoverColors,
+                    borderWidth: 1
+                }],
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: this.component
+                    }
+                }
+            }
         });
-        for (let i = 0; i < this.chartData.length; i++) {
-            _value[0].values.push({
-                label: this.chartData[i].instanceName,
-                value: this.chartData[i].attributeValue
-            });
-        }
-        return _value;
-    }
-
-    protected doDraw():void {
-         // refresh data to be actual in this phase
-         this._svgReadyData = this.prepareDatasets();
-         let _thisReference = this;
-          nv.addGraph(function() {
-              let chart = nv.models.discreteBarChart()
-                .x(function(d) { return d.label })
-                .y(function(d) { return d.value })
-                .staggerLabels(true)
-                .showValues(true);
-
-             d3.select('#' + _thisReference.id)
-                 .datum(_thisReference._svgReadyData)
-                 .call(chart);
-
-             nv.utils.windowResize(chart.update);
-             _thisReference._chartObject = chart;
-             return chart;
-           });
         this.fitToContainer();
     }
 

@@ -34,7 +34,7 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
         let _chr = $("#panel_" + this.id);
-        if (_chr != undefined) {
+        if (_chr != undefined && !document.hidden) {
             if (_index == -1) {
                 _chr.append('<dt>' + _data.instanceName + '</dt>');
                 let _newDD = $('<dd>' + _data.attributeValue + '</dd>');

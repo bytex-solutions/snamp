@@ -152,12 +152,10 @@ export class Dashboard {
    }
 
    ngAfterViewInit():void {
-        console.log("ng on init view for chart dashboard... ");
         let _thisReference:any = this;
         this.route.params
              .map(params => params['groupName'])
              .subscribe((gn) => {
-                console.log("Component for group: ", gn);
                 this.groupName = gn;
                 this._charts = this._chartService.getChartsByGroupName(this.groupName);
                 for (let i = 0; i < this._charts.length; i++) {
@@ -165,7 +163,7 @@ export class Dashboard {
                 }
                 this.timerId = setInterval(function(){
                     _thisReference._chartService.receiveChartDataForGroupName(gn);
-                }, 500);
+                }, 1500);
              });
         $(document).ready(function(){
              _thisReference.initWizard();

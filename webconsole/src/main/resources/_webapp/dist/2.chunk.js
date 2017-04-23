@@ -129,12 +129,10 @@ var Dashboard = (function () {
     };
     Dashboard.prototype.ngAfterViewInit = function () {
         var _this = this;
-        console.log("ng on init view for chart dashboard... ");
         var _thisReference = this;
         this.route.params
             .map(function (params) { return params['groupName']; })
             .subscribe(function (gn) {
-            console.log("Component for group: ", gn);
             _this.groupName = gn;
             _this._charts = _this._chartService.getChartsByGroupName(_this.groupName);
             for (var i = 0; i < _this._charts.length; i++) {
@@ -142,7 +140,7 @@ var Dashboard = (function () {
             }
             _this.timerId = setInterval(function () {
                 _thisReference._chartService.receiveChartDataForGroupName(gn);
-            }, 500);
+            }, 1500);
         });
         $(document).ready(function () {
             _thisReference.initWizard();

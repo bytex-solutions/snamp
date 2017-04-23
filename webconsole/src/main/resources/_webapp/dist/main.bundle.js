@@ -96448,27 +96448,29 @@ var App = (function () {
                     PNotify.removeAll();
                     _this.notificationCount = 0;
                 }
-                var notice = new PNotify({
-                    title: _log.level,
-                    text: _log.shortDescription() + "<a class='details'>Details</a>",
-                    type: _log.level,
-                    hide: false,
-                    styling: 'bootstrap3',
-                    addclass: "stack-bottomright",
-                    animate_speed: "fast",
-                    stack: _this.stack_bottomright
-                });
-                var _thisReference_1 = _this;
-                notice.get().find('a.details').on('click', function () {
-                    _thisReference_1.modal.alert()
-                        .size('lg')
-                        .title("Details for notification")
-                        .body(_log.htmlDetails())
-                        .isBlocking(false)
-                        .keyboard(27)
-                        .open();
-                });
-                _this.notificationCount++;
+                if (!document.hidden) {
+                    var notice = new PNotify({
+                        title: _log.level,
+                        text: _log.shortDescription() + "<a class='details'>Details</a>",
+                        type: _log.level,
+                        hide: false,
+                        styling: 'bootstrap3',
+                        addclass: "stack-bottomright",
+                        animate_speed: "fast",
+                        stack: _this.stack_bottomright
+                    });
+                    var _thisReference_1 = _this;
+                    notice.get().find('a.details').on('click', function () {
+                        _thisReference_1.modal.alert()
+                            .size('lg')
+                            .title("Details for notification")
+                            .body(_log.htmlDetails())
+                            .isBlocking(false)
+                            .keyboard(27)
+                            .open();
+                    });
+                    _this.notificationCount++;
+                }
             }
         }, function (msg) {
             console.log("Error occurred while listening to the socket: ", msg);
@@ -96694,7 +96696,23 @@ var TwoDimensionalChartOfAttributeValues = (function (_super) {
     __extends(TwoDimensionalChartOfAttributeValues, _super);
     function TwoDimensionalChartOfAttributeValues() {
         _super.apply(this, arguments);
+        // for chartJS purposes
+        this._borderColorData = [];
+        this._backgroundColors = [];
+        this._backgroundHoverColors = [];
     }
+    // for chartJS purposes
+    TwoDimensionalChartOfAttributeValues.hslFromValue = function (i, count, opacity) {
+        var clr = 360 * i / count;
+        return 'hsla(' + clr + ', 100%, 50%, ' + opacity + ')';
+    };
+    // for chartJS purposes
+    TwoDimensionalChartOfAttributeValues.prototype.updateColors = function () {
+        var _this = this;
+        this._backgroundColors = this.chartData.map(function (data, i) { return TwoDimensionalChartOfAttributeValues.hslFromValue(i, _this.chartData.length, 0.3); });
+        this._borderColorData = new Array(this.chartData.length).fill(TwoDimensionalChartOfAttributeValues.borderColor);
+        this._backgroundHoverColors = this.chartData.map(function (data, i) { return TwoDimensionalChartOfAttributeValues.hslFromValue(i, _this.chartData.length, 0.75); });
+    };
     TwoDimensionalChartOfAttributeValues.prototype.getAxisX = function () {
         if (this.axisX == undefined) {
             this.axisX = this.createDefaultAxisX();
@@ -96721,6 +96739,8 @@ var TwoDimensionalChartOfAttributeValues = (function (_super) {
             this.getAxisY().sourceAttribute = sourceAttribute;
         }
     };
+    // for chartJS purposes
+    TwoDimensionalChartOfAttributeValues.borderColor = "#536980";
     return TwoDimensionalChartOfAttributeValues;
 }(abstract_chart_attributes_values_1.ChartOfAttributeValues));
 exports.TwoDimensionalChartOfAttributeValues = TwoDimensionalChartOfAttributeValues;
@@ -96998,25 +97018,6 @@ exports.ChartData = ChartData;
 
 /***/ },
 
-/***/ "./src/app/charts/model/chart.utils.ts":
-/***/ function(module, exports) {
-
-"use strict";
-"use strict";
-var ChartUtils = (function () {
-    function ChartUtils() {
-    }
-    ChartUtils.hslFromValue = function (i, count, opacity) {
-        var clr = 360 * i / count;
-        return 'hsla(' + clr + ', 100%, 50%, ' + opacity + ')';
-    };
-    return ChartUtils;
-}());
-exports.ChartUtils = ChartUtils;
-
-
-/***/ },
-
 /***/ "./src/app/charts/model/chrono.axis.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -97082,7 +97083,6 @@ var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/chart
 var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
-var chart_utils_1 = __webpack_require__("./src/app/charts/model/chart.utils.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var HorizontalBarChartOfAttributeValues = (function (_super) {
     __extends(HorizontalBarChartOfAttributeValues, _super);
@@ -97098,7 +97098,6 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         return new instance_axis_1.InstanceNameAxis();
     };
     HorizontalBarChartOfAttributeValues.prototype.newValue = function (_data) {
-        var _this = this;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].instanceName == _data.instanceName) {
@@ -97116,15 +97115,18 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         if (this._chartObject != undefined) {
             this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
             if (updateColors) {
-                this._chartObject.data.datasets[0].backgroundColor = this.chartData.map(function (data, i) { return chart_utils_1.ChartUtils.hslFromValue(i, _this.chartData.length, 0.3); });
-                this._chartObject.data.datasets[0].borderColor = new Array(this.chartData.length).fill("#536980");
-                this._chartObject.data.datasets[0].hoverBackgroundColor = this.chartData.map(function (data, i) { return chart_utils_1.ChartUtils.hslFromValue(i, _this.chartData.length, 0.75); });
+                this.updateColors();
+                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
+                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
             }
-            this._chartObject.update();
+            if (!document.hidden) {
+                this._chartObject.update();
+            }
         }
     };
     HorizontalBarChartOfAttributeValues.prototype.doDraw = function () {
-        var _this = this;
+        this.updateColors();
         this._chartObject = new Chart($("#" + this.id), {
             type: 'horizontalBar',
             data: {
@@ -97132,9 +97134,9 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
                 datasets: [{
                         label: this.getAxisX().getLabelRepresentation(),
                         data: this.chartData.map(function (data) { return data.attributeValue; }),
-                        backgroundColor: this.chartData.map(function (data, i) { return chart_utils_1.ChartUtils.hslFromValue(i, _this.chartData.length, 0.3); }),
-                        borderColor: new Array(this.chartData.length).fill("#536980"),
-                        hoverBackgroundColor: this.chartData.map(function (data, i) { return chart_utils_1.ChartUtils.hslFromValue(i, _this.chartData.length, 0.75); }),
+                        backgroundColor: this._backgroundColors,
+                        borderColor: this._borderColorData,
+                        hoverBackgroundColor: this._backgroundHoverColors,
                         borderWidth: 1
                     }],
                 options: {
@@ -97488,7 +97490,7 @@ var PanelOfAttributeValues = (function (_super) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
         var _chr = $("#panel_" + this.id);
-        if (_chr != undefined) {
+        if (_chr != undefined && !document.hidden) {
             if (_index == -1) {
                 _chr.append('<dt>' + _data.instanceName + '</dt>');
                 var _newDD = $('<dd>' + _data.attributeValue + '</dd>');
@@ -97543,18 +97545,15 @@ var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/chart
 var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
-var d3 = __webpack_require__("./node_modules/d3/index.js");
-var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
+var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var PieChartOfAttributeValues = (function (_super) {
     __extends(PieChartOfAttributeValues, _super);
     function PieChartOfAttributeValues() {
         _super.call(this);
         this.type = abstract_chart_1.AbstractChart.PIE;
         this._chartObject = undefined;
-        this._svgReadyData = undefined;
         this.setSizeX(3);
         this.setSizeY(3);
-        this._svgReadyData = this.prepareDatasets();
     }
     PieChartOfAttributeValues.prototype.createDefaultAxisX = function () {
         return new instance_axis_1.InstanceNameAxis();
@@ -97571,51 +97570,49 @@ var PieChartOfAttributeValues = (function (_super) {
                 break;
             }
         }
+        var updateColors = false;
         if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to an array
-            this._svgReadyData.push({ key: _data.instanceName, y: _data.attributeValue });
-        }
-        else {
-            for (var i = 0; i < this._svgReadyData.length; i++) {
-                if (this._svgReadyData[i].key == _data.instanceName) {
-                    this._svgReadyData[i].y = _data.attributeValue;
-                }
-            }
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+            _index = this.chartData.length - 1; // and set it to the end of the array
+            updateColors = true;
         }
         if (this._chartObject != undefined) {
-            this._chartObject.update();
+            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            if (updateColors) {
+                this.updateColors();
+                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
+                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
+            }
+            if (!document.hidden) {
+                this._chartObject.update();
+            }
         }
-    };
-    PieChartOfAttributeValues.prototype.prepareDatasets = function () {
-        var _value = [];
-        for (var i = 0; i < this.chartData.length; i++) {
-            _value.push({
-                key: this.chartData[i].instanceName,
-                y: this.chartData[i].attributeValue
-            });
-        }
-        return _value;
     };
     PieChartOfAttributeValues.prototype.doDraw = function () {
-        // refresh data to be actual in this phase
-        this._svgReadyData = this.prepareDatasets();
-        var _sam = this.getAxisY().getLabelRepresentation();
-        var _thisReference = this;
-        nv.addGraph(function () {
-            var pieChart = nv.models.pieChart()
-                .x(function (d) { return d.key; })
-                .y(function (d) { return d.y; })
-                .donut(true)
-                .padAngle(.08)
-                .cornerRadius(5)
-                .showLabels(true)
-                .id('donut1');
-            pieChart.pie.labelType('value').title(_sam);
-            d3.select("#" + _thisReference.id)
-                .datum(_thisReference._svgReadyData)
-                .call(pieChart);
-            _thisReference._chartObject = pieChart;
-            return pieChart;
+        this._chartObject = new Chart($("#" + this.id), {
+            type: 'doughnut',
+            data: {
+                labels: this.instances,
+                datasets: [{
+                        label: this.getAxisY().getLabelRepresentation(),
+                        data: this.chartData.map(function (data) { return data.attributeValue; }),
+                        backgroundColor: this._backgroundColors,
+                        borderColor: this._borderColorData,
+                        hoverBackgroundColor: this._backgroundHoverColors,
+                        borderWidth: 1
+                    }],
+                options: {
+                    responsive: true,
+                    cutoutPercentage: 40,
+                    rotation: Math.PI,
+                    circumference: Math.PI * 0.5,
+                    title: {
+                        display: true,
+                        text: this.component
+                    }
+                }
+            }
         });
         this.fitToContainer();
     };
@@ -97649,18 +97646,15 @@ var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/chart
 var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
-var d3 = __webpack_require__("./node_modules/d3/index.js");
-var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
+var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var VerticalBarChartOfAttributeValues = (function (_super) {
     __extends(VerticalBarChartOfAttributeValues, _super);
     function VerticalBarChartOfAttributeValues() {
         _super.call(this);
         this.type = abstract_chart_1.AbstractChart.VBAR;
         this._chartObject = undefined;
-        this._svgReadyData = undefined;
         this.setSizeX(3);
         this.setSizeY(3);
-        this._svgReadyData = this.prepareDatasets();
     }
     VerticalBarChartOfAttributeValues.prototype.createDefaultAxisX = function () {
         return new instance_axis_1.InstanceNameAxis();
@@ -97677,55 +97671,46 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
                 break;
             }
         }
+        var updateColors = false;
         if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to an array
-            this._svgReadyData[0].values.push({
-                label: _data.instanceName,
-                value: _data.attributeName
-            });
-        }
-        else {
-            for (var i = 0; i < this._svgReadyData[0].values.length; i++) {
-                if (this._svgReadyData[0].values[i].label == _data.instanceName) {
-                    this._svgReadyData[0].values[i].value = _data.attributeValue;
-                }
-            }
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+            _index = this.chartData.length - 1; // and set it to the end of the array
+            updateColors = true;
         }
         if (this._chartObject != undefined) {
-            this._chartObject.update();
+            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            if (updateColors) {
+                this.updateColors();
+                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
+                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
+            }
+            if (!document.hidden) {
+                this._chartObject.update();
+            }
         }
-    };
-    VerticalBarChartOfAttributeValues.prototype.prepareDatasets = function () {
-        var chartName = this.getAxisY().getLabelRepresentation();
-        var _value = [];
-        _value.push({
-            key: chartName,
-            values: []
-        });
-        for (var i = 0; i < this.chartData.length; i++) {
-            _value[0].values.push({
-                label: this.chartData[i].instanceName,
-                value: this.chartData[i].attributeValue
-            });
-        }
-        return _value;
     };
     VerticalBarChartOfAttributeValues.prototype.doDraw = function () {
-        // refresh data to be actual in this phase
-        this._svgReadyData = this.prepareDatasets();
-        var _thisReference = this;
-        nv.addGraph(function () {
-            var chart = nv.models.discreteBarChart()
-                .x(function (d) { return d.label; })
-                .y(function (d) { return d.value; })
-                .staggerLabels(true)
-                .showValues(true);
-            d3.select('#' + _thisReference.id)
-                .datum(_thisReference._svgReadyData)
-                .call(chart);
-            nv.utils.windowResize(chart.update);
-            _thisReference._chartObject = chart;
-            return chart;
+        this._chartObject = new Chart($("#" + this.id), {
+            type: "bar",
+            data: {
+                labels: this.instances,
+                datasets: [{
+                        label: this.getAxisY().getLabelRepresentation(),
+                        data: this.chartData.map(function (data) { return data.attributeValue; }),
+                        backgroundColor: this._backgroundColors,
+                        borderColor: this._borderColorData,
+                        hoverBackgroundColor: this._backgroundHoverColors,
+                        borderWidth: 1
+                    }],
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: this.component
+                    }
+                }
+            }
         });
         this.fitToContainer();
     };

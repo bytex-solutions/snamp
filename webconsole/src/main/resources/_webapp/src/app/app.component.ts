@@ -59,29 +59,31 @@ export class App {
                             PNotify.removeAll();
                             this.notificationCount = 0;
                         }
-                        let notice = new PNotify({
-                            title: _log.level,
-                            text: _log.shortDescription()  + "<a class='details'>Details</a>",
-                            type: _log.level,
-                            hide: false,
-                            styling: 'bootstrap3',
-                            addclass: "stack-bottomright",
-                            animate_speed: "fast",
-                            stack: this.stack_bottomright
-                        });
+                        if (!document.hidden) {
+                            let notice = new PNotify({
+                                title: _log.level,
+                                text: _log.shortDescription() + "<a class='details'>Details</a>",
+                                type: _log.level,
+                                hide: false,
+                                styling: 'bootstrap3',
+                                addclass: "stack-bottomright",
+                                animate_speed: "fast",
+                                stack: this.stack_bottomright
+                            });
 
-                        let _thisReference = this;
-                        notice.get().find('a.details').on('click', function() {
-                            _thisReference.modal.alert()
-                                .size('lg')
-                                .title("Details for notification")
-                                .body(_log.htmlDetails())
-                                .isBlocking(false)
-                                .keyboard(27)
-                                .open()
-                        });
+                            let _thisReference = this;
+                            notice.get().find('a.details').on('click', function () {
+                                _thisReference.modal.alert()
+                                    .size('lg')
+                                    .title("Details for notification")
+                                    .body(_log.htmlDetails())
+                                    .isBlocking(false)
+                                    .keyboard(27)
+                                    .open()
+                            });
 
-                        this.notificationCount++;
+                            this.notificationCount++;
+                        }
                     }
                 },
                 (msg)=> {

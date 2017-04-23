@@ -4,14 +4,12 @@ import { AttributeValueAxis } from './attribute.value.axis';
 import { AbstractChart } from './abstract.chart';
 import { ChartData } from './chart.data';
 
-const d3 = require('d3');
-const nv = require('nvd3');
+const Chart = require('chart.js');
 
 export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.PIE;
 
     private _chartObject:any = undefined;
-    private _svgReadyData:any = undefined;
 
     public createDefaultAxisX() {
         return new InstanceNameAxis();
@@ -25,7 +23,6 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         super();
         this.setSizeX(3);
         this.setSizeY(3);
-        this._svgReadyData = this.prepareDatasets();
     }
 
     public newValue(_data:ChartData):void {
@@ -37,55 +34,50 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
                 break;
             }
         }
+        let updateColors:boolean = false;
         if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to an array
-            this._svgReadyData.push({ key: _data.instanceName, y: _data.attributeValue});
-        } else {
-            for (let i = 0; i < this._svgReadyData.length; i++) {
-                if (this._svgReadyData[i].key == _data.instanceName) {
-                    this._svgReadyData[i].y = _data.attributeValue;
-                }
-            }
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+            _index = this.chartData.length - 1; // and set it to the end of the array
+            updateColors = true;
         }
         if (this._chartObject != undefined) {
-            this._chartObject.update();
+            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            if (updateColors) {
+                this.updateColors();
+                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
+                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
+            }
+            if (!document.hidden) {
+                this._chartObject.update();
+            }
         }
     }
 
-    private prepareDatasets():any {
-        let _value:any = [];
-        for (let i = 0; i < this.chartData.length; i++) {
-            _value.push({
-                key: this.chartData[i].instanceName,
-                y: this.chartData[i].attributeValue
-            });
-        }
-        return _value;
-    }
-
-    protected doDraw():void {
-        // refresh data to be actual in this phase
-        this._svgReadyData = this.prepareDatasets();
-        let _sam:string = (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation();
-        let _thisReference = this;
-        nv.addGraph(function() {
-            let pieChart = nv.models.pieChart()
-                .x(function(d) { return d.key })
-                .y(function(d) { return d.y })
-                .donut(true)
-                .padAngle(.08)
-                .cornerRadius(5)
-                .showLabels(true)
-                .id('donut1');
-
-            pieChart.pie.labelType('value').title(_sam);
-
-            d3.select("#" + _thisReference.id)
-                .datum(_thisReference._svgReadyData)
-                .call(pieChart);
-
-            _thisReference._chartObject = pieChart;
-            return pieChart;
+    public doDraw():void    {
+        this._chartObject = new Chart($("#" + this.id), {
+            type: 'doughnut',
+            data: {
+                labels: this.instances,
+                datasets: [{
+                    label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
+                    data: this.chartData.map(data => data.attributeValue),
+                    backgroundColor : this._backgroundColors,
+                    borderColor: this._borderColorData,
+                    hoverBackgroundColor: this._backgroundHoverColors,
+                    borderWidth: 1
+                }],
+                options: {
+                    responsive: true,
+                    cutoutPercentage: 40,
+                    rotation: Math.PI,
+                    circumference: Math.PI * 0.5,
+                    title: {
+                        display: true,
+                        text: this.component
+                    }
+                }
+            }
         });
         this.fitToContainer();
     }

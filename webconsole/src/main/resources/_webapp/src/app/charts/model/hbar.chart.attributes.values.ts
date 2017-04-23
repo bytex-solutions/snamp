@@ -38,15 +38,19 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
         if (this._chartObject != undefined) {
             this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
             if (updateColors) {
-                this._chartObject.data.datasets[0].backgroundColor = this.chartData.map((data, i) => ChartUtils.hslFromValue(i, this.chartData.length, 0.3));
-                this._chartObject.data.datasets[0].borderColor =  new Array(this.chartData.length).fill("#536980");
-                this._chartObject.data.datasets[0].hoverBackgroundColor = this.chartData.map((data, i) => ChartUtils.hslFromValue(i, this.chartData.length, 0.75));
+                this.updateColors();
+                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
+                this._chartObject.data.datasets[0].borderColor =  this._borderColorData;
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
             }
-            this._chartObject.update();
+            if (!document.hidden) {
+                this._chartObject.update();
+            }
         }
     }
 
     protected doDraw():void {
+        this.updateColors();
         this._chartObject = new Chart($("#" + this.id), {
             type: 'horizontalBar',
             data: {
@@ -54,9 +58,9 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
                 datasets: [{
                     label: (<AttributeValueAxis>this.getAxisX()).getLabelRepresentation(),
                     data: this.chartData.map(data => data.attributeValue),
-                    backgroundColor : this.chartData.map((data, i) => ChartUtils.hslFromValue(i, this.chartData.length, 0.3)),
-                    borderColor: new Array(this.chartData.length).fill("#536980"),
-                    hoverBackgroundColor: this.chartData.map((data, i) => ChartUtils.hslFromValue(i, this.chartData.length, 0.75)),
+                    backgroundColor : this._backgroundColors,
+                    borderColor: this._borderColorData,
+                    hoverBackgroundColor: this._backgroundHoverColors,
                     borderWidth: 1
                 }],
                 options: {
