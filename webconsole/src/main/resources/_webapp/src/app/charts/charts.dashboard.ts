@@ -21,6 +21,7 @@ import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
 
 import 'smartwizard';
 import 'select2';
+import {LineChartOfAttributeValues} from "./model/line.chart.attributes.values";
 
 
 @Component({
@@ -313,6 +314,9 @@ export class Dashboard {
    	onChangeStop(index: number, event: NgGridItemEvent): void {
    		this._charts[index].preferences["gridcfg"] = event;
    		this._chartService.saveDashboard();
+        if (!this.isLineChartType(this._charts[index])) {
+            this._charts[index].fitToContainer();
+        }
    	}
 
    	removeChart(chartName:string):void {
@@ -331,6 +335,10 @@ export class Dashboard {
     toggleDrawingChart(chart:AbstractChart):void {
         chart.toggleUpdate();
         $('#toggleDraw' + chart.id + ' i').attr('class', chart.updateStopped ? 'fa fa-play-circle-o' : 'fa fa-pause-circle-o');
+    }
+
+    isLineChartType(chart:AbstractChart):boolean {
+        return chart instanceof LineChartOfAttributeValues;
     }
 }
 

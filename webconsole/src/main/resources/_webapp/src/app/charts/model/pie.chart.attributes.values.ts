@@ -63,10 +63,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         return _value;
     }
 
-    public draw():void {
-        if (this.updateStopped) {
-            return; //do not draw if stop was pressed
-        }
+    protected doDraw():void {
         // refresh data to be actual in this phase
         this._svgReadyData = this.prepareDatasets();
         let _sam:string = (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation();
@@ -90,6 +87,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
             _thisReference._chartObject = pieChart;
             return pieChart;
         });
+        this.fitToContainer();
     }
 
     public toJSON():any {

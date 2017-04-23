@@ -72,10 +72,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         return _value;
     }
 
-    public draw():void {
-        if (this.updateStopped) {
-            return; //do not draw if stop was pressed
-        }
+    protected doDraw():void {
          // refresh data to be actual in this phase
          this._svgReadyData = this.prepareDatasets();
          let _thisReference = this;
@@ -94,6 +91,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
              _thisReference._chartObject = chart;
              return chart;
            });
+        this.fitToContainer();
     }
 
     public toJSON():any {

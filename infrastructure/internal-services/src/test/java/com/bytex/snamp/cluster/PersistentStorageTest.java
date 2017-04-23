@@ -94,12 +94,12 @@ public final class PersistentStorageTest extends Assert {
     }
 
     @Test
-    public void differentTypesTest() throws ExecutionException, InterruptedException {
+    public void differentTypesTest() throws ExecutionException, InterruptedException, AssertionError {
         final String KEY = "Frank Underwood";
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         final Future<Boolean> task = executor.submit(() -> {
             final KeyValueStorage storage1 =
-                    executor.submit(() -> instance1.getService("$testStorage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new)).get();
+                    executor.submit(() -> instance1.getService("$testStorage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElse(null)).get();
             assertNotNull(storage1);
             storage1.getOrCreateRecord(KEY, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
 

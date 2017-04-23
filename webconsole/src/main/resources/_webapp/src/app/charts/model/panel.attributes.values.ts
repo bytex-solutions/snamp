@@ -46,10 +46,7 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         }
     }
 
-    public draw():void    {
-        if (this.updateStopped) {
-            return; //do not draw if stop was pressed
-        }
+    protected doDraw():void {
         let ctx = $("#" + this.id);
         let _result = $('<dl class="border-around"></dl>');
         _result.attr("id", "panel_" + this.id);

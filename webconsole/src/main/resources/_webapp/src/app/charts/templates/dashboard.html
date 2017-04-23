@@ -209,8 +209,12 @@
                 </ul>
                 <div class="clearfix"></div>
               </div>
-              <div class="x_content" id="wrapper" style="position: relative; width: 100%; height: calc(100% - 10px) !important;">
-                <svg [attr.id]="chart.id"></svg>
+              <div
+                      class="x_content"
+                      id="wrapper"
+                      style="position: relative; width: 100%; height: calc(100% - 10px) !important;">
+                <svg [attr.id]="chart.id" *ngIf="isLineChartType(chart)"></svg>
+                <canvas [attr.id]="chart.id" *ngIf="!isLineChartType(chart)"></canvas>
               </div>
             </div>
       </div>
