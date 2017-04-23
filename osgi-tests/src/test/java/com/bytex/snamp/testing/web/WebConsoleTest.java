@@ -221,7 +221,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     private WebSocketClient client;
-    private final TestAuthenticator authenticator;
+    private TestAuthenticator authenticator;
     private final Map<ObjectName, TestOpenMBean> beanMap;
 
     /**
@@ -235,7 +235,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 new ObjectName(SECOND_BEAN_NAME), new TestOpenMBean(),
                 new ObjectName(THIRD_BEAN_NAME), new TestOpenMBean()
         );
-        authenticator = new TestAuthenticator(getTestBundleContext());
     }
 
     private <W, E extends Exception> void runWebSocketTest(final W webSocketHandler,
@@ -582,6 +581,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
+        authenticator = new TestAuthenticator(getTestBundleContext());
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         beanMap.forEach((key, value) -> {
             try {
@@ -650,6 +650,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         });
         client.stop();
         client = null;
+        authenticator = null;
     }
 
     private static void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
