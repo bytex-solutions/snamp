@@ -82,7 +82,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
                     groupName,
                     cluster.getStatus(),
                     cluster.getStatusReason()));
-        overrideHealthStatusProvider(new OpenStackHealthStatusProvider(clusterMember, clusterID));
+        overrideHealthStatusProvider(new OpenStackHealthStatusProvider(clusterMember, clusterID, parser.checkNodes(configuration)));
         //setup discovery service
         if (parser.isAutoDiscovery(configuration))
             overrideDiscoveryService(new OpenStackDiscoveryService(groupName, clusterID));

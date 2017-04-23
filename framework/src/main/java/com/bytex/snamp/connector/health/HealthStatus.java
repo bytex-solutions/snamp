@@ -34,7 +34,7 @@ public abstract class HealthStatus implements Serializable, Comparable<HealthSta
     public abstract boolean isCritical();
 
     public final HealthStatus worst(@Nonnull final HealthStatus other){
-        return compareTo(other) < 0 ? other : this;
+        return compareTo(other) >= 0 ? this : other;
     }
 
     @Override

@@ -30,6 +30,7 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     private static final String CLUSTER_ID_PARAM = "clusterID";
     private static final String ELASTMAN_PARAM = "elasticityManagement";
     private static final String AUTO_DISCOVERY_PARAM = "autoDiscovery";
+    private static final String CHECK_NODES_PARAM = "checkNodes";
 
     private final Identifier defaultDomain;
     private final Identifier demoProject;
@@ -106,5 +107,9 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
 
     boolean isAutoDiscovery(final Map<String, String> configuration){
         return getValue(configuration, AUTO_DISCOVERY_PARAM, Boolean::parseBoolean).orElse(true);
+    }
+
+    boolean checkNodes(final Map<String, String> configuration){
+        return getValue(configuration, CHECK_NODES_PARAM, Boolean::parseBoolean).orElse(false);
     }
 }

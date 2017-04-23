@@ -6,6 +6,9 @@ import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.internal.Utils;
@@ -21,7 +24,7 @@ import java.util.*;
  * @version 2.0
  * @since 2.0
  */
-final class Composition extends ThreadSafeObject implements AttributeSupportProvider, NotificationSupportProvider, OperationSupportProvider, AutoCloseable {
+final class Composition extends ThreadSafeObject implements AttributeSupportProvider, NotificationSupportProvider, OperationSupportProvider, HealthCheckSupport, AutoCloseable {
     private final Map<String, ManagedResourceConnector> connectors;
     private final String resourceName;
 
@@ -78,6 +81,26 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
     private <T> Optional<T> queryObject(final String connectorType, final Class<T> objectType) {
         return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, connectors, connectorType, Map::get))
                 .flatMap(connector -> connector.queryObject(objectType));
+    }
+
+    private static HealthStatus getStatus(final Iterable<ManagedResourceConnector> connectors) {
+        HealthStatus status = OkStatus.getInstance();
+        for (final ManagedResourceConnector connector : connectors)
+            status = status.worst(connector.queryObject(HealthCheckSupport.class)
+                    .map(HealthCheckSupport::getStatus)
+                    .orElseGet(OkStatus::getInstance)
+            );
+        return status;
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @return Status of the remove managed resource.
+     */
+    @Override
+    public HealthStatus getStatus() {
+        return readLock.apply(SingleResourceGroup.INSTANCE, connectors, connectors -> getStatus(connectors.values()));
     }
 
     @Override

@@ -4,6 +4,8 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 
 import java.io.IOException;
@@ -18,7 +20,7 @@ import java.util.concurrent.ExecutorService;
  * @version 1.0
  * @since 1.0
  */
-final class CompositeResourceConnector extends AbstractManagedResourceConnector {
+final class CompositeResourceConnector extends AbstractManagedResourceConnector implements HealthCheckSupport{
     private final Composition connectors;
     @Aggregation(cached = true)
     private final AttributeComposition attributes;
@@ -73,6 +75,16 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
         final ComposedConfiguration parsedParams = ComposedConfiguration.parse(configuration, parser.parseSeparator(configuration));
         //do update
         update(parsedParams);
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @return Status of the remove managed resource.
+     */
+    @Override
+    public HealthStatus getStatus() {
+        return connectors.getStatus();
     }
 
     @Override
