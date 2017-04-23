@@ -4,11 +4,14 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
 import com.bytex.snamp.connector.health.ClusterRecoveryStatus;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import org.openstack4j.api.exceptions.OS4JException;
-import org.openstack4j.api.senlin.SenlinClusterService;
+import org.openstack4j.api.senlin.SenlinService;
 import org.openstack4j.model.senlin.Cluster;
+import org.openstack4j.model.senlin.Node;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
@@ -46,12 +49,15 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         updateStatus(status);
     }
 
-    public void updateStatus(final BundleContext context, final SenlinClusterService clusterService, final Set<String> resources) {
-        final Cluster cluster = clusterService.get(clusterID);
+    private static HealthStatus createStatus(final Node node){
+        return OkStatus.getInstance();
+    }
+
+    public void updateStatus(final BundleContext context, final SenlinService senlin, final Set<String> resources) {
+        final Cluster cluster = senlin.cluster().get(clusterID);
         if(cluster == null)
             throw new OS4JException(String.format("Cluster %s doesn't exist", clusterID));
         try (final SafeCloseable batchUpdate = startBatchUpdate()) {
-            
             for (final String resourceName : resources)
                 ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
                     try {

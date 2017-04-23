@@ -10,13 +10,13 @@ import com.bytex.snamp.supervision.openstack.health.OpenStackHealthStatusProvide
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
 import org.openstack4j.api.senlin.SenlinClusterService;
+import org.openstack4j.api.senlin.SenlinService;
 import org.openstack4j.api.types.ServiceType;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.model.senlin.Cluster;
 import org.openstack4j.openstack.OSFactory;
 
 import javax.annotation.Nonnull;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -42,6 +42,12 @@ final class OpenStackSupervisor extends DefaultSupervisor {
         return client.getSupportedServices().contains(ServiceType.CLUSTERING);
     }
 
+    private static String getClusterIdByName(final SenlinClusterService clusterService,
+                                             final String clusterName){
+        return SenlinHelpers.getClusterIdByName(clusterService, clusterName)
+                .orElseThrow(() -> new OS4JException(String.format("Cluster with name %s is not registered in Senlin", clusterName)));
+    }
+
     /**
      * Starts the tracking resources.
      * <p>
@@ -65,13 +71,8 @@ final class OpenStackSupervisor extends DefaultSupervisor {
             throw new OS4JException(message);
         }
         openStackClientToken.set(openStackClient.getToken());  //according with http://openstack4j.com/learn/threads/
-        final String clusterID = parser.parseClusterID(configuration).orElseGet(() -> {
-            //resolve cluster ID by cluster name
-            for (final Cluster cluster : openStackClient.senlin().cluster().list())
-                if (Objects.equals(cluster.getName(), groupName))
-                    return cluster.getId();
-            throw new OS4JException(String.format("Cluster with name %s is not registered in Senlin", groupName));
-        });
+        final String clusterID = parser.parseClusterID(configuration)
+                .orElseGet(() -> getClusterIdByName(openStackClient.senlin().cluster(), groupName));
         final Cluster cluster = openStackClient.senlin().cluster().get(clusterID);
         if (cluster == null)
             throw new OS4JException(String.format("Cluster with ID %s is not registered in Senlin", clusterID));
@@ -93,8 +94,8 @@ final class OpenStackSupervisor extends DefaultSupervisor {
 
     }
 
-    private void updateHealthStatus(@Nonnull final SenlinClusterService clusterService, @Nonnull final OpenStackHealthStatusProvider provider){
-        provider.updateStatus(getBundleContext(), clusterService, getResources());
+    private void updateHealthStatus(@Nonnull final SenlinService senlin, @Nonnull final OpenStackHealthStatusProvider provider){
+        provider.updateStatus(getBundleContext(), senlin, getResources());
     }
 
     /**
@@ -108,12 +109,12 @@ final class OpenStackSupervisor extends DefaultSupervisor {
             return;
         }
         final OSClientV3 openStackClient = OSFactory.clientFromToken(openStackClientToken);
-        final SenlinClusterService clusterService = openStackClient.senlin().cluster();
-        assert clusterService != null;
+        final SenlinService senlin = openStackClient.senlin();
+        assert senlin != null;
 
         queryObject(DefaultHealthStatusProvider.class)
                 .flatMap(p -> Convert.toType(p, OpenStackHealthStatusProvider.class))
-                .ifPresent(provider -> updateHealthStatus(clusterService, provider));
+                .ifPresent(provider -> updateHealthStatus(senlin, provider));
 
 
         //OSAuthenticator.reAuthenticate();
