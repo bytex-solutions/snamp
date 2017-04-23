@@ -36,8 +36,8 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
     }
 
     @Test
-    public void simpleTest(){
-
+    public void simpleTest() throws InterruptedException {
+        Thread.sleep(10_000_000);
     }
 
     @Override

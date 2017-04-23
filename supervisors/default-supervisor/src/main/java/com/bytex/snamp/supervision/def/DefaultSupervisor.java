@@ -59,9 +59,14 @@ public class DefaultSupervisor extends AbstractSupervisor {
     @Aggregation
     private DefaultResourceDiscoveryService discoveryService;
     private HealthStatusUpdater updater;
+    /**
+     * Gets a reference to the current member in SNAMP cluster.
+     */
+    protected final ClusterMember clusterMember;
 
     public DefaultSupervisor(@Nonnull final String groupName){
         super(groupName);
+        clusterMember = ClusterMember.get(getBundleContext());
     }
 
     protected final void overrideCheckerFactory(@Nonnull final AttributeCheckerFactory value){
@@ -92,7 +97,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
 
     private void setupHealthStatusProvider(){
         if(healthStatusProvider == null)
-            overrideHealthStatusProvider(new DefaultHealthStatusProvider(ClusterMember.get(getBundleContext())));
+            overrideHealthStatusProvider(new DefaultHealthStatusProvider(clusterMember));
         else
             getLogger().info(String.format("HealthStatusProvider is overridden with %s", healthStatusProvider));
     }

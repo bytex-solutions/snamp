@@ -53,25 +53,6 @@ export MAVEN_OPTS="-Xmx512m -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.h
 mvn clean package
 ```
 
-### Other libraries
-SNAMP uses the following third-party libraries not placed on any Maven repository:
-* IBM WebSphere MQ libraries for Java
-* IBM WebSphere MB (Integration Bus) libraries for Java
-
-Copy WebSphere the following libraries to `third-party-libs/binaries/ibm/websphere` folder:
-* `com.ibm.mq.pcf.jar`
-* `com.ibm.mq.jar`
-* `com.ibm.mq.jmqi.jar`
-* `com.ibm.mq.headers.jar`
-
-WebSphere MQ classes for Java located in `MQ_INSTALLATION_PATH/java/lib` repository on Linux or
-`MQ_INSTALLATION_PATH\java\lib` on Windows.
-
-> See [WebSphere MQ classes for Java](http://www-01.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.dev.doc/q030520_.htm)
-for more information about WMQ Java API.
-
-Execute `third-party-libs/binaries/mvn-install.sh` shell script.
-
 ## Running tests
 SNAMP project contains two category of tests:
 
@@ -86,19 +67,33 @@ SNAM project provides the following Maven profiles:
 
 * `Development` profile disables all unit and integrations tests in the project
 * `Release` profile enables to assembly final SNAMP Distribution package on top of Apache Karaf container
+* `Remote Debug` enables breakpoints for debug session in integration tests
 
-## Versioning
-SNAMP uses [Semantic Versioning](http://semver.org/) for each component separately.
+## OpenStack
+To enable integration tests with OpenStack you should install DevStack on virtual machine:
 
-Given a version number _MAJOR.MINOR.PATCH_, increment the:
+* Install [DevStack](https://docs.openstack.org/developer/devstack/)
+* `su - stack`
+* `cd devstack`
+* `source openrc`
+* `cd ..`
+* `openstack keypair create snamp-key > snamp-test-key.pem`
 
-* MAJOR version when you make incompatible API changes,
-* MINOR version when you add functionality in a backwards-compatible manner, and
-* PATCH version when you make backwards-compatible bug fixes.
+Test profile for Senlin:
 
-But versioning policy of SNAMP distribution package based the following rules:
-
-* Every MINOR change in the component cause increment of the MINOR version of distribution package
-* Every PATCH change in the component cause increment of the PATCH version of distribution package
-* Every MAJOR change in the gateway/connector = `MINOR + 2` version of distribution package
-* Every MAJOR change in the core bundle cause recursive changes in gateways/connectors. Therefore, MAJOR version of package should be changed
+```yaml
+type: os.nova.server
+version: 1.0
+properties:
+  name: cirros_server
+  flavor: 1
+  image: "cirros-0.3.5-x86_64-disk"
+  key_name: snamp-key
+  networks:
+   - network: private
+  metadata:
+    test_key: test_value
+  user_data: |
+    #!/bin/sh
+    echo 'hello, world' > /tmp/test_file
+```

@@ -80,9 +80,8 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
         }
     }
 
-    String parseClusterID(final Map<String, String> configuration) throws OpenStackAbsentConfigurationParameterException {
-        return getValue(configuration, CLUSTER_ID_PARAM, Function.identity())
-                .orElseThrow(() -> new OpenStackAbsentConfigurationParameterException(CLUSTER_ID_PARAM));
+    Optional<String> parseClusterID(final Map<String, String> configuration) {
+        return getValue(configuration, CLUSTER_ID_PARAM, Function.identity());
     }
 
     Identifier parseUserDomain(final Map<String, String> configuration) {

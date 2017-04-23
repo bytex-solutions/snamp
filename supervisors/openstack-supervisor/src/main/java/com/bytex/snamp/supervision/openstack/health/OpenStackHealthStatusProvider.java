@@ -6,6 +6,8 @@ import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
 import com.bytex.snamp.connector.health.ClusterRecoveryStatus;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
+import org.openstack4j.api.exceptions.OS4JException;
+import org.openstack4j.api.senlin.SenlinClusterService;
 import org.openstack4j.model.senlin.Cluster;
 import org.osgi.framework.BundleContext;
 
@@ -18,9 +20,12 @@ import java.util.Set;
  * @since 2.0
  */
 public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProvider {
+    private final String clusterID;
 
-    public OpenStackHealthStatusProvider(@Nonnull final ClusterMember clusterMember) {
+    public OpenStackHealthStatusProvider(@Nonnull final ClusterMember clusterMember,
+                                         @Nonnull final String clusterID) {
         super(clusterMember);
+        this.clusterID = clusterID;
     }
 
     private void updateClusterStatus(final Cluster cluster) { //this method can be called inside batch update only
@@ -41,8 +46,12 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         updateStatus(status);
     }
 
-    public void updateStatus(final BundleContext context, final Cluster cluster, final Set<String> resources) {
+    public void updateStatus(final BundleContext context, final SenlinClusterService clusterService, final Set<String> resources) {
+        final Cluster cluster = clusterService.get(clusterID);
+        if(cluster == null)
+            throw new OS4JException(String.format("Cluster %s doesn't exist", clusterID));
         try (final SafeCloseable batchUpdate = startBatchUpdate()) {
+            
             for (final String resourceName : resources)
                 ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
                     try {
