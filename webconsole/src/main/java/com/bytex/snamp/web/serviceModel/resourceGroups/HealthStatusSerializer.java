@@ -41,10 +41,6 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
         output.put(CLUSTER_NAME_FIELD, status.getClusterName());
     }
 
-    private static void serialize(final ClusterRecoveryStatus status, final ObjectNode output) {
-        putClusterMalfunctionFields(status, output);
-    }
-
     private static void putResourceMalfunctionFields(final ResourceMalfunctionStatus status, final ObjectNode output) {
         putCommonFields(status, output);
         output.put(RESOURCE_NAME_FIELD, status.getResourceName());
@@ -77,8 +73,6 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
             serialize((ResourceIsNotAvailable) status, node);
         else if (status instanceof ConnectionProblem)
             serialize((ConnectionProblem) status, node);
-        else if (status instanceof ClusterRecoveryStatus)
-            serialize((ClusterRecoveryStatus) status, node);
         else if (status instanceof ClusterMalfunctionStatus) {
             putClusterMalfunctionFields((ClusterMalfunctionStatus) status, node);
         } else if (status instanceof ResourceMalfunctionStatus) {

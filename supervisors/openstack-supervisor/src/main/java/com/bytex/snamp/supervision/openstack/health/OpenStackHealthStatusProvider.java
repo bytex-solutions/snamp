@@ -42,6 +42,9 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
     private void updateClusterStatus(final Cluster cluster) { //this method can be called inside batch update only
         final ClusterMalfunctionStatus status;
         switch (cluster.getStatus()) {
+            case RESIZING:
+                status = new ClusterResizingStatus(cluster.getName());
+                break;
             case RECOVERING:
                 status = new ClusterRecoveryStatus(cluster.getName());
                 break;
