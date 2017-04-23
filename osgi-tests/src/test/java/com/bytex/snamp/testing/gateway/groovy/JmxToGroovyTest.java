@@ -37,11 +37,10 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String INSTANCE_NAME = "groovy-gateway";
     private static final String GATEWAY_NAME = "groovy";
     private static final String COMMUNICATION_CHANNEL = "test-communication-channel";
-    private final ClusterMember processLocalMember;
+    private ClusterMember processLocalMember;
 
     public JmxToGroovyTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
-        processLocalMember = ClusterMember.get(null);
     }
 
     private static String getGroovyScriptPath(){
@@ -170,6 +169,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
 
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
+        processLocalMember = ClusterMember.get(null);
         super.beforeStartTest(context);
         beforeCleanupTest(context);
     }
@@ -187,5 +187,11 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
         GatewayActivator.disableGateway(context, GATEWAY_NAME);
         stopResourceConnector(context);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        processLocalMember = null;
+        super.afterCleanupTest(context);
     }
 }

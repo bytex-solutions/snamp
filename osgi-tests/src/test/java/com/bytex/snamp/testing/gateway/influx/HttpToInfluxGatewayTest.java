@@ -39,6 +39,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
     private static final String INSTANCE_NAME = COMPONENT_NAME + "-1";
     private static final String GATEWAY_NAME = "influx";
     private ServiceHolder<HttpService> httpService;
+    private ClusterMember processLocalMember;
 
     public HttpToInfluxGatewayTest() {
         super(INSTANCE_NAME);
@@ -58,6 +59,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
 
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
+        processLocalMember = ClusterMember.get(null);
         //setup InfluxDB emulation service
         httpService = ServiceHolder.tryCreate(context, HttpService.class).orElseThrow(AssertionError::new);
         assertNotNull(httpService);
@@ -93,6 +95,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
         httpService.get().unregister(InfluxWriteServlet.CONTEXT);
         httpService.release(context);
         super.afterCleanupTest(context);
+        processLocalMember = null;
     }
 
     @Test
@@ -102,7 +105,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
         measurement.setInstanceName(INSTANCE_NAME);
         sendMeasurement(measurement);
         //now we expect that the notification will be recorded into InfluxDB
-        final Communicator communicator = ClusterMember.get(null).getService(InfluxWriteMock.INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        final Communicator communicator = processLocalMember.getService(InfluxWriteMock.INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
         final Serializable points = communicator.receiveMessage(Communicator.ANY_MESSAGE, Communicator.IncomingMessage::getPayload, Duration.ofSeconds(2));
         assertTrue(points instanceof String);
         assertTrue(points.toString().startsWith("usedRAM,connectionString=javaApp-1,connectionType=http,managedResource=test-target value=100500i"));
