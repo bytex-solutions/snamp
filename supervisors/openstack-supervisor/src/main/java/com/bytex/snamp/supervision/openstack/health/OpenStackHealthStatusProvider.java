@@ -70,7 +70,7 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         }
         status.getData().putAll(node.getMetadata());
         updateStatus(status);
-
+    }
 
     public void updateStatus(final BundleContext context, final SenlinService senlin, final Set<String> resources) {
         final Cluster cluster = senlin.cluster().get(clusterID);
