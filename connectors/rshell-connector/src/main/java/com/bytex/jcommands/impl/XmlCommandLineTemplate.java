@@ -129,8 +129,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
             throw new IllegalStateException("Template is not configured");
         final ST template = new ST(precompiledTemplate);
         //fill template attributes from channel parameters
-        for (final Map.Entry<String, ?> pair : channelParameters.entrySet())
-            template.add(pair.getKey(), pair.getValue());
+        channelParameters.forEach(template::add);
         //fill template attributes from custom input
         if (input != null)
             //attribute name cannot be null or contain '.'

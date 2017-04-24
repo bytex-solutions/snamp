@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
     /**
-     * Represents configuration of the health supervisor.
+     * Represents information about health check configuration.
      */
     interface HealthCheckInfo {
         /**
@@ -28,6 +28,24 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
          */
         @Nonnull
         ScriptletConfiguration getTrigger();
+    }
+
+    /**
+     * Represents information about resource discovery.
+     */
+    interface ResourceDiscoveryInfo{
+        String getConnectionStringTemplate();
+    }
+
+    /**
+     * Represents information about automatic scaling
+     */
+    interface AutoScalingInfo{
+        /**
+         * Is auto-scaling enabled?
+         * @return {@literal true}, if auto-scaling is enabled; otherwise, {@literal false}.
+         */
+        boolean isEnabled();
     }
 
     /**

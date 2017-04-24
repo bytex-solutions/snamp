@@ -1,15 +1,17 @@
 package com.bytex.snamp.supervision.openstack.discovery;
 
-import com.bytex.snamp.MapUtils;
+import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.openstack.ClusterNodes;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.openstack4j.api.senlin.SenlinNodeService;
 import org.openstack4j.model.senlin.Node;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 
 /**
  * Represents discovery service based on Senlin.
@@ -19,14 +21,23 @@ import javax.annotation.Nonnull;
  */
 
 public final class OpenStackDiscoveryService extends DefaultResourceDiscoveryService {
-    private static final String CONNECTION_STRING_PARAM = "snampConnectionString";
+    private static final STGroup TEMPLATE_GROUP = new STGroup('{', '}');
 
     private final String clusterID;
+    private final ST connectionStringTemplate;      //pre-compiled template
 
     public OpenStackDiscoveryService(@Nonnull final String groupName,
-                                     @Nonnull final String clusterID) {
+                                     @Nonnull final String clusterID,
+                                     final String connectionStringTemplate) {
         super(groupName);
         this.clusterID = clusterID;
+        this.connectionStringTemplate = new ST(TEMPLATE_GROUP, connectionStringTemplate);
+    }
+
+    private String createConnectionString(final Map<String, ?> nodeDetails){
+        final ST connectionStringTemplate = new ST(this.connectionStringTemplate);
+        nodeDetails.forEach(connectionStringTemplate::add);
+        return connectionStringTemplate.render();
     }
 
     /**
@@ -42,10 +53,10 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
                 removeResource(resourceName);
         //add resource if is not present as a node
         for (Node node : nodes.values()) {
-            node = nodeService.get(node.getId());
             if (!existingResources.contains(node.getName())) {
-                final String connectionString = MapUtils.getValue(node.getMetadata(), CONNECTION_STRING_PARAM, Object::toString).orElse("");
-                registerResource(node.getName(), connectionString, Maps.transformValues(node.getMetadata(), Object::toString));
+                node = nodeService.get(node.getId());//obtain detailed information about node
+                final String connectionString = createConnectionString(node.getDetails());
+                registerResource(node.getName(), connectionString, JsonUtils.toPlainMap(node.getMetadata(), '.'));
             }
         }
         nodes.clear();  //help GC

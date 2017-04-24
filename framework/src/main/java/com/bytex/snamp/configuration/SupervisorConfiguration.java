@@ -11,7 +11,6 @@ import javax.annotation.Nonnull;
  * @since 2.0
  */
 public interface SupervisorConfiguration extends TypedEntityConfiguration, SupervisorInfo {
-
     /**
      * Represents default supervisor type.
      */
@@ -29,6 +28,17 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
         @Nonnull
         @Override
         FactoryMap<String, ? extends ScriptletConfiguration> getAttributeCheckers();
+    }
+
+    /**
+     * Represents configuration of automatic scaling (elasticity management)
+     */
+    interface AutoScalingConfiguration extends AutoScalingInfo{
+        void setEnabled(final boolean value);
+    }
+
+    interface ResourceDiscoveryConfiguration extends ResourceDiscoveryInfo{
+        void setConnectionStringTemplate(final String value);
     }
 
     /**
