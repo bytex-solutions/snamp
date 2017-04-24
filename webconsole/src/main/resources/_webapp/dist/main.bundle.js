@@ -100298,6 +100298,48 @@ exports.ViewService = ViewService;
 
 /***/ },
 
+/***/ "./src/app/services/model/healthstatus/common.health.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var malfunction_status_1 = __webpack_require__("./src/app/services/model/healthstatus/malfunction.status.ts");
+var CommonHealthStatus = (function (_super) {
+    __extends(CommonHealthStatus, _super);
+    function CommonHealthStatus() {
+        _super.apply(this, arguments);
+        this.additionalFields = {};
+    }
+    CommonHealthStatus.prototype.represent = function () {
+        return "Cluster status received: " + this.innerType;
+    };
+    CommonHealthStatus.prototype.getShortDescription = function () {
+        return "Cluster status: " + this.innerType;
+    };
+    CommonHealthStatus.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Name: </strong>" + this.name + "<br/>";
+        _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
+        _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        if (this.serverDetails.length > 0) {
+            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+        }
+        if (!$.isEmptyObject(this.additionalFields)) {
+            _details += "<strong>Additional fields: </strong><br/>";
+            for (var key in this.additionalFields) {
+                _details += key + ": " + this.additionalFields[key] + "<br/>";
+            }
+        }
+        return _details;
+    };
+    return CommonHealthStatus;
+}(malfunction_status_1.MalfunctionStatus));
+exports.CommonHealthStatus = CommonHealthStatus;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
 /***/ "./src/app/services/model/healthstatus/connection.problem.status.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -100323,6 +100365,9 @@ var ConnectionProblem = (function (_super) {
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>IO Exception: </strong>" + this.ioException + "<br/>";
+        if (this.serverDetails.length > 0) {
+            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+        }
         return _details;
     };
     return ConnectionProblem;
@@ -100343,6 +100388,7 @@ var resource_na_status_1 = __webpack_require__("./src/app/services/model/healths
 var connection_problem_status_1 = __webpack_require__("./src/app/services/model/healthstatus/connection.problem.status.ts");
 var invalid_attribute_value_status_1 = __webpack_require__("./src/app/services/model/healthstatus/invalid.attribute.value.status.ts");
 var malfunction_status_1 = __webpack_require__("./src/app/services/model/healthstatus/malfunction.status.ts");
+var common_health_status_1 = __webpack_require__("./src/app/services/model/healthstatus/common.health.status.ts");
 var StatusFactory = (function () {
     function StatusFactory() {
     }
@@ -100373,11 +100419,21 @@ var StatusFactory = (function () {
                 _value.attribute.value = json["attributeValue"];
                 break;
             default:
-                throw new Error("Cannot recognize type of health status: " + json["@type"]);
+                _value = new common_health_status_1.CommonHealthStatus();
+                // fill all additional json properties that do not exist at client side model
+                for (var keyJson in json) {
+                    for (var keyOwn in this) {
+                        if (keyJson != keyOwn) {
+                            _value.additionalFields[keyJson] = json[keyJson];
+                        }
+                    }
+                }
+                break;
         }
         _value.name = name;
         _value.innerType = json["@type"];
         _value.resourceName = json["resourceName"];
+        _value.serverDetails = json["details"];
         if (_value instanceof malfunction_status_1.MalfunctionStatus) {
             _value.critical = json["critical"];
         }
@@ -100399,7 +100455,8 @@ var StatusFactory = (function () {
                 _value = Object.assign(new invalid_attribute_value_status_1.InvalidAttributeValue(), json);
                 break;
             default:
-                throw new Error("Cannot recognize type of health status: " + json["innerType"]);
+                _value = Object.assign(new common_health_status_1.CommonHealthStatus(), json);
+                break;
         }
         return _value;
     };
@@ -100417,11 +100474,18 @@ exports.StatusFactory = StatusFactory;
 "use strict";
 var HealthStatus = (function () {
     function HealthStatus() {
+        // used for checking on the red/green status table
         this.code = -1;
+        // name of resource
         this.resourceName = "";
+        // name of notification in a map
         this.name = "";
+        // inner type to hold it
         this.innerType = HealthStatus.OK_TYPE;
+        // always have it from the service serialization
+        this.serverDetails = "";
     }
+    // used for short description at the notification (pnotify)
     HealthStatus.prototype.details = function () {
         return this.represent() + " (Click for details)";
     };
@@ -100462,6 +100526,9 @@ var InvalidAttributeValue = (function (_super) {
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>Attribute name: </strong>" + this.attribute.name + "<br/>";
         _details += "<strong>Attribute value: </strong>" + this.attribute.value + "<br/>";
+        if (this.serverDetails.length > 0) {
+            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+        }
         return _details;
     };
     return InvalidAttributeValue;
@@ -100557,6 +100624,9 @@ var ResourceIsNotAvailable = (function (_super) {
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>JMX Exception: </strong>" + this.jmxError + "<br/>";
+        if (this.serverDetails.length > 0) {
+            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+        }
         return _details;
     };
     return ResourceIsNotAvailable;

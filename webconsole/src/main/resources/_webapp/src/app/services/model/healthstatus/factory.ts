@@ -4,6 +4,7 @@ import { ResourceIsNotAvailable } from "./resource.na.status";
 import { ConnectionProblem } from "./connection.problem.status";
 import { InvalidAttributeValue } from "./invalid.attribute.value.status";
 import { MalfunctionStatus } from "./malfunction.status";
+import { CommonHealthStatus } from "./common.health.status";
 
 export class StatusFactory {
 
@@ -38,11 +39,21 @@ export class StatusFactory {
                 (<InvalidAttributeValue>_value).attribute.value = json["attributeValue"];
                 break;
             default:
-                throw new Error("Cannot recognize type of health status: " + json["@type"]);
+                _value = new CommonHealthStatus();
+                // fill all additional json properties that do not exist at client side model
+                for (let keyJson in json) {
+                    for (let keyOwn in this) {
+                        if (keyJson != keyOwn) {
+                            (<CommonHealthStatus>_value).additionalFields[keyJson] = json[keyJson];
+                        }
+                    }
+                }
+                break;
         }
         _value.name = name;
         _value.innerType = json["@type"];
         _value.resourceName = json["resourceName"];
+        _value.serverDetails = json["details"];
         if (_value instanceof MalfunctionStatus) {
             (<MalfunctionStatus>_value).critical = json["critical"];
         }
@@ -67,7 +78,8 @@ export class StatusFactory {
                 _value = Object.assign(new InvalidAttributeValue(), json);
                 break;
             default:
-                throw new Error("Cannot recognize type of health status: " + json["innerType"]);
+               _value = Object.assign(new CommonHealthStatus(), json);
+                break;
         }
         return _value;
     }

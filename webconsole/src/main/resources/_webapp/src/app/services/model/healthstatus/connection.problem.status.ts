@@ -18,6 +18,9 @@ export class ConnectionProblem extends MalfunctionStatus {
          _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
          _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
          _details += "<strong>IO Exception: </strong>" + this.ioException + "<br/>";
+         if (this.serverDetails.length > 0) {
+             _details += "<strong>Details: </strong>" + this.details + "<br/>";
+         }
          return _details;
     }
 }

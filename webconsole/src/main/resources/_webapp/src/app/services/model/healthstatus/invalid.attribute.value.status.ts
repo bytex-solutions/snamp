@@ -19,6 +19,9 @@ export class InvalidAttributeValue extends MalfunctionStatus {
          _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
          _details += "<strong>Attribute name: </strong>" + this.attribute.name + "<br/>";
          _details += "<strong>Attribute value: </strong>" + this.attribute.value + "<br/>";
+         if (this.serverDetails.length > 0) {
+             _details += "<strong>Details: </strong>" + this.details + "<br/>";
+         }
          return _details;
     }
 }
