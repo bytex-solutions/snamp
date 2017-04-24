@@ -97,7 +97,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
 
     private void setupHealthStatusProvider(){
         if(healthStatusProvider == null)
-            overrideHealthStatusProvider(new DefaultHealthStatusProvider(clusterMember));
+            overrideHealthStatusProvider(new DefaultHealthStatusProvider());
         else
             getLogger().info(String.format("HealthStatusProvider is overridden with %s", healthStatusProvider));
     }

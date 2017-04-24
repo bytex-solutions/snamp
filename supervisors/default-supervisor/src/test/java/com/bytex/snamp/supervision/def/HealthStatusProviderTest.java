@@ -36,10 +36,6 @@ public class HealthStatusProviderTest extends Assert {
         private final AttributeCheckerFactory checkerFactory = new AttributeCheckerFactory();
         private final TriggerFactory triggerFactory = new TriggerFactory();
 
-        TestHealthStatusProvider() {
-            super(ClusterMember.get(null));
-        }
-
         void setupHealthCheck(@Nonnull final SupervisorInfo.HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
             setTrigger(triggerFactory.compile(healthCheckInfo.getTrigger()));
             removeCheckers();

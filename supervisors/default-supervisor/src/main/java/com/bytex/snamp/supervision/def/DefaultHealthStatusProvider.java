@@ -123,24 +123,17 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     private volatile HealthStatus status;
     private HealthStatusTrigger trigger;
     private final BatchUpdateState batchUpdateState;
-    protected final ClusterMember clusterMember;
 
-    public DefaultHealthStatusProvider(@Nonnull final ClusterMember clusterMember) {
+    public DefaultHealthStatusProvider() {
         checkers = new ConcurrentHashMap<>();
         status = OkStatus.getInstance();
         trigger = HealthStatusTrigger.IDENTITY;
         listeners = new HealthStatusEventListenerList();
         batchUpdateState = new BatchUpdateState();
-        this.clusterMember = Objects.requireNonNull(clusterMember);
     }
 
     public final void setTrigger(@Nonnull final HealthStatusTrigger value){
         trigger = value;
-    }
-
-    private HealthStatus invokeTrigger(final HealthStatus prev, final HealthStatus next){
-        //trigger can be executed on active node only
-        return clusterMember.isActive() ? trigger.statusChanged(prev, next) : next;
     }
 
     protected final void updateStatus(final Function<? super HealthStatus, ? extends HealthStatus> statusUpdater) {
@@ -156,7 +149,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
             if (tempNewStatus.compareTo(prevStatus) == 0 || batchUpdateState.addStatus(tempNewStatus))
                 return;
             else {
-                newStatus = invokeTrigger(prevStatus, tempNewStatus);
+                newStatus = trigger.statusChanged(prevStatus, tempNewStatus);
                 if (newStatus.compareTo(prevStatus) == 0)
                     return;
             }

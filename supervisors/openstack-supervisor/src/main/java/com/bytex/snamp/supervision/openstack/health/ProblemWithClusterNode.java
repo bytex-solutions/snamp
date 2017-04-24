@@ -41,6 +41,22 @@ final class ProblemWithClusterNode extends ResourceMalfunctionStatus {
                 hardReboot);
     }
 
+    static ProblemWithClusterNode shutoff(final Node node) {
+        return new ProblemWithClusterNode(node.getName(), "The server was powered down by the user, but not through the OpenStack Compute API.", false);
+    }
+
+    static ProblemWithClusterNode paused(final Node node) {
+        return new ProblemWithClusterNode(node.getName(), "The server is in frozen state.", false);
+    }
+
+    static ProblemWithClusterNode resize(final Node node) {
+        return new ProblemWithClusterNode(node.getName(), "Server is performing the differential copy of data that changed during its initial copy.", false);
+    }
+
+    static ProblemWithClusterNode suspended(final Node node) {
+        return new ProblemWithClusterNode(node.getName(), "Server state is stored on disk, all memory is written to disk, and the server is stopped.", false);
+    }
+
     /**
      * Returns the localized description of this object.
      *

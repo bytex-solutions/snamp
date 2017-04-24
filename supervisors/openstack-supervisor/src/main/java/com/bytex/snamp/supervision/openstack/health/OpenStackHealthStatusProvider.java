@@ -30,13 +30,14 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProvider {
     private final String clusterID;
     private final boolean checkNodes;
+    private final ClusterMember clusterMember;
 
     public OpenStackHealthStatusProvider(@Nonnull final ClusterMember clusterMember,
                                          @Nonnull final String clusterID,
                                          final boolean checkNodes) {
-        super(clusterMember);
         this.clusterID = clusterID;
         this.checkNodes = checkNodes;
+        this.clusterMember = clusterMember;
     }
 
     private void updateClusterStatus(final Cluster cluster) { //this method can be called inside batch update only
@@ -59,12 +60,13 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
                 return;
         }
         status.getData().putAll(cluster.getMetadata());
+        status.getData().put("clusterStatus", cluster.getStatus());
         updateStatus(status);
     }
 
-    private void updateNodeStatus(final Node node){
+    private void updateNodeStatus(final Node node) {
         final ProblemWithClusterNode status;
-        switch (Server.Status.forValue(node.getStatus())){
+        switch (Server.Status.forValue(node.getStatus())) {
             case ERROR:
                 status = ProblemWithClusterNode.error(node);
                 break;
@@ -77,10 +79,23 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
             case HARD_REBOOT:
                 status = ProblemWithClusterNode.reboot(node, true);
                 break;
+            case SHUTOFF:
+                status = ProblemWithClusterNode.shutoff(node);
+                break;
+            case PAUSED:
+                status = ProblemWithClusterNode.paused(node);
+                break;
+            case RESIZE:
+                status = ProblemWithClusterNode.resize(node);
+                break;
+            case SUSPENDED:
+                status = ProblemWithClusterNode.suspended(node);
+                break;
             default:
                 return;
         }
         status.getData().putAll(node.getMetadata());
+        status.getData().put("nodeStatus", node.getStatus());
         updateStatus(status);
     }
 
