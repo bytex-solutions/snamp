@@ -1,11 +1,13 @@
-package com.bytex.snamp.web.serviceModel.logging;
+package com.bytex.snamp.json;
 
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
+import org.codehaus.jackson.node.TextNode;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.function.Supplier;
 
 /**
  * Represents serializer for data type {@link Instant}.
@@ -13,9 +15,13 @@ import java.time.Instant;
  * @version 2.0
  * @since 2.0
  */
-final class InstantSerializer extends JsonSerializer<Instant> {
+public final class InstantSerializer extends JsonSerializer<Instant> {
+    public static TextNode serialize(final Instant value) {
+        return ThreadLocalJsonFactory.getFactory().textNode(value.toString());
+    }
+
     @Override
     public void serialize(final Instant value, final JsonGenerator jgen, final SerializerProvider provider) throws IOException {
-        jgen.writeString(value.toString());
+        serialize(value).serialize(jgen, provider);
     }
 }

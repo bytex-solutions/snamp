@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.health;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -14,9 +15,13 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
     private static final long serialVersionUID = -3765564303828054111L;
     private final IOException error;
 
-    public ConnectionProblem(final String resourceName, final IOException error) {
-        super(resourceName, SEVERITY + 1);
+    public ConnectionProblem(final String resourceName, final IOException error, final Instant timeStamp) {
+        super(resourceName, SEVERITY + 1, timeStamp);
         this.error = Objects.requireNonNull(error);
+    }
+
+    public ConnectionProblem(final String resourceName, final IOException error){
+        this(resourceName, error, Instant.now());
     }
 
     public IOException getError(){

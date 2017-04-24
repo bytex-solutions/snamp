@@ -92,7 +92,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
                 throw new IllegalStateException("Batch update was not started");
             else
                 remove();
-            final HealthStatus batchStatus = statuses.stream().reduce(OkStatus.getInstance(), HealthStatus::worst);
+            final HealthStatus batchStatus = statuses.stream().reduce(new OkStatus(), HealthStatus::worst);
             statuses.clear();   //help GC
             return batchStatus;
         }
@@ -126,7 +126,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     public DefaultHealthStatusProvider() {
         checkers = new ConcurrentHashMap<>();
-        status = OkStatus.getInstance();
+        status = new OkStatus();
         trigger = HealthStatusTrigger.IDENTITY;
         listeners = new HealthStatusEventListenerList();
         batchUpdateState = new BatchUpdateState();
@@ -210,7 +210,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     public final void updateStatus(final String resourceName,
                                            @Nonnull final ManagedResourceConnector connector) {
         //1. Using health check provided by connector itself
-        HealthStatus newStatus = connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::getInstance);
+        HealthStatus newStatus = connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
         if (!(newStatus instanceof OkStatus)) {
             updateStatus(newStatus);
             return;
@@ -242,7 +242,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         updateStatus(existing -> Convert.toType(existing, ResourceMalfunctionStatus.class)
                 .map(ResourceMalfunctionStatus::getResourceName)
                 .map(resourceName::equals)
-                .orElse(false) ? OkStatus.getInstance() : existing);
+                .orElse(false) ? new OkStatus() : existing);
     }
 
     /**
@@ -276,7 +276,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
      */
     @Override
     public void reset() {
-        status = OkStatus.getInstance();
+        status = new OkStatus();
     }
 
     /**

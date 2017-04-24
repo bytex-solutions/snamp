@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.health;
 
+import java.time.Instant;
 import java.util.Locale;
 
 /**
@@ -11,8 +12,12 @@ import java.util.Locale;
 public final class ClusterRecoveryStatus extends ClusterMalfunctionStatus {
     private static final long serialVersionUID = 3186397258235973954L;
 
-    public ClusterRecoveryStatus(final String clusterName) {
-        super(SEVERITY - 1, clusterName);
+    public ClusterRecoveryStatus(final String clusterName, final Instant timeStamp) {
+        super(SEVERITY - 1, clusterName, timeStamp);
+    }
+
+    public ClusterRecoveryStatus(final String clusterName){
+        this(clusterName, Instant.now());
     }
 
     /**

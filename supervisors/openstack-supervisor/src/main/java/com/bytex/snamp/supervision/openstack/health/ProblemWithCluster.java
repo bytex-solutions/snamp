@@ -3,6 +3,7 @@ package com.bytex.snamp.supervision.openstack.health;
 import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
 import org.openstack4j.model.senlin.Cluster;
 
+import java.time.Instant;
 import java.util.Locale;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -20,7 +21,7 @@ final class ProblemWithCluster extends ClusterMalfunctionStatus {
     private ProblemWithCluster(final String clusterName,
                        final String details,
                        final boolean critical){
-        super(clusterName);
+        super(clusterName, Instant.now());
         this.critical = critical;
         if(isNullOrEmpty(details))
             this.details = critical ? "Cluster crashed" : "Cluster nodes partially unavailable";

@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.health;
 
 import javax.management.Attribute;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -19,7 +20,7 @@ public final class InvalidAttributeValue extends ResourceMalfunctionStatus {
     public InvalidAttributeValue(final String resourceName,
                                  final Attribute attribute,
                                  final boolean critical){
-        super(resourceName);
+        super(resourceName, Instant.now());
         this.critical = critical;
         this.attribute = Objects.requireNonNull(attribute);
     }

@@ -2,6 +2,7 @@ package com.bytex.snamp.web.serviceModel.logging;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.Severity;
+import com.bytex.snamp.json.InstantSerializer;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.WebMessage;
 import com.google.common.collect.ImmutableMap;

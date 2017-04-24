@@ -84,11 +84,11 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
     }
 
     private static HealthStatus getStatus(final Iterable<ManagedResourceConnector> connectors) {
-        HealthStatus status = OkStatus.getInstance();
+        HealthStatus status = new OkStatus();
         for (final ManagedResourceConnector connector : connectors)
             status = status.worst(connector.queryObject(HealthCheckSupport.class)
                     .map(HealthCheckSupport::getStatus)
-                    .orElseGet(OkStatus::getInstance)
+                    .orElseGet(OkStatus::new)
             );
         return status;
     }

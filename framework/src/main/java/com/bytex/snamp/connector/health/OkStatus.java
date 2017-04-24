@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.health;
 
 import com.bytex.snamp.concurrent.LazyWeakReference;
 
+import java.time.Instant;
 import java.util.Locale;
 
 /**
@@ -11,20 +12,14 @@ import java.util.Locale;
  * @since 2.0
  */
 public final class OkStatus extends HealthStatus {
-    private static final LazyWeakReference<OkStatus> INSTANCE = new LazyWeakReference<>();
     private static final long serialVersionUID = 5391122005596632004L;
 
-    private OkStatus() {
-        super(0);
+    public OkStatus(final Instant timeStamp) {
+        super(0, timeStamp);
     }
 
-    /**
-     * Gets instance of {@link OkStatus}.
-     *
-     * @return Singleton instance.
-     */
-    public static OkStatus getInstance() {
-        return INSTANCE.lazyGet(OkStatus::new);
+    public OkStatus(){
+        this(Instant.now());
     }
 
     @Override

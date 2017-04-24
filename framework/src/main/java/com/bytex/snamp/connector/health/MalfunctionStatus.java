@@ -2,6 +2,8 @@ package com.bytex.snamp.connector.health;
 
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nonnull;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,8 +19,8 @@ public abstract class MalfunctionStatus extends HealthStatus {
     private static final long serialVersionUID = 1718771285813234068L;
     private final Map<String, Object> data;
 
-    MalfunctionStatus(final int severity) {
-        super(severity);
+    MalfunctionStatus(final int severity, @Nonnull final Instant timeStamp) {
+        super(severity, timeStamp);
         data = new HashMap<>();
     }
 

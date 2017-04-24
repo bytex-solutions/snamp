@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.health;
 
 import javax.management.JMException;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -16,7 +17,7 @@ public final class ResourceIsNotAvailable extends ResourceMalfunctionStatus {
     private final String resourceName;
 
     public ResourceIsNotAvailable(final String resourceName, final JMException e){
-        super(resourceName, SEVERITY + 1);
+        super(resourceName, SEVERITY + 1, Instant.now());
         error = Objects.requireNonNull(e);
         this.resourceName = Objects.requireNonNull(resourceName);
     }

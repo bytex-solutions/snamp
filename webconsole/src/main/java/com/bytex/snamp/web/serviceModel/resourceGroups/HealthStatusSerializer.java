@@ -1,6 +1,7 @@
 package com.bytex.snamp.web.serviceModel.resourceGroups;
 
 import com.bytex.snamp.connector.health.*;
+import com.bytex.snamp.json.InstantSerializer;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
@@ -27,6 +28,7 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
         output.put(TYPE_FIELD, status.getClass().getSimpleName());
         output.put(IS_CRITICAL_FIELD, status.isCritical());
         output.put("details", status.toString());
+        output.put("timeStamp", InstantSerializer.serialize(status.getTimeStamp()));
     }
 
     private static void putCommonFields(final MalfunctionStatus status, final ObjectNode output) {

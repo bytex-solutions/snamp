@@ -3,6 +3,7 @@ package com.bytex.snamp.supervision.openstack.health;
 import com.bytex.snamp.connector.health.ResourceMalfunctionStatus;
 import org.openstack4j.model.senlin.Node;
 
+import java.time.Instant;
 import java.util.Locale;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -19,7 +20,7 @@ final class ProblemWithClusterNode extends ResourceMalfunctionStatus {
     private ProblemWithClusterNode(final String resourceName,
                            final String details,
                                    final boolean critical) {
-        super(resourceName);
+        super(resourceName, Instant.now());
         this.critical = critical;
         if(isNullOrEmpty(details))
             this.details = critical ? "Node is not available" : "Node is in non-critical state";

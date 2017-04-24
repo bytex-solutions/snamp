@@ -4,6 +4,7 @@ import com.bytex.snamp.Localizable;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Locale;
 
 /**
@@ -15,9 +16,19 @@ import java.util.Locale;
 public abstract class HealthStatus implements Serializable, Comparable<HealthStatus>, Localizable {
     private static final long serialVersionUID = -8700097915541124870L;
     private final int severity;
+    private final Instant timeStamp;
 
-    HealthStatus(final int severity) {
+    HealthStatus(final int severity, @Nonnull final Instant timeStamp) {
         this.severity = severity;
+        this.timeStamp = timeStamp;
+    }
+
+    /**
+     * Gets time stamp of this health status.
+     * @return Time stamp of this health status.
+     */
+    public final Instant getTimeStamp(){
+        return timeStamp;
     }
 
     @Override

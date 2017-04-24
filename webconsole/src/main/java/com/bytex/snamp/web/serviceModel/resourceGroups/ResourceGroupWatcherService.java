@@ -103,7 +103,7 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         void putStatus(final String groupName, final Supervisor supervisor) {
             final HealthStatus status = supervisor.queryObject(HealthCheckSupport.class)
                     .map(HealthCheckSupport::getStatus)
-                    .orElseGet(OkStatus::getInstance);
+                    .orElseGet(OkStatus::new);
             put(groupName, status);
         }
     }

@@ -349,7 +349,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Override
     public HealthStatus getStatus() {
-        return OkStatus.getInstance();
+        return new OkStatus();
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.health;
 
+import java.time.Instant;
+
 /**
  * Indicates that the cluster with resources is in malfunction state.
  * @author Roman Sakno
@@ -11,12 +13,12 @@ public abstract class ClusterMalfunctionStatus extends MalfunctionStatus {
     private final String clusterName;
     static final int SEVERITY = Integer.MAX_VALUE / 2;
 
-    protected ClusterMalfunctionStatus(final String clusterName) {
-        this(SEVERITY, clusterName);
+    protected ClusterMalfunctionStatus(final String clusterName, final Instant timeStamp) {
+        this(SEVERITY, clusterName, timeStamp);
     }
 
-    ClusterMalfunctionStatus(final int severity, final String clusterName) {
-        super(severity);
+    ClusterMalfunctionStatus(final int severity, final String clusterName, final Instant timeStamp) {
+        super(severity, timeStamp);
         this.clusterName = clusterName;
     }
 

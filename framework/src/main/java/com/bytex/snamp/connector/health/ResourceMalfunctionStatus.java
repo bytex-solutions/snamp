@@ -1,5 +1,7 @@
 package com.bytex.snamp.connector.health;
 
+import java.time.Instant;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -14,15 +16,16 @@ public abstract class ResourceMalfunctionStatus extends MalfunctionStatus {
     private final String resourceName;
 
     ResourceMalfunctionStatus(final String resourceName,
-                                        final int severity) {
-        super(severity);
+                              final int severity,
+                              final Instant timeStamp) {
+        super(severity, timeStamp);
         if(isNullOrEmpty(resourceName))
             throw new IllegalArgumentException("Resource name is not specified");
         this.resourceName = resourceName;
     }
 
-    protected ResourceMalfunctionStatus(final String resourceName) {
-        this(resourceName, SEVERITY);
+    protected ResourceMalfunctionStatus(final String resourceName, final Instant timeStamp) {
+        this(resourceName, SEVERITY, timeStamp);
     }
 
     /**
