@@ -115,7 +115,6 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
                     }
                 });
                 //update node status
-                //update node status
                 final String nodeID = nodes.get(resourceName);
                 if(!isNullOrEmpty(nodeID)) {
                     final Node node = senlin.node().get(nodeID);
