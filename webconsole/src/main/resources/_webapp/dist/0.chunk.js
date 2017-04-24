@@ -37565,21 +37565,18 @@ var SnampLogViewComponent = (function () {
                 delete: false
             },
             pager: {
-                perPage: 20
+                perPage: 7
             }
         };
     }
     SnampLogViewComponent.prototype.ngOnInit = function () {
-        var _this = this;
+        this._snampLogService.flushBuffer();
         this.source = new ng2_smart_table_1.LocalDataSource(this._snampLogService.getAllLogs());
-        this._snampLogService.getLogObs()
-            .subscribe(function (newLog) {
-            newLog.savedMessage = newLog.shortDescription();
-            newLog.savedDetails = newLog.htmlDetails();
-            newLog.savedTimestamp = newLog.timestamp.getTime();
-            _this.source.add(newLog);
-            _this.source.refresh();
-        });
+    };
+    SnampLogViewComponent.prototype.refreshLogs = function () {
+        this._snampLogService.flushBuffer();
+        this.source = new ng2_smart_table_1.LocalDataSource(this._snampLogService.getAllLogs());
+        this.source.refresh();
     };
     SnampLogViewComponent.prototype.clearAllLogs = function () {
         $('#overlay').fadeIn();
@@ -38714,7 +38711,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 140
 /***/ "./src/app/configuration/templates/snamplogview.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Log view</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Log table'\" [column]=\"'12'\">\r\n          <a class=\"btn btn-app\" (click)=\"clearAllLogs()\" style=\"float: right;\">\r\n            <i class=\"fa fa-trash\"></i> Clear\r\n          </a>\r\n          <div style=\"margin-top: 10px\">\r\n              <ng2-smart-table [settings]=\"settings\" [source]=\"source\"></ng2-smart-table>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Log view</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Log table'\" [column]=\"'12'\">\r\n          <a class=\"btn btn-app\" (click)=\"refreshLogs()\" style=\"float: right;\">\r\n            <i class=\"fa fa-refresh\"></i> Refresh\r\n          </a>\r\n          <a class=\"btn btn-app\" (click)=\"clearAllLogs()\" style=\"float: right;\">\r\n            <i class=\"fa fa-trash\"></i> Clear\r\n          </a>\r\n          <div style=\"margin-top: 10px\">\r\n              <ng2-smart-table [settings]=\"settings\" [source]=\"source\"></ng2-smart-table>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 

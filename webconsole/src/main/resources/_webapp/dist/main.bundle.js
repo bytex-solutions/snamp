@@ -99876,12 +99876,16 @@ var SnampLogService = (function () {
     }
     // Flush the buffer if the user is closing browser
     SnampLogService.prototype.beforeunloadHandler = function (event) {
-        if (this.buffer.length > 0) {
-            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
-        }
+        this.flushBuffer();
     };
     SnampLogService.prototype.getLogObs = function () {
         return this.logObs.asObservable().share();
+    };
+    SnampLogService.prototype.flushBuffer = function () {
+        if (this.buffer.length > 0) {
+            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
+            this.buffer = [];
+        }
     };
     SnampLogService.prototype.getArray = function () {
         var logArray = this.localStorageService.get(this.KEY);
@@ -99908,8 +99912,7 @@ var SnampLogService = (function () {
     SnampLogService.prototype.pushLog = function (log) {
         this.buffer.unshift(log);
         if (this.buffer.length > this.SPLICE_COUNT) {
-            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
-            this.buffer = [];
+            this.flushBuffer();
         }
         this.logObs.next(log);
     };
@@ -100321,8 +100324,11 @@ var CommonHealthStatus = (function (_super) {
         _details += "<strong>Name: </strong>" + this.name + "<br/>";
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        if (this.serverTimestamp.length > 0) {
+            _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";
+        }
         if (this.serverDetails.length > 0) {
-            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+            _details += "<strong>Details: </strong>" + this.serverDetails + "<br/>";
         }
         if (!$.isEmptyObject(this.additionalFields)) {
             _details += "<strong>Additional fields: </strong><br/>";
@@ -100365,8 +100371,11 @@ var ConnectionProblem = (function (_super) {
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>IO Exception: </strong>" + this.ioException + "<br/>";
+        if (this.serverTimestamp.length > 0) {
+            _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";
+        }
         if (this.serverDetails.length > 0) {
-            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+            _details += "<strong>Details: </strong>" + this.serverDetails + "<br/>";
         }
         return _details;
     };
@@ -100431,6 +100440,9 @@ var StatusFactory = (function () {
                 break;
         }
         _value.name = name;
+        if (json["timeStamp"] != undefined) {
+            _value.serverTimestamp = json["timeStamp"];
+        }
         _value.innerType = json["@type"];
         _value.resourceName = json["resourceName"];
         _value.serverDetails = json["details"];
@@ -100484,6 +100496,8 @@ var HealthStatus = (function () {
         this.innerType = HealthStatus.OK_TYPE;
         // always have it from the service serialization
         this.serverDetails = "";
+        // timestamp from the server
+        this.serverTimestamp = "";
     }
     // used for short description at the notification (pnotify)
     HealthStatus.prototype.details = function () {
@@ -100526,8 +100540,11 @@ var InvalidAttributeValue = (function (_super) {
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>Attribute name: </strong>" + this.attribute.name + "<br/>";
         _details += "<strong>Attribute value: </strong>" + this.attribute.value + "<br/>";
+        if (this.serverTimestamp.length > 0) {
+            _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";
+        }
         if (this.serverDetails.length > 0) {
-            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+            _details += "<strong>Details: </strong>" + this.serverDetails + "<br/>";
         }
         return _details;
     };
@@ -100590,7 +100607,11 @@ var OkStatus = (function (_super) {
         return "n/a";
     };
     OkStatus.prototype.htmlDetails = function () {
-        return "<strong>Everything is fine</strong></br>";
+        var _details = "<strong>Everything is fine</strong></br>";
+        if (this.serverTimestamp.length > 0) {
+            _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";
+        }
+        return _details;
     };
     return OkStatus;
 }(health_status_1.HealthStatus));
@@ -100624,8 +100645,11 @@ var ResourceIsNotAvailable = (function (_super) {
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
         _details += "<strong>JMX Exception: </strong>" + this.jmxError + "<br/>";
+        if (this.serverTimestamp.length > 0) {
+            _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";
+        }
         if (this.serverDetails.length > 0) {
-            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+            _details += "<strong>Details: </strong>" + this.serverDetails + "<br/>";
         }
         return _details;
     };
@@ -100874,8 +100898,10 @@ var HealthStatusNotification = (function (_super) {
     }
     HealthStatusNotification.prototype.htmlDetails = function () {
         var _details = "<strong>Group name:</strong>" + this.groupName + "<br/>";
+        _details += " <hr/>";
         _details += "<strong>The status before: </strong><br/>";
         _details += this.prevStatus.htmlDetails();
+        _details += " <hr/>";
         _details += "<strong>Current status: </strong><br/>";
         _details += this.currentStatus.htmlDetails();
         return _details;
@@ -100956,7 +100982,7 @@ var LogNotification = (function (_super) {
         }
         _details += "<strong>Level: </strong>" + this.level + "<br/>";
         if (this.details && !$.isEmptyObject(this.details)) {
-            _details += "<strong>Details</strong></br/>";
+            _details += "<hr/><strong>Details:</strong></br/>";
             _details += this.shortDetailsHtml;
         }
         return _details;

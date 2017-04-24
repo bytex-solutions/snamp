@@ -11,9 +11,7 @@ export class SnampLogService {
     // Flush the buffer if the user is closing browser
     @HostListener('window:beforeunload', ['$event'])
     beforeunloadHandler(event) {
-        if (this.buffer.length > 0) {
-            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
-        }
+       this.flushBuffer();
     }
 
     private MAX_SIZE:number = 500;
@@ -31,6 +29,13 @@ export class SnampLogService {
 
     public getLogObs():Observable<AbstractNotification> {
         return this.logObs.asObservable().share();
+    }
+
+    public flushBuffer():void {
+        if (this.buffer.length > 0) {
+            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
+            this.buffer = [];
+        }
     }
 
     private getArray():AbstractNotification[] {
@@ -60,8 +65,7 @@ export class SnampLogService {
     public pushLog(log:AbstractNotification) {
         this.buffer.unshift(log);
         if (this.buffer.length > this.SPLICE_COUNT) {
-            this.localStorageService.set(this.KEY, this.buffer.concat(this.buffer, this.getArray()));
-            this.buffer = [];
+          this.flushBuffer();
         }
         this.logObs.next(log);
     }

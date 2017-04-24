@@ -51,6 +51,9 @@ export class StatusFactory {
                 break;
         }
         _value.name = name;
+        if (json["timeStamp"] != undefined) {
+            _value.serverTimestamp = json["timeStamp"];
+        }
         _value.innerType = json["@type"];
         _value.resourceName = json["resourceName"];
         _value.serverDetails = json["details"];

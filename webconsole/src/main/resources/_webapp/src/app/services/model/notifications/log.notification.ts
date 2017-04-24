@@ -24,7 +24,7 @@ export class LogNotification extends AbstractNotification {
         }
         _details += "<strong>Level: </strong>" + this.level + "<br/>";
         if (this.details && !$.isEmptyObject(this.details)) {
-            _details += "<strong>Details</strong></br/>";
+            _details += "<hr/><strong>Details:</strong></br/>";
             _details += this.shortDetailsHtml;
         }
         return _details;

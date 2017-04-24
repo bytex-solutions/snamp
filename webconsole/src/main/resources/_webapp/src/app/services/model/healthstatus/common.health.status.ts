@@ -17,8 +17,11 @@ export class CommonHealthStatus extends MalfunctionStatus {
         _details += "<strong>Name: </strong>" + this.name + "<br/>";
         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        if (this.serverTimestamp.length > 0) {
+            _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";
+        }
         if (this.serverDetails.length > 0) {
-            _details += "<strong>Details: </strong>" + this.details + "<br/>";
+            _details += "<strong>Details: </strong>" + this.serverDetails + "<br/>";
         }
         if (!$.isEmptyObject(this.additionalFields)) {
             _details += "<strong>Additional fields: </strong><br/>";

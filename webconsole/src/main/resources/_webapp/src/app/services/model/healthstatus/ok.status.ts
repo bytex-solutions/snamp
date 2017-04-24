@@ -16,6 +16,10 @@ export class OkStatus extends HealthStatus {
     }
 
     public htmlDetails():string {
-        return "<strong>Everything is fine</strong></br>"
+        let _details:string =  "<strong>Everything is fine</strong></br>";
+        if (this.serverTimestamp.length > 0) {
+            _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";
+        }
+        return _details;
     }
 }

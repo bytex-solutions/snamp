@@ -23,9 +23,11 @@ export class HealthStatusNotification extends AbstractNotification {
     }
 
     htmlDetails(): string {
-        let _details:string = "<strong>Group name:</strong>" + this.groupName + "<br/>"
+        let _details:string = "<strong>Group name:</strong>" + this.groupName + "<br/>";
+        _details += " <hr/>";
         _details += "<strong>The status before: </strong><br/>";
         _details += this.prevStatus.htmlDetails();
+        _details += " <hr/>";
         _details += "<strong>Current status: </strong><br/>";
         _details += this.currentStatus.htmlDetails();
         return _details;

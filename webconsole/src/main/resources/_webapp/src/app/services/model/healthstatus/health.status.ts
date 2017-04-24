@@ -20,6 +20,9 @@ export abstract class HealthStatus {
     // always have it from the service serialization
     public serverDetails:string = "";
 
+    // timestamp from the server
+    public serverTimestamp:String = "";
+
     // is it critical. it will be displayed at details stage and it influences the level of the notification
     public abstract isCritical():boolean;
 

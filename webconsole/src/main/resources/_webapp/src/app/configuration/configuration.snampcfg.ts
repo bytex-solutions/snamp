@@ -3,7 +3,6 @@ import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Overlay } from 'angular2-modal';
 import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
-import { Observable } from "rxjs";
 
 @Component({
     moduleId: module.id,

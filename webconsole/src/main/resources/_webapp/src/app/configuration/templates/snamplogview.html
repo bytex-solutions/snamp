@@ -10,6 +10,9 @@
 
     <div class="row" style="margin-top: 30px">
         <panel [header]="'Log table'" [column]="'12'">
+          <a class="btn btn-app" (click)="refreshLogs()" style="float: right;">
+            <i class="fa fa-refresh"></i> Refresh
+          </a>
           <a class="btn btn-app" (click)="clearAllLogs()" style="float: right;">
             <i class="fa fa-trash"></i> Clear
           </a>
