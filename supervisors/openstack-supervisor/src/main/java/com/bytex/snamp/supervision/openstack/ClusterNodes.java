@@ -1,8 +1,6 @@
 package com.bytex.snamp.supervision.openstack;
 
 import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import org.openstack4j.api.senlin.SenlinNodeService;
 import org.openstack4j.model.senlin.Node;
 

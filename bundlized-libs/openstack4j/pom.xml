@@ -87,6 +87,7 @@
                             org.openstack4j.api.types,
                             org.openstack4j.common,
                             org.openstack4j.core.transport,
+                            org.openstack4j.model,
                             org.openstack4j.model.common,
                             org.openstack4j.model.common.builder,
                             org.openstack4j.model.common.functions,

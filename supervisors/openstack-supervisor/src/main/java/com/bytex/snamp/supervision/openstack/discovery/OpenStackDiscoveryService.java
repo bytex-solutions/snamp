@@ -4,7 +4,6 @@ import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.openstack.ClusterNodes;
-import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.openstack4j.api.senlin.SenlinNodeService;
@@ -42,11 +41,13 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
             if (!nodes.names().contains(resourceName))
                 removeResource(resourceName);
         //add resource if is not present as a node
-        for (final Node node : nodes.values())
+        for (Node node : nodes.values()) {
+            node = nodeService.get(node.getId());
             if (!existingResources.contains(node.getName())) {
                 final String connectionString = MapUtils.getValue(node.getMetadata(), CONNECTION_STRING_PARAM, Object::toString).orElse("");
                 registerResource(node.getName(), connectionString, Maps.transformValues(node.getMetadata(), Object::toString));
             }
+        }
         nodes.clear();  //help GC
     }
 }

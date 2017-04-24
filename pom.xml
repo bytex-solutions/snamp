@@ -93,6 +93,7 @@
     <guava.version>19.0</guava.version>
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
     <snamp.connectors.version>2.0.0</snamp.connectors.version>
+    <stringtemplate.version>4.0.8</stringtemplate.version>
     <bouncycastle.version>1.54</bouncycastle.version>
   </properties>
   <dependencyManagement>

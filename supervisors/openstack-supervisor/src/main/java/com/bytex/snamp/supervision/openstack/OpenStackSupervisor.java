@@ -20,7 +20,6 @@ import org.openstack4j.model.senlin.Cluster;
 import org.openstack4j.openstack.OSFactory;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -79,7 +78,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
             final String message = String.format("OpenStack installation %s doesn't support clustering via Senlin. Supervisor for group %s is not started", openStackClient.getEndpoint(), groupName);
             throw new OS4JException(message);
         }
-        openStackClientToken.set(openStackClient.getToken());  //according with http://openstack4j.com/learn/threads/
+        //Obtain cluster ID
         final String clusterID = parser.parseClusterID(configuration)
                 .orElseGet(() -> getClusterIdByName(openStackClient.senlin().cluster(), groupName));
         final Cluster cluster = openStackClient.senlin().cluster().get(clusterID);
@@ -91,6 +90,8 @@ final class OpenStackSupervisor extends DefaultSupervisor {
                     groupName,
                     cluster.getStatus(),
                     cluster.getStatusReason()));
+        //setup supervisor
+        openStackClientToken.set(openStackClient.getToken());  //according with http://openstack4j.com/learn/threads/
         overrideHealthStatusProvider(new OpenStackHealthStatusProvider(clusterMember, clusterID, parser.checkNodes(configuration)));
         //setup discovery service
         if (parser.isAutoDiscovery(configuration))

@@ -77,9 +77,8 @@ To enable integration tests with OpenStack you should install DevStack on virtua
 * `cd devstack`
 * `source openrc`
 * `cd ..`
-* `openstack keypair create snamp-key > snamp-test-key.pem`
-
-Test profile for Senlin:
+* Create key pair in OpenStack Horizon (Compute tab)
+* Test profile for Senlin (in file `cirros-cluster-profile.yaml`):
 
 ```yaml
 type: os.nova.server
@@ -97,3 +96,5 @@ properties:
     #!/bin/sh
     echo 'hello, world' > /tmp/test_file
 ```
+
+* `openstack cluster profile create --spec-file cirros-cluster-profile.yaml ProfileForTests`
