@@ -2,6 +2,7 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.io.SerializableMap;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.HashMap;
 import java.util.function.Function;
 
@@ -22,7 +23,7 @@ public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implement
         super(capacity);
     }
 
-    private AbstractKeyedObjects(){
+    protected AbstractKeyedObjects(){
     }
 
     /**
@@ -32,7 +33,8 @@ public abstract class AbstractKeyedObjects<K, V> extends HashMap<K, V> implement
      * @return The previous item to be removed from this map.
      */
     @Override
-    public final V put(final V item) {
+    @OverridingMethodsMustInvokeSuper
+    public V put(final V item) {
         return put(getKey(item), item);
     }
 

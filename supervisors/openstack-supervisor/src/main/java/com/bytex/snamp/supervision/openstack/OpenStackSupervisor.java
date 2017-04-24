@@ -4,9 +4,12 @@ import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
+import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
+import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.openstack.discovery.OpenStackDiscoveryService;
 import com.bytex.snamp.supervision.openstack.health.OpenStackHealthStatusProvider;
+import com.google.common.collect.ImmutableSet;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
 import org.openstack4j.api.senlin.SenlinClusterService;
@@ -17,7 +20,9 @@ import org.openstack4j.model.senlin.Cluster;
 import org.openstack4j.openstack.OSFactory;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 /**
  * Represents supervisor for OpenStack.
@@ -43,8 +48,12 @@ final class OpenStackSupervisor extends DefaultSupervisor {
     }
 
     private static String getClusterIdByName(final SenlinClusterService clusterService,
-                                             final String clusterName){
-        return SenlinHelpers.getClusterIdByName(clusterService, clusterName)
+                                             final String clusterName) {
+        return clusterService.list()
+                .stream()
+                .filter(cluster -> cluster.getName().equals(clusterName))
+                .map(Cluster::getId)
+                .findFirst()
                 .orElseThrow(() -> new OS4JException(String.format("Cluster with name %s is not registered in Senlin", clusterName)));
     }
 
@@ -98,6 +107,15 @@ final class OpenStackSupervisor extends DefaultSupervisor {
         provider.updateStatus(getBundleContext(), senlin, getResources());
     }
 
+    private void synchronizeNodes(@Nonnull final SenlinService senlin, @Nonnull final OpenStackDiscoveryService discoveryService) {
+        final ImmutableSet<String> resources = ImmutableSet.copyOf(getResources());
+        try {
+            discoveryService.synchronizeNodes(senlin.node(), resources);
+        } catch (final ResourceDiscoveryException e) {
+            getLogger().log(Level.SEVERE, "Failed to synchronize cluster nodes from OpenStack to SNAMP", e);
+        }
+    }
+
     /**
      * Executes automatically using scheduling time.
      */
@@ -112,10 +130,14 @@ final class OpenStackSupervisor extends DefaultSupervisor {
         final SenlinService senlin = openStackClient.senlin();
         assert senlin != null;
 
+        //the first, update nodes
+        queryObject(DefaultResourceDiscoveryService.class)
+                .flatMap(Convert.toType(OpenStackDiscoveryService.class))
+                .ifPresent(discovery -> synchronizeNodes(senlin, discovery));
+        //only after updating node we should collect health checks
         queryObject(DefaultHealthStatusProvider.class)
-                .flatMap(p -> Convert.toType(p, OpenStackHealthStatusProvider.class))
+                .flatMap(Convert.toType(OpenStackHealthStatusProvider.class))
                 .ifPresent(provider -> updateHealthStatus(senlin, provider));
-
 
         //OSAuthenticator.reAuthenticate();
         this.openStackClientToken.compareAndSet(openStackClientToken, openStackClient.getToken()); //if re-authentication forced

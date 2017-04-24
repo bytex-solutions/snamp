@@ -538,9 +538,13 @@ public final class Convert {
         return type.isValue(value) ? Optional.of((T) value) : Optional.empty();
     }
 
-    public static <I> Optional<I> toType(final Object obj,
-                                         @Nonnull final Class<I> expectedType) {
+    public static <T> Optional<T> toType(final Object obj,
+                                         @Nonnull final Class<T> expectedType) {
         return Optional.ofNullable(obj).filter(expectedType::isInstance).map(expectedType::cast);
+    }
+
+    public static <I, T> Function<? super I, Optional<T>> toType(final Class<T> expectedType){
+        return input -> toType(input, expectedType);
     }
 
     public static OptionalInt toInt(final Object value){

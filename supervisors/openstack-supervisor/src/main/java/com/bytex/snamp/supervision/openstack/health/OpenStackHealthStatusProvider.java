@@ -5,8 +5,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
-import com.bytex.snamp.supervision.openstack.SenlinHelpers;
-import com.google.common.collect.BiMap;
+import com.bytex.snamp.supervision.openstack.ClusterNodes;
 import com.google.common.collect.ImmutableMap;
 import org.openstack4j.api.exceptions.OS4JException;
 import org.openstack4j.api.senlin.SenlinService;
@@ -103,9 +102,8 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         final Cluster cluster = senlin.cluster().get(clusterID);
         if (cluster == null)
             throw new OS4JException(String.format("Cluster %s doesn't exist", clusterID));
-        BiMap<String, String> nodes = SenlinHelpers.getNodes(senlin.node(), clusterID);
+        final ClusterNodes nodes = ClusterNodes.discover(senlin.node(), clusterID);
         try (final SafeCloseable batchUpdate = startBatchUpdate()) {
-            nodes = nodes.inverse();//key - name, value - ID
             for (final String resourceName : resources) {
                 ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
                     try {
@@ -115,23 +113,17 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
                     }
                 });
                 //update node status
-                final String nodeID = nodes.get(resourceName);
-                if(!isNullOrEmpty(nodeID)) {
-                    final Node node = senlin.node().get(nodeID);
-                    if(node != null)
-                        updateNodeStatus(node);
-                }
+                nodes.getByName(resourceName).ifPresent(this::updateNodeStatus);
             }
             //update health status of the cluster
             updateClusterStatus(cluster);
-        } finally {
-            nodes = nodes.inverse(); //key - ID, value - name
         }
         //force check nodes only at active cluster node
         if (checkNodes && clusterMember.isActive()) {
             final NodeActionCreate checkAction = SenlinNodeActionCreate.build().check(ImmutableMap.of()).build();
-            for (final String nodeID : nodes.keySet())
+            for (final String nodeID : nodes.ids())
                 senlin.node().action(nodeID, checkAction);
         }
+        nodes.clear();  //help GC
     }
 }
