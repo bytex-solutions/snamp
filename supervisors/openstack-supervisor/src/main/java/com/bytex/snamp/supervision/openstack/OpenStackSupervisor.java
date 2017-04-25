@@ -95,7 +95,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
         overrideHealthStatusProvider(new OpenStackHealthStatusProvider(clusterMember, clusterID, parser.checkNodes(configuration)));
         //setup discovery service
         if (parser.isAutoDiscovery(configuration))
-            overrideDiscoveryService(new OpenStackDiscoveryService(groupName, clusterID, ""));
+            overrideDiscoveryService(new OpenStackDiscoveryService(groupName, clusterID, configuration.getDiscoveryConfig().getConnectionStringTemplate()));
         final boolean enableElastMan = parser.isElasticityManagementEnabled(configuration);
         super.start(configuration);
     }

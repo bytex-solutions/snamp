@@ -54,4 +54,11 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
      */
     @Nonnull
     HealthCheckInfo getHealthCheckConfig();
+
+    /**
+     * Gets configuration of resource discovery.
+     * @return Configuration of resource discovery.
+     */
+    @Nonnull
+    ResourceDiscoveryInfo getDiscoveryConfig();
 }

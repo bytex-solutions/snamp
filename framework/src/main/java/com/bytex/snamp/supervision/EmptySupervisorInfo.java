@@ -27,15 +27,30 @@ final class EmptySupervisorInfo extends ImmutableEmptyMap<String, String> implem
         }
     }
 
+    private static final class EmptyResourceDiscoveryInfo implements ResourceDiscoveryInfo{
+        @Override
+        public String getConnectionStringTemplate() {
+            return "";
+        }
+    }
+
     private final EmptyHealthCheckInfo healthCheckConfig;
+    private final EmptyResourceDiscoveryInfo discoveryConfig;
 
     EmptySupervisorInfo(){
         healthCheckConfig = new EmptyHealthCheckInfo();
+        discoveryConfig = new EmptyResourceDiscoveryInfo();
     }
 
     @Nonnull
     @Override
     public EmptyHealthCheckInfo getHealthCheckConfig() {
         return healthCheckConfig;
+    }
+
+    @Nonnull
+    @Override
+    public ResourceDiscoveryInfo getDiscoveryConfig() {
+        return discoveryConfig;
     }
 }

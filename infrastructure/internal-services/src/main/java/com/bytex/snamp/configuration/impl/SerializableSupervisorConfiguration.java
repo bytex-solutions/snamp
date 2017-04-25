@@ -65,6 +65,71 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         }
     }
 
+    final static class SerializableDiscoveryConfiguration implements ResourceDiscoveryConfiguration, Modifiable, Stateful, Externalizable{
+        private static final long serialVersionUID = -2331867913948707000L;
+        private transient boolean modified;
+        private String template;
+
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
+        public SerializableDiscoveryConfiguration() {
+            template = "";
+        }
+
+        void clear(){
+            template = "";
+            modified = true;
+        }
+
+        void load(final ResourceDiscoveryConfiguration other){
+            setConnectionStringTemplate(other.getConnectionStringTemplate());
+        }
+
+        @Override
+        public boolean isModified() {
+            return modified;
+        }
+
+        @Override
+        public void reset() {
+            modified = false;
+        }
+
+        @Override
+        public String getConnectionStringTemplate() {
+            return template;
+        }
+
+        @Override
+        public void setConnectionStringTemplate(final String value) {
+            template = nullToEmpty(value);
+            modified = true;
+        }
+
+        @Override
+        public void writeExternal(final ObjectOutput out) throws IOException {
+            out.writeUTF(template);
+        }
+
+        @Override
+        public void readExternal(final ObjectInput in) throws IOException {
+            template = in.readUTF();
+        }
+
+        @Override
+        public int hashCode() {
+            return template.hashCode();
+        }
+
+        private boolean equals(final ResourceDiscoveryConfiguration other) {
+            return other.getConnectionStringTemplate().equals(getConnectionStringTemplate());
+        }
+
+        @Override
+        public boolean equals(final Object other) {
+            return other instanceof ResourceDiscoveryConfiguration && equals((ResourceDiscoveryConfiguration) other);
+        }
+    }
+
     final static class SerializableHealthCheckConfiguration implements HealthCheckConfiguration, Modifiable, Stateful, Externalizable{
         private static final long serialVersionUID = -4851867914948707006L;
         private final SerializableAttributeCheckers checkers;
@@ -74,11 +139,6 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         public SerializableHealthCheckConfiguration(){
             checkers = new SerializableAttributeCheckers();
             trigger = new SerializableScriptletConfiguration();
-        }
-
-        private SerializableHealthCheckConfiguration(final ObjectInput input) throws IOException, ClassNotFoundException {
-            this();
-            readExternal(input);
         }
 
         @Override
@@ -151,11 +211,13 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
     }
 
     private SerializableHealthCheckConfiguration healthCheckConfig;
+    private SerializableDiscoveryConfiguration discoveryConfig;
     private String supervisorType;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableSupervisorConfiguration() {
         healthCheckConfig = new SerializableHealthCheckConfiguration();
+        discoveryConfig = new SerializableDiscoveryConfiguration();
         supervisorType = DEFAULT_TYPE;
     }
 
@@ -183,13 +245,17 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(supervisorType);
         healthCheckConfig.writeExternal(out);
+        discoveryConfig.writeExternal(out);
         super.writeExternal(out);
     }
 
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         supervisorType = in.readUTF();
-        healthCheckConfig = new SerializableHealthCheckConfiguration(in);
+        healthCheckConfig = new SerializableHealthCheckConfiguration();
+        healthCheckConfig.readExternal(in);
+        discoveryConfig = new SerializableDiscoveryConfiguration();
+        discoveryConfig.readExternal(in);
         super.readExternal(in);
     }
 
@@ -204,25 +270,37 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         return healthCheckConfig;
     }
 
+    @Nonnull
+    @Override
+    public SerializableDiscoveryConfiguration getDiscoveryConfig() {
+        return discoveryConfig;
+    }
+
     void setHealthCheckConfig(@Nonnull final SerializableHealthCheckConfiguration value){
-        healthCheckConfig = value;
+        healthCheckConfig = Objects.requireNonNull(value);
+    }
+
+    void setDiscoveryConfig(@Nonnull final SerializableDiscoveryConfiguration value){
+        discoveryConfig = Objects.requireNonNull(value);
     }
 
     @Override
     public void clear() {
         super.clear();
         healthCheckConfig.getAttributeCheckers().clear();
+        discoveryConfig.clear();
     }
 
     @Override
     public boolean isModified() {
-        return super.isModified() || healthCheckConfig.isModified();
+        return super.isModified() || healthCheckConfig.isModified() || discoveryConfig.isModified();
     }
 
     @Override
     public void reset() {
         super.reset();
         healthCheckConfig.reset();
+        discoveryConfig.reset();
     }
 
     private void loadParameters(final Map<String, String> parameters) {
@@ -232,6 +310,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
 
     private void load(final SupervisorConfiguration other) {
         healthCheckConfig.load(other.getHealthCheckConfig());
+        discoveryConfig.load(other.getDiscoveryConfig());
         loadParameters(other);
     }
 
@@ -245,6 +324,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
 
     private boolean equals(final SupervisorConfiguration other) {
         return other.getHealthCheckConfig().equals(healthCheckConfig) &&
+                other.getDiscoveryConfig().equals(discoveryConfig) &&
                 super.equals(other);
     }
 
@@ -255,6 +335,6 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ Objects.hash(healthCheckConfig);
+        return super.hashCode() ^ Objects.hash(healthCheckConfig, discoveryConfig);
     }
 }

@@ -42,6 +42,14 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
     }
 
     /**
+     * Gets configuration of resource discovery.
+     * @return Configuration of resource discovery.
+     */
+    @Nonnull
+    @Override
+    ResourceDiscoveryConfiguration getDiscoveryConfig();
+
+    /**
      * Gets configuration of the health check.
      *
      * @return Configuration of the health checks.
