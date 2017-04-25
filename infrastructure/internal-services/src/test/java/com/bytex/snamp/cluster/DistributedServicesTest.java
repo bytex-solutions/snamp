@@ -1,7 +1,10 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.core.*;
+import com.bytex.snamp.core.Communicator;
+import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.core.SharedCounter;
+import com.bytex.snamp.core.SharedObjectType;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Assert;

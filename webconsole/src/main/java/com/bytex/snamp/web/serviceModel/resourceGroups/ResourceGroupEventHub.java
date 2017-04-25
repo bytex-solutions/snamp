@@ -1,10 +1,10 @@
 package com.bytex.snamp.web.serviceModel.resourceGroups;
 
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
+import com.bytex.snamp.supervision.SupervisionEvent;
 import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.SupervisorFilterBuilder;
-import com.bytex.snamp.supervision.SupervisionEvent;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.google.common.collect.ImmutableMap;

@@ -62,6 +62,7 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
             supervisor.put("authURL", OS_AUTH_URL);
             supervisor.put("userName", USERNAME);
             supervisor.put("password", PASSWORD);
+            supervisor.put("checkNodes", Boolean.TRUE.toString());
             supervisor.getDiscoveryConfig().setConnectionStringTemplate("{first(addresses.private).addr}");
         });
     }

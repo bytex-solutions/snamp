@@ -5,7 +5,6 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.management.Attribute;
-
 import java.util.OptionalDouble;
 
 import static com.bytex.snamp.Convert.toDouble;

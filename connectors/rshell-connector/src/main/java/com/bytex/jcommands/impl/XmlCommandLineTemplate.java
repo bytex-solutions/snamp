@@ -5,7 +5,7 @@ import org.antlr.runtime.tree.Tree;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.adaptors.CompositeDataAdaptor;
-import org.stringtemplate.v4.adaptors.ListAdaptor;
+import org.stringtemplate.v4.compiler.CompiledST;
 import org.stringtemplate.v4.compiler.STLexer;
 
 import javax.script.ScriptEngineManager;
@@ -16,6 +16,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents XML-serializable template of the command-line tool.
@@ -34,10 +37,9 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
         TEMPLATE_GROUP = new STGroup('{', '}');
         CommonAdaptors.register(TEMPLATE_GROUP);
         CompositeDataAdaptor.register(TEMPLATE_GROUP);
-        ListAdaptor.register(TEMPLATE_GROUP);
     }
 
-    private transient ST precompiledTemplate;
+    private transient CompiledST precompiledTemplate;
     private XmlParserDefinition outputParser;
     private transient ScriptEngineManager scriptManager;
 
@@ -73,9 +75,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      */
     @XmlElement(name = "input", namespace = XmlConstants.NAMESPACE)
     public final void setCommandTemplate(final String value) {
-        precompiledTemplate = value == null || value.isEmpty() ?
-                null :
-                createCommandTemplate(value);
+        precompiledTemplate = isNullOrEmpty(value) ? null : createCommandTemplate(value);
     }
 
     /**
@@ -83,7 +83,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return The command-line template.
      */
     public final String getCommandTemplate(){
-        return precompiledTemplate != null ? precompiledTemplate.impl.template : "";
+        return precompiledTemplate != null ? precompiledTemplate.template : "";
     }
 
     /**
@@ -91,8 +91,14 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @param template The template to compile.
      * @return A new instance of the command template.
      */
-    public static ST createCommandTemplate(final String template) {
-        return new ST(TEMPLATE_GROUP, template);
+    public static CompiledST createCommandTemplate(final String template) {
+        final CompiledST compiledST = TEMPLATE_GROUP.compile(TEMPLATE_GROUP.getFileName(),
+                "CommandLineTemplate",
+                null,
+                template,
+                null);
+        compiledST.hasFormalArgs = false;
+        return compiledST;
     }
 
     private static void findTemplateParameters(final Tree tree, final List<String> output) {
@@ -114,8 +120,13 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
         if(precompiledTemplate == null)
             return Collections.emptyList();
         final List<String> result = new ArrayList<>();
-        findTemplateParameters(precompiledTemplate.impl.ast, result);
+        findTemplateParameters(precompiledTemplate.ast, result);
         return result;
+    }
+
+    private static ST createCommandTemplate(CompiledST compiledST){
+        compiledST = callUnchecked(compiledST::clone);
+        return TEMPLATE_GROUP.createStringTemplate(compiledST);
     }
 
     /**
@@ -130,7 +141,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
                                                    final Map<String, ?> input) {
         if(precompiledTemplate == null)
             throw new IllegalStateException("Template is not configured");
-        final ST template = new ST(precompiledTemplate);
+        final ST template = createCommandTemplate(precompiledTemplate);
         //fill template attributes from channel parameters
         channelParameters.forEach(template::add);
         //fill template attributes from custom input

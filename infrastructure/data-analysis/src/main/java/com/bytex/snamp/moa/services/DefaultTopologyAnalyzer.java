@@ -1,7 +1,6 @@
 package com.bytex.snamp.moa.services;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;

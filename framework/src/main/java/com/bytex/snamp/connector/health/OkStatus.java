@@ -1,7 +1,5 @@
 package com.bytex.snamp.connector.health;
 
-import com.bytex.snamp.concurrent.LazyWeakReference;
-
 import java.time.Instant;
 import java.util.Locale;
 

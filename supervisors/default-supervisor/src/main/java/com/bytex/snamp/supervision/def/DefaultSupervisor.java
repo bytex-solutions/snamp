@@ -17,6 +17,8 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static com.bytex.snamp.configuration.SupervisorInfo.HealthCheckInfo;
 
@@ -27,12 +29,14 @@ import static com.bytex.snamp.configuration.SupervisorInfo.HealthCheckInfo;
  * @since 2.0
  */
 public class DefaultSupervisor extends AbstractSupervisor {
-    private static final class HealthStatusUpdater extends WeakRepeater<DefaultSupervisor>{
+    private static final class SupervisorRepeater extends WeakRepeater<DefaultSupervisor>{
         private final String threadName;
+        private final Logger logger;
 
-        HealthStatusUpdater(final Duration period, final DefaultSupervisor input) {
+        SupervisorRepeater(final Duration period, final DefaultSupervisor input) {
             super(period, input);
-            threadName = "HealthStatusUpdater-" + input.groupName;
+            threadName = "Supervision-" + input.groupName;
+            this.logger = input.getLogger();
         }
         
         @Override
@@ -48,6 +52,19 @@ public class DefaultSupervisor extends AbstractSupervisor {
         void terminate() throws TimeoutException, InterruptedException {
             close(getPeriod());
         }
+
+        /**
+         * Clears a weak reference to the object participated in processing.
+         *
+         * @param s A new repeater state.
+         */
+        @Override
+        protected void stateChanged(final RepeaterState s) {
+            switch (s){
+                case FAILED:
+                    logger.log(Level.SEVERE, String.format("%s is crushed", threadName), getException());
+            }
+        }
     }
 
     @Aggregation  //non-cached
@@ -58,7 +75,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
     private TriggerFactory triggerFactory;
     @Aggregation
     private DefaultResourceDiscoveryService discoveryService;
-    private HealthStatusUpdater updater;
+    private SupervisorRepeater updater;
     /**
      * Gets a reference to the current member in SNAMP cluster.
      */
@@ -194,7 +211,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
         setupDiscoveryService();
         setupHealthCheck(configuration.getHealthCheckConfig());
         //start updater thread
-        updater = new HealthStatusUpdater(parser.parseCheckPeriod(configuration), this);
+        updater = new SupervisorRepeater(parser.parseCheckPeriod(configuration), this);
         updater.run();
     }
 }

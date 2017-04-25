@@ -7,7 +7,6 @@ import org.codehaus.jackson.node.TextNode;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.function.Supplier;
 
 /**
  * Represents serializer for data type {@link Instant}.

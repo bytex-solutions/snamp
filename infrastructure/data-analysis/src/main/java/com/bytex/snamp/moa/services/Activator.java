@@ -9,7 +9,6 @@ import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
 
-
 import javax.annotation.Nonnull;
 import java.util.Map;
 

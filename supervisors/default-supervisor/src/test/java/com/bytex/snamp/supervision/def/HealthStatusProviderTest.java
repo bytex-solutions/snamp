@@ -17,7 +17,6 @@ import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.health.ResourceIsNotAvailable;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
-import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import org.junit.Assert;
 import org.junit.Test;

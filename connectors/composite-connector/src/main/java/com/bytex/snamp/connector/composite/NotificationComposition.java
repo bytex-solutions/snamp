@@ -1,6 +1,8 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.connector.notifications.*;
+import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
