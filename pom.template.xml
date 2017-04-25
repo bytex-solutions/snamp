@@ -67,6 +67,7 @@
     <snamp.connector.stream.version>2.0.0</snamp.connector.stream.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
+    <snamp.connector.stub.version>2.0.0</snamp.connector.stub.version>
 
     <snamp.json.version>2.0.0</snamp.json.version>
     <snamp.management.version>2.0.0</snamp.management.version>

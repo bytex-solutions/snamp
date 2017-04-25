@@ -19,8 +19,7 @@ final class CompositeDataExtender implements ModelAdaptor {
 
     }
 
-    private static Object getProperty(final Interpreter interpreter,
-                                      final CompositeData dictionary,
+    private static Object getProperty(final CompositeData dictionary,
                                       final String propertyName){
         if(dictionary.containsKey(propertyName))
             return dictionary.get(propertyName);
@@ -30,12 +29,11 @@ final class CompositeDataExtender implements ModelAdaptor {
     @Override
     public Object getProperty(final Interpreter interp, final ST self, final Object o, final Object property, final String propertyName) throws STNoSuchPropertyException {
         if(o instanceof CompositeData)
-            return getProperty(interp, (CompositeData)o, propertyName);
+            return getProperty((CompositeData)o, propertyName);
         else throw new STNoSuchPropertyException(new InvalidKeyException(), o, propertyName);
     }
 
     static void register(final STGroup groupDef){
-        final ModelAdaptor adaptor = new CompositeDataExtender();
-        groupDef.registerModelAdaptor(CompositeData.class, adaptor);
+        groupDef.registerModelAdaptor(CompositeData.class, new CompositeDataExtender());
     }
 }

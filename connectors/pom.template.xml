@@ -23,5 +23,6 @@
         <module>data-stream-connector</module>
         <module>http-acceptor</module>
         <module>zipkin-connector</module>
+        <module>stub-connector</module>
     </modules>
 </project>

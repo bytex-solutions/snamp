@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.bytex.snamp.connectors</groupId>
+        <artifactId>connectors</artifactId>
+        <version>2.0.0</version>
+    </parent>
+    <artifactId>stub</artifactId>
+    <version>${snamp.connector.stub.version}</version>
+    <packaging>bundle</packaging>
+    <name>Stub Connector</name>
+    <description>Stub connector for demonstrations and tests</description>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>snamp-${project.artifactId}-connector</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.connector.stub.StubConnectorActivator</Bundle-Activator>
+                        <Export-Package/>
+                        <!--SNAMP specific header-->
+                        <Provide-Capability>com.bytex.snamp.connector; type=stub</Provide-Capability>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>framework</artifactId>
+            <version>${snamp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+        </dependency>
+    </dependencies>
+</project>

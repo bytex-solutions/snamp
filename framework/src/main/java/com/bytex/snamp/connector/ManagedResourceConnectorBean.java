@@ -70,6 +70,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  *     c.connectProperty("001", "property1", new HashMap<>());
  *     System.out.println(c.getAttribute("001"));//output is: Hello, world!
  *     }</pre>
+ *     <br/>
+ *     Please note that the derived class should be public
  * @author Roman Sakno
  * @since 1.0
  * @version 2.0
@@ -175,15 +177,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
             return beanMetadata.getBeanDescriptor().getBeanClass().getClassLoader();
         }
 
-        protected BeanFeatureDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType) throws IntrospectionException {
-            this(connectorType, EnumSet.noneOf(EmptyManagementNotificationType.class));
-        }
-
-        protected <N extends Enum<N> & ManagementNotificationType<?>> BeanFeatureDiscoveryService(final Class<? extends ManagedResourceConnectorBean> connectorType,
-                                                                                                  final EnumSet<N> notifications) throws IntrospectionException {
-            this(getBeanInfo(connectorType), notifications);
-        }
-
         private Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
             return Arrays.stream(properties)
                     .filter(JavaBeanAttributeInfo::isValidDescriptor)
@@ -255,7 +248,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final String resourceName,
                                                                                                final EnumSet<N> notifTypes) throws IntrospectionException {
-        final BeanInfo beanInfo = getBeanInfo(getClass());
+        final BeanInfo beanInfo = reflectBeanInfo();
         attributes = JavaBeanAttributeRepository.create(resourceName, this, beanInfo);
         notifications = new JavaBeanNotificationRepository(resourceName,
                 notifTypes,
@@ -269,8 +262,13 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         return assembleMetricsReader(attributes, notifications, operations);
     }
 
-    private static BeanInfo getBeanInfo(final Class<? extends ManagedResourceConnectorBean> beanType) throws IntrospectionException {
-        return Introspector.getBeanInfo(beanType, ManagedResourceConnectorBean.class);
+    /**
+     * Reflects this instance of the managed resource connector.
+     * @return Reflection metadata.
+     * @throws IntrospectionException Unable to reflect managed resource connector.
+     */
+    protected BeanInfo reflectBeanInfo() throws IntrospectionException {
+        return Introspector.getBeanInfo(getClass(), ManagedResourceConnectorBean.class);
     }
 
     /**
@@ -337,11 +335,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         return emitNotificationImpl(category, message, userData);
     }
 
-    private static BeanFeatureDiscoveryService createDiscoveryService(final BeanInfo beanMetadata,
-                                                                      final Set<? extends ManagementNotificationType<?>> notifTypes){
-        return new BeanFeatureDiscoveryService(beanMetadata, notifTypes);
-    }
-
     /**
      * Determines whether the connected managed resource is alive.
      *
@@ -358,9 +351,9 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @throws IntrospectionException Unable to reflect this bean.
      */
     public FeatureDiscoveryService createDiscoveryService() throws IntrospectionException{
-        final BeanInfo beanMetadata = getBeanInfo(getClass());
+        final BeanInfo beanMetadata = reflectBeanInfo();
         final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
-        return createDiscoveryService(beanMetadata, notifTypes);
+        return new BeanFeatureDiscoveryService(beanMetadata, notifTypes);
     }
 
     /**

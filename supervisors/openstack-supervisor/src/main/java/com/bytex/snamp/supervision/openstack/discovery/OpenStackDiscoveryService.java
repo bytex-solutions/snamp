@@ -34,7 +34,9 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
         this.connectionStringTemplate = new ST(TEMPLATE_GROUP, connectionStringTemplate);
     }
 
-    private String createConnectionString(final Map<String, ?> nodeDetails){
+    private String createConnectionString(final Node node){
+        final Map<String, Object> nodeDetails = node.getDetails();
+        nodeDetails.put("node", node.getMetadata());
         final ST connectionStringTemplate = new ST(this.connectionStringTemplate);
         nodeDetails.forEach(connectionStringTemplate::add);
         return connectionStringTemplate.render();
@@ -55,7 +57,7 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
         for (Node node : nodes.values()) {
             if (!existingResources.contains(node.getName())) {
                 node = nodeService.get(node.getId());//obtain detailed information about node
-                final String connectionString = createConnectionString(node.getDetails());
+                final String connectionString = createConnectionString(node);
                 registerResource(node.getName(), connectionString, JsonUtils.toPlainMap(node.getMetadata(), '.'));
             }
         }

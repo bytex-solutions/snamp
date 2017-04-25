@@ -29,6 +29,10 @@
       <version>4.0.8</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -61,6 +65,7 @@
                             org.stringtemplate.v4.misc,
                             org.antlr.runtime,
                             org.antlr.runtime.tree</Export-Package>
+            <Import-Package />
           </instructions>
         </configuration>
       </plugin>

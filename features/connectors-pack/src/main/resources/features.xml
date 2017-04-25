@@ -16,7 +16,12 @@
         <bundle start="true">mvn:com.bytex.snamp.supervisors/openstack/${snamp.supervisor.openstack.version}</bundle>
     </feature>
 
-    <feature name="snamp-stream-connector" description="SNAMP instrumentation library and connector for measurements" version="${snamp.connector.stream.version}">
+    <feature name="snamp-stub-connector" description="SNAMP stub connector for tests" version="${snamp.connector.stub.version}">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-framework</feature>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/stub/${snamp.connector.stub.version}</bundle>
+    </feature>
+
+    <feature name="snamp-stream-connector" description="SNAMP connector for capturing measurements" version="${snamp.connector.stream.version}">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-framework</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
         <feature version="${snamp.instrumentation.version}">snamp-instrumentation</feature>

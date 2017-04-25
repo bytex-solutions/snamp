@@ -11,6 +11,7 @@ import java.util.Objects;
 public enum SnampFeature {
     PLATFORM("core", "2.0.0", "snamp-core"),
     OS_SUPERVISOR("connectors", "2.0.0", "snamp-openstack-supervisor"),
+    STUB_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stub-connector"),
     HTTP_ACCEPTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stream-connector", "snamp-http-acceptor"),
     JMX_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-jmx-connector"),
     ZIPKIN_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stream-connector", "snamp-zipkin-connector"),

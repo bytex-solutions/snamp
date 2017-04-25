@@ -46,16 +46,10 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>antlr-runtime</artifactId>
-      <version>3.5.2</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.antlr</groupId>
-      <artifactId>ST4</artifactId>
+      <groupId>com.bytex.snamp.osgi</groupId>
+      <artifactId>stringtemplate4</artifactId>
       <version>4.0.8</version>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
@@ -140,7 +134,11 @@
                             net.schmizz.sshj.connection.channel.direct,
                             net.schmizz.sshj.transport,
                             net.schmizz.sshj.userauth,
-                            org.osgi.framework</Import-Package>
+                            org.osgi.framework,
+                            org.antlr.runtime.tree,
+                            org.stringtemplate.v4,
+                            org.stringtemplate.v4.misc,
+                            org.stringtemplate.v4.compiler</Import-Package>
             <Provide-Capability>com.bytex.snamp.connector; type=rshell</Provide-Capability>
           </instructions>
         </configuration>

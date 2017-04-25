@@ -1,6 +1,7 @@
 package com.bytex.snamp.json;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.module.SimpleModule;
@@ -12,10 +13,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.TabularData;
 import java.nio.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -149,7 +147,14 @@ public final class JsonUtils extends SimpleModule {
         return find(array, node::equals).isPresent();
     }
 
-    public static Map<String, String> toPlainMap(final Map<String, ?> json, final char delimiter){
+    private static Map<String, ?> listToMap(final List<?> items){
+        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(items.size());
+        for(int i = 0; i < items.size(); i++)
+            result.put(Integer.toString(i), items.get(i));
+        return result;
+    }
+
+    public static Map<String, String> toPlainMap(final Map<String, ?> json, final char delimiter) {
         final class PlainMap extends HashMap<String, String> {
             private static final long serialVersionUID = -8377138475217097216L;
 
@@ -158,26 +163,30 @@ public final class JsonUtils extends SimpleModule {
             }
 
             private String newKey(final String parentKey,
-                                         final Object key) {
+                                  final Object key) {
                 return isNullOrEmpty(parentKey) ? key.toString() : parentKey + delimiter + key;
             }
 
             private void collect(final String parentKey, final Map<?, ?> json) {
-                for(final Entry<?, ?> entry: json.entrySet()){
+                for (final Entry<?, ?> entry : json.entrySet()) {
                     final String key = newKey(parentKey, entry.getKey());
-                    if(entry.getValue() instanceof String)
+                    if (entry.getValue() instanceof String)
                         put(key, (String) entry.getValue());
-                    else if(entry.getValue() instanceof Map)
+                    else if (entry.getValue() instanceof Map)
                         collect(key, (Map<?, ?>) entry.getValue());
+                    else if (entry.getValue() instanceof List<?>)
+                        collect(key, listToMap((List<?>) entry.getValue()));
+                    else if (entry.getValue() != null)
+                        put(key, entry.getValue().toString());
                 }
             }
 
-            private void collect(final Map<?, ?> json){
+            private void collect(final Map<?, ?> json) {
                 collect(null, json);
             }
         }
 
-        if(json == null || json.isEmpty())
+        if (json == null || json.isEmpty())
             return ImmutableMap.of();
         else {
             final PlainMap map = new PlainMap(json.size());

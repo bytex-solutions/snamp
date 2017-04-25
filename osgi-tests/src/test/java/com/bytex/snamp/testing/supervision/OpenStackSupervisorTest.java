@@ -18,7 +18,7 @@ import java.net.URL;
  * @version 2.0
  * @since 2.0
  */
-@SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.OS_SUPERVISOR})
+@SnampDependencies({SnampFeature.STUB_CONNECTOR, SnampFeature.OS_SUPERVISOR})
 public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest {
     private static final String OS_AUTH_URL = "http://192.168.100.3:5000/v3";   //keystone V3
     private static final String USERNAME = "demo";
@@ -55,13 +55,14 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
         config.getResourceGroups().addAndConsume("os_nodes", group -> {
-            group.setType("jmx");
+            group.setType("stub");
         });
         config.getSupervisors().addAndConsume("os_nodes", supervisor -> {
             supervisor.setType("openstack");
             supervisor.put("authURL", OS_AUTH_URL);
             supervisor.put("userName", USERNAME);
             supervisor.put("password", PASSWORD);
+            supervisor.getDiscoveryConfig().setConnectionStringTemplate("{first(addresses.private).addr}");
         });
     }
 }
