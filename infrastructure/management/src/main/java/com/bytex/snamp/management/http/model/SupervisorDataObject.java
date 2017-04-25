@@ -22,18 +22,21 @@ public final class SupervisorDataObject extends AbstractDataObject<SupervisorCon
     private final Map<String, ScriptletDataObject> attributeCheckers;
     private ScriptletDataObject trigger;
     private String supervisorType;
+    private String connectionStringTemplate;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SupervisorDataObject(){
         attributeCheckers = new HashMap<>();
         supervisorType = SupervisorConfiguration.DEFAULT_TYPE;
+        connectionStringTemplate = "";
     }
 
-    public SupervisorDataObject(final SupervisorConfiguration configuration){
+    public SupervisorDataObject(final SupervisorConfiguration configuration) {
         super(configuration);
         attributeCheckers = Exportable.importEntities(configuration.getHealthCheckConfig().getAttributeCheckers(), ScriptletDataObject::new);
         trigger = new ScriptletDataObject(configuration.getHealthCheckConfig().getTrigger());
         supervisorType = configuration.getType();
+        connectionStringTemplate = configuration.getDiscoveryConfig().getConnectionStringTemplate();
     }
 
     @Override
@@ -45,6 +48,7 @@ public final class SupervisorDataObject extends AbstractDataObject<SupervisorCon
             trigger.exportTo(entity.getHealthCheckConfig().getTrigger());
         Exportable.exportEntities(attributeCheckers, entity.getHealthCheckConfig().getAttributeCheckers());
         entity.setType(supervisorType);
+        entity.getDiscoveryConfig().setConnectionStringTemplate(connectionStringTemplate);
     }
 
     @JsonProperty("type")
@@ -73,5 +77,14 @@ public final class SupervisorDataObject extends AbstractDataObject<SupervisorCon
 
     public void setTrigger(final ScriptletDataObject value){
         trigger = value;
+    }
+
+    @JsonProperty("connectionStringTemplate")
+    public String getConnectionStringTemplate(){
+        return connectionStringTemplate;
+    }
+
+    public void setConnectionStringTemplate(final String value){
+        connectionStringTemplate = nullToEmpty(value);
     }
 }
