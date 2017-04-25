@@ -385,6 +385,22 @@ public final class ManagementService extends AbstractManagementService {
         }).orElseThrow(ManagementService::configurationManagerIsNotAvailable);
     }
 
+    @Path("/configuration/parameters")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, String> getConfigurationParameters() {
+        final BundleContext context = getBundleContext();
+        return ServiceHolder.tryCreate(context, ConfigurationManager.class).map(manager -> {
+            try {
+                return manager.get().transformConfiguration(HashMap::new);
+            } catch (final IOException e) {
+                throw new WebApplicationException(e);
+            } finally {
+                manager.release(context);
+            }
+        }).orElseThrow(ManagementService::configurationManagerIsNotAvailable);
+    }
+
     @Path("/configuration")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -395,6 +411,25 @@ public final class ManagementService extends AbstractManagementService {
                 manager.get().processConfiguration(existingConfig -> {
                     existingConfig.clear();
                     newConfig.exportTo(existingConfig);
+                    return true;
+                });
+            } catch (final IOException e) {
+                throw new WebApplicationException(e);
+            } finally {
+                manager.release(context);
+            }
+        });
+    }
+
+    @Path("/configuration/parameters")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void setConfigurationParameters(final Map<String, String> parameters) {
+        final BundleContext context = getBundleContext();
+        ServiceHolder.tryCreate(context, ConfigurationManager.class).ifPresent(manager -> {
+            try {
+                manager.get().processConfiguration(existingConfig -> {
+                    existingConfig.load(parameters);
                     return true;
                 });
             } catch (final IOException e) {
