@@ -18,7 +18,7 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
     constructor() {
         super();
         this.setSizeX(2);
-        this.setSizeY(4);
+        this.setSizeY(2);
     }
 
     public newValue(_data:ChartData):void {
@@ -31,34 +31,38 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
                 break;
             }
         }
-        if (_index == -1) {
+        if (_index < 0) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
-        let _chr = $("#panel_" + this.id);
-        if (_chr != undefined && !document.hidden) {
-            if (_index == -1) {
-                _chr.append('<dt>' + _data.instanceName + '</dt>');
-                let _newDD = $('<dd>' + _data.attributeValue + '</dd>');
-                _newDD.attr("id", "ddInstance" + _data.instanceName);
-                _chr.append(_newDD);
+        let _table = $("#" + this.id + " table");
+        console.log("Panel object update: ", _data, _table);
+        if (_table != undefined) {
+            if (_index < 0) {
+                let _tr = $("<tr/>");
+                _tr.append("<td>" + _data.instanceName + "</td>");
+                _tr.append("<td instance-binding='" + _data.instanceName + "'>" + _data.attributeValue + "</td>");
+                _table.append(_tr);
             } else {
-                _chr.find("#ddInstance" + _data.instanceName).html(_data.attributeValue);
+                _table.find("[instance-binding='" + _data.instanceName + "']").html(_data.attributeValue);
             }
         }
     }
 
     protected doDraw():void {
-        let ctx = $("#" + this.id);
-        let _result = $('<dl class="border-around"></dl>');
-        _result.attr("id", "panel_" + this.id);
-        ctx.parent().append(_result);
-        ctx.remove();
+        let _table = $("<table class='table child-table'/>");
+        let _thead = $("<thead></thead>");
+        let _trThead = $("<tr/>");
+        _trThead.append("<th>Instance</th>");
+        _trThead.append("<th>" + (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation()  +"</th>");
+        _thead.append(_trThead);
+        _table.append(_thead);
         for (let i = 0; i < this.chartData.length; i++) {
-            _result.append('<dt>' + this.chartData[i].instanceName + '</dt>');
-            let _newDD = $('<dd>' + this.chartData[i].attributeValue + '</dd>');
-            _newDD.attr("id", "ddInstance" + this.chartData[i].instanceName);
-            _result.append(_newDD);
+            let _tr = $("<tr/>");
+            _tr.append("<td>" + this.chartData[i].instanceName + "</td>");
+            _tr.append("<td instance-binding='"+ this.chartData[i].instanceName + "'>" + this.chartData[i].attributeValue + "</td>");
+            _table.append(_tr);
         }
+        $("#" + this.id).append(_table);
     }
 
     public toJSON():any {

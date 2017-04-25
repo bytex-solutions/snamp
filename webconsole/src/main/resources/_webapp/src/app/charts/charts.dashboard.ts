@@ -4,11 +4,12 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Overlay } from 'angular2-modal';
 import { AttributeInformation } from './model/attribute';
-
 import { ChartService } from '../services/app.chartService';
 import { Factory } from './model/objectFactory';
 import { AbstractChart } from './model/abstract.chart';
-
+import { LineChartOfAttributeValues } from "./model/line.chart.attributes.values";
+import { PanelOfAttributeValues } from "./model/panel.attributes.values";
+import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
 import { ActivatedRoute } from '@angular/router';
 
 import 'rxjs/add/operator/publishLast';
@@ -17,12 +18,8 @@ import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 
-import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
-
 import 'smartwizard';
 import 'select2';
-import {LineChartOfAttributeValues} from "./model/line.chart.attributes.values";
-
 
 @Component({
   moduleId: module.id,
@@ -66,17 +63,15 @@ export class Dashboard {
         'margins': [10],
         'draggable': true,
         'resizable': true,
-        'max_cols': 14,
+        'max_cols': 140,
         'max_rows': 0,
         'visible_cols': 0,
         'visible_rows': 0,
         'min_cols': 1,
         'min_rows': 1,
-        'col_width': 100,
-        'row_height': 100,
+        'col_width': 10,
+        'row_height': 10,
         'cascade': 'left',
-        'min_width': 50,
-        'min_height': 50,
         'fix_to_grid': false,
         'auto_style': true,
         'auto_resize': false,
@@ -332,8 +327,16 @@ export class Dashboard {
         $('#toggleDraw' + chart.id + ' i').attr('class', chart.updateStopped ? 'fa fa-play-circle-o' : 'fa fa-pause-circle-o');
     }
 
-    isLineChartType(chart:AbstractChart):boolean {
+    isSvgType(chart:AbstractChart):boolean {
         return chart instanceof LineChartOfAttributeValues;
+    }
+
+    isDivType(chart:AbstractChart):boolean {
+        return chart instanceof PanelOfAttributeValues;
+    }
+
+    isCanvasType(chart:AbstractChart):boolean {
+        return !this.isDivType(chart) && !this.isSvgType(chart);
     }
 }
 

@@ -126,6 +126,7 @@ select.form-control:not([size]):not([multiple]) {
     font-size: inherit !important;
     color: black;
     display: inline;
+    max-width: calc(100% - 46px);
 }
 
 .x_title h5 {
@@ -154,6 +155,16 @@ ul.panel_toolbox i.fa-pause-circle-o {
 
 ul.panel_toolbox i.fa-play-circle-o {
     color:green;
+}
+
+/**.no-top-border tr:first-child td {
+    border: 0 !important;
+}**/
+
+.tableWrapper {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
 }
 
 /** not used, but may be in the future...

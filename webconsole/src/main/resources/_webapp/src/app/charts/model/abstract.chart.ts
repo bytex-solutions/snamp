@@ -92,9 +92,7 @@ export abstract class AbstractChart {
     }
 
     public draw():void {
-        if(this.isChartVisible()) {
-            this.doDraw();
-        }
+        this.doDraw();
     }
 
     public subscribeToSubject(_obs:Observable<ChartData>):void {

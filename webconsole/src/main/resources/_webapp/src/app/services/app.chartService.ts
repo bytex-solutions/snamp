@@ -56,7 +56,6 @@ export class ChartService {
          this._http.post(REST.CHARTS_COMPUTE, _chArrJson)
             .map((res:Response) => res.json())
             .subscribe(data => {
-                console.log(data);
                 this.pushNewChartData(data);
             });
     }
@@ -66,43 +65,24 @@ export class ChartService {
     }
 
     private loadDashboard():void {
-        console.log("Loading some dashboard...");
-        let _res:any = this._http.get(REST.CHART_DASHBOARD)
-            .map((res:Response) => {
-                console.log("Result of dashboard request is: ", res);
-                return res.json();
-            }).publishLast().refCount();
-        this.groups = _res.map((data:any) => {
-            if (data["groups"] == undefined) {
-                return [];
-            } else {
-                return data["groups"];
-            };
-        });
+        let _res:any = this._http.get(REST.CHART_DASHBOARD).map((res:Response) => res.json()).publishLast().refCount();
+        this.groups = _res.map((data:any) => ((data["groups"] == undefined) ? [] : data["groups"]));
         _res.subscribe(data => {
             this._dashboard = new Dashboard();
             this.chartSubjects = {};
-            let _chartData:{ [key:string]: ChartData[] } = {};//this.getEntireChartData();
             if (data.charts.length > 0) {
                 for (let i = 0; i < data.charts.length; i++) {
                     let _currentChart:AbstractChart = Factory.chartFromJSON(data.charts[i]);
                     this.chartSubjects[_currentChart.name] = new Subject<ChartData>();
-                    // append the existent chart data from LC to chart from the backend
-                    if (_chartData != undefined && _chartData[_currentChart.name] != undefined) {
-                        // _currentChart.chartData = _chartData[_currentChart.name];
-                        // make the data consistent - remove all data in case its instance name is absent in chart
-                    }
                     _currentChart.subscribeToSubject(this.chartSubjects[_currentChart.name]);
                     this._dashboard.charts.push(_currentChart);
                 }
             }
             this._dashboard.groups = data.groups;
-            console.log(this._dashboard);
         });
     }
 
     public saveDashboard():void {
-        console.log("Saving some dashboard... ");
          this._http.put(REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
             .subscribe(data => {
                 console.log("Dashboard has been saved successfully");
@@ -110,13 +90,8 @@ export class ChartService {
     }
 
     pushNewChartData(_data:any):void {
-        // load data from localStorage, create one if no data exists
-        let _dataNow:any = this.getEntireChartData();
-        if (_dataNow == undefined) {
-            _dataNow = {};
-        }
         // loop through all the data we have received
-        for (var _currentChartName in _data) {
+        for (let _currentChartName in _data) {
             // create a chart data instances
             let _d:any[] = _data[_currentChartName];
             for (let i = 0; i < _d.length; i++) {
@@ -127,34 +102,25 @@ export class ChartService {
                     this.chartSubjects[_currentChartName].next(_chartData);
                 }
 
-                // check if our localStorage contains the data for this chart
-                if (_dataNow[_currentChartName] == undefined) {
-                    _dataNow[_currentChartName] = [];
-                }
-
                 // append this data for this data array
                 if (_chartData.chartType == AbstractChart.LINE) {
+                    // load data from localStorage, create one if no data exists
+                    let _dataNow:any = this.getEntireChartData();
+                    if (_dataNow == undefined) {
+                        _dataNow = {};
+                    }
+                    // check if our localStorage contains the data for this chart
+                    if (_dataNow[_currentChartName] == undefined) {
+                        _dataNow[_currentChartName] = [];
+                    }
                     // in case of line - we just push the value
-                    _dataNow[_currentChartName].push(_chartData)
-                } else {
-                    // otherwise - we replace existent value or append it if nothing exists
-                    let _found:boolean = false;
-                    for (let j = 0; j < _dataNow[_currentChartName].length; j++) {
-                        if (_dataNow[_currentChartName][j].instanceName == _chartData.instanceName) {
-                            _found = true;
-                            _dataNow[_currentChartName][j] = _chartData;
-                            break;
-                        }
-                    }
-                    if (!_found) {
-                        _dataNow[_currentChartName].push(_chartData);
-                    }
+                    _dataNow[_currentChartName].push(_chartData);
+
+                    // save data back to localStorage
+                    this.localStorageService.set(this.KEY_DATA, _dataNow);
                 }
             }
         }
-
-        // save data back to localStorage
-        this.localStorageService.set(this.KEY_DATA, _dataNow);
     }
 
     hasChartWithName(name:string):boolean {
@@ -172,7 +138,6 @@ export class ChartService {
         if (this.hasChartWithName(chart.name)) {
             throw new Error("Chart with that name already exists!");
         } else {
-            console.log("New created chart is: ", chart);
             this._dashboard.charts.push(chart);
             this.chartSubjects[chart.name] = new Subject<ChartData>();
             chart.subscribeToSubject(this.chartSubjects[chart.name]);
@@ -217,7 +182,7 @@ export class ChartService {
         let _object:any = this.localStorageService.get(this.KEY_DATA);
         let _value:{ [key:string]: ChartData[] } = {};
         if (_object != undefined) {
-            for (var _element in _object) {
+            for (let _element in _object) {
                 let _newChartDataArray:ChartData[] = [];
                 if (_object[_element] instanceof Array) {
                     for (let i = 0; i < _object[_element].length; i++) {
