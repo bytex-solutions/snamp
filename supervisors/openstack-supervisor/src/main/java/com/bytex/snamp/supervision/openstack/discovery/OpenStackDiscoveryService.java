@@ -9,6 +9,7 @@ import org.openstack4j.api.senlin.SenlinNodeService;
 import org.openstack4j.model.senlin.Node;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.adaptors.ListAdaptor;
 import org.stringtemplate.v4.compiler.CompiledST;
 
 import javax.annotation.Nonnull;
@@ -23,7 +24,12 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  */
 
 public final class OpenStackDiscoveryService extends DefaultResourceDiscoveryService {
-    private static final STGroup TEMPLATE_GROUP = new STGroup('{', '}');
+    private static final STGroup TEMPLATE_GROUP;
+
+    static {
+        TEMPLATE_GROUP = new STGroup('{', '}');
+        ListAdaptor.register(TEMPLATE_GROUP);
+    }
 
     private final String clusterID;
     private final CompiledST connectionStringTemplate;      //pre-compiled template
