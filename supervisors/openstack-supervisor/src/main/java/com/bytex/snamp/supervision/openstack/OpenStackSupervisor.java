@@ -109,11 +109,13 @@ final class OpenStackSupervisor extends DefaultSupervisor {
     }
 
     private void synchronizeNodes(@Nonnull final SenlinService senlin, @Nonnull final OpenStackDiscoveryService discoveryService) {
-        final ImmutableSet<String> resources = ImmutableSet.copyOf(getResources());
-        try {
-            discoveryService.synchronizeNodes(senlin.node(), resources);
-        } catch (final ResourceDiscoveryException e) {
-            getLogger().log(Level.SEVERE, "Failed to synchronize cluster nodes from OpenStack to SNAMP", e);
+        if(clusterMember.isActive()) {  //synchronization nodes available only at active server node
+            final ImmutableSet<String> resources = ImmutableSet.copyOf(getResources());
+            try {
+                discoveryService.synchronizeNodes(senlin.node(), resources);
+            } catch (final ResourceDiscoveryException e) {
+                getLogger().log(Level.SEVERE, "Failed to synchronize cluster nodes from OpenStack to SNAMP", e);
+            }
         }
     }
 

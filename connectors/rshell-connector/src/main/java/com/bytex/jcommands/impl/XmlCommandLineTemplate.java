@@ -4,6 +4,7 @@ import com.bytex.jcommands.ChannelProcessor;
 import org.antlr.runtime.tree.Tree;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.adaptors.CompositeDataAdaptor;
 import org.stringtemplate.v4.adaptors.ListAdaptor;
 import org.stringtemplate.v4.compiler.STLexer;
 
@@ -31,8 +32,8 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
 
     static {
         TEMPLATE_GROUP = new STGroup('{', '}');
-        CommonExtender.register(TEMPLATE_GROUP);
-        CompositeDataExtender.register(TEMPLATE_GROUP);
+        CommonAdaptors.register(TEMPLATE_GROUP);
+        CompositeDataAdaptor.register(TEMPLATE_GROUP);
         ListAdaptor.register(TEMPLATE_GROUP);
     }
 

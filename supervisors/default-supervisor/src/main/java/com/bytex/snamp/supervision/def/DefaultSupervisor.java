@@ -77,7 +77,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
         if(checkerFactory == null)
             overrideCheckerFactory(new AttributeCheckerFactory());
         else
-            getLogger().info(String.format("AttributeCheckerFactory is overridden with %s", checkerFactory));
+            getLogger().fine(String.format("AttributeCheckerFactory is overridden with %s", checkerFactory));
     }
 
     protected final void overrideTriggerFactory(@Nonnull final TriggerFactory value){
@@ -88,7 +88,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
         if(triggerFactory == null)
             overrideTriggerFactory(new TriggerFactory());
         else
-            getLogger().info(String.format("TriggerFactory is overridden with %s", triggerFactory));
+            getLogger().fine(String.format("TriggerFactory is overridden with %s", triggerFactory));
     }
 
     protected final void overrideHealthStatusProvider(@Nonnull final DefaultHealthStatusProvider value){
@@ -99,7 +99,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
         if(healthStatusProvider == null)
             overrideHealthStatusProvider(new DefaultHealthStatusProvider());
         else
-            getLogger().info(String.format("HealthStatusProvider is overridden with %s", healthStatusProvider));
+            getLogger().fine(String.format("HealthStatusProvider is overridden with %s", healthStatusProvider));
     }
 
     protected final void overrideDiscoveryService(@Nonnull final DefaultResourceDiscoveryService value){
@@ -111,7 +111,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
         if(discoveryService == null)
             overrideDiscoveryService(new DefaultResourceDiscoveryService(groupName));
         else
-            getLogger().info(String.format("ResourceDiscoveryService is overridden with %s", discoveryService));
+            getLogger().fine(String.format("ResourceDiscoveryService is overridden with %s", discoveryService));
     }
 
     private void updateHealthStatus(final DefaultHealthStatusProvider provider){

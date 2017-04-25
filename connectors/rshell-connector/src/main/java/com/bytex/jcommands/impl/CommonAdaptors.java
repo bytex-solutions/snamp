@@ -15,12 +15,12 @@ import java.math.BigInteger;
  * @version 2.0
  * @since 1.0
  */
-final class CommonExtender implements ModelAdaptor {
+final class CommonAdaptors implements ModelAdaptor {
     private static final String HEX_PROPERTY = "hex";
     private static final String BASE64_PROPERTY = "base64";
     private static final String BASE32_PROPERTY = "base32";
 
-    private CommonExtender(){
+    private CommonAdaptors(){
 
     }
 
@@ -72,7 +72,7 @@ final class CommonExtender implements ModelAdaptor {
     }
 
     static void register(final STGroup groupDef){
-        final ModelAdaptor extender = new CommonExtender();
+        final ModelAdaptor extender = new CommonAdaptors();
         groupDef.registerModelAdaptor(Byte.class, extender);
         groupDef.registerModelAdaptor(Short.class, extender);
         groupDef.registerModelAdaptor(Integer.class, extender);

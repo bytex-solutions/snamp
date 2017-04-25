@@ -28,7 +28,7 @@ public final class ListAdaptor implements ModelAdaptor {
         if(o instanceof List<?>)
             return getProperty(interpeter, (List<?>) o, propertyName);
         else
-            throw new STNoSuchPropertyException(new IllegalArgumentException(), o, propertyName);
+            throw new ClassCastException(String.format("Cannot cast %s to List", o));
     }
 
     public static void register(final STGroup groupDef){

@@ -63,9 +63,10 @@
                             org.stringtemplate.v4.compiler,
                             org.stringtemplate.v4.debug,
                             org.stringtemplate.v4.misc,
+                            org.stringtemplate.v4.adaptors,
                             org.antlr.runtime,
                             org.antlr.runtime.tree</Export-Package>
-            <Import-Package />
+            <Import-Package>javax.management.openmbean</Import-Package>
           </instructions>
         </configuration>
       </plugin>
