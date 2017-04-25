@@ -97019,63 +97019,7 @@ exports.ChartData = ChartData;
 
 /***/ },
 
-/***/ "./src/app/charts/model/chrono.axis.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var abstract_axis_1 = __webpack_require__("./src/app/charts/model/abstract.axis.ts");
-var ChronoAxis = (function (_super) {
-    __extends(ChronoAxis, _super);
-    function ChronoAxis() {
-        _super.apply(this, arguments);
-        this.type = abstract_axis_1.Axis.CHRONO;
-        this.unitOfMeasurement = "seconds";
-    }
-    ChronoAxis.prototype.toJSON = function () {
-        var _value = {};
-        _value["@type"] = this.type;
-        _value["name"] = this.name;
-        return _value;
-    };
-    return ChronoAxis;
-}(abstract_axis_1.Axis));
-exports.ChronoAxis = ChronoAxis;
-
-
-/***/ },
-
-/***/ "./src/app/charts/model/dashboard.ts":
-/***/ function(module, exports) {
-
-"use strict";
-"use strict";
-var Dashboard = (function () {
-    function Dashboard() {
-        this.type = "dashboardOfCharts";
-        this.charts = [];
-        this.groups = [];
-    }
-    ;
-    Dashboard.prototype.toJSON = function () {
-        var _value = {};
-        _value["@type"] = this.type;
-        var _charts = [];
-        for (var i = 0; i < this.charts.length; i++) {
-            _charts.push(this.charts[i].toJSON());
-        }
-        _value["charts"] = _charts;
-        _value["groups"] = this.groups;
-        return _value;
-    };
-    return Dashboard;
-}());
-exports.Dashboard = Dashboard;
-
-
-/***/ },
-
-/***/ "./src/app/charts/model/hbar.chart.attributes.values.ts":
+/***/ "./src/app/charts/model/charts/hbar.chart.attributes.values.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -97088,9 +97032,11 @@ var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var HorizontalBarChartOfAttributeValues = (function (_super) {
     __extends(HorizontalBarChartOfAttributeValues, _super);
     function HorizontalBarChartOfAttributeValues() {
-        _super.apply(this, arguments);
+        _super.call(this);
         this.type = abstract_chart_1.AbstractChart.HBAR;
         this._chartObject = undefined;
+        this.setSizeX(10);
+        this.setSizeY(10);
     }
     HorizontalBarChartOfAttributeValues.prototype.createDefaultAxisX = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
@@ -97158,7 +97104,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         _value["instances"] = this.instances;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
-        if ($.isEmptyObject(this.preferences)) {
+        if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
         }
         return _value;
@@ -97171,33 +97117,7 @@ exports.HorizontalBarChartOfAttributeValues = HorizontalBarChartOfAttributeValue
 
 /***/ },
 
-/***/ "./src/app/charts/model/instance.axis.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var abstract_axis_1 = __webpack_require__("./src/app/charts/model/abstract.axis.ts");
-var InstanceNameAxis = (function (_super) {
-    __extends(InstanceNameAxis, _super);
-    function InstanceNameAxis() {
-        _super.call(this);
-        this.type = abstract_axis_1.Axis.INSTANCE;
-        this.name = "instances";
-    }
-    InstanceNameAxis.prototype.toJSON = function () {
-        var _value = {};
-        _value["@type"] = this.type;
-        _value["name"] = this.name;
-        return _value;
-    };
-    return InstanceNameAxis;
-}(abstract_axis_1.Axis));
-exports.InstanceNameAxis = InstanceNameAxis;
-
-
-/***/ },
-
-/***/ "./src/app/charts/model/line.chart.attributes.values.ts":
+/***/ "./src/app/charts/model/charts/line.chart.attributes.values.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -97214,8 +97134,8 @@ var LineChartOfAttributeValues = (function (_super) {
         _super.call(this);
         this.type = abstract_chart_1.AbstractChart.LINE;
         this._chartObject = undefined;
-        this.setSizeX(6);
-        this.setSizeY(3);
+        this.setSizeX(20);
+        this.setSizeY(10);
     }
     LineChartOfAttributeValues.prototype.createDefaultAxisX = function () {
         return new chrono_axis_1.ChronoAxis();
@@ -97303,6 +97223,373 @@ exports.LineChartOfAttributeValues = LineChartOfAttributeValues;
 
 /***/ },
 
+/***/ "./src/app/charts/model/charts/panel.attributes.values.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
+var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var PanelOfAttributeValues = (function (_super) {
+    __extends(PanelOfAttributeValues, _super);
+    function PanelOfAttributeValues() {
+        _super.call(this);
+        this.type = abstract_chart_1.AbstractChart.PANEL;
+        this.setSizeX(10);
+        this.setSizeY(10);
+    }
+    PanelOfAttributeValues.prototype.createDefaultAxisX = function () {
+        return new instance_axis_1.InstanceNameAxis();
+    };
+    PanelOfAttributeValues.prototype.createDefaultAxisY = function () {
+        return new attribute_value_axis_1.AttributeValueAxis();
+    };
+    PanelOfAttributeValues.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
+        var _index = -1;
+        for (var i = 0; i < this.chartData.length; i++) {
+            if (this.chartData[i].instanceName == _data.instanceName) {
+                _index = i; // remember the index
+                this.chartData[i] = _data; // change the data
+                break;
+            }
+        }
+        if (_index < 0) {
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+        }
+        var _table = $("#" + this.id + " table");
+        console.log("Panel object update: ", _data, _table);
+        if (_table != undefined) {
+            if (_index < 0) {
+                var _tr = $("<tr/>");
+                _tr.append("<td>" + _data.instanceName + "</td>");
+                _tr.append("<td instance-binding='" + _data.instanceName + "'>" + _data.attributeValue + "</td>");
+                _table.append(_tr);
+            }
+            else {
+                _table.find("[instance-binding='" + _data.instanceName + "']").html(_data.attributeValue);
+            }
+        }
+    };
+    PanelOfAttributeValues.prototype.doDraw = function () {
+        var _table = $("<table class='table child-table'/>");
+        var _thead = $("<thead></thead>");
+        var _trThead = $("<tr/>");
+        _trThead.append("<th>Instance</th>");
+        _trThead.append("<th>" + this.getAxisY().getLabelRepresentation() + "</th>");
+        _thead.append(_trThead);
+        _table.append(_thead);
+        for (var i = 0; i < this.chartData.length; i++) {
+            var _tr = $("<tr/>");
+            _tr.append("<td>" + this.chartData[i].instanceName + "</td>");
+            _tr.append("<td instance-binding='" + this.chartData[i].instanceName + "'>" + this.chartData[i].attributeValue + "</td>");
+            _table.append(_tr);
+        }
+        $("#" + this.id).append(_table);
+    };
+    PanelOfAttributeValues.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        _value["component"] = this.component;
+        _value["instances"] = this.instances;
+        _value["X"] = this.getAxisX().toJSON();
+        _value["Y"] = this.getAxisY().toJSON();
+        if (!$.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
+        return _value;
+    };
+    return PanelOfAttributeValues;
+}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+exports.PanelOfAttributeValues = PanelOfAttributeValues;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/charts/model/charts/pie.chart.attributes.values.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
+var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
+var PieChartOfAttributeValues = (function (_super) {
+    __extends(PieChartOfAttributeValues, _super);
+    function PieChartOfAttributeValues() {
+        _super.call(this);
+        this.type = abstract_chart_1.AbstractChart.PIE;
+        this._chartObject = undefined;
+        this.setSizeX(10);
+        this.setSizeY(10);
+    }
+    PieChartOfAttributeValues.prototype.createDefaultAxisX = function () {
+        return new instance_axis_1.InstanceNameAxis();
+    };
+    PieChartOfAttributeValues.prototype.createDefaultAxisY = function () {
+        return new attribute_value_axis_1.AttributeValueAxis();
+    };
+    PieChartOfAttributeValues.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
+        var _index = -1;
+        for (var i = 0; i < this.chartData.length; i++) {
+            if (this.chartData[i].instanceName == _data.instanceName) {
+                _index = i; // remember the index
+                this.chartData[i] = _data; // change the data
+                break;
+            }
+        }
+        var updateColors = false;
+        if (_index == -1) {
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+            _index = this.chartData.length - 1; // and set it to the end of the array
+            updateColors = true;
+        }
+        if (this._chartObject != undefined) {
+            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            if (updateColors) {
+                this.updateColors();
+                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
+                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
+            }
+            this._chartObject.update();
+        }
+    };
+    PieChartOfAttributeValues.prototype.doDraw = function () {
+        this._chartObject = new Chart($("#" + this.id), {
+            type: 'doughnut',
+            data: {
+                labels: this.instances,
+                datasets: [{
+                        label: this.getAxisY().getLabelRepresentation(),
+                        data: this.chartData.map(function (data) { return data.attributeValue; }),
+                        backgroundColor: this._backgroundColors,
+                        borderColor: this._borderColorData,
+                        hoverBackgroundColor: this._backgroundHoverColors,
+                        borderWidth: 1
+                    }],
+                options: {
+                    responsive: true,
+                    cutoutPercentage: 40,
+                    rotation: Math.PI,
+                    circumference: Math.PI * 0.5,
+                    title: {
+                        display: true,
+                        text: this.component
+                    }
+                }
+            }
+        });
+    };
+    PieChartOfAttributeValues.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        _value["component"] = this.component;
+        _value["instances"] = this.instances;
+        _value["X"] = this.getAxisX().toJSON();
+        _value["Y"] = this.getAxisY().toJSON();
+        if (!$.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
+        return _value;
+    };
+    return PieChartOfAttributeValues;
+}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+exports.PieChartOfAttributeValues = PieChartOfAttributeValues;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/charts/model/charts/vbar.chart.attributes.values.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
+var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
+var VerticalBarChartOfAttributeValues = (function (_super) {
+    __extends(VerticalBarChartOfAttributeValues, _super);
+    function VerticalBarChartOfAttributeValues() {
+        _super.call(this);
+        this.type = abstract_chart_1.AbstractChart.VBAR;
+        this._chartObject = undefined;
+        this.setSizeX(10);
+        this.setSizeY(10);
+    }
+    VerticalBarChartOfAttributeValues.prototype.createDefaultAxisX = function () {
+        return new instance_axis_1.InstanceNameAxis();
+    };
+    VerticalBarChartOfAttributeValues.prototype.createDefaultAxisY = function () {
+        return new attribute_value_axis_1.AttributeValueAxis();
+    };
+    VerticalBarChartOfAttributeValues.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
+        var _index = -1;
+        for (var i = 0; i < this.chartData.length; i++) {
+            if (this.chartData[i].instanceName == _data.instanceName) {
+                _index = i; // remember the index
+                this.chartData[i] = _data; // change the data
+                break;
+            }
+        }
+        var updateColors = false;
+        if (_index == -1) {
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+            _index = this.chartData.length - 1; // and set it to the end of the array
+            updateColors = true;
+        }
+        if (this._chartObject != undefined) {
+            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
+            if (updateColors) {
+                this.updateColors();
+                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
+                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
+                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
+            }
+            this._chartObject.update();
+        }
+    };
+    VerticalBarChartOfAttributeValues.prototype.doDraw = function () {
+        this._chartObject = new Chart($("#" + this.id), {
+            type: "bar",
+            data: {
+                labels: this.instances,
+                datasets: [{
+                        label: this.getAxisY().getLabelRepresentation(),
+                        data: this.chartData.map(function (data) { return data.attributeValue; }),
+                        backgroundColor: this._backgroundColors,
+                        borderColor: this._borderColorData,
+                        hoverBackgroundColor: this._backgroundHoverColors,
+                        borderWidth: 1
+                    }],
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: this.component
+                    }
+                }
+            }
+        });
+    };
+    VerticalBarChartOfAttributeValues.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        _value["component"] = this.component;
+        _value["instances"] = this.instances;
+        _value["X"] = this.getAxisX().toJSON();
+        _value["Y"] = this.getAxisY().toJSON();
+        if (!$.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
+        return _value;
+    };
+    return VerticalBarChartOfAttributeValues;
+}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+exports.VerticalBarChartOfAttributeValues = VerticalBarChartOfAttributeValues;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/charts/model/chrono.axis.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_axis_1 = __webpack_require__("./src/app/charts/model/abstract.axis.ts");
+var ChronoAxis = (function (_super) {
+    __extends(ChronoAxis, _super);
+    function ChronoAxis() {
+        _super.apply(this, arguments);
+        this.type = abstract_axis_1.Axis.CHRONO;
+        this.unitOfMeasurement = "seconds";
+    }
+    ChronoAxis.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        return _value;
+    };
+    return ChronoAxis;
+}(abstract_axis_1.Axis));
+exports.ChronoAxis = ChronoAxis;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/dashboard.ts":
+/***/ function(module, exports) {
+
+"use strict";
+"use strict";
+var Dashboard = (function () {
+    function Dashboard() {
+        this.type = "dashboardOfCharts";
+        this.charts = [];
+        this.groups = [];
+    }
+    ;
+    Dashboard.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        var _charts = [];
+        for (var i = 0; i < this.charts.length; i++) {
+            _charts.push(this.charts[i].toJSON());
+        }
+        _value["charts"] = _charts;
+        _value["groups"] = this.groups;
+        return _value;
+    };
+    return Dashboard;
+}());
+exports.Dashboard = Dashboard;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/instance.axis.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_axis_1 = __webpack_require__("./src/app/charts/model/abstract.axis.ts");
+var InstanceNameAxis = (function (_super) {
+    __extends(InstanceNameAxis, _super);
+    function InstanceNameAxis() {
+        _super.call(this);
+        this.type = abstract_axis_1.Axis.INSTANCE;
+        this.name = "instances";
+    }
+    InstanceNameAxis.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        return _value;
+    };
+    return InstanceNameAxis;
+}(abstract_axis_1.Axis));
+exports.InstanceNameAxis = InstanceNameAxis;
+
+
+/***/ },
+
 /***/ "./src/app/charts/model/objectFactory.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -97316,11 +97603,11 @@ var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribu
 var attribute_1 = __webpack_require__("./src/app/charts/model/attribute.ts");
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var abstract_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.chart.attributes.values.ts");
-var vbar_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/vbar.chart.attributes.values.ts");
-var hbar_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/hbar.chart.attributes.values.ts");
-var line_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/line.chart.attributes.values.ts");
-var panel_attributes_values_1 = __webpack_require__("./src/app/charts/model/panel.attributes.values.ts");
-var pie_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/pie.chart.attributes.values.ts");
+var vbar_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/vbar.chart.attributes.values.ts");
+var hbar_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/hbar.chart.attributes.values.ts");
+var line_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/line.chart.attributes.values.ts");
+var panel_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/panel.attributes.values.ts");
+var pie_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/pie.chart.attributes.values.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
@@ -97451,291 +97738,6 @@ var Factory = (function () {
 }());
 exports.Factory = Factory;
 
-
-/***/ },
-
-/***/ "./src/app/charts/model/panel.attributes.values.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
-var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
-var PanelOfAttributeValues = (function (_super) {
-    __extends(PanelOfAttributeValues, _super);
-    function PanelOfAttributeValues() {
-        _super.call(this);
-        this.type = abstract_chart_1.AbstractChart.PANEL;
-        this.setSizeX(2);
-        this.setSizeY(2);
-    }
-    PanelOfAttributeValues.prototype.createDefaultAxisX = function () {
-        return new instance_axis_1.InstanceNameAxis();
-    };
-    PanelOfAttributeValues.prototype.createDefaultAxisY = function () {
-        return new attribute_value_axis_1.AttributeValueAxis();
-    };
-    PanelOfAttributeValues.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        if (_index < 0) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
-        var _table = $("#" + this.id + " table");
-        console.log("Panel object update: ", _data, _table);
-        if (_table != undefined) {
-            if (_index < 0) {
-                var _tr = $("<tr/>");
-                _tr.append("<td>" + _data.instanceName + "</td>");
-                _tr.append("<td instance-binding='" + _data.instanceName + "'>" + _data.attributeValue + "</td>");
-                _table.append(_tr);
-            }
-            else {
-                _table.find("[instance-binding='" + _data.instanceName + "']").html(_data.attributeValue);
-            }
-        }
-    };
-    PanelOfAttributeValues.prototype.doDraw = function () {
-        var _table = $("<table class='table child-table'/>");
-        var _thead = $("<thead></thead>");
-        var _trThead = $("<tr/>");
-        _trThead.append("<th>Instance</th>");
-        _trThead.append("<th>" + this.getAxisY().getLabelRepresentation() + "</th>");
-        _thead.append(_trThead);
-        _table.append(_thead);
-        for (var i = 0; i < this.chartData.length; i++) {
-            var _tr = $("<tr/>");
-            _tr.append("<td>" + this.chartData[i].instanceName + "</td>");
-            _tr.append("<td instance-binding='" + this.chartData[i].instanceName + "'>" + this.chartData[i].attributeValue + "</td>");
-            _table.append(_tr);
-        }
-        $("#" + this.id).append(_table);
-    };
-    PanelOfAttributeValues.prototype.toJSON = function () {
-        var _value = {};
-        _value["@type"] = this.type;
-        _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
-        _value["X"] = this.getAxisX().toJSON();
-        _value["Y"] = this.getAxisY().toJSON();
-        if (!$.isEmptyObject(this.preferences)) {
-            _value["preferences"] = this.preferences;
-        }
-        return _value;
-    };
-    return PanelOfAttributeValues;
-}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
-exports.PanelOfAttributeValues = PanelOfAttributeValues;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
-/***/ "./src/app/charts/model/pie.chart.attributes.values.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
-var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
-var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
-var PieChartOfAttributeValues = (function (_super) {
-    __extends(PieChartOfAttributeValues, _super);
-    function PieChartOfAttributeValues() {
-        _super.call(this);
-        this.type = abstract_chart_1.AbstractChart.PIE;
-        this._chartObject = undefined;
-        this.setSizeX(3);
-        this.setSizeY(3);
-    }
-    PieChartOfAttributeValues.prototype.createDefaultAxisX = function () {
-        return new instance_axis_1.InstanceNameAxis();
-    };
-    PieChartOfAttributeValues.prototype.createDefaultAxisY = function () {
-        return new attribute_value_axis_1.AttributeValueAxis();
-    };
-    PieChartOfAttributeValues.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        var updateColors = false;
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-            _index = this.chartData.length - 1; // and set it to the end of the array
-            updateColors = true;
-        }
-        if (this._chartObject != undefined) {
-            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
-            if (updateColors) {
-                this.updateColors();
-                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
-                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
-                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
-            }
-            this._chartObject.update();
-        }
-    };
-    PieChartOfAttributeValues.prototype.doDraw = function () {
-        this._chartObject = new Chart($("#" + this.id), {
-            type: 'doughnut',
-            data: {
-                labels: this.instances,
-                datasets: [{
-                        label: this.getAxisY().getLabelRepresentation(),
-                        data: this.chartData.map(function (data) { return data.attributeValue; }),
-                        backgroundColor: this._backgroundColors,
-                        borderColor: this._borderColorData,
-                        hoverBackgroundColor: this._backgroundHoverColors,
-                        borderWidth: 1
-                    }],
-                options: {
-                    responsive: true,
-                    cutoutPercentage: 40,
-                    rotation: Math.PI,
-                    circumference: Math.PI * 0.5,
-                    title: {
-                        display: true,
-                        text: this.component
-                    }
-                }
-            }
-        });
-    };
-    PieChartOfAttributeValues.prototype.toJSON = function () {
-        var _value = {};
-        _value["@type"] = this.type;
-        _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
-        _value["X"] = this.getAxisX().toJSON();
-        _value["Y"] = this.getAxisY().toJSON();
-        if (!$.isEmptyObject(this.preferences)) {
-            _value["preferences"] = this.preferences;
-        }
-        return _value;
-    };
-    return PieChartOfAttributeValues;
-}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
-exports.PieChartOfAttributeValues = PieChartOfAttributeValues;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
-/***/ "./src/app/charts/model/vbar.chart.attributes.values.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
-var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
-var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
-var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
-var VerticalBarChartOfAttributeValues = (function (_super) {
-    __extends(VerticalBarChartOfAttributeValues, _super);
-    function VerticalBarChartOfAttributeValues() {
-        _super.call(this);
-        this.type = abstract_chart_1.AbstractChart.VBAR;
-        this._chartObject = undefined;
-        this.setSizeX(3);
-        this.setSizeY(3);
-    }
-    VerticalBarChartOfAttributeValues.prototype.createDefaultAxisX = function () {
-        return new instance_axis_1.InstanceNameAxis();
-    };
-    VerticalBarChartOfAttributeValues.prototype.createDefaultAxisY = function () {
-        return new attribute_value_axis_1.AttributeValueAxis();
-    };
-    VerticalBarChartOfAttributeValues.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        var updateColors = false;
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-            _index = this.chartData.length - 1; // and set it to the end of the array
-            updateColors = true;
-        }
-        if (this._chartObject != undefined) {
-            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
-            if (updateColors) {
-                this.updateColors();
-                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
-                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
-                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
-            }
-            this._chartObject.update();
-        }
-    };
-    VerticalBarChartOfAttributeValues.prototype.doDraw = function () {
-        this._chartObject = new Chart($("#" + this.id), {
-            type: "bar",
-            data: {
-                labels: this.instances,
-                datasets: [{
-                        label: this.getAxisY().getLabelRepresentation(),
-                        data: this.chartData.map(function (data) { return data.attributeValue; }),
-                        backgroundColor: this._backgroundColors,
-                        borderColor: this._borderColorData,
-                        hoverBackgroundColor: this._backgroundHoverColors,
-                        borderWidth: 1
-                    }],
-                options: {
-                    responsive: true,
-                    title: {
-                        display: true,
-                        text: this.component
-                    }
-                }
-            }
-        });
-    };
-    VerticalBarChartOfAttributeValues.prototype.toJSON = function () {
-        var _value = {};
-        _value["@type"] = this.type;
-        _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
-        _value["X"] = this.getAxisX().toJSON();
-        _value["Y"] = this.getAxisY().toJSON();
-        if (!$.isEmptyObject(this.preferences)) {
-            _value["preferences"] = this.preferences;
-        }
-        return _value;
-    };
-    return VerticalBarChartOfAttributeValues;
-}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
-exports.VerticalBarChartOfAttributeValues = VerticalBarChartOfAttributeValues;
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -99708,9 +99710,7 @@ var ChartService = (function () {
     };
     ChartService.prototype.saveDashboard = function () {
         this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(function (data) {
-            console.log("Dashboard has been saved successfully");
-        });
+            .subscribe(function () { return console.log("Dashboard has been saved successfully"); });
     };
     ChartService.prototype.pushNewChartData = function (_data) {
         // loop through all the data we have received

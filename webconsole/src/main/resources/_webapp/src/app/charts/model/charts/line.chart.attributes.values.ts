@@ -1,8 +1,8 @@
-import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
-import { ChronoAxis } from './chrono.axis';
-import { AttributeValueAxis } from './attribute.value.axis';
-import { AbstractChart } from './abstract.chart';
-import { ChartData } from './chart.data';
+import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
+import { ChronoAxis } from '../chrono.axis';
+import { AttributeValueAxis } from '../attribute.value.axis';
+import { AbstractChart } from '../abstract.chart';
+import { ChartData } from '../chart.data';
 
 const d3 = require('d3');
 const nv = require('nvd3');
@@ -22,8 +22,8 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
 
     constructor() {
         super();
-        this.setSizeX(6);
-        this.setSizeY(3);
+        this.setSizeX(20);
+        this.setSizeY(10);
     }
 
     private prepareDatasets():any {

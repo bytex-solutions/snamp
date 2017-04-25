@@ -84,9 +84,7 @@ export class ChartService {
 
     public saveDashboard():void {
          this._http.put(REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(data => {
-                console.log("Dashboard has been saved successfully");
-            });
+            .subscribe(() => console.log("Dashboard has been saved successfully"));
     }
 
     pushNewChartData(_data:any):void {

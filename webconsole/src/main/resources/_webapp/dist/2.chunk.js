@@ -8,7 +8,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, ".thumbnail.with-caption {\r\n    display: inline-block;\r\n    background: #f5f5f5;\r\n}\r\n.thumbnail.with-caption p {\r\n    margin: 0;\r\n    padding-top: 0.5em;\r\n    text-align: center;\r\n    font-size: large;\r\n}\r\n.thumbnail.with-caption small:before {\r\n    content: '\\2014   \\A0';\r\n}\r\n.thumbnail {\r\n    height: auto;\r\n    margin: 10px;\r\n    max-height: 190px;\r\n}\r\n.thumbnail.with-caption small {\r\n    width: 100%;\r\n    text-align: right;\r\n    display: inline-block;\r\n    color: #999;\r\n}\r\n\r\nselect.form-control:not([size]):not([multiple]) {\r\n    height: auto;\r\n    cursor: pointer;\r\n}\r\n\r\n.chartMenuImage {\r\n  position: fixed;\r\n  right: 80px;\r\n  top: 50%;\r\n  margin-top: -9em !important;\r\n  z-index: 3;\r\n}\r\n\r\n#chartMenu {\r\n  background: #536980;\r\n  color: rgba(255,255,255,0.95);\r\n  position: fixed;\r\n  right: 0;\r\n  top: 50%;\r\n  margin-top: -10em !important;\r\n  list-style-type: none;\r\n  z-index: 3;\r\n  padding: 9px 0 9px 9px;\r\n  border-top-left-radius: 5px;\r\n  border-bottom-left-radius: 5px;\r\n}\r\n\r\n#chartMenu li {\r\n    cursor: pointer;\r\n    margin-bottom: 15px;\r\n    margin-right: 5px;\r\n}\r\n\r\n#chartMenu li i {\r\n    padding: 7px;\r\n    border-radius: 5px;\r\n    font-size: 1.5em;\r\n}\r\n\r\n#chartMenu li:hover i {\r\n    background: #1ABB9C;\r\n}\r\n\r\n#chartMenu li:last-child {\r\n    margin-bottom: 0;\r\n}\r\n\r\n.jumbotron {\r\n    padding: 15px !important;\r\n}\r\n\r\n.jumbotron p {\r\n    font-size: 17px !important;\r\n}\r\n\r\n.grid {\r\n\ttransform-origin: top center;\r\n\ttransition: transform 0.5s;\r\n\tposition: relative;\r\n}\r\n\r\n.grid-item {\r\n\tbackground-color: #ffffff;\r\n\t-webkit-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\t-moz-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\t-o-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\ttransition: width 0.25s, height 0.25s, transform 0.5s;\r\n\toverflow: hidden;\r\n\tposition: absolute;\r\n\tbox-shadow: 3px 3px 3px rgba(0,0,0,0.4);\r\n\tborder: 1px solid rgb(42, 63, 84);\r\n    border-radius: 5px;\r\n}\r\n\r\n.grid-item:active, .grid-item.moving {\r\n\tz-index: 2;\r\n\t-webkit-transition: none;\r\n\t-moz-transition: none;\r\n\t-o-transition: none;\r\n\ttransition: none;\r\n}\r\n\r\n.grid-placeholder {\r\n\tbackground-color: rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.grid-item.moving {\r\n    z-index: z-index + 1;\r\n}\r\n\r\n.placeholder {\r\n    position: absolute;\r\n}\r\n\r\n.nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {\r\n    opacity: 0.4;\r\n    fill: rgba(224, 116, 76, 0.91);\r\n}\r\n\r\n.x_title h2 {\r\n    font-size: inherit !important;\r\n    color: black;\r\n    display: inline;\r\n    max-width: calc(100% - 46px);\r\n}\r\n\r\n.x_title h5 {\r\n    display: inline;\r\n    margin-left: 15px;\r\n}\r\n\r\n.x_title {\r\n    border-bottom: 2px solid #E6E9ED;\r\n    padding: 0 0 7px 0 !important;\r\n    margin-bottom: 0 !important;\r\n    font-style: italic;\r\n}\r\n\r\n.panel_toolbox > li >a {\r\n    display: inline;\r\n}\r\n\r\nul.panel_toolbox i.fa{\r\n    color:black;\r\n}\r\n\r\nul.panel_toolbox i.fa-pause-circle-o {\r\n    color:red;\r\n}\r\n\r\nul.panel_toolbox i.fa-play-circle-o {\r\n    color:green;\r\n}\r\n\r\n/**.no-top-border tr:first-child td {\r\n    border: 0 !important;\r\n}**/\r\n\r\n.tableWrapper {\r\n    position: relative;\r\n    height: 100%;\r\n    overflow: hidden;\r\n}\r\n\r\n/** not used, but may be in the future...\r\n.overlay-holder {\r\n    display: none;\r\n    width: 100%;\r\n    height: 100%;\r\n    position: relative;\r\n}\r\n\r\n.overlay-content {\r\n    display: block;\r\n    width: 90%;\r\n    height: 90%;\r\n    opacity: 0.8;\r\n    margin: auto;\r\n    border-radius: 10px;\r\n}\r\n\r\n.overlay-content div {\r\n    position: absolute;\r\n    text-align: center;\r\n    top: 50%;\r\n    left: 50%;\r\n    transform: translate(-50%, -50%);\r\n    color: black;\r\n    font-size: larger;\r\n    text-transform: uppercase;\r\n}\r\n.overlay-content div i.fa {\r\n    font-size: 2em;\r\n}\r\n**/", ""]);
+exports.push([module.i, ".thumbnail.with-caption {\r\n    display: inline-block;\r\n    background: #f5f5f5;\r\n}\r\n.thumbnail.with-caption p {\r\n    margin: 0;\r\n    padding-top: 0.5em;\r\n    text-align: center;\r\n    font-size: large;\r\n}\r\n.thumbnail.with-caption small:before {\r\n    content: '\\2014   \\A0';\r\n}\r\n.thumbnail {\r\n    height: auto;\r\n    margin: 10px;\r\n    max-height: 190px;\r\n}\r\n.thumbnail.with-caption small {\r\n    width: 100%;\r\n    text-align: right;\r\n    display: inline-block;\r\n    color: #999;\r\n}\r\n\r\nselect.form-control:not([size]):not([multiple]) {\r\n    height: auto;\r\n    cursor: pointer;\r\n}\r\n\r\n.chartMenuImage {\r\n  position: fixed;\r\n  right: 80px;\r\n  top: 50%;\r\n  margin-top: -9em !important;\r\n  z-index: 3;\r\n}\r\n\r\n#chartMenu {\r\n  background: #536980;\r\n  color: rgba(255,255,255,0.95);\r\n  position: fixed;\r\n  right: 0;\r\n  top: 50%;\r\n  margin-top: -10em !important;\r\n  list-style-type: none;\r\n  z-index: 3;\r\n  padding: 9px 0 9px 9px;\r\n  border-top-left-radius: 5px;\r\n  border-bottom-left-radius: 5px;\r\n}\r\n\r\n#chartMenu li {\r\n    cursor: pointer;\r\n    margin-bottom: 15px;\r\n    margin-right: 5px;\r\n}\r\n\r\n#chartMenu li i {\r\n    padding: 7px;\r\n    border-radius: 5px;\r\n    font-size: 1.5em;\r\n}\r\n\r\n#chartMenu li:hover i {\r\n    background: #1ABB9C;\r\n}\r\n\r\n#chartMenu li:last-child {\r\n    margin-bottom: 0;\r\n}\r\n\r\n.jumbotron {\r\n    padding: 15px !important;\r\n}\r\n\r\n.jumbotron p {\r\n    font-size: 17px !important;\r\n}\r\n\r\n.grid {\r\n\ttransform-origin: top center;\r\n\ttransition: transform 0.5s;\r\n\tposition: relative;\r\n}\r\n\r\n.grid-item {\r\n\tbackground-color: #ffffff;\r\n\t-webkit-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\t-moz-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\t-o-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\ttransition: width 0.25s, height 0.25s, transform 0.5s;\r\n\toverflow: hidden;\r\n\tposition: absolute;\r\n\tbox-shadow: 3px 3px 3px rgba(0,0,0,0.4);\r\n\tborder: 1px solid rgb(42, 63, 84);\r\n    border-radius: 5px;\r\n}\r\n\r\n.grid-item:active, .grid-item.moving {\r\n\tz-index: 2;\r\n\t-webkit-transition: none;\r\n\t-moz-transition: none;\r\n\t-o-transition: none;\r\n\ttransition: none;\r\n}\r\n\r\n.grid-placeholder {\r\n\tbackground-color: rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.grid-item.moving {\r\n    z-index: z-index + 1;\r\n}\r\n\r\n.placeholder {\r\n    position: absolute;\r\n}\r\n\r\n.nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {\r\n    opacity: 0.4;\r\n    fill: rgba(224, 116, 76, 0.91);\r\n}\r\n\r\n.x_title h2 {\r\n    font-size: inherit !important;\r\n    color: black;\r\n    display: inline;\r\n    max-width: calc(100% - 46px);\r\n}\r\n\r\n.x_title h5 {\r\n    display: inline;\r\n    margin-left: 15px;\r\n}\r\n\r\n.x_title {\r\n    border-bottom: 2px solid #E6E9ED;\r\n    padding: 0 0 7px 0 !important;\r\n    margin-bottom: 0 !important;\r\n    font-style: italic;\r\n}\r\n\r\n.panel_toolbox > li >a {\r\n    display: inline;\r\n}\r\n\r\nul.panel_toolbox i.fa{\r\n    color:black;\r\n}\r\n\r\nul.panel_toolbox i.fa-pause-circle-o {\r\n    color:red;\r\n}\r\n\r\nul.panel_toolbox i.fa-play-circle-o {\r\n    color:green;\r\n}\r\n\r\n.tableWrapper {\r\n    position: relative;\r\n    height: 100%;\r\n    overflow: hidden;\r\n}", ""]);
 
 // exports
 
@@ -27,8 +27,8 @@ var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/in
 var attribute_1 = __webpack_require__("./src/app/charts/model/attribute.ts");
 var app_chartService_1 = __webpack_require__("./src/app/services/app.chartService.ts");
 var objectFactory_1 = __webpack_require__("./src/app/charts/model/objectFactory.ts");
-var line_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/line.chart.attributes.values.ts");
-var panel_attributes_values_1 = __webpack_require__("./src/app/charts/model/panel.attributes.values.ts");
+var line_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/line.chart.attributes.values.ts");
+var panel_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/panel.attributes.values.ts");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
@@ -38,9 +38,10 @@ __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 __webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
 __webpack_require__("./node_modules/select2/dist/js/select2.js");
 var Dashboard = (function () {
-    function Dashboard(http, overlay, vcRef, _chartService, route) {
+    function Dashboard(http, overlay, vcRef, _chartService, cd, route) {
         this.http = http;
         this._chartService = _chartService;
+        this.cd = cd;
         this.route = route;
         this.timerId = undefined;
         this.selectedComponent = "";
@@ -64,8 +65,10 @@ var Dashboard = (function () {
             'visible_rows': 0,
             'min_cols': 1,
             'min_rows': 1,
-            'col_width': 10,
-            'row_height': 10,
+            'min_width': 10,
+            'min_height': 10,
+            'col_width': 20,
+            'row_height': 20,
             'cascade': 'left',
             'fix_to_grid': false,
             'auto_style': true,
@@ -134,6 +137,7 @@ var Dashboard = (function () {
             .subscribe(function (gn) {
             _this.groupName = gn;
             _this._charts = _this._chartService.getChartsByGroupName(_this.groupName);
+            _this.cd.detectChanges();
             for (var i = 0; i < _this._charts.length; i++) {
                 _this._charts[i].draw();
             }
@@ -269,6 +273,7 @@ var Dashboard = (function () {
         this._chartService.newChart(chart);
         this._charts = this._chartService.getChartsByGroupName(this.groupName);
         $(Dashboard.chartModalId).modal("hide");
+        this.cd.detectChanges();
         var _thisReference = this;
         setTimeout(function () {
             chart.draw();
@@ -311,10 +316,10 @@ var Dashboard = (function () {
             template: __webpack_require__("./src/app/charts/templates/dashboard.html"),
             styles: [__webpack_require__("./src/app/charts/templates/css/dashboard.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _d) || Object, (typeof (_e = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _e) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _f) || Object])
     ], Dashboard);
     return Dashboard;
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
 }());
 exports.Dashboard = Dashboard;
 var TimeInterval = (function () {

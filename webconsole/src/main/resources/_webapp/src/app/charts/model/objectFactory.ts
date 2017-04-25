@@ -9,11 +9,11 @@ import { AttributeInformation } from './attribute';
 import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
 import { ChartOfAttributeValues } from './abstract.chart.attributes.values';
 
-import { VerticalBarChartOfAttributeValues } from './vbar.chart.attributes.values';
-import { HorizontalBarChartOfAttributeValues } from './hbar.chart.attributes.values';
-import { LineChartOfAttributeValues } from './line.chart.attributes.values';
-import { PanelOfAttributeValues } from './panel.attributes.values';
-import { PieChartOfAttributeValues } from './pie.chart.attributes.values';
+import { VerticalBarChartOfAttributeValues } from './charts/vbar.chart.attributes.values';
+import { HorizontalBarChartOfAttributeValues } from './charts/hbar.chart.attributes.values';
+import { LineChartOfAttributeValues } from './charts/line.chart.attributes.values';
+import { PanelOfAttributeValues } from './charts/panel.attributes.values';
+import { PieChartOfAttributeValues } from './charts/pie.chart.attributes.values';
 
 // Factory to create appropriate objects from json
 export class Factory {

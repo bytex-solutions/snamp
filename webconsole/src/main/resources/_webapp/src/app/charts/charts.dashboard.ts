@@ -1,4 +1,4 @@
-import { Component, ViewContainerRef } from '@angular/core';
+import { Component, ViewContainerRef, ChangeDetectorRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -7,8 +7,8 @@ import { AttributeInformation } from './model/attribute';
 import { ChartService } from '../services/app.chartService';
 import { Factory } from './model/objectFactory';
 import { AbstractChart } from './model/abstract.chart';
-import { LineChartOfAttributeValues } from "./model/line.chart.attributes.values";
-import { PanelOfAttributeValues } from "./model/panel.attributes.values";
+import { LineChartOfAttributeValues } from "./model/charts/line.chart.attributes.values";
+import { PanelOfAttributeValues } from "./model/charts/panel.attributes.values";
 import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
 import { ActivatedRoute } from '@angular/router';
 
@@ -22,9 +22,9 @@ import 'smartwizard';
 import 'select2';
 
 @Component({
-  moduleId: module.id,
-  templateUrl: './templates/dashboard.html',
-  styleUrls: [ './templates/css/dashboard.css' ]
+    moduleId: module.id,
+    templateUrl: './templates/dashboard.html',
+    styleUrls: [ './templates/css/dashboard.css' ]
 })
 export class Dashboard {
 
@@ -69,8 +69,10 @@ export class Dashboard {
         'visible_rows': 0,
         'min_cols': 1,
         'min_rows': 1,
-        'col_width': 10,
-        'row_height': 10,
+        'min_width': 10,
+        'min_height': 10,
+        'col_width': 20,
+        'row_height': 20,
         'cascade': 'left',
         'fix_to_grid': false,
         'auto_style': true,
@@ -83,21 +85,22 @@ export class Dashboard {
 
 
     constructor(private http: ApiClient,
-          overlay: Overlay,
-          vcRef: ViewContainerRef,
-          private _chartService:ChartService,
-          private route: ActivatedRoute) {
+                overlay: Overlay,
+                vcRef: ViewContainerRef,
+                private _chartService:ChartService,
+                private cd: ChangeDetectorRef,
+                private route: ActivatedRoute) {
 
         overlay.defaultViewContainer = vcRef;
         this.timeInterval = this.intervals[0];
-   }
+    }
 
-   appendChartClicked(type:string) {
+    appendChartClicked(type:string) {
         this.selectedChartType = type;
         this.initModal();
-   }
+    }
 
-   private initModal():void {
+    private initModal():void {
         // clean the data if the component was already initialized
         if (this.initialized) {
             // set all elements to the initial state
@@ -124,14 +127,14 @@ export class Dashboard {
         $(Dashboard.chartModalId).modal("show");
         // and next time user adds the chart - we will reinit all the dialog
         this.initialized = true;
-   }
+    }
 
-   private updateChartName():void {
+    private updateChartName():void {
         this.chartName = this.selectedChartType + "." +
             this.selectedComponent + "." + ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" + this._charts.length;
-   }
+    }
 
-   ngOnInit():void {
+    ngOnInit():void {
         this.components = this.http.get(REST.CHART_COMPONENTS)
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
@@ -140,32 +143,33 @@ export class Dashboard {
                 this.selectedComponent = data[0];
                 // load instances as well - if we autoselect a component
                 this.instances = this.http.get(REST.CHART_INSTANCES(this.selectedComponent))
-                            .map((res:Response) => { return <string[]>res.json()}).publishLast().refCount();
+                    .map((res:Response) => { return <string[]>res.json()}).publishLast().refCount();
                 this.instances.subscribe((data:string[]) => { this.allInstances = data});
             }
         });
-   }
+    }
 
-   ngAfterViewInit():void {
+    ngAfterViewInit():void {
         let _thisReference:any = this;
         this.route.params
-             .map(params => params['groupName'])
-             .subscribe((gn) => {
+            .map(params => params['groupName'])
+            .subscribe((gn) => {
                 this.groupName = gn;
                 this._charts = this._chartService.getChartsByGroupName(this.groupName);
+                this.cd.detectChanges();
                 for (let i = 0; i < this._charts.length; i++) {
                     this._charts[i].draw();
                 }
                 this.timerId = setInterval(function(){
                     _thisReference._chartService.receiveChartDataForGroupName(gn);
                 }, 1500);
-             });
+            });
         $(document).ready(function(){
-             _thisReference.initWizard();
+            _thisReference.initWizard();
         });
-   }
+    }
 
-   private initWizard():void {
+    private initWizard():void {
         $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
             useURLhash: false,
@@ -188,32 +192,32 @@ export class Dashboard {
                 _thisReference.triggerShowInstances(_thisReference.selectedAllInstances);
             }
         });
-   }
+    }
 
-   onComponentSelect(event:any):void {
+    onComponentSelect(event:any):void {
         this.instances = this.http.get(REST.CHART_INSTANCES(event))
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast()
             .refCount();
         this.instances.subscribe((data:string[]) => { this.allInstances = data});
-   }
+    }
 
     onInstanceSelect(event):void {
         this.selectedInstances = event;
     }
 
-   private loadMetricsOnInstancesSelected():void {
+    private loadMetricsOnInstancesSelected():void {
         $('#overlay').fadeIn();
         let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
         let _obsComponents = this.http.getWithErrors(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
-             .map((res:Response) => {
-                 let _data:any = res.json();
-                 let _values:AttributeInformation[] = [];
-                 for (let i in _data) {
-                     _values.push(new AttributeInformation(_data[i]));
-                 }
-                 return _values;
-             }).catch((res:Response) => Observable.of([])).cache();
+            .map((res:Response) => {
+                let _data:any = res.json();
+                let _values:AttributeInformation[] = [];
+                for (let i in _data) {
+                    _values.push(new AttributeInformation(_data[i]));
+                }
+                return _values;
+            }).catch((res:Response) => Observable.of([])).cache();
 
         let _obsInstances = this.http.getWithErrors(REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
             .map((res:Response) => {
@@ -261,10 +265,10 @@ export class Dashboard {
                 this.selectedMetric = data[0];
             }
         });
-         $('#overlay').fadeOut();
-   }
+        $('#overlay').fadeOut();
+    }
 
-   triggerShowInstances(event:any):void {
+    triggerShowInstances(event:any):void {
         let _select:any = $("#instancesSelect");
         let _thisReference:any = this;
         if (event == false) {
@@ -274,7 +278,7 @@ export class Dashboard {
             });
             _select.on('change', (e) => {
                 _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
-             });
+            });
             _select.fadeIn("fast");
         } else {
             if (_select.data('select2')) {
@@ -283,9 +287,9 @@ export class Dashboard {
                 });
             }
         }
-   }
+    }
 
-   addChartToDashboard():void {
+    addChartToDashboard():void {
         let _instances:string[] = ((this.selectedAllInstances) ? this.allInstances : this.selectedInstances);
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
@@ -296,23 +300,23 @@ export class Dashboard {
         this._chartService.newChart(chart);
         this._charts = this._chartService.getChartsByGroupName(this.groupName);
         $(Dashboard.chartModalId).modal("hide");
-
-         let _thisReference:any = this;
-         setTimeout(function() {
+        this.cd.detectChanges();
+        let _thisReference:any = this;
+        setTimeout(function() {
             chart.draw();
             _thisReference._chartService.saveDashboard();
-         }, 400);
-   }
+        }, 400);
+    }
 
-   	onChangeStop(index: number, event: NgGridItemEvent): void {
-   		this._charts[index].preferences["gridcfg"] = event;
-   		this._chartService.saveDashboard();
-   	}
+    onChangeStop(index: number, event: NgGridItemEvent): void {
+        this._charts[index].preferences["gridcfg"] = event;
+        this._chartService.saveDashboard();
+    }
 
-   	removeChart(chartName:string):void {
-   	    this._chartService.removeChart(chartName);
-   	    this._charts = this._chartService.getChartsByGroupName(this.groupName);
-   	}
+    removeChart(chartName:string):void {
+        this._chartService.removeChart(chartName);
+        this._charts = this._chartService.getChartsByGroupName(this.groupName);
+    }
 
     ngOnDestroy():void {
         clearInterval(this.timerId);

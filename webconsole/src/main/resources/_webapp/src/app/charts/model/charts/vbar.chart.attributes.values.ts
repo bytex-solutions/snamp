@@ -1,13 +1,13 @@
-import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
-import { InstanceNameAxis } from './instance.axis';
-import { AttributeValueAxis } from './attribute.value.axis';
-import { AbstractChart } from './abstract.chart';
-import { ChartData } from './chart.data';
+import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
+import { InstanceNameAxis } from '../instance.axis';
+import { AttributeValueAxis } from '../attribute.value.axis';
+import { AbstractChart } from '../abstract.chart';
+import { ChartData } from '../chart.data';
 
 const Chart = require('chart.js');
 
-export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public type:string = AbstractChart.PIE;
+export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
+    public type:string = AbstractChart.VBAR;
 
     private _chartObject:any = undefined;
 
@@ -21,8 +21,8 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
 
     constructor() {
         super();
-        this.setSizeX(3);
-        this.setSizeY(3);
+        this.setSizeX(10);
+        this.setSizeY(10);
     }
 
     public newValue(_data:ChartData):void {
@@ -55,7 +55,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
 
     public doDraw():void {
         this._chartObject = new Chart($("#" + this.id), {
-            type: 'doughnut',
+            type: "bar",
             data: {
                 labels: this.instances,
                 datasets: [{
@@ -68,9 +68,6 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
                 }],
                 options: {
                     responsive: true,
-                    cutoutPercentage: 40,
-                    rotation: Math.PI,
-                    circumference: Math.PI * 0.5,
                     title: {
                         display: true,
                         text: this.component

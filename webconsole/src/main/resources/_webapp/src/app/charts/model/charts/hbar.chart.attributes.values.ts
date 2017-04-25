@@ -1,8 +1,8 @@
-import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
-import { InstanceNameAxis } from './instance.axis';
-import { AttributeValueAxis } from './attribute.value.axis';
-import { AbstractChart } from './abstract.chart';
-import { ChartData } from './chart.data';
+import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
+import { InstanceNameAxis } from '../instance.axis';
+import { AttributeValueAxis } from '../attribute.value.axis';
+import { AbstractChart } from '../abstract.chart';
+import { ChartData } from '../chart.data';
 import { ChartUtils } from "./chart.utils";
 
 const Chart = require('chart.js');
@@ -18,6 +18,12 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
 
     public createDefaultAxisY() {
         return new InstanceNameAxis();
+    }
+
+    constructor() {
+        super();
+        this.setSizeX(10);
+        this.setSizeY(10);
     }
 
     public newValue(_data:ChartData):void {
@@ -81,7 +87,7 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
         _value["instances"] = this.instances;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
-        if ($.isEmptyObject(this.preferences)) {
+        if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
         }
         return _value;

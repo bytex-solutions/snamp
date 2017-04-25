@@ -1,8 +1,8 @@
-import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
-import { InstanceNameAxis } from './instance.axis';
-import { AttributeValueAxis } from './attribute.value.axis';
-import { AbstractChart } from './abstract.chart';
-import { ChartData } from './chart.data';
+import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
+import { InstanceNameAxis } from '../instance.axis';
+import { AttributeValueAxis } from '../attribute.value.axis';
+import { AbstractChart } from '../abstract.chart';
+import { ChartData } from '../chart.data';
 
 export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     public type:string = AbstractChart.PANEL;
@@ -17,8 +17,8 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
 
     constructor() {
         super();
-        this.setSizeX(2);
-        this.setSizeY(2);
+        this.setSizeX(10);
+        this.setSizeY(10);
     }
 
     public newValue(_data:ChartData):void {
