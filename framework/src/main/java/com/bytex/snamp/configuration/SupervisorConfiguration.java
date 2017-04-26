@@ -3,6 +3,7 @@ package com.bytex.snamp.configuration;
 import com.bytex.snamp.FactoryMap;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 
 /**
  * Represents configuration of the supervisor.
@@ -35,6 +36,9 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
      */
     interface AutoScalingConfiguration extends AutoScalingInfo{
         void setEnabled(final boolean value);
+
+
+
     }
 
     interface ResourceDiscoveryConfiguration extends ResourceDiscoveryInfo{
