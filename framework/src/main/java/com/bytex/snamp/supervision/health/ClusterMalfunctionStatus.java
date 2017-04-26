@@ -29,9 +29,7 @@ public abstract class ClusterMalfunctionStatus extends MalfunctionStatus {
         return clusterName;
     }
 
-    final boolean equalsHelper(final ClusterMalfunctionStatus other){
-        return other.getClusterName().equals(clusterName) &&
-                other.getTimeStamp().equals(getTimeStamp()) &&
-                other.getLevel().equals(getLevel());
+    protected final boolean like(final ClusterMalfunctionStatus status){
+        return status.clusterName.equals(clusterName) && status.getLevel().equals(getLevel());
     }
 }

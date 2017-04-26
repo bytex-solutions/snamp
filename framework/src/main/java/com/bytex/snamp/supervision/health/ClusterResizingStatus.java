@@ -1,9 +1,10 @@
 package com.bytex.snamp.supervision.health;
 
+import com.bytex.snamp.connector.health.HealthStatus;
+
 import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.util.Locale;
-import java.util.Objects;
 
 /**
  * Indicates that the cluster is resizing.
@@ -46,16 +47,7 @@ public final class ClusterResizingStatus extends ClusterMalfunctionStatus {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(getClusterName(), getTimeStamp());
-    }
-
-    private boolean equals(final ClusterResizingStatus other){
-        return equalsHelper(other);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return other instanceof ClusterResizingStatus && equals((ClusterResizingStatus) other);
+    public boolean like(final HealthStatus status) {
+        return status instanceof ClusterResizingStatus && super.like((ClusterResizingStatus) status);
     }
 }

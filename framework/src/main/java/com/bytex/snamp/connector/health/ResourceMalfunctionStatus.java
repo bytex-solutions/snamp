@@ -22,10 +22,8 @@ public abstract class ResourceMalfunctionStatus extends MalfunctionStatus {
         this.resourceName = resourceName;
     }
 
-    final boolean equalsHelper(final ResourceMalfunctionStatus other){
-        return other.getResourceName().equals(resourceName) &&
-                other.getTimeStamp().equals(getTimeStamp()) &&
-                other.getLevel().equals(getLevel());
+    protected final boolean like(final ResourceMalfunctionStatus status) {
+        return status.getResourceName().equals(getResourceName()) && status.getLevel().equals(getLevel());
     }
 
     /**

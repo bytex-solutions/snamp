@@ -47,17 +47,12 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
         return Level.SEVERE;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getTimeStamp(), error, getResourceName());
-    }
-
-    private boolean equals(final ConnectionProblem other) {
-        return equalsHelper(other) && other.getError().equals(error);
+    private boolean like(final ConnectionProblem status){
+        return super.like(status) && status.error.equals(error);
     }
 
     @Override
-    public boolean equals(final Object other) {
-        return other instanceof ConnectionProblem && equals((ConnectionProblem) other);
+    public boolean like(final HealthStatus status) {
+        return status instanceof ConnectionProblem && like((ConnectionProblem) status);
     }
 }

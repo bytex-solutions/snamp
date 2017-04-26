@@ -17,6 +17,11 @@ public final class OkStatus extends HealthStatus {
         super(timeStamp);
     }
 
+    @Override
+    public boolean like(final HealthStatus status) {
+        return status instanceof OkStatus;
+    }
+
     public OkStatus(){
         this(Instant.now());
     }
@@ -35,15 +40,5 @@ public final class OkStatus extends HealthStatus {
     @Override
     public String toString(final Locale locale) {
         return "Everything is fine";
-    }
-
-    @Override
-    public int hashCode() {
-        return getTimeStamp().hashCode();
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return other instanceof OkStatus;
     }
 }

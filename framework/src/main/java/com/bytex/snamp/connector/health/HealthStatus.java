@@ -30,11 +30,15 @@ public abstract class HealthStatus implements Serializable, Localizable {
         return timeStamp;
     }
 
-    @Override
-    public abstract int hashCode();
-
-    @Override
-    public abstract boolean equals(final Object obj);
+    /**
+     * Determines whether this health status is similar to the specified status.
+     * @param status Health status.
+     * @return {@literal true}, if this health status is similar to the specified status.
+     * @implSpec This method has weaker semantics than {@link #equals(Object)}.
+     *              Similarity means that only significant data in health status used are equal.
+     *              Volatile data such as {@link #getTimeStamp()} should be ignored.
+     */
+    public abstract boolean like(final HealthStatus status);
 
     /**
      * Selects the worst health status between two statuses.

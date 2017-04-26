@@ -1,9 +1,10 @@
 package com.bytex.snamp.supervision.health;
 
+import com.bytex.snamp.connector.health.HealthStatus;
+
 import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.util.Locale;
-import java.util.Objects;
 
 /**
  * Indicates that the cluster is in recovery state and may be unavailable.
@@ -45,17 +46,17 @@ public final class ClusterRecoveryStatus extends ClusterMalfunctionStatus {
         return Level.MODERATE;
     }
 
+    /**
+     * Determines whether this health status is similar to the specified status.
+     *
+     * @param status Health status.
+     * @return {@literal true}, if this health status is similar to the specified status.
+     * @implSpec This method has weaker semantics than {@link #equals(Object)}.
+     * Similarity means that only significant data in health status used are equal.
+     * Volatile data such as {@link #getTimeStamp()} should be ignored.
+     */
     @Override
-    public int hashCode() {
-        return Objects.hash(getTimeStamp(), getClusterName());
-    }
-
-    private boolean equals(final ClusterRecoveryStatus other){
-        return equalsHelper(other);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return other instanceof ClusterRecoveryStatus && equals((ClusterRecoveryStatus) other);
+    public boolean like(final HealthStatus status) {
+        return status instanceof ClusterRecoveryStatus && super.like((ClusterRecoveryStatus) status);
     }
 }

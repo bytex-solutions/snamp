@@ -1,12 +1,13 @@
 package com.bytex.snamp.supervision.openstack.health;
 
+import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.ResourceMalfunctionStatus;
 import org.openstack4j.model.senlin.Node;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.util.Locale;
-import java.util.Objects;
+
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**
@@ -80,20 +81,12 @@ final class ProblemWithClusterNode extends ResourceMalfunctionStatus {
         return level;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getResourceName(), getTimeStamp(), level, details);
-    }
-
-    private boolean equals(final ProblemWithClusterNode other) {
-        return other.getResourceName().equals(getResourceName()) &&
-                other.getTimeStamp().equals(getTimeStamp()) &&
-                other.level.equals(level) &&
-                other.details.equals(details);
+    private boolean like(final ProblemWithClusterNode status){
+        return super.like(status) && status.details.equals(details);
     }
 
     @Override
-    public boolean equals(final Object other) {
-        return other instanceof ProblemWithClusterNode && equals((ProblemWithClusterNode) other);
+    public boolean like(final HealthStatus status) {
+        return status instanceof ProblemWithClusterNode && like((ProblemWithClusterNode) status);
     }
 }

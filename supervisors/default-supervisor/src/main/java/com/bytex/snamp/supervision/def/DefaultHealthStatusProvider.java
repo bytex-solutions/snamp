@@ -148,11 +148,11 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
                 Also, if this method is called inside of batch update scope then provided health status will be enqueued
                 for further aggregation
             */
-            if (tempNewStatus.equals(prevStatus) || batchUpdateState.addStatus(tempNewStatus))
+            if (tempNewStatus.like(prevStatus) || batchUpdateState.addStatus(tempNewStatus))
                 return;
             else {
                 newStatus = trigger.statusChanged(prevStatus, tempNewStatus);
-                if (newStatus.equals(prevStatus))
+                if (newStatus.like(prevStatus))
                     return;
             }
             status = newStatus;

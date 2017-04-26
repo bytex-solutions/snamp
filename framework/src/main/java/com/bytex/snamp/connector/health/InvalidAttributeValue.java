@@ -53,12 +53,12 @@ public final class InvalidAttributeValue extends ResourceMalfunctionStatus {
         return Objects.hash(attribute, getTimeStamp(), getLevel(), getResourceName());
     }
 
-    private boolean equals(final InvalidAttributeValue other) {
-        return equalsHelper(other) && other.getAttribute().equals(attribute);
+    private boolean like(final InvalidAttributeValue status){
+        return super.like(status) && status.attribute.getName().equals(attribute.getName());
     }
 
     @Override
-    public boolean equals(final Object other) {
-        return other instanceof InvalidAttributeValue && equals((InvalidAttributeValue) other);
+    public boolean like(final HealthStatus status) {
+        return status instanceof InvalidAttributeValue && like((InvalidAttributeValue) status);
     }
 }

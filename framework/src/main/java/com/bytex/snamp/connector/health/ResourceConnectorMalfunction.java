@@ -49,18 +49,12 @@ public final class ResourceConnectorMalfunction extends ResourceMalfunctionStatu
         return String.format("Resource %s is not available. Caused by: %s", resourceName, error);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(error, getResourceName(), getTimeStamp());
-    }
-
-    private boolean equals(final ResourceConnectorMalfunction other){
-        return equalsHelper(other) &&
-                other.getError().equals(error);
+    private boolean like(final ResourceConnectorMalfunction status){
+        return super.like(status) && Objects.equals(error.getCause(), status.error.getCause());
     }
 
     @Override
-    public boolean equals(final Object obj) {
-        return false;
+    public boolean like(final HealthStatus status) {
+        return status instanceof ResourceConnectorMalfunction && like((ResourceConnectorMalfunction) status);
     }
 }
