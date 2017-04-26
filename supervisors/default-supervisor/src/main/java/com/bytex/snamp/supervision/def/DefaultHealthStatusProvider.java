@@ -94,7 +94,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
                 throw new IllegalStateException("Batch update was not started");
             else
                 remove();
-            final HealthStatus batchStatus = statuses.stream().reduce(new OkStatus(), HealthStatus::worst);
+            final HealthStatus batchStatus = statuses.stream().reduce(HealthStatus::worst).orElseGet(OkStatus::new);
             statuses.clear();   //help GC
             return batchStatus;
         }

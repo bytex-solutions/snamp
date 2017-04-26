@@ -2,13 +2,10 @@ package com.bytex.snamp.web.serviceModel.resourceGroups;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
-import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEvent;
-import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
@@ -22,7 +19,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -96,18 +92,6 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         }
     }
 
-    @JsonSerialize(contentUsing = HealthStatusSerializer.class)
-    public static final class StatusOfGroups extends HashMap<String, HealthStatus>{
-        private static final long serialVersionUID = 2645921325913575632L;
-
-        void putStatus(final String groupName, final Supervisor supervisor) {
-            final HealthStatus status = supervisor.queryObject(HealthCheckSupport.class)
-                    .map(HealthCheckSupport::getStatus)
-                    .orElseGet(OkStatus::new);
-            put(groupName, status);
-        }
-    }
-
     private final ResourceGroupEventHub hub;
 
     public ResourceGroupWatcherService(){
@@ -138,8 +122,8 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     @GET
     @Path("/groups/status")
     @Produces(MediaType.APPLICATION_JSON)
-    public StatusOfGroups getStatus() {
-        final StatusOfGroups result = new StatusOfGroups();
+    public HealthStatusMap getStatus() {
+        final HealthStatusMap result = new HealthStatusMap();
         for (final String groupName : getGroups())
             SupervisorClient.tryCreate(getBundleContext(), groupName).ifPresent(client -> {
                 result.putStatus(groupName, client);
@@ -147,6 +131,8 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
             });
         return result;
     }
+
+
 
     @Override
     public void handle(@Nonnull final SupervisionEvent event) {

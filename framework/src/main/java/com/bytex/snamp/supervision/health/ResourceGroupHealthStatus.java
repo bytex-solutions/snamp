@@ -15,8 +15,12 @@ import java.util.HashMap;
 public class ResourceGroupHealthStatus extends HashMap<String, HealthStatus> implements Serializable {
     private static final long serialVersionUID = 538331150199908998L;
 
-    public ResourceGroupHealthStatus() {
+    public ResourceGroupHealthStatus(){
 
+    }
+
+    protected ResourceGroupHealthStatus(final ResourceGroupHealthStatus proto){
+        super(proto);
     }
 
     /**
@@ -24,12 +28,12 @@ public class ResourceGroupHealthStatus extends HashMap<String, HealthStatus> imp
      *
      * @return Accumulated health status.
      */
-    public HealthStatus getStatus() {
+    public HealthStatus getSummaryStatus() {
         return values().stream().reduce(HealthStatus::worst).orElseGet(OkStatus::new);
     }
 
     @Override
     public String toString() {
-        return getStatus().toString();
+        return getSummaryStatus().toString();
     }
 }
