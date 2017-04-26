@@ -1,7 +1,9 @@
-package com.bytex.snamp.connector.health;
+package com.bytex.snamp.supervision.health;
 
+import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Indicates that the cluster is resizing.
@@ -13,7 +15,7 @@ public final class ClusterResizingStatus extends ClusterMalfunctionStatus {
     private static final long serialVersionUID = 4665622610267812819L;
 
     public ClusterResizingStatus(final String clusterName, final Instant timeStamp) {
-        super(SEVERITY - 2, clusterName, timeStamp);
+        super(clusterName, timeStamp);
     }
 
     public ClusterResizingStatus(final String clusterName){
@@ -33,12 +35,27 @@ public final class ClusterResizingStatus extends ClusterMalfunctionStatus {
     }
 
     /**
-     * Indicates that resource is in critical state (potentially unavailable).
+     * Gets malfunction level.
      *
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
+     * @return Malfunction level.
      */
+    @Nonnull
     @Override
-    public boolean isCritical() {
-        return false;
+    public Level getLevel() {
+        return Level.LOW;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getClusterName(), getTimeStamp());
+    }
+
+    private boolean equals(final ClusterResizingStatus other){
+        return equalsHelper(other);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof ClusterResizingStatus && equals((ClusterResizingStatus) other);
     }
 }

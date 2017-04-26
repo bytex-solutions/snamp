@@ -1,7 +1,9 @@
-package com.bytex.snamp.connector.health;
+package com.bytex.snamp.supervision.health;
 
+import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Indicates that the cluster is in recovery state and may be unavailable.
@@ -13,7 +15,7 @@ public final class ClusterRecoveryStatus extends ClusterMalfunctionStatus {
     private static final long serialVersionUID = 3186397258235973954L;
 
     public ClusterRecoveryStatus(final String clusterName, final Instant timeStamp) {
-        super(SEVERITY - 1, clusterName, timeStamp);
+        super(clusterName, timeStamp);
     }
 
     public ClusterRecoveryStatus(final String clusterName){
@@ -33,12 +35,27 @@ public final class ClusterRecoveryStatus extends ClusterMalfunctionStatus {
     }
 
     /**
-     * Indicates that resource is in critical state (potentially unavailable).
+     * Gets malfunction level.
      *
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
+     * @return Malfunction level.
      */
+    @Nonnull
     @Override
-    public boolean isCritical() {
-        return false;
+    public Level getLevel() {
+        return Level.MODERATE;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getTimeStamp(), getClusterName());
+    }
+
+    private boolean equals(final ClusterRecoveryStatus other){
+        return equalsHelper(other);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof ClusterRecoveryStatus && equals((ClusterRecoveryStatus) other);
     }
 }

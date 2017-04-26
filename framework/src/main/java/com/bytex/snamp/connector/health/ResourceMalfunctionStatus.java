@@ -12,20 +12,20 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public abstract class ResourceMalfunctionStatus extends MalfunctionStatus {
     private static final long serialVersionUID = -1766747580186741189L;
-    static final int SEVERITY = 1;
     private final String resourceName;
 
-    ResourceMalfunctionStatus(final String resourceName,
-                              final int severity,
+    protected ResourceMalfunctionStatus(final String resourceName,
                               final Instant timeStamp) {
-        super(severity, timeStamp);
+        super(timeStamp);
         if(isNullOrEmpty(resourceName))
             throw new IllegalArgumentException("Resource name is not specified");
         this.resourceName = resourceName;
     }
 
-    protected ResourceMalfunctionStatus(final String resourceName, final Instant timeStamp) {
-        this(resourceName, SEVERITY, timeStamp);
+    final boolean equalsHelper(final ResourceMalfunctionStatus other){
+        return other.getResourceName().equals(resourceName) &&
+                other.getTimeStamp().equals(getTimeStamp()) &&
+                other.getLevel().equals(getLevel());
     }
 
     /**

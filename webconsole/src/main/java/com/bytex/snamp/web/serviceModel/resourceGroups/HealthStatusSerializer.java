@@ -3,6 +3,7 @@ package com.bytex.snamp.web.serviceModel.resourceGroups;
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.json.InstantSerializer;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
+import com.bytex.snamp.supervision.health.ClusterMalfunctionStatus;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
@@ -18,15 +19,18 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
     private static final String TYPE_FIELD = "@type";
     private static final String RESOURCE_NAME_FIELD = "resourceName";
     private static final String CLUSTER_NAME_FIELD = "clusterName";
-    private static final String IS_CRITICAL_FIELD = "critical";
+    private static final String LEVEL_FIELD = "level";
 
     private static void serialize(final OkStatus status, final ObjectNode output) {
         output.put(TYPE_FIELD, "OK");
     }
 
+    private static String serialize(final MalfunctionStatus.Level level){
+        return level.toString().toLowerCase();
+    }
+
     private static void putCommonFields(final HealthStatus status, final ObjectNode output){
         output.put(TYPE_FIELD, status.getClass().getSimpleName());
-        output.put(IS_CRITICAL_FIELD, status.isCritical());
         output.put("details", status.toString());
         output.put("timeStamp", InstantSerializer.serialize(status.getTimeStamp()));
     }
@@ -36,6 +40,7 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
         final ObjectNode data = ThreadLocalJsonFactory.getFactory().objectNode();
         status.getData().forEach((key, value) -> data.put(key, new POJONode(value)));
         output.put("data", data);
+        output.put("level", serialize(status.getLevel()));
     }
 
     private static void putClusterMalfunctionFields(final ClusterMalfunctionStatus status, final ObjectNode output) {
@@ -54,7 +59,7 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
         output.put("attributeValue", new POJONode(status.getAttribute().getValue()));
     }
 
-    private static void serialize(final ResourceIsNotAvailable status, final ObjectNode output) {
+    private static void serialize(final ResourceConnectorMalfunction status, final ObjectNode output) {
         putResourceMalfunctionFields(status,  output);
         output.put("error", status.getError().getLocalizedMessage());
     }
@@ -71,8 +76,8 @@ final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
             serialize((OkStatus) status, node);
         else if (status instanceof InvalidAttributeValue)
             serialize((InvalidAttributeValue) status, node);
-        else if (status instanceof ResourceIsNotAvailable)
-            serialize((ResourceIsNotAvailable) status, node);
+        else if (status instanceof ResourceConnectorMalfunction)
+            serialize((ResourceConnectorMalfunction) status, node);
         else if (status instanceof ConnectionProblem)
             serialize((ConnectionProblem) status, node);
         else if (status instanceof ClusterMalfunctionStatus) {

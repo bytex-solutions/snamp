@@ -1,12 +1,14 @@
 package com.bytex.snamp.supervision.openstack.health;
 
-import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
+import com.bytex.snamp.supervision.health.ClusterMalfunctionStatus;
 import org.openstack4j.model.senlin.Cluster;
 
+import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Objects;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents some problem with cluster.
@@ -16,26 +18,23 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 final class ProblemWithCluster extends ClusterMalfunctionStatus {
     private static final long serialVersionUID = -8376473095942011064L;
-    private final boolean critical;
+    private final Level level;
     private final String details;
 
     private ProblemWithCluster(final String clusterName,
                        final String details,
-                       final boolean critical){
+                       final Level level){
         super(clusterName, Instant.now());
-        this.critical = critical;
-        if(isNullOrEmpty(details))
-            this.details = critical ? "Cluster crashed" : "Cluster nodes partially unavailable";
-        else
-            this.details = details;
+        this.level = level;
+        this.details = nullToEmpty(details);
     }
 
     static ProblemWithCluster critical(final Cluster cluster){
-        return new ProblemWithCluster(cluster.getName(), cluster.getStatusReason(), true);
+        return new ProblemWithCluster(cluster.getName(), cluster.getStatusReason(), Level.CRITICAL);
     }
 
     static ProblemWithCluster warning(final Cluster cluster){
-        return new ProblemWithCluster(cluster.getName(), cluster.getStatusReason(), false);
+        return new ProblemWithCluster(cluster.getName(), cluster.getStatusReason(), Level.SUBSTANTIAL);
     }
 
     /**
@@ -50,13 +49,31 @@ final class ProblemWithCluster extends ClusterMalfunctionStatus {
         return details;
     }
 
-    /**
-     * Indicates that resource is in critical state (potentially unavailable).
-     *
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
-     */
     @Override
-    public boolean isCritical() {
-        return critical;
+    public int hashCode() {
+        return Objects.hash(getClusterName(), getTimeStamp(), level, details);
+    }
+
+    private boolean equals(final ProblemWithCluster other){
+        return other.getClusterName().equals(getClusterName()) &&
+                other.getTimeStamp().equals(getTimeStamp()) &&
+                other.level.equals(level) &&
+                other.details.equals(details);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof ProblemWithCluster && equals((ProblemWithCluster) other);
+    }
+
+    /**
+     * Gets malfunction level.
+     *
+     * @return Malfunction level.
+     */
+    @Nonnull
+    @Override
+    public Level getLevel() {
+        return level;
     }
 }

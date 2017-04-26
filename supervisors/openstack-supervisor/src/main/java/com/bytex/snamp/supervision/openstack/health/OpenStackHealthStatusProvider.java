@@ -2,9 +2,9 @@ package com.bytex.snamp.supervision.openstack.health;
 
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.health.ClusterMalfunctionStatus;
-import com.bytex.snamp.connector.health.ClusterRecoveryStatus;
-import com.bytex.snamp.connector.health.ClusterResizingStatus;
+import com.bytex.snamp.supervision.health.ClusterMalfunctionStatus;
+import com.bytex.snamp.supervision.health.ClusterRecoveryStatus;
+import com.bytex.snamp.supervision.health.ClusterResizingStatus;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.openstack.ClusterNodes;

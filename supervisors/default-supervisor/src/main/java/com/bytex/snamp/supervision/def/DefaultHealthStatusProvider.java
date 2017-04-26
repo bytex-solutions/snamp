@@ -148,11 +148,11 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
                 Also, if this method is called inside of batch update scope then provided health status will be enqueued
                 for further aggregation
             */
-            if (tempNewStatus.compareTo(prevStatus) == 0 || batchUpdateState.addStatus(tempNewStatus))
+            if (tempNewStatus.equals(prevStatus) || batchUpdateState.addStatus(tempNewStatus))
                 return;
             else {
                 newStatus = trigger.statusChanged(prevStatus, tempNewStatus);
-                if (newStatus.compareTo(prevStatus) == 0)
+                if (newStatus.equals(prevStatus))
                     return;
             }
             status = newStatus;
@@ -168,7 +168,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         if (error.getCause() instanceof IOException)
             updateStatus(new ConnectionProblem(resourceName, (IOException) error.getCause()));
         else
-            updateStatus(new ResourceIsNotAvailable(resourceName, error));
+            updateStatus(new ResourceConnectorMalfunction(resourceName, error));
     }
 
     private void endBatchUpdate() {

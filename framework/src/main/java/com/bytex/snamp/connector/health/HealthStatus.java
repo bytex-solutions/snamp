@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Represents health check status.
@@ -13,14 +14,12 @@ import java.util.Locale;
  * @version 2.0
  * @since 2.0
  */
-public abstract class HealthStatus implements Serializable, Comparable<HealthStatus>, Localizable {
+public abstract class HealthStatus implements Serializable, Localizable {
     private static final long serialVersionUID = -8700097915541124870L;
-    private final int severity;
     private final Instant timeStamp;
 
-    HealthStatus(final int severity, @Nonnull final Instant timeStamp) {
-        this.severity = severity;
-        this.timeStamp = timeStamp;
+    HealthStatus(@Nonnull final Instant timeStamp) {
+        this.timeStamp = Objects.requireNonNull(timeStamp);
     }
 
     /**
@@ -32,21 +31,17 @@ public abstract class HealthStatus implements Serializable, Comparable<HealthSta
     }
 
     @Override
-    public final int compareTo(@Nonnull final HealthStatus other) {
-        return severity == other.severity ?
-                Boolean.compare(isCritical(), other.isCritical()) :
-                Integer.compare(severity, other.severity);
-    }
+    public abstract int hashCode();
+
+    @Override
+    public abstract boolean equals(final Object obj);
 
     /**
-     * Indicates that resource is in critical state (potentially unavailable).
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
+     * Selects the worst health status between two statuses.
+     * @param other Other health status.
+     * @return The worst health status.
      */
-    public abstract boolean isCritical();
-
-    public final HealthStatus worst(@Nonnull final HealthStatus other){
-        return compareTo(other) >= 0 ? this : other;
-    }
+    public abstract HealthStatus worst(@Nonnull final HealthStatus other);
 
     @Override
     public String toString() {

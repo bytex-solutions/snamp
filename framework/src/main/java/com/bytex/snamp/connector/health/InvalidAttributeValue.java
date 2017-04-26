@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.health;
 
+import javax.annotation.Nonnull;
 import javax.management.Attribute;
 import java.time.Instant;
 import java.util.Locale;
@@ -15,24 +16,20 @@ import java.util.Objects;
 public final class InvalidAttributeValue extends ResourceMalfunctionStatus {
     private static final long serialVersionUID = -84085262684742050L;
     private final Attribute attribute;
-    private final boolean critical;
+    private final boolean important;
 
     public InvalidAttributeValue(final String resourceName,
                                  final Attribute attribute,
-                                 final boolean critical){
+                                 final boolean important){
         super(resourceName, Instant.now());
-        this.critical = critical;
+        this.important = important;
         this.attribute = Objects.requireNonNull(attribute);
     }
 
-    /**
-     * Indicates that resource is in critical state (potentially unavailable).
-     *
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
-     */
     @Override
-    public boolean isCritical() {
-        return critical;
+    @Nonnull
+    public Level getLevel() {
+        return important ? Level.MODERATE : Level.LOW;
     }
 
     public Attribute getAttribute(){
@@ -49,5 +46,19 @@ public final class InvalidAttributeValue extends ResourceMalfunctionStatus {
     @Override
     public String toString(final Locale locale) {
         return "Invalid attribute value: " + attribute;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(attribute, getTimeStamp(), getLevel(), getResourceName());
+    }
+
+    private boolean equals(final InvalidAttributeValue other) {
+        return equalsHelper(other) && other.getAttribute().equals(attribute);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof InvalidAttributeValue && equals((InvalidAttributeValue) other);
     }
 }

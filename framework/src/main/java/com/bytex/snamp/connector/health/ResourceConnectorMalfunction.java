@@ -1,37 +1,38 @@
 package com.bytex.snamp.connector.health;
 
+import javax.annotation.Nonnull;
 import javax.management.JMException;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Indicates that SNAMP cannot obtain access to the managed resource.
+ * Indicates that SNAMP resource connector throws unexpected exception.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public final class ResourceIsNotAvailable extends ResourceMalfunctionStatus {
+public final class ResourceConnectorMalfunction extends ResourceMalfunctionStatus {
     private static final long serialVersionUID = -1368848980168422995L;
     private final JMException error;
     private final String resourceName;
 
-    public ResourceIsNotAvailable(final String resourceName, final JMException e){
-        super(resourceName, SEVERITY + 1, Instant.now());
+    public ResourceConnectorMalfunction(final String resourceName, final JMException e){
+        super(resourceName, Instant.now());
         error = Objects.requireNonNull(e);
         this.resourceName = Objects.requireNonNull(resourceName);
     }
 
-    /**
-     * Indicates that resource is in critical state (potentially unavailable).
-     *
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
-     */
     @Override
-    public boolean isCritical() {
-        return true;
+    @Nonnull
+    public Level getLevel() {
+        return Level.SEVERE;
     }
 
+    /**
+     * Gets exception that was thrown by resource connector.
+     * @return Exception that was thrown by resource connector.
+     */
     public JMException getError(){
         return error;
     }
@@ -46,5 +47,20 @@ public final class ResourceIsNotAvailable extends ResourceMalfunctionStatus {
     @Override
     public String toString(final Locale locale) {
         return String.format("Resource %s is not available. Caused by: %s", resourceName, error);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(error, getResourceName(), getTimeStamp());
+    }
+
+    private boolean equals(final ResourceConnectorMalfunction other){
+        return equalsHelper(other) &&
+                other.getError().equals(error);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        return false;
     }
 }

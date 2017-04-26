@@ -1,12 +1,13 @@
 package com.bytex.snamp.connector.health;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Represents some connection problems.
+ * Indicates that network connection between SNAMP and managed resource is not available.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
@@ -16,7 +17,7 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
     private final IOException error;
 
     public ConnectionProblem(final String resourceName, final IOException error, final Instant timeStamp) {
-        super(resourceName, SEVERITY + 1, timeStamp);
+        super(resourceName, timeStamp);
         this.error = Objects.requireNonNull(error);
     }
 
@@ -40,13 +41,23 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
         return String.format("Connection problems detected. Caused by %s", error);
     }
 
-    /**
-     * Indicates that resource is in critical state (potentially unavailable).
-     *
-     * @return {@literal true}, if managed resource is in critical state; otherwise, {@literal false}.
-     */
     @Override
-    public boolean isCritical() {
-        return true;
+    @Nonnull
+    public Level getLevel() {
+        return Level.SEVERE;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getTimeStamp(), error, getResourceName());
+    }
+
+    private boolean equals(final ConnectionProblem other) {
+        return equalsHelper(other) && other.getError().equals(error);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof ConnectionProblem && equals((ConnectionProblem) other);
     }
 }

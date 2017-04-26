@@ -730,9 +730,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
                 return new OkStatus();
             });
         } catch (final InterruptedException e) {
-            return new ResourceIsNotAvailable(resourceName, new ReflectionException(e));
+            return new ResourceConnectorMalfunction(resourceName, new ReflectionException(e));
         } catch (final JMException e) {
-            return new ResourceIsNotAvailable(resourceName, e);
+            return new ResourceConnectorMalfunction(resourceName, e);
         } catch (final IOException e) {
             return new ConnectionProblem(resourceName, e);
         }

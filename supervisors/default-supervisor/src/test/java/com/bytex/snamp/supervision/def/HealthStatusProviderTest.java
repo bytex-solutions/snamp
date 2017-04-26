@@ -15,7 +15,7 @@ import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
 import com.bytex.snamp.connector.attributes.reflection.ManagementAttribute;
 import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.connector.health.ResourceIsNotAvailable;
+import com.bytex.snamp.connector.health.ResourceConnectorMalfunction;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import org.junit.Assert;
@@ -133,7 +133,7 @@ public class HealthStatusProviderTest extends Assert {
         } finally {
             connector1.setNotAvailable(false);
         }
-        assertTrue(watcher.getStatus() instanceof ResourceIsNotAvailable);
+        assertTrue(watcher.getStatus() instanceof ResourceConnectorMalfunction);
         watcher.removeResource(FIRST_RESOURCE_NAME);
         assertTrue(watcher.getStatus() instanceof OkStatus);
     }
