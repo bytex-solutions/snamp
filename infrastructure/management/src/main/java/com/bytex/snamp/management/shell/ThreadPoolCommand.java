@@ -12,7 +12,7 @@ import javax.annotation.Nonnull;
  * @since 1.2
  * @version 2.0
  */
-abstract class AbstractThreadPoolCommand extends ConfigurationCommand<ThreadPoolConfiguration> {
+abstract class ThreadPoolCommand extends ConfigurationCommand<ThreadPoolConfiguration> {
     @Nonnull
     @Override
     public final EntityMap<? extends ThreadPoolConfiguration> apply(@Nonnull final AgentConfiguration owner) {

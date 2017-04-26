@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.FactoryMap;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
@@ -18,23 +19,27 @@ import java.util.Arrays;
 import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
- * Configures attribute of the managed resource.
+ * Provides configuration of attribute checkers.
  * @author Roman Sakno
+ * @since 2.0
  * @version 2.0
- * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
         description = "Configure health check trigger",
-        name = "configure-health-check-trigger")
+        name = "configure-attribute-checker")
 @Service
-public final class ConfigHealthCheckTriggerCommand extends SupervisorConfigurationCommand {
+public final class ConfigAttributeCheckerCommand extends SupervisorConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @Argument(index = 0, name = "groupName", required = true, description = "Name of the group to be controlled by supervisor")
     private String groupName = "";
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
-    @Option(name = "-d", aliases = {"--delete"}, description = "Delete health check trigger")
+    @Option(name = "-d", aliases = {"--delete"}, description = "Delete one or all attribute checkers")
     private boolean del = false;
+
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    @Option(name = "-a", aliases = {"--attribute"}, description = "Name of the attribute to check")
+    private String attributeName;
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @Option(name = "-p", aliases = {"-param", "--parameter"}, multiValued = true, description = "Configuration parameters in the form of key=value")
@@ -56,28 +61,35 @@ public final class ConfigHealthCheckTriggerCommand extends SupervisorConfigurati
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String script;
 
-    private boolean processHealthCheckTrigger(final ScriptletConfiguration healthCheckTrigger, final StringBuilder output) throws IOException {
-        if (del)
-            ScriptletConfiguration.fillByDefault(healthCheckTrigger);
-        else {
-            healthCheckTrigger.getParameters().putAll(StringKeyValue.parse(parameters));
-            Arrays.stream(parametersToDelete).forEach(healthCheckTrigger.getParameters()::remove);
+    private boolean processAttributeCheckers(final FactoryMap<String, ? extends ScriptletConfiguration> checkers, final StringBuilder output) throws IOException {
+        if (del) {
+            if (attributeName != null)
+                checkers.remove(attributeName);
+            else
+                checkers.clear();
+            return true;
+        } else if (attributeName == null) {
+            appendln(output, "Attribute name is not specified");
+            return false;
+        } else {
+            final ScriptletConfiguration checker = checkers.getOrAdd(attributeName);
+            checker.getParameters().putAll(StringKeyValue.parse(parameters));
+            Arrays.stream(parametersToDelete).forEach(checker.getParameters()::remove);
             //setup language
             if (language != null)
-                healthCheckTrigger.setLanguage(language);
+                checker.setLanguage(language);
             //setup script
-            healthCheckTrigger.setURL(isURL);
+            checker.setURL(isURL);
             if (script != null)
-                healthCheckTrigger.setScript(isURL ? script : IOUtils.contentAsString(new URL(script)));
+                checker.setScript(isURL ? script : IOUtils.contentAsString(new URL(script)));
+            return true;
         }
-        appendln(output, "Supervisor is modified successfully");
-        return true;
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> supervisors, final StringBuilder output) throws IOException {
+    boolean doExecute(EntityMap<? extends SupervisorConfiguration> supervisors, final StringBuilder output) throws IOException {
         if (supervisors.containsKey(groupName))
-            return processHealthCheckTrigger(supervisors.get(groupName).getHealthCheckConfig().getTrigger(), output);
+            return processAttributeCheckers(supervisors.get(groupName).getHealthCheckConfig().getAttributeCheckers(), output);
         else {
             appendln(output, "Supervisor doesn't exist");
             return false;

@@ -20,7 +20,7 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
         name = "configure-thread-pool",
         description = "Configures thread pool")
 @Service
-public final class ConfigThreadPoolCommand extends AbstractThreadPoolCommand {
+public final class ConfigThreadPoolCommand extends ThreadPoolCommand {
     @Argument(index = 0, name = "name", required = true, description = "Name of the thread pool to modify")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String poolName = "";

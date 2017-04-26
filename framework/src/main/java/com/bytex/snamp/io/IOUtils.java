@@ -7,6 +7,8 @@ import com.google.common.reflect.TypeToken;
 
 import javax.annotation.Nonnull;
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -63,6 +65,16 @@ public final class IOUtils {
 
     public static String toString(final InputStream stream) throws IOException {
         return toString(stream, DEFAULT_CHARSET);
+    }
+
+    public static String contentAsString(final URL url, final Charset encoding) throws IOException{
+        final URLConnection connection = url.openConnection();
+        connection.connect();
+        return toString(connection.getInputStream(), encoding);
+    }
+
+    public static String contentAsString(final URL url) throws IOException {
+        return contentAsString(url, DEFAULT_CHARSET);
     }
 
     public static void writeString(final String value, final OutputStream output, final Charset encoding) throws IOException {

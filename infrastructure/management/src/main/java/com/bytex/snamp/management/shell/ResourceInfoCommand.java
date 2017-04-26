@@ -19,8 +19,8 @@ import static com.bytex.snamp.management.ManagementUtils.newLine;
  * @since 1.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
-    name = "resource",
-    description = "Display configuration of the managed resource")
+        name = "resource",
+        description = "Display configuration of the managed resource")
 @Service
 public final class ResourceInfoCommand extends ManagedResourceConfigurationCommand {
     @Argument(index = 0, name = "resourceName", required = true, description = "Name of configured resource to display")
@@ -39,22 +39,22 @@ public final class ResourceInfoCommand extends ManagedResourceConfigurationComma
     @Option(name = "-o", aliases = {"--operations"}, description = "Show resource operations", required = false, multiValued = false)
     private boolean showOperations = false;
 
-    private static void printParameters(final FeatureConfiguration feature, final StringBuilder output){
+    static void printParameters(final FeatureConfiguration feature, final StringBuilder output){
         feature.forEach((key, value) -> appendln(output, "%s=%s", key, value));
     }
 
-    private static void printAttribute(final String userDefinedName, final AttributeConfiguration attr, final StringBuilder output){
+    static void printAttribute(final String userDefinedName, final AttributeConfiguration attr, final StringBuilder output){
         appendln(output, userDefinedName);
         appendln(output, "Read/write Timeout: %s", attr.getReadWriteTimeout());
         printParameters(attr, output);
     }
 
-    private static void printEvent(final String userDefinedName, final EventConfiguration ev, final StringBuilder output){
+    static void printEvent(final String userDefinedName, final EventConfiguration ev, final StringBuilder output){
         appendln(output, userDefinedName);
         printParameters(ev, output);
     }
 
-    private static void printOperation(final String userDefinedName, final OperationConfiguration op, final StringBuilder output){
+    static void printOperation(final String userDefinedName, final OperationConfiguration op, final StringBuilder output){
         appendln(output, userDefinedName);
         appendln(output, "Invocation Timeout: %s", op.getInvocationTimeout());
         printParameters(op, output);

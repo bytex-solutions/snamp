@@ -12,7 +12,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
         name = "thread-pool-list",
         description = "List of SNAMP thread pools")
 @Service
-public final class ListOfThreadPoolsCommand extends AbstractThreadPoolCommand {
+public final class ListOfThreadPoolsCommand extends ThreadPoolCommand {
 
     private static void printThreadPoolConfig(final String name,
                                               final ThreadPoolConfiguration config,
