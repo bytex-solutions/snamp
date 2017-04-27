@@ -18,7 +18,8 @@ import java.util.Map;
         @JsonSubTypes.Type(PanelOfAttributeValues.class),
         @JsonSubTypes.Type(HorizontalBarChartOfAttributeValues.class),
         @JsonSubTypes.Type(PieChartOfAttributeValues.class),
-        @JsonSubTypes.Type(VerticalBarChartOfAttributeValues.class)
+        @JsonSubTypes.Type(VerticalBarChartOfAttributeValues.class),
+        @JsonSubTypes.Type(ResourceGroupHealthStatusChart.class)
 })
 public interface Chart {
     /**

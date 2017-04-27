@@ -13,7 +13,8 @@ import org.codehaus.jackson.annotate.JsonTypeInfo;
 @JsonSubTypes({
         @JsonSubTypes.Type(ChronoAxis.class),
         @JsonSubTypes.Type(AttributeValueAxis.class),
-        @JsonSubTypes.Type(InstanceNameAxis.class)
+        @JsonSubTypes.Type(ResourceNameAxis.class),
+        @JsonSubTypes.Type(HealthStatusAxis.class)
 })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 public abstract class Axis {

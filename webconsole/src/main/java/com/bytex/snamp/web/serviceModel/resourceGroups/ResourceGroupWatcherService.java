@@ -6,21 +6,17 @@ import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEvent;
-import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import com.bytex.snamp.web.serviceModel.RESTController;
+import com.bytex.snamp.web.serviceModel.charts.HealthStatusSerializer;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import java.util.Set;
 import java.util.logging.Level;
 
 /**
@@ -119,17 +115,6 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     @Override
     public String getUrlContext() {
         return URL_CONTEXT;
-    }
-
-    /**
-     * Gets set of supervised groups.
-     * @return A set of supervised groups.
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/groups")
-    public Set<String> getGroups() {
-        return SupervisorClient.filterBuilder().getGroups(getBundleContext());
     }
 
     @Override

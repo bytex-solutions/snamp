@@ -9,10 +9,10 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  * @version 2.0
  * @since 2.0
  */
-@JsonTypeName("instance")
-public final class InstanceNameAxis extends Axis {
-    public InstanceNameAxis(){
-        setName("instances");
+@JsonTypeName("resource")
+public final class ResourceNameAxis extends Axis {
+    public ResourceNameAxis(){
+        setName("resources");
     }
 
     @Override

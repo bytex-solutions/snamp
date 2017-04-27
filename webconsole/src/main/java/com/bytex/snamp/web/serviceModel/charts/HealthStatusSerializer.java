@@ -1,4 +1,4 @@
-package com.bytex.snamp.web.serviceModel.resourceGroups;
+package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.json.InstantSerializer;
@@ -15,7 +15,7 @@ import java.io.IOException;
 /**
  * Provides serialization of {@link HealthStatus} into JSON.
  */
-final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
+public final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
     private static final String TYPE_FIELD = "@type";
     private static final String RESOURCE_NAME_FIELD = "resourceName";
     private static final String CLUSTER_NAME_FIELD = "clusterName";

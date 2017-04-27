@@ -435,7 +435,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final PanelOfAttributeValues panelChart = new PanelOfAttributeValues();
         panelChart.setName("panel");
         panelChart.setGroupName(GROUP_NAME);
-        panelChart.setAxisX(new InstanceNameAxis());
+        panelChart.setAxisX(new ResourceNameAxis());
         panelChart.setAxisY(new AttributeValueAxis(new AttributeInformation("requestsPerSecond", WellKnownType.LONG, "rps")));
 
         final String authenticationToken = authenticator.authenticateTestUser().getValue();

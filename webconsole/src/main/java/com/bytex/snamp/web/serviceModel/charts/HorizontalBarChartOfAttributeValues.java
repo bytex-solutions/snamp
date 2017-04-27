@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  * @since 2.0
  */
 @JsonTypeName("horizontalBarChartOfAttributeValues")
-public final class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<AttributeValueAxis, InstanceNameAxis> {
+public final class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<AttributeValueAxis, ResourceNameAxis> {
     public static final class ChartData extends AttributeChartData {
         private ChartData(final String instanceName, final Attribute attribute) {
             super(instanceName, attribute, HorizontalBarChartOfAttributeValues.class);
@@ -23,8 +23,8 @@ public final class HorizontalBarChartOfAttributeValues extends TwoDimensionalCha
 
     @Nonnull
     @Override
-    protected InstanceNameAxis createDefaultAxisY() {
-        return new InstanceNameAxis();
+    protected ResourceNameAxis createDefaultAxisY() {
+        return new ResourceNameAxis();
     }
 
     @Nonnull

@@ -26,7 +26,7 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
         groupName = "";
     }
 
-    @JsonProperty("groups")
+    @JsonProperty("group")
     public final String getGroupName() {
         return groupName;
     }

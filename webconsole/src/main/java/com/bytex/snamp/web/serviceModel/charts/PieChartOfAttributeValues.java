@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  * @since 2.0
  */
 @JsonTypeName("pieChartOfAttributeValues")
-    public final class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<InstanceNameAxis, AttributeValueAxis> {
+    public final class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<ResourceNameAxis, AttributeValueAxis> {
     public static final class ChartData extends AttributeChartData {
         private ChartData(final String instanceName, final Attribute attribute) {
             super(instanceName, attribute, PieChartOfAttributeValues.class);
@@ -22,8 +22,8 @@ import java.util.function.Consumer;
 
     @Nonnull
     @Override
-    protected InstanceNameAxis createDefaultAxisX() {
-        return new InstanceNameAxis();
+    protected ResourceNameAxis createDefaultAxisX() {
+        return new ResourceNameAxis();
     }
 
     @Nonnull

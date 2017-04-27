@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  * @since 2.0
  */
 @JsonTypeName("verticalBarChartOfAttributeValues")
-public final class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<InstanceNameAxis, AttributeValueAxis> {
+public final class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<ResourceNameAxis, AttributeValueAxis> {
     public static final class ChartData extends AttributeChartData {
         private ChartData(final String instanceName, final Attribute attribute) {
             super(instanceName, attribute, VerticalBarChartOfAttributeValues.class);
@@ -22,8 +22,8 @@ public final class VerticalBarChartOfAttributeValues extends TwoDimensionalChart
 
     @Nonnull
     @Override
-    protected InstanceNameAxis createDefaultAxisX() {
-        return new InstanceNameAxis();
+    protected ResourceNameAxis createDefaultAxisX() {
+        return new ResourceNameAxis();
     }
 
     @Nonnull
