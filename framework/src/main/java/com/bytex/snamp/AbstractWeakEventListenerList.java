@@ -140,12 +140,10 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
     /**
      * Adds a new weak reference to the specified listener.
      * @param listener An event listener to add. Cannot be {@literal null}.
-     * @param listenerFactory Factory used to instantiate
      * @return Always {@literal true}.
      */
     @SuppressWarnings("unchecked")
-    protected final synchronized boolean add(@Nonnull final L listener,
-                                             @Nonnull final Function<? super L, ? extends WeakEventListener<L, E>> listenerFactory) {
+    protected final synchronized boolean add(@Nonnull final WeakEventListener<L, E> listener) {
         final WeakEventListener<L, E>[] newSnapshot = new WeakEventListener[listeners.length + 1];
         int outputIndex = 0;
         //remove dead references
@@ -154,7 +152,7 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
                 newSnapshot[outputIndex++] = listenerRef;
 
         //insert new element into the end of list
-        newSnapshot[outputIndex++] = listenerFactory.apply(listener);
+        newSnapshot[outputIndex++] = listener;
         this.listeners = Arrays.copyOf(newSnapshot, outputIndex);
         return true;
     }

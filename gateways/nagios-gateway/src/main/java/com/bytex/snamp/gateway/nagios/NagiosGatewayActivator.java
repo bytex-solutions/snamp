@@ -14,7 +14,7 @@ public final class NagiosGatewayActivator extends GatewayActivator<NagiosGateway
     @SpecialUse(SpecialUse.Case.OSGi)
     public NagiosGatewayActivator() {
         super(NagiosGatewayActivator::newGateway,
-                requiredServices(NagiosGateway.class).require(HttpService.class),
+                requiredBy(NagiosGateway.class).require(HttpService.class),
                 new SupportServiceManager<?, ?>[]{configurationDescriptor(NagiosGatewayConfigurationDescriptor::new)});
     }
 

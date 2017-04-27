@@ -38,7 +38,7 @@ public final class NotificationListenerList extends AbstractWeakEventListenerLis
     public void addNotificationListener(final NotificationListener listener,
                                         final NotificationFilter filter,
                                         final Object handback) throws IllegalArgumentException {
-        add(listener, l -> new NotificationListenerHolder(l, filter, handback));
+        add(new NotificationListenerHolder(listener, filter, handback));
     }
 
     /**

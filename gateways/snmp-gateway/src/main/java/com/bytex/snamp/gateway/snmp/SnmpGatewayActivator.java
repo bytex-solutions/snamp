@@ -22,7 +22,7 @@ public final class SnmpGatewayActivator extends GatewayActivator<SnmpGateway> {
     @SpecialUse(SpecialUse.Case.OSGi)
     public SnmpGatewayActivator() {
         super(SnmpGatewayActivator::newGateway,
-                requiredServices(SnmpGateway.class).require(JNDIContextManager.class, ThreadPoolRepository.class),
+                requiredBy(SnmpGateway.class).require(JNDIContextManager.class, ThreadPoolRepository.class),
                 new SupportServiceManager<?, ?>[]{
                         configurationDescriptor(SnmpGatewayDescriptionProvider::getInstance)
                 });

@@ -1,13 +1,16 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.osgi.framework.BundleContext;
 
-import javax.management.Attribute;
 import javax.management.AttributeList;
 import java.util.*;
 import java.util.function.Consumer;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
@@ -16,20 +19,20 @@ import java.util.function.Consumer;
  */
 public abstract class ChartOfAttributeValues extends AbstractChart {
     private final Set<String> instances; //empty for all instances
-    private String componentType;
+    private String groupName;
 
     public ChartOfAttributeValues() {
         instances = new HashSet<>();
-        componentType = "";
+        groupName = "";
     }
 
     @JsonProperty("component")
     public final String getGroupName() {
-        return componentType;
+        return groupName;
     }
 
     public final void setGroupName(final String value) {
-        componentType = Objects.requireNonNull(value);
+        groupName = Objects.requireNonNull(value);
     }
 
     @JsonProperty("instances")
@@ -51,10 +54,19 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
         return instances.isEmpty() || instances.contains(instanceName);
     }
 
-    abstract Optional<? extends AttributeChartData> createChartData(final String instanceName, final Attribute attribute);
+    abstract void fillChartData(final String resourceName, final AttributeList attributes, final Consumer<? super AttributeChartData> acceptor);
 
-    final void fillCharData(final String instanceName, final AttributeList attributes, final Consumer<? super ChartData> output) {
-        for (final Attribute attribute : attributes.asList())
-            createChartData(instanceName, attribute).ifPresent(output);
+    @Override
+    public final Iterable<? extends AttributeChartData> collectChartData(final BundleContext context) throws Exception {
+        final Set<String> resources = isNullOrEmpty(groupName) ? instances : ManagedResourceConnectorClient.filterBuilder().getResources(context);
+        final List<AttributeChartData> result = new LinkedList<>();
+        for (final String resourceName : resources) {
+            final Optional<ManagedResourceConnectorClient> clientRef = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+            if (clientRef.isPresent())
+                try (final ManagedResourceConnectorClient client = clientRef.get()) {
+                    fillChartData(resourceName, client.getAttributes(), result::add);
+                }
+        }
+        return result;
     }
 }

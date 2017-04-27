@@ -26,6 +26,10 @@ public final class OkStatus extends HealthStatus {
         this(Instant.now());
     }
 
+    public static boolean notOk(final HealthStatus status){
+        return !(status instanceof OkStatus);
+    }
+
     /**
      * Selects the worst health status between two statuses.
      *

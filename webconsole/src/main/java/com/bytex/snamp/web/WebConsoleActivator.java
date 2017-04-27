@@ -158,7 +158,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         private static final String SERVICE_NAME = "E2E";
 
         private E2EDataSourceProvider() {
-            super(RESTController.class, SERVICE_NAME, requiredServices(E2EDataSource.class).require(TopologyAnalyzer.class));
+            super(RESTController.class, SERVICE_NAME, requiredBy(E2EDataSource.class).require(TopologyAnalyzer.class));
         }
 
         @Nonnull
@@ -172,13 +172,14 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         private static final String SERVICE_NAME = "chartDataProvider";
 
         private ChartDataSourceProvider(){
-            super(RESTController.class, SERVICE_NAME);
+            super(RESTController.class, SERVICE_NAME, requiredBy(ChartDataSource.class).require(ThreadPoolRepository.class));
         }
 
         @Nonnull
         @Override
         ChartDataSource activateService() {
-            return new ChartDataSource();
+            final ThreadPoolRepository repository = dependencies.getService(ThreadPoolRepository.class).orElseThrow(AssertionError::new);
+            return new ChartDataSource(repository.getThreadPool(THREAD_POOL_NAME, true));
         }
     }
 
@@ -216,7 +217,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         private LogNotifierProvider() {
             super(LogNotifierController.class,
                     SERVICE_NAME,
-                    requiredServices(LogNotifier.class).require(ThreadPoolRepository.class),
+                    requiredBy(LogNotifier.class).require(ThreadPoolRepository.class),
                     PaxAppender.class);
         }
 

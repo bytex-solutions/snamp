@@ -38,16 +38,6 @@ public abstract class AbstractChart implements Chart {
         preferences.putAll(value);
     }
 
-    /**
-     * Gets number of dimensions.
-     *
-     * @return Number of dimensions.
-     */
-    @Override
-    public int getDimensions() {
-        return 0;
-    }
-
     @Override
     public final void setName(final String value) {
         chartName = value;

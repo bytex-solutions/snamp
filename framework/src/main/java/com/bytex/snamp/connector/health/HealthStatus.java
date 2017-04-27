@@ -47,6 +47,15 @@ public abstract class HealthStatus implements Serializable, Localizable {
      */
     public abstract HealthStatus worst(@Nonnull final HealthStatus other);
 
+    /**
+     * Determines whether the current status worse than specified.
+     * @param other Health status to compare.
+     * @return {@literal true} if this health status is worse than specified; otherwise, {@literal false}.
+     */
+    public final boolean worseThan(@Nonnull final HealthStatus other) {
+        return worst(other) == this;
+    }
+
     @Override
     public String toString() {
         return toString(Locale.getDefault());

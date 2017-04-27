@@ -556,7 +556,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param context Bundle context for each dependency.
      * @return Builder of required services.
      */
-    public static SimpleDependencyBuilder requiredServices(final BundleContext context){
+    public static SimpleDependencyBuilder requiredBy(final BundleContext context){
         return serviceTypes -> requiredServices(context, serviceTypes);
     }
 
@@ -565,8 +565,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param declaringClass Class in the bundle which declares required services.
      * @return Builder of required services.
      */
-    public static SimpleDependencyBuilder requiredServices(@Nonnull final Class<?> declaringClass){
-        return requiredServices(Utils.getBundleContext(declaringClass));
+    public static SimpleDependencyBuilder requiredBy(@Nonnull final Class<?> declaringClass){
+        return requiredBy(Utils.getBundleContext(declaringClass));
     }
 
     private final DependencyManager bundleLevelDependencies;

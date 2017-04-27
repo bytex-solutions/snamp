@@ -1,6 +1,5 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.web.serviceModel.ComputingService;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.google.common.collect.HashMultimap;
@@ -8,12 +7,11 @@ import com.google.common.collect.Multimap;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
-import javax.management.AttributeList;
-import javax.management.JMException;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.Collection;
-import java.util.Map;
+import javax.ws.rs.core.Response;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Represents source of charts data.
@@ -24,9 +22,50 @@ import java.util.Map;
 @Path("/")
 public final class ChartDataSource extends ComputingService<Chart[], Map<String, Collection<ChartData>>, Dashboard> implements RESTController {
     private static final String URL_CONTEXT = "/charts";
+    private final ExecutorService threadPool;
 
-    public ChartDataSource() {
+    public ChartDataSource(@Nonnull final ExecutorService threadPool) {
         super(Dashboard.class);
+        this.threadPool = threadPool;
+    }
+
+    private static final class ChartDataSeries{
+        private final String chartName;
+        private final Iterable<? extends ChartData> series;
+
+        private ChartDataSeries(final Chart chart, final BundleContext context) throws Exception {
+            chartName = chart.getName();
+            series = chart.collectChartData(context);
+        }
+
+        void exportTo(final Multimap<String, ChartData> output){
+            output.putAll(chartName, series);
+        }
+    }
+
+    private static Callable<ChartDataSeries> createTask(final Chart chart, final BundleContext context) {
+        return () -> new ChartDataSeries(chart, context);
+    }
+
+    private Multimap<String, ChartData> compute(final Collection<Callable<ChartDataSeries>> tasks) {
+        final Collection<Future<ChartDataSeries>> completedTasks;
+        try {
+            completedTasks = threadPool.invokeAll(tasks, 60, TimeUnit.SECONDS);
+        } catch (final InterruptedException e) {
+            throw new WebApplicationException(e, Response.status(408).build());    //too many tasks
+        }
+        final Multimap<String, ChartData> result = HashMultimap.create(tasks.size(), 4);
+        for (final Future<ChartDataSeries> task : completedTasks) {
+            assert task.isDone();
+            final ChartDataSeries series;
+            try {
+                series = task.get();
+            } catch (final ExecutionException | InterruptedException e) {
+                throw new WebApplicationException(e);
+            }
+            series.exportTo(result);
+        }
+        return result;
     }
 
     @POST
@@ -36,26 +75,9 @@ public final class ChartDataSource extends ComputingService<Chart[], Map<String,
     @Override
     public Map<String, Collection<ChartData>> compute(final Chart[] charts) throws WebApplicationException {
         final BundleContext context = getBundleContext();
-        final Multimap<String, ChartData> result = HashMultimap.create(charts.length, 3);
-        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context))
-            ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
-                final AttributeList attributes;
-                final String instanceName = client.getManagedResourceName();
-                try {
-                    attributes = client.getAttributes();
-                } catch (final JMException e) {
-                    throw new WebApplicationException(e);
-                } finally {
-                    client.close(); //release active reference to the managed resource connector as soon as possible to relax OSGi ServiceRegistry
-                }
-
-                for (final Chart chart : charts) {
-                    final String chartName = chart.getName();
-                    if (chart instanceof ChartOfAttributeValues)
-                        ((ChartOfAttributeValues) chart).fillCharData(instanceName, attributes, data -> result.put(chartName, data));
-                }
-            });
-        return result.asMap();
+        final List<Callable<ChartDataSeries>> tasks = new LinkedList<>();
+        Arrays.stream(charts).map(chart -> createTask(chart, context)).forEach(tasks::add);
+        return compute(tasks).asMap();
     }
 
     @Override

@@ -1,8 +1,8 @@
 package com.bytex.snamp.testing.supervision
 
-import com.bytex.snamp.connector.health.HealthStatus
+import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus
 
-public HealthStatus statusChanged(HealthStatus previousStatus, HealthStatus newStatus) {
-    System.out.println newStatus
-    return newStatus
+public void statusChanged(ResourceGroupHealthStatus previousStatus, ResourceGroupHealthStatus newStatus) {
+    System.out.println "Was ${previousStatus}"
+    System.out.println newStatus "Became ${newStatus}"
 }

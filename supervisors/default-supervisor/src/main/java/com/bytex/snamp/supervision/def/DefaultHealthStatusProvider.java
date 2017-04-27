@@ -1,6 +1,8 @@
 package com.bytex.snamp.supervision.def;
 
 import com.bytex.snamp.AbstractWeakEventListenerList;
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.Stateful;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -15,10 +17,12 @@ import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.JMException;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -60,7 +64,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     private static final class DefaultResourceGroupHealthStatus extends HashMap<String, HealthStatus> implements ResourceGroupHealthStatus{
         private static final long serialVersionUID = -411291568337973940L;
-        private HealthStatus groupStatus;
+        private final HealthStatus groupStatus;
 
         private DefaultResourceGroupHealthStatus(@Nonnull final HealthStatus groupStatus){
             this.groupStatus = Objects.requireNonNull(groupStatus);
@@ -70,9 +74,13 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
             this(new OkStatus());
         }
 
-        private DefaultResourceGroupHealthStatus(final DefaultResourceGroupHealthStatus proto){
+        private DefaultResourceGroupHealthStatus(final DefaultResourceGroupHealthStatus proto, final HealthStatus groupStatus){
             super(proto);
-            groupStatus = proto.groupStatus;
+            this.groupStatus = Objects.requireNonNull(groupStatus);
+        }
+
+        private DefaultResourceGroupHealthStatus(final DefaultResourceGroupHealthStatus proto){
+            this(proto, proto.groupStatus);
         }
 
         @Override
@@ -95,7 +103,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
                                final Map<String, AttributeChecker> checkers) {
             //1. Using health check provided by connector itself
             HealthStatus newStatus = connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
-            if (!(newStatus instanceof OkStatus)) {
+            if (OkStatus.notOk(newStatus)) {
                 put(resourceName, newStatus);
                 return;
             }
@@ -145,16 +153,31 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         }
     }
 
-    private static final class HealthStatusEventListenerList extends AbstractWeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent>{
+    private static final class HealthStatusEventListenerList extends AbstractWeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> implements SafeCloseable {
+        private HealthStatusEventListener trigger;  //strong reference to the trigger is required because listeners stored as weak references
+
+        synchronized void setTrigger(final HealthStatusEventListener value) {
+            if (trigger != null)
+                remove(this.trigger);
+            this.trigger = value;
+            if (value != null)
+                add(value, null);
+        }
+
         void add(final HealthStatusEventListener listener, final Object handback) {
-            add(listener, l -> new WeakHealthStatusEventListener(l, handback));
+            add(new WeakHealthStatusEventListener(listener, handback));
+        }
+
+        @Override
+        public synchronized void close() {
+            trigger = null;
+            clear();
         }
     }
 
     private final ConcurrentMap<String, AttributeChecker> checkers;
     private final HealthStatusEventListenerList listeners;
     private volatile DefaultResourceGroupHealthStatus status;
-    private HealthStatusTrigger trigger;
 
     /**
      * Initializes a new health status provider.
@@ -162,54 +185,131 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     public DefaultHealthStatusProvider() {
         checkers = new ConcurrentHashMap<>();
         status = new DefaultResourceGroupHealthStatus();
-        trigger = HealthStatusTrigger.IDENTITY;
         listeners = new HealthStatusEventListenerList();
     }
 
+    final void setTrigger(final HealthStatusEventListener trigger) {
+        listeners.setTrigger(trigger);
+    }
+
+    private synchronized void updateStatus(final DefaultResourceGroupHealthStatus newStatus) {
+        final DefaultResourceGroupHealthStatus prevStatus = status;
+        if (!prevStatus.like(newStatus))    //if status was not changed then exit without any notifications.
+            listeners.fire(new DefaultHealthStatusChangedEvent(prevStatus, status = newStatus));
+    }
+
     /**
-     * Assigns health status trigger.
-     * @param value A new health status trigger. Cannot be {@literal null}.
+     * Represents health status builder.
      */
-    public final void setTrigger(@Nonnull final HealthStatusTrigger value) {
-        trigger = Objects.requireNonNull(value);
-    }
+    @NotThreadSafe
+    protected static final class HealthStatusBuilder extends WeakReference<DefaultHealthStatusProvider> implements SafeCloseable, Stateful {
+        private DefaultResourceGroupHealthStatus newStatus;
 
-    private void updateStatus(final DefaultResourceGroupHealthStatus newStatus) {
-        final DefaultResourceGroupHealthStatus prevStatus;
-        synchronized (this){    //trigger invocation should be enqueued
-            prevStatus = status;
-            if(prevStatus.like(newStatus))
-                return; //status was not changed. Exit without any notifications.
-            trigger.statusChanged(prevStatus, newStatus);
-            if(prevStatus.like(newStatus))
-                return; //status was not changed. Exit without any modifications.
-            status = newStatus;
+        private HealthStatusBuilder(final DefaultHealthStatusProvider provider){
+            super(provider);
         }
-        listeners.accept(new DefaultHealthStatusChangedEvent(newStatus, prevStatus));
+
+        /**
+         * Gets a reference to the underlying provider.
+         * @return Underlying health status provider.
+         * @throws IllegalStateException Health status provider is no longer accessible.
+         */
+        @Override
+        @Nonnull
+        public DefaultHealthStatusProvider get() {
+            final DefaultHealthStatusProvider provider = super.get();
+            if (provider == null)
+                throw new IllegalStateException("Health status provider is no longer accessible");
+            else
+                return provider;
+        }
+
+        private DefaultResourceGroupHealthStatus getOrCreateStatus() {
+            if (newStatus == null)
+                newStatus = new DefaultResourceGroupHealthStatus();
+            return newStatus;
+        }
+
+        public HealthStatusBuilder updateGroupStatus(final HealthStatus groupStatus) {
+            newStatus = newStatus == null ?
+                    new DefaultResourceGroupHealthStatus(groupStatus) :
+                    new DefaultResourceGroupHealthStatus(newStatus, groupStatus);
+            return this;
+        }
+
+        public HealthStatusBuilder updateResourceStatus(final String resourceName, final HealthStatus newStatus) {
+            getOrCreateStatus().merge(resourceName, newStatus, HealthStatus::worst);
+            return this;
+        }
+
+        public HealthStatusBuilder updateResourceStatus(final String resourceName, final ManagedResourceConnector connector) {
+            getOrCreateStatus().setResourceStatus(resourceName, connector, get().checkers);
+            return this;
+        }
+
+        private void updateAndClose(final ManagedResourceConnectorClient client) {
+            try {
+                updateResourceStatus(client.getManagedResourceName(), client);
+            } finally {
+                client.close();
+            }
+        }
+
+        public HealthStatusBuilder updateResourcesStatuses(final BundleContext context,
+                                                           final Set<String> resources) {
+            for (final String resourceName : resources)
+                ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(this::updateAndClose);
+            return this;
+        }
+
+        /**
+         * Resets internal state of the object.
+         */
+        @Override
+        public void reset() {
+            newStatus = null;
+        }
+
+        /**
+         * Updates health status stored in the provider.
+         *
+         * @return This builder.
+         * @throws IllegalStateException Health status provider is no longer accessible.
+         */
+        public HealthStatusBuilder build() throws IllegalStateException {
+            if (newStatus != null)
+                get().updateStatus(newStatus);
+            reset();
+            return this;
+        }
+
+        /**
+         * Makes builder as non-reusable object.
+         */
+        @Override
+        public void clear() {
+            super.clear();
+            reset();
+        }
+
+        /**
+         * Makes builder as non-reusable object.
+         */
+        @Override
+        public void close() {
+            clear();
+        }
     }
 
-    protected final void updateStatus(final Map<String, ? extends ManagedResourceConnector> resources, final HealthStatus groupStatus) {
-        final DefaultResourceGroupHealthStatus newStatus = new DefaultResourceGroupHealthStatus(groupStatus);
-        resources.forEach((resourceName, connector) -> newStatus.setResourceStatus(resourceName, connector, checkers));
-        updateStatus(newStatus);
+    /**
+     * Creates a new builder for health status.
+     * @return A new builder instance.
+     */
+    protected final HealthStatusBuilder statusBuilder() {
+        return new HealthStatusBuilder(this);
     }
 
-    protected final void updateStatus(final BundleContext context,
-                                      final Set<String> resources,
-                                      final HealthStatus groupStatus){
-        final DefaultResourceGroupHealthStatus newStatus = new DefaultResourceGroupHealthStatus(groupStatus);
-        for (final String resourceName : resources)
-            ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
-                try {
-                    newStatus.setResourceStatus(client.getManagedResourceName(), client, checkers);
-                } finally {
-                    client.close();
-                }
-            });
-        updateStatus(newStatus);
-    }
-
-    protected final void removeResource(final String resourceName){
+    final synchronized void removeResource(final String resourceName) {
         final DefaultResourceGroupHealthStatus newStatus = new DefaultResourceGroupHealthStatus(status);
         newStatus.remove(resourceName);
         updateStatus(newStatus);
@@ -293,7 +393,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     @Override
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
-        listeners.clear();
+        listeners.close();
         checkers.clear();
     }
 }

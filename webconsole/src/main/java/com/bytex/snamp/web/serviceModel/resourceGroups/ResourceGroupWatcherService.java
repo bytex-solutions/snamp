@@ -8,6 +8,7 @@ import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEvent;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
+import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -38,11 +39,19 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
         private final String groupName;
+        private final String mostProblematicResource;
 
         private GroupStatusChangedMessage(final HealthStatusChangedEvent event, final String groupName) {
-            this.previousStatus = event.getPreviousStatus();
-            this.newStatus = event.getNewStatus();
+            this.previousStatus = event.getPreviousStatus().getSummaryStatus();
+            this.newStatus = event.getNewStatus().getSummaryStatus();
             this.groupName = groupName;
+            this.mostProblematicResource = ResourceGroupHealthStatus.getMostProblematicResource(event.getNewStatus()).orElse(null);
+        }
+
+        @JsonProperty("mostProblematicResource")
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
+        public String getMostProblematicResource(){ //may be null
+            return mostProblematicResource;
         }
 
         @JsonProperty("groupName")
@@ -118,21 +127,6 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     public Set<String> getGroups() {
         return SupervisorClient.filterBuilder().getGroups(getBundleContext());
     }
-
-    @GET
-    @Path("/groups/status")
-    @Produces(MediaType.APPLICATION_JSON)
-    public HealthStatusMap getStatus() {
-        final HealthStatusMap result = new HealthStatusMap();
-        for (final String groupName : getGroups())
-            SupervisorClient.tryCreate(getBundleContext(), groupName).ifPresent(client -> {
-                result.putStatus(groupName, client);
-                client.close();
-            });
-        return result;
-    }
-
-
 
     @Override
     public void handle(@Nonnull final SupervisionEvent event) {

@@ -4,8 +4,8 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.annotation.Nonnull;
 import javax.management.Attribute;
-import java.util.Objects;
-import java.util.Optional;
+import javax.management.AttributeList;
+import java.util.function.Consumer;
 
 /**
  * Represents bar chart with horizontal bars where X-axis contains attribute value and Y-axis contains instance names.
@@ -34,9 +34,9 @@ public final class HorizontalBarChartOfAttributeValues extends TwoDimensionalCha
     }
 
     @Override
-    Optional<ChartData> createChartData(final String instanceName, final Attribute attribute) {
-        return hasInstance(instanceName) && Objects.equals(attribute.getName(), getAxisX().getAttributeInfo().getName()) ?
-                Optional.of(new ChartData(instanceName, attribute)) :
-                Optional.empty();
+    void fillChartData(final String resourceName, final AttributeList attributes, final Consumer<? super AttributeChartData> acceptor) {
+        for (final Attribute attribute : attributes.asList())
+            if (attribute.getName().equals(getAxisX().getAttributeInfo().getName()))
+                acceptor.accept(new ChartData(resourceName, attribute));
     }
 }

@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  * @since 1.2
  */
 public abstract class WeakEventListener<L extends EventListener, E extends EventObject> extends WeakReference<L> implements Supplier<L>, EventListener {
-    private final int listenerHashCode;
+    private int hashCode;
 
     /**
      * Initializes a new weak reference to the event listener.
@@ -25,7 +25,6 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
      */
     protected WeakEventListener(@Nonnull final L listener) {
         super(listener);
-        this.listenerHashCode = listener.hashCode();
     }
 
     /**
@@ -63,7 +62,9 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
 
     @Override
     public final int hashCode() {
-        return listenerHashCode ^ super.hashCode();
+        if (hashCode == 0)
+            hashCode = Objects.hashCode(get());
+        return hashCode;
     }
 
     @Override

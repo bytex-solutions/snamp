@@ -1,12 +1,12 @@
 package com.bytex.snamp.supervision.openstack.health;
 
-import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.health.ClusterMalfunctionStatus;
 import com.bytex.snamp.supervision.health.ClusterRecoveryStatus;
 import com.bytex.snamp.supervision.health.ClusterResizingStatus;
-import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.openstack.ClusterNodes;
 import com.google.common.collect.ImmutableMap;
 import org.openstack4j.api.exceptions.OS4JException;
@@ -19,6 +19,7 @@ import org.openstack4j.openstack.senlin.domain.SenlinNodeActionCreate;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -39,7 +40,7 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         this.clusterMember = clusterMember;
     }
 
-    private void updateClusterStatus(final Cluster cluster) { //this method can be called inside batch update only
+    private static HealthStatus getClusterStatus(final Cluster cluster) { //this method can be called inside batch update only
         final ClusterMalfunctionStatus status;
         switch (cluster.getStatus()) {
             case RESIZING:
@@ -56,14 +57,14 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
                 status = ProblemWithCluster.warning(cluster);
                 break;
             default:
-                return;
+                return new OkStatus();
         }
         status.getData().putAll(cluster.getMetadata());
         status.getData().put("clusterStatus", cluster.getStatus());
-        updateStatus(status);
+        return status;
     }
 
-    private void updateNodeStatus(final Node node) {
+    private static Optional<HealthStatus> getNodeStatus(final Node node) {
         final ProblemWithClusterNode status;
         switch (Server.Status.forValue(node.getStatus())) {
             case ERROR:
@@ -91,11 +92,11 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
                 status = ProblemWithClusterNode.suspended(node);
                 break;
             default:
-                return;
+                return Optional.empty();
         }
         status.getData().putAll(node.getMetadata());
         status.getData().put("nodeStatus", node.getStatus());
-        updateStatus(status);
+        return Optional.of(status);
     }
 
     public void updateStatus(final BundleContext context, final SenlinService senlin, final Set<String> resources) {
@@ -103,20 +104,15 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         if (cluster == null)
             throw new OS4JException(String.format("Cluster %s doesn't exist", clusterID));
         final ClusterNodes nodes = ClusterNodes.discover(senlin.node(), clusterID);
-        try (final SafeCloseable batchUpdate = startBatchUpdate()) {
+        try(final HealthStatusBuilder builder = statusBuilder()) {
+            //update health status using resources in the group and status of the cluster
+            builder.updateGroupStatus(getClusterStatus(cluster)).updateResourcesStatuses(context, resources);
+            //extract health status for every cluster node
             for (final String resourceName : resources) {
-                ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
-                    try {
-                        updateStatus(resourceName, client);
-                    } finally {
-                        client.close();
-                    }
-                });
-                //update node status
-                nodes.getByName(resourceName).ifPresent(this::updateNodeStatus);
+                final HealthStatus nodeStatus = nodes.getByName(resourceName).flatMap(OpenStackHealthStatusProvider::getNodeStatus).orElseGet(OkStatus::new);
+                builder.updateResourceStatus(resourceName, nodeStatus);
             }
-            //update health status of the cluster
-            updateClusterStatus(cluster);
+            builder.build();
         }
         //force check nodes only at active cluster node
         if (checkNodes && clusterMember.isActive()) {

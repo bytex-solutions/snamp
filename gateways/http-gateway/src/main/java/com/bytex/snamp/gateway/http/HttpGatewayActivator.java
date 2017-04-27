@@ -15,7 +15,7 @@ public final class HttpGatewayActivator extends GatewayActivator<HttpGateway> {
     @SpecialUse(SpecialUse.Case.OSGi)
     public HttpGatewayActivator() {
         super(HttpGatewayActivator::newGateway,
-                requiredServices(HttpGateway.class).require(HttpService.class),
+                requiredBy(HttpGateway.class).require(HttpService.class),
                 new SupportServiceManager<?, ?>[]{
                         configurationDescriptor(HttpGatewayConfigurationDescriptor::new)
                 });

@@ -7,9 +7,9 @@ import org.codehaus.jackson.node.ObjectNode;
 
 import javax.annotation.Nonnull;
 import javax.management.Attribute;
+import javax.management.AttributeList;
 import java.util.Date;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Represents line chart where X is a timestamp of attribute values; Y is an attribute value.
@@ -66,9 +66,9 @@ public final class LineChartOfAttributeValues extends TwoDimensionalChartOfAttri
     }
 
     @Override
-    Optional<ChartData> createChartData(final String instanceName, final Attribute attribute) {
-        return hasInstance(instanceName) && Objects.equals(attribute.getName(), getAxisY().getAttributeInfo().getName()) ?
-                Optional.of(new ChartData(instanceName, attribute)) :
-                Optional.empty();
+    void fillChartData(final String resourceName, final AttributeList attributes, final Consumer<? super AttributeChartData> acceptor) {
+        for(final Attribute attribute: attributes.asList())
+            if(attribute.getName().equals(getAxisY().getAttributeInfo().getName()))
+                acceptor.accept(new ChartData(resourceName, attribute));
     }
 }

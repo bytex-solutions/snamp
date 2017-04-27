@@ -29,10 +29,10 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     @SpecialUse(SpecialUse.Case.OSGi)
     public SnmpResourceConnectorActivator() {
         super(SnmpResourceConnectorActivator::createConnector,
-                requiredServices(SnmpResourceConnector.class).require(ThreadPoolRepository.class),
+                requiredBy(SnmpResourceConnector.class).require(ThreadPoolRepository.class),
                 new SupportServiceManager<?, ?>[]{
                         configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
-                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService, requiredServices(SnmpResourceConnector.class).require(ConfigurationManager.class))
+                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService, requiredBy(SnmpResourceConnector.class).require(ConfigurationManager.class))
                 });
     }
 

@@ -4,8 +4,8 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.annotation.Nonnull;
 import javax.management.Attribute;
-import java.util.Objects;
-import java.util.Optional;
+import javax.management.AttributeList;
+import java.util.function.Consumer;
 
 /**
  * Represents a panel with scalar values of attributes.
@@ -34,9 +34,10 @@ public final class PanelOfAttributeValues extends TwoDimensionalChartOfAttribute
         return new AttributeValueAxis();
     }
 
-    public Optional<ChartData> createChartData(final String instanceName, final Attribute attribute) {
-        return hasInstance(instanceName) && Objects.equals(attribute.getName(), getAxisY().getAttributeInfo().getName()) ?
-                Optional.of(new ChartData(instanceName, attribute)) :
-                Optional.empty();
+    @Override
+    void fillChartData(final String resourceName, final AttributeList attributes, final Consumer<? super AttributeChartData> acceptor) {
+        for(final Attribute attribute: attributes.asList())
+            if(attribute.getName().equals(getAxisY().getAttributeInfo().getName()))
+                acceptor.accept(new ChartData(resourceName, attribute));
     }
 }

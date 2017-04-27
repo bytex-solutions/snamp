@@ -39,7 +39,7 @@ public final class WeakEventListenerList<L extends EventListener, E extends Even
 
     @Override
     public boolean add(@Nonnull final L listener) {
-        return add(listener, listenerFactory);
+        return add(listenerFactory.apply(listener));
     }
 
     @Override
