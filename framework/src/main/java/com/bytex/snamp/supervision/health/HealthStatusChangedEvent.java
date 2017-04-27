@@ -22,7 +22,7 @@ public abstract class HealthStatusChangedEvent extends EventObject {
         super(source);
     }
 
-    public abstract HealthStatus getNewStatus();
+    public abstract ResourceGroupHealthStatus getNewStatus();
 
-    public abstract HealthStatus getPreviousStatus();
+    public abstract ResourceGroupHealthStatus getPreviousStatus();
 }

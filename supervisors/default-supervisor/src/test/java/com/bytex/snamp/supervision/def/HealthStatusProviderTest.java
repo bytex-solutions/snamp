@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorBean;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -18,6 +19,7 @@ import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.health.ResourceConnectorMalfunction;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,6 +43,13 @@ public class HealthStatusProviderTest extends Assert {
             for (final Map.Entry<String, ? extends ScriptletConfiguration> attributeChecker : healthCheckInfo.getAttributeCheckers().entrySet())
                 addChecker(attributeChecker.getKey(), checkerFactory.compile(attributeChecker.getValue()));
         }
+
+         void updateStatus(final String resourceName1,
+                                          final ManagedResourceConnector connector1,
+                                          final String resourceName2,
+                                          final ManagedResourceConnector connector2) {
+             updateStatus(ImmutableMap.of(resourceName1, connector1, resourceName2, connector2), new OkStatus());
+         }
     }
 
     public static final class TestResourceConnector extends ManagedResourceConnectorBean{
@@ -107,34 +116,25 @@ public class HealthStatusProviderTest extends Assert {
         //
         connector1.setMemory(500);
         connector2.setMemory(0);
-        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
-        watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
-        assertTrue(watcher.getStatus() instanceof OkStatus);
+        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1, SECOND_RESOURCE_NAME, connector2);
+        assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
         connector1.setCPU(100500);
         connector2.setCPU(0);
-        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
-        watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
-        assertTrue(watcher.getStatus() instanceof OkStatus);
+        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1, SECOND_RESOURCE_NAME, connector2);
+        assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
         connector1.setMemory(1000);
         connector2.setMemory(500);
-        try(final SafeCloseable updateScope = watcher.startBatchUpdate()) {
-            watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
-            watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
-        }
-        assertTrue(watcher.getStatus() instanceof InvalidAttributeValue);
+        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1, SECOND_RESOURCE_NAME, connector2);
+        assertTrue(watcher.getStatus().getSummaryStatus() instanceof InvalidAttributeValue);
+        assertTrue(watcher.getStatus().get(FIRST_RESOURCE_NAME) instanceof InvalidAttributeValue);
         connector1.setMemory(50);
-        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
-        watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
-        assertTrue(watcher.getStatus() instanceof OkStatus);
+        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1, SECOND_RESOURCE_NAME, connector2);
+        assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
         connector1.setNotAvailable(true);
-        try(final SafeCloseable updateScope = watcher.startBatchUpdate()) {
-            watcher.updateStatus(FIRST_RESOURCE_NAME, connector1);
-            watcher.updateStatus(SECOND_RESOURCE_NAME, connector2);
-        } finally {
-            connector1.setNotAvailable(false);
-        }
-        assertTrue(watcher.getStatus() instanceof ResourceConnectorMalfunction);
+        watcher.updateStatus(FIRST_RESOURCE_NAME, connector1, SECOND_RESOURCE_NAME, connector2);
+        connector1.setNotAvailable(false);
+        assertTrue(watcher.getStatus().getSummaryStatus() instanceof ResourceConnectorMalfunction);
         watcher.removeResource(FIRST_RESOURCE_NAME);
-        assertTrue(watcher.getStatus() instanceof OkStatus);
+        assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
     }
 }

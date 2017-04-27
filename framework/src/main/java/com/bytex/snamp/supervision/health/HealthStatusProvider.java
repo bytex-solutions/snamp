@@ -12,7 +12,14 @@ import javax.annotation.Nonnull;
  * @version 2.0
  * @since 2.0
  */
-public interface HealthStatusProvider extends SupervisorService, Stateful, HealthCheckSupport {
+public interface HealthStatusProvider extends SupervisorService, Stateful {
+    /**
+     * Gets status of the managed resource group.
+     * @return Gets status of the managed resource group.
+     */
+    @Nonnull
+    ResourceGroupHealthStatus getStatus();
+
     /**
      * Adds listener of health status.
      *

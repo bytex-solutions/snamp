@@ -5,11 +5,15 @@ import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
+import com.bytex.snamp.supervision.health.HealthStatusEventListener;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 
 import javax.annotation.Nonnull;
@@ -28,7 +32,7 @@ import static com.bytex.snamp.configuration.SupervisorInfo.HealthCheckInfo;
  * @version 2.0
  * @since 2.0
  */
-public class DefaultSupervisor extends AbstractSupervisor {
+public class DefaultSupervisor extends AbstractSupervisor implements HealthCheckSupport {
     private static final class SupervisorRepeater extends WeakRepeater<DefaultSupervisor>{
         private final String threadName;
         private final Logger logger;
@@ -86,6 +90,15 @@ public class DefaultSupervisor extends AbstractSupervisor {
         clusterMember = ClusterMember.get(getBundleContext());
     }
 
+    /**
+     * Gets health status of this supervisor.
+     * @return Health status of this supervisor.
+     */
+    @Override
+    public HealthStatus getStatus() {
+        return new OkStatus();
+    }
+
     protected final void overrideCheckerFactory(@Nonnull final AttributeCheckerFactory value){
         checkerFactory = value;
     }
@@ -131,8 +144,8 @@ public class DefaultSupervisor extends AbstractSupervisor {
             getLogger().fine(String.format("ResourceDiscoveryService is overridden with %s", discoveryService));
     }
 
-    private void updateHealthStatus(final DefaultHealthStatusProvider provider){
-        provider.updateStatus(getBundleContext(), getResources());
+    private void updateHealthStatus(final DefaultHealthStatusProvider provider) {
+        provider.updateStatus(getBundleContext(), getResources(), getStatus());
     }
 
     /**
@@ -181,7 +194,8 @@ public class DefaultSupervisor extends AbstractSupervisor {
     private void setupHealthCheck(@Nonnull final HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
         assert healthStatusProvider != null : "Health status provided is not initialized";
         assert triggerFactory != null : "Trigger factory is not defined";
-        healthStatusProvider.setTrigger(triggerFactory.compile(healthCheckInfo.getTrigger()));
+        final HealthStatusEventListener trigger = triggerFactory.compile(healthCheckInfo.getTrigger());
+        healthStatusProvider.addHealthStatusEventListener(trigger);
         assert checkerFactory != null : "Attribute checked factory is not defined";
         healthStatusProvider.removeCheckers();
         for (final Map.Entry<String, ? extends ScriptletConfiguration> attributeChecker : healthCheckInfo.getAttributeCheckers().entrySet())
