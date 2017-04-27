@@ -26,7 +26,7 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
         groupName = "";
     }
 
-    @JsonProperty("component")
+    @JsonProperty("groups")
     public final String getGroupName() {
         return groupName;
     }
@@ -35,30 +35,32 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
         groupName = Objects.requireNonNull(value);
     }
 
-    @JsonProperty("instances")
-    public final String[] getInstances() {
+    @JsonProperty("resources")
+    public final String[] getResources() {
         return instances.toArray(ArrayUtils.emptyArray(String[].class));
     }
 
-    public final void setInstances(final String... value) {
+    public final void setResources(final String... value) {
         instances.clear();
         Collections.addAll(instances, value);
     }
 
-    public final void addInstance(final String instance) {
-        instances.add(instance);
+    public final void addResource(final String resourceName) {
+        instances.add(resourceName);
     }
 
     @JsonIgnore
-    final boolean hasInstance(final String instanceName){
-        return instances.isEmpty() || instances.contains(instanceName);
+    final boolean hasResource(final String resourceName){
+        return instances.isEmpty() || instances.contains(resourceName);
     }
 
     abstract void fillChartData(final String resourceName, final AttributeList attributes, final Consumer<? super AttributeChartData> acceptor);
 
     @Override
     public final Iterable<? extends AttributeChartData> collectChartData(final BundleContext context) throws Exception {
-        final Set<String> resources = isNullOrEmpty(groupName) ? instances : ManagedResourceConnectorClient.filterBuilder().getResources(context);
+        final Set<String> resources = isNullOrEmpty(groupName) ?
+                instances :
+                ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(context);
         final List<AttributeChartData> result = new LinkedList<>();
         for (final String resourceName : resources) {
             final Optional<ManagedResourceConnectorClient> clientRef = ManagedResourceConnectorClient.tryCreate(context, resourceName);

@@ -426,7 +426,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void dashboardWithChartsTest() throws Exception {
         final LineChartOfAttributeValues lineChart = new LineChartOfAttributeValues();
-        lineChart.addInstance(FIRST_RESOURCE_NAME);
+        lineChart.addResource(FIRST_RESOURCE_NAME);
         lineChart.setName("lineChart");
         lineChart.setGroupName(GROUP_NAME);
         lineChart.setAxisX(new ChronoAxis());

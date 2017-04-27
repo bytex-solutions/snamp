@@ -121,6 +121,10 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         return URL_CONTEXT;
     }
 
+    /**
+     * Gets set of supervised groups.
+     * @return A set of supervised groups.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/groups")

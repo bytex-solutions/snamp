@@ -24,14 +24,14 @@ public final class JsonSerializationTest extends Assert {
         chart1.getPreferences().put("size", "4");
         chart1.setGroupName("api-gateway");
         chart1.getAxisY().setAttributeInfo(new AttributeInformation("memory", WellKnownType.LONG, "bytes"));
-        chart1.addInstance("192.168.0.1");
+        chart1.addResource("192.168.0.1");
         charts.addChart(chart1);
 
         final PanelOfAttributeValues chart2 = new PanelOfAttributeValues();
         chart2.setName("myPanel");
         chart2.setGroupName("trip-manager");
         chart2.getAxisY().setAttributeInfo(new AttributeInformation("cpu", WellKnownType.DOUBLE, "percents"));
-        chart2.addInstance("192.168.0.2");
+        chart2.addResource("192.168.0.2");
         charts.addChart(chart2);
 
         final String json = jsonSerializer.writerWithDefaultPrettyPrinter().writeValueAsString(charts);
