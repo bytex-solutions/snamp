@@ -144,7 +144,6 @@ public final class RESTDiscoveryService {
     }
 
     @DELETE
-    @Path("/")
     public Response removeAllResources(@PathParam("groupName") final String groupName) throws ResourceDiscoveryException {
         withDiscoveryService(groupName, ResourceDiscoveryService::removeAllResources);
         return Response.status(Response.Status.NO_CONTENT).build();
