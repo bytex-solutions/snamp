@@ -17,8 +17,6 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 /**
  * Provides information about active managed resources and their attributes.
  * @author Roman Sakno
@@ -110,9 +108,14 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @GET
     @Path("/resources")
     @Produces(MediaType.APPLICATION_JSON)
-    public Set<String> getResources(@QueryParam("groupName") @DefaultValue("") final String groupName) {
-        return isNullOrEmpty(groupName) ?
-                ManagedResourceConnectorClient.filterBuilder().getResources(getBundleContext()) :
-                ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(getBundleContext());
+    public Set<String> getResources() {
+        return ManagedResourceConnectorClient.filterBuilder().getResources(getBundleContext());
+    }
+
+    @GET
+    @Path("{groupName}/resources")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Set<String> getResources(@PathParam("groupName")final String groupName) {
+        return ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(getBundleContext());
     }
 }

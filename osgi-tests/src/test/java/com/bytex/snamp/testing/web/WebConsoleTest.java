@@ -313,30 +313,27 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void listOfComponentsTest() throws IOException{
+    public void listOfGroupsTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpGet("/managedResources/components", authenticationToken);
+        final JsonNode node = httpGet("/groups", authenticationToken);
         assertNotNull(node);
         assertTrue(node.isArray());
-        assertEquals(4, node.size());
+        assertEquals(2, node.size());
     }
 
     @Test
-    public void listOfInstancesTest() throws IOException{
+    public void listOfResourcesTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpGet("/managedResources", authenticationToken);
+        final JsonNode node = httpGet("/groups/resources", authenticationToken);
         assertNotNull(node);
         assertTrue(node.isArray());
         assertEquals(6, node.size());
     }
 
     @Test
-    public void listOfInstancesWithGroupNameTest() throws IOException{
+    public void listOfResourcesInGroupTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode groups = httpGet("/managedResources/components", authenticationToken);
-        assertTrue(groups.isArray());
-        assertEquals(4, groups.size());
-        final JsonNode node = httpGet(String.format("/managedResources?component=%s", GROUP_NAME), authenticationToken);
+        final JsonNode node = httpGet(String.format("/groups/%s/resources", GROUP_NAME), authenticationToken);
         assertNotNull(node);
         assertTrue(node.isArray());
         assertEquals(3, node.size());
@@ -345,7 +342,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void listOfAttributesTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpGet("/managedResources/" + URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8") + "/attributes", authenticationToken);
+        final JsonNode node = httpGet("/groups/resources/" + URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8") + "/attributes", authenticationToken);
         assertTrue(node instanceof ArrayNode);
         assertTrue("Unexpected JSON " + node, node.size() > 0);
         for(int i = 0; i < node.size(); i++){
@@ -405,16 +402,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void healthWatcherTest() throws IOException {
-        final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        JsonNode result = httpGet("/resource-group-watcher/groups", authenticationToken);
-        assertEquals(1, result.size());
-        assertEquals(GROUP_NAME, result.get(0).asText());
-        result = httpGet("/resource-group-watcher/groups/status", authenticationToken);
-        assertNotNull(result);
-    }
-
-    @Test
     public void notificationTypesTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         JsonNode result = httpGet("/notifications/types", authenticationToken);
@@ -438,8 +425,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         panelChart.setAxisX(new ResourceNameAxis());
         panelChart.setAxisY(new AttributeValueAxis(new AttributeInformation("requestsPerSecond", WellKnownType.LONG, "rps")));
 
+        final ResourceGroupHealthStatusChart hsChart = new ResourceGroupHealthStatusChart();
+        hsChart.setGroupName(GROUP_NAME);
+        hsChart.setName("healthStatuses");
+
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{ lineChart, panelChart }));
+        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{ lineChart, panelChart, hsChart }));
         assertNotNull(node);
     }
 

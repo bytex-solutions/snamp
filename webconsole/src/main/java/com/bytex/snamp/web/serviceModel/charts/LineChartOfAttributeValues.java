@@ -1,5 +1,6 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
+import com.bytex.snamp.json.InstantSerializer;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonTypeName;
@@ -8,7 +9,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import javax.annotation.Nonnull;
 import javax.management.Attribute;
 import javax.management.AttributeList;
-import java.util.Date;
+import java.time.Instant;
 import java.util.function.Consumer;
 
 /**
@@ -20,15 +21,15 @@ import java.util.function.Consumer;
 @JsonTypeName("lineChartOfAttributeValues")
 public final class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues<ChronoAxis, AttributeValueAxis> {
     public static final class ChartData extends AttributeChartData {
-        private final Date timeStamp;
+        private final Instant timeStamp;
 
         private ChartData(final String instanceName, final Attribute attribute) {
             super(instanceName, attribute, LineChartOfAttributeValues.class);
-            timeStamp = new Date();
+            timeStamp = Instant.now();
         }
 
         @JsonIgnore
-        public final Date getTimeStamp(){
+        public Instant getTimeStamp(){
             return timeStamp;
         }
 
@@ -36,7 +37,7 @@ public final class LineChartOfAttributeValues extends TwoDimensionalChartOfAttri
         @Override
         protected ObjectNode toJsonNode() throws JsonProcessingException {
             final ObjectNode node = super.toJsonNode();
-            node.put("timeStamp", timeStamp.getTime());
+            node.put("timeStamp", InstantSerializer.serialize(timeStamp));
             return node;
         }
 

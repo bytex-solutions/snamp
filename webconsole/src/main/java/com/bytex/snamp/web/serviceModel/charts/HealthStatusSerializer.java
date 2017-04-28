@@ -3,8 +3,8 @@ package com.bytex.snamp.web.serviceModel.charts;
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.json.InstantSerializer;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
-import com.bytex.snamp.supervision.health.ClusterMalfunctionStatus;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.node.ObjectNode;
@@ -16,7 +16,7 @@ import java.io.IOException;
  * Provides serialization of {@link HealthStatus} into JSON.
  */
 public final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
-    private static final String TYPE_FIELD = "@type";
+    private static final String TYPE_FIELD = JsonTypeInfo.Id.NAME.getDefaultPropertyName();
     private static final String DATA_FIELD = "data";
     private static final String LEVEL_FIELD = "level";
     private static final String TIME_STAMP_FIELD = "timeStamp";

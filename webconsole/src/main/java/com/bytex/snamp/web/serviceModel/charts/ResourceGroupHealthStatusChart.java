@@ -9,10 +9,7 @@ import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.google.common.collect.ImmutableList;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.annotate.JsonTypeName;
+import org.codehaus.jackson.annotate.*;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.osgi.framework.BundleContext;
 
@@ -30,29 +27,38 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 @JsonTypeName("groupHealthStatus")
 public final class ResourceGroupHealthStatusChart extends AbstractChart implements TwoDimensionalChart<ResourceNameAxis, HealthStatusAxis> {
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
-    @JsonSubTypes({
-            @JsonSubTypes.Type(ResourceHealthStatus.class),
-            @JsonSubTypes.Type(SummaryHealthStatus.class)
-    })
-    public static abstract class ChartData implements com.bytex.snamp.web.serviceModel.charts.ChartData{
-        private final HealthStatus resourceStatus;
+    public static final class ChartData implements com.bytex.snamp.web.serviceModel.charts.ChartData{
+        private final HealthStatus status;
         private final String name;
+        private final boolean summary;
 
-        private ChartData(final String name, final HealthStatus resourceStatus){
-            this.resourceStatus = Objects.requireNonNull(resourceStatus);
+        private ChartData(final String name, final HealthStatus status, final boolean summary){
+            this.status = Objects.requireNonNull(status);
             this.name = Objects.requireNonNull(name);
+            this.summary = summary;
+        }
+
+        static ChartData resourceStatus(final String resourceName, final HealthStatus resourceStatus){
+            return new ChartData(resourceName, resourceStatus, false);
+        }
+
+        static ChartData summaryStatus(final String groupName, final HealthStatus summaryStatus){
+            return new ChartData(groupName, summaryStatus, true);
+        }
+
+        @JsonProperty("summary")
+        public boolean isSummary(){
+            return summary;
         }
 
         @JsonProperty("status")
         @JsonSerialize(using = HealthStatusSerializer.class)
-        public final HealthStatus getStatus(){
-            return resourceStatus;
+        public HealthStatus getStatus(){
+            return status;
         }
 
-        @JsonSerialize(contentUsing = HealthStatusSerializer.class)
         @JsonProperty("name")
-        public final String getName(){
+        public String getName(){
             return name;
         }
 
@@ -64,29 +70,15 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
          * @throws IndexOutOfBoundsException Invalid dimension index.
          */
         @Override
-        public final Object getData(final int dimension) {
+        public Object getData(final int dimension) {
             switch (dimension){
                 case 0:
                     return name;
                 case 1:
-                    return resourceStatus;
+                    return status;
                 default:
                     throw new IndexOutOfBoundsException();
             }
-        }
-    }
-
-    @JsonTypeName("resourceStatus")
-    public static final class ResourceHealthStatus extends ChartData{
-        private ResourceHealthStatus(final String resourceName, final HealthStatus resourceStatus) {
-            super(resourceName, resourceStatus);
-        }
-    }
-
-    @JsonTypeName("summaryStatus")
-    public static final class SummaryHealthStatus extends ChartData {
-        private SummaryHealthStatus(final String groupName, final HealthStatus resourceStatus) {
-            super(groupName, resourceStatus);
         }
     }
 
@@ -96,8 +88,6 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
 
     public ResourceGroupHealthStatusChart(){
         groupName = "";
-        axisX = new ResourceNameAxis();
-        axisY = new HealthStatusAxis();
     }
 
     @JsonProperty("group")
@@ -126,6 +116,8 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
     @Override
     @JsonProperty("X")
     public ResourceNameAxis getAxisX() {
+        if(axisX == null)
+            axisX = new ResourceNameAxis();
         return axisX;
     }
 
@@ -138,6 +130,8 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
     @Override
     @JsonProperty("Y")
     public HealthStatusAxis getAxisY() {
+        if(axisY == null)
+            axisY = new HealthStatusAxis();
         return axisY;
     }
 
@@ -147,6 +141,7 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
      * @return Number of dimensions.
      */
     @Override
+    @JsonIgnore
     public int getDimensions() {
         return 2;
     }
@@ -172,8 +167,8 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
 
     private static Iterable<ChartData> collectChartData(final ResourceGroupHealthStatus status, final String groupName) {
         final Collection<ChartData> result = new LinkedList<>();
-        result.add(new SummaryHealthStatus(groupName, status.getSummaryStatus()));
-        status.forEach((name, s) -> result.add(new ResourceHealthStatus(name, s)));
+        result.add(ChartData.summaryStatus(groupName, status.getSummaryStatus()));
+        status.forEach((name, s) -> result.add(ChartData.resourceStatus(name, s)));
         return result;
     }
 

@@ -23,22 +23,15 @@ import java.util.Objects;
  */
 public abstract class AttributeChartData implements ChartData, JsonSerializableWithType {
     private final Attribute attribute;
-    private final Class<? extends Chart> chartType;
-    private final String instanceName;
+    private final String resourceName;
 
-    protected AttributeChartData(final String instanceName,
+    protected AttributeChartData(final String resourceName,
                                  final Attribute attribute,
                                  final Class<? extends Chart> chartType) {
         this.attribute = Objects.requireNonNull(attribute);
-        this.chartType = Objects.requireNonNull(chartType);
         if (!chartType.isAnnotationPresent(JsonTypeName.class))
             throw new IllegalArgumentException(String.format("Chart class %s is not annotated with @JsonTypeName", chartType));
-        this.instanceName = Objects.requireNonNull(instanceName);
-    }
-
-    @JsonIgnore
-    public final Class<? extends Chart> getChartType(){
-        return chartType;
+        this.resourceName = Objects.requireNonNull(resourceName);
     }
 
     @JsonIgnore
@@ -47,15 +40,15 @@ public abstract class AttributeChartData implements ChartData, JsonSerializableW
     }
 
     @JsonIgnore
-    public final String getInstanceName(){
-        return instanceName;
+    public final String getResourceName(){
+        return resourceName;
     }
 
     @Override
     public Object getData(final int dimension) {
         switch (dimension) {
             case 0:
-                return getInstanceName();
+                return getResourceName();
             case 1:
                 return getAttribute().getValue();
             default:
@@ -66,12 +59,9 @@ public abstract class AttributeChartData implements ChartData, JsonSerializableW
     @Nonnull
     protected ObjectNode toJsonNode() throws JsonProcessingException {
         final ObjectNode result = ThreadLocalJsonFactory.getFactory().objectNode();
-        final JsonTypeName typeName = chartType.getAnnotation(JsonTypeName.class);
-        assert typeName != null;    //checked in constructor
-        result.put("chartType", typeName.value());
         result.put("attributeName", attribute.getName());
         result.put("attributeValue", ObjectMapperSingleton.INSTANCE.valueToTree(attribute.getValue()));
-        result.put("instanceName", instanceName);
+        result.put("resourceName", resourceName);
         return result;
     }
 
