@@ -21,20 +21,19 @@ final class ProblemWithCluster extends ClusterMalfunctionStatus {
     private final Level level;
     private final String details;
 
-    private ProblemWithCluster(final String clusterName,
-                       final String details,
+    private ProblemWithCluster( final String details,
                        final Level level){
-        super(clusterName, Instant.now());
+        super(Instant.now());
         this.level = level;
         this.details = nullToEmpty(details);
     }
 
     static ProblemWithCluster critical(final Cluster cluster){
-        return new ProblemWithCluster(cluster.getName(), cluster.getStatusReason(), Level.CRITICAL);
+        return new ProblemWithCluster(cluster.getStatusReason(), Level.CRITICAL);
     }
 
     static ProblemWithCluster warning(final Cluster cluster){
-        return new ProblemWithCluster(cluster.getName(), cluster.getStatusReason(), Level.SUBSTANTIAL);
+        return new ProblemWithCluster(cluster.getStatusReason(), Level.SUBSTANTIAL);
     }
 
     /**

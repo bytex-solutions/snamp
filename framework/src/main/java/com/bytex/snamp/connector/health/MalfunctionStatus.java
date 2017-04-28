@@ -67,6 +67,10 @@ public abstract class MalfunctionStatus extends HealthStatus {
     @Nonnull
     public abstract Level getLevel();
 
+    protected final boolean like(final MalfunctionStatus status) {
+        return status.getLevel().equals(getLevel());
+    }
+
     /**
      * Selects the worst health status between two statuses.
      *

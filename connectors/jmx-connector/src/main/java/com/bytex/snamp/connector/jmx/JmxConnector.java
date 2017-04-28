@@ -723,18 +723,17 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
      */
     @Override
     public HealthStatus getStatus() {
-        final String resourceName = this.resourceName;
         try {
             return connectionManager.handleConnection(connection -> {
                 connection.getMBeanCount();      //call method using RMI
                 return new OkStatus();
             });
         } catch (final InterruptedException e) {
-            return new ResourceConnectorMalfunction(resourceName, new ReflectionException(e));
+            return new ResourceConnectorMalfunction(new ReflectionException(e));
         } catch (final JMException e) {
-            return new ResourceConnectorMalfunction(resourceName, e);
+            return new ResourceConnectorMalfunction(e);
         } catch (final IOException e) {
-            return new ConnectionProblem(resourceName, e);
+            return new ConnectionProblem(e);
         }
     }
 

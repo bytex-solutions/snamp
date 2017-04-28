@@ -15,12 +15,12 @@ import java.util.Locale;
 public final class ClusterRecoveryStatus extends ClusterMalfunctionStatus {
     private static final long serialVersionUID = 3186397258235973954L;
 
-    public ClusterRecoveryStatus(final String clusterName, final Instant timeStamp) {
-        super(clusterName, timeStamp);
+    public ClusterRecoveryStatus(final Instant timeStamp) {
+        super(timeStamp);
     }
 
-    public ClusterRecoveryStatus(final String clusterName){
-        this(clusterName, Instant.now());
+    public ClusterRecoveryStatus(){
+        this(Instant.now());
     }
 
     /**

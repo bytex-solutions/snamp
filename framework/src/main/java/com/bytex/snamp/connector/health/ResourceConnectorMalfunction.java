@@ -15,12 +15,10 @@ import java.util.Objects;
 public final class ResourceConnectorMalfunction extends ResourceMalfunctionStatus {
     private static final long serialVersionUID = -1368848980168422995L;
     private final JMException error;
-    private final String resourceName;
 
-    public ResourceConnectorMalfunction(final String resourceName, final JMException e){
-        super(resourceName, Instant.now());
+    public ResourceConnectorMalfunction(final JMException e){
+        super(Instant.now());
         error = Objects.requireNonNull(e);
-        this.resourceName = Objects.requireNonNull(resourceName);
     }
 
     @Override
@@ -46,7 +44,7 @@ public final class ResourceConnectorMalfunction extends ResourceMalfunctionStatu
      */
     @Override
     public String toString(final Locale locale) {
-        return String.format("Resource %s is not available. Caused by: %s", resourceName, error);
+        return String.format("Resource is not available. Caused by: %s", error);
     }
 
     private boolean like(final ResourceConnectorMalfunction status){

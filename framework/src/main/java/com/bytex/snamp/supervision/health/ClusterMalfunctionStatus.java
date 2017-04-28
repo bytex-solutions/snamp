@@ -14,22 +14,8 @@ import java.util.Objects;
  */
 public abstract class ClusterMalfunctionStatus extends MalfunctionStatus {
     private static final long serialVersionUID = -4762866679904079839L;
-    private final String clusterName;
 
-    protected ClusterMalfunctionStatus(@Nonnull final String clusterName, @Nonnull final Instant timeStamp) {
+    protected ClusterMalfunctionStatus(@Nonnull final Instant timeStamp) {
         super(timeStamp);
-        this.clusterName = Objects.requireNonNull(clusterName);
-    }
-
-    /**
-     * Gets name of the cluster.
-     * @return Name of the cluster.
-     */
-    public final String getClusterName(){
-        return clusterName;
-    }
-
-    protected final boolean like(final ClusterMalfunctionStatus status){
-        return status.clusterName.equals(clusterName) && status.getLevel().equals(getLevel());
     }
 }

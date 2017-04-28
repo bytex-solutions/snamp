@@ -21,7 +21,7 @@ public final class InvalidAttributeValue extends ResourceMalfunctionStatus {
     public InvalidAttributeValue(final String resourceName,
                                  final Attribute attribute,
                                  final boolean important){
-        super(resourceName, Instant.now());
+        super(Instant.now());
         this.important = important;
         this.attribute = Objects.requireNonNull(attribute);
     }
@@ -46,11 +46,6 @@ public final class InvalidAttributeValue extends ResourceMalfunctionStatus {
     @Override
     public String toString(final Locale locale) {
         return "Invalid attribute value: " + attribute;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(attribute, getTimeStamp(), getLevel(), getResourceName());
     }
 
     private boolean like(final InvalidAttributeValue status){

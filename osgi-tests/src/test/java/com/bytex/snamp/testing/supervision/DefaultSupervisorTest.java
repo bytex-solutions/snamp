@@ -75,13 +75,11 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             Thread.sleep(1000L);
             status = supervisor.queryObject(HealthStatusProvider.class).map(HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status.getSummaryStatus() instanceof InvalidAttributeValue);
-            assertEquals(TEST_RESOURCE_NAME, Convert.toType(status, InvalidAttributeValue.class).orElseThrow(AssertionError::new).getResourceName());
 
             testAttribute("3.0", TypeToken.of(Integer.class), 2001);
             Thread.sleep(1000L);
             status = supervisor.queryObject(HealthStatusProvider.class).map(HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status.getSummaryStatus() instanceof InvalidAttributeValue);
-            assertEquals(TEST_RESOURCE_NAME, Convert.toType(status, InvalidAttributeValue.class).orElseThrow(AssertionError::new).getResourceName());
         }
     }
 
@@ -100,7 +98,6 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
             Thread.sleep(1000L);
             status = supervisor.queryObject(HealthStatusProvider.class).map(HealthStatusProvider::getStatus).orElseThrow(AssertionError::new);
             assertTrue(status.getSummaryStatus() instanceof InvalidAttributeValue);
-            assertEquals(TEST_RESOURCE_NAME, Convert.toType(status, InvalidAttributeValue.class).orElseThrow(AssertionError::new).getResourceName());
         }
     }
 

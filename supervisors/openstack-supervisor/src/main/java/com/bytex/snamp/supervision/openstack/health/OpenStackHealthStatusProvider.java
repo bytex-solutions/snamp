@@ -44,10 +44,10 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         final ClusterMalfunctionStatus status;
         switch (cluster.getStatus()) {
             case RESIZING:
-                status = new ClusterResizingStatus(cluster.getName());
+                status = new ClusterResizingStatus();
                 break;
             case RECOVERING:
-                status = new ClusterRecoveryStatus(cluster.getName());
+                status = new ClusterRecoveryStatus();
                 break;
             case CRITICAL:
             case ERROR:

@@ -116,9 +116,9 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
                         attributes = support.get().getAttributes();
                     } catch (final JMException e) {
                         if (e.getCause() instanceof IOException)
-                            put(resourceName, new ConnectionProblem(resourceName, (IOException) e.getCause()));
+                            put(resourceName, new ConnectionProblem((IOException) e.getCause()));
                         else
-                            put(resourceName, new ResourceConnectorMalfunction(resourceName, e));
+                            put(resourceName, new ResourceConnectorMalfunction(e));
                         return;
                     }
                 else

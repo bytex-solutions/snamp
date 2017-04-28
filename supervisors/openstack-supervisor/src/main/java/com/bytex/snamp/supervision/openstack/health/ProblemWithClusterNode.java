@@ -20,42 +20,41 @@ final class ProblemWithClusterNode extends ResourceMalfunctionStatus {
     private final String details;
     private final Level level;
 
-    private ProblemWithClusterNode(final String resourceName,
-                           final String details,
+    private ProblemWithClusterNode(final String details,
                                    final Level level) {
-        super(resourceName, Instant.now());
+        super(Instant.now());
         this.level = level;
         this.details = nullToEmpty(details);
     }
 
     static ProblemWithClusterNode error(final Node node){
-        return new ProblemWithClusterNode(node.getName(), node.getStatusReason(), Level.SEVERE);
+        return new ProblemWithClusterNode(node.getStatusReason(), Level.SEVERE);
     }
 
     static ProblemWithClusterNode migrating(final Node node) {
-        return new ProblemWithClusterNode(node.getName(), "The server is currently being migrated", Level.MODERATE);
+        return new ProblemWithClusterNode("The server is currently being migrated", Level.MODERATE);
     }
 
     static ProblemWithClusterNode reboot(final Node node, final boolean hardReboot) {
-        return new ProblemWithClusterNode(node.getName(),
+        return new ProblemWithClusterNode(
                 hardReboot ? "The server is hard rebooting" : "The server is in a soft reboot state. A reboot command was passed to the operating system",
                 hardReboot ? Level.SUBSTANTIAL : Level.MODERATE);
     }
 
     static ProblemWithClusterNode shutoff(final Node node) {
-        return new ProblemWithClusterNode(node.getName(), "The server was powered down by the user, but not through the OpenStack Compute API.", Level.MODERATE);
+        return new ProblemWithClusterNode("The server was powered down by the user, but not through the OpenStack Compute API.", Level.MODERATE);
     }
 
     static ProblemWithClusterNode paused(final Node node) {
-        return new ProblemWithClusterNode(node.getName(), "The server is in frozen state.", Level.MODERATE);
+        return new ProblemWithClusterNode("The server is in frozen state.", Level.MODERATE);
     }
 
     static ProblemWithClusterNode resize(final Node node) {
-        return new ProblemWithClusterNode(node.getName(), "Server is performing the differential copy of data that changed during its initial copy.", Level.LOW);
+        return new ProblemWithClusterNode("Server is performing the differential copy of data that changed during its initial copy.", Level.LOW);
     }
 
     static ProblemWithClusterNode suspended(final Node node) {
-        return new ProblemWithClusterNode(node.getName(), "Server state is stored on disk, all memory is written to disk, and the server is stopped.", Level.MODERATE);
+        return new ProblemWithClusterNode("Server state is stored on disk, all memory is written to disk, and the server is stopped.", Level.MODERATE);
     }
 
     /**

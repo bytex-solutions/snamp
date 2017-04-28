@@ -16,13 +16,13 @@ public final class ConnectionProblem extends ResourceMalfunctionStatus {
     private static final long serialVersionUID = -3765564303828054111L;
     private final IOException error;
 
-    public ConnectionProblem(final String resourceName, final IOException error, final Instant timeStamp) {
-        super(resourceName, timeStamp);
+    public ConnectionProblem(final IOException error, final Instant timeStamp) {
+        super(timeStamp);
         this.error = Objects.requireNonNull(error);
     }
 
-    public ConnectionProblem(final String resourceName, final IOException error){
-        this(resourceName, error, Instant.now());
+    public ConnectionProblem(final IOException error){
+        this(error, Instant.now());
     }
 
     public IOException getError(){
