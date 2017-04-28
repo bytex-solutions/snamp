@@ -6,7 +6,9 @@ import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEvent;
+import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
+import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import com.bytex.snamp.web.serviceModel.RESTController;
@@ -16,7 +18,11 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.annotation.Nonnull;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.logging.Level;
 
 /**
@@ -128,6 +134,22 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     public void statusChanged(@Nonnull final HealthStatusChangedEvent event, final Object handback) {
         final String groupName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
         sendBroadcastMessage(new GroupStatusChangedMessage(event, groupName));
+    }
+
+    private static void resetHealthStatus(final SupervisorClient client) {
+        try {
+            client.queryObject(HealthStatusProvider.class).ifPresent(HealthStatusProvider::reset);
+        } finally {
+            client.close();
+        }
+    }
+
+    @POST
+    @Path("/groupStatus/reset")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response resetHealthStatus(final String groupName){
+        SupervisorClient.tryCreate(getBundleContext(), groupName).ifPresent(ResourceGroupWatcherService::resetHealthStatus);
+        return Response.noContent().build();
     }
 
     @Override

@@ -165,7 +165,7 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
         }
     }
 
-    private static Iterable<ChartData> collectChartData(final ResourceGroupHealthStatus status, final String groupName) {
+    private static Collection<ChartData> collectChartData(final ResourceGroupHealthStatus status, final String groupName) {
         final Collection<ChartData> result = new LinkedList<>();
         result.add(ChartData.summaryStatus(groupName, status.getSummaryStatus()));
         status.forEach((name, s) -> result.add(ChartData.resourceStatus(name, s)));
@@ -173,7 +173,7 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
     }
 
     //health status collector when supervisor is not available
-    private static Iterable<ChartData> collectChartData(final BundleContext context, final String groupName) {
+    private static Collection<ChartData> collectChartData(final BundleContext context, final String groupName) {
         final class FakeResourceGroupHealthStatus extends HashMap<String, HealthStatus> implements ResourceGroupHealthStatus, Consumer<ManagedResourceConnectorClient> {
             private static final long serialVersionUID = 420503389377659109L;
 
@@ -197,11 +197,11 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
         return collectChartData(status, groupName);
     }
 
-    private static Iterable<ChartData> collectChartData(final HealthStatusProvider provider, final String groupName) {
+    private static Collection<ChartData> collectChartData(final HealthStatusProvider provider, final String groupName) {
         return collectChartData(provider.getStatus(), groupName);
     }
 
-    private static Iterable<ChartData> collectChartData(final BundleContext context, final SupervisorClient supervisor) {
+    private static Collection<ChartData> collectChartData(final BundleContext context, final SupervisorClient supervisor) {
         final String groupName = supervisor.getGroupName();
         return supervisor.queryObject(HealthStatusProvider.class)
                 .map(provider -> collectChartData(provider, groupName))
@@ -216,7 +216,7 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
      * @throws Exception The data cannot be collected.
      */
     @Override
-    public Iterable<ChartData> collectChartData(final BundleContext context) throws Exception {
+    public Collection<ChartData> collectChartData(final BundleContext context) throws Exception {
         if(isNullOrEmpty(groupName))
             return ImmutableList.of();
         final Optional<SupervisorClient> supervisor = SupervisorClient.tryCreate(context, groupName);

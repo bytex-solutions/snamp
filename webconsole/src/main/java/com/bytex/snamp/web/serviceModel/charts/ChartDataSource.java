@@ -2,8 +2,7 @@ package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.web.serviceModel.ComputingService;
 import com.bytex.snamp.web.serviceModel.RESTController;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.*;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
@@ -68,6 +67,27 @@ public final class ChartDataSource extends ComputingService<Chart[], Map<String,
         return result;
     }
 
+    private static Multimap<String, ChartData> compute(final BundleContext context, final Chart chart) {
+        try {
+            return ImmutableMultimap.<String, ChartData>builder()
+                    .putAll(chart.getName(), chart.collectChartData(context))
+                    .build();
+        } catch (final Exception e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
+    private static Multimap<String, ChartData> compute(final BundleContext context, final Chart first, final Chart second) {
+        try {
+            return ImmutableMultimap.<String, ChartData>builder()
+                    .putAll(first.getName(), first.collectChartData(context))
+                    .putAll(second.getName(), second.collectChartData(context))
+                    .build();
+        } catch (final Exception e) {
+            throw new WebApplicationException(e);
+        }
+    }
+
     @POST
     @Path("/compute")
     @Produces(MediaType.APPLICATION_JSON)
@@ -75,9 +95,18 @@ public final class ChartDataSource extends ComputingService<Chart[], Map<String,
     @Override
     public Map<String, Collection<ChartData>> compute(final Chart[] charts) throws WebApplicationException {
         final BundleContext context = getBundleContext();
-        final List<Callable<ChartDataSeries>> tasks = new LinkedList<>();
-        Arrays.stream(charts).map(chart -> createTask(chart, context)).forEach(tasks::add);
-        return compute(tasks).asMap();
+        switch (charts.length) {
+            case 0:
+                return ImmutableMap.of();
+            case 1:
+                return compute(context, charts[0]).asMap();
+            case 2:
+                return compute(context, charts[0], charts[1]).asMap();
+            default:
+                final List<Callable<ChartDataSeries>> tasks = new LinkedList<>();
+                Arrays.stream(charts).map(chart -> createTask(chart, context)).forEach(tasks::add);
+                return compute(tasks).asMap();
+        }
     }
 
     @Override

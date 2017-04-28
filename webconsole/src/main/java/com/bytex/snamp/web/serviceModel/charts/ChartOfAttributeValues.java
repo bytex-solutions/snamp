@@ -57,7 +57,7 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
     abstract void fillChartData(final String resourceName, final AttributeList attributes, final Consumer<? super AttributeChartData> acceptor);
 
     @Override
-    public final Iterable<? extends AttributeChartData> collectChartData(final BundleContext context) throws Exception {
+    public final Collection<? extends AttributeChartData> collectChartData(final BundleContext context) throws Exception {
         final Set<String> resources = isNullOrEmpty(groupName) ?
                 instances :
                 ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(context);
