@@ -13,6 +13,7 @@ import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import com.bytex.snamp.web.serviceModel.RESTController;
+import com.bytex.snamp.web.serviceModel.WebMessage;
 import com.bytex.snamp.web.serviceModel.charts.HealthStatusSerializer;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
@@ -24,6 +25,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -127,14 +129,15 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     @Override
     public void handle(@Nonnull final SupervisionEvent event, final Object handback) {
         final String groupName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
+        final Consumer<? super WebMessage> broadcastMessageSender = this::sendBroadcastMessage;
         //send message when resource added or removed
         Convert.toType(event, GroupCompositionChanged.class)
                 .map(GroupCompositionChangedMessage::new)
-                .ifPresent(this::sendBroadcastMessage);
+                .ifPresent(broadcastMessageSender);
         //health status was changed
         Convert.toType(event, HealthStatusChangedEvent.class)
                 .map(GroupStatusChangedMessage::new)
-                .ifPresent(this::sendBroadcastMessage);
+                .ifPresent(broadcastMessageSender);
     }
 
     private static void resetHealthStatus(final SupervisorClient client) {
