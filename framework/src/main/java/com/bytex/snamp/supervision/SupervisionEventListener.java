@@ -10,5 +10,5 @@ import java.util.EventListener;
  * @since 2.0
  */
 public interface SupervisionEventListener extends EventListener {
-    void handle(@Nonnull final SupervisionEvent event);
+    void handle(@Nonnull final SupervisionEvent event, final Object handback);
 }

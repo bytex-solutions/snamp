@@ -61,6 +61,7 @@ public interface Supervisor extends StatefulFrameworkService, Closeable {
     SupervisorInfo getConfiguration();
 
     void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener);
+    void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener, final Object handback);
     void removeSupervisionEventListener(@Nonnull final SupervisionEventListener listener);
 
     void update(@Nonnull final SupervisorInfo configuration) throws Exception;

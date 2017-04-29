@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision;
 
-import com.bytex.snamp.WeakEventListenerList;
+import com.bytex.snamp.AbstractWeakEventListenerList;
+import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -26,6 +27,27 @@ import static com.google.common.base.Strings.nullToEmpty;
  * @since 2.0
  */
 public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient, SupervisorInfo> implements Supervisor {
+    private static final class WeakSupervisionEventListener extends WeakEventListener<SupervisionEventListener, SupervisionEvent> {
+        private final Object handback;
+
+        WeakSupervisionEventListener(@Nonnull final SupervisionEventListener listener, final Object handback) {
+            super(listener);
+            this.handback = handback;
+        }
+
+        @Override
+        protected void invoke(@Nonnull final SupervisionEventListener listener, @Nonnull final SupervisionEvent event) {
+            listener.handle(event, handback);
+        }
+    }
+
+    private static final class SupervisionEventListenerList extends AbstractWeakEventListenerList<SupervisionEventListener, SupervisionEvent> {
+        boolean add(final SupervisionEventListener listener, final Object handback) {
+            return add(new WeakSupervisionEventListener(listener, handback));
+        }
+    }
+
+
     private static final class SupervisorInternalState extends InternalState<SupervisorInfo>{
         private SupervisorInternalState(@Nonnull final FrameworkServiceState state, @Nonnull final SupervisorInfo params) {
             super(state, params);
@@ -62,13 +84,13 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
 
     protected final String groupName;
     protected final String supervisorType;
-    private final WeakEventListenerList<SupervisionEventListener, SupervisionEvent> listeners;
+    private final SupervisionEventListenerList listeners;
 
     protected AbstractSupervisor(final String groupName) {
         super(ManagedResourceConnector.class, new SupervisorInternalState());
         this.groupName = nullToEmpty(groupName);
         supervisorType = Supervisor.getSupervisorType(getClass());
-        listeners = new WeakEventListenerList<>(SupervisionEventListener::handle);
+        listeners = new SupervisionEventListenerList();
     }
 
     /**
@@ -131,8 +153,13 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
     }
 
     @Override
+    public final void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener, final Object handback) {
+        listeners.add(listener, handback);
+    }
+
+    @Override
     public final void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener) {
-        listeners.add(listener);
+        addSupervisionEventListener(listener, null);
     }
 
     @Override

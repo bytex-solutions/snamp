@@ -124,7 +124,7 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     }
 
     @Override
-    public void handle(@Nonnull final SupervisionEvent event) {
+    public void handle(@Nonnull final SupervisionEvent event, final Object handback) {
         Convert.toType(event, GroupCompositionChanged.class)
                 .map(GroupCompositionChangedMessage::new)
                 .ifPresent(this::sendBroadcastMessage);

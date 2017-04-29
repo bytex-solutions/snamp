@@ -31,8 +31,8 @@ final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracke
     }
 
     @Override
-    public void handle(@Nonnull final SupervisionEvent event) {
-        getConfiguration().values().forEach(listener -> listener.handle(event));
+    public void handle(@Nonnull final SupervisionEvent event, final Object handback) {
+        getConfiguration().values().forEach(listener -> listener.handle(event, handback));
     }
 
     private void addSupervisor(final String groupName, @WillNotClose final Supervisor supervisor){

@@ -106,7 +106,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
             final Box<String> addedResource = BoxFactory.create("");
-            final SupervisionEventListener listener = event ->
+            final SupervisionEventListener listener = (event, handback) ->
                 Convert.toType(event, GroupCompositionChanged.class).ifPresent(changed -> {
                     addedResource.set(changed.getResourceName());
                 });

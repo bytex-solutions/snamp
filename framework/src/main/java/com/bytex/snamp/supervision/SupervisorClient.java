@@ -200,6 +200,11 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     }
 
     @Override
+    public void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener, final Object handback) {
+        getService().ifPresent(supervisor -> supervisor.addSupervisionEventListener(listener, handback));
+    }
+
+    @Override
     public void removeSupervisionEventListener(@Nonnull final SupervisionEventListener listener) {
         getService().ifPresent(supervisor -> supervisor.removeSupervisionEventListener(listener));
     }

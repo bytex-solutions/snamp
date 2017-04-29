@@ -26,7 +26,7 @@ public final class Q {
      * @param x Argument of the factorial.
      * @return Factorial product.
      */
-    public static double factorial(final int x) {
+    static double factorial(final int x) {
         if (x > MAX_ARG)     
             return Double.POSITIVE_INFINITY;
         else if (x < 0)
