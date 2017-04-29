@@ -1,5 +1,7 @@
 package com.bytex.snamp.configuration;
 
+import com.google.common.collect.Range;
+
 import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Map;
@@ -45,6 +47,57 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
     }
 
     /**
+     * Represents behavior model of the metric.
+     */
+    enum MetricBehaviorModel{
+        /**
+         * Behavior is unknown
+         */
+        UNKNOWN,
+
+        /**
+         * Values of the metric represents Gaussian distribution.
+         * <p>
+         *  Mean value is the most probable.
+         */
+        GAUSSIAN,
+
+        /**
+         * Value of the metric represents Poisson distribution.
+         * <p>
+         *  Lesser value is the most probable.
+         */
+        POISSON
+    }
+
+    /**
+     * Represents scaling policy.
+     */
+    interface ScalingPolicyInfo{
+        /**
+         * Gets weight of the vote associated with this policy.
+         * @return Gets weight of vote. Min is 1.
+         */
+        int getVoteWeight();
+    }
+
+    interface MetricBasedScalingPolicyInfo extends ScalingPolicyInfo{
+        /**
+         * Gets behavior model of the metric.
+         * @return Behavior model of the metric.
+         */
+        @Nonnull
+        MetricBehaviorModel getBehavior();
+
+        /**
+         * Gets operational interval of the metric values.
+         * @return Operational interval of the metric values.
+         */
+        @Nonnull
+        Range<?> getRange();
+    }
+
+    /**
      * Represents information about automatic scaling
      */
     interface AutoScalingInfo{
@@ -59,15 +112,21 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
          * @return Cooldown period.
          * @see <a href="http://docs.aws.amazon.com/autoscaling/latest/userguide/Cooldown.html">Auto Scaling Cooldowns</a>
          */
+        @Nonnull
         Duration getCooldownTime();
 
         /**
          * Gets number of instances used to enlarge or shrink cluster.
          * @return Scale size.
          */
-        int getScalingFactor();
+        int getScale();
 
-
+        /**
+         * Gets scaling policies based on values of the metrics.
+         * @return A map of scaling policies based on values of the metrics.
+         */
+        @Nonnull
+        Map<String, ? extends MetricBasedScalingPolicyInfo> getMetricBasedPolicies();
     }
 
     /**

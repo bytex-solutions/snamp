@@ -1,6 +1,9 @@
 package com.bytex.snamp.testing.supervision;
 
+import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -11,6 +14,8 @@ import org.osgi.framework.BundleContext;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Duration;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Represents integration test for OpenStack supervisor.
@@ -23,6 +28,7 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
     private static final String OS_AUTH_URL = "http://192.168.100.3:5000/v3";   //keystone V3
     private static final String USERNAME = "demo";
     private static final String PASSWORD = "secret";
+    private static final String GROUP_NAME = "os_nodes";
 
     private static void assumeThatDevStackIsAvailable(final URL authUrl) {
         try {
@@ -35,9 +41,21 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
         }
     }
 
+    private static SupervisorClient getSupervisor(final BundleContext context, final String groupName){
+        return SupervisorClient.tryCreate(context, groupName).orElse(null);
+    }
+
+    private static boolean waitForResources(final HealthStatusProvider provider){
+        return provider.getStatus().size() < 3;
+    }
+
     @Test
-    public void simpleTest() throws InterruptedException {
-        Thread.sleep(10_000_000);
+    public void healthStatusTest() throws TimeoutException, InterruptedException {
+        try(final SupervisorClient client = SpinWait.untilNull(getTestBundleContext(), GROUP_NAME, OpenStackSupervisorTest::getSupervisor, Duration.ofSeconds(3))){
+            final HealthStatusProvider provider = client.queryObject(HealthStatusProvider.class).orElseThrow(AssertionError::new);
+            //wait for resources discovery (expected 3 nodes)
+            SpinWait.until(() -> waitForResources(provider), Duration.ofSeconds(10));
+        }
     }
 
     @Override
@@ -57,12 +75,12 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
         config.getResourceGroups().addAndConsume("os_nodes", group -> {
             group.setType("stub");
         });
-        config.getSupervisors().addAndConsume("os_nodes", supervisor -> {
+        config.getSupervisors().addAndConsume(GROUP_NAME, supervisor -> {
             supervisor.setType("openstack");
             supervisor.put("authURL", OS_AUTH_URL);
             supervisor.put("userName", USERNAME);
             supervisor.put("password", PASSWORD);
-            supervisor.put("checkNodes", Boolean.TRUE.toString());
+            supervisor.put("checkNodes", Boolean.FALSE.toString());
             supervisor.getDiscoveryConfig().setConnectionStringTemplate("{first(addresses.private).addr}");
         });
     }

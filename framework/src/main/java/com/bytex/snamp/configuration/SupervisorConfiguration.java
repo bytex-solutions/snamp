@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.FactoryMap;
+import com.google.common.collect.BoundType;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
@@ -31,14 +32,23 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
         FactoryMap<String, ? extends ScriptletConfiguration> getAttributeCheckers();
     }
 
+    interface MetricBasedScalingPolicyConfiguration extends MetricBasedScalingPolicyInfo{
+        void setBehavior(@Nonnull final MetricBehaviorModel value);
+        void setRange(final double lower, final BoundType lowerBound, final double upper, final BoundType upperBound);
+        void setRange(final String lower, final BoundType lowerBound, final String upper, final BoundType upperBound);
+    }
+
     /**
      * Represents configuration of automatic scaling (elasticity management)
      */
     interface AutoScalingConfiguration extends AutoScalingInfo{
         void setEnabled(final boolean value);
+        void setCooldownTime(@Nonnull final Duration value);
+        void setScale(final int value);
 
-
-
+        @Override
+        @Nonnull
+        FactoryMap<String, ? extends MetricBasedScalingPolicyConfiguration> getMetricBasedPolicies();
     }
 
     interface ResourceDiscoveryConfiguration extends ResourceDiscoveryInfo{

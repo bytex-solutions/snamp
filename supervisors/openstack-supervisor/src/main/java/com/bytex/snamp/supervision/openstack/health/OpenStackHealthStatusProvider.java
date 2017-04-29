@@ -19,7 +19,6 @@ import org.openstack4j.openstack.senlin.domain.SenlinNodeActionCreate;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -64,7 +63,7 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         return status;
     }
 
-    private static Optional<HealthStatus> getNodeStatus(final Node node) {
+    private static HealthStatus getNodeStatus(final Node node) {
         final ProblemWithClusterNode status;
         switch (Server.Status.forValue(node.getStatus())) {
             case ERROR:
@@ -92,11 +91,11 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
                 status = ProblemWithClusterNode.suspended(node);
                 break;
             default:
-                return Optional.empty();
+                return new OkStatus();
         }
         status.getData().putAll(node.getMetadata());
         status.getData().put("nodeStatus", node.getStatus());
-        return Optional.of(status);
+        return status;
     }
 
     public void updateStatus(final BundleContext context, final SenlinService senlin, final Set<String> resources) {
@@ -109,7 +108,7 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
             builder.updateGroupStatus(getClusterStatus(cluster)).updateResourcesStatuses(context, resources);
             //extract health status for every cluster node
             for (final String resourceName : resources) {
-                final HealthStatus nodeStatus = nodes.getByName(resourceName).flatMap(OpenStackHealthStatusProvider::getNodeStatus).orElseGet(OkStatus::new);
+                final HealthStatus nodeStatus = nodes.getByName(resourceName).map(OpenStackHealthStatusProvider::getNodeStatus).orElseGet(OkStatus::new);
                 builder.updateResourceStatus(resourceName, nodeStatus);
             }
             builder.build();

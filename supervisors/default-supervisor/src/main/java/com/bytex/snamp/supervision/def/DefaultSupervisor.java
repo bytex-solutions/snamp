@@ -50,7 +50,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
         }
 
         void terminate() throws TimeoutException, InterruptedException {
-            close(getPeriod());
+            close(getPeriod().multipliedBy(2L));
         }
 
         /**
