@@ -1,16 +1,13 @@
 package com.bytex.snamp.supervision.def;
 
-import com.bytex.snamp.AbstractWeakEventListenerList;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
 import com.bytex.snamp.connector.health.*;
-import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
-import com.bytex.snamp.supervision.health.HealthStatusEventListener;
+import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import org.osgi.framework.BundleContext;
@@ -34,33 +31,6 @@ import java.util.concurrent.ConcurrentMap;
  * @since 2.0
  */
 public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCloseable {
-    private final class DefaultHealthStatusChangedEvent extends HealthStatusChangedEvent {
-        private static final long serialVersionUID = -6608026114593286031L;
-        private final ResourceGroupHealthStatus previousStatus;
-        private final ResourceGroupHealthStatus newStatus;
-
-        private DefaultHealthStatusChangedEvent(@Nonnull final ResourceGroupHealthStatus newStatus,
-                                   @Nonnull final ResourceGroupHealthStatus previousStatus) {
-            super(DefaultHealthStatusProvider.this);
-            this.previousStatus = previousStatus;
-            this.newStatus = newStatus;
-        }
-
-        @Override
-        public DefaultHealthStatusProvider getSource() {
-            return DefaultHealthStatusProvider.this;
-        }
-
-        @Override
-        public ResourceGroupHealthStatus getNewStatus() {
-            return newStatus;
-        }
-
-        @Override
-        public ResourceGroupHealthStatus getPreviousStatus() {
-            return previousStatus;
-        }
-    }
 
     private static final class DefaultResourceGroupHealthStatus extends HashMap<String, HealthStatus> implements ResourceGroupHealthStatus{
         private static final long serialVersionUID = -411291568337973940L;
@@ -139,44 +109,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         }
     }
 
-    private static final class WeakHealthStatusEventListener extends WeakEventListener<HealthStatusEventListener, HealthStatusChangedEvent>{
-        private final Object handback;
-
-        WeakHealthStatusEventListener(@Nonnull final HealthStatusEventListener listener, final Object handback) {
-            super(listener);
-            this.handback = handback;
-        }
-
-        @Override
-        protected void invoke(@Nonnull final HealthStatusEventListener listener, @Nonnull final HealthStatusChangedEvent event) {
-            listener.statusChanged(event, handback);
-        }
-    }
-
-    private static final class HealthStatusEventListenerList extends AbstractWeakEventListenerList<HealthStatusEventListener, HealthStatusChangedEvent> implements SafeCloseable {
-        private HealthStatusEventListener trigger;  //strong reference to the trigger is required because listeners stored as weak references
-
-        synchronized void setTrigger(final HealthStatusEventListener value) {
-            if (trigger != null)
-                remove(this.trigger);
-            this.trigger = value;
-            if (value != null)
-                add(value, null);
-        }
-
-        void add(final HealthStatusEventListener listener, final Object handback) {
-            add(new WeakHealthStatusEventListener(listener, handback));
-        }
-
-        @Override
-        public synchronized void close() {
-            trigger = null;
-            clear();
-        }
-    }
-
     private final ConcurrentMap<String, AttributeChecker> checkers;
-    private final HealthStatusEventListenerList listeners;
     private volatile DefaultResourceGroupHealthStatus status;
 
     /**
@@ -185,17 +118,12 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     public DefaultHealthStatusProvider() {
         checkers = new ConcurrentHashMap<>();
         status = new DefaultResourceGroupHealthStatus();
-        listeners = new HealthStatusEventListenerList();
     }
 
-    final void setTrigger(final HealthStatusEventListener trigger) {
-        listeners.setTrigger(trigger);
-    }
-
-    private synchronized void updateStatus(final DefaultResourceGroupHealthStatus newStatus) {
+    private synchronized void updateStatus(final DefaultResourceGroupHealthStatus newStatus, final HealthStatusTrigger trigger) {
         final DefaultResourceGroupHealthStatus prevStatus = status;
         if (!prevStatus.like(newStatus))    //if status was not changed then exit without any notifications.
-            listeners.fire(new DefaultHealthStatusChangedEvent(prevStatus, status = newStatus));
+            trigger.statusChanged(prevStatus, status = newStatus);
     }
 
     /**
@@ -273,12 +201,13 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         /**
          * Updates health status stored in the provider.
          *
+         * @param trigger A trigger used to catch new health status if it was changed.
          * @return This builder.
          * @throws IllegalStateException Health status provider is no longer accessible.
          */
-        public HealthStatusBuilder build() throws IllegalStateException {
+        public HealthStatusBuilder build(final HealthStatusTrigger trigger) throws IllegalStateException {
             if (newStatus != null)
-                get().updateStatus(newStatus);
+                get().updateStatus(newStatus, trigger);
             reset();
             return this;
         }
@@ -312,7 +241,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     final synchronized void removeResource(final String resourceName) {
         final DefaultResourceGroupHealthStatus newStatus = new DefaultResourceGroupHealthStatus(status);
         newStatus.remove(resourceName);
-        updateStatus(newStatus);
+        updateStatus(newStatus, HealthStatusTrigger.NO_OP);
     }
 
     /**
@@ -349,27 +278,6 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
     }
 
     /**
-     * Adds listener of health status.
-     *
-     * @param listener Listener of health status to add.
-     * @param handback Handback object that will be returned into listener.
-     */
-    @Override
-    public final void addHealthStatusEventListener(@Nonnull final HealthStatusEventListener listener, final Object handback) {
-        listeners.add(listener, handback);
-    }
-
-    /**
-     * Adds listener of health status.
-     *
-     * @param listener Listener of health status to add.
-     */
-    @Override
-    public final void addHealthStatusEventListener(@Nonnull final HealthStatusEventListener listener) {
-        addHealthStatusEventListener(listener, null);
-    }
-
-    /**
      * Determines whether the connected managed resource is alive.
      *
      * @return Status of the remove managed resource.
@@ -380,20 +288,9 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         return status;
     }
 
-    /**
-     * Removes listener of health status.
-     *
-     * @param listener Listener of health status to remove.
-     */
-    @Override
-    public final void removeHealthStatusEventListener(@Nonnull final HealthStatusEventListener listener) {
-        listeners.remove(listener);
-    }
-
     @Override
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
-        listeners.close();
         checkers.clear();
     }
 }

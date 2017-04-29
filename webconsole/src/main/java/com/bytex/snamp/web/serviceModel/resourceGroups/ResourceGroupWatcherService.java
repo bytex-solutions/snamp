@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEvent;
+import com.bytex.snamp.supervision.SupervisionEventListener;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
@@ -32,7 +33,7 @@ import java.util.logging.Level;
  * @version 2.0
  */
 @Path("/")
-public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements RESTController, EventAcceptor {
+public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements RESTController, SupervisionEventListener {
     private static final String URL_CONTEXT = "/resource-group-watcher";
 
     @JsonTypeName("healthStatusChanged")
@@ -43,10 +44,10 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         private final String groupName;
         private final String mostProblematicResource;
 
-        private GroupStatusChangedMessage(final HealthStatusChangedEvent event, final String groupName) {
+        private GroupStatusChangedMessage(final HealthStatusChangedEvent event) {
             this.previousStatus = event.getPreviousStatus().getSummaryStatus();
             this.newStatus = event.getNewStatus().getSummaryStatus();
-            this.groupName = groupName;
+            this.groupName = event.getGroupName();
             this.mostProblematicResource = ResourceGroupHealthStatus.getMostProblematicResource(event.getNewStatus()).orElse(null);
         }
 
@@ -125,15 +126,15 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
 
     @Override
     public void handle(@Nonnull final SupervisionEvent event, final Object handback) {
+        final String groupName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
+        //send message when resource added or removed
         Convert.toType(event, GroupCompositionChanged.class)
                 .map(GroupCompositionChangedMessage::new)
                 .ifPresent(this::sendBroadcastMessage);
-    }
-
-    @Override
-    public void statusChanged(@Nonnull final HealthStatusChangedEvent event, final Object handback) {
-        final String groupName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
-        sendBroadcastMessage(new GroupStatusChangedMessage(event, groupName));
+        //health status was changed
+        Convert.toType(event, HealthStatusChangedEvent.class)
+                .map(GroupStatusChangedMessage::new)
+                .ifPresent(this::sendBroadcastMessage);
     }
 
     private static void resetHealthStatus(final SupervisorClient client) {

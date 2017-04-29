@@ -5,12 +5,15 @@ import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
+import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
+import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
+import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -28,7 +31,36 @@ import static com.bytex.snamp.configuration.SupervisorInfo.HealthCheckInfo;
  * @version 2.0
  * @since 2.0
  */
-public class DefaultSupervisor extends AbstractSupervisor {
+public class DefaultSupervisor extends AbstractSupervisor implements HealthStatusTrigger {
+
+    private final class DefaultHealthStatusChangedEvent extends HealthStatusChangedEvent {
+        private static final long serialVersionUID = -6608026114593286031L;
+        private final ResourceGroupHealthStatus previousStatus;
+        private final ResourceGroupHealthStatus newStatus;
+
+        private DefaultHealthStatusChangedEvent(@Nonnull final ResourceGroupHealthStatus newStatus,
+                                                @Nonnull final ResourceGroupHealthStatus previousStatus) {
+            super(DefaultSupervisor.this, DefaultSupervisor.this.groupName);
+            this.previousStatus = previousStatus;
+            this.newStatus = newStatus;
+        }
+
+        @Override
+        public DefaultSupervisor getSource() {
+            return DefaultSupervisor.this;
+        }
+
+        @Override
+        public ResourceGroupHealthStatus getNewStatus() {
+            return newStatus;
+        }
+
+        @Override
+        public ResourceGroupHealthStatus getPreviousStatus() {
+            return previousStatus;
+        }
+    }
+    
     private static final class SupervisorRepeater extends WeakRepeater<DefaultSupervisor>{
         private final String threadName;
         private final Logger logger;
@@ -76,6 +108,8 @@ public class DefaultSupervisor extends AbstractSupervisor {
     @Aggregation
     private DefaultResourceDiscoveryService discoveryService;
     private SupervisorRepeater updater;
+    private HealthStatusTrigger userDefinedTrigger;
+
     /**
      * Gets a reference to the current member in SNAMP cluster.
      */
@@ -131,10 +165,18 @@ public class DefaultSupervisor extends AbstractSupervisor {
             getLogger().fine(String.format("ResourceDiscoveryService is overridden with %s", discoveryService));
     }
 
+    @Override
+    public final void statusChanged(final ResourceGroupHealthStatus previousStatus, final ResourceGroupHealthStatus newStatus) {
+        final HealthStatusTrigger userDefinedTrigger = this.userDefinedTrigger;
+        if (userDefinedTrigger != null)
+            userDefinedTrigger.statusChanged(previousStatus, newStatus);
+        healthStatusChanged(new DefaultHealthStatusChangedEvent(previousStatus, newStatus));
+    }
+
     private void updateHealthStatus(final DefaultHealthStatusProvider provider) {
         provider.statusBuilder()
                 .updateResourcesStatuses(getBundleContext(), getResources())
-                .build()
+                .build(this)
                 .close();
     }
 
@@ -184,7 +226,7 @@ public class DefaultSupervisor extends AbstractSupervisor {
     private void setupHealthCheck(@Nonnull final HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
         assert healthStatusProvider != null : "Health status provided is not initialized";
         assert triggerFactory != null : "Trigger factory is not defined";
-        healthStatusProvider.setTrigger(triggerFactory.compile(healthCheckInfo.getTrigger()));
+        userDefinedTrigger = triggerFactory.compile(healthCheckInfo.getTrigger());
         assert checkerFactory != null : "Attribute checked factory is not defined";
         healthStatusProvider.removeCheckers();
         for (final Map.Entry<String, ? extends ScriptletConfiguration> attributeChecker : healthCheckInfo.getAttributeCheckers().entrySet())

@@ -2,6 +2,7 @@ package com.bytex.snamp.supervision.openstack.health;
 
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.health.ClusterMalfunctionStatus;
@@ -98,7 +99,10 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         return status;
     }
 
-    public void updateStatus(final BundleContext context, final SenlinService senlin, final Set<String> resources) {
+    public void updateStatus(final BundleContext context,
+                             final SenlinService senlin,
+                             final Set<String> resources,
+                             final HealthStatusTrigger callback) {
         final Cluster cluster = senlin.cluster().get(clusterID);
         if (cluster == null)
             throw new OS4JException(String.format("Cluster %s doesn't exist", clusterID));
@@ -111,7 +115,7 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
                 final HealthStatus nodeStatus = nodes.getByName(resourceName).map(OpenStackHealthStatusProvider::getNodeStatus).orElseGet(OkStatus::new);
                 builder.updateResourceStatus(resourceName, nodeStatus);
             }
-            builder.build();
+            builder.build(callback);
         }
         //force check nodes only at active cluster node
         if (checkNodes && clusterMember.isActive()) {

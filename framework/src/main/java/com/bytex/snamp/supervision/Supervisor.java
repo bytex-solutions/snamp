@@ -61,7 +61,16 @@ public interface Supervisor extends StatefulFrameworkService, Closeable {
     SupervisorInfo getConfiguration();
 
     void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener);
+
+    /**
+     * Adds listener for supervision events.
+     * @param listener Listener of the events. Cannot be {@literal null}.
+     * @param handback An object to be associated with the listener and returned as an argument to method {@link SupervisionEventListener#handle(SupervisionEvent, Object)}.
+     * @see GroupCompositionChanged
+     * @see com.bytex.snamp.supervision.health.HealthStatusChangedEvent
+     */
     void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener, final Object handback);
+
     void removeSupervisionEventListener(@Nonnull final SupervisionEventListener listener);
 
     void update(@Nonnull final SupervisorInfo configuration) throws Exception;

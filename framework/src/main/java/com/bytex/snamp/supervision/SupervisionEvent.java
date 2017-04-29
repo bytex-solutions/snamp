@@ -13,7 +13,7 @@ public class SupervisionEvent extends EventObject {
     private static final long serialVersionUID = -4934599821637719691L;
     private final String groupName;
 
-    SupervisionEvent(@Nonnull final Object source,
+    protected SupervisionEvent(@Nonnull final Object source,
                      @Nonnull final String groupName) {
         super(source);
         this.groupName = groupName;

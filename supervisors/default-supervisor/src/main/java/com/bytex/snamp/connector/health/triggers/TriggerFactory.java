@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.health.triggers;
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.core.ScriptletCompiler;
-import com.bytex.snamp.supervision.health.HealthStatusEventListener;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -16,7 +15,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @version 2.0
  * @since 2.0
  */
-public class TriggerFactory implements ScriptletCompiler<HealthStatusEventListener> {
+public class TriggerFactory implements ScriptletCompiler<HealthStatusTrigger> {
     private final LazySoftReference<GroovyTriggerFactory> groovyTriggerFactory = new LazySoftReference<>();
 
     private GroovyTrigger createGroovyTrigger(final String scriptBody) throws IOException {
@@ -25,7 +24,7 @@ public class TriggerFactory implements ScriptletCompiler<HealthStatusEventListen
     }
 
     @Override
-    public HealthStatusEventListener compile(final ScriptletConfiguration trigger) throws InvalidTriggerException {
+    public HealthStatusTrigger compile(final ScriptletConfiguration trigger) throws InvalidTriggerException {
         final String scriptBody, language = trigger.getLanguage();
         try {
             scriptBody = trigger.resolveScriptBody();
@@ -37,7 +36,7 @@ public class TriggerFactory implements ScriptletCompiler<HealthStatusEventListen
             case ScriptletConfiguration.GROOVY_LANGUAGE:
                 return callAndWrapException(() -> createGroovyTrigger(scriptBody), exceptionFactory);
             case "":
-                return (event, handback) -> {};//no operation
+                return HealthStatusTrigger.NO_OP;//no operation
             default:
                 throw new InvalidTriggerException(language);
         }

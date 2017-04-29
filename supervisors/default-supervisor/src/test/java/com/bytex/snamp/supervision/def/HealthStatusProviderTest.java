@@ -15,6 +15,7 @@ import com.bytex.snamp.connector.attributes.reflection.ManagementAttribute;
 import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.health.ResourceConnectorMalfunction;
+import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.connector.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import org.junit.Assert;
@@ -34,11 +35,11 @@ public class HealthStatusProviderTest extends Assert {
         private final AttributeCheckerFactory checkerFactory = new AttributeCheckerFactory();
         private final TriggerFactory triggerFactory = new TriggerFactory();
 
-        void setupHealthCheck(@Nonnull final SupervisorInfo.HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
-            setTrigger(triggerFactory.compile(healthCheckInfo.getTrigger()));
+        HealthStatusTrigger setupHealthCheck(@Nonnull final SupervisorInfo.HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
             removeCheckers();
             for (final Map.Entry<String, ? extends ScriptletConfiguration> attributeChecker : healthCheckInfo.getAttributeCheckers().entrySet())
                 addChecker(attributeChecker.getKey(), checkerFactory.compile(attributeChecker.getValue()));
+            return triggerFactory.compile(healthCheckInfo.getTrigger());
         }
     }
 
@@ -88,7 +89,7 @@ public class HealthStatusProviderTest extends Assert {
             checker.configureScriptlet(scriptlet);
         });
         final TestHealthStatusProvider watcher = new TestHealthStatusProvider();
-        watcher.setupHealthCheck(watcherConfiguration.getHealthCheckConfig());
+        final HealthStatusTrigger trigger = watcher.setupHealthCheck(watcherConfiguration.getHealthCheckConfig());
         //setup first resource
         final String FIRST_RESOURCE_NAME = "resource1";
         final TestResourceConnector connector1 = new TestResourceConnector(FIRST_RESOURCE_NAME);
@@ -109,7 +110,7 @@ public class HealthStatusProviderTest extends Assert {
         watcher.statusBuilder()
                 .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
                 .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build()
+                .build(trigger)
                 .close();
         assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
         connector1.setCPU(100500);
@@ -117,7 +118,7 @@ public class HealthStatusProviderTest extends Assert {
         watcher.statusBuilder()
                 .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
                 .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build()
+                .build(trigger)
                 .close();
         assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
         connector1.setMemory(1000);
@@ -125,7 +126,7 @@ public class HealthStatusProviderTest extends Assert {
         watcher.statusBuilder()
                 .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
                 .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build()
+                .build(trigger)
                 .close();
         assertTrue(watcher.getStatus().getSummaryStatus() instanceof InvalidAttributeValue);
         assertTrue(watcher.getStatus().get(FIRST_RESOURCE_NAME) instanceof InvalidAttributeValue);
@@ -133,14 +134,14 @@ public class HealthStatusProviderTest extends Assert {
         watcher.statusBuilder()
                 .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
                 .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build()
+                .build(trigger)
                 .close();
         assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
         connector1.setNotAvailable(true);
         watcher.statusBuilder()
                 .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
                 .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build()
+                .build(trigger)
                 .close();
         connector1.setNotAvailable(false);
         assertTrue(watcher.getStatus().getSummaryStatus() instanceof ResourceConnectorMalfunction);

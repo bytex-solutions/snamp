@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.core.FrameworkServiceState;
+import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
@@ -150,6 +151,14 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
             removeResource(resourceName, serviceClient);
         else
             getLogger().info(String.format("Resource %s is already detached from supervisor %s", resourceName, groupName));
+    }
+
+    /**
+     * Raises an event indicating that health status of the supervised group was changed.
+     * @param event Event object.
+     */
+    protected final void healthStatusChanged(final HealthStatusChangedEvent event){
+        listeners.fire(event);
     }
 
     @Override

@@ -105,7 +105,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
     }
 
     private void updateHealthStatus(@Nonnull final SenlinService senlin, @Nonnull final OpenStackHealthStatusProvider provider){
-        provider.updateStatus(getBundleContext(), senlin, getResources());
+        provider.updateStatus(getBundleContext(), senlin, getResources(), this);
     }
 
     private void synchronizeNodes(@Nonnull final SenlinService senlin, @Nonnull final OpenStackDiscoveryService discoveryService) {
