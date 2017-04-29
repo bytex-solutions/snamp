@@ -131,7 +131,9 @@ export class Dashboard {
 
     private updateChartName():void {
         this.chartName = this.selectedChartType + "." +
-            this.selectedComponent + "." + ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" + this._charts.length;
+            (this.selectedComponent != "" ? this.selectedComponent  + "." : "") +
+            ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" +
+            this._charts.length;
     }
 
     ngOnInit():void {
@@ -142,7 +144,12 @@ export class Dashboard {
             if (data && data.length > 0) {
                 this.selectedComponent = data[0];
                 // load instances as well - if we autoselect a component
-                this.instances = this.http.get(REST.CHART_INSTANCES(this.selectedComponent))
+                this.instances = this.http.get(REST.GROUPS_RESOURCE_BY_COMPONENT_NAME(this.selectedComponent))
+                    .map((res:Response) => { return <string[]>res.json()}).publishLast().refCount();
+                this.instances.subscribe((data:string[]) => { this.allInstances = data});
+            } else {
+                this.selectedComponent = "";
+                this.instances = this.http.get(REST.GROUPS_RESOURCES)
                     .map((res:Response) => { return <string[]>res.json()}).publishLast().refCount();
                 this.instances.subscribe((data:string[]) => { this.allInstances = data});
             }
@@ -195,7 +202,8 @@ export class Dashboard {
     }
 
     onComponentSelect(event:any):void {
-        this.instances = this.http.get(REST.CHART_INSTANCES(event))
+        let _endpoint:string = event == "" ? REST.GROUPS_RESOURCES : REST.GROUPS_RESOURCE_BY_COMPONENT_NAME(event);
+        this.instances = this.http.get(_endpoint)
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast()
             .refCount();
@@ -209,7 +217,7 @@ export class Dashboard {
     private loadMetricsOnInstancesSelected():void {
         $('#overlay').fadeIn();
         let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
-        let _obsComponents = this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+        let _obsComponents = this.selectedComponent == "" ? Observable.of([]) : this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
             .map((res:Response) => {
                 let _data:any = res.json();
                 let _values:AttributeInformation[] = [];

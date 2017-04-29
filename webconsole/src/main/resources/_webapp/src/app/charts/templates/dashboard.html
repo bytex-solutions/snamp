@@ -43,10 +43,11 @@
                         class="control-label col-md-3 col-sm-3 col-xs-12"
                         for="componentSelect"
                         style="margin-top: 7px;">
-                  Group <span class="required">*</span>
+                  Group
                 </label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
                   <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
+                    <option value="">NO GROUP</option>
                     <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
                   </select>
                 </div>
@@ -63,7 +64,7 @@
                         class="control-label col-md-3 col-sm-3 col-xs-12"
                         for="instancesSelect"
                         style="margin-top: 7px;">
-                  Resources <span class="required">*</span>
+                  Resources
                 </label>
 
                 <div class="col-md-6 col-sm-6 col-xs-12" >

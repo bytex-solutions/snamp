@@ -100054,8 +100054,8 @@ var REST = (function () {
     REST.THREAD_POOL_BY_NAME = function (name) {
         return REST.THREAD_POOL_CONFIG + "/" + name;
     };
-    //
-    REST.CHART_INSTANCES = function (componentName) {
+    // receiving all resources that belong to certain group
+    REST.GROUPS_RESOURCE_BY_COMPONENT_NAME = function (componentName) {
         return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/resources/";
     };
     REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
@@ -100087,6 +100087,8 @@ var REST = (function () {
     REST.CHARTS_COMPUTE = REST.ROOT_WEB_API_PATH + "/charts/compute";
     // receiving all groups of managed resources
     REST.GROUPS_WEB_API = REST.ROOT_WEB_API_PATH + "/groups";
+    // receiving all the available resources
+    REST.GROUPS_RESOURCES = REST.GROUPS_WEB_API + "/resources/";
     // web console api (view related and others)
     REST.VIEWS_DASHBOARD = REST.ROOT_WEB_API_PATH + "/e2e/settings";
     // compute e2e view

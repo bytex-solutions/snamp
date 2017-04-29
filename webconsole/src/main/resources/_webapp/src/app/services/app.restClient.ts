@@ -184,10 +184,14 @@ export class REST {
     // receiving all groups of managed resources
     public static GROUPS_WEB_API:string = REST.ROOT_WEB_API_PATH + "/groups";
 
-    //
-    public static CHART_INSTANCES(componentName: string): string {
+    // receiving all resources that belong to certain group
+    public static GROUPS_RESOURCE_BY_COMPONENT_NAME(componentName: string): string {
         return REST.GROUPS_WEB_API + "/" +  encodeURIComponent(componentName) +  "/resources/";
     }
+
+    // receiving all the available resources
+    public static GROUPS_RESOURCES: string = REST.GROUPS_WEB_API + "/resources/";
+
 
     public static CHART_METRICS_BY_COMPONENT(componentName: string): string {
         return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/attributes";
