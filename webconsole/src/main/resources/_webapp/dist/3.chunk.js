@@ -57,7 +57,7 @@ var AddView = (function () {
         this.http = apiClient;
     }
     AddView.prototype.ngOnInit = function () {
-        this.components = this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
+        this.components = this.http.get(app_restClient_1.REST.GROUPS_WEB_API)
             .map(function (res) { return res.json(); })
             .publishLast().refCount();
     };

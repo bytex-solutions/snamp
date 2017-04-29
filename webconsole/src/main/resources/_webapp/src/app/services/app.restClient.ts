@@ -182,19 +182,19 @@ export class REST {
     public static CHARTS_COMPUTE:string = REST.ROOT_WEB_API_PATH + "/charts/compute";
 
     // receiving all groups of managed resources
-    public static CHART_COMPONENTS:string = REST.ROOT_WEB_API_PATH + "/managedResources/components";
+    public static GROUPS_WEB_API:string = REST.ROOT_WEB_API_PATH + "/groups";
 
     //
     public static CHART_INSTANCES(componentName: string): string {
-        return REST.ROOT_WEB_API_PATH + "/managedResources?component=" + encodeURIComponent(componentName);
+        return REST.GROUPS_WEB_API + "/resources?groupName=" + encodeURIComponent(componentName);
     }
 
     public static CHART_METRICS_BY_COMPONENT(componentName: string): string {
-        return REST.ROOT_WEB_API_PATH + "/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
+        return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/attributes";
     }
 
     public static CHART_METRICS_BY_INSTANCE(instanceName: string): string {
-        return REST.ROOT_WEB_API_PATH + "/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
+        return REST.GROUPS_WEB_API + "/resources/" + encodeURIComponent(instanceName) + "/attributes";
     }
 
     // web console api (view related and others)

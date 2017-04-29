@@ -968,7 +968,7 @@ var MainComponent = (function () {
             _this.watchers = factory_1.Factory.watchersArrayFromJSON(data);
         });
         // find all the components
-        this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
+        this.http.get(app_restClient_1.REST.GROUPS_WEB_API)
             .map(function (res) {
             return res.json();
         })

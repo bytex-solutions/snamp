@@ -96416,16 +96416,14 @@ var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var bootstrap_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
 var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
-var app_user_profile_1 = __webpack_require__("./src/app/services/app.user.profile.ts");
 var PNotify = __webpack_require__("./node_modules/pnotify/src/pnotify.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.mobile.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.buttons.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.desktop.js");
 var App = (function () {
-    function App(overlay, title, vcRef, modal, _snampLogService, _profile, _router) {
+    function App(overlay, title, vcRef, modal, _snampLogService, _router) {
         this.modal = modal;
         this._snampLogService = _snampLogService;
-        this._profile = _profile;
         this._router = _router;
         this.notificationCount = 0;
         this.stack_bottomright = { "dir1": "up", "dir2": "left", "firstpos1": 25, "firstpos2": 25 };
@@ -96485,10 +96483,10 @@ var App = (function () {
             template: __webpack_require__("./src/app/app.component.html"),
             providers: [platform_browser_1.Title]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof platform_browser_1.Title !== 'undefined' && platform_browser_1.Title) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof bootstrap_1.Modal !== 'undefined' && bootstrap_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _e) || Object, (typeof (_f = typeof app_user_profile_1.UserProfileService !== 'undefined' && app_user_profile_1.UserProfileService) === 'function' && _f) || Object, (typeof (_g = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _g) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _a) || Object, (typeof (_b = typeof platform_browser_1.Title !== 'undefined' && platform_browser_1.Title) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof bootstrap_1.Modal !== 'undefined' && bootstrap_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _e) || Object, (typeof (_f = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _f) || Object])
     ], App);
     return App;
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f;
 }());
 exports.App = App;
 
@@ -100056,13 +100054,13 @@ var REST = (function () {
     };
     //
     REST.CHART_INSTANCES = function (componentName) {
-        return REST.ROOT_WEB_API_PATH + "/managedResources?component=" + encodeURIComponent(componentName);
+        return REST.GROUPS_WEB_API + "/resources?groupName=" + encodeURIComponent(componentName);
     };
     REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
-        return REST.ROOT_WEB_API_PATH + "/managedResources/components/" + encodeURIComponent(componentName) + "/attributes";
+        return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/attributes";
     };
     REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
-        return REST.ROOT_WEB_API_PATH + "/managedResources/" + encodeURIComponent(instanceName) + "/attributes";
+        return REST.GROUPS_WEB_API + "/resources/" + encodeURIComponent(instanceName) + "/attributes";
     };
     // endpoint for certain supervisor
     REST.SUPERVISOR_BY_NAME = function (name) {
@@ -100086,7 +100084,7 @@ var REST = (function () {
     // web console api (chart related and others)
     REST.CHARTS_COMPUTE = REST.ROOT_WEB_API_PATH + "/charts/compute";
     // receiving all groups of managed resources
-    REST.CHART_COMPONENTS = REST.ROOT_WEB_API_PATH + "/managedResources/components";
+    REST.GROUPS_WEB_API = REST.ROOT_WEB_API_PATH + "/groups";
     // web console api (view related and others)
     REST.VIEWS_DASHBOARD = REST.ROOT_WEB_API_PATH + "/e2e/settings";
     // compute e2e view

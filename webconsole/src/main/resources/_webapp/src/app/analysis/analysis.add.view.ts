@@ -35,7 +35,7 @@ export class AddView implements OnInit {
    }
 
    ngOnInit():void {
-        this.components = this.http.get(REST.CHART_COMPONENTS)
+        this.components = this.http.get(REST.GROUPS_WEB_API)
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast().refCount();
    }

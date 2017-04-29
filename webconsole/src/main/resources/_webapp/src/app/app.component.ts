@@ -9,7 +9,6 @@ import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/bootstrap';
 import { AbstractNotification } from "./services/model/notifications/abstract.notification";
 import { NotificationFactory } from "./services/model/notifications/factory";
-import { UserProfileService } from "./services/app.user.profile";
 
 const PNotify = require("pnotify/src/pnotify.js");
 require("pnotify/src/pnotify.mobile.js");
@@ -30,7 +29,6 @@ export class App {
                 vcRef: ViewContainerRef,
                 private modal: Modal,
                 private _snampLogService: SnampLogService,
-                private _profile:UserProfileService,
                 private _router: Router) {
         title.setTitle("SNAMP web console");
         overlay.defaultViewContainer = vcRef;

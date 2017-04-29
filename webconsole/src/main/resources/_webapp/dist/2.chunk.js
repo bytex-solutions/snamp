@@ -116,7 +116,7 @@ var Dashboard = (function () {
     };
     Dashboard.prototype.ngOnInit = function () {
         var _this = this;
-        this.components = this.http.get(app_restClient_1.REST.CHART_COMPONENTS)
+        this.components = this.http.get(app_restClient_1.REST.GROUPS_WEB_API)
             .map(function (res) { return res.json(); })
             .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
         this.components.subscribe(function (data) {
@@ -188,7 +188,7 @@ var Dashboard = (function () {
         var _this = this;
         $('#overlay').fadeIn();
         var _instanceForSearchMetrics = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
-        var _obsComponents = this.http.getWithErrors(app_restClient_1.REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+        var _obsComponents = this.http.get(app_restClient_1.REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
             .map(function (res) {
             var _data = res.json();
             var _values = [];
@@ -197,7 +197,7 @@ var Dashboard = (function () {
             }
             return _values;
         }).catch(function (res) { return Observable_1.Observable.of([]); }).cache();
-        var _obsInstances = this.http.getWithErrors(app_restClient_1.REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
+        var _obsInstances = this.http.get(app_restClient_1.REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
             .map(function (res) {
             var _data = res.json();
             var _values = [];

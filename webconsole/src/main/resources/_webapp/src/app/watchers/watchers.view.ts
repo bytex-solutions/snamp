@@ -62,7 +62,7 @@ export class MainComponent implements OnInit {
             });
 
         // find all the components
-        this.http.get(REST.CHART_COMPONENTS)
+        this.http.get(REST.GROUPS_WEB_API)
             .map((res: Response) => {
                 return <string[]>res.json()
             })
