@@ -1,11 +1,10 @@
 import { MalfunctionStatus } from './malfunction.status';
 
-export class ResourceIsNotAvailable extends MalfunctionStatus {
-    public code:number = 2;
+export class ResourceConnectorMalfunction extends MalfunctionStatus {
     public jmxError:string = "";
 
     public represent():string {
-        return "Resource " + this.resourceName + " is not available. Caused by: " + this.jmxError;
+        return "Jmx error occurred: " + this.jmxError;
     }
 
     public getShortDescription():string {
@@ -15,8 +14,7 @@ export class ResourceIsNotAvailable extends MalfunctionStatus {
     public htmlDetails():string {
         let _details:string = "";
          _details += "<strong>Name: </strong>" + this.name + "<br/>";
-         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
-         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+         _details += "<strong>Level: </strong>" + this.level + "<br/>";
          _details += "<strong>JMX Exception: </strong>" + this.jmxError + "<br/>";
          if (this.serverTimestamp.length > 0) {
              _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";

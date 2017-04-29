@@ -15,8 +15,7 @@ export class CommonHealthStatus extends MalfunctionStatus {
     htmlDetails(): string {
         let _details:string = "";
         _details += "<strong>Name: </strong>" + this.name + "<br/>";
-        _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
-        _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+        _details += "<strong>Level: </strong>" + this.level + "<br/>";
         if (this.serverTimestamp.length > 0) {
             _details += "<strong>Server timestamp: </strong>" + this.serverTimestamp + "<br/>";
         }

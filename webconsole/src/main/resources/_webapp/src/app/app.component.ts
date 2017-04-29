@@ -40,12 +40,11 @@ export class App {
     private stack_bottomright:any = {"dir1": "up", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
 
     ngAfterViewInit() {
-        console.log("User profile decoded is: ", this._profile.decodeProfile());
         this.ws = new $WebSocket("ws://localhost:8181/snamp/console/events", [],
             {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true});
 
         this.ws.getDataStream()
-            .map((msg) => { return JSON.parse(msg.data); })
+            .map((msg) => { console.log("New event: ", msg); return JSON.parse(msg.data); })
             .subscribe(
                 (msg)=> {
                     let _log:AbstractNotification = NotificationFactory.makeFromJson(msg);

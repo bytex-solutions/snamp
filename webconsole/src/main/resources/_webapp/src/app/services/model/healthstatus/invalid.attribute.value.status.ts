@@ -1,7 +1,6 @@
 import { MalfunctionStatus } from './malfunction.status';
 
 export class InvalidAttributeValue extends MalfunctionStatus {
-    public code:number = 3;
     public attribute:AttributeWithValue = new AttributeWithValue();
 
     public represent():string {
@@ -9,14 +8,13 @@ export class InvalidAttributeValue extends MalfunctionStatus {
     }
 
     public getShortDescription():string {
-        return "Invalid attribute " + this.attribute.name + "within resource " + this.resourceName;
+        return "Invalid attribute " + this.attribute.name;
     }
 
     public htmlDetails():string {
         let _details:string = "";
          _details += "<strong>Name: </strong>" + this.name + "<br/>";
-         _details += "<strong>Resource: </strong>" + this.resourceName + "<br/>";
-         _details += "<strong>Critical: </strong>" + this.critical + "<br/>";
+         _details += "<strong>Level: </strong>" + this.level + "<br/>";
          _details += "<strong>Attribute name: </strong>" + this.attribute.name + "<br/>";
          _details += "<strong>Attribute value: </strong>" + this.attribute.value + "<br/>";
          if (this.serverTimestamp.length > 0) {

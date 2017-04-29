@@ -15,6 +15,7 @@ export class HealthStatusNotification extends AbstractNotification {
     private _prevStatus:HealthStatus;
     private _currentStatus:HealthStatus;
     private _groupName:string;
+    private _mostProblematicResource:string;
 
     constructor() {
         super();
@@ -24,6 +25,9 @@ export class HealthStatusNotification extends AbstractNotification {
 
     htmlDetails(): string {
         let _details:string = "<strong>Group name:</strong>" + this.groupName + "<br/>";
+        if (this.mostProblematicResource != undefined) {
+            _details += "<strong>Most problematic resource:</strong>" + this._mostProblematicResource + "<br/>";
+        }
         _details += " <hr/>";
         _details += "<strong>The status before: </strong><br/>";
         _details += this.prevStatus.htmlDetails();
@@ -57,6 +61,14 @@ export class HealthStatusNotification extends AbstractNotification {
         this._groupName = value;
     }
 
+    get mostProblematicResource(): string {
+        return this._mostProblematicResource;
+    }
+
+    set mostProblematicResource(value: string) {
+        this._mostProblematicResource = value;
+    }
+
     shortDescription(): string {
         return "Group: " + this.groupName +  ".Previous status: " + this.prevStatus.innerType + " , current status: " + this.currentStatus.innerType;
     }
@@ -71,6 +83,10 @@ export class HealthStatusNotification extends AbstractNotification {
         if (_json["groupName"] != undefined) {
             this.groupName = _json["groupName"];
         }
-        this.level = this.currentStatus.isCritical() ? "error" : "warn"; // always make it quite important (because no level is being received from backend)
+
+        if (_json["mostProblematicResource"] != undefined) {
+            this.mostProblematicResource = _json["mostProblematicResource"];
+        }
+        this.level = this.currentStatus.getNotificationLevel();
     }
 }

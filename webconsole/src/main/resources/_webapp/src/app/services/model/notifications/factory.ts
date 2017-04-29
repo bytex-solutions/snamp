@@ -22,6 +22,7 @@ export class NotificationFactory {
                 _notification = new GroupCompositionChangedMessage();
                 break;
             default:
+                console.log("Whole the json object is: ", _json);
                 throw new Error("Could not recognize notification of type: " + _json['@messageType']);
         }
         _notification.fillFromJson(_json);
@@ -39,7 +40,7 @@ export class NotificationFactory {
                 _notification = Object.assign(new HealthStatusNotification(), _json);
                 (<HealthStatusNotification>_notification).prevStatus = StatusFactory.healthStatusFromObject(_json['_prevStatus']);
                 (<HealthStatusNotification>_notification).currentStatus = StatusFactory.healthStatusFromObject(_json['_currentStatus']);
-                _notification.level = (<HealthStatusNotification>_notification).currentStatus.isCritical() ? 'error' : 'warn';
+                _notification.level = (<HealthStatusNotification>_notification).currentStatus.getNotificationLevel();
                 break;
             case AbstractNotification.RESOURCE:
                 _notification = Object.assign(new ResourceNotification(), _json);
@@ -48,6 +49,7 @@ export class NotificationFactory {
                 _notification = Object.assign(new GroupCompositionChangedMessage(), _json);
                 break;
             default:
+                console.log("Whole the json object is: ", _json);
                 throw new Error("Could not recognize notification of type: " + _json['_type']);
         }
         // restoring Date object from its string representation

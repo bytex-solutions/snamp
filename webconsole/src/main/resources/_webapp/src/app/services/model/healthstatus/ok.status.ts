@@ -1,10 +1,9 @@
 import { HealthStatus } from './health.status';
 
 export class OkStatus extends HealthStatus {
-    public code:number = 0;
 
-    public isCritical():boolean {
-        return false;
+    getNotificationLevel(): string {
+        return "info";
     }
 
     public represent():string {
