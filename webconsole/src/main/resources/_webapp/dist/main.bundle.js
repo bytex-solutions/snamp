@@ -96334,7 +96334,7 @@ var Factory = (function () {
                 _view.rootComponent = rootComponent;
             }
             else {
-                console.log("Attempt to set rootComponent for non group specific view. Will be ignored");
+                console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
             }
         }
         // default values for the view
@@ -97667,10 +97667,10 @@ var Factory = (function () {
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
             }
             if (_chart instanceof abstract_chart_attributes_values_1.ChartOfAttributeValues) {
-                if (_json["component"] != undefined) {
+                if (_json["group"] != undefined) {
                     _chart.group = _json["group"];
                 }
-                if (_json["instances"] != undefined) {
+                if (_json["resources"] != undefined) {
                     _chart.resources = _json["resources"];
                 }
             }
@@ -99678,9 +99678,11 @@ var ChartService = (function () {
         for (var i = 0; i < _chs.length; i++) {
             _chArrJson.push(_chs[i].toJSON());
         }
+        console.log("Computing chart for following: ", _chArrJson);
         this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
+            console.log("Data received: ", data);
             _this.pushNewChartData(data);
         });
     };
@@ -99712,7 +99714,7 @@ var ChartService = (function () {
     ChartService.prototype.pushNewChartData = function (_data) {
         // loop through all the data we have received
         for (var _currentChartName in _data) {
-            // create a chart data resources
+            // create a chart data instances
             var _d = _data[_currentChartName];
             for (var i = 0; i < _d.length; i++) {
                 var _chartData = chart_data_1.ChartData.fromJSON(_d[i]);

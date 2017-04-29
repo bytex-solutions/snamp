@@ -38131,7 +38131,7 @@ var SnampCfgComponent = (function () {
                 }
             }
             else {
-                console.log("Could not start group " + selected.type + " - server responded false");
+                console.log("Could not start component " + selected.type + " - server responded false");
             }
             $('#overlay').fadeOut();
         }, function (err) {
@@ -38159,7 +38159,7 @@ var SnampCfgComponent = (function () {
                 }
             }
             else {
-                console.log("Could not stop group " + selected.type + " - server responded false");
+                console.log("Could not stop component " + selected.type + " - server responded false");
             }
             $('#overlay').fadeOut();
         }, function (err) {

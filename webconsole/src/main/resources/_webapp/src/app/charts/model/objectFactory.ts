@@ -76,10 +76,10 @@ export class Factory {
             }
 
             if (_chart instanceof ChartOfAttributeValues) {
-                if (_json["component"] != undefined) { // ChartOfAttributeValues
+                if (_json["group"] != undefined) { // ChartOfAttributeValues
                     (<ChartOfAttributeValues>_chart).group = _json["group"];
                 }
-                if (_json["instances"] != undefined) { // ChartOfAttributeValues
+                if (_json["resources"] != undefined) { // ChartOfAttributeValues
                     (<ChartOfAttributeValues>_chart).resources = _json["resources"];
                 }
             }
