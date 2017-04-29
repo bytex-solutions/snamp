@@ -71,6 +71,19 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
     }
 
     /**
+     * Represents a method of aggregation metrics in the resource group.
+     */
+    enum MetricValueAggregation{
+        MAX,
+        MIN,
+        AVERAGE,
+        MEDIAN,
+        PERCENTILE_90,
+        PERCENTILE_95,
+        PERCENTILE_98
+    }
+
+    /**
      * Represents scaling policy.
      */
     interface ScalingPolicyInfo{
@@ -90,11 +103,26 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
         MetricBehaviorModel getBehavior();
 
         /**
+         * Gets aggregation method used to obtain summary metric value from a set of resources.
+         * @return Aggregation method.
+         */
+        @Nonnull
+        MetricValueAggregation getAggregationMethod();
+
+        /**
          * Gets operational interval of the metric values.
          * @return Operational interval of the metric values.
          */
         @Nonnull
-        Range<?> getRange();
+        Range<Double> getRange();
+
+        /**
+         * Gets observation period used to enforce policy.
+         * <p>
+         *     When value of the metric is observing during the specified time then this p
+         * @return Observation 
+         */
+        Duration getObservationPeriod();
     }
 
     /**

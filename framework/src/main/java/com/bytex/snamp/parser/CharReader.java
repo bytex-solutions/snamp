@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.CharBuffer;
 import java.util.Objects;
+import java.util.function.IntPredicate;
 
 /**
  * Represents position of token in the stream.
@@ -64,13 +65,13 @@ public final class CharReader extends Reader implements SafeCloseable {
         return true;
     }
 
-    public synchronized CharSequence readTo(final char stopChar) throws IOException {
+    synchronized CharSequence readTo(final IntPredicate stopChar) throws IOException{
         ensureOpen();
         if(hasMore()) {
             final int start = position;
             while (hasMore()){
                 final char ch = sequence.charAt(position);
-                if(stopChar == ch)
+                if(stopChar.test(ch))
                     break;
                 else
                     position += 1;

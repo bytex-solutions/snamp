@@ -24,6 +24,8 @@ public final class DoubleReservoirTest extends Assert {
         assertEquals(1D, reservoir.get(0), 0.1D);
         assertEquals(6D, reservoir.get(1), 0.1D);
         assertEquals(15D, reservoir.get(2), 0.1D);
+        assertEquals(1D, reservoir.getMin(), 0.1D);
+        assertEquals(15D, reservoir.getMax(), 0.1D);
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.bytex.snamp.SafeCloseable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 
 /**
@@ -53,8 +54,12 @@ public class Tokenizer implements SafeCloseable {
                 return DollarToken.INSTANCE;
             case RightBracketToken.VALUE:
                 return RightBracketToken.INSTANCE;
+            case RightSquareBracketToken.VALUE:
+                return RightSquareBracketToken.INSTANCE;
             case LeftBracketToken.VALUE:
                 return LeftBracketToken.INSTANCE;
+            case LeftSquareBracketToken.VALUE:
+                return LeftSquareBracketToken.INSTANCE;
             case ColonToken.VALUE:
                 return ColonToken.INSTANCE;
             case SemicolonToken.VALUE:
@@ -181,12 +186,20 @@ public class Tokenizer implements SafeCloseable {
         }
     }
 
-    protected final CharSequence readTo(final char stopChar) throws ParseException {
+    private CharSequence readTo(final IntPredicate stopChar) throws ParseException {
         try {
             return reader.readTo(stopChar);
         } catch (final IOException e) {
             throw new ParseException(e);
         }
+    }
+
+    protected final CharSequence readTo(final char stopChar) throws ParseException {
+        return readTo(current -> stopChar == current);
+    }
+
+    protected final CharSequence readTo(final char firstStopChar, final char secondStopChar) throws ParseException {
+        return readTo(current -> firstStopChar == current || secondStopChar == current);
     }
 
     protected static double parseDouble(final CharSequence value) throws ParseException {

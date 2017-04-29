@@ -106,15 +106,45 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
         return values.length;
     }
 
-    private double getDeviationImpl(){
+    /**
+     * Gets minimum value in this reservoir.
+     * @return Minimum value in this reservoir; or {@link Double#NaN} if reservoir is empty.
+     */
+    public double getMax() {
+        try (final SafeCloseable ignored = acquireReadLock()) {
+            switch (actualSize) {
+                case 0:
+                    return Double.NaN;
+                default:
+                    return values[actualSize - 1];
+            }
+        }
+    }
+
+    /**
+     * Gets minimum value in this reservoir.
+     * @return Minimum value in this reservoir; or {@link Double#NaN} if reservoir is empty.
+     */
+    public double getMin() {
+        try (final SafeCloseable ignored = acquireReadLock()) {
+            switch (actualSize) {
+                case 0:
+                    return Double.NaN;
+                default:
+                    return values[0]; //values are sorted in ascending order. Therefore zero element is a minimal value.
+            }
+        }
+    }
+
+    private double getDeviationImpl() {
         if (actualSize <= 1) return 0;
 
-        final double mean = getMean();
+        final double mean = getMeanImpl();
         double variance = 0;
 
         for (int i = 0; i < actualSize; i++) {
             final double diff = values[i] - mean;
-            variance +=  diff*diff;
+            variance += diff * diff;
         }
 
         return Math.sqrt(variance);
