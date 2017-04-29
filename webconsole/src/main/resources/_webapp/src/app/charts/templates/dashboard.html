@@ -12,14 +12,14 @@
           <ul>
             <li>
               <a [attr.href]="'#component'">
-                Component<br />
-                <small>Select component</small>
+                Group<br />
+                <small>Select group</small>
               </a>
             </li>
             <li>
               <a [attr.href]="'#instances'">
-                Instances<br />
-                <small>Mark instances</small>
+                Resources<br />
+                <small>Mark resources</small>
               </a>
             </li>
             <li>
@@ -43,7 +43,7 @@
                         class="control-label col-md-3 col-sm-3 col-xs-12"
                         for="componentSelect"
                         style="margin-top: 7px;">
-                  Component <span class="required">*</span>
+                  Group <span class="required">*</span>
                 </label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
                   <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
@@ -55,7 +55,7 @@
 
             <div id="instances" class="row" style="margin-top: 100px;">
               <div class="col-md-12 col-sm-12 col-xs-12 text-center" *ngIf="(instances | async) == undefined">
-                <strong>No instances are found - cannot proceed</strong>
+                <strong>No resources are found - cannot proceed</strong>
               </div>
 
               <div class="item form-group" *ngIf="instances | async">
@@ -63,7 +63,7 @@
                         class="control-label col-md-3 col-sm-3 col-xs-12"
                         for="instancesSelect"
                         style="margin-top: 7px;">
-                  Instances <span class="required">*</span>
+                  Resources <span class="required">*</span>
                 </label>
 
                 <div class="col-md-6 col-sm-6 col-xs-12" >

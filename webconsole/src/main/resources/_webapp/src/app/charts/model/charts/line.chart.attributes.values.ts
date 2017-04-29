@@ -1,6 +1,6 @@
 import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
-import { ChronoAxis } from '../chrono.axis';
-import { AttributeValueAxis } from '../attribute.value.axis';
+import { ChronoAxis } from '../axis/chrono.axis';
+import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
 import { ChartData } from '../chart.data';
 
@@ -28,12 +28,12 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
 
     private prepareDatasets():any {
         let _value:any[] = [];
-        for (let i = 0; i < this.instances.length; i++) {
+        for (let i = 0; i < this.resources.length; i++) {
             let _currentValue:any = {};
-            _currentValue.key = this.instances[i];
+            _currentValue.key = this.resources[i];
             _currentValue.values = [];
             for (let j = 0; j < this.chartData.length; j++) {
-                if (this.instances[i] == this.chartData[j].instanceName) {
+                if (this.resources[i] == this.chartData[j].resourceName) {
                     _currentValue.values.push({x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue});
                 }
 
@@ -50,7 +50,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
             let _ds:any[] = d3.select('#' + this.id).datum();
             let _found:boolean = false;
             for (let i = 0; i < _ds.length; i++) {
-                if (_ds[i].key == _data.instanceName) {
+                if (_ds[i].key == _data.resourceName) {
                     _ds[i].values.push({x: _data.timestamp, y: _data.attributeValue});
                     _found = true;
                     if ((new Date().getTime() - (<Date>_ds[i].values[0].x).getTime()) > this.preferences["interval"] * 60 * 1000) {
@@ -100,8 +100,8 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
         let _value:any = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
+        _value["group"] = this.group;
+        _value["resources"] = this.resources;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
         if (!$.isEmptyObject(this.preferences)) {

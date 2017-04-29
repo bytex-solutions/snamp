@@ -1,7 +1,7 @@
 import { ChartOfAttributeValues } from './abstract.chart.attributes.values';
-import { Axis } from './abstract.axis';
+import { Axis } from './axis/abstract.axis';
 import { AttributeInformation } from './attribute';
-import { AttributeValueAxis } from './attribute.value.axis';
+import { AttributeValueAxis } from './axis/attribute.value.axis';
 import { ChartUtils } from "./chart.utils";
 
 export abstract class TwoDimensionalChartOfAttributeValues extends ChartOfAttributeValues {

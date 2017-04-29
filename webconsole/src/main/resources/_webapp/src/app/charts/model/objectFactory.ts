@@ -1,9 +1,9 @@
-import { Axis } from './abstract.axis';
+import { Axis } from './axis/abstract.axis';
 import { AbstractChart } from './abstract.chart';
 
-import { ChronoAxis } from './chrono.axis';
-import { InstanceNameAxis } from './instance.axis';
-import { AttributeValueAxis } from './attribute.value.axis';
+import { ChronoAxis } from './axis/chrono.axis';
+import { InstanceNameAxis } from './axis/instance.axis';
+import { AttributeValueAxis } from './axis/attribute.value.axis';
 import { AttributeInformation } from './attribute';
 
 import { TwoDimensionalChartOfAttributeValues } from './abstract.2d.chart.attributes.values';
@@ -77,10 +77,10 @@ export class Factory {
 
             if (_chart instanceof ChartOfAttributeValues) {
                 if (_json["component"] != undefined) { // ChartOfAttributeValues
-                    (<ChartOfAttributeValues>_chart).component = _json["component"];
+                    (<ChartOfAttributeValues>_chart).group = _json["group"];
                 }
                 if (_json["instances"] != undefined) { // ChartOfAttributeValues
-                    (<ChartOfAttributeValues>_chart).instances = _json["instances"];
+                    (<ChartOfAttributeValues>_chart).resources = _json["resources"];
                 }
             }
 
@@ -136,11 +136,11 @@ export class Factory {
             _chart.setGroupName(groupName);
 
             if (component) {
-                _chart.component = component;
+                _chart.group = component;
             }
 
             if (instances) {
-                _chart.instances = instances;
+                _chart.resources = instances;
             }
 
             if (sourceAttribute) {

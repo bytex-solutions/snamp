@@ -1,5 +1,6 @@
 import { ChartData } from './chart.data';
 import { Observable } from 'rxjs/Observable';
+
 const Chart = require('chart.js');
 
 export abstract class AbstractChart {

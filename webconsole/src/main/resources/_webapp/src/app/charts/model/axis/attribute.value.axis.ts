@@ -1,5 +1,5 @@
 import { Axis } from './abstract.axis';
-import { AttributeInformation } from './attribute';
+import { AttributeInformation } from '../attribute';
 
 export class AttributeValueAxis extends Axis {
     public type:string = Axis.ATTRIBUTES;

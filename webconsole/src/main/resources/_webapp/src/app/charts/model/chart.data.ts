@@ -2,7 +2,7 @@ export class ChartData {
     public attributeName:string;
     public attributeValue:any;
     public chartType:string;
-    public instanceName:string;
+    public resourceName:string;
     public timestamp:Date = new Date();
 
     public static fromJSON(_json:any):ChartData {
@@ -17,8 +17,8 @@ export class ChartData {
         if (_json["chartType"] != undefined) {
             _value.chartType = _json["chartType"];
         }
-        if (_json["instanceName"] != undefined) {
-            _value.instanceName = _json["instanceName"];
+        if (_json["resourceName"] != undefined) {
+            _value.resourceName = _json["resourceName"];
         }
         return _value;
     }

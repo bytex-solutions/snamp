@@ -96334,7 +96334,7 @@ var Factory = (function () {
                 _view.rootComponent = rootComponent;
             }
             else {
-                console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
+                console.log("Attempt to set rootComponent for non group specific view. Will be ignored");
             }
         }
         // default values for the view
@@ -96688,7 +96688,7 @@ exports.ROUTES = [
 "use strict";
 "use strict";
 var abstract_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.chart.attributes.values.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var TwoDimensionalChartOfAttributeValues = (function (_super) {
     __extends(TwoDimensionalChartOfAttributeValues, _super);
     function TwoDimensionalChartOfAttributeValues() {
@@ -96745,27 +96745,6 @@ exports.TwoDimensionalChartOfAttributeValues = TwoDimensionalChartOfAttributeVal
 
 /***/ },
 
-/***/ "./src/app/charts/model/abstract.axis.ts":
-/***/ function(module, exports) {
-
-"use strict";
-"use strict";
-var Axis = (function () {
-    function Axis() {
-        this.name = "";
-    }
-    ;
-    // subtypes constants for types
-    Axis.CHRONO = "chrono";
-    Axis.INSTANCE = "instance";
-    Axis.ATTRIBUTES = "attributeValue";
-    return Axis;
-}());
-exports.Axis = Axis;
-
-
-/***/ },
-
 /***/ "./src/app/charts/model/abstract.chart.attributes.values.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -96776,7 +96755,7 @@ var ChartOfAttributeValues = (function (_super) {
     __extends(ChartOfAttributeValues, _super);
     function ChartOfAttributeValues() {
         _super.apply(this, arguments);
-        this.instances = [];
+        this.resources = [];
     }
     ChartOfAttributeValues.prototype.newValue = function (_data) {
         this.chartData.push(_data);
@@ -96942,12 +96921,33 @@ exports.AttributeInformation = AttributeInformation;
 
 /***/ },
 
-/***/ "./src/app/charts/model/attribute.value.axis.ts":
+/***/ "./src/app/charts/model/axis/abstract.axis.ts":
+/***/ function(module, exports) {
+
+"use strict";
+"use strict";
+var Axis = (function () {
+    function Axis() {
+        this.name = "";
+    }
+    ;
+    // subtypes constants for types
+    Axis.CHRONO = "chrono";
+    Axis.INSTANCE = "resource";
+    Axis.ATTRIBUTES = "attributeValue";
+    return Axis;
+}());
+exports.Axis = Axis;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/axis/attribute.value.axis.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var abstract_axis_1 = __webpack_require__("./src/app/charts/model/abstract.axis.ts");
+var abstract_axis_1 = __webpack_require__("./src/app/charts/model/axis/abstract.axis.ts");
 var AttributeValueAxis = (function (_super) {
     __extends(AttributeValueAxis, _super);
     function AttributeValueAxis() {
@@ -96983,6 +96983,58 @@ exports.AttributeValueAxis = AttributeValueAxis;
 
 /***/ },
 
+/***/ "./src/app/charts/model/axis/chrono.axis.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_axis_1 = __webpack_require__("./src/app/charts/model/axis/abstract.axis.ts");
+var ChronoAxis = (function (_super) {
+    __extends(ChronoAxis, _super);
+    function ChronoAxis() {
+        _super.apply(this, arguments);
+        this.type = abstract_axis_1.Axis.CHRONO;
+        this.unitOfMeasurement = "seconds";
+    }
+    ChronoAxis.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        return _value;
+    };
+    return ChronoAxis;
+}(abstract_axis_1.Axis));
+exports.ChronoAxis = ChronoAxis;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/axis/instance.axis.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_axis_1 = __webpack_require__("./src/app/charts/model/axis/abstract.axis.ts");
+var InstanceNameAxis = (function (_super) {
+    __extends(InstanceNameAxis, _super);
+    function InstanceNameAxis() {
+        _super.call(this);
+        this.type = abstract_axis_1.Axis.INSTANCE;
+        this.name = "resources";
+    }
+    InstanceNameAxis.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        return _value;
+    };
+    return InstanceNameAxis;
+}(abstract_axis_1.Axis));
+exports.InstanceNameAxis = InstanceNameAxis;
+
+
+/***/ },
+
 /***/ "./src/app/charts/model/chart.data.ts":
 /***/ function(module, exports) {
 
@@ -97004,8 +97056,8 @@ var ChartData = (function () {
         if (_json["chartType"] != undefined) {
             _value.chartType = _json["chartType"];
         }
-        if (_json["instanceName"] != undefined) {
-            _value.instanceName = _json["instanceName"];
+        if (_json["resourceName"] != undefined) {
+            _value.resourceName = _json["resourceName"];
         }
         return _value;
     };
@@ -97022,8 +97074,8 @@ exports.ChartData = ChartData;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var HorizontalBarChartOfAttributeValues = (function (_super) {
@@ -97046,7 +97098,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
             return;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
+            if (this.chartData[i].resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -97074,7 +97126,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         this._chartObject = new Chart($("#" + this.id), {
             type: 'horizontalBar',
             data: {
-                labels: this.instances,
+                labels: this.resources,
                 datasets: [{
                         label: this.getAxisX().getLabelRepresentation(),
                         data: this.chartData.map(function (data) { return data.attributeValue; }),
@@ -97087,7 +97139,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
                     responsive: true,
                     title: {
                         display: true,
-                        text: this.component
+                        text: this.group
                     }
                 }
             }
@@ -97097,8 +97149,8 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         var _value = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
+        _value["group"] = this.group;
+        _value["resources"] = this.resources;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
         if (!$.isEmptyObject(this.preferences)) {
@@ -97120,8 +97172,8 @@ exports.HorizontalBarChartOfAttributeValues = HorizontalBarChartOfAttributeValue
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var chrono_axis_1 = __webpack_require__("./src/app/charts/model/chrono.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
@@ -97142,12 +97194,12 @@ var LineChartOfAttributeValues = (function (_super) {
     };
     LineChartOfAttributeValues.prototype.prepareDatasets = function () {
         var _value = [];
-        for (var i = 0; i < this.instances.length; i++) {
+        for (var i = 0; i < this.resources.length; i++) {
             var _currentValue = {};
-            _currentValue.key = this.instances[i];
+            _currentValue.key = this.resources[i];
             _currentValue.values = [];
             for (var j = 0; j < this.chartData.length; j++) {
-                if (this.instances[i] == this.chartData[j].instanceName) {
+                if (this.resources[i] == this.chartData[j].resourceName) {
                     _currentValue.values.push({ x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue });
                 }
             }
@@ -97162,7 +97214,7 @@ var LineChartOfAttributeValues = (function (_super) {
             var _ds = d3.select('#' + this.id).datum();
             var _found = false;
             for (var i = 0; i < _ds.length; i++) {
-                if (_ds[i].key == _data.instanceName) {
+                if (_ds[i].key == _data.resourceName) {
                     _ds[i].values.push({ x: _data.timestamp, y: _data.attributeValue });
                     _found = true;
                     if ((new Date().getTime() - _ds[i].values[0].x.getTime()) > this.preferences["interval"] * 60 * 1000) {
@@ -97203,8 +97255,8 @@ var LineChartOfAttributeValues = (function (_super) {
         var _value = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
+        _value["group"] = this.group;
+        _value["resources"] = this.resources;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
         if (!$.isEmptyObject(this.preferences)) {
@@ -97226,8 +97278,8 @@ exports.LineChartOfAttributeValues = LineChartOfAttributeValues;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var PanelOfAttributeValues = (function (_super) {
     __extends(PanelOfAttributeValues, _super);
@@ -97248,7 +97300,7 @@ var PanelOfAttributeValues = (function (_super) {
             return;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
+            if (this.chartData[i].resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -97262,12 +97314,12 @@ var PanelOfAttributeValues = (function (_super) {
         if (_table != undefined) {
             if (_index < 0) {
                 var _tr = $("<tr/>");
-                _tr.append("<td>" + _data.instanceName + "</td>");
-                _tr.append("<td instance-binding='" + _data.instanceName + "'>" + _data.attributeValue + "</td>");
+                _tr.append("<td>" + _data.resourceName + "</td>");
+                _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
                 _table.append(_tr);
             }
             else {
-                _table.find("[instance-binding='" + _data.instanceName + "']").html(_data.attributeValue);
+                _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
             }
         }
     };
@@ -97281,8 +97333,8 @@ var PanelOfAttributeValues = (function (_super) {
         _table.append(_thead);
         for (var i = 0; i < this.chartData.length; i++) {
             var _tr = $("<tr/>");
-            _tr.append("<td>" + this.chartData[i].instanceName + "</td>");
-            _tr.append("<td instance-binding='" + this.chartData[i].instanceName + "'>" + this.chartData[i].attributeValue + "</td>");
+            _tr.append("<td>" + this.chartData[i].resourceName + "</td>");
+            _tr.append("<td instance-binding='" + this.chartData[i].resourceName + "'>" + this.chartData[i].attributeValue + "</td>");
             _table.append(_tr);
         }
         $("#" + this.id).append(_table);
@@ -97291,8 +97343,8 @@ var PanelOfAttributeValues = (function (_super) {
         var _value = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
+        _value["group"] = this.group;
+        _value["resources"] = this.resources;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
         if (!$.isEmptyObject(this.preferences)) {
@@ -97314,8 +97366,8 @@ exports.PanelOfAttributeValues = PanelOfAttributeValues;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var PieChartOfAttributeValues = (function (_super) {
@@ -97338,7 +97390,7 @@ var PieChartOfAttributeValues = (function (_super) {
             return;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
+            if (this.chartData[i].resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -97365,7 +97417,7 @@ var PieChartOfAttributeValues = (function (_super) {
         this._chartObject = new Chart($("#" + this.id), {
             type: 'doughnut',
             data: {
-                labels: this.instances,
+                labels: this.resources,
                 datasets: [{
                         label: this.getAxisY().getLabelRepresentation(),
                         data: this.chartData.map(function (data) { return data.attributeValue; }),
@@ -97381,7 +97433,7 @@ var PieChartOfAttributeValues = (function (_super) {
                     circumference: Math.PI * 0.5,
                     title: {
                         display: true,
-                        text: this.component
+                        text: this.group
                     }
                 }
             }
@@ -97391,8 +97443,8 @@ var PieChartOfAttributeValues = (function (_super) {
         var _value = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
+        _value["group"] = this.group;
+        _value["resources"] = this.resources;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
         if (!$.isEmptyObject(this.preferences)) {
@@ -97414,8 +97466,8 @@ exports.PieChartOfAttributeValues = PieChartOfAttributeValues;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var VerticalBarChartOfAttributeValues = (function (_super) {
@@ -97438,7 +97490,7 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
             return;
         var _index = -1;
         for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
+            if (this.chartData[i].resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -97465,7 +97517,7 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
         this._chartObject = new Chart($("#" + this.id), {
             type: "bar",
             data: {
-                labels: this.instances,
+                labels: this.resources,
                 datasets: [{
                         label: this.getAxisY().getLabelRepresentation(),
                         data: this.chartData.map(function (data) { return data.attributeValue; }),
@@ -97478,7 +97530,7 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
                     responsive: true,
                     title: {
                         display: true,
-                        text: this.component
+                        text: this.group
                     }
                 }
             }
@@ -97488,8 +97540,8 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
         var _value = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
+        _value["group"] = this.group;
+        _value["resources"] = this.resources;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
         if (!$.isEmptyObject(this.preferences)) {
@@ -97502,32 +97554,6 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
 exports.VerticalBarChartOfAttributeValues = VerticalBarChartOfAttributeValues;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
-
-/***/ },
-
-/***/ "./src/app/charts/model/chrono.axis.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var abstract_axis_1 = __webpack_require__("./src/app/charts/model/abstract.axis.ts");
-var ChronoAxis = (function (_super) {
-    __extends(ChronoAxis, _super);
-    function ChronoAxis() {
-        _super.apply(this, arguments);
-        this.type = abstract_axis_1.Axis.CHRONO;
-        this.unitOfMeasurement = "seconds";
-    }
-    ChronoAxis.prototype.toJSON = function () {
-        var _value = {};
-        _value["@type"] = this.type;
-        _value["name"] = this.name;
-        return _value;
-    };
-    return ChronoAxis;
-}(abstract_axis_1.Axis));
-exports.ChronoAxis = ChronoAxis;
-
 
 /***/ },
 
@@ -97561,42 +97587,16 @@ exports.Dashboard = Dashboard;
 
 /***/ },
 
-/***/ "./src/app/charts/model/instance.axis.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var abstract_axis_1 = __webpack_require__("./src/app/charts/model/abstract.axis.ts");
-var InstanceNameAxis = (function (_super) {
-    __extends(InstanceNameAxis, _super);
-    function InstanceNameAxis() {
-        _super.call(this);
-        this.type = abstract_axis_1.Axis.INSTANCE;
-        this.name = "instances";
-    }
-    InstanceNameAxis.prototype.toJSON = function () {
-        var _value = {};
-        _value["@type"] = this.type;
-        _value["name"] = this.name;
-        return _value;
-    };
-    return InstanceNameAxis;
-}(abstract_axis_1.Axis));
-exports.InstanceNameAxis = InstanceNameAxis;
-
-
-/***/ },
-
 /***/ "./src/app/charts/model/objectFactory.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
-var abstract_axis_1 = __webpack_require__("./src/app/charts/model/abstract.axis.ts");
+var abstract_axis_1 = __webpack_require__("./src/app/charts/model/axis/abstract.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
-var chrono_axis_1 = __webpack_require__("./src/app/charts/model/chrono.axis.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/instance.axis.ts");
-var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/attribute.value.axis.ts");
+var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis.ts");
+var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var attribute_1 = __webpack_require__("./src/app/charts/model/attribute.ts");
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var abstract_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.chart.attributes.values.ts");
@@ -97668,10 +97668,10 @@ var Factory = (function () {
             }
             if (_chart instanceof abstract_chart_attributes_values_1.ChartOfAttributeValues) {
                 if (_json["component"] != undefined) {
-                    _chart.component = _json["component"];
+                    _chart.group = _json["group"];
                 }
                 if (_json["instances"] != undefined) {
-                    _chart.instances = _json["instances"];
+                    _chart.resources = _json["resources"];
                 }
             }
             if (_chart instanceof abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues) {
@@ -97721,10 +97721,10 @@ var Factory = (function () {
         _chart.name = name;
         _chart.setGroupName(groupName);
         if (component) {
-            _chart.component = component;
+            _chart.group = component;
         }
         if (instances) {
-            _chart.instances = instances;
+            _chart.resources = instances;
         }
         if (sourceAttribute) {
             _chart.setSourceAttribute(sourceAttribute);
@@ -99712,7 +99712,7 @@ var ChartService = (function () {
     ChartService.prototype.pushNewChartData = function (_data) {
         // loop through all the data we have received
         for (var _currentChartName in _data) {
-            // create a chart data instances
+            // create a chart data resources
             var _d = _data[_currentChartName];
             for (var i = 0; i < _d.length; i++) {
                 var _chartData = chart_data_1.ChartData.fromJSON(_d[i]);

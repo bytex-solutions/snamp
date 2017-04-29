@@ -1,6 +1,6 @@
 import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
-import { InstanceNameAxis } from '../instance.axis';
-import { AttributeValueAxis } from '../attribute.value.axis';
+import { InstanceNameAxis } from '../axis/instance.axis';
+import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
 import { ChartData } from '../chart.data';
 
@@ -25,7 +25,7 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         if (document.hidden) return;
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
+            if (this.chartData[i].resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -39,11 +39,11 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         if (_table != undefined) {
             if (_index < 0) {
                 let _tr = $("<tr/>");
-                _tr.append("<td>" + _data.instanceName + "</td>");
-                _tr.append("<td instance-binding='" + _data.instanceName + "'>" + _data.attributeValue + "</td>");
+                _tr.append("<td>" + _data.resourceName + "</td>");
+                _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
                 _table.append(_tr);
             } else {
-                _table.find("[instance-binding='" + _data.instanceName + "']").html(_data.attributeValue);
+                _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
             }
         }
     }
@@ -58,8 +58,8 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         _table.append(_thead);
         for (let i = 0; i < this.chartData.length; i++) {
             let _tr = $("<tr/>");
-            _tr.append("<td>" + this.chartData[i].instanceName + "</td>");
-            _tr.append("<td instance-binding='"+ this.chartData[i].instanceName + "'>" + this.chartData[i].attributeValue + "</td>");
+            _tr.append("<td>" + this.chartData[i].resourceName + "</td>");
+            _tr.append("<td instance-binding='"+ this.chartData[i].resourceName + "'>" + this.chartData[i].attributeValue + "</td>");
             _table.append(_tr);
         }
         $("#" + this.id).append(_table);
@@ -69,8 +69,8 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         let _value:any = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
+        _value["group"] = this.group;
+        _value["resources"] = this.resources;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
         if (!$.isEmptyObject(this.preferences)) {

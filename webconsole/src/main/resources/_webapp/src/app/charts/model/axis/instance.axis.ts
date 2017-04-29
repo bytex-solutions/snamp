@@ -4,7 +4,7 @@ export class InstanceNameAxis extends Axis {
     public type:string = Axis.INSTANCE;
     constructor() {
         super();
-        this.name = "instances";
+        this.name = "resources";
     }
 
     public toJSON():any {

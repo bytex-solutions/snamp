@@ -1,6 +1,6 @@
 import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
-import { InstanceNameAxis } from '../instance.axis';
-import { AttributeValueAxis } from '../attribute.value.axis';
+import { InstanceNameAxis } from '../axis/instance.axis';
+import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
 import { ChartData } from '../chart.data';
 
@@ -29,7 +29,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         if (document.hidden) return;
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].instanceName == _data.instanceName) {
+            if (this.chartData[i].resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -57,7 +57,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         this._chartObject = new Chart($("#" + this.id), {
             type: "bar",
             data: {
-                labels: this.instances,
+                labels: this.resources,
                 datasets: [{
                     label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
                     data: this.chartData.map(data => data.attributeValue),
@@ -70,7 +70,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                     responsive: true,
                     title: {
                         display: true,
-                        text: this.component
+                        text: this.group
                     }
                 }
             }
@@ -81,8 +81,8 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         let _value:any = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
-        _value["component"] = this.component;
-        _value["instances"] = this.instances;
+        _value["group"] = this.group;
+        _value["resources"] = this.resources;
         _value["X"] = this.getAxisX().toJSON();
         _value["Y"] = this.getAxisY().toJSON();
         if (!$.isEmptyObject(this.preferences)) {
