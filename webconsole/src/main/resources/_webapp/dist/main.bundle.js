@@ -100054,7 +100054,7 @@ var REST = (function () {
     };
     //
     REST.CHART_INSTANCES = function (componentName) {
-        return REST.GROUPS_WEB_API + "/resources?groupName=" + encodeURIComponent(componentName);
+        return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/resources/";
     };
     REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
         return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/attributes";

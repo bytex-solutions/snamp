@@ -186,7 +186,7 @@ export class REST {
 
     //
     public static CHART_INSTANCES(componentName: string): string {
-        return REST.GROUPS_WEB_API + "/resources?groupName=" + encodeURIComponent(componentName);
+        return REST.GROUPS_WEB_API + "/" +  encodeURIComponent(componentName) +  "/resources/";
     }
 
     public static CHART_METRICS_BY_COMPONENT(componentName: string): string {
