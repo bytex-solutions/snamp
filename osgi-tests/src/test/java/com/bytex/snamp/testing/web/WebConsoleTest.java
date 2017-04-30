@@ -704,6 +704,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             });
             watcher.getHealthCheckConfig().getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
             watcher.getHealthCheckConfig().getTrigger().setScript(groovyTrigger);
+            watcher.getDiscoveryConfig().setConnectionStringTemplate("{first(addresses.private).addr}");
         });
     }
 

@@ -29,6 +29,22 @@ public final class SupervisorConfigurationService extends AbstractEntityConfigur
     }
 
     @GET
+    @Path("/{groupName}/discovery/connectionStringTemplate")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getConnectionStringTemplate(@PathParam("groupName") final String groupName){
+        return getConfigurationByName(groupName, config -> config.getDiscoveryConfig().getConnectionStringTemplate());
+    }
+
+    @PUT
+    @Path("/{groupName}/discovery/connectionStringTemplate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void setConnectionStringTemplate(@PathParam("groupName") final String groupName,
+                                            final String template,
+                                            @Context final SecurityContext context) {
+        setConfigurationByName(groupName, config -> config.getDiscoveryConfig().setConnectionStringTemplate(template), context);
+    }
+
+    @GET
     @Path("/{groupName}/healthCheck/trigger")
     @Produces(MediaType.APPLICATION_JSON)
     public ScriptletDataObject getTrigger(@PathParam("groupName") final String groupName){

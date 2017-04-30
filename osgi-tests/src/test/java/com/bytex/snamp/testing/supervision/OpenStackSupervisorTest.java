@@ -51,6 +51,7 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
 
     @Test
     public void healthStatusTest() throws TimeoutException, InterruptedException {
+        //TimeUnit.DAYS.sleep(1);
         try(final SupervisorClient client = SpinWait.untilNull(getTestBundleContext(), GROUP_NAME, OpenStackSupervisorTest::getSupervisor, Duration.ofSeconds(3))){
             final HealthStatusProvider provider = client.queryObject(HealthStatusProvider.class).orElseThrow(AssertionError::new);
             //wait for resources discovery (expected 3 nodes)
@@ -72,9 +73,7 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
      */
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        config.getResourceGroups().addAndConsume("os_nodes", group -> {
-            group.setType("stub");
-        });
+        config.getResourceGroups().addAndConsume("os_nodes", group -> group.setType("stub"));
         config.getSupervisors().addAndConsume(GROUP_NAME, supervisor -> {
             supervisor.setType("openstack");
             supervisor.put("authURL", OS_AUTH_URL);

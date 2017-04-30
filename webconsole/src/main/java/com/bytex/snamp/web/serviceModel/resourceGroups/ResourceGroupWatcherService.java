@@ -128,7 +128,6 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
 
     @Override
     public void handle(@Nonnull final SupervisionEvent event, final Object handback) {
-        final String groupName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
         final Consumer<? super WebMessage> broadcastMessageSender = this::sendBroadcastMessage;
         //send message when resource added or removed
         Convert.toType(event, GroupCompositionChanged.class)
