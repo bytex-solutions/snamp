@@ -22,8 +22,8 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
         private final double[] values;
         private final int actualSize;
 
-        private DoubleReservoirSnapshot(final DoubleReservoir reservoir){
-            this.values = reservoir.values;
+        private DoubleReservoirSnapshot(final DoubleReservoir reservoir) {
+            this.values = reservoir.values.clone();
             this.actualSize = reservoir.actualSize;
         }
 
@@ -57,7 +57,9 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
 
     @Override
     public DoubleReservoirSnapshot takeSnapshot() {
-        return new DoubleReservoirSnapshot(this);
+        try(final SafeCloseable ignored = acquireWriteLock()) {
+            return new DoubleReservoirSnapshot(this);
+        }
     }
 
     @Override
@@ -85,15 +87,50 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
     }
 
     /**
+     * Gets casting vote weight depends on the actual size of this reservoir.
+     *
+     * @return Casting vote weight.
+     */
+    @Override
+    public double getCastingVoteWeight() {
+        return Math.floor(actualSize / 2D) + 1;
+    }
+
+    /**
+     * Proceed voting.
+     *
+     * @return {@literal true}, if sum of all values in this reservoir is greater or equal than {@link #getCastingVoteWeight()}.
+     */
+    @Override
+    public boolean vote() {
+        try (final SafeCloseable ignored = acquireReadLock()) {
+            double sum = 0D;
+            for(int i = 0; i < actualSize; i++)
+                sum += values[i];
+            return sum >= getCastingVoteWeight();
+        }
+    }
+
+    /**
+     * Extracts content of this reservoir as array.
+     *
+     * @return Generic copy of reservoir values.
+     */
+    @Override
+    public double[] toArray() {
+        try (final SafeCloseable ignored = acquireReadLock()) {
+            return values.clone();
+        }
+    }
+
+    /**
      * Gets size of this reservoir.
      *
      * @return The size of this reservoir.
      */
     @Override
     public int getSize() {
-        try(final SafeCloseable ignored = acquireReadLock()){
-            return actualSize;
-        }
+        return actualSize;
     }
 
     /**

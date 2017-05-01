@@ -80,7 +80,7 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
         MEDIAN,
         PERCENTILE_90,
         PERCENTILE_95,
-        PERCENTILE_98
+        PERCENTILE_97
     }
 
     /**
@@ -95,6 +95,12 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
     }
 
     interface MetricBasedScalingPolicyInfo extends ScalingPolicyInfo{
+        /**
+         * Indicates that weight of the vote will be increased proportionally to actual observation time.
+         * @return {@literal true}, if vote weight can be increased proportionally to actual observation time; {@literal false} if weight is constant.
+         */
+        boolean isIncrementalVoteWeight();
+        
         /**
          * Gets behavior model of the metric.
          * @return Behavior model of the metric.

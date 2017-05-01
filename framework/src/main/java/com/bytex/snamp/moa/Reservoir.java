@@ -34,6 +34,18 @@ public interface Reservoir extends Stateful, Serializable {
     double getMean();
 
     /**
+     * Gets casting vote weight depends on the actual size of this reservoir.
+     * @return Casting vote weight.
+     */
+    double getCastingVoteWeight();
+
+    /**
+     * Proceed voting.
+     * @return {@literal true}, if sum of all values in this reservoir is greater or equal than {@link #getCastingVoteWeight()}.
+     */
+    boolean vote();
+
+    /**
      * Finds location of the value in this reservoir.
      * @param value The value to find.
      * @return The location of the value in this reservoir
@@ -69,4 +81,10 @@ public interface Reservoir extends Stateful, Serializable {
      * @param value A value to add.
      */
     void add(final Number value);
+
+    /**
+     * Extracts content of this reservoir as array.
+     * @return Generic copy of reservoir values.
+     */
+    Serializable toArray();
 }

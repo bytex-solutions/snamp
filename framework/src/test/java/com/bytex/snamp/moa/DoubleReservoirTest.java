@@ -60,4 +60,33 @@ public final class DoubleReservoirTest extends Assert {
         assertEquals(0.25D, reservoir.greaterThanOrEqualValues(6D), 0.001D);
         assertEquals(0.75D, reservoir.lessThanOrEqualValues(5D), 0.001D);
     }
+
+    @Test
+    public void votingTest(){
+        DoubleReservoir reservoir = new DoubleReservoir(2);
+        reservoir.accept(0.5D);
+        reservoir.accept(1D);
+        assertEquals(2, reservoir.getCastingVoteWeight(), 0.01D);
+        assertFalse(reservoir.vote());
+        reservoir = new DoubleReservoir(3);
+        reservoir.accept(1D);
+        reservoir.accept(1D);
+        reservoir.accept(1D);
+        assertTrue(reservoir.vote());
+        assertEquals(2, reservoir.getCastingVoteWeight(), 0.01D);
+        reservoir = new DoubleReservoir(4);
+        reservoir.accept(1D);
+        reservoir.accept(2D);
+        reservoir.accept(3D);
+        reservoir.accept(4D);
+        assertEquals(3, reservoir.getCastingVoteWeight(), 0.01D);
+        reservoir = new DoubleReservoir(5);
+        reservoir.accept(1D);
+        reservoir.accept(2D);
+        reservoir.accept(3D);
+        reservoir.accept(4D);
+        reservoir.accept(5D);
+        assertEquals(3, reservoir.getCastingVoteWeight(), 0.01D);
+
+    }
 }
