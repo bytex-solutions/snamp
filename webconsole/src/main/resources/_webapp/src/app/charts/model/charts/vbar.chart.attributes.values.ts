@@ -1,18 +1,20 @@
 import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
-import { InstanceNameAxis } from '../axis/instance.axis';
+import { ResourceNameAxis } from '../axis/resource.name.axis';
 import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
-import { ChartData } from '../chart.data';
+import {AttributeChartData} from "../data/attribute.chart.data";
 
 const Chart = require('chart.js');
 
 export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public type:string = AbstractChart.VBAR;
+    get type():string {
+        return AbstractChart.VBAR;
+    }
 
     private _chartObject:any = undefined;
 
     public createDefaultAxisX() {
-        return new InstanceNameAxis();
+        return new ResourceNameAxis();
     }
 
     public createDefaultAxisY() {
@@ -25,11 +27,11 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         this.setSizeY(10);
     }
 
-    public newValue(_data:ChartData):void {
+    public newValue(_data:AttributeChartData):void {
         if (document.hidden) return;
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].resourceName == _data.resourceName) {
+            if ((<AttributeChartData>this.chartData[i]).resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -60,7 +62,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
                 labels: this.resources,
                 datasets: [{
                     label: (<AttributeValueAxis>this.getAxisY()).getLabelRepresentation(),
-                    data: this.chartData.map(data => data.attributeValue),
+                    data: this.chartData.map(data => (<AttributeChartData>data).attributeValue),
                     backgroundColor : this._backgroundColors,
                     borderColor: this._borderColorData,
                     hoverBackgroundColor: this._backgroundHoverColors,

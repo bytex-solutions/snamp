@@ -1,5 +1,5 @@
-import { ChartData } from './chart.data';
 import { Observable } from 'rxjs/Observable';
+import { ChartData } from "./data/abstract.data";
 
 const Chart = require('chart.js');
 
@@ -9,6 +9,7 @@ export abstract class AbstractChart {
     public static HBAR:string = "horizontalBarChartOfAttributeValues";
     public static PANEL:string = "panelOfAttributeValues";
     public static LINE:string = "lineChartOfAttributeValues";
+    public static HEALTH_STATUS:string = "groupHealthStatus";
 
     // map chartjs types to current hierarchy types
     public static TYPE_MAPPING:{[key:string]:string} = {
@@ -16,7 +17,8 @@ export abstract class AbstractChart {
         'horizontalBar':    AbstractChart.HBAR,
         'bar':              AbstractChart.VBAR,
         'line':             AbstractChart.LINE,
-        'panel':            AbstractChart.PANEL
+        'panel':            AbstractChart.PANEL,
+        'statuses':         AbstractChart.HEALTH_STATUS,
     };
 
     public name:string;
@@ -69,6 +71,8 @@ export abstract class AbstractChart {
     set pausedTime(value: Date) {
         this._pausedTime = value;
     }
+
+    abstract get type():string;
 
     constructor() {
         this.preferences["gridcfg"] = {};

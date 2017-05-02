@@ -1,14 +1,17 @@
 import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
-import { InstanceNameAxis } from '../axis/instance.axis';
+import { ResourceNameAxis } from '../axis/resource.name.axis';
 import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
-import { ChartData } from '../chart.data';
 import { ChartUtils } from "./chart.utils";
+import { AttributeChartData } from "../data/attribute.chart.data";
 
 const Chart = require('chart.js');
 
 export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public type:string = AbstractChart.HBAR;
+
+    get type():string {
+        return AbstractChart.HBAR;
+    }
 
     private _chartObject:any = undefined;
 
@@ -17,7 +20,7 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
     }
 
     public createDefaultAxisY() {
-        return new InstanceNameAxis();
+        return new ResourceNameAxis();
     }
 
     constructor() {
@@ -26,11 +29,11 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
         this.setSizeY(10);
     }
 
-    public newValue(_data:ChartData):void {
+    public newValue(_data:AttributeChartData):void {
         if (document.hidden) return;
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].resourceName == _data.resourceName) {
+            if ((<AttributeChartData>this.chartData[i]).resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -62,7 +65,7 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
                 labels: this.resources,
                 datasets: [{
                     label: (<AttributeValueAxis>this.getAxisX()).getLabelRepresentation(),
-                    data: this.chartData.map(data => data.attributeValue),
+                    data: this.chartData.map(data => (<AttributeChartData>data).attributeValue),
                     backgroundColor : this._backgroundColors,
                     borderColor: this._borderColorData,
                     hoverBackgroundColor: this._backgroundHoverColors,

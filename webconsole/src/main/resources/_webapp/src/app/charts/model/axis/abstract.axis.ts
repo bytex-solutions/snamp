@@ -1,8 +1,9 @@
 export abstract class Axis {
     // subtypes constants for types
     public static CHRONO:string = "chrono";
-    public static INSTANCE:string = "resource";
+    public static RESOURCE:string = "resource";
     public static ATTRIBUTES:string = "attributeValue";
+    public static HEALTH_STATUS:string = "healthStatus";
 
     constructor(){};
 

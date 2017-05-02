@@ -8,13 +8,14 @@ import { ApiClient, REST } from './app.restClient';
 import { Dashboard } from '../charts/model/dashboard';
 import { AbstractChart } from '../charts/model/abstract.chart';
 import { Factory } from '../charts/model/objectFactory';
-import { ChartData } from '../charts/model/chart.data';
+import { ChartData } from "../charts/model/data/abstract.data";
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
+import {ChartDataFabric} from "../charts/model/data/fabric";
 
 @Injectable()
 export class ChartService {
@@ -37,6 +38,10 @@ export class ChartService {
 
     public getChartsByGroupName(groupName:string):AbstractChart[] {
         return this._dashboard.charts.filter(_ch => (_ch.getGroupName() == groupName));
+    }
+
+    public getChartByName(chartName:string):AbstractChart {
+        return this._dashboard.charts.filter(_ch => (_ch.name == chartName))[0];
     }
 
     public getGroups():Observable<string[]> {
@@ -95,7 +100,7 @@ export class ChartService {
             // create a chart data instances
             let _d:any[] = _data[_currentChartName];
             for (let i = 0; i < _d.length; i++) {
-                let _chartData:ChartData = ChartData.fromJSON(_d[i]);
+                let _chartData:ChartData = ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]);
 
                 // notify all the components that something has changed
                 if (this.chartSubjects[_currentChartName] != undefined) {
@@ -186,7 +191,7 @@ export class ChartService {
                 let _newChartDataArray:ChartData[] = [];
                 if (_object[_element] instanceof Array) {
                     for (let i = 0; i < _object[_element].length; i++) {
-                        _newChartDataArray.push(ChartData.fromJSON(_object[_element][i]));
+                        _newChartDataArray.push(ChartDataFabric.chartDataFromJSON(this.getChartByName(_object).type,_object[_element][i]));
                     }
                 }
                 _value[_element] = _newChartDataArray;

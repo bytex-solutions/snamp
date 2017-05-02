@@ -1,5 +1,4 @@
 import { ChartOfAttributeValues } from './abstract.chart.attributes.values';
-import { Axis } from './axis/abstract.axis';
 import { AttributeInformation } from './attribute';
 import { AttributeValueAxis } from './axis/attribute.value.axis';
 import { ChartUtils } from "./chart.utils";
@@ -25,34 +24,6 @@ export abstract class TwoDimensionalChartOfAttributeValues extends ChartOfAttrib
         this._backgroundColors = this.chartData.map((data, i) => TwoDimensionalChartOfAttributeValues.hslFromValue(i, this.chartData.length, 0.3));
         this._borderColorData = new Array(this.chartData.length).fill(TwoDimensionalChartOfAttributeValues.borderColor);
         this._backgroundHoverColors = this.chartData.map((data, i) => TwoDimensionalChartOfAttributeValues.hslFromValue(i, this.chartData.length, 0.75));
-    }
-
-    private axisX:Axis;
-    private axisY:Axis;
-    abstract createDefaultAxisX():Axis;
-
-    abstract createDefaultAxisY():Axis;
-
-    public getAxisX():Axis {
-        if (this.axisX == undefined) {
-            this.axisX = this.createDefaultAxisX();
-        }
-        return this.axisX;
-    }
-
-    public getAxisY():Axis {
-        if (this.axisY == undefined) {
-            this.axisY = this.createDefaultAxisY();
-        }
-        return this.axisY;
-    }
-
-    public setAxisX(x:Axis):void {
-        this.axisX = x;
-    }
-
-    public setAxisY(y:Axis):void {
-        this.axisY = y;
     }
 
     public setSourceAttribute(sourceAttribute:AttributeInformation):void {

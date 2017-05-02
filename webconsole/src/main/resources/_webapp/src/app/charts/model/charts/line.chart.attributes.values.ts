@@ -2,13 +2,15 @@ import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attri
 import { ChronoAxis } from '../axis/chrono.axis';
 import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
-import { ChartData } from '../chart.data';
+import { AttributeChartData } from "../data/attribute.chart.data";
 
 const d3 = require('d3');
 const nv = require('nvd3');
 
 export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public type:string = AbstractChart.LINE;
+    get type():string {
+        return AbstractChart.LINE;
+    }
 
     private _chartObject:any = undefined;
 
@@ -33,8 +35,8 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
             _currentValue.key = this.resources[i];
             _currentValue.values = [];
             for (let j = 0; j < this.chartData.length; j++) {
-                if (this.resources[i] == this.chartData[j].resourceName) {
-                    _currentValue.values.push({x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue});
+                if (this.resources[i] == (<AttributeChartData>this.chartData[j]).resourceName) {
+                    _currentValue.values.push({x: this.chartData[j].timestamp, y: (<AttributeChartData>this.chartData[j]).attributeValue});
                 }
 
             }
@@ -43,7 +45,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
         return _value;
     }
 
-    public newValue(_data:ChartData):void {
+    public newValue(_data:AttributeChartData):void {
         this.chartData.push(_data);
         let _index:number = this.chartData.length - 1;
         if (this._chartObject != undefined) {

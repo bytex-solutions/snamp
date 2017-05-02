@@ -2,7 +2,7 @@ import { Axis } from './axis/abstract.axis';
 import { AbstractChart } from './abstract.chart';
 
 import { ChronoAxis } from './axis/chrono.axis';
-import { InstanceNameAxis } from './axis/instance.axis';
+import { ResourceNameAxis } from './axis/resource.name.axis';
 import { AttributeValueAxis } from './axis/attribute.value.axis';
 import { AttributeInformation } from './attribute';
 
@@ -14,6 +14,7 @@ import { HorizontalBarChartOfAttributeValues } from './charts/hbar.chart.attribu
 import { LineChartOfAttributeValues } from './charts/line.chart.attributes.values';
 import { PanelOfAttributeValues } from './charts/panel.attributes.values';
 import { PieChartOfAttributeValues } from './charts/pie.chart.attributes.values';
+import { TwoDimensionalChart } from "./two.dimensional.chart";
 
 // Factory to create appropriate objects from json
 export class Factory {
@@ -29,8 +30,8 @@ export class Factory {
                 case Axis.CHRONO:
                     _axis = new ChronoAxis();
                     break;
-                case Axis.INSTANCE:
-                    _axis = new InstanceNameAxis();
+                case Axis.RESOURCE:
+                    _axis = new ResourceNameAxis();
                     break;
                 case Axis.ATTRIBUTES:
                     _axis = new AttributeValueAxis();
@@ -84,15 +85,15 @@ export class Factory {
                 }
             }
 
-            if (_chart instanceof TwoDimensionalChartOfAttributeValues) {
+            if (_chart instanceof TwoDimensionalChart) {
                 if (_json["X"] != undefined) { // TwoDimensionalChartOfAttributeValues
-                    (<TwoDimensionalChartOfAttributeValues>_chart).setAxisX(Factory.axisFromJSON(_json["X"]));
+                    (<TwoDimensionalChart>_chart).setAxisX(Factory.axisFromJSON(_json["X"]));
                 }
                 if (_json["Y"] != undefined) { // TwoDimensionalChartOfAttributeValues
-                    (<TwoDimensionalChartOfAttributeValues>_chart).setAxisY(Factory.axisFromJSON(_json["Y"]));
+                    (<TwoDimensionalChart>_chart).setAxisY(Factory.axisFromJSON(_json["Y"]));
                 }
-                (<TwoDimensionalChartOfAttributeValues>_chart).getAxisX(); // set not null axis. just secure it.
-                (<TwoDimensionalChartOfAttributeValues>_chart).getAxisY(); // set not null axis. just secure it.
+                (<TwoDimensionalChart>_chart).getAxisX(); // set not null axis. just secure it.
+                (<TwoDimensionalChart>_chart).getAxisY(); // set not null axis. just secure it.
             }
             if (_json["name"] != undefined) {
                 _chart.name = _json["name"];

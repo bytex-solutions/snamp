@@ -1,14 +1,16 @@
 import { TwoDimensionalChartOfAttributeValues } from '../abstract.2d.chart.attributes.values';
-import { InstanceNameAxis } from '../axis/instance.axis';
+import { ResourceNameAxis } from '../axis/resource.name.axis';
 import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
-import { ChartData } from '../chart.data';
+import { AttributeChartData } from "../data/attribute.chart.data";
 
 export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
-    public type:string = AbstractChart.PANEL;
+    get type():string {
+        return AbstractChart.PANEL;
+    }
 
     public createDefaultAxisX() {
-        return new InstanceNameAxis();
+        return new ResourceNameAxis();
     }
 
     public createDefaultAxisY() {
@@ -21,11 +23,11 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         this.setSizeY(10);
     }
 
-    public newValue(_data:ChartData):void {
+    public newValue(_data:AttributeChartData):void {
         if (document.hidden) return;
         let _index:number = -1;
         for (let i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].resourceName == _data.resourceName) {
+            if ((<AttributeChartData>this.chartData[i]).resourceName == _data.resourceName) {
                 _index = i; // remember the index
                 this.chartData[i] = _data; // change the data
                 break;
@@ -58,8 +60,8 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         _table.append(_thead);
         for (let i = 0; i < this.chartData.length; i++) {
             let _tr = $("<tr/>");
-            _tr.append("<td>" + this.chartData[i].resourceName + "</td>");
-            _tr.append("<td instance-binding='"+ this.chartData[i].resourceName + "'>" + this.chartData[i].attributeValue + "</td>");
+            _tr.append("<td>" + (<AttributeChartData>this.chartData[i]).resourceName + "</td>");
+            _tr.append("<td instance-binding='"+ (<AttributeChartData>this.chartData[i]).resourceName + "'>" + (<AttributeChartData>this.chartData[i]).attributeValue + "</td>");
             _table.append(_tr);
         }
         $("#" + this.id).append(_table);

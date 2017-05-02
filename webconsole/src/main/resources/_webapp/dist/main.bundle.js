@@ -96710,24 +96710,6 @@ var TwoDimensionalChartOfAttributeValues = (function (_super) {
         this._borderColorData = new Array(this.chartData.length).fill(TwoDimensionalChartOfAttributeValues.borderColor);
         this._backgroundHoverColors = this.chartData.map(function (data, i) { return TwoDimensionalChartOfAttributeValues.hslFromValue(i, _this.chartData.length, 0.75); });
     };
-    TwoDimensionalChartOfAttributeValues.prototype.getAxisX = function () {
-        if (this.axisX == undefined) {
-            this.axisX = this.createDefaultAxisX();
-        }
-        return this.axisX;
-    };
-    TwoDimensionalChartOfAttributeValues.prototype.getAxisY = function () {
-        if (this.axisY == undefined) {
-            this.axisY = this.createDefaultAxisY();
-        }
-        return this.axisY;
-    };
-    TwoDimensionalChartOfAttributeValues.prototype.setAxisX = function (x) {
-        this.axisX = x;
-    };
-    TwoDimensionalChartOfAttributeValues.prototype.setAxisY = function (y) {
-        this.axisY = y;
-    };
     TwoDimensionalChartOfAttributeValues.prototype.setSourceAttribute = function (sourceAttribute) {
         if (this.getAxisX() instanceof attribute_value_axis_1.AttributeValueAxis) {
             this.getAxisX().sourceAttribute = sourceAttribute;
@@ -96750,7 +96732,7 @@ exports.TwoDimensionalChartOfAttributeValues = TwoDimensionalChartOfAttributeVal
 
 "use strict";
 "use strict";
-var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
 var ChartOfAttributeValues = (function (_super) {
     __extends(ChartOfAttributeValues, _super);
     function ChartOfAttributeValues() {
@@ -96761,7 +96743,7 @@ var ChartOfAttributeValues = (function (_super) {
         this.chartData.push(_data);
     };
     return ChartOfAttributeValues;
-}(abstract_chart_1.AbstractChart));
+}(two_dimensional_chart_1.TwoDimensionalChart));
 exports.ChartOfAttributeValues = ChartOfAttributeValues;
 
 
@@ -96827,6 +96809,11 @@ var AbstractChart = (function () {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(AbstractChart.prototype, "type", {
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
     AbstractChart.prototype.isChartVisible = function () {
         return $('#' + this.id).length && !this.updateStopped;
     };
@@ -96856,13 +96843,15 @@ var AbstractChart = (function () {
     AbstractChart.HBAR = "horizontalBarChartOfAttributeValues";
     AbstractChart.PANEL = "panelOfAttributeValues";
     AbstractChart.LINE = "lineChartOfAttributeValues";
+    AbstractChart.HEALTH_STATUS = "groupHealthStatus";
     // map chartjs types to current hierarchy types
     AbstractChart.TYPE_MAPPING = {
         'doughnut': AbstractChart.PIE,
         'horizontalBar': AbstractChart.HBAR,
         'bar': AbstractChart.VBAR,
         'line': AbstractChart.LINE,
-        'panel': AbstractChart.PANEL
+        'panel': AbstractChart.PANEL,
+        'statuses': AbstractChart.HEALTH_STATUS,
     };
     return AbstractChart;
 }());
@@ -96933,8 +96922,9 @@ var Axis = (function () {
     ;
     // subtypes constants for types
     Axis.CHRONO = "chrono";
-    Axis.INSTANCE = "resource";
+    Axis.RESOURCE = "resource";
     Axis.ATTRIBUTES = "attributeValue";
+    Axis.HEALTH_STATUS = "healthStatus";
     return Axis;
 }());
 exports.Axis = Axis;
@@ -97009,61 +96999,28 @@ exports.ChronoAxis = ChronoAxis;
 
 /***/ },
 
-/***/ "./src/app/charts/model/axis/instance.axis.ts":
+/***/ "./src/app/charts/model/axis/resource.name.axis.ts":
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
 "use strict";
 var abstract_axis_1 = __webpack_require__("./src/app/charts/model/axis/abstract.axis.ts");
-var InstanceNameAxis = (function (_super) {
-    __extends(InstanceNameAxis, _super);
-    function InstanceNameAxis() {
+var ResourceNameAxis = (function (_super) {
+    __extends(ResourceNameAxis, _super);
+    function ResourceNameAxis() {
         _super.call(this);
-        this.type = abstract_axis_1.Axis.INSTANCE;
+        this.type = abstract_axis_1.Axis.RESOURCE;
         this.name = "resources";
     }
-    InstanceNameAxis.prototype.toJSON = function () {
+    ResourceNameAxis.prototype.toJSON = function () {
         var _value = {};
         _value["@type"] = this.type;
         _value["name"] = this.name;
         return _value;
     };
-    return InstanceNameAxis;
+    return ResourceNameAxis;
 }(abstract_axis_1.Axis));
-exports.InstanceNameAxis = InstanceNameAxis;
-
-
-/***/ },
-
-/***/ "./src/app/charts/model/chart.data.ts":
-/***/ function(module, exports) {
-
-"use strict";
-"use strict";
-var ChartData = (function () {
-    function ChartData() {
-        this.timestamp = new Date();
-    }
-    ChartData.fromJSON = function (_json) {
-        var _value = new ChartData();
-        // for (var prop in obj) _value[prop] = _json[prop];
-        if (_json["attributeName"] != undefined) {
-            _value.attributeName = _json["attributeName"];
-        }
-        if (_json["attributeValue"] != undefined) {
-            _value.attributeValue = _json["attributeValue"];
-        }
-        if (_json["chartType"] != undefined) {
-            _value.chartType = _json["chartType"];
-        }
-        if (_json["resourceName"] != undefined) {
-            _value.resourceName = _json["resourceName"];
-        }
-        return _value;
-    };
-    return ChartData;
-}());
-exports.ChartData = ChartData;
+exports.ResourceNameAxis = ResourceNameAxis;
 
 
 /***/ },
@@ -97074,7 +97031,7 @@ exports.ChartData = ChartData;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
@@ -97082,16 +97039,22 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
     __extends(HorizontalBarChartOfAttributeValues, _super);
     function HorizontalBarChartOfAttributeValues() {
         _super.call(this);
-        this.type = abstract_chart_1.AbstractChart.HBAR;
         this._chartObject = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
+    Object.defineProperty(HorizontalBarChartOfAttributeValues.prototype, "type", {
+        get: function () {
+            return abstract_chart_1.AbstractChart.HBAR;
+        },
+        enumerable: true,
+        configurable: true
+    });
     HorizontalBarChartOfAttributeValues.prototype.createDefaultAxisX = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
     HorizontalBarChartOfAttributeValues.prototype.createDefaultAxisY = function () {
-        return new instance_axis_1.InstanceNameAxis();
+        return new resource_name_axis_1.ResourceNameAxis();
     };
     HorizontalBarChartOfAttributeValues.prototype.newValue = function (_data) {
         if (document.hidden)
@@ -97181,11 +97144,17 @@ var LineChartOfAttributeValues = (function (_super) {
     __extends(LineChartOfAttributeValues, _super);
     function LineChartOfAttributeValues() {
         _super.call(this);
-        this.type = abstract_chart_1.AbstractChart.LINE;
         this._chartObject = undefined;
         this.setSizeX(20);
         this.setSizeY(10);
     }
+    Object.defineProperty(LineChartOfAttributeValues.prototype, "type", {
+        get: function () {
+            return abstract_chart_1.AbstractChart.LINE;
+        },
+        enumerable: true,
+        configurable: true
+    });
     LineChartOfAttributeValues.prototype.createDefaultAxisX = function () {
         return new chrono_axis_1.ChronoAxis();
     };
@@ -97278,19 +97247,25 @@ exports.LineChartOfAttributeValues = LineChartOfAttributeValues;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var PanelOfAttributeValues = (function (_super) {
     __extends(PanelOfAttributeValues, _super);
     function PanelOfAttributeValues() {
         _super.call(this);
-        this.type = abstract_chart_1.AbstractChart.PANEL;
         this.setSizeX(10);
         this.setSizeY(10);
     }
+    Object.defineProperty(PanelOfAttributeValues.prototype, "type", {
+        get: function () {
+            return abstract_chart_1.AbstractChart.PANEL;
+        },
+        enumerable: true,
+        configurable: true
+    });
     PanelOfAttributeValues.prototype.createDefaultAxisX = function () {
-        return new instance_axis_1.InstanceNameAxis();
+        return new resource_name_axis_1.ResourceNameAxis();
     };
     PanelOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
@@ -97366,7 +97341,7 @@ exports.PanelOfAttributeValues = PanelOfAttributeValues;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
@@ -97374,13 +97349,19 @@ var PieChartOfAttributeValues = (function (_super) {
     __extends(PieChartOfAttributeValues, _super);
     function PieChartOfAttributeValues() {
         _super.call(this);
-        this.type = abstract_chart_1.AbstractChart.PIE;
         this._chartObject = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
+    Object.defineProperty(PieChartOfAttributeValues.prototype, "type", {
+        get: function () {
+            return abstract_chart_1.AbstractChart.PIE;
+        },
+        enumerable: true,
+        configurable: true
+    });
     PieChartOfAttributeValues.prototype.createDefaultAxisX = function () {
-        return new instance_axis_1.InstanceNameAxis();
+        return new resource_name_axis_1.ResourceNameAxis();
     };
     PieChartOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
@@ -97466,7 +97447,7 @@ exports.PieChartOfAttributeValues = PieChartOfAttributeValues;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
@@ -97474,13 +97455,19 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
     __extends(VerticalBarChartOfAttributeValues, _super);
     function VerticalBarChartOfAttributeValues() {
         _super.call(this);
-        this.type = abstract_chart_1.AbstractChart.VBAR;
         this._chartObject = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
+    Object.defineProperty(VerticalBarChartOfAttributeValues.prototype, "type", {
+        get: function () {
+            return abstract_chart_1.AbstractChart.VBAR;
+        },
+        enumerable: true,
+        configurable: true
+    });
     VerticalBarChartOfAttributeValues.prototype.createDefaultAxisX = function () {
-        return new instance_axis_1.InstanceNameAxis();
+        return new resource_name_axis_1.ResourceNameAxis();
     };
     VerticalBarChartOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
@@ -97587,6 +97574,171 @@ exports.Dashboard = Dashboard;
 
 /***/ },
 
+/***/ "./src/app/charts/model/data/abstract.data.ts":
+/***/ function(module, exports) {
+
+"use strict";
+"use strict";
+var ChartData = (function () {
+    function ChartData() {
+        this.timestamp = new Date();
+    }
+    return ChartData;
+}());
+exports.ChartData = ChartData;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/data/attribute.chart.data.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_data_1 = __webpack_require__("./src/app/charts/model/data/abstract.data.ts");
+var AttributeChartData = (function (_super) {
+    __extends(AttributeChartData, _super);
+    function AttributeChartData() {
+        _super.apply(this, arguments);
+    }
+    Object.defineProperty(AttributeChartData.prototype, "attributeName", {
+        get: function () {
+            return this._attributeName;
+        },
+        set: function (value) {
+            this._attributeName = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AttributeChartData.prototype, "attributeValue", {
+        get: function () {
+            return this._attributeValue;
+        },
+        set: function (value) {
+            this._attributeValue = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AttributeChartData.prototype, "resourceName", {
+        get: function () {
+            return this._resourceName;
+        },
+        set: function (value) {
+            this._resourceName = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    AttributeChartData.prototype.fillFromJSON = function (_json) {
+        if (_json["attributeName"] != undefined) {
+            this.attributeName = _json["attributeName"];
+        }
+        if (_json["attributeValue"] != undefined) {
+            this.attributeValue = _json["attributeValue"];
+        }
+        if (_json["resourceName"] != undefined) {
+            this.resourceName = _json["resourceName"];
+        }
+    };
+    return AttributeChartData;
+}(abstract_data_1.ChartData));
+exports.AttributeChartData = AttributeChartData;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/data/fabric.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var attribute_chart_data_1 = __webpack_require__("./src/app/charts/model/data/attribute.chart.data.ts");
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var health_status_chart_data_1 = __webpack_require__("./src/app/charts/model/data/health.status.chart.data.ts");
+var ChartDataFabric = (function () {
+    function ChartDataFabric() {
+    }
+    ChartDataFabric.chartDataFromJSON = function (chartType, _json) {
+        var _data;
+        if (chartType != abstract_chart_1.AbstractChart.HEALTH_STATUS) {
+            _data = new attribute_chart_data_1.AttributeChartData();
+        }
+        else {
+            _data = new health_status_chart_data_1.HealthStatusChartData();
+        }
+        _data.fillFromJSON(_json);
+        _data.chartType = chartType;
+        return _data;
+    };
+    return ChartDataFabric;
+}());
+exports.ChartDataFabric = ChartDataFabric;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/data/health.status.chart.data.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_data_1 = __webpack_require__("./src/app/charts/model/data/abstract.data.ts");
+var factory_1 = __webpack_require__("./src/app/services/model/healthstatus/factory.ts");
+var HealthStatusChartData = (function (_super) {
+    __extends(HealthStatusChartData, _super);
+    function HealthStatusChartData() {
+        _super.apply(this, arguments);
+    }
+    Object.defineProperty(HealthStatusChartData.prototype, "summary", {
+        get: function () {
+            return this._summary;
+        },
+        set: function (value) {
+            this._summary = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(HealthStatusChartData.prototype, "status", {
+        get: function () {
+            return this._status;
+        },
+        set: function (value) {
+            this._status = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(HealthStatusChartData.prototype, "name", {
+        get: function () {
+            return this._name;
+        },
+        set: function (value) {
+            this._name = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    HealthStatusChartData.prototype.fillFromJSON = function (_json) {
+        if (_json["summary"] != undefined) {
+            this.summary = _json["summary"];
+        }
+        if (_json["name"] != undefined) {
+            this.name = _json["name"];
+        }
+        if (_json["status"] != undefined) {
+            this.status = factory_1.StatusFactory.healthStatusFromJSON(this.name, _json["status"]);
+        }
+    };
+    return HealthStatusChartData;
+}(abstract_data_1.ChartData));
+exports.HealthStatusChartData = HealthStatusChartData;
+
+
+/***/ },
+
 /***/ "./src/app/charts/model/objectFactory.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -97595,16 +97747,16 @@ exports.Dashboard = Dashboard;
 var abstract_axis_1 = __webpack_require__("./src/app/charts/model/axis/abstract.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis.ts");
-var instance_axis_1 = __webpack_require__("./src/app/charts/model/axis/instance.axis.ts");
+var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var attribute_1 = __webpack_require__("./src/app/charts/model/attribute.ts");
-var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var abstract_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.chart.attributes.values.ts");
 var vbar_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/vbar.chart.attributes.values.ts");
 var hbar_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/hbar.chart.attributes.values.ts");
 var line_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/line.chart.attributes.values.ts");
 var panel_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/panel.attributes.values.ts");
 var pie_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/pie.chart.attributes.values.ts");
+var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
@@ -97621,8 +97773,8 @@ var Factory = (function () {
                 case abstract_axis_1.Axis.CHRONO:
                     _axis = new chrono_axis_1.ChronoAxis();
                     break;
-                case abstract_axis_1.Axis.INSTANCE:
-                    _axis = new instance_axis_1.InstanceNameAxis();
+                case abstract_axis_1.Axis.RESOURCE:
+                    _axis = new resource_name_axis_1.ResourceNameAxis();
                     break;
                 case abstract_axis_1.Axis.ATTRIBUTES:
                     _axis = new attribute_value_axis_1.AttributeValueAxis();
@@ -97674,7 +97826,7 @@ var Factory = (function () {
                     _chart.resources = _json["resources"];
                 }
             }
-            if (_chart instanceof abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues) {
+            if (_chart instanceof two_dimensional_chart_1.TwoDimensionalChart) {
                 if (_json["X"] != undefined) {
                     _chart.setAxisX(Factory.axisFromJSON(_json["X"]));
                 }
@@ -97734,6 +97886,42 @@ var Factory = (function () {
     return Factory;
 }());
 exports.Factory = Factory;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/two.dimensional.chart.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var TwoDimensionalChart = (function (_super) {
+    __extends(TwoDimensionalChart, _super);
+    function TwoDimensionalChart() {
+        _super.apply(this, arguments);
+    }
+    TwoDimensionalChart.prototype.getAxisX = function () {
+        if (this.axisX == undefined) {
+            this.axisX = this.createDefaultAxisX();
+        }
+        return this.axisX;
+    };
+    TwoDimensionalChart.prototype.getAxisY = function () {
+        if (this.axisY == undefined) {
+            this.axisY = this.createDefaultAxisY();
+        }
+        return this.axisY;
+    };
+    TwoDimensionalChart.prototype.setAxisX = function (x) {
+        this.axisX = x;
+    };
+    TwoDimensionalChart.prototype.setAxisY = function (y) {
+        this.axisY = y;
+    };
+    return TwoDimensionalChart;
+}(abstract_chart_1.AbstractChart));
+exports.TwoDimensionalChart = TwoDimensionalChart;
 
 
 /***/ },
@@ -99642,12 +99830,12 @@ var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts
 var dashboard_1 = __webpack_require__("./src/app/charts/model/dashboard.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var objectFactory_1 = __webpack_require__("./src/app/charts/model/objectFactory.ts");
-var chart_data_1 = __webpack_require__("./src/app/charts/model/chart.data.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
+var fabric_1 = __webpack_require__("./src/app/charts/model/data/fabric.ts");
 var ChartService = (function () {
     function ChartService(localStorageService, _http) {
         this.localStorageService = localStorageService;
@@ -99664,6 +99852,9 @@ var ChartService = (function () {
     };
     ChartService.prototype.getChartsByGroupName = function (groupName) {
         return this._dashboard.charts.filter(function (_ch) { return (_ch.getGroupName() == groupName); });
+    };
+    ChartService.prototype.getChartByName = function (chartName) {
+        return this._dashboard.charts.filter(function (_ch) { return (_ch.name == chartName); })[0];
     };
     ChartService.prototype.getGroups = function () {
         return this.groups;
@@ -99717,7 +99908,7 @@ var ChartService = (function () {
             // create a chart data instances
             var _d = _data[_currentChartName];
             for (var i = 0; i < _d.length; i++) {
-                var _chartData = chart_data_1.ChartData.fromJSON(_d[i]);
+                var _chartData = fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]);
                 // notify all the components that something has changed
                 if (this.chartSubjects[_currentChartName] != undefined) {
                     this.chartSubjects[_currentChartName].next(_chartData);
@@ -99798,7 +99989,7 @@ var ChartService = (function () {
                 var _newChartDataArray = [];
                 if (_object[_element] instanceof Array) {
                     for (var i = 0; i < _object[_element].length; i++) {
-                        _newChartDataArray.push(chart_data_1.ChartData.fromJSON(_object[_element][i]));
+                        _newChartDataArray.push(fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_object).type, _object[_element][i]));
                     }
                 }
                 _value[_element] = _newChartDataArray;
