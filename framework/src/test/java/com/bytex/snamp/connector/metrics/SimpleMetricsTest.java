@@ -108,7 +108,7 @@ public final class SimpleMetricsTest extends Assert {
         writer.accept(Duration.ofMillis(1500));
         //timing
         assertEquals(Duration.ofMillis(1500), writer.getLastValue());
-        assertEquals(500, writer.getQuantile(0.5D).toMillis());
+        assertEquals(500, writer.getQuantile(0.5F).toMillis());
         assertEquals(Duration.ofMillis(450), writer.getMinValue());
         assertEquals(Duration.ofMillis(1500), writer.getMaxValue());
     }
@@ -151,7 +151,7 @@ public final class SimpleMetricsTest extends Assert {
         final byte[] serializationData = IOUtils.serialize(writer);
         writer = IOUtils.deserialize(serializationData, TimeRecorder.class);
         assertEquals(Duration.ofMillis(1500), writer.getLastValue());
-        assertEquals(500, writer.getQuantile(0.5D).toMillis());
+        assertEquals(500, writer.getQuantile(0.5F).toMillis());
         assertEquals(Duration.ofMillis(450), writer.getMinValue());
         assertEquals(Duration.ofMillis(1500), writer.getMaxValue());
     }
@@ -181,7 +181,7 @@ public final class SimpleMetricsTest extends Assert {
         assertEquals(30D, writer.getMaxValue(), 0.1D);
         assertEquals(5D, writer.getMinValue(), 0.1D);
         assertEquals(16D, writer.getLastValue(), 0.1D);
-        assertEquals(19.6D, writer.getQuantile(0.7), 0.1D);
+        assertEquals(19.6D, writer.getQuantile(0.7F), 0.1D);
     }
 
     @Test
@@ -208,7 +208,7 @@ public final class SimpleMetricsTest extends Assert {
         assertEquals(30L, writer.getMaxValue());
         assertEquals(5L, writer.getMinValue());
         assertEquals(16L, writer.getLastValue());
-        assertEquals(19.6D, writer.getQuantile(0.7), 0.1D);
+        assertEquals(19.6D, writer.getQuantile(0.7F), 0.1D);
     }
 
     @Test
@@ -250,7 +250,7 @@ public final class SimpleMetricsTest extends Assert {
         assertEquals(30L, recorder.getMaxValue());
         assertEquals(5L, recorder.getMinValue());
         assertEquals(16L, recorder.getLastValue());
-        assertEquals(19.6D, recorder.getQuantile(0.7), 0.1D);
+        assertEquals(19.6D, recorder.getQuantile(0.7F), 0.1D);
         assertEquals(6, recorder.getTotalRate());
     }
 }

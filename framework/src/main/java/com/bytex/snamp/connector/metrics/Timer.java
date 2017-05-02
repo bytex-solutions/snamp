@@ -15,7 +15,7 @@ public interface Timer extends Gauge<Duration> {
      * @param quantile The quantile value.
      * @return Duration at the specified quantile.
      */
-    Duration getQuantile(final double quantile);
+    Duration getQuantile(final float quantile);
 
     /**
      * Gets standard deviation of all durations.

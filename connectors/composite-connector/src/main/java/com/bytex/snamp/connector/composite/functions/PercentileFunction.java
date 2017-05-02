@@ -11,11 +11,11 @@ import com.bytex.snamp.moa.Reservoir;
  */
 final class PercentileFunction extends NumericFunction {
     private final Reservoir reservoir;
-    private final double quantile;
+    private final float quantile;
 
-    PercentileFunction(final long percentile){
+    PercentileFunction(final byte percentile){
         reservoir = new DoubleReservoir(4096);
-        quantile = percentile / 100D;
+        quantile = percentile / 100F;
     }
 
     @Override

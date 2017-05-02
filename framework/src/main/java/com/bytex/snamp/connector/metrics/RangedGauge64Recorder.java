@@ -68,7 +68,7 @@ public class RangedGauge64Recorder extends RangedValue64Recorder implements Rang
     }
 
     @Override
-    public final double getQuantile(final double quantile) {
+    public final double getQuantile(final float quantile) {
         return gauge64.getQuantile(quantile);
     }
 

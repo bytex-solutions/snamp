@@ -117,7 +117,7 @@ public class RangedTimerRecorder extends AbstractRangedRecorder implements Range
      * @return Duration at the specified quantile.
      */
     @Override
-    public final Duration getQuantile(final double quantile) {
+    public final Duration getQuantile(final float quantile) {
         return timer.getQuantile(quantile);
     }
 

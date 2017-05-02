@@ -64,9 +64,9 @@ public abstract class AdjacencyMatrixWithArrivals extends AdjacencyMatrix {
             meanResponseTime = fillMap(metric, Arrivals::getLastMeanValue, Duration::toNanos);
             meanResponseTime.put(ALL_TIME, metric.getMeanValue().toNanos());
             responseTimeStdDev = metric.getDeviation().toNanos();
-            responseTime90 = metric.getQuantile(0.9D).toNanos();
-            responseTime95 = metric.getQuantile(0.95D).toNanos();
-            responseTime98 = metric.getQuantile(0.98D).toNanos();
+            responseTime90 = metric.getQuantile(0.9F).toNanos();
+            responseTime95 = metric.getQuantile(0.95F).toNanos();
+            responseTime98 = metric.getQuantile(0.98F).toNanos();
             //availability
             availability = fillMap(metric, Arrivals::getLastMeanAvailability, Function.identity());
             //rate

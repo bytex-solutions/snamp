@@ -43,7 +43,7 @@ abstract class AbstractNumericGauge extends AbstractMetric implements NumericGau
     }
 
     @Override
-    public final double getQuantile(final double quantile) {
+    public final double getQuantile(final float quantile) {
         return reservoir.getQuantile(quantile);
     }
 

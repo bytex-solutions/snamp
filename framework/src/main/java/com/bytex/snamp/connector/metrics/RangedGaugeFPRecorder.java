@@ -67,7 +67,7 @@ public class RangedGaugeFPRecorder extends RangedValueFPRecorder implements Rang
     }
 
     @Override
-    public final double getQuantile(final double quantile) {
+    public final double getQuantile(final float quantile) {
         return gaugeFP.getQuantile(quantile);
     }
 

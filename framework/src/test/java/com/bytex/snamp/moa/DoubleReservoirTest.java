@@ -44,7 +44,7 @@ public final class DoubleReservoirTest extends Assert {
         assertEquals(10, reservoir.getSize());
         assertEquals(15, reservoir.getCapacity());
         assertEquals(17.8D, reservoir.getMean(), 0.01D);
-        assertEquals(24.2D, reservoir.getQuantile(0.7), 0.1D);
+        assertEquals(24.2D, reservoir.getQuantile(0.7F), 0.1D);
     }
 
     @Test

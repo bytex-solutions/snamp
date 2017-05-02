@@ -297,31 +297,31 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
         }
     }
 
-    private static double index(final double p, final int length) {
-        if (Double.compare(p, 0D) == 0)
+    private static float index(final float p, final int length) {
+        if (Float.compare(p, 0F) == 0)
             return 0F;
-        else if (Double.compare(p, 1D) == 0)
+        else if (Float.compare(p, 0F) == 0)
             return length;
         else
             return (length + 1) * p;
     }
 
-    private double getQuantileImpl(final double quantile){
-        final double index = index(quantile, actualSize);
+    private double getQuantileImpl(final float quantile){
+        final float index = index(quantile, actualSize);
         if (index < 1)
             return values[0];
         else if (index >= actualSize)
             return values[actualSize - 1];
         else {
-            final double fpos = Math.floor(index);
-            final double lower = values[(int)fpos - 1];
-            final double upper = values[(int)fpos];
+            final int fpos = (int)index;    //do not use floor, because index is positive
+            final double lower = values[fpos - 1];
+            final double upper = values[fpos];
             return lower + (index - fpos) * (upper - lower);
         }
     }
 
     @Override
-    public double getQuantile(final double quantile) {
+    public double getQuantile(final float quantile) {
         try(final SafeCloseable ignored = acquireReadLock()){
             return getQuantileImpl(quantile);
         }

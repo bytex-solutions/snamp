@@ -28,6 +28,10 @@ public class IntegerToken extends Token implements LongSupplier {
         return Long.parseLong(toString());
     }
 
+    public byte getAsByte(){
+        return Byte.parseByte(toString());
+    }
+
     static boolean isValidCharacter(final char ch){
         return Character.isDigit(ch);
     }

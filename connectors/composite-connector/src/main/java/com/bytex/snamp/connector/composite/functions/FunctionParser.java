@@ -56,7 +56,7 @@ public final class FunctionParser extends Tokenizer {
 
     private PercentileFunction parsePercentileFunction() throws ParseException{
         nextToken(LeftBracketToken.class);
-        final long percentile = nextToken(IntegerToken.class).getAsLong();
+        final byte percentile = nextToken(IntegerToken.class).getAsByte();
         nextToken(RightBracketToken.class);
         return new PercentileFunction(percentile);
     }

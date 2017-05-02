@@ -103,7 +103,7 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
      * @return Duration at the specified quantile.
      */
     @Override
-    public final Duration getQuantile(final double quantile) {
+    public final Duration getQuantile(final float quantile) {
         return fromDouble(reservoir.getQuantile(quantile));
     }
 

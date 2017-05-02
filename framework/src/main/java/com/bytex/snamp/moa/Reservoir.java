@@ -73,7 +73,7 @@ public interface Reservoir extends Stateful, Serializable {
      */
     double getDeviation();
 
-    double getQuantile(final double quantile);
+    double getQuantile(final float quantile);
 
     /**
      * Adds a new value to this reservoir.
