@@ -60,4 +60,14 @@ public final class DoubleReservoirTest extends Assert {
         assertEquals(0.25D, reservoir.greaterThanOrEqualValues(6D), 0.001D);
         assertEquals(0.75D, reservoir.lessThanOrEqualValues(5D), 0.001D);
     }
+
+    @Test
+    public void sumTest(){
+        final DoubleReservoir reservoir = new DoubleReservoir(5);
+        reservoir.add(5.1D);
+        reservoir.add(3D);
+        reservoir.add(1D);
+        reservoir.add(9.2D);
+        assertEquals(18.3D, reservoir.sum(), 0.01D);
+    }
 }
