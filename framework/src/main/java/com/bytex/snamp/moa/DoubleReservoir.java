@@ -62,6 +62,19 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
         }
     }
 
+    /**
+     * Computes sum of all elements in this reservoir.
+     * @return Sum of all elements in this reservoir.
+     */
+    public double sum() {
+        double sum = 0D;
+        try (final SafeCloseable ignored = acquireWriteLock()) {
+            for (int i = 0; i < actualSize; i++)
+                sum += values[i];
+        }
+        return sum;
+    }
+
     @Override
     public Object writeReplace() {
         return takeSnapshot();
@@ -83,31 +96,6 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
         try(final SafeCloseable ignored = acquireWriteLock()){
             actualSize = 0;
             Arrays.fill(values, 0D);
-        }
-    }
-
-    /**
-     * Gets casting vote weight depends on the actual size of this reservoir.
-     *
-     * @return Casting vote weight.
-     */
-    @Override
-    public double getCastingVoteWeight() {
-        return Math.floor(actualSize / 2D) + 1;
-    }
-
-    /**
-     * Proceed voting.
-     *
-     * @return {@literal true}, if sum of all values in this reservoir is greater or equal than {@link #getCastingVoteWeight()}.
-     */
-    @Override
-    public boolean vote() {
-        try (final SafeCloseable ignored = acquireReadLock()) {
-            double sum = 0D;
-            for(int i = 0; i < actualSize; i++)
-                sum += values[i];
-            return sum >= getCastingVoteWeight();
         }
     }
 
