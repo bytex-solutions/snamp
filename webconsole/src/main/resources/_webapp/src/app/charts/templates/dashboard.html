@@ -1,5 +1,5 @@
 <!-- Modal for entity appending -->
-<div class="modal fade" id="addChartModal" role="dialog" aria-labelledby="addChartLabel">
+<div class="modal fade" id="addChartModal" role="dialog" aria-labelledby="addChartLabel" *ngIf="selectedChartType != ''">
   <div class="modal-dialog modal-xlg modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -47,7 +47,7 @@
                 </label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
                   <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
-                    <option value="">NO GROUP</option>
+                    <option value="" *ngIf="selectedChartType != 'statuses'">NO GROUP</option>
                     <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
                   </select>
                 </div>
@@ -177,6 +177,7 @@
   <li [tooltip]="'Vertical bar chart'" (click)="appendChartClicked('bar')"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
   <li [tooltip]="'Simple line chart'" (click)="appendChartClicked('line')"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
   <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
+  <li [tooltip]="'Resource group health status'" (click)="appendChartClicked('statuses')"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></li>
 </ul>
 
 <div class="right_col" role="main" style="min-height: 949px;">

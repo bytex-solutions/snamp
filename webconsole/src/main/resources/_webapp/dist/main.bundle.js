@@ -96999,6 +96999,33 @@ exports.ChronoAxis = ChronoAxis;
 
 /***/ },
 
+/***/ "./src/app/charts/model/axis/health.status.axis.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_axis_1 = __webpack_require__("./src/app/charts/model/axis/abstract.axis.ts");
+var HealthStatusAxis = (function (_super) {
+    __extends(HealthStatusAxis, _super);
+    function HealthStatusAxis() {
+        _super.call(this);
+        this.type = abstract_axis_1.Axis.HEALTH_STATUS;
+        this.unitOfMeasurement = "threatLevel";
+        this.name = "Health Statuses";
+    }
+    HealthStatusAxis.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        return _value;
+    };
+    return HealthStatusAxis;
+}(abstract_axis_1.Axis));
+exports.HealthStatusAxis = HealthStatusAxis;
+
+
+/***/ },
+
 /***/ "./src/app/charts/model/axis/resource.name.axis.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -97441,6 +97468,61 @@ exports.PieChartOfAttributeValues = PieChartOfAttributeValues;
 
 /***/ },
 
+/***/ "./src/app/charts/model/charts/resource.group.health.status.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
+var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
+var health_status_axis_1 = __webpack_require__("./src/app/charts/model/axis/health.status.axis.ts");
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var ResourceGroupHealthStatusChart = (function (_super) {
+    __extends(ResourceGroupHealthStatusChart, _super);
+    function ResourceGroupHealthStatusChart() {
+        _super.call(this);
+        this.setSizeX(10);
+        this.setSizeY(10);
+    }
+    Object.defineProperty(ResourceGroupHealthStatusChart.prototype, "type", {
+        get: function () {
+            return abstract_chart_1.AbstractChart.HEALTH_STATUS;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ResourceGroupHealthStatusChart.prototype.createDefaultAxisX = function () {
+        return new resource_name_axis_1.ResourceNameAxis();
+    };
+    ResourceGroupHealthStatusChart.prototype.createDefaultAxisY = function () {
+        return new health_status_axis_1.HealthStatusAxis();
+    };
+    ResourceGroupHealthStatusChart.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        _value["group"] = this.group;
+        _value["X"] = this.getAxisX().toJSON();
+        _value["Y"] = this.getAxisY().toJSON();
+        if (!$.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
+        return _value;
+    };
+    ResourceGroupHealthStatusChart.prototype.doDraw = function () {
+        console.log("doDraw logic is not implemented yet");
+    };
+    ResourceGroupHealthStatusChart.prototype.newValue = function (_data) {
+        console.log("New data has been received for ResourceGroupHealthStatusChart entity: ", _data);
+    };
+    return ResourceGroupHealthStatusChart;
+}(two_dimensional_chart_1.TwoDimensionalChart));
+exports.ResourceGroupHealthStatusChart = ResourceGroupHealthStatusChart;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
 /***/ "./src/app/charts/model/charts/vbar.chart.attributes.values.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -97750,6 +97832,7 @@ var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis
 var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var attribute_1 = __webpack_require__("./src/app/charts/model/attribute.ts");
+var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var abstract_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.chart.attributes.values.ts");
 var vbar_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/vbar.chart.attributes.values.ts");
 var hbar_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/hbar.chart.attributes.values.ts");
@@ -97757,6 +97840,8 @@ var line_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model
 var panel_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/panel.attributes.values.ts");
 var pie_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/pie.chart.attributes.values.ts");
 var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
+var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
+var health_status_axis_1 = __webpack_require__("./src/app/charts/model/axis/health.status.axis.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
@@ -97781,6 +97866,9 @@ var Factory = (function () {
                     if (_json["sourceAttribute"] != undefined) {
                         _axis.sourceAttribute = new attribute_1.AttributeInformation(_json["sourceAttribute"]);
                     }
+                    break;
+                case abstract_axis_1.Axis.HEALTH_STATUS:
+                    _axis = new health_status_axis_1.HealthStatusAxis();
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
@@ -97814,6 +97902,9 @@ var Factory = (function () {
                     break;
                 case abstract_chart_1.AbstractChart.PIE:
                     _chart = new pie_chart_attributes_values_1.PieChartOfAttributeValues();
+                    break;
+                case abstract_chart_1.AbstractChart.HEALTH_STATUS:
+                    _chart = new resource_group_health_status_1.ResourceGroupHealthStatusChart();
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
@@ -97865,21 +97956,29 @@ var Factory = (function () {
             case abstract_chart_1.AbstractChart.PIE:
                 _chart = new pie_chart_attributes_values_1.PieChartOfAttributeValues();
                 break;
+            case abstract_chart_1.AbstractChart.HEALTH_STATUS:
+                _chart = new resource_group_health_status_1.ResourceGroupHealthStatusChart();
+                _chart.group = component;
+                break;
             default:
                 throw new Error("Type " + type + " is unknown and cannot be parsed correctly");
         }
-        _chart.getAxisX();
-        _chart.getAxisY();
         _chart.name = name;
         _chart.setGroupName(groupName);
-        if (component) {
-            _chart.group = component;
+        if (_chart instanceof two_dimensional_chart_1.TwoDimensionalChart) {
+            _chart.getAxisX();
+            _chart.getAxisY();
         }
-        if (instances) {
-            _chart.resources = instances;
-        }
-        if (sourceAttribute) {
-            _chart.setSourceAttribute(sourceAttribute);
+        if (_chart instanceof abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues) {
+            if (component) {
+                _chart.group = component;
+            }
+            if (instances) {
+                _chart.resources = instances;
+            }
+            if (sourceAttribute) {
+                _chart.setSourceAttribute(sourceAttribute);
+            }
         }
         return _chart;
     };

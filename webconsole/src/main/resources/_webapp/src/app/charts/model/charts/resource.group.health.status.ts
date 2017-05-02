@@ -20,6 +20,12 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         return new HealthStatusAxis();
     }
 
+    constructor() {
+        super();
+        this.setSizeX(10);
+        this.setSizeY(10);
+    }
+
 
     toJSON(): any {
         let _value:any = {};
@@ -35,8 +41,10 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
     }
 
     protected doDraw(): void {
+        console.log("doDraw logic is not implemented yet");
     }
 
     newValue(_data: ChartData): void {
+        console.log("New data has been received for ResourceGroupHealthStatusChart entity: ", _data);
     }
 }

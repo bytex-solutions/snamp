@@ -41,11 +41,9 @@ export class Dashboard {
     private allInstances:string[] = [];
     private selectedAllInstances:boolean = true;
 
-    private selectedChartType:string = "bar";
+    private selectedChartType:string = "";
 
     private chartName:string = "newChart";
-
-    private initialized = false;
 
     private _charts:AbstractChart[] = [];
 
@@ -97,36 +95,34 @@ export class Dashboard {
 
     appendChartClicked(type:string) {
         this.selectedChartType = type;
+        this.cd.detectChanges(); // draw the modal html
         this.initModal();
     }
 
     private initModal():void {
-        // clean the data if the component was already initialized
-        if (this.initialized) {
-            // set all elements to the initial state
-            this.selectedAllInstances = true;
-            this.allInstances = [];
-            this.selectedInstances = [];
-            this.selectedMetric = undefined;
-            this.selectedComponent = "";
-            this.timeInterval = this.intervals[0];
 
-            // fill components and selected component
-            this.ngOnInit();
+        // set all elements to the initial state
+        this.selectedAllInstances = true;
+        this.allInstances = [];
+        this.selectedInstances = [];
+        this.selectedMetric = undefined;
+        this.selectedComponent = "";
+        this.timeInterval = this.intervals[0];
 
-            // reset wizard
-            $(Dashboard.wizardId).off("showStep");
-            $(Dashboard.wizardId).smartWizard("reset");
-            this.initWizard();
+        // fill components and selected component
+        this.ngOnInit();
 
-            if ($(Dashboard.select2Id).data('select2')) {
-                $(Dashboard.select2Id).select2("destroy");
-            }
+        // reset wizard
+        $(Dashboard.wizardId).off("showStep");
+        $(Dashboard.wizardId).smartWizard("reset");
+        this.initWizard();
+
+        if ($(Dashboard.select2Id).data('select2')) {
+            $(Dashboard.select2Id).select2("destroy");
         }
+
         // open the modal
         $(Dashboard.chartModalId).modal("show");
-        // and next time user adds the chart - we will reinit all the dialog
-        this.initialized = true;
     }
 
     private updateChartName():void {
@@ -171,18 +167,23 @@ export class Dashboard {
                     _thisReference._chartService.receiveChartDataForGroupName(gn);
                 }, 1500);
             });
-        $(document).ready(function(){
-            _thisReference.initWizard();
-        });
     }
 
     private initWizard():void {
         $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
+            disabledSteps: this.selectedChartType == "statuses" ? [1,2] : [],
             useURLhash: false,
             showStepURLhash: false,
             transitionEffect: 'fade'
         });
+
+        if (this.selectedChartType == "statuses") {
+            $(Dashboard.wizardId).find("#instances").parent().addClass("disabled");
+            $(Dashboard.wizardId).find("#metric").parent().addClass("disabled");
+        } else {
+            $(Dashboard.wizardId).find("ul.nav li.disabled").removeClass("disabled"); // reset does not affect disabled steps
+        }
 
         let _thisReference:any = this;
 

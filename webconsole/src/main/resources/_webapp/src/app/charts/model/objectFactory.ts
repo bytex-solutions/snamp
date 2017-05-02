@@ -15,6 +15,8 @@ import { LineChartOfAttributeValues } from './charts/line.chart.attributes.value
 import { PanelOfAttributeValues } from './charts/panel.attributes.values';
 import { PieChartOfAttributeValues } from './charts/pie.chart.attributes.values';
 import { TwoDimensionalChart } from "./two.dimensional.chart";
+import {ResourceGroupHealthStatusChart} from "./charts/resource.group.health.status";
+import {HealthStatusAxis} from "./axis/health.status.axis";
 
 // Factory to create appropriate objects from json
 export class Factory {
@@ -38,6 +40,9 @@ export class Factory {
                     if (_json["sourceAttribute"] != undefined) {
                         (<AttributeValueAxis>_axis).sourceAttribute = new AttributeInformation(_json["sourceAttribute"]);
                     }
+                    break;
+                case Axis.HEALTH_STATUS:
+                    _axis = new HealthStatusAxis();
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
@@ -71,6 +76,9 @@ export class Factory {
                     break;
                 case AbstractChart.PIE:
                     _chart = new PieChartOfAttributeValues();
+                    break;
+                case AbstractChart.HEALTH_STATUS:
+                    _chart = new ResourceGroupHealthStatusChart();
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
@@ -108,7 +116,7 @@ export class Factory {
 
     public static create2dChart(type:string, name:string, groupName:string, component?:string, instances?:string[],
         sourceAttribute?:AttributeInformation):AbstractChart {
-            let _chart:TwoDimensionalChartOfAttributeValues;
+            let _chart:AbstractChart;
             type = AbstractChart.TYPE_MAPPING[type];
             switch(type) {
                 case AbstractChart.VBAR:
@@ -126,26 +134,34 @@ export class Factory {
                 case AbstractChart.PIE:
                     _chart = new PieChartOfAttributeValues();
                     break;
+                case AbstractChart.HEALTH_STATUS:
+                    _chart = new ResourceGroupHealthStatusChart();
+                    (<ResourceGroupHealthStatusChart>_chart).group = component;
+                    break;
                 default:
                     throw new Error("Type " + type + " is unknown and cannot be parsed correctly");
             }
 
-            _chart.getAxisX();
-            _chart.getAxisY();
-
             _chart.name = name;
             _chart.setGroupName(groupName);
 
-            if (component) {
-                _chart.group = component;
+            if (_chart instanceof TwoDimensionalChart) {
+                _chart.getAxisX();
+                _chart.getAxisY();
             }
 
-            if (instances) {
-                _chart.resources = instances;
-            }
+            if (_chart instanceof TwoDimensionalChartOfAttributeValues) {
+                if (component) {
+                    _chart.group = component;
+                }
 
-            if (sourceAttribute) {
-                _chart.setSourceAttribute(sourceAttribute);
+                if (instances) {
+                    _chart.resources = instances;
+                }
+
+                if (sourceAttribute) {
+                    _chart.setSourceAttribute(sourceAttribute);
+                }
             }
 
             return _chart;
