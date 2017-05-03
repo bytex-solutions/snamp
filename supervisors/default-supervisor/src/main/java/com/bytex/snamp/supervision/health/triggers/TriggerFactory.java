@@ -1,4 +1,4 @@
-package com.bytex.snamp.connector.health.triggers;
+package com.bytex.snamp.supervision.health.triggers;
 
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ScriptletConfiguration;

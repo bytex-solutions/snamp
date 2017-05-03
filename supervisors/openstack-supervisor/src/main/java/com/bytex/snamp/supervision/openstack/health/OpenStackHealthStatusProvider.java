@@ -2,7 +2,7 @@ package com.bytex.snamp.supervision.openstack.health;
 
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.connector.health.triggers.HealthStatusTrigger;
+import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.health.ClusterMalfunctionStatus;
