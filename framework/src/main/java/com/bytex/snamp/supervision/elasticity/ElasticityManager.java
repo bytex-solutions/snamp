@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision.elasticity;
 
-import com.bytex.snamp.supervision.SupervisorService;
+import com.bytex.snamp.connector.metrics.Rate;
+import com.bytex.snamp.supervision.SupervisorAggregatedService;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
@@ -11,7 +12,7 @@ import java.time.Duration;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface ElasticityManager extends SupervisorService {
+public interface ElasticityManager extends SupervisorAggregatedService {
     /**
      * Gets period that helps to ensure that Elasticity Manager doesn't launch or terminate additional instances before the previous scaling activity takes effect.
      *
@@ -29,15 +30,29 @@ public interface ElasticityManager extends SupervisorService {
     int getScale();
 
     /**
+     * Gets statistics about scaling rate.
+     * @param action Scaling action.
+     * @return Statistics about scaling rate.
+     */
+    Rate getActionRate(@Nonnull final ScalingAction action);
+
+    /**
+     * Gets state of elasticity management process.
+     * @return State of elasticity management process.
+     */
+    @Nonnull
+    ElasticityManagementState getState();
+
+    /**
      * Gets weight of votes needed for inflating or shrinking the cluster.
      * @return Weight of votes needed for inflating or shrinking the cluster.
      */
-    int getCastingVoteWeight();
+    double getCastingVoteWeight();
 
     /**
      * Gets result of the last poll.
      * @param subject Voting subject.
      * @return Result of the last poll.
      */
-    int getVotes(@Nonnull final VotingSubject subject);
+    double getVotes(@Nonnull final ScalingAction subject);
 }

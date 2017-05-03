@@ -6,5 +6,5 @@ package com.bytex.snamp.supervision;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface SupervisorService {
+public interface SupervisorAggregatedService {
 }

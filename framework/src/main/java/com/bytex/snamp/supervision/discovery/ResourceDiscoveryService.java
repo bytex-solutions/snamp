@@ -1,6 +1,6 @@
 package com.bytex.snamp.supervision.discovery;
 
-import com.bytex.snamp.supervision.SupervisorService;
+import com.bytex.snamp.supervision.SupervisorAggregatedService;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -17,7 +17,7 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-public interface ResourceDiscoveryService extends SupervisorService {
+public interface ResourceDiscoveryService extends SupervisorAggregatedService {
     /**
      * Recommended endpoint for service discovery over HTTP.
      */

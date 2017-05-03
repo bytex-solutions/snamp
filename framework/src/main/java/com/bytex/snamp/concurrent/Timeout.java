@@ -27,7 +27,7 @@ public class Timeout implements Stateful, Serializable {
     /**
      * Time-to-live of the value in this accumulator, in millis.
      */
-    private final long timeout;
+    protected final long timeout;
 
     private Timeout(final long timeoutInMillis){
         timeout = timeoutInMillis;

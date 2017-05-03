@@ -1,8 +1,6 @@
 package com.bytex.snamp.supervision.def;
 
-import com.bytex.snamp.supervision.elasticity.VotingSubject;
-
-import java.util.Set;
+import com.bytex.snamp.supervision.elasticity.ScalingAction;
 
 /**
  * Represents a voter in elasticity management process.
@@ -14,5 +12,5 @@ public interface Voter {
      * @param context An object containing all necessary data for voting by this voter.
      * @return Vote weight. May be zero.
      */
-    int vote(final VotingSubject subject, final VotingContext context);
+    float vote(final ScalingAction subject, final VotingContext context);
 }
