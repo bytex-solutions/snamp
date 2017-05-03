@@ -5,6 +5,7 @@ import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.io.SerializableSnapshotSupport;
 import com.bytex.snamp.io.SerializedState;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.OptionalInt;
 import java.util.function.DoubleConsumer;
@@ -16,14 +17,15 @@ import java.util.function.IntToDoubleFunction;
  * @version 2.0
  * @since 2.0
  */
-public final class DoubleReservoir extends AbstractReservoir implements DoubleConsumer, IntToDoubleFunction {
-    private static final class DoubleReservoirSnapshot extends ReservoirSnapshot<DoubleReservoir>{
+public final class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer, IntToDoubleFunction, Reservoir, SerializableSnapshotSupport<DoubleReservoir> {
+    private static final class DoubleReservoirSnapshot extends SerializedState<DoubleReservoir>{
         private static final long serialVersionUID = -6080572664395210068L;
         private final double[] values;
+        private final int actualSize;
 
-        private DoubleReservoirSnapshot(final DoubleReservoir reservoir) {
-            super(reservoir.actualSize);
-            this.values = reservoir.values.clone();
+        private DoubleReservoirSnapshot(final DoubleReservoir reservoir){
+            this.values = reservoir.values;
+            this.actualSize = reservoir.actualSize;
         }
 
         @Override
@@ -34,10 +36,12 @@ public final class DoubleReservoir extends AbstractReservoir implements DoubleCo
 
     private static final long serialVersionUID = -2597353518482200745L;
     private final double[] values;
+    private int actualSize;
 
     private DoubleReservoir(final DoubleReservoirSnapshot snapshot){
-        super(snapshot);
+        super(SingleResourceGroup.class);
         values = snapshot.values;
+        actualSize = snapshot.actualSize;
     }
 
     /**
@@ -45,32 +49,50 @@ public final class DoubleReservoir extends AbstractReservoir implements DoubleCo
      * @param samplingSize A size of this reservoir.
      */
     public DoubleReservoir(final int samplingSize){
+        super(SingleResourceGroup.class);
         if(samplingSize < 2)
             throw new IllegalArgumentException("Sampling size cannot be less than 2");
         this.values = new double[samplingSize];
+        this.actualSize = 0;
     }
 
     @Override
     public DoubleReservoirSnapshot takeSnapshot() {
-        try(final SafeCloseable ignored = acquireWriteLock()) {
-            return new DoubleReservoirSnapshot(this);
+        return new DoubleReservoirSnapshot(this);
+    }
+
+    @Override
+    public Object writeReplace() {
+        return takeSnapshot();
+    }
+
+    private SafeCloseable acquireWriteLock(){
+        return writeLock.acquireLock(SingleResourceGroup.INSTANCE);
+    }
+
+    private SafeCloseable acquireReadLock(){
+        return readLock.acquireLock(SingleResourceGroup.INSTANCE);
+    }
+
+    public double getMin() {
+        try (final SafeCloseable ignored = acquireReadLock()) {
+            switch (actualSize) {
+                case 0:
+                    return Double.NaN;
+                default:
+                    return values[0];
+            }
         }
     }
 
-    private double sumImpl() {
-        double sum = 0D;
-        for (int i = 0; i < actualSize; i++)
-            sum += values[i];
-        return sum;
-    }
-
-    /**
-     * Computes sum of all elements in this reservoir.
-     * @return Sum of all elements in this reservoir.
-     */
-    public double sum() {
-        try (final SafeCloseable ignored = acquireWriteLock()) {
-            return sumImpl();
+    public double getMax() {
+        try (final SafeCloseable ignored = acquireReadLock()) {
+            switch (actualSize) {
+                case 0:
+                    return Double.NaN;
+                default:
+                    return values[actualSize - 1];
+            }
         }
     }
 
@@ -79,21 +101,21 @@ public final class DoubleReservoir extends AbstractReservoir implements DoubleCo
      */
     @Override
     public void reset() {
-        try (final SafeCloseable ignored = acquireWriteLock()) {
-            super.reset();
+        try(final SafeCloseable ignored = acquireWriteLock()){
+            actualSize = 0;
             Arrays.fill(values, 0D);
         }
     }
 
     /**
-     * Extracts content of this reservoir as array.
+     * Gets size of this reservoir.
      *
-     * @return Generic copy of reservoir values.
+     * @return The size of this reservoir.
      */
     @Override
-    public double[] toArray() {
-        try (final SafeCloseable ignored = acquireReadLock()) {
-            return values.clone();
+    public int getSize() {
+        try(final SafeCloseable ignored = acquireReadLock()){
+            return actualSize;
         }
     }
 
@@ -107,45 +129,15 @@ public final class DoubleReservoir extends AbstractReservoir implements DoubleCo
         return values.length;
     }
 
-    /**
-     * Gets maximum value in this reservoir.
-     * @return Maximum value in this reservoir; or {@link Double#NaN} if reservoir is empty.
-     */
-    public double getMax() {
-        try (final SafeCloseable ignored = acquireReadLock()) {
-            switch (actualSize) {
-                case 0:
-                    return Double.NaN;
-                default:
-                    return values[actualSize - 1];
-            }
-        }
-    }
-
-    /**
-     * Gets minimum value in this reservoir.
-     * @return Minimum value in this reservoir; or {@link Double#NaN} if reservoir is empty.
-     */
-    public double getMin() {
-        try (final SafeCloseable ignored = acquireReadLock()) {
-            switch (actualSize) {
-                case 0:
-                    return Double.NaN;
-                default:
-                    return values[0]; //values are sorted in ascending order. Therefore zero element is a minimal value.
-            }
-        }
-    }
-
-    private double getDeviationImpl() {
+    private double getDeviationImpl(){
         if (actualSize <= 1) return 0;
 
-        final double mean = getMeanImpl();
+        final double mean = getMean();
         double variance = 0;
 
         for (int i = 0; i < actualSize; i++) {
             final double diff = values[i] - mean;
-            variance += diff * diff;
+            variance +=  diff*diff;
         }
 
         return Math.sqrt(variance);
@@ -243,12 +235,28 @@ public final class DoubleReservoir extends AbstractReservoir implements DoubleCo
      * Adds a new value to this reservoir.
      * @param value A value to add.
      */
-    @Override
     public void accept(final double value) {
         add(value);
     }
 
-    private double getMeanImpl() {
+    private double sumImpl(){
+        double sum = 0D;
+        for(int i = 0; i < actualSize; i++)
+            sum += values[i];
+        return sum;
+    }
+
+    /**
+     * Computes sum of all elements in this reservoir.
+     * @return Sum of all elements in this reservoir.
+     */
+    public double getSum() {
+        try (final SafeCloseable ignored = acquireReadLock()) {
+            return sumImpl();
+        }
+    }
+
+    private double getMeanImpl(){
         return sumImpl() / actualSize;
     }
 
@@ -259,16 +267,25 @@ public final class DoubleReservoir extends AbstractReservoir implements DoubleCo
         }
     }
 
+    private static float getIndexForQuantile(final float q, final int length) {
+        if (Double.compare(q, 0D) == 0)
+            return 0F;
+        else if (Double.compare(q, 1D) == 0)
+            return length;
+        else
+            return (length + 1) * q;
+    }
+
     private double getQuantileImpl(final float quantile){
-        final float index = getIndexForQuantile(quantile, actualSize);
+        final double index = getIndexForQuantile(quantile, actualSize);
         if (index < 1)
             return values[0];
         else if (index >= actualSize)
             return values[actualSize - 1];
         else {
-            final int fpos = (int)index;    //do not use floor, because index is positive
-            final double lower = values[fpos - 1];
-            final double upper = values[fpos];
+            final int fpos = (int) index;   //no need to use Math.floor because index is always positive value
+            final double lower = values[(int)fpos - 1];
+            final double upper = values[(int)fpos];
             return lower + (index - fpos) * (upper - lower);
         }
     }
@@ -323,9 +340,9 @@ public final class DoubleReservoir extends AbstractReservoir implements DoubleCo
      * @return A percent of values that are greater that or equal to the specified value.
      */
     public double greaterThanOrEqualValues(final double value) {
-        try(final SafeCloseable ignored = acquireReadLock()){
+        try (final SafeCloseable ignored = acquireReadLock()) {
             final int index = computeIndex(value);
-            return index >= actualSize ? 0D : ((actualSize - (double)index) / actualSize);
+            return index >= actualSize ? 0D : ((actualSize - (double) index) / actualSize);
         }
     }
 
@@ -350,6 +367,13 @@ public final class DoubleReservoir extends AbstractReservoir implements DoubleCo
         try (final SafeCloseable ignored = acquireReadLock()) {
             final int index = computeIndex(value);
             return index >= actualSize ? 1D : (double) index / actualSize;
+        }
+    }
+
+    @Override
+    public Serializable toArray() {
+        try (final SafeCloseable ignored = acquireReadLock()) {
+            return values.clone();
         }
     }
 }

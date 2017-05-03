@@ -29,26 +29,15 @@ public interface ElasticityManager extends SupervisorService {
     int getScale();
 
     /**
-     * Gets sum of all votes.
-     * @return Sum of all votes.
-     */
-    int getVotes();
-
-    /**
      * Gets weight of votes needed for inflating or shrinking the cluster.
      * @return Weight of votes needed for inflating or shrinking the cluster.
      */
-    double getCastingVoteWeight();
+    int getCastingVoteWeight();
 
     /**
-     * Gets current state of the voting process for inflating the cluster.
-     * @return The state of the voting process.
+     * Gets result of the last poll.
+     * @param subject Voting subject.
+     * @return Result of the last poll.
      */
-    int getUpScalingVotes();
-
-    /**
-     * Gets current state of the voting process for shrinking the cluster.
-     * @return The state of the voting process.
-     */
-    int getDownScalingVotes();
+    int getVotes(@Nonnull final VotingSubject subject);
 }

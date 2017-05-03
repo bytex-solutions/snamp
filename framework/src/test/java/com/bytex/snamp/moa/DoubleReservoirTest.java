@@ -68,6 +68,6 @@ public final class DoubleReservoirTest extends Assert {
         reservoir.add(3D);
         reservoir.add(1D);
         reservoir.add(9.2D);
-        assertEquals(18.3D, reservoir.sum(), 0.01D);
+        assertEquals(18.3D, reservoir.getSum(), 0.01D);
     }
 }
