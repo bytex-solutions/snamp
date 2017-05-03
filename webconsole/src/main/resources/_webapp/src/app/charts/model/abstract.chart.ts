@@ -87,17 +87,13 @@ export abstract class AbstractChart {
     }
 
     // different types of charts should be rendered in different ways
-    protected abstract doDraw():void;
+    public abstract draw():void;
 
     // when new value comes - we should process it. see abstract.chart.attributes.values as a default implementation
     public abstract newValue(_data:ChartData):void;
 
     protected isChartVisible():boolean {
         return $('#' + this.id).length && !this.updateStopped;
-    }
-
-    public draw():void {
-        this.doDraw();
     }
 
     public subscribeToSubject(_obs:Observable<ChartData>):void {

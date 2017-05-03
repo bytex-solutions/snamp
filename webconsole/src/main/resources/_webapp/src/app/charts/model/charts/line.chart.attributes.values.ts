@@ -69,7 +69,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
     }
 
 
-    protected doDraw():void {
+    public draw():void {
         let _thisReference = this;
         nv.addGraph(function() {
             let chart = nv.models.lineWithFocusChart();

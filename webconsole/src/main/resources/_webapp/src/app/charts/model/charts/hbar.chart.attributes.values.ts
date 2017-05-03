@@ -57,7 +57,7 @@ export class HorizontalBarChartOfAttributeValues extends TwoDimensionalChartOfAt
         }
     }
 
-    protected doDraw():void {
+    public draw():void {
         this.updateColors();
         this._chartObject = new Chart($("#" + this.id), {
             type: 'horizontalBar',

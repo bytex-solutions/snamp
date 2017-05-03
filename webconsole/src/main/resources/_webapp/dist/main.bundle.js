@@ -96817,9 +96817,6 @@ var AbstractChart = (function () {
     AbstractChart.prototype.isChartVisible = function () {
         return $('#' + this.id).length && !this.updateStopped;
     };
-    AbstractChart.prototype.draw = function () {
-        this.doDraw();
-    };
     AbstractChart.prototype.subscribeToSubject = function (_obs) {
         var _this = this;
         _obs.subscribe(function (data) {
@@ -97111,7 +97108,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
             this._chartObject.update();
         }
     };
-    HorizontalBarChartOfAttributeValues.prototype.doDraw = function () {
+    HorizontalBarChartOfAttributeValues.prototype.draw = function () {
         this.updateColors();
         this._chartObject = new Chart($("#" + this.id), {
             type: 'horizontalBar',
@@ -97225,7 +97222,7 @@ var LineChartOfAttributeValues = (function (_super) {
             this._chartObject.update();
         }
     };
-    LineChartOfAttributeValues.prototype.doDraw = function () {
+    LineChartOfAttributeValues.prototype.draw = function () {
         var _thisReference = this;
         nv.addGraph(function () {
             var chart = nv.models.lineWithFocusChart();
@@ -97312,7 +97309,6 @@ var PanelOfAttributeValues = (function (_super) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
         var _table = $("#" + this.id + " table");
-        console.log("Panel object update: ", _data, _table);
         if (_table != undefined) {
             if (_index < 0) {
                 var _tr = $("<tr/>");
@@ -97325,7 +97321,7 @@ var PanelOfAttributeValues = (function (_super) {
             }
         }
     };
-    PanelOfAttributeValues.prototype.doDraw = function () {
+    PanelOfAttributeValues.prototype.draw = function () {
         var _table = $("<table class='table child-table'/>");
         var _thead = $("<thead></thead>");
         var _trThead = $("<tr/>");
@@ -97421,7 +97417,7 @@ var PieChartOfAttributeValues = (function (_super) {
             this._chartObject.update();
         }
     };
-    PieChartOfAttributeValues.prototype.doDraw = function () {
+    PieChartOfAttributeValues.prototype.draw = function () {
         this._chartObject = new Chart($("#" + this.id), {
             type: 'doughnut',
             data: {
@@ -97477,10 +97473,13 @@ var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.di
 var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var health_status_axis_1 = __webpack_require__("./src/app/charts/model/axis/health.status.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var d3 = __webpack_require__("./node_modules/d3/index.js");
+var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var ResourceGroupHealthStatusChart = (function (_super) {
     __extends(ResourceGroupHealthStatusChart, _super);
     function ResourceGroupHealthStatusChart() {
         _super.call(this);
+        this._chartObject = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
@@ -97509,11 +97508,68 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         }
         return _value;
     };
-    ResourceGroupHealthStatusChart.prototype.doDraw = function () {
-        console.log("doDraw logic is not implemented yet");
+    ResourceGroupHealthStatusChart.prototype.prepareDatasets = function () {
+        var _value = [];
+        return _value;
+    };
+    ResourceGroupHealthStatusChart.prototype.draw = function () {
+        // https://nvd3-community.github.io/nvd3/ - see forceDirected
+        // https://github.com/nvd3-community/nvd3/blob/gh-pages/examples/forceDirected.html
+        var _thisReference = this;
+        nv.addGraph({
+            generate: function () {
+                var width = nv.utils.windowSize().width - 40, height = nv.utils.windowSize().height - 40;
+                var chart = nv.models.forceDirectedGraph()
+                    .width(width)
+                    .height(height)
+                    .margin({ top: 20, right: 20, bottom: 20, left: 20 })
+                    .color(function (d) { return d.color; })
+                    .nodeExtras(function (node) {
+                    node
+                        .append("text")
+                        .attr("dx", 12)
+                        .attr("dy", ".35em")
+                        .text(function (d) { return d.name; });
+                });
+                chart.dispatch.on('renderEnd', function () {
+                    console.log('render complete');
+                });
+                d3.select('#' + _thisReference.id)
+                    .attr('width', width)
+                    .attr('height', height)
+                    .datum(_thisReference.prepareDatasets())
+                    .call(chart);
+                _thisReference._chartObject = chart;
+                return chart;
+            },
+            callback: function (graph) {
+                window.onresize = function () {
+                    var width = nv.utils.windowSize().width - 40, height = nv.utils.windowSize().height - 40, margin = graph.margin();
+                    if (width < margin.left + margin.right + 20)
+                        width = margin.left + margin.right + 20;
+                    if (height < margin.top + margin.bottom + 20)
+                        height = margin.top + margin.bottom + 20;
+                    graph.width(width).height(height);
+                    d3.select('#' + _thisReference.id)
+                        .attr('width', width)
+                        .attr('height', height)
+                        .call(graph);
+                };
+            }
+        });
     };
     ResourceGroupHealthStatusChart.prototype.newValue = function (_data) {
         console.log("New data has been received for ResourceGroupHealthStatusChart entity: ", _data);
+        this.chartData.push(_data);
+        var _index = this.chartData.length - 1;
+        if (this._chartObject != undefined) {
+            var _ds = d3.select('#' + this.id).datum();
+            var _found = false;
+            if (!_found) {
+                _ds = this.prepareDatasets();
+            }
+            this._chartObject.update();
+        }
     };
     return ResourceGroupHealthStatusChart;
 }(two_dimensional_chart_1.TwoDimensionalChart));
@@ -97582,7 +97638,7 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
             this._chartObject.update();
         }
     };
-    VerticalBarChartOfAttributeValues.prototype.doDraw = function () {
+    VerticalBarChartOfAttributeValues.prototype.draw = function () {
         this._chartObject = new Chart($("#" + this.id), {
             type: "bar",
             data: {

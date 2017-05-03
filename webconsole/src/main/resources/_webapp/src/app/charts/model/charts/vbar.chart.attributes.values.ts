@@ -55,7 +55,7 @@ export class VerticalBarChartOfAttributeValues extends TwoDimensionalChartOfAttr
         }
     }
 
-    public doDraw():void {
+    public draw():void {
         this._chartObject = new Chart($("#" + this.id), {
             type: "bar",
             data: {

@@ -55,7 +55,7 @@ export class PieChartOfAttributeValues extends TwoDimensionalChartOfAttributeVal
         }
     }
 
-    public doDraw():void {
+    public draw():void {
         this._chartObject = new Chart($("#" + this.id), {
             type: 'doughnut',
             data: {

@@ -37,7 +37,6 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
         let _table = $("#" + this.id + " table");
-        console.log("Panel object update: ", _data, _table);
         if (_table != undefined) {
             if (_index < 0) {
                 let _tr = $("<tr/>");
@@ -50,7 +49,7 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         }
     }
 
-    protected doDraw():void {
+    public draw():void {
         let _table = $("<table class='table child-table'/>");
         let _thead = $("<thead></thead>");
         let _trThead = $("<tr/>");
