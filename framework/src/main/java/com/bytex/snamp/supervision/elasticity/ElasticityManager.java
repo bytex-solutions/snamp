@@ -1,5 +1,6 @@
 package com.bytex.snamp.supervision.elasticity;
 
+import com.bytex.snamp.Stateful;
 import com.bytex.snamp.connector.metrics.Rate;
 import com.bytex.snamp.supervision.SupervisorAggregatedService;
 
@@ -12,7 +13,7 @@ import java.time.Duration;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface ElasticityManager extends SupervisorAggregatedService {
+public interface ElasticityManager extends SupervisorAggregatedService, Stateful {
     /**
      * Gets period that helps to ensure that Elasticity Manager doesn't launch or terminate additional instances before the previous scaling activity takes effect.
      *
@@ -23,36 +24,44 @@ public interface ElasticityManager extends SupervisorAggregatedService {
     Duration getCooldownTime();
 
     /**
+     * Gets maximum number of resources in cluster.
+     * @return Maximum number of resources in cluster.
+     * @implNote {@link Integer#MAX_VALUE} means that there is no upper bound for the cluster size.
+     */
+    int getMaxClusterSize();
+
+    /**
+     * Gets minimum number of resources in cluster.
+     * @return Minimum number of resources in cluster.
+     */
+    int getMinClusterSize();
+
+    /**
      * Gets number of instances used to enlarge or shrink cluster.
      *
      * @return Scale size.
      */
-    int getScale();
+    int getScalingSize();
 
     /**
-     * Gets statistics about scaling rate.
-     * @param action Scaling action.
-     * @return Statistics about scaling rate.
+     * Gets statistics about downscale rate.
+     * @return Rate statistics.
      */
-    Rate getActionRate(@Nonnull final ScalingAction action);
+    Rate getScaleInRate();
 
     /**
-     * Gets state of elasticity management process.
-     * @return State of elasticity management process.
+     * Gets statistics about upscale rate.
+     * @return Rate statistics.
      */
-    @Nonnull
-    ElasticityManagementState getState();
+    Rate getScaleOutRate();
+
+    double getVotesForScaleIn();
+
+    double getVotesForScaleOut();
 
     /**
      * Gets weight of votes needed for inflating or shrinking the cluster.
      * @return Weight of votes needed for inflating or shrinking the cluster.
      */
     double getCastingVoteWeight();
-
-    /**
-     * Gets result of the last poll.
-     * @param subject Voting subject.
-     * @return Result of the last poll.
-     */
-    double getVotes(@Nonnull final ScalingAction subject);
 }

@@ -3,26 +3,29 @@ package com.bytex.snamp.supervision.def;
 import com.bytex.snamp.concurrent.Timeout;
 import com.bytex.snamp.connector.metrics.Rate;
 import com.bytex.snamp.connector.metrics.RateRecorder;
-import com.bytex.snamp.supervision.elasticity.ElasticityManagementState;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
-import com.bytex.snamp.supervision.elasticity.ScalingAction;
-import com.bytex.snamp.supervision.elasticity.ScalingException;
-import com.google.common.util.concurrent.AtomicDoubleArray;
+import com.bytex.snamp.supervision.elasticity.policies.Voter;
+import com.bytex.snamp.supervision.elasticity.policies.VotingContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicIntegerArray;
 
 /**
+ * Represents eventual implementation of elasticity manager that can be used to make decisions only.
+ * <p>
+ *     Real scaling logic should be implemented in the derived class.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public abstract class DefaultElasticityManager implements ElasticityManager {
+public class DefaultElasticityManager implements ElasticityManager, AutoCloseable {
     private final class CooldownTimer extends Timeout {
+        private static final long serialVersionUID = -3781057798278842855L;
+
         CooldownTimer(final Duration ttl) {
             super(ttl);
         }
@@ -34,6 +37,40 @@ public abstract class DefaultElasticityManager implements ElasticityManager {
         Duration getCooldownTime() {
             return Duration.ofMillis(timeout);
         }
+
+        boolean cooledDown(){
+            return resetIfExpired();
+        }
+    }
+
+    /**
+     * Represents scaling decision.
+     */
+    protected enum ScalingDecision {
+        /**
+         * Nothing to do with cluster.
+         */
+        NOTHING_TO_DO,
+
+        /**
+         * Cluster is cools down.
+         */
+        COOLDOWN,
+
+        /**
+         * Shrink the size of a cluster
+         */
+        SCALE_IN,
+
+        /**
+         * Inflate the size of a cluster
+         */
+        SCALE_OUT,
+
+        /**
+         * Indicates that maximum number of resources in the cluster are reached.
+         */
+        OUT_OF_SPACE
     }
 
     private final List<Voter> voters;
@@ -43,57 +80,109 @@ public abstract class DefaultElasticityManager implements ElasticityManager {
     private final RateRecorder scaleOutRate;
     private CooldownTimer cooldownTimer;
     private int scale;
-    private ElasticityManagementState state;
+    private int minClusterSize;
+    private int maxClusterSize;
 
+    /**
+     * Initializes a new elasticity manager.
+     */
     public DefaultElasticityManager() {
         voters = new ArrayList<>();
         cooldownTimer = new CooldownTimer();
         scale = 1;
+        minClusterSize = 0;
+        maxClusterSize = Integer.MAX_VALUE;
         scaleOutVotes = scaleInVotes = 0D;
         scaleInRate = new RateRecorder("scaleIn");
         scaleOutRate = new RateRecorder("scaleOut");
     }
 
-    private void setVotes(final ScalingAction action, final double votes) {
-        switch (action) {
-            case SCALE_IN:
-                scaleInVotes = votes;
-                return;
-            case SCALE_OUT:
-                scaleOutVotes = votes;
-        }
+    /**
+     * Adds a new voter to this manager.
+     *
+     * @param voter A voter that will be used to compute decision about scaling.
+     */
+    public final void addVoter(@Nonnull final Voter voter) {
+        voters.add(Objects.requireNonNull(voter));
     }
 
-    public final void addVoter(final Voter voter){
-        voters.add(voter);
+    private ScalingDecision scaleOutDecision(final VotingContext context) {
+        if (context.getResources().size() >= maxClusterSize)
+            return ScalingDecision.OUT_OF_SPACE;
+        scaleOutRate.mark();
+        return ScalingDecision.SCALE_OUT;
+    }
+
+    private ScalingDecision scaleInDecision(final VotingContext context) {
+        if (context.getResources().isEmpty())
+            return ScalingDecision.NOTHING_TO_DO;
+        scaleInRate.mark();
+        return ScalingDecision.SCALE_IN;
+    }
+
+    protected final ScalingDecision decide(final VotingContext context) {
+        double scaleInVotes = 0D, scaleOutVotes = 0D;
+        for(final Voter voter: voters) {
+            double vote = voter.vote(context);
+            if (vote < 0D)
+                scaleInVotes += vote;
+            else
+                scaleOutVotes += vote;
+        }
+        if(cooldownTimer.cooledDown()){
+            this.scaleInVotes = scaleInVotes = Math.abs(scaleInVotes);
+            this.scaleOutVotes = scaleOutVotes;
+            final double castingVote = getCastingVoteWeight();
+            if(scaleOutVotes > castingVote)
+                return scaleOutDecision(context);
+            else if(scaleInVotes > castingVote)
+                return scaleInDecision(context);
+            else
+                return ScalingDecision.NOTHING_TO_DO;
+        } else
+            return ScalingDecision.COOLDOWN;
     }
 
     /**
-     * Shrink the size of a cluster.
-     * @throws ScalingException Failed to shrink size of a cluster.
+     * Sets maximum size of a cluster.
+     *
+     * @param value Maximum size of a cluster. Cannot be less than 1.
      */
-    protected abstract void scaleIn() throws ScalingException;
+    public final void setMaxClusterSize(final int value) {
+        if (value < 1)
+            throw new IllegalArgumentException("Max cluster size cannot be less than 1");
+        maxClusterSize = value;
+    }
 
     /**
-     * Inflate the size of a cluster.
-     * @throws ScalingException Failed to inflate the size of a cluster.
+     * Sets minimum size of a cluster.
+     *
+     * @param value Minimum size of a cluster.
      */
-    protected abstract void scaleOut() throws ScalingException;
+    public final void setMinClusterSize(final int value) {
+        if (value < 0)
+            throw new IllegalArgumentException("Max cluster size cannot be less than 1");
+        minClusterSize = value;
+    }
 
-    protected final boolean scale(final ScalingAction action, final VotingContext context) throws ScalingException {
-        double votes = voters.stream().mapToDouble(voter -> voter.vote(action, context)).sum();
-        setVotes(action, votes);
-        final boolean approved;
-        if (approved = votes >= getCastingVoteWeight()) {
-            switch (action) {
-                case SCALE_IN:
-                    cooldownTimer.acceptIfExpired(this, DefaultElasticityManager::scaleIn);
-                    break;
-                case SCALE_OUT:
-                    cooldownTimer.acceptIfExpired(this, DefaultElasticityManager::scaleOut);
-            }
-        }
-        return approved;
+    /**
+     * Gets maximum number of resources in cluster.
+     *
+     * @return Maximum number of resources in cluster.
+     */
+    @Override
+    public final int getMaxClusterSize() {
+        return maxClusterSize;
+    }
+
+    /**
+     * Gets minimum number of resources in cluster.
+     *
+     * @return Minimum number of resources in cluster.
+     */
+    @Override
+    public final int getMinClusterSize() {
+        return minClusterSize;
     }
 
     public final void setCooldownTime(@Nonnull final Duration value) {
@@ -114,42 +203,58 @@ public abstract class DefaultElasticityManager implements ElasticityManager {
     }
 
     @Override
-    public final int getScale() {
+    public final int getScalingSize() {
         return scale;
     }
 
     @Override
-    public Rate getActionRate(@Nonnull final ScalingAction action) {
-        switch (action) {
-            case SCALE_IN:
-                return scaleInRate;
-            case SCALE_OUT:
-                return scaleOutRate;
-            default:
-                return null;
-        }
-    }
-
-    @Nonnull
-    @Override
-    public ElasticityManagementState getState() {
-        return null;
-    }
-
-    @Override
-    public double getCastingVoteWeight() {
+    public final double getCastingVoteWeight() {
         return voters.size() / 2D;
     }
 
+    /**
+     * Gets statistics about downscale rate.
+     *
+     * @return Rate statistics.
+     */
     @Override
-    public double getVotes(@Nonnull final ScalingAction subject) {
-        switch (subject) {
-            case SCALE_IN:
-                return scaleInVotes;
-            case SCALE_OUT:
-                return scaleOutVotes;
-            default:
-                return Double.NaN;
-        }
+    public final Rate getScaleInRate() {
+        return scaleInRate;
+    }
+
+    /**
+     * Gets statistics about upscale rate.
+     *
+     * @return Rate statistics.
+     */
+    @Override
+    public final Rate getScaleOutRate() {
+        return scaleOutRate;
+    }
+
+    /**
+     * Resets internal state of the object.
+     */
+    @Override
+    public void reset() {
+        scaleInRate.reset();
+        scaleOutRate.reset();
+        voters.forEach(Voter::reset);
+    }
+
+    @Override
+    public final double getVotesForScaleIn() {
+        return scaleInVotes;
+    }
+
+    @Override
+    public double getVotesForScaleOut() {
+        return scaleOutVotes;
+    }
+
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    public void close() throws Exception {
+        voters.clear();
     }
 }

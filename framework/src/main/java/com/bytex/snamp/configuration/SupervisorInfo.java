@@ -1,5 +1,6 @@
 package com.bytex.snamp.configuration;
 
+import com.bytex.snamp.moa.ReduceOperation;
 import com.google.common.collect.Range;
 
 import javax.annotation.Nonnull;
@@ -47,51 +48,14 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
     }
 
     /**
-     * Represents behavior model of the metric.
-     */
-    enum MetricBehaviorModel{
-        /**
-         * Behavior is unknown
-         */
-        UNKNOWN,
-
-        /**
-         * Values of the metric represents Gaussian distribution.
-         * <p>
-         *  Mean value is the most probable.
-         */
-        GAUSSIAN,
-
-        /**
-         * Value of the metric represents Poisson distribution.
-         * <p>
-         *  Lesser value is the most probable.
-         */
-        POISSON
-    }
-
-    /**
-     * Represents a method of aggregation metrics in the resource group.
-     */
-    enum MetricValueAggregation{
-        MAX,
-        MIN,
-        AVERAGE,
-        MEDIAN,
-        PERCENTILE_90,
-        PERCENTILE_95,
-        PERCENTILE_97
-    }
-
-    /**
      * Represents scaling policy.
      */
     interface ScalingPolicyInfo{
         /**
          * Gets weight of the vote associated with this policy.
-         * @return Gets weight of vote. Min is 1.
+         * @return Gets weight of vote.
          */
-        int getVoteWeight();
+        double getVoteWeight();
     }
 
     interface MetricBasedScalingPolicyInfo extends ScalingPolicyInfo{
@@ -100,20 +64,13 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
          * @return {@literal true}, if vote weight can be increased proportionally to actual observation time; {@literal false} if weight is constant.
          */
         boolean isIncrementalVoteWeight();
-        
-        /**
-         * Gets behavior model of the metric.
-         * @return Behavior model of the metric.
-         */
-        @Nonnull
-        MetricBehaviorModel getBehavior();
 
         /**
          * Gets aggregation method used to obtain summary metric value from a set of resources.
          * @return Aggregation method.
          */
         @Nonnull
-        MetricValueAggregation getAggregationMethod();
+        ReduceOperation getAggregationMethod();
 
         /**
          * Gets operational interval of the metric values.
@@ -128,7 +85,7 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
          *     When value of the metric is observing during the specified time then this p
          * @return Observation 
          */
-        Duration getObservationPeriod();
+        Duration getObservationTime();
     }
 
     /**

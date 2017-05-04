@@ -2,8 +2,10 @@ package com.bytex.snamp.moa;
 
 import com.bytex.snamp.Stateful;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.OptionalInt;
+import java.util.function.Function;
 
 /**
  * Represents reservoir of statistically distributed data.
@@ -11,7 +13,7 @@ import java.util.OptionalInt;
  * @version 2.0
  * @since 2.0
  */
-public interface Reservoir extends Stateful, Serializable {
+public interface Reservoir extends Stateful, Serializable, Function<ReduceOperation, Number> {
     /**
      * Gets size of this reservoir.
      *
@@ -53,6 +55,24 @@ public interface Reservoir extends Stateful, Serializable {
      * @return A percent of values that are less that or equal to the specified value.
      */
     double lessThanOrEqualValues(final Number value);
+
+    /**
+     * Returns the element at the specified position in this reservoir.
+     * @param index Index of requested element.
+     * @return Requested element.
+     * @throws IndexOutOfBoundsException Index is out of range
+     */
+    Number get(final int index);
+
+    /**
+     * Computes scalar from the vector of values contained in this reservoir.
+     *
+     * @param reduceOperation Reducing operation.
+     * @return Scalar value.
+     * @throws UnsupportedOperationException Reduce operation is not supported.
+     */
+    @Override
+    Number apply(@Nonnull final ReduceOperation reduceOperation);
 
     /**
      * Gets standard deviation of the values in this reservoir.

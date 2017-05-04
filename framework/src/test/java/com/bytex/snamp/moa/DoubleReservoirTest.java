@@ -21,11 +21,13 @@ public final class DoubleReservoirTest extends Assert {
         reservoir.add(3D);
         reservoir.add(1D);
         reservoir.add(15D);
-        assertEquals(1D, reservoir.get(0), 0.1D);
-        assertEquals(6D, reservoir.get(1), 0.1D);
-        assertEquals(15D, reservoir.get(2), 0.1D);
+        assertEquals(1D, reservoir.getAsDouble(0), 0.1D);
+        assertEquals(6D, reservoir.getAsDouble(1), 0.1D);
+        assertEquals(15D, reservoir.getAsDouble(2), 0.1D);
         assertEquals(1D, reservoir.getMin(), 0.1D);
+        assertEquals(1D, reservoir.applyAsDouble(ReduceOperation.MIN), 0.1D);
         assertEquals(15D, reservoir.getMax(), 0.1D);
+        assertEquals(15D, reservoir.applyAsDouble(ReduceOperation.MAX), 0.1D);
     }
 
     @Test
@@ -44,6 +46,7 @@ public final class DoubleReservoirTest extends Assert {
         assertEquals(10, reservoir.getSize());
         assertEquals(15, reservoir.getCapacity());
         assertEquals(17.8D, reservoir.getMean(), 0.01D);
+        assertEquals(17.8D, reservoir.applyAsDouble(ReduceOperation.MEAN), 0.01D);
         assertEquals(24.2D, reservoir.getQuantile(0.7F), 0.1D);
     }
 

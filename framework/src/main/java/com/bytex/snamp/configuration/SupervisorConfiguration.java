@@ -1,6 +1,7 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.FactoryMap;
+import com.bytex.snamp.moa.ReduceOperation;
 import com.google.common.collect.Range;
 
 import javax.annotation.Nonnull;
@@ -33,11 +34,14 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
     }
 
     interface MetricBasedScalingPolicyConfiguration extends MetricBasedScalingPolicyInfo {
-        void setBehavior(@Nonnull final MetricBehaviorModel value);
 
-        void setAggregationMethod(@Nonnull final MetricValueAggregation value);
+        void setAggregationMethod(@Nonnull final ReduceOperation value);
         
         void setRange(@Nonnull final Range<Double> value);
+
+        void setVoteWeight(final double value);
+
+        void setObservationTime(@Nonnull final Duration value);
     }
 
     /**

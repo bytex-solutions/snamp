@@ -102,6 +102,18 @@ public abstract class LockManager {
         }
     }
 
+    public final <I> double applyAsDouble(final Enum<?> resourceGroup, final I input, final ToDoubleFunction<? super I> action) {
+        try(final SafeCloseable ignored = acquireLock(resourceGroup)){
+            return action.applyAsDouble(input);
+        }
+    }
+
+    public final <I> double applyAsDouble(final Enum<?> resourceGroup, final I input, final ToDoubleFunction<? super I> action, final Duration timeout) throws TimeoutException, InterruptedException {
+        try (final SafeCloseable ignored = acquireLock(resourceGroup, timeout)) {
+            return action.applyAsDouble(input);
+        }
+    }
+
     public final <I, O> O apply(final Enum<?> resourceGroup, final I input, final Function<? super I, ? extends O> action) {
         try(final SafeCloseable ignored = acquireLock(resourceGroup)){
             return action.apply(input);

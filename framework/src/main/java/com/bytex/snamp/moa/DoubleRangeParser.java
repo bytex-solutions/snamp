@@ -11,7 +11,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-public final class DoubleRangeParser extends Tokenizer {
+final class DoubleRangeParser extends Tokenizer {
     private static final String POSITIVE_INFINITY = "+∞";
     private static final String NEGATIVE_INFINITY = "-∞";
 
@@ -115,7 +115,7 @@ public final class DoubleRangeParser extends Tokenizer {
         }
     }
 
-    public static Range<Double> parse(final String text) throws ParseException {
+    static Range<Double> parse(final String text) throws ParseException {
         if (isNullOrEmpty(text))
             return null;
         switch (text.charAt(0)) {

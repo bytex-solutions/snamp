@@ -1,6 +1,5 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
 
@@ -9,9 +8,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
@@ -92,7 +93,7 @@ public class Timeout implements Stateful, Serializable {
         return expired;
     }
 
-    public final <I, E extends Throwable> boolean acceptIfExpired(final I input, final Acceptor<? super I, E> action) throws E {
+    public final <I> boolean acceptIfExpired(final I input, final Consumer<? super I> action) {
         final boolean expired;
         if (expired = resetIfExpired())
             action.accept(input);
@@ -104,5 +105,11 @@ public class Timeout implements Stateful, Serializable {
         if(expired = resetIfExpired())
             action.accept(input1, input2);
         return expired;
+    }
+
+    public final <I1, I2, O> Optional<O> applyIfExpired(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
+        return resetIfExpired() ?
+                Optional.ofNullable(action.apply(input1, input2)) :
+                Optional.empty();
     }
 }
