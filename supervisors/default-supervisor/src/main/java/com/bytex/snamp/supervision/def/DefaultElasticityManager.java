@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.metrics.RateRecorder;
 import com.bytex.snamp.supervision.elasticity.ElasticityManagementState;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
 import com.bytex.snamp.supervision.elasticity.ScalingAction;
+import com.bytex.snamp.supervision.elasticity.ScalingException;
 import com.google.common.util.concurrent.AtomicDoubleArray;
 
 import javax.annotation.Nonnull;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
  * @version 2.0
  * @since 2.0
  */
-public class DefaultElasticityManager implements ElasticityManager {
+public abstract class DefaultElasticityManager implements ElasticityManager {
     private final class CooldownTimer extends Timeout {
         CooldownTimer(final Duration ttl) {
             super(ttl);
@@ -64,19 +65,33 @@ public class DefaultElasticityManager implements ElasticityManager {
     }
 
     public final void addVoter(final Voter voter){
-
+        voters.add(voter);
     }
 
-    protected void applyDecision(final ScalingAction action){
+    /**
+     * Shrink the size of a cluster.
+     * @throws ScalingException Failed to shrink size of a cluster.
+     */
+    protected abstract void scaleIn() throws ScalingException;
 
-    }
+    /**
+     * Inflate the size of a cluster.
+     * @throws ScalingException Failed to inflate the size of a cluster.
+     */
+    protected abstract void scaleOut() throws ScalingException;
 
-    protected boolean applyDecision(final ScalingAction action, final VotingContext context) {
+    protected final boolean scale(final ScalingAction action, final VotingContext context) throws ScalingException {
         double votes = voters.stream().mapToDouble(voter -> voter.vote(action, context)).sum();
         setVotes(action, votes);
         final boolean approved;
         if (approved = votes >= getCastingVoteWeight()) {
-            cooldownTimer.acceptIfExpired(this, action, DefaultElasticityManager::applyDecision);
+            switch (action) {
+                case SCALE_IN:
+                    cooldownTimer.acceptIfExpired(this, DefaultElasticityManager::scaleIn);
+                    break;
+                case SCALE_OUT:
+                    cooldownTimer.acceptIfExpired(this, DefaultElasticityManager::scaleOut);
+            }
         }
         return approved;
     }

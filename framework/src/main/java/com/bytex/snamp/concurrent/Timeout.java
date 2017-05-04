@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
 
@@ -91,9 +92,9 @@ public class Timeout implements Stateful, Serializable {
         return expired;
     }
 
-    public final <I> boolean acceptIfExpired(final I input, final Consumer<? super I> action){
+    public final <I, E extends Throwable> boolean acceptIfExpired(final I input, final Acceptor<? super I, E> action) throws E {
         final boolean expired;
-        if(expired = resetIfExpired())
+        if (expired = resetIfExpired())
             action.accept(input);
         return expired;
     }
