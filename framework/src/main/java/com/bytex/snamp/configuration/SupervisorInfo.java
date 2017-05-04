@@ -58,6 +58,16 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
         double getVoteWeight();
     }
 
+    /**
+     * Represents programmatically defined scaling policy.
+     */
+    interface CustomScalingPolicyInfo extends ScalingPolicyInfo, ScriptletConfiguration{
+
+    }
+
+    /**
+     * Represents scaling policy based on values of some metrics.
+     */
     interface MetricBasedScalingPolicyInfo extends ScalingPolicyInfo{
         /**
          * Indicates that weight of the vote will be increased proportionally to actual observation time.
@@ -115,9 +125,18 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
         /**
          * Gets scaling policies based on values of the metrics.
          * @return A map of scaling policies based on values of the metrics.
+         * @implSpec Key is a name of attribute.
          */
         @Nonnull
         Map<String, ? extends MetricBasedScalingPolicyInfo> getMetricBasedPolicies();
+
+        /**
+         * Gets custom scaling policies.
+         * @return A map with custom policies.
+         * @implSpec Key is a name of policy.
+         */
+        @Nonnull
+        Map<String, ? extends CustomScalingPolicyInfo> getCustomPolicies();
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
-import static com.bytex.snamp.configuration.SupervisorInfo.ScalingPolicyInfo;
 import static com.bytex.snamp.configuration.SupervisorInfo.MetricBasedScalingPolicyInfo;
 
 /**
@@ -11,10 +10,12 @@ import static com.bytex.snamp.configuration.SupervisorInfo.MetricBasedScalingPol
  */
 public class VoterFactory {
 
-    public Voter compile(final ScalingPolicyInfo policyInfo) throws VoterCompilationException{
-        if(policyInfo instanceof MetricBasedScalingPolicyInfo){
-            
-        }
-        return null;
+    public Voter compile(final String attributeName,
+                         final MetricBasedScalingPolicyInfo policyInfo) {
+        final MetricBasedVoter voter = new MetricBasedVoter(attributeName, policyInfo.getVoteWeight(), policyInfo.getRange());
+        voter.setObservationTime(policyInfo.getObservationTime());
+        voter.setIncrementalVoteWeight(policyInfo.isIncrementalVoteWeight());
+        voter.setValuesAggregator(policyInfo.getAggregationMethod());
+        return voter;
     }
 }

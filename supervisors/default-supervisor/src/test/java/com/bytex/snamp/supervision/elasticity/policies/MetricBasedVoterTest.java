@@ -27,8 +27,8 @@ public final class MetricBasedVoterTest extends Assert {
         reservoir.add(4D);
         assertEquals(0D, voter.vote(reservoir), 0.01D);
         reservoir.reset();
-        reservoir.add(3D);
         reservoir.add(5D);
+        reservoir.add(3D);
         assertEquals(0D, voter.vote(reservoir), 0.01D);
         reservoir.reset();
         reservoir.add(6D);

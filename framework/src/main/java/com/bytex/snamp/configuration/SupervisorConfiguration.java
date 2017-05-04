@@ -33,15 +33,21 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
         FactoryMap<String, ? extends ScriptletConfiguration> getAttributeCheckers();
     }
 
-    interface MetricBasedScalingPolicyConfiguration extends MetricBasedScalingPolicyInfo {
+    interface ScalingPolicyConfiguration extends ScalingPolicyInfo{
+        void setVoteWeight(final double value);
+    }
+
+    interface MetricBasedScalingPolicyConfiguration extends MetricBasedScalingPolicyInfo, ScalingPolicyConfiguration {
 
         void setAggregationMethod(@Nonnull final ReduceOperation value);
         
         void setRange(@Nonnull final Range<Double> value);
 
-        void setVoteWeight(final double value);
 
         void setObservationTime(@Nonnull final Duration value);
+    }
+
+    interface CustomScalingPolicyConfiguration extends CustomScalingPolicyInfo, ScalingPolicyConfiguration {
     }
 
     /**
@@ -55,6 +61,10 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
         @Override
         @Nonnull
         FactoryMap<String, ? extends MetricBasedScalingPolicyConfiguration> getMetricBasedPolicies();
+
+        @Nonnull
+        @Override
+        FactoryMap<String, ? extends CustomScalingPolicyConfiguration> getCustomPolicies();
     }
 
     interface ResourceDiscoveryConfiguration extends ResourceDiscoveryInfo{
