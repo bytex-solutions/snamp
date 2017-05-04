@@ -3,8 +3,7 @@ import { Axis } from "../axis/abstract.axis";
 import { ResourceNameAxis } from "../axis/resource.name.axis";
 import { HealthStatusAxis } from "../axis/health.status.axis";
 import { AbstractChart } from "../abstract.chart";
-import { ChartData } from "../data/abstract.data";
-import {HealthStatusChartData} from "../data/health.status.chart.data";
+import { HealthStatusChartData } from "../data/health.status.chart.data";
 
 const d3 = require('d3');
 const nv = require('nvd3');
@@ -43,12 +42,6 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
         }
-        return _value;
-    }
-
-    private prepareDatasets():any {
-        let _value:any[] = [];
-
         return _value;
     }
 
@@ -102,18 +95,54 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         });
     }
 
-    public newValue(_data:HealthStatusChartData):void {
-        console.log("New data has been received for ResourceGroupHealthStatusChart entity: ", _data);
-        this.chartData.push(_data);
-        let _index:number = this.chartData.length - 1;
-        if (this._chartObject != undefined) {
-            let _ds:any[] = d3.select('#' + this.id).datum();
-            let _found:boolean = false;
+    private statusToColor(status:string):string {
+        return status == "info" ? "#099000" : "#ea0000";
+    }
 
-            if (!_found) {
-                _ds = this.prepareDatasets();
+    private prepareDatasets():any {
+        let _value:any[] = [];
+        _value["nodes"] = [];
+        for (let i = 0; i < this.chartData.length; i++) {
+            _value["nodes"].push({
+                "name" : (<HealthStatusChartData>this.chartData[i]).name,
+                "color" : this.statusToColor((<HealthStatusChartData>this.chartData[i]).status.getNotificationLevel()),
+                "details" : (<HealthStatusChartData>this.chartData[i]).status.htmlDetails()
+            });
+        }
+        _value["links"] = [];
+        for (let i = 0; i < this.chartData.length; i++) {
+            if ((<HealthStatusChartData>this.chartData[i]).summary) {
+                for (let j = 0; j < this.chartData.length; j++) {
+                    if (i != j) {
+                        _value["links"].push({
+                            "source": i,
+                            "target": j,
+                            "value": "1"
+                        });
+                    }
+                }
             }
-            this._chartObject.update();
+        }
+        return _value;
+    }
+
+    public newValue(_data:HealthStatusChartData):void {
+        if (document.hidden) return;
+        console.log("New data has been received for ResourceGroupHealthStatusChart entity: ", _data);
+        let _index:number = -1;
+
+        for (let i = 0; i < this.chartData.length; i++) {
+            if ((<HealthStatusChartData>this.chartData[i]).name == _data.name) {
+                _index = i; // remember the index
+                this.chartData[i] = _data; // change the data
+                break;
+            }
+        }
+        if (_index == -1) {
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+        }
+        if (this._chartObject != undefined) {
+            d3.select('#' + this.id).datum(this.prepareDatasets()).transition().duration(500).call(this._chartObject);
         }
     }
 }

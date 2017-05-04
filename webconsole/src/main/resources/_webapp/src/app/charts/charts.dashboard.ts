@@ -20,6 +20,7 @@ import 'rxjs/add/observable/of';
 
 import 'smartwizard';
 import 'select2';
+import {ResourceGroupHealthStatusChart} from "./model/charts/resource.group.health.status";
 
 @Component({
     moduleId: module.id,
@@ -341,7 +342,7 @@ export class Dashboard {
     }
 
     isSvgType(chart:AbstractChart):boolean {
-        return chart instanceof LineChartOfAttributeValues;
+        return chart instanceof LineChartOfAttributeValues || chart instanceof ResourceGroupHealthStatusChart;
     }
 
     isDivType(chart:AbstractChart):boolean {

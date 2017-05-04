@@ -97508,10 +97508,6 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         }
         return _value;
     };
-    ResourceGroupHealthStatusChart.prototype.prepareDatasets = function () {
-        var _value = [];
-        return _value;
-    };
     ResourceGroupHealthStatusChart.prototype.draw = function () {
         // https://nvd3-community.github.io/nvd3/ - see forceDirected
         // https://github.com/nvd3-community/nvd3/blob/gh-pages/examples/forceDirected.html
@@ -97558,17 +97554,52 @@ var ResourceGroupHealthStatusChart = (function (_super) {
             }
         });
     };
-    ResourceGroupHealthStatusChart.prototype.newValue = function (_data) {
-        console.log("New data has been received for ResourceGroupHealthStatusChart entity: ", _data);
-        this.chartData.push(_data);
-        var _index = this.chartData.length - 1;
-        if (this._chartObject != undefined) {
-            var _ds = d3.select('#' + this.id).datum();
-            var _found = false;
-            if (!_found) {
-                _ds = this.prepareDatasets();
+    ResourceGroupHealthStatusChart.prototype.statusToColor = function (status) {
+        return status == "info" ? "#099000" : "#ea0000";
+    };
+    ResourceGroupHealthStatusChart.prototype.prepareDatasets = function () {
+        var _value = [];
+        _value["nodes"] = [];
+        for (var i = 0; i < this.chartData.length; i++) {
+            _value["nodes"].push({
+                "name": this.chartData[i].name,
+                "color": this.statusToColor(this.chartData[i].status.getNotificationLevel()),
+                "details": this.chartData[i].status.htmlDetails()
+            });
+        }
+        _value["links"] = [];
+        for (var i = 0; i < this.chartData.length; i++) {
+            if (this.chartData[i].summary) {
+                for (var j = 0; j < this.chartData.length; j++) {
+                    if (i != j) {
+                        _value["links"].push({
+                            "source": i,
+                            "target": j,
+                            "value": "1"
+                        });
+                    }
+                }
             }
-            this._chartObject.update();
+        }
+        return _value;
+    };
+    ResourceGroupHealthStatusChart.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
+        console.log("New data has been received for ResourceGroupHealthStatusChart entity: ", _data);
+        var _index = -1;
+        for (var i = 0; i < this.chartData.length; i++) {
+            if (this.chartData[i].name == _data.name) {
+                _index = i; // remember the index
+                this.chartData[i] = _data; // change the data
+                break;
+            }
+        }
+        if (_index == -1) {
+            this.chartData.push(_data); // if no data with this instance is found - append it to array
+        }
+        if (this._chartObject != undefined) {
+            d3.select('#' + this.id).datum(this.prepareDatasets()).transition().duration(500).call(this._chartObject);
         }
     };
     return ResourceGroupHealthStatusChart;
