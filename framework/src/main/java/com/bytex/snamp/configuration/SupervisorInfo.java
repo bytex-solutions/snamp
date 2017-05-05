@@ -96,6 +96,12 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
          * @return Observation 
          */
         Duration getObservationTime();
+
+        /**
+         * Gets name of attribute used to obtain value of the metric.
+         * @return Attribute name.
+         */
+        String getAttributeName();
     }
 
     /**
@@ -125,7 +131,7 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
         /**
          * Gets scaling policies based on values of the metrics.
          * @return A map of scaling policies based on values of the metrics.
-         * @implSpec Key is a name of attribute.
+         * @implSpec Key is a name of policy.
          */
         @Nonnull
         Map<String, ? extends MetricBasedScalingPolicyInfo> getMetricBasedPolicies();

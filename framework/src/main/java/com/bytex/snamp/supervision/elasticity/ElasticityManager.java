@@ -1,6 +1,8 @@
 package com.bytex.snamp.supervision.elasticity;
 
 import com.bytex.snamp.Stateful;
+import com.bytex.snamp.connector.metrics.Metric;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.metrics.Rate;
 import com.bytex.snamp.supervision.SupervisorAggregatedService;
 
@@ -13,7 +15,17 @@ import java.time.Duration;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface ElasticityManager extends SupervisorAggregatedService, Stateful {
+public interface ElasticityManager extends SupervisorAggregatedService, Stateful, MetricsSupport {
+    /**
+     * Represents name of the metric with type {@link Rate} that can be used obtain downscale rate.
+     */
+    String SCALE_IN_RATE = "scaleIn";
+    
+    /**
+     * Represents name of the metric with type {@link Rate} that can be used obtain upscale rate.
+     */
+    String SCALE_OUT_RATE = "scaleOut";
+
     /**
      * Gets period that helps to ensure that Elasticity Manager doesn't launch or terminate additional instances before the previous scaling activity takes effect.
      *
@@ -43,18 +55,6 @@ public interface ElasticityManager extends SupervisorAggregatedService, Stateful
      */
     int getScalingSize();
 
-    /**
-     * Gets statistics about downscale rate.
-     * @return Rate statistics.
-     */
-    Rate getScaleInRate();
-
-    /**
-     * Gets statistics about upscale rate.
-     * @return Rate statistics.
-     */
-    Rate getScaleOutRate();
-
     double getVotesForScaleIn();
 
     double getVotesForScaleOut();
@@ -64,4 +64,13 @@ public interface ElasticityManager extends SupervisorAggregatedService, Stateful
      * @return Weight of votes needed for inflating or shrinking the cluster.
      */
     double getCastingVoteWeight();
+
+    /**
+     * Gets metric associated with elasticity management process.
+     *
+     * @param metricName Metric name or policy name.
+     * @return An instance of metric; or {@literal null}, if metrics doesn't exist.
+     */
+    @Override
+    Metric getMetric(final String metricName);
 }

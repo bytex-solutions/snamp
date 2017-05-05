@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
 import static com.bytex.snamp.configuration.SupervisorInfo.MetricBasedScalingPolicyInfo;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Provides compilation of scaling policies into voters.
@@ -10,9 +11,10 @@ import static com.bytex.snamp.configuration.SupervisorInfo.MetricBasedScalingPol
  */
 public class ScalingPolicyFactory {
 
-    public ScalingPolicy compile(final String attributeName,
-                                 final MetricBasedScalingPolicyInfo policyInfo) {
-        final MetricBasedScalingPolicy voter = new MetricBasedScalingPolicy(attributeName, policyInfo.getVoteWeight(), policyInfo.getRange());
+    public ScalingPolicy compile(final MetricBasedScalingPolicyInfo policyInfo) {
+        if (isNullOrEmpty(policyInfo.getAttributeName()))
+            return ScalingPolicy.VOICELESS;
+        final MetricBasedScalingPolicy voter = new MetricBasedScalingPolicy(policyInfo.getAttributeName(), policyInfo.getVoteWeight(), policyInfo.getRange());
         voter.setObservationTime(policyInfo.getObservationTime());
         voter.setIncrementalVoteWeight(policyInfo.isIncrementalVoteWeight());
         voter.setValuesAggregator(policyInfo.getAggregationMethod());

@@ -43,8 +43,9 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
         
         void setRange(@Nonnull final Range<Double> value);
 
-
         void setObservationTime(@Nonnull final Duration value);
+
+        void setAttributeName(@Nonnull final String attributeName);
     }
 
     interface CustomScalingPolicyConfiguration extends CustomScalingPolicyInfo, ScalingPolicyConfiguration {
