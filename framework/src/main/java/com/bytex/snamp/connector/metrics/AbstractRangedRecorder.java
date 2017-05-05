@@ -109,17 +109,6 @@ public abstract class AbstractRangedRecorder extends AbstractMetric implements R
     }
 
     /**
-     * Gets the mean rate of actions received for the last time.
-     *
-     * @param interval Measurement interval.
-     * @return The mean rate of actions received for the last time.
-     */
-    @Override
-    public final double getLastMeanRate(final MetricsInterval interval) {
-        return rate.getLastMeanRate(interval);
-    }
-
-    /**
      * Gets the mean rate of actions per unit of time from the historical perspective.
      *
      * @param scale Measurement interval.

@@ -4,6 +4,7 @@ import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.json.InstantSerializer;
 import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEvent;
 import com.bytex.snamp.supervision.SupervisionEventListener;
@@ -25,6 +26,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.Instant;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -38,18 +40,38 @@ import java.util.logging.Level;
 public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements RESTController, SupervisionEventListener {
     private static final String URL_CONTEXT = "/resource-group-watcher";
 
+    public abstract class SupervisionMessage extends WebConsoleServiceMessage{
+        private final Instant timeStamp;
+        private final String groupName;
+
+        private SupervisionMessage(final SupervisionEvent event){
+            timeStamp = event.getTimeStamp();
+            groupName = event.getGroupName();
+        }
+
+        @JsonProperty("timeStamp")
+        @JsonSerialize(using = InstantSerializer.class)
+        public final Instant getTimeStamp(){
+            return timeStamp;
+        }
+
+        @JsonProperty("groupName")
+        public final String getGroupName(){
+            return groupName;
+        }
+    }
+
     @JsonTypeName("healthStatusChanged")
-    public final class GroupStatusChangedMessage extends WebConsoleServiceMessage{
+    public final class GroupStatusChangedMessage extends SupervisionMessage{
         private static final long serialVersionUID = -9201166624972276258L;
         private final HealthStatus previousStatus;
         private final HealthStatus newStatus;
-        private final String groupName;
         private final String mostProblematicResource;
 
         private GroupStatusChangedMessage(final HealthStatusChangedEvent event) {
+            super(event);
             this.previousStatus = event.getPreviousStatus().getSummaryStatus();
             this.newStatus = event.getNewStatus().getSummaryStatus();
-            this.groupName = event.getGroupName();
             this.mostProblematicResource = ResourceGroupHealthStatus.getMostProblematicResource(event.getNewStatus()).orElse(null);
         }
 
@@ -57,12 +79,6 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public String getMostProblematicResource(){ //may be null
             return mostProblematicResource;
-        }
-
-        @JsonProperty("groupName")
-        @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public String getGroupName(){
-            return groupName;
         }
 
         @JsonProperty("previousStatus")
@@ -81,28 +97,26 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     }
 
     @JsonTypeName("groupCompositionChanged")
-    public final class GroupCompositionChangedMessage extends WebConsoleServiceMessage{
+    public final class GroupCompositionChangedMessage extends SupervisionMessage {
         private static final long serialVersionUID = 469376947661340798L;
-        private final GroupCompositionChanged event;
+        private final GroupCompositionChanged.Modifier modifier;
+        private final String resourceName;
 
-        private GroupCompositionChangedMessage(@Nonnull final GroupCompositionChanged event){
-            this.event = event;
+        private GroupCompositionChangedMessage(@Nonnull final GroupCompositionChanged event) {
+            super(event);
+            this.modifier = event.getModifier();
+            this.resourceName = event.getResourceName();
         }
 
         @JsonProperty("modifier")
         @JsonSerialize(using = ModifierSerializer.class)
-        public GroupCompositionChanged.Modifier getModifier(){
-            return event.getModifier();
+        public GroupCompositionChanged.Modifier getModifier() {
+            return modifier;
         }
 
         @JsonProperty("resourceName")
-        public String getResourceName(){
-            return event.getResourceName();
-        }
-
-        @JsonProperty("groupName")
-        public String getGroupName(){
-            return event.getGroupName();
+        public String getResourceName() {
+            return resourceName;
         }
     }
 

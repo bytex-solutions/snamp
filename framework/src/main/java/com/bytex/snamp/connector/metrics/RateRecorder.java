@@ -24,7 +24,6 @@ public class RateRecorder extends AbstractMetric implements Rate {
     private final MetricsIntervalMap<AtomicLong> maxRate;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerSecond;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerMinute;
-    private final MetricsIntervalMap<ExponentialMovingAverage> meanRate;
     private final AtomicLong totalRate;
     private final AtomicReference<Instant> startTime;
 
@@ -33,7 +32,6 @@ public class RateRecorder extends AbstractMetric implements Rate {
         totalRate = new AtomicLong(0L);
         lastRate = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
         maxRate = new MetricsIntervalMap<>(interval -> new AtomicLong(0L));
-        meanRate = new MetricsIntervalMap<>(MetricsInterval::createEMA);
         startTime = new AtomicReference<>(Instant.now());
         lastMaxRatePerSecond = new MetricsIntervalMap<>(MetricsInterval.SECOND.greater(), interval -> interval.createLongPeakDetector(0L));
         lastMaxRatePerMinute = new MetricsIntervalMap<>(MetricsInterval.MINUTE.greater(), interval -> interval.createLongPeakDetector(0L));
@@ -44,7 +42,6 @@ public class RateRecorder extends AbstractMetric implements Rate {
         startTime = new AtomicReference<>(source.getStartTime());
         totalRate = new AtomicLong(source.totalRate.get());
         maxRate = new MetricsIntervalMap<>(source.maxRate, al -> new AtomicLong(al.get()));
-        meanRate = new MetricsIntervalMap<>(source.meanRate, ExponentialMovingAverage::clone);
         lastRate = new MetricsIntervalMap<>(source.lastRate, TimeLimitedLong::clone);
         lastMaxRatePerSecond = new MetricsIntervalMap<>(source.lastMaxRatePerSecond, TimeLimitedLong::clone);
         lastMaxRatePerMinute = new MetricsIntervalMap<>(source.lastMaxRatePerMinute, TimeLimitedLong::clone);
@@ -67,7 +64,6 @@ public class RateRecorder extends AbstractMetric implements Rate {
                 case MINUTE: //write rate for the last minute
                     lastMaxRatePerMinute.forEachAcceptLong(lastRate, TimeLimitedLong::accept);
             }
-            meanRate.acceptAsDouble(interval, 1D, ExponentialMovingAverage::accept);
         }
     }
 
@@ -116,17 +112,6 @@ public class RateRecorder extends AbstractMetric implements Rate {
         return getTotalRate() / scale.divideFP(timeline);
     }
 
-    /**
-     * Gets the mean rate of actions received for the last time.
-     *
-     * @param interval Measurement interval.
-     * @return The mean rate of actions received for the last time.
-     */
-    @Override
-    public double getLastMeanRate(final MetricsInterval interval) {
-        return meanRate.getAsDouble(interval, ExponentialMovingAverage::getAsDouble);
-    }
-
     @Override
     public final long getMaxRate(final MetricsInterval interval) {
         return maxRate.getAsLong(interval, AtomicLong::get);
@@ -165,7 +150,6 @@ public class RateRecorder extends AbstractMetric implements Rate {
     public void reset() {
         totalRate.set(0L);
         lastRate.values().forEach(TimeLimitedLong::reset);
-        meanRate.values().forEach(ExponentialMovingAverage::reset);
         maxRate.values().forEach(rate -> rate.set(0L));
     }
 }

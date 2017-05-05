@@ -60,14 +60,14 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     @Override
     protected void writeValue(final Duration value) {
         super.writeValue(value);
-        final double lastMeanRate = getLastMeanRate(MetricsInterval.SECOND);
+        final double lastMeanRate = getLastRate(MetricsInterval.SECOND);
         final double lastMeanResponseTime = toSeconds(getLastMeanValue(MetricsInterval.SECOND));
         rpsAndTimeCorrelation.applyAsDouble(/*rps*/lastMeanRate, /*response time*/lastMeanResponseTime);
     }
 
     @Override
-    public double getLastMeanAvailability(final MetricsInterval interval){
-        return getAvailability(getLastMeanRate(interval), toSeconds(getLastMeanValue(interval)), channels);
+    public double getLastMeanAvailability(final MetricsInterval interval) {
+        return getAvailability(getLastRate(interval), toSeconds(getLastMeanValue(interval)), channels);
     }
 
     @Override

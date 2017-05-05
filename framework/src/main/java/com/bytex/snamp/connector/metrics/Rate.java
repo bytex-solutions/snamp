@@ -22,11 +22,6 @@ public interface Rate extends Metric {
         }
 
         @Override
-        public double getLastMeanRate(final MetricsInterval interval) {
-            return 0;
-        }
-
-        @Override
         public double getMeanRate(final MetricsInterval scale) {
             return 0;
         }
@@ -75,13 +70,6 @@ public interface Rate extends Metric {
      * @return The last measured rate of actions.
      */
     long getLastRate(final MetricsInterval interval);
-
-    /**
-     * Gets the mean rate of actions received for the last time.
-     * @param interval Measurement interval.
-     * @return The mean rate of actions received for the last time.
-     */
-    double getLastMeanRate(final MetricsInterval interval);
 
     /**
      * Gets the mean rate of actions per unit of time from the historical perspective.

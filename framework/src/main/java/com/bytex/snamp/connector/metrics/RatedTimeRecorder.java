@@ -70,11 +70,6 @@ public class RatedTimeRecorder extends TimeRecorder implements RatedTimer {
     }
 
     @Override
-    public final double getLastMeanRate(final MetricsInterval interval) {
-        return rate.getLastMeanRate(interval);
-    }
-
-    @Override
     public final double getMeanRate(final MetricsInterval scale) {
         return rate.getMeanRate(scale);
     }

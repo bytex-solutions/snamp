@@ -630,14 +630,6 @@ public final class MetricsConverter {
     private static void fillRate(final Rate rate, final CompositeDataBuilder output){
         output
                 .put(TOTAL_RATE_FIELD, rate.getTotalRate())
-                //mean rate for the last time
-                .put(MEAN_RATE_FOR_LAST_SECOND_FIELD, rate.getLastMeanRate(MetricsInterval.SECOND))
-                .put(MEAN_RATE_FOR_LAST_MINUTE_FIELD, rate.getLastMeanRate(MetricsInterval.MINUTE))
-                .put(MEAN_RATE_FOR_LAST_5_MINUTES_FIELD, rate.getLastMeanRate(MetricsInterval.FIVE_MINUTES))
-                .put(MEAN_RATE_FOR_LAST_15_MINUTES_FIELD, rate.getLastMeanRate(MetricsInterval.FIFTEEN_MINUTES))
-                .put(MEAN_RATE_FOR_LAST_HOUR_FIELD, rate.getLastMeanRate(MetricsInterval.HOUR))
-                .put(MEAN_RATE_FOR_LAST_12_HOURS_FIELD, rate.getLastMeanRate(MetricsInterval.TWELVE_HOURS))
-                .put(MEAN_RATE_FOR_LAST_DAY_FIELD, rate.getLastMeanRate(MetricsInterval.DAY))
                 //mean rate
                 .put(MEAN_RATE_PER_SECOND_FIELD, rate.getMeanRate(MetricsInterval.SECOND))
                 .put(MEAN_RATE_PER_MINUTE_FIELD, rate.getMeanRate(MetricsInterval.MINUTE))

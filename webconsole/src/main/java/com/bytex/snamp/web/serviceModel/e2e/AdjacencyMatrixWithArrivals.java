@@ -71,7 +71,7 @@ public abstract class AdjacencyMatrixWithArrivals extends AdjacencyMatrix {
             availability = fillMap(metric, Arrivals::getLastMeanAvailability, Function.identity());
             //rate
             maxRatePerSecond = fillMap(metric, Arrivals::getLastMaxRatePerSecond, Function.identity());
-            meanRate = fillMap(metric, Arrivals::getLastMeanRate, Function.identity());
+            meanRate = fillMap(metric, Arrivals::getMeanRate, Function.identity());
         }
     }
 

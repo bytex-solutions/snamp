@@ -55,11 +55,6 @@ public final class Summary {
             }
 
             @Override
-            public double getLastMeanRate(final MetricsInterval interval) {
-                return avg(rate -> rate.getLastMeanRate(interval));
-            }
-
-            @Override
             public double getMeanRate(final MetricsInterval scale) {
                 return avg(rate -> rate.getMeanRate(scale));
             }
