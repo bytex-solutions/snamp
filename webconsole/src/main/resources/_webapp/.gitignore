@@ -4,6 +4,9 @@
 logs
 *.log
 
+# Typings rc
+*.typingsrc
+
 # Runtime data
 pids
 *.pid
