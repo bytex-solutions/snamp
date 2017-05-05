@@ -8,7 +8,7 @@ import com.bytex.snamp.scripting.groovy.Scriptlet;
  * @version 2.0
  * @since 2.0
  */
-public abstract class GroovyVoter extends Scriptlet implements Voter {
+public abstract class GroovyScalingPolicy extends Scriptlet implements ScalingPolicy {
     private double voteWeight;
 
     protected abstract long isUpscaleNeeded();
@@ -22,7 +22,7 @@ public abstract class GroovyVoter extends Scriptlet implements Voter {
      * @return Vote weight: &gt;0 - for scale-out; &lt;0 - for scale-in
      */
     @Override
-    public final double vote(final VotingContext context) {
+    public final double evaluate(final ScalingPolicyEvaluationContext context) {
         long factor;
         if ((factor = isUpscaleNeeded()) > 0)
             return voteWeight * factor;

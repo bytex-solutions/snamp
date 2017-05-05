@@ -4,8 +4,8 @@ import com.bytex.snamp.concurrent.Timeout;
 import com.bytex.snamp.connector.metrics.Rate;
 import com.bytex.snamp.connector.metrics.RateRecorder;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
-import com.bytex.snamp.supervision.elasticity.policies.Voter;
-import com.bytex.snamp.supervision.elasticity.policies.VotingContext;
+import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicy;
+import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -73,7 +73,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
         OUT_OF_SPACE
     }
 
-    private final List<Voter> voters;
+    private final List<ScalingPolicy> policies;
     private volatile double scaleInVotes;
     private volatile double scaleOutVotes;
     private final RateRecorder scaleInRate;
@@ -87,7 +87,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
      * Initializes a new elasticity manager.
      */
     public DefaultElasticityManager() {
-        voters = new ArrayList<>();
+        policies = new ArrayList<>();
         cooldownTimer = new CooldownTimer();
         scale = 1;
         minClusterSize = 0;
@@ -102,28 +102,28 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
      *
      * @param voter A voter that will be used to compute decision about scaling.
      */
-    public final void addVoter(@Nonnull final Voter voter) {
-        voters.add(Objects.requireNonNull(voter));
+    public final void addVoter(@Nonnull final ScalingPolicy voter) {
+        policies.add(Objects.requireNonNull(voter));
     }
 
-    private ScalingDecision scaleOutDecision(final VotingContext context) {
+    private ScalingDecision scaleOutDecision(final ScalingPolicyEvaluationContext context) {
         if (context.getResources().size() >= maxClusterSize)
             return ScalingDecision.OUT_OF_SPACE;
         scaleOutRate.mark();
         return ScalingDecision.SCALE_OUT;
     }
 
-    private ScalingDecision scaleInDecision(final VotingContext context) {
+    private ScalingDecision scaleInDecision(final ScalingPolicyEvaluationContext context) {
         if (context.getResources().isEmpty())
             return ScalingDecision.NOTHING_TO_DO;
         scaleInRate.mark();
         return ScalingDecision.SCALE_IN;
     }
 
-    protected final ScalingDecision decide(final VotingContext context) {
+    protected final ScalingDecision decide(final ScalingPolicyEvaluationContext context) {
         double scaleInVotes = 0D, scaleOutVotes = 0D;
-        for(final Voter voter: voters) {
-            double vote = voter.vote(context);
+        for(final ScalingPolicy voter: policies) {
+            double vote = voter.evaluate(context);
             if (vote < 0D)
                 scaleInVotes += vote;
             else
@@ -209,7 +209,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
 
     @Override
     public final double getCastingVoteWeight() {
-        return voters.size() / 2D;
+        return policies.size() / 2D;
     }
 
     /**
@@ -239,7 +239,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     public void reset() {
         scaleInRate.reset();
         scaleOutRate.reset();
-        voters.forEach(Voter::reset);
+        policies.forEach(ScalingPolicy::reset);
     }
 
     @Override
@@ -255,6 +255,6 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     @Override
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
-        voters.clear();
+        policies.clear();
     }
 }

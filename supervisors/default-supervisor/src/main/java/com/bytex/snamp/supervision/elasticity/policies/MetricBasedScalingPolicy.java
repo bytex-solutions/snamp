@@ -26,7 +26,7 @@ import static com.bytex.snamp.Convert.toDouble;
  * @version 2.0
  * @since 2.0
  */
-final class MetricBasedVoter extends AbstractVoter {
+final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
     private long observationTimeMillis;
     private final Range<Double> operationalRange;
     private boolean incrementalVoteWeight;
@@ -35,9 +35,9 @@ final class MetricBasedVoter extends AbstractVoter {
     private int previousObservation;
     private final Stopwatch observationTimer;
 
-    MetricBasedVoter(final String attributeName,
-                     final double voteWeight,
-                     final Range<Double> operationalRange) {
+    MetricBasedScalingPolicy(final String attributeName,
+                             final double voteWeight,
+                             final Range<Double> operationalRange) {
         super(voteWeight);
         observationTimeMillis = 0;
         this.operationalRange = Objects.requireNonNull(operationalRange);
@@ -115,7 +115,7 @@ final class MetricBasedVoter extends AbstractVoter {
      * @return Vote weight: &gt;0 - for scale-out; &lt;0 - for scale-in
      */
     @Override
-    public double vote(final VotingContext context) {
+    public double evaluate(final ScalingPolicyEvaluationContext context) {
         final BundleContext bc = Utils.getBundleContextOfObject(context);
         assert bc != null;
         final DoubleReservoir reservoir = new DoubleReservoir(context.getResources().size());

@@ -9,16 +9,16 @@ import org.junit.Test;
 import java.time.Duration;
 
 /**
- * Test for {@link MetricBasedVoter}.
+ * Test for {@link MetricBasedScalingPolicy}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public final class MetricBasedVoterTest extends Assert {
+public final class MetricBasedScalingPolicyTest extends Assert {
     @Test
     public void votingTest() throws InterruptedException {
         final double WEIGHT = 10D;
-        final MetricBasedVoter voter = new MetricBasedVoter("dummy",
+        final MetricBasedScalingPolicy voter = new MetricBasedScalingPolicy("dummy",
                 WEIGHT,
                 RangeUtils.parseDoubleRange("[3‥5]"));
         voter.setValuesAggregator(ReduceOperation.MAX);

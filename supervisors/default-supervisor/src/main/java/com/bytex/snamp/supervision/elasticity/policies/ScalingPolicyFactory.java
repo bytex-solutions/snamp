@@ -8,11 +8,11 @@ import static com.bytex.snamp.configuration.SupervisorInfo.MetricBasedScalingPol
  * @version 2.0
  * @since 2.0
  */
-public class VoterFactory {
+public class ScalingPolicyFactory {
 
-    public Voter compile(final String attributeName,
-                         final MetricBasedScalingPolicyInfo policyInfo) {
-        final MetricBasedVoter voter = new MetricBasedVoter(attributeName, policyInfo.getVoteWeight(), policyInfo.getRange());
+    public ScalingPolicy compile(final String attributeName,
+                                 final MetricBasedScalingPolicyInfo policyInfo) {
+        final MetricBasedScalingPolicy voter = new MetricBasedScalingPolicy(attributeName, policyInfo.getVoteWeight(), policyInfo.getRange());
         voter.setObservationTime(policyInfo.getObservationTime());
         voter.setIncrementalVoteWeight(policyInfo.isIncrementalVoteWeight());
         voter.setValuesAggregator(policyInfo.getAggregationMethod());

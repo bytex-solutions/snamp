@@ -6,12 +6,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents voting context.
+ * Represents policy evaluation context.
  * @author Roman Sakno
  * @since 2.0
  * @version 2.0
  */
-public interface VotingContext extends Aggregator {
+public interface ScalingPolicyEvaluationContext extends Aggregator {
     /**
      * Gets existing resources in the cluster.
      * @return Immutable set of existing resources in the cluster.
