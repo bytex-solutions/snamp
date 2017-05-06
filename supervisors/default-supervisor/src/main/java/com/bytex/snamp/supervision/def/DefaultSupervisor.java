@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
+import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
 import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.supervision.health.triggers.TriggerFactory;
 import com.bytex.snamp.core.ClusterMember;
@@ -31,7 +32,7 @@ import static com.bytex.snamp.configuration.SupervisorInfo.HealthCheckInfo;
  * @version 2.0
  * @since 2.0
  */
-public class DefaultSupervisor extends AbstractSupervisor implements HealthStatusTrigger {
+public class DefaultSupervisor extends AbstractSupervisor implements HealthStatusTrigger, ScalingPolicyEvaluationContext {
 
     private final class DefaultHealthStatusChangedEvent extends HealthStatusChangedEvent {
         private static final long serialVersionUID = -6608026114593286031L;

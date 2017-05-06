@@ -3,9 +3,11 @@ package com.bytex.snamp.supervision.elasticity.policies;
 import com.bytex.snamp.moa.DoubleReservoir;
 import com.bytex.snamp.moa.RangeUtils;
 import com.bytex.snamp.moa.ReduceOperation;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.time.Duration;
 
 /**
@@ -47,5 +49,24 @@ public final class MetricBasedScalingPolicyTest extends Assert {
         reservoir.reset();
         reservoir.add(3D);
         assertEquals(0D, voter.vote(reservoir), 0.01D);
+    }
+
+    @Test
+    public void jsonSerializationTest() throws IOException {
+        final double WEIGHT = 10D;
+        final MetricBasedScalingPolicy voter = new MetricBasedScalingPolicy("dummy",
+                WEIGHT,
+                RangeUtils.parseDoubleRange("[3‥5]"));
+        voter.setValuesAggregator(ReduceOperation.PERCENTILE_90);
+        final ObjectMapper mapper = new ObjectMapper();
+        final String json = mapper.writeValueAsString(voter);
+        assertNotNull(json);
+        final MetricBasedScalingPolicy deserializedVoter = mapper.readValue(json, MetricBasedScalingPolicy.class);
+        assertNotNull(deserializedVoter);
+        assertEquals(voter.getAttributeName(), deserializedVoter.getAttributeName());
+        assertEquals(voter.isIncrementalVoteWeight(), deserializedVoter.isIncrementalVoteWeight());
+        assertEquals(voter.getVoteWeight(), deserializedVoter.getVoteWeight(), 0.01D);
+        assertEquals(voter.getOperationalRange(), deserializedVoter.getOperationalRange());
+        assertEquals(voter.getAggregator(), deserializedVoter.getAggregator());
     }
 }

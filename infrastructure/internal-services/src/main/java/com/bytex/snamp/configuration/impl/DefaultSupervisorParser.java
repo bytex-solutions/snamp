@@ -26,6 +26,7 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
     private static final String GROUP_NAME_PROPERTY = "$groupName$";
     private static final String HEALTH_CHECK_PROPERTY = "$healthCheck$";
     private static final String DISCOVERY_PROPERTY = "$discoveryConfig";
+    private static final String AUTO_SCALING_PROPERTY = "$autoScaling$";
     private static final String ALL_SUPERVISORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(SUPERVISOR_PID_TEMPLATE, "*"));
     private static final Pattern SUPERVISOR_PID_REPLACEMENT = Pattern.compile(String.format(SUPERVISOR_PID_TEMPLATE, ""), Pattern.LITERAL);
 
@@ -55,6 +56,7 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
         final Dictionary<String, Object> result = new Hashtable<>(4);
         result.put(HEALTH_CHECK_PROPERTY, IOUtils.serialize(entity.getHealthCheckConfig()));
         result.put(DISCOVERY_PROPERTY, IOUtils.serialize(entity.getDiscoveryConfig()));
+        result.put(AUTO_SCALING_PROPERTY, IOUtils.serialize(entity.getAutoScalingConfig()));
         return result;
     }
 
@@ -79,6 +81,7 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
         final SerializableSupervisorConfiguration supervisor = new SerializableSupervisorConfiguration();
         supervisor.setHealthCheckConfig(deserialize(HEALTH_CHECK_PROPERTY, SerializableSupervisorConfiguration.SerializableHealthCheckConfiguration.class, configuration));
         supervisor.setDiscoveryConfig(deserialize(DISCOVERY_PROPERTY, SerializableSupervisorConfiguration.SerializableDiscoveryConfiguration.class, configuration));
+        supervisor.setAutoScalingConfig(deserialize(AUTO_SCALING_PROPERTY, SerializableSupervisorConfiguration.SerializableAutoScalingConfiguration.class, configuration));
         return createParserResult(configuration, supervisor, HEALTH_CHECK_PROPERTY, DISCOVERY_PROPERTY);
     }
 }

@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.core.FrameworkServiceState;
+import com.bytex.snamp.supervision.elasticity.ScalingEvent;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import org.osgi.framework.ServiceReference;
 
@@ -43,8 +44,8 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
     }
 
     private static final class SupervisionEventListenerList extends AbstractWeakEventListenerList<SupervisionEventListener, SupervisionEvent> {
-        boolean add(final SupervisionEventListener listener, final Object handback) {
-            return add(new WeakSupervisionEventListener(listener, handback));
+        void add(final SupervisionEventListener listener, final Object handback) {
+            add(new WeakSupervisionEventListener(listener, handback));
         }
     }
 
@@ -158,6 +159,14 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
      * @param event Event object.
      */
     protected final void healthStatusChanged(final HealthStatusChangedEvent event){
+        listeners.fire(event);
+    }
+
+    /**
+     * Raises an event indicating some scaling activity.
+     * @param event Event object.
+     */
+    protected final void scalingHappens(final ScalingEvent event) {
         listeners.fire(event);
     }
 

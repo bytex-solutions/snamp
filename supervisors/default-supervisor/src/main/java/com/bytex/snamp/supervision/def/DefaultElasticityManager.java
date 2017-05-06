@@ -1,21 +1,18 @@
 package com.bytex.snamp.supervision.def;
 
-import com.bytex.snamp.ResettableIterator;
 import com.bytex.snamp.concurrent.Timeout;
-import com.bytex.snamp.connector.metrics.*;
-import com.bytex.snamp.internal.AbstractKeyedObjects;
-import com.bytex.snamp.internal.KeyedObjects;
+import com.bytex.snamp.connector.metrics.Rate;
+import com.bytex.snamp.connector.metrics.RateRecorder;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicy;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterators;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents eventual implementation of elasticity manager that can be used to make decisions only.
@@ -77,7 +74,6 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     }
 
     private final Map<String, ScalingPolicy> policies;
-    private final KeyedObjects<String, GaugeFPRecorder> statistics;
     private volatile double scaleInVotes;
     private volatile double scaleOutVotes;
     private final RateRecorder scaleInRate;
@@ -92,14 +88,13 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
      */
     public DefaultElasticityManager() {
         policies = new HashMap<>();
-        statistics = AbstractKeyedObjects.create(GaugeFPRecorder::getName);
         cooldownTimer = new CooldownTimer();
         scale = 1;
         minClusterSize = 0;
         maxClusterSize = Integer.MAX_VALUE;
         scaleOutVotes = scaleInVotes = 0D;
-        scaleInRate = new RateRecorder(SCALE_IN_RATE);
-        scaleOutRate = new RateRecorder(SCALE_OUT_RATE);
+        scaleInRate = new RateRecorder("scaleIn");
+        scaleOutRate = new RateRecorder("scaleOut");
     }
 
     /**
@@ -109,7 +104,6 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
      */
     public final void addScalingPolicy(@Nonnull final String policyName, @Nonnull final ScalingPolicy voter) {
         policies.put(Objects.requireNonNull(policyName), Objects.requireNonNull(voter));
-        statistics.put(new GaugeFPRecorder(policyName));
     }
 
     private ScalingDecision scaleOutDecision(final ScalingPolicyEvaluationContext context) {
@@ -134,7 +128,6 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
                 scaleInVotes += vote;
             else
                 scaleOutVotes += vote;
-            statistics.get(voter.getKey()).accept(vote);
         }
         if (cooldownTimer.cooledDown()) {
             this.scaleInVotes = scaleInVotes = Math.abs(scaleInVotes);
@@ -170,6 +163,28 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
         if (value < 0)
             throw new IllegalArgumentException("Max cluster size cannot be less than 1");
         minClusterSize = value;
+    }
+
+    /**
+     * Gets downscale rate.
+     *
+     * @return Downscale rate.
+     */
+    @Nonnull
+    @Override
+    public final Rate getScaleInRate() {
+        return scaleInRate;
+    }
+
+    /**
+     * Gets upscale rate.
+     *
+     * @return Upscale rate.
+     */
+    @Nonnull
+    @Override
+    public final Rate getScaleOutRate() {
+        return scaleOutRate;
     }
 
     /**
@@ -220,43 +235,6 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     }
 
     /**
-     * Returns a set of supported metrics.
-     *
-     * @param metricType Type of the metrics.
-     * @return Immutable set of metrics.
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public final  <M extends Metric> Iterable<? extends M> getMetrics(final Class<M> metricType) {
-        final Iterable metrics;
-        if (metricType.isAssignableFrom(Rate.class))
-            metrics = Arrays.asList(scaleInRate, scaleOutRate);
-        else if (metricType.isAssignableFrom(GaugeFP.class))
-            metrics = statistics.values();
-        else
-            metrics = ImmutableList.of();
-        return (Iterable<? extends M>) metrics;
-    }
-
-    /**
-     * Gets metric by its name.
-     *
-     * @param metricName Name of the metric.
-     * @return An instance of metric; or {@literal null}, if metrics doesn't exist.
-     */
-    @Override
-    public Metric getMetric(final String metricName) {
-        switch (metricName) {
-            case SCALE_IN_RATE:
-                return scaleInRate;
-            case SCALE_OUT_RATE:
-                return scaleOutRate;
-            default:
-                return statistics.get(metricName);
-        }
-    }
-
-    /**
      * Resets internal state of the object.
      */
     @Override
@@ -264,7 +242,6 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
         scaleInRate.reset();
         scaleOutRate.reset();
         policies.values().forEach(ScalingPolicy::reset);
-        statistics.values().forEach(GaugeFP::reset);
     }
 
     @Override
@@ -281,24 +258,5 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
         policies.clear();
-        statistics.clear();
-    }
-
-    @Override
-    public final void forEach(final Consumer<? super Metric> action) {
-        action.accept(scaleInRate);
-        action.accept(scaleOutRate);
-        statistics.values().forEach(action);
-    }
-
-    /**
-     * Returns an iterator over elements of type {@code T}.
-     *
-     * @return an Iterator.
-     */
-    @Override
-    @Nonnull
-    public final Iterator<Metric> iterator() {
-        return Iterators.concat(ResettableIterator.of(scaleInRate, scaleOutRate), statistics.values().iterator());
     }
 }

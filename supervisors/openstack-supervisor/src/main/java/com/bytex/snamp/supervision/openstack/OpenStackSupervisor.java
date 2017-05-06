@@ -7,8 +7,13 @@ import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
+import com.bytex.snamp.supervision.elasticity.ScaleInEvent;
+import com.bytex.snamp.supervision.elasticity.ScaleOutEvent;
 import com.bytex.snamp.supervision.openstack.discovery.OpenStackDiscoveryService;
+import com.bytex.snamp.supervision.openstack.elasticity.OpenStackElasticityManager;
+import com.bytex.snamp.supervision.openstack.elasticity.OpenStackScalingEvaluationContext;
 import com.bytex.snamp.supervision.openstack.health.OpenStackHealthStatusProvider;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
@@ -29,8 +34,10 @@ import java.util.logging.Level;
  * @version 2.0
  * @since 2.0
  */
-final class OpenStackSupervisor extends DefaultSupervisor {
+final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackScalingEvaluationContext {
     private final AtomicReference<Token> openStackClientToken;
+    @Aggregation    //non-cached
+    private OpenStackElasticityManager elasticityManager;
 
     OpenStackSupervisor(final String groupName) {
         super(groupName);
@@ -54,6 +61,14 @@ final class OpenStackSupervisor extends DefaultSupervisor {
                 .map(Cluster::getId)
                 .findFirst()
                 .orElseThrow(() -> new OS4JException(String.format("Cluster with name %s is not registered in Senlin", clusterName)));
+    }
+
+    private static OpenStackElasticityManager createElasticityManager(final SupervisorInfo.AutoScalingInfo scalingConfig) {
+        if (scalingConfig.isEnabled()) {
+            final OpenStackElasticityManager manager = new OpenStackElasticityManager();
+            return manager;
+        } else
+            return null;
     }
 
     /**
@@ -96,12 +111,8 @@ final class OpenStackSupervisor extends DefaultSupervisor {
         //setup discovery service
         if (parser.isAutoDiscovery(configuration))
             overrideDiscoveryService(new OpenStackDiscoveryService(groupName, clusterID, configuration.getDiscoveryConfig().getConnectionStringTemplate()));
-        final boolean enableElastMan = parser.isElasticityManagementEnabled(configuration);
+        elasticityManager = createElasticityManager(configuration.getAutoScalingConfig());
         super.start(configuration);
-    }
-
-    private void stopElasticityManager() throws Exception{
-
     }
 
     private void updateHealthStatus(@Nonnull final SenlinService senlin, @Nonnull final OpenStackHealthStatusProvider provider){
@@ -117,6 +128,10 @@ final class OpenStackSupervisor extends DefaultSupervisor {
                 getLogger().log(Level.SEVERE, "Failed to synchronize cluster nodes from OpenStack to SNAMP", e);
             }
         }
+    }
+
+    private void autoScaling(@Nonnull final SenlinService senlin, @Nonnull final OpenStackElasticityManager manager){
+        manager.performScaling(this, senlin);
     }
 
     /**
@@ -142,8 +157,46 @@ final class OpenStackSupervisor extends DefaultSupervisor {
                 .flatMap(Convert.toType(OpenStackHealthStatusProvider.class))
                 .ifPresent(provider -> updateHealthStatus(senlin, provider));
 
+        //force scaling
+        queryObject(OpenStackElasticityManager.class)
+                .ifPresent(manager -> autoScaling(senlin, manager));
+
         //OSAuthenticator.reAuthenticate();
         this.openStackClientToken.compareAndSet(openStackClientToken, openStackClient.getToken()); //if re-authentication forced
+    }
+
+    @Override
+    public void scaleIn(final double castingVoteWeight, final ImmutableMap<String, Double> policyEvaluation) {
+        scalingHappens(new ScaleInEvent(this, groupName) {
+            private static final long serialVersionUID = -7114648391882166130L;
+
+            @Override
+            public double getCastingVoteWeight() {
+                return castingVoteWeight;
+            }
+
+            @Override
+            public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
+                return policyEvaluation;
+            }
+        });
+    }
+
+    @Override
+    public void scaleOut(final double castingVoteWeight, final ImmutableMap<String, Double> policyEvaluation) {
+        scalingHappens(new ScaleOutEvent(this, groupName) {
+            private static final long serialVersionUID = 3268384740398039079L;
+
+            @Override
+            public double getCastingVoteWeight() {
+                return castingVoteWeight;
+            }
+
+            @Override
+            public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
+                return policyEvaluation;
+            }
+        });
     }
 
     /**
@@ -156,7 +209,7 @@ final class OpenStackSupervisor extends DefaultSupervisor {
     @Override
     protected void stop() throws Exception {
         try {
-            Utils.closeAll(() -> super.stop(), this::stopElasticityManager);
+            Utils.closeAll(() -> super.stop(), elasticityManager);
         } finally {
             openStackClientToken.set(null);
         }

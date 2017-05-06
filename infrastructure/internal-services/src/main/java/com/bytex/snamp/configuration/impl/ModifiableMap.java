@@ -101,9 +101,9 @@ abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizab
 
     protected abstract void writeValue(final V value, final ObjectOutput out) throws IOException;
 
-    protected abstract K readKey(final ObjectInput out) throws IOException;
+    protected abstract K readKey(final ObjectInput in) throws IOException;
 
-    protected abstract V readValue(final ObjectInput out) throws IOException, ClassNotFoundException;
+    protected abstract V readValue(final ObjectInput in) throws IOException, ClassNotFoundException;
 
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {

@@ -126,7 +126,7 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
          * Gets number of instances used to enlarge or shrink cluster.
          * @return Scale size.
          */
-        int getScale();
+        int getScalingSize();
 
         /**
          * Gets scaling policies based on values of the metrics.
@@ -158,4 +158,7 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
      */
     @Nonnull
     ResourceDiscoveryInfo getDiscoveryConfig();
+
+    @Nonnull
+    AutoScalingInfo getAutoScalingConfig();
 }

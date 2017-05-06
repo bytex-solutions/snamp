@@ -45,7 +45,9 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
 
         void setObservationTime(@Nonnull final Duration value);
 
-        void setAttributeName(@Nonnull final String attributeName);
+        void setAttributeName(@Nonnull final String value);
+
+        void setIncrementalVoteWeight(final boolean value);
     }
 
     interface CustomScalingPolicyConfiguration extends CustomScalingPolicyInfo, ScalingPolicyConfiguration {
@@ -57,7 +59,7 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
     interface AutoScalingConfiguration extends AutoScalingInfo{
         void setEnabled(final boolean value);
         void setCooldownTime(@Nonnull final Duration value);
-        void setScale(final int value);
+        void setScalingSize(final int value);
 
         @Override
         @Nonnull
@@ -88,6 +90,14 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
     @Nonnull
     @Override
     HealthCheckConfiguration getHealthCheckConfig();
+
+    /**
+     * Gets configuration of elasticity management process.
+     * @return Elasticity manager.
+     */
+    @Nonnull
+    @Override
+    AutoScalingConfiguration getAutoScalingConfig();
 
     /**
      * Gets supervisor type.

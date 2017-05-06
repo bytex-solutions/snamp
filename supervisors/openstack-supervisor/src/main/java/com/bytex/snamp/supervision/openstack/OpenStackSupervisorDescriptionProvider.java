@@ -28,7 +28,6 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     private static final String PROJECT_DOMAIN_PARAM = "projectDomain";
     private static final String REGION_PARAM = "region";
     private static final String CLUSTER_ID_PARAM = "clusterID";
-    private static final String ELASTMAN_PARAM = "elasticityManagement";
     private static final String AUTO_DISCOVERY_PARAM = "autoDiscovery";
     private static final String CHECK_NODES_PARAM = "checkNodes";
 
@@ -95,10 +94,6 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
 
     Identifier parseProjectDomain(final Map<String, String> configuration){
         return getValue(configuration, PROJECT_DOMAIN_PARAM, Identifier::byName).orElse(defaultDomain);
-    }
-
-    boolean isElasticityManagementEnabled(final Map<String, String> configuration) {
-        return getValue(configuration, ELASTMAN_PARAM, Boolean::parseBoolean).orElse(false);
     }
 
     Optional<String> parseRegion(final Map<String, String> configuration){

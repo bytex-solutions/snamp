@@ -4,6 +4,9 @@ import com.bytex.snamp.Stateful;
 
 /**
  * Represents a voter in elasticity management process.
+ * @author Roman Sakno
+ * @since 2.0
+ * @version 2.0
  */
 public interface ScalingPolicy extends Stateful {
     ScalingPolicy VOICELESS = new ScalingPolicy() {

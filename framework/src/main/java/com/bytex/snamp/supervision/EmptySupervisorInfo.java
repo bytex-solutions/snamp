@@ -6,6 +6,7 @@ import com.bytex.snamp.internal.ImmutableEmptyMap;
 import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 
 /**
  * @author Roman Sakno
@@ -34,12 +35,44 @@ final class EmptySupervisorInfo extends ImmutableEmptyMap<String, String> implem
         }
     }
 
+    private static final class EmptyAutoScalingInfo implements AutoScalingInfo{
+        @Override
+        public boolean isEnabled() {
+            return false;
+        }
+
+        @Nonnull
+        @Override
+        public Duration getCooldownTime() {
+            return Duration.ZERO;
+        }
+
+        @Override
+        public int getScalingSize() {
+            return 0;
+        }
+
+        @Nonnull
+        @Override
+        public ImmutableMap<String, ? extends MetricBasedScalingPolicyInfo> getMetricBasedPolicies() {
+            return ImmutableMap.of();
+        }
+
+        @Nonnull
+        @Override
+        public ImmutableMap<String, ? extends CustomScalingPolicyInfo> getCustomPolicies() {
+            return ImmutableMap.of();
+        }
+    }
+
     private final EmptyHealthCheckInfo healthCheckConfig;
     private final EmptyResourceDiscoveryInfo discoveryConfig;
+    private final EmptyAutoScalingInfo autoScalingInfo;
 
     EmptySupervisorInfo(){
         healthCheckConfig = new EmptyHealthCheckInfo();
         discoveryConfig = new EmptyResourceDiscoveryInfo();
+        autoScalingInfo = new EmptyAutoScalingInfo();
     }
 
     @Nonnull
@@ -50,7 +83,23 @@ final class EmptySupervisorInfo extends ImmutableEmptyMap<String, String> implem
 
     @Nonnull
     @Override
-    public ResourceDiscoveryInfo getDiscoveryConfig() {
+    public EmptyResourceDiscoveryInfo getDiscoveryConfig() {
         return discoveryConfig;
+    }
+
+    @Nonnull
+    @Override
+    public EmptyAutoScalingInfo getAutoScalingConfig() {
+        return autoScalingInfo;
+    }
+
+    @Override
+    public int hashCode() {
+        return 0x012424fa;
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof EmptySupervisorInfo;
     }
 }

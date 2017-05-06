@@ -1,5 +1,7 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
+import com.bytex.snamp.configuration.SupervisorInfo;
+
 import static com.bytex.snamp.configuration.SupervisorInfo.MetricBasedScalingPolicyInfo;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -19,5 +21,9 @@ public class ScalingPolicyFactory {
         voter.setIncrementalVoteWeight(policyInfo.isIncrementalVoteWeight());
         voter.setValuesAggregator(policyInfo.getAggregationMethod());
         return voter;
+    }
+
+    public ScalingPolicy compile(final SupervisorInfo.CustomScalingPolicyInfo policyInfo){
+        return null;
     }
 }

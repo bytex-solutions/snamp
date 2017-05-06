@@ -16,7 +16,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-final class SerializableScriptletConfiguration implements ScriptletConfiguration, Externalizable, Modifiable, Stateful {
+class SerializableScriptletConfiguration implements ScriptletConfiguration, Externalizable, Modifiable, Stateful {
     private static final long serialVersionUID = 7658424337366645929L;
     private String language;
     private String script;
@@ -30,42 +30,46 @@ final class SerializableScriptletConfiguration implements ScriptletConfiguration
         parameters = new ParametersMap();
     }
 
+    final void markAsModified(){
+        modified = true;
+    }
+
     @Override
-    public ParametersMap getParameters() {
+    public final ParametersMap getParameters() {
         return parameters;
     }
 
     @Override
-    public String getLanguage() {
+    public final String getLanguage() {
         return language;
     }
 
     @Override
-    public void setLanguage(final String value) {
-        modified = true;
+    public final void setLanguage(final String value) {
         language = Objects.requireNonNull(value);
+        markAsModified();
     }
 
     @Override
-    public String getScript() {
+    public final String getScript() {
         return script;
     }
 
     @Override
-    public void setScript(final String value) {
-        modified = true;
+    public final void setScript(final String value) {
         script = Objects.requireNonNull(value);
+        markAsModified();
     }
 
     @Override
-    public boolean isURL() {
+    public final boolean isURL() {
         return isURL;
     }
 
     @Override
-    public void setURL(final boolean value) {
-        modified = true;
+    public final void setURL(final boolean value) {
         isURL = value;
+        markAsModified();
     }
 
     @Override
@@ -84,7 +88,7 @@ final class SerializableScriptletConfiguration implements ScriptletConfiguration
         parameters.readExternal(in);
     }
 
-    void load(final ScriptletConfiguration other){
+    final void load(final ScriptletConfiguration other){
         setLanguage(other.getLanguage());
         setScript(other.getScript());
         setURL(other.isURL());
@@ -93,12 +97,12 @@ final class SerializableScriptletConfiguration implements ScriptletConfiguration
     }
 
     @Override
-    public boolean isModified() {
+    public final boolean isModified() {
         return modified || parameters.isModified();
     }
 
     @Override
-    public void reset() {
+    public final void reset() {
         modified = false;
         parameters.reset();
     }

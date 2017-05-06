@@ -2,6 +2,7 @@ package com.bytex.snamp.json;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Range;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.Version;
 import org.codehaus.jackson.map.module.SimpleModule;
@@ -13,6 +14,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.TabularData;
 import java.nio.*;
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -61,6 +63,11 @@ public final class JsonUtils extends SimpleModule {
 
         addSerializer(TabularData.class, new TabularDataSerializer());
         addDeserializer(TabularData.class,  new TabularDataDeserializer());
+
+        addSerializer(Duration.class, new DurationSerializer());
+        addDeserializer(Duration.class, new DurationDeserializer());
+
+        addSerializer(Range.class, new RangeSerializer());
     }
 
     public static ArrayNode toJsonArray(final JsonNode... values){
