@@ -6,6 +6,7 @@ import com.bytex.snamp.core.ScriptletCompiler;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -21,9 +22,13 @@ public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {
     private final LazySoftReference<ObjectMapper> mapper = new LazySoftReference<>();
     private final LazySoftReference<GroovyScalingPolicyFactory> groovyPolicyFactory = new LazySoftReference<>();
 
+    private void createGroovyScalingPolicyFactory(final Consumer<GroovyScalingPolicyFactory> acceptor) throws IOException {
+        acceptor.accept(new GroovyScalingPolicyFactory(getClass().getClassLoader()));
+    }
+
     private GroovyScalingPolicy createGroovyPolicy(final String script) throws IOException {
         final ClassLoader loader = getClass().getClassLoader();
-        return groovyPolicyFactory.lazyGet(consumer -> consumer.accept(new GroovyScalingPolicyFactory(loader))).create(script);
+        return groovyPolicyFactory.lazyGet(this::createGroovyScalingPolicyFactory).create(script);
     }
 
     private MetricBasedScalingPolicy createMetricBasedPolicy(final String json) throws IOException {

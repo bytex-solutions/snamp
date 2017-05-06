@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
@@ -27,5 +28,12 @@ public interface EntryReader<I, R, E extends Throwable> {
             consumer.accept(index, record);
             return true;
         };
+    }
+
+    default <K extends I, V extends R> boolean walk(final Map<K, V> map) throws E {
+        for (final Map.Entry<K, V> entry : map.entrySet())
+            if (!accept(entry.getKey(), entry.getValue()))
+                return false;
+        return true;
     }
 }

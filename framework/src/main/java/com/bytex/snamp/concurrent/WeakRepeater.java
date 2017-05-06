@@ -1,5 +1,6 @@
 package com.bytex.snamp.concurrent;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;
 import java.time.Duration;
@@ -45,9 +46,13 @@ public abstract class WeakRepeater<I> extends Repeater {
      * @param s A new repeater state.
      */
     @Override
+    @OverridingMethodsMustInvokeSuper
     protected void stateChanged(final RepeaterState s) {
-        if(RepeaterState.CLOSED.equals(s))
-            ref.clear();
+        switch (s) {
+            case CLOSED:
+            case STOPPING:
+                ref.clear();
+        }
     }
 
     protected final I getReferenceOrTerminate() throws InterruptedException {

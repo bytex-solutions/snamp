@@ -6,6 +6,7 @@ import com.bytex.snamp.connector.attributes.reflection.ManagementAttribute;
 import java.beans.IntrospectionException;
 import java.math.BigInteger;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represents managed resource connector for tests.
@@ -15,10 +16,13 @@ import java.util.Random;
  */
 public final class StubConnector extends ManagedResourceConnectorBean {
     private final Random random;
+    private int intValue;
+    private final AtomicInteger staggering;
 
     StubConnector(final String resourceName) throws IntrospectionException {
         super(resourceName);
         random = new Random(0xEDB88320);
+        staggering = new AtomicInteger(-20);
     }
 
     @ManagementAttribute(description = "Randomized integer value")
@@ -46,5 +50,26 @@ public final class StubConnector extends ManagedResourceConnectorBean {
         final byte[] bytes = new byte[64];
         random.nextBytes(bytes);
         return bytes;
+    }
+
+    @ManagementAttribute(description = "Writable integer attribute")
+    public int getIntValue(){
+        return intValue;
+    }
+
+    public void setIntValue(final int value){
+        intValue = value;
+    }
+
+    @ManagementAttribute(description = "Gets staggering value in range [-20, 20]")
+    public int getStaggeringValue() {
+        int prev, next;
+        do {
+            prev = staggering.get();
+            next = prev + 1;
+            if (next > 20)
+                next = -20;
+        } while (!staggering.compareAndSet(prev, next));
+        return next;
     }
 }

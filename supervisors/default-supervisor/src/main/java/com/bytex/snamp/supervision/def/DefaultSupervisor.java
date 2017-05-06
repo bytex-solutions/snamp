@@ -1,25 +1,29 @@
 package com.bytex.snamp.supervision.def;
 
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.concurrent.WeakRepeater;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
-import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
-import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
-import com.bytex.snamp.supervision.health.triggers.TriggerFactory;
+import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
+import com.bytex.snamp.supervision.elasticity.policies.InvalidScalingPolicyException;
+import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
+import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyFactory;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
+import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
+import com.bytex.snamp.supervision.health.triggers.TriggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
-import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,6 +97,7 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
          */
         @Override
         protected void stateChanged(final RepeaterState s) {
+            super.stateChanged(s);
             switch (s){
                 case FAILED:
                     logger.log(Level.SEVERE, String.format("%s is crushed", threadName), getException());
@@ -102,14 +107,15 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
 
     @Aggregation  //non-cached
     private DefaultHealthStatusProvider healthStatusProvider;
-    @Aggregation    //non-cached
     private AttributeCheckerFactory checkerFactory;
-    @Aggregation    //non-cached
     private TriggerFactory triggerFactory;
+    private ScalingPolicyFactory policyFactory;
     @Aggregation
     private DefaultResourceDiscoveryService discoveryService;
     private SupervisorRepeater updater;
     private HealthStatusTrigger userDefinedTrigger;
+    @Aggregation
+    private DefaultElasticityManager elasticityManager;
 
     /**
      * Gets a reference to the current member in SNAMP cluster.
@@ -121,8 +127,23 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
         clusterMember = ClusterMember.get(getBundleContext());
     }
 
+    protected final void overrideElasticityManager(@Nonnull final DefaultElasticityManager value){
+        elasticityManager = Objects.requireNonNull(value);
+    }
+
+    protected final void overrideScalingPolicyFactory(@Nonnull final ScalingPolicyFactory value){
+        policyFactory = Objects.requireNonNull(value);
+    }
+
+    private void setupScalingPolicyFactory(){
+        if(checkerFactory == null)
+            overrideScalingPolicyFactory(new ScalingPolicyFactory());
+        else
+            getLogger().fine(String.format("ScalingPolicyFactory is overridden with %s", policyFactory));
+    }
+
     protected final void overrideCheckerFactory(@Nonnull final AttributeCheckerFactory value){
-        checkerFactory = value;
+        checkerFactory = Objects.requireNonNull(value);
     }
 
     private void setupCheckerFactory(){
@@ -133,7 +154,7 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
     }
 
     protected final void overrideTriggerFactory(@Nonnull final TriggerFactory value){
-        triggerFactory = value;
+        triggerFactory = Objects.requireNonNull(value);
     }
 
     private void setupTriggerFactory(){
@@ -144,7 +165,7 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
     }
 
     protected final void overrideHealthStatusProvider(@Nonnull final DefaultHealthStatusProvider value){
-        healthStatusProvider = value;
+        healthStatusProvider = Objects.requireNonNull(value);
     }
 
     private void setupHealthStatusProvider(){
@@ -208,13 +229,15 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
     @OverridingMethodsMustInvokeSuper
     protected void stop() throws Exception {
         try {
-            Utils.closeAll(updater::terminate, healthStatusProvider);
+            Utils.closeAll(updater::terminate, healthStatusProvider, elasticityManager);
         } finally {
             updater = null;
             healthStatusProvider = null;
             triggerFactory = null;
             checkerFactory = null;
             discoveryService = null;
+            policyFactory = null;
+            elasticityManager = null;
         }
     }
 
@@ -230,8 +253,25 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
         userDefinedTrigger = triggerFactory.compile(healthCheckInfo.getTrigger());
         assert checkerFactory != null : "Attribute checked factory is not defined";
         healthStatusProvider.removeCheckers();
-        for (final Map.Entry<String, ? extends ScriptletConfiguration> attributeChecker : healthCheckInfo.getAttributeCheckers().entrySet())
-            healthStatusProvider.addChecker(attributeChecker.getKey(), checkerFactory.compile(attributeChecker.getValue()));
+        final EntryReader<String, ScriptletConfiguration, InvalidAttributeCheckerException> walker = (attributeName, checker) -> {
+            healthStatusProvider.addChecker(attributeName, checkerFactory.compile(checker));
+            return true;
+        };
+        walker.walk(healthCheckInfo.getAttributeCheckers());
+    }
+
+    private void setupScaling(@Nonnull final SupervisorInfo.AutoScalingInfo scalingConfig) throws InvalidScalingPolicyException {
+        if (scalingConfig.isEnabled() && elasticityManager != null) {
+            assert policyFactory != null;
+            elasticityManager.setCooldownTime(scalingConfig.getCooldownTime());
+            elasticityManager.setMaxClusterSize(scalingConfig.getMaxClusterSize());
+            elasticityManager.setMinClusterSize(scalingConfig.getMinClusterSize());
+            elasticityManager.setScalingSize(scalingConfig.getScalingSize());
+            final EntryReader<String, ScriptletConfiguration, InvalidScalingPolicyException> walker = (policyName, policy) -> {
+                elasticityManager.addScalingPolicy(policyName, policyFactory.compile(policy));
+                return true;
+            };
+        }
     }
 
     protected DefaultSupervisorConfigurationDescriptionProvider getDescriptionProvider(){
@@ -256,6 +296,8 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
         setupHealthStatusProvider();
         setupDiscoveryService();
         setupHealthCheck(configuration.getHealthCheckConfig());
+        setupScalingPolicyFactory();
+        setupScaling(configuration.getAutoScalingConfig());
         //start updater thread
         updater = new SupervisorRepeater(parser.parseCheckPeriod(configuration), this);
         updater.run();

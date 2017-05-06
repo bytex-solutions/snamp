@@ -2,7 +2,7 @@ package com.bytex.snamp.supervision.openstack;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.SupervisorInfo;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.supervision.def.DefaultElasticityManager;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
@@ -36,8 +36,6 @@ import java.util.logging.Level;
  */
 final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackScalingEvaluationContext {
     private final AtomicReference<Token> openStackClientToken;
-    @Aggregation    //non-cached
-    private OpenStackElasticityManager elasticityManager;
 
     OpenStackSupervisor(final String groupName) {
         super(groupName);
@@ -61,18 +59,6 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
                 .map(Cluster::getId)
                 .findFirst()
                 .orElseThrow(() -> new OS4JException(String.format("Cluster with name %s is not registered in Senlin", clusterName)));
-    }
-
-    private static OpenStackElasticityManager createElasticityManager(final SupervisorInfo.AutoScalingInfo scalingConfig) {
-        if (scalingConfig.isEnabled()) {
-            final OpenStackElasticityManager manager = new OpenStackElasticityManager();
-            manager.setCooldownTime(scalingConfig.getCooldownTime());
-            manager.setMaxClusterSize(scalingConfig.getMaxClusterSize());
-            manager.setMinClusterSize(scalingConfig.getMinClusterSize());
-            manager.setScalingSize(scalingConfig.getScalingSize());
-            return manager;
-        } else
-            return null;
     }
 
     /**
@@ -115,7 +101,9 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
         //setup discovery service
         if (parser.isAutoDiscovery(configuration))
             overrideDiscoveryService(new OpenStackDiscoveryService(groupName, clusterID, configuration.getDiscoveryConfig().getConnectionStringTemplate()));
-        elasticityManager = createElasticityManager(configuration.getAutoScalingConfig());
+        //setup elasticity manager
+        if(configuration.getAutoScalingConfig().isEnabled())
+            overrideElasticityManager(new OpenStackElasticityManager());
         super.start(configuration);
     }
 
@@ -162,7 +150,8 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
                 .ifPresent(provider -> updateHealthStatus(senlin, provider));
 
         //force scaling
-        queryObject(OpenStackElasticityManager.class)
+        queryObject(DefaultElasticityManager.class)
+                .flatMap(Convert.toType(OpenStackElasticityManager.class))
                 .ifPresent(manager -> autoScaling(senlin, manager));
 
         //OSAuthenticator.reAuthenticate();
@@ -177,6 +166,11 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
             @Override
             public double getCastingVoteWeight() {
                 return castingVoteWeight;
+            }
+
+            @Override
+            public OpenStackSupervisor getSource() {
+                return OpenStackSupervisor.this;
             }
 
             @Override
@@ -197,6 +191,11 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
             }
 
             @Override
+            public OpenStackSupervisor getSource() {
+                return OpenStackSupervisor.this;
+            }
+
+            @Override
             public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
                 return policyEvaluation;
             }
@@ -212,10 +211,7 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
      */
     @Override
     protected void stop() throws Exception {
-        try {
-            Utils.closeAll(() -> super.stop(), elasticityManager);
-        } finally {
-            openStackClientToken.set(null);
-        }
+        openStackClientToken.set(null);
+        super.stop();
     }
 }
