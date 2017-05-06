@@ -5,8 +5,6 @@ import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
-import com.bytex.snamp.moa.ReduceOperation;
-import com.google.common.collect.Range;
 
 import javax.annotation.Nonnull;
 import java.io.Externalizable;
@@ -28,46 +26,6 @@ import static com.google.common.base.Strings.nullToEmpty;
  */
 final class SerializableSupervisorConfiguration extends AbstractEntityConfiguration implements SupervisorConfiguration {
     private static final long serialVersionUID = 976676415940627332L;
-
-    private static final class SerializableAttributeCheckers extends SerializableFactoryMap<String, SerializableScriptletConfiguration>{
-        private static final long serialVersionUID = 1271232408585113127L;
-
-        @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public SerializableAttributeCheckers() {
-        }
-
-        @Override
-        protected void writeKey(final String key, final ObjectOutput out) throws IOException {
-            out.writeUTF(key);
-        }
-
-        @Override
-        protected void writeValue(final SerializableScriptletConfiguration value, final ObjectOutput out) throws IOException {
-            value.writeExternal(out);
-        }
-
-        @Override
-        protected String readKey(final ObjectInput in) throws IOException {
-            return in.readUTF();
-        }
-
-        @Override
-        protected SerializableScriptletConfiguration readValue(final ObjectInput in) throws IOException, ClassNotFoundException {
-            final SerializableScriptletConfiguration result = createValue();
-            result.readExternal(in);
-            return result;
-        }
-
-        @Override
-        @Nonnull
-        SerializableScriptletConfiguration createValue() {
-            return new SerializableScriptletConfiguration();
-        }
-
-        void load(final Map<String, ? extends ScriptletConfiguration> checkers) {
-            load(checkers, SerializableScriptletConfiguration::load);
-        }
-    }
 
     final static class SerializableDiscoveryConfiguration implements ResourceDiscoveryConfiguration, Modifiable, Stateful, Externalizable{
         private static final long serialVersionUID = -2331867913948707000L;
@@ -134,291 +92,29 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         }
     }
 
-    private static final class SerializableCustomPolicyConfiguration extends SerializableScriptletConfiguration implements CustomScalingPolicyConfiguration, Modifiable, Stateful, Externalizable{
-        private static final long serialVersionUID = 7712023415003133834L;
-        private double voteWeight;
-
-        @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public SerializableCustomPolicyConfiguration() {
-            voteWeight = 0D;
-        }
-
-        @Override
-        public void setVoteWeight(final double value) {
-            voteWeight = value;
-            markAsModified();
-        }
-
-        @Override
-        public double getVoteWeight() {
-            return voteWeight;
-        }
-
-        @Override
-        public void writeExternal(final ObjectOutput out) throws IOException {
-            super.writeExternal(out);
-            out.writeDouble(voteWeight);
-        }
-
-        @Override
-        public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-            super.readExternal(in);
-            voteWeight = in.readDouble();
-        }
-
-        @Override
-        public int hashCode() {
-            return super.hashCode() ^ Double.hashCode(voteWeight);
-        }
-
-        private boolean equals(final CustomScalingPolicyInfo other){
-            return super.equals(other) && voteWeight == other.getVoteWeight();
-        }
-
-        @Override
-        public boolean equals(final Object other) {
-            return other instanceof CustomScalingPolicyInfo && equals((CustomScalingPolicyInfo) other);
-        }
-
-        void load(final CustomScalingPolicyInfo other){
-            super.load(other);
-            voteWeight = other.getVoteWeight();
-        }
-    }
-
-    private static final class SerializableCustomPolicies extends SerializableFactoryMap<String, SerializableCustomPolicyConfiguration> {
-        private static final long serialVersionUID = -7364456833482020352L;
-
-        @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public SerializableCustomPolicies() {
-        }
-
-        @Nonnull
-        @Override
-        SerializableCustomPolicyConfiguration createValue() {
-            return new SerializableCustomPolicyConfiguration();
-        }
-
-        @Override
-        protected void writeKey(final String key, final ObjectOutput out) throws IOException {
-            out.writeUTF(key);
-        }
-
-        @Override
-        protected void writeValue(final SerializableCustomPolicyConfiguration value, final ObjectOutput out) throws IOException {
-            value.writeExternal(out);
-        }
-
-        @Override
-        protected String readKey(final ObjectInput in) throws IOException {
-            return in.readUTF();
-        }
-
-        @Override
-        protected SerializableCustomPolicyConfiguration readValue(final ObjectInput in) throws IOException, ClassNotFoundException {
-            final SerializableCustomPolicyConfiguration result = createValue();
-            result.readExternal(in);
-            return result;
-        }
-
-        void load(final Map<String, ? extends CustomScalingPolicyInfo> other){
-            load(other, SerializableCustomPolicyConfiguration::load);
-        }
-    }
-
-    private static final class SerializableMetricBasedPolicyConfiguration implements MetricBasedScalingPolicyConfiguration, Modifiable, Stateful, Externalizable{
-        private static final long serialVersionUID = 5519650627083210032L;
-        private transient boolean modified;
-        private double voteWeight;
-        private ReduceOperation operation;
-        private Range<Double> operationalRange;
-        private Duration observationTime;
-        private String attributeName;
-        private boolean incrementalVoteWeight;
-
-        @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public SerializableMetricBasedPolicyConfiguration() {
-            voteWeight = 0D;
-            operation = ReduceOperation.MAX;
-            observationTime = Duration.ZERO;
-            attributeName = "";
-        }
-
-        @Override
-        public boolean isModified() {
-            return modified;
-        }
-
-        @Override
-        public void reset() {
-            modified = false;
-        }
-
-        @Override
-        public void setVoteWeight(final double value) {
-            voteWeight = value;
-            modified = true;
-        }
-
-        @Override
-        public void setAggregationMethod(@Nonnull final ReduceOperation value) {
-            operation = value;
-            modified = true;
-        }
-
-        @Override
-        public void setRange(@Nonnull final Range<Double> value) {
-            operationalRange = value;
-            modified = true;
-        }
-
-        @Override
-        public void setObservationTime(@Nonnull final Duration value) {
-            observationTime = value;
-            modified = true;
-        }
-
-        @Override
-        public void setAttributeName(@Nonnull final String value) {
-            attributeName = nullToEmpty(value);
-            modified = true;
-        }
-
-        @Override
-        public void setIncrementalVoteWeight(final boolean value) {
-            incrementalVoteWeight = value;
-            modified = true;
-        }
-
-        @Override
-        public double getVoteWeight() {
-            return voteWeight;
-        }
-
-        @Override
-        public boolean isIncrementalVoteWeight() {
-            return incrementalVoteWeight;
-        }
-
-        @Nonnull
-        @Override
-        public ReduceOperation getAggregationMethod() {
-            return operation;
-        }
-
-        @Nonnull
-        @Override
-        public Range<Double> getRange() {
-            return operationalRange;
-        }
-
-        @Override
-        public Duration getObservationTime() {
-            return observationTime;
-        }
-
-        @Override
-        public String getAttributeName() {
-            return attributeName;
-        }
-
-        @Override
-        public void writeExternal(final ObjectOutput out) throws IOException {
-            out.writeDouble(voteWeight);
-            out.writeObject(operation);
-            out.writeObject(operationalRange);
-            out.writeObject(observationTime);
-            out.writeUTF(attributeName);
-            out.writeBoolean(incrementalVoteWeight);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
-            voteWeight = in.readDouble();
-            operation = (ReduceOperation) in.readObject();
-            operationalRange = (Range<Double>) in.readObject();
-            observationTime = (Duration) in.readObject();
-            attributeName = in.readUTF();
-            incrementalVoteWeight = in.readBoolean();
-        }
-
-        void load(final MetricBasedScalingPolicyInfo other){
-            voteWeight = other.getVoteWeight();
-            operation = other.getAggregationMethod();
-            operationalRange = other.getRange();
-            observationTime = other.getObservationTime();
-            attributeName = other.getAttributeName();
-            incrementalVoteWeight = other.isIncrementalVoteWeight();
-        }
-    }
-
-    private static final class SerializableMetricBasedPolicies extends SerializableFactoryMap<String, SerializableMetricBasedPolicyConfiguration>{
-        private static final long serialVersionUID = 1852125901504487138L;
-
-        @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public SerializableMetricBasedPolicies() {
-        }
-
-        @Nonnull
-        @Override
-        SerializableMetricBasedPolicyConfiguration createValue() {
-            return new SerializableMetricBasedPolicyConfiguration();
-        }
-
-        @Override
-        protected void writeKey(final String key, final ObjectOutput out) throws IOException {
-            out.writeUTF(key);
-        }
-
-        @Override
-        protected void writeValue(final SerializableMetricBasedPolicyConfiguration value, final ObjectOutput out) throws IOException {
-            value.writeExternal(out);
-        }
-
-        @Override
-        protected String readKey(final ObjectInput in) throws IOException {
-            return in.readUTF();
-        }
-
-        @Override
-        protected SerializableMetricBasedPolicyConfiguration readValue(final ObjectInput in) throws IOException, ClassNotFoundException {
-            final SerializableMetricBasedPolicyConfiguration result = createValue();
-            result.readExternal(in);
-            return result;
-        }
-
-        void load(final Map<String, ? extends MetricBasedScalingPolicyInfo> other) {
-            load(other, SerializableMetricBasedPolicyConfiguration::load);
-        }
-    }
-
-    final static class SerializableAutoScalingConfiguration implements AutoScalingConfiguration, Modifiable, Stateful, Externalizable{
+    final static class SerializableAutoScalingConfiguration implements AutoScalingConfiguration, Modifiable, Stateful, Externalizable {
         private static final long serialVersionUID = 972896691097935578L;
         private transient boolean modified;
         private boolean enabled;
         private Duration cooldownTime;
         private int scalingSize;
-        private final SerializableMetricBasedPolicies metricBasedPolicies;
-        private final SerializableCustomPolicies customPolicites;
+        private final SerializableScriptlets policies;
 
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public SerializableAutoScalingConfiguration() {
             cooldownTime = Duration.ZERO;
             scalingSize = 1;
-            metricBasedPolicies = new SerializableMetricBasedPolicies();
-            customPolicites = new SerializableCustomPolicies();
+            policies = new SerializableScriptlets();
         }
 
         @Override
         public boolean isModified() {
-            return modified || metricBasedPolicies.isModified() || customPolicites.isModified();
+            return modified || policies.isModified();
         }
 
         @Override
         public void reset() {
-            metricBasedPolicies.reset();
-            customPolicites.reset();
+            policies.reset();
             modified = false;
         }
 
@@ -436,7 +132,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
 
         @Override
         public void setScalingSize(final int value) {
-            if(value < 1)
+            if (value < 1)
                 throw new IllegalArgumentException("Scaling size cannot be less than 1");
             scalingSize = value;
             modified = true;
@@ -460,14 +156,8 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
 
         @Nonnull
         @Override
-        public SerializableMetricBasedPolicies getMetricBasedPolicies() {
-            return metricBasedPolicies;
-        }
-
-        @Nonnull
-        @Override
-        public SerializableCustomPolicies getCustomPolicies() {
-            return customPolicites;
+        public SerializableScriptlets getPolicies() {
+            return policies;
         }
 
         @Override
@@ -475,8 +165,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             out.writeBoolean(enabled);
             out.writeObject(cooldownTime);
             out.writeInt(scalingSize);
-            metricBasedPolicies.writeExternal(out);
-            customPolicites.writeExternal(out);
+            policies.writeExternal(out);
         }
 
         @Override
@@ -484,35 +173,32 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             enabled = in.readBoolean();
             cooldownTime = (Duration) in.readObject();
             scalingSize = in.readInt();
-            metricBasedPolicies.readExternal(in);
-            customPolicites.readExternal(in);
+            policies.readExternal(in);
         }
 
         void clear() {
             enabled = false;
             cooldownTime = Duration.ZERO;
             scalingSize = 1;
-            metricBasedPolicies.clear();
-            customPolicites.clear();
+            policies.clear();
         }
 
         void load(final AutoScalingInfo autoScalingConfig) {
             enabled = autoScalingConfig.isEnabled();
             cooldownTime = autoScalingConfig.getCooldownTime();
             scalingSize = autoScalingConfig.getScalingSize();
-            metricBasedPolicies.load(autoScalingConfig.getMetricBasedPolicies());
-            customPolicites.load(autoScalingConfig.getCustomPolicies());
+            policies.load(autoScalingConfig.getPolicies());
         }
     }
 
     final static class SerializableHealthCheckConfiguration implements HealthCheckConfiguration, Modifiable, Stateful, Externalizable{
         private static final long serialVersionUID = -4851867914948707006L;
-        private final SerializableAttributeCheckers checkers;
+        private final SerializableScriptlets checkers;
         private final SerializableScriptletConfiguration trigger;
 
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public SerializableHealthCheckConfiguration(){
-            checkers = new SerializableAttributeCheckers();
+            checkers = new SerializableScriptlets();
             trigger = new SerializableScriptletConfiguration();
         }
 
@@ -542,7 +228,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
          */
         @Override
         @Nonnull
-        public SerializableAttributeCheckers getAttributeCheckers() {
+        public SerializableScriptlets getAttributeCheckers() {
             return checkers;
         }
 

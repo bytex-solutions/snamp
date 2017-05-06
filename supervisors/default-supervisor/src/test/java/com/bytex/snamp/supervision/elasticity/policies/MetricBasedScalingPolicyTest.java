@@ -61,7 +61,7 @@ public final class MetricBasedScalingPolicyTest extends Assert {
         final ObjectMapper mapper = new ObjectMapper();
         final String json = mapper.writeValueAsString(voter);
         assertNotNull(json);
-        final MetricBasedScalingPolicy deserializedVoter = mapper.readValue(json, MetricBasedScalingPolicy.class);
+        final MetricBasedScalingPolicy deserializedVoter = MetricBasedScalingPolicy.parse(json, mapper);
         assertNotNull(deserializedVoter);
         assertEquals(voter.getAttributeName(), deserializedVoter.getAttributeName());
         assertEquals(voter.isIncrementalVoteWeight(), deserializedVoter.isIncrementalVoteWeight());

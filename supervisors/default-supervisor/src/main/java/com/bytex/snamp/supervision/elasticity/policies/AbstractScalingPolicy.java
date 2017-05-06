@@ -6,7 +6,7 @@ package com.bytex.snamp.supervision.elasticity.policies;
  * @since 2.0
  */
 abstract class AbstractScalingPolicy implements ScalingPolicy {
-    final double voteWeight;
+    double voteWeight;
 
     AbstractScalingPolicy(final double voteWeight) {
         this.voteWeight = voteWeight;

@@ -1,8 +1,5 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.moa.ReduceOperation;
-import com.google.common.collect.Range;
-
 import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.Map;
@@ -48,66 +45,10 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
     }
 
     /**
-     * Represents scaling policy.
-     */
-    interface ScalingPolicyInfo{
-        /**
-         * Gets weight of the vote associated with this policy.
-         * @return Gets weight of vote.
-         */
-        double getVoteWeight();
-    }
-
-    /**
-     * Represents programmatically defined scaling policy.
-     */
-    interface CustomScalingPolicyInfo extends ScalingPolicyInfo, ScriptletConfiguration{
-
-    }
-
-    /**
-     * Represents scaling policy based on values of some metrics.
-     */
-    interface MetricBasedScalingPolicyInfo extends ScalingPolicyInfo{
-        /**
-         * Indicates that weight of the vote will be increased proportionally to actual observation time.
-         * @return {@literal true}, if vote weight can be increased proportionally to actual observation time; {@literal false} if weight is constant.
-         */
-        boolean isIncrementalVoteWeight();
-
-        /**
-         * Gets aggregation method used to obtain summary metric value from a set of resources.
-         * @return Aggregation method.
-         */
-        @Nonnull
-        ReduceOperation getAggregationMethod();
-
-        /**
-         * Gets operational interval of the metric values.
-         * @return Operational interval of the metric values.
-         */
-        @Nonnull
-        Range<Double> getRange();
-
-        /**
-         * Gets observation period used to enforce policy.
-         * <p>
-         *     When value of the metric is observing during the specified time then this p
-         * @return Observation 
-         */
-        Duration getObservationTime();
-
-        /**
-         * Gets name of attribute used to obtain value of the metric.
-         * @return Attribute name.
-         */
-        String getAttributeName();
-    }
-
-    /**
      * Represents information about automatic scaling
      */
     interface AutoScalingInfo{
+
         /**
          * Is auto-scaling enabled?
          * @return {@literal true}, if auto-scaling is enabled; otherwise, {@literal false}.
@@ -129,20 +70,12 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
         int getScalingSize();
 
         /**
-         * Gets scaling policies based on values of the metrics.
-         * @return A map of scaling policies based on values of the metrics.
+         * Gets scaling policies.
+         * @return A map of scaling policies.
          * @implSpec Key is a name of policy.
          */
         @Nonnull
-        Map<String, ? extends MetricBasedScalingPolicyInfo> getMetricBasedPolicies();
-
-        /**
-         * Gets custom scaling policies.
-         * @return A map with custom policies.
-         * @implSpec Key is a name of policy.
-         */
-        @Nonnull
-        Map<String, ? extends CustomScalingPolicyInfo> getCustomPolicies();
+        Map<String, ? extends ScriptletConfiguration> getPolicies();
     }
 
     /**

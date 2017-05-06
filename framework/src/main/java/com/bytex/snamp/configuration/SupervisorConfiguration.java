@@ -1,8 +1,6 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.FactoryMap;
-import com.bytex.snamp.moa.ReduceOperation;
-import com.google.common.collect.Range;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
@@ -33,41 +31,17 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
         FactoryMap<String, ? extends ScriptletConfiguration> getAttributeCheckers();
     }
 
-    interface ScalingPolicyConfiguration extends ScalingPolicyInfo{
-        void setVoteWeight(final double value);
-    }
-
-    interface MetricBasedScalingPolicyConfiguration extends MetricBasedScalingPolicyInfo, ScalingPolicyConfiguration {
-
-        void setAggregationMethod(@Nonnull final ReduceOperation value);
-        
-        void setRange(@Nonnull final Range<Double> value);
-
-        void setObservationTime(@Nonnull final Duration value);
-
-        void setAttributeName(@Nonnull final String value);
-
-        void setIncrementalVoteWeight(final boolean value);
-    }
-
-    interface CustomScalingPolicyConfiguration extends CustomScalingPolicyInfo, ScalingPolicyConfiguration {
-    }
-
     /**
      * Represents configuration of automatic scaling (elasticity management)
      */
     interface AutoScalingConfiguration extends AutoScalingInfo{
+
         void setEnabled(final boolean value);
         void setCooldownTime(@Nonnull final Duration value);
         void setScalingSize(final int value);
-
-        @Override
-        @Nonnull
-        FactoryMap<String, ? extends MetricBasedScalingPolicyConfiguration> getMetricBasedPolicies();
-
         @Nonnull
         @Override
-        FactoryMap<String, ? extends CustomScalingPolicyConfiguration> getCustomPolicies();
+        FactoryMap<String, ? extends ScriptletConfiguration> getPolicies();
     }
 
     interface ResourceDiscoveryConfiguration extends ResourceDiscoveryInfo{

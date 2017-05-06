@@ -15,12 +15,14 @@ import com.google.common.collect.Range;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
 import javax.management.JMException;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.OptionalDouble;
@@ -188,5 +190,9 @@ final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
         for (final String resourceName : context.getResources())
             ManagedResourceConnectorClient.tryCreate(bc, resourceName).ifPresent(client -> putAttributeIntoReservoir(client, attributeName, reservoir, logger));
         return vote(reservoir);
+    }
+
+    static MetricBasedScalingPolicy parse(final String json, final ObjectMapper mapper) throws IOException {
+        return mapper.readValue(json, MetricBasedScalingPolicy.class);
     }
 }

@@ -11,6 +11,7 @@ import java.util.Properties;
  * @since 2.0
  */
 final class GroovyScalingPolicyFactory extends OSGiGroovyScriptEngine<GroovyScalingPolicy> {
+
     GroovyScalingPolicyFactory(final ClassLoader rootClassLoader) throws IOException {
         super(rootClassLoader, new Properties(), GroovyScalingPolicy.class);
     }

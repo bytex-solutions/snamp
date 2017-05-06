@@ -54,13 +54,7 @@ final class EmptySupervisorInfo extends ImmutableEmptyMap<String, String> implem
 
         @Nonnull
         @Override
-        public ImmutableMap<String, ? extends MetricBasedScalingPolicyInfo> getMetricBasedPolicies() {
-            return ImmutableMap.of();
-        }
-
-        @Nonnull
-        @Override
-        public ImmutableMap<String, ? extends CustomScalingPolicyInfo> getCustomPolicies() {
+        public ImmutableMap<String, ? extends ScriptletConfiguration> getPolicies() {
             return ImmutableMap.of();
         }
     }

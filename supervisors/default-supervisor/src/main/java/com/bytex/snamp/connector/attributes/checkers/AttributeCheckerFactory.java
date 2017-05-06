@@ -44,6 +44,8 @@ public class AttributeCheckerFactory implements ScriptletCompiler<AttributeCheck
                 return callAndWrapException(() -> createGroovyChecker(scriptBody), exceptionFactory);
             case ColoredAttributeChecker.LANGUAGE_NAME:
                 return callAndWrapException(() -> createColoredChecker(scriptBody), exceptionFactory);
+            case "":
+                return AttributeChecker.OK;
             default:
                 throw new InvalidAttributeCheckerException(language);
         }

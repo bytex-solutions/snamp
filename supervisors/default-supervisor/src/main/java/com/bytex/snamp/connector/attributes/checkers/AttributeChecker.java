@@ -10,5 +10,7 @@ import javax.management.Attribute;
  */
 @FunctionalInterface
 public interface AttributeChecker {
+    AttributeChecker OK = attribute -> AttributeCheckStatus.OK;
+    
     AttributeCheckStatus getStatus(final Attribute attribute);
 }

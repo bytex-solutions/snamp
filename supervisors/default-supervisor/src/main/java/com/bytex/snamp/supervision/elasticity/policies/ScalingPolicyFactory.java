@@ -1,9 +1,15 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
-import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.configuration.ScriptletConfiguration;
+import com.bytex.snamp.core.ScriptletCompiler;
+import org.codehaus.jackson.map.ObjectMapper;
 
-import static com.bytex.snamp.configuration.SupervisorInfo.MetricBasedScalingPolicyInfo;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import java.io.IOException;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Provides compilation of scaling policies into voters.
@@ -11,19 +17,37 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-public class ScalingPolicyFactory {
+public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {
+    private final LazySoftReference<ObjectMapper> mapper = new LazySoftReference<>();
+    private final LazySoftReference<GroovyScalingPolicyFactory> groovyPolicyFactory = new LazySoftReference<>();
 
-    public ScalingPolicy compile(final MetricBasedScalingPolicyInfo policyInfo) {
-        if (isNullOrEmpty(policyInfo.getAttributeName()))
-            return ScalingPolicy.VOICELESS;
-        final MetricBasedScalingPolicy voter = new MetricBasedScalingPolicy(policyInfo.getAttributeName(), policyInfo.getVoteWeight(), policyInfo.getRange());
-        voter.setObservationTime(policyInfo.getObservationTime());
-        voter.setIncrementalVoteWeight(policyInfo.isIncrementalVoteWeight());
-        voter.setValuesAggregator(policyInfo.getAggregationMethod());
-        return voter;
+    private GroovyScalingPolicy createGroovyPolicy(final String script) throws IOException {
+        final ClassLoader loader = getClass().getClassLoader();
+        return groovyPolicyFactory.lazyGet(consumer -> consumer.accept(new GroovyScalingPolicyFactory(loader))).create(script);
     }
 
-    public ScalingPolicy compile(final SupervisorInfo.CustomScalingPolicyInfo policyInfo){
-        return null;
+    private MetricBasedScalingPolicy createMetricBasedPolicy(final String json) throws IOException {
+        return MetricBasedScalingPolicy.parse(json, mapper.lazyGet((Supplier<ObjectMapper>) ObjectMapper::new));
+    }
+
+    @Override
+    public final ScalingPolicy compile(final ScriptletConfiguration scalingPolicy) throws InvalidScalingPolicyException {
+        final String scriptBody, language = scalingPolicy.getLanguage();
+        try {
+            scriptBody = scalingPolicy.resolveScriptBody();
+        } catch (final IOException e) {
+            throw new InvalidScalingPolicyException(language, e);
+        }
+        final Function<? super Exception, InvalidScalingPolicyException> exceptionFactory = e -> new InvalidScalingPolicyException(language, scriptBody, e);
+        switch (scalingPolicy.getLanguage()) {
+            case ScriptletConfiguration.GROOVY_LANGUAGE:
+                return callAndWrapException(() -> createGroovyPolicy(scriptBody), exceptionFactory);
+            case MetricBasedScalingPolicy.LANGUAGE_NAME:
+                return callAndWrapException(() -> createMetricBasedPolicy(scriptBody), exceptionFactory);
+            case "":
+                return ScalingPolicy.VOICELESS;
+            default:
+                throw new InvalidScalingPolicyException(language);
+        }
     }
 }
