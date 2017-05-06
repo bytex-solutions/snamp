@@ -49,6 +49,16 @@ final class EmptySupervisorInfo extends ImmutableEmptyMap<String, String> implem
 
         @Override
         public int getScalingSize() {
+            return 1;
+        }
+
+        @Override
+        public int getMaxClusterSize() {
+            return 1;
+        }
+
+        @Override
+        public int getMinClusterSize() {
             return 0;
         }
 

@@ -66,6 +66,10 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
     private static OpenStackElasticityManager createElasticityManager(final SupervisorInfo.AutoScalingInfo scalingConfig) {
         if (scalingConfig.isEnabled()) {
             final OpenStackElasticityManager manager = new OpenStackElasticityManager();
+            manager.setCooldownTime(scalingConfig.getCooldownTime());
+            manager.setMaxClusterSize(scalingConfig.getMaxClusterSize());
+            manager.setMinClusterSize(scalingConfig.getMinClusterSize());
+            manager.setScalingSize(scalingConfig.getScalingSize());
             return manager;
         } else
             return null;

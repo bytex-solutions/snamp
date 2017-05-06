@@ -39,6 +39,8 @@ public interface SupervisorConfiguration extends TypedEntityConfiguration, Super
         void setEnabled(final boolean value);
         void setCooldownTime(@Nonnull final Duration value);
         void setScalingSize(final int value);
+        void setMaxClusterSize(final int value);
+        void setMinClusterSize(final int value);
         @Nonnull
         @Override
         FactoryMap<String, ? extends ScriptletConfiguration> getPolicies();

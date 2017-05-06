@@ -98,12 +98,16 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         private boolean enabled;
         private Duration cooldownTime;
         private int scalingSize;
+        private int minSize;
+        private int maxSize;
         private final SerializableScriptlets policies;
 
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public SerializableAutoScalingConfiguration() {
             cooldownTime = Duration.ZERO;
             scalingSize = 1;
+            minSize = 0;
+            maxSize = Integer.MAX_VALUE;
             policies = new SerializableScriptlets();
         }
 
@@ -139,6 +143,32 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         }
 
         @Override
+        public void setMaxClusterSize(final int value) {
+            if(value < 1)
+                throw new IllegalArgumentException("Maximum cluster size cannot be less than 1");
+            maxSize = value;
+            modified = true;
+        }
+
+        @Override
+        public void setMinClusterSize(final int value) {
+            if(value < 0)
+                throw new IllegalArgumentException("Minimum cluster size cannot be less than 0");
+            minSize = value;
+            modified = true;
+        }
+
+        @Override
+        public int getMaxClusterSize() {
+            return maxSize;
+        }
+
+        @Override
+        public int getMinClusterSize() {
+            return minSize;
+        }
+
+        @Override
         public boolean isEnabled() {
             return enabled;
         }
@@ -165,6 +195,8 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             out.writeBoolean(enabled);
             out.writeObject(cooldownTime);
             out.writeInt(scalingSize);
+            out.writeInt(minSize);
+            out.writeInt(maxSize);
             policies.writeExternal(out);
         }
 
@@ -173,6 +205,8 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             enabled = in.readBoolean();
             cooldownTime = (Duration) in.readObject();
             scalingSize = in.readInt();
+            minSize = in.readInt();
+            maxSize = in.readInt();
             policies.readExternal(in);
         }
 
@@ -180,6 +214,8 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             enabled = false;
             cooldownTime = Duration.ZERO;
             scalingSize = 1;
+            minSize = 0;
+            maxSize = Integer.MAX_VALUE;
             policies.clear();
         }
 
@@ -188,6 +224,8 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             cooldownTime = autoScalingConfig.getCooldownTime();
             scalingSize = autoScalingConfig.getScalingSize();
             policies.load(autoScalingConfig.getPolicies());
+            maxSize = autoScalingConfig.getMaxClusterSize();
+            minSize = autoScalingConfig.getMinClusterSize();
         }
     }
 

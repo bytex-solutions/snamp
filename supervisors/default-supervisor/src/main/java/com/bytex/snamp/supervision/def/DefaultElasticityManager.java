@@ -217,7 +217,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
         return cooldownTimer.getCooldownTime();
     }
 
-    public final void setScale(final int value) {
+    public final void setScalingSize(final int value) {
         if (value < 1)
             throw new IllegalArgumentException("Scaling size cannot be less than 1");
         else

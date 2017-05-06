@@ -70,6 +70,18 @@ public interface SupervisorInfo extends ThreadPoolConfigurationSupport {
         int getScalingSize();
 
         /**
+         * Gets maximum number of resources in the cluster.
+         * @return Maximum number of resources in the cluster.
+         */
+        int getMaxClusterSize();
+
+        /**
+         * Gets minimum number of resources in the cluster.
+         * @return Minimum number of resources in the cluster.
+         */
+        int getMinClusterSize();
+
+        /**
          * Gets scaling policies.
          * @return A map of scaling policies.
          * @implSpec Key is a name of policy.
