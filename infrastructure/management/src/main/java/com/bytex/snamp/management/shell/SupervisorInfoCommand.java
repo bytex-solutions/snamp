@@ -5,13 +5,10 @@ import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
-import com.bytex.snamp.core.ScriptletCompiler;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-
-import java.util.Map;
 
 import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.bytex.snamp.management.ManagementUtils.newLine;
@@ -28,13 +25,17 @@ public final class SupervisorInfoCommand extends SupervisorConfigurationCommand 
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String groupName = "";
 
-    @Option(name = "-h", aliases = {"--health-check"}, description = "Show health check configuration", required = false, multiValued = false)
+    @Option(name = "-h", aliases = {"--health-check"}, description = "Show health check configuration")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean showHealthCheck;
 
-    @Option(name = "-d", aliases = {"--resource-discovery"}, description = "Show resource discovery configuration", required = false, multiValued = false)
+    @Option(name = "-d", aliases = {"--resource-discovery"}, description = "Show resource discovery configuration")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean showResourceDiscovery;
+
+    @Option(name = "-s", aliases = "--auto-scaling", description = "Show elasticity management configuration")
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    private boolean showAutoScaling;
 
     private static void printScriptletConfig(final ScriptletConfiguration scriptlet, final StringBuilder output) {
         appendln(output, "\tLanguage: %s", scriptlet.getLanguage());
@@ -56,8 +57,21 @@ public final class SupervisorInfoCommand extends SupervisorConfigurationCommand 
     }
 
     private static void printDiscoveryConfig(final SupervisorInfo.ResourceDiscoveryInfo discoveryInfo, final StringBuilder output){
-        appendln(output, "Resource discovery configuration:");
         appendln(output, "\tConnection String Template: %s", discoveryInfo.getConnectionStringTemplate());
+    }
+
+    private static void printAutoScalingConfig(final SupervisorInfo.AutoScalingInfo scalingInfo, final StringBuilder output) {
+        appendln(output, "Enabled: %s", scalingInfo.isEnabled());
+        appendln(output, "Maximum cluster size: %s", scalingInfo.getMaxClusterSize());
+        appendln(output, "Minimum cluster size: %s", scalingInfo.getMinClusterSize());
+        appendln(output, "Scaling size: %s", scalingInfo.getScalingSize());
+        appendln(output, "Cooldown time: %s", scalingInfo.getCooldownTime());
+        appendln(output, "Scaling policies:");
+        scalingInfo.getPolicies().forEach((policyName, policy) -> {
+            appendln(output, "\tScaling policy %s", policyName);
+            printScriptletConfig(policy, output);
+            newLine(output);
+        });
     }
 
     @Override
@@ -79,6 +93,11 @@ public final class SupervisorInfoCommand extends SupervisorConfigurationCommand 
                 appendln(output, "==RESOURCE DISCOVERY==");
                 printDiscoveryConfig(supervisor.getDiscoveryConfig(), output);
                 newLine(output);
+            }
+            checkInterrupted();
+            if(showAutoScaling){
+                appendln(output, "==ELASTICITY MANAGEMENT==");
+                printAutoScalingConfig(supervisor.getAutoScalingConfig(), output);
             }
         } else
             output.append("Resource doesn't exist");
