@@ -9,10 +9,7 @@ import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEvent;
 import com.bytex.snamp.supervision.SupervisionEventListener;
 import com.bytex.snamp.supervision.SupervisorClient;
-import com.bytex.snamp.supervision.elasticity.MaxClusterSizeReachedEvent;
-import com.bytex.snamp.supervision.elasticity.ScaleInEvent;
-import com.bytex.snamp.supervision.elasticity.ScaleOutEvent;
-import com.bytex.snamp.supervision.elasticity.ScalingEvent;
+import com.bytex.snamp.supervision.elasticity.*;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
@@ -215,11 +212,27 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         }
     }
 
+    private static void resetElasticity(final SupervisorClient client){
+        try {
+            client.queryObject(ElasticityManager.class).ifPresent(ElasticityManager::reset);
+        } finally {
+            client.close();
+        }
+    }
+
     @POST
     @Path("/groupStatus/reset")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response resetHealthStatus(final String groupName){
         SupervisorClient.tryCreate(getBundleContext(), groupName).ifPresent(ResourceGroupWatcherService::resetHealthStatus);
+        return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/elasticity/reset")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response resetElasticity(final String groupName){
+        SupervisorClient.tryCreate(getBundleContext(), groupName).ifPresent(ResourceGroupWatcherService::resetElasticity);
         return Response.noContent().build();
     }
 
