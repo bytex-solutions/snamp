@@ -18,8 +18,7 @@ public final class InvalidAttributeValue extends ResourceMalfunctionStatus {
     private final Attribute attribute;
     private final boolean important;
 
-    public InvalidAttributeValue(final String resourceName,
-                                 final Attribute attribute,
+    public InvalidAttributeValue(final Attribute attribute,
                                  final boolean important){
         super(Instant.now());
         this.important = important;

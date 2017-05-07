@@ -14,22 +14,22 @@ import javax.management.Attribute;
 public enum AttributeCheckStatus {
     OK {
         @Override
-        public OkStatus createStatus(final String resourceName, final Attribute attribute) {
+        public OkStatus createStatus(final Attribute attribute) {
             return new OkStatus();
         }
     },
     SUSPICIOUS {
         @Override
-        public InvalidAttributeValue createStatus(final String resourceName, final Attribute attribute) {
-            return new InvalidAttributeValue(resourceName, attribute, false);
+        public InvalidAttributeValue createStatus(final Attribute attribute) {
+            return new InvalidAttributeValue(attribute, false);
         }
     },
     MALFUNCTION {
         @Override
-        public InvalidAttributeValue createStatus(final String resourceName, final Attribute attribute) {
-            return new InvalidAttributeValue(resourceName, attribute, true);
+        public InvalidAttributeValue createStatus(final Attribute attribute) {
+            return new InvalidAttributeValue(attribute, true);
         }
     };
 
-    public abstract HealthStatus createStatus(final String resourceName, final Attribute attribute);
+    public abstract HealthStatus createStatus(final Attribute attribute);
 }

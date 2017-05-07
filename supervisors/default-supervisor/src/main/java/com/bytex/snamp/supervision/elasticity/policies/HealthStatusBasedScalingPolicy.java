@@ -1,7 +1,22 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
+import com.bytex.snamp.configuration.ScriptletConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.MalfunctionStatus;
+import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.json.DurationDeserializer;
+import org.codehaus.jackson.annotate.JsonCreator;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.osgi.framework.BundleContext;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Objects;
 
 /**
@@ -9,23 +24,64 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class HealthStatusBasedScalingPolicy extends AbstractScalingPolicy {
+public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolicy {
+    private static final String LEVEL_PROPERTY = "level";
+    static final String LANGUAGE_NAME = "HealthStatusBased";
     private final MalfunctionStatus.Level level;
 
-    HealthStatusBasedScalingPolicy(final double voteWeight, final MalfunctionStatus.Level level) {
+    public HealthStatusBasedScalingPolicy(final double voteWeight, final MalfunctionStatus.Level level) {
         super(voteWeight);
         this.level = Objects.requireNonNull(level);
     }
 
-    /**
-     * Resets internal state of the object.
-     */
-    @Override
-    public void reset() {
-
+    @JsonCreator
+    public HealthStatusBasedScalingPolicy(@JsonProperty(VOTE_WEIGHT_PROPERTY) final double voteWeight,
+                                          @JsonProperty(LEVEL_PROPERTY) @JsonDeserialize(using = MalfunctionLevelDeserializer.class) final MalfunctionStatus.Level level,
+                                          @JsonProperty(OBSERVATION_TIME_PROPERTY) @JsonDeserialize(using = DurationDeserializer.class) final Duration observationTime,
+                                          @JsonProperty(INCREMENTAL_WEIGHT_PROPERTY) final boolean incrementalWeight){
+        super(voteWeight);
+        this.level = level;
+        setObservationTime(observationTime);
+        setIncrementalVoteWeight(incrementalWeight);
     }
 
+    @JsonProperty(LEVEL_PROPERTY)
+    @JsonSerialize(using = MalfunctionLevelSerializer.class)
+    public MalfunctionStatus.Level getLevel(){
+        return level;
+    }
 
+    @Override
+    public void configureScriptlet(final ScriptletConfiguration scriptlet) {
+        configureScriptlet(scriptlet, LANGUAGE_NAME);
+    }
+
+    private static HealthStatus getHealthStatusAndClose(final ManagedResourceConnectorClient client) {
+        try {
+            return client.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
+        } finally {
+            client.close();
+        }
+    }
+
+    private double vote(final MalfunctionStatus status) {
+        if (status.getLevel().compareTo(level) >= 0) {
+            startIfNotStarted();
+            return computeVoteWeight();
+        } else {
+            reset();
+            return 0D;
+        }
+    }
+
+    synchronized double vote(final HealthStatus status) {
+        if (status instanceof MalfunctionStatus) {
+            return vote((MalfunctionStatus) status);
+        } else {
+            reset();
+            return 0D;
+        }
+    }
 
     /**
      * Evaluates scaling policy and obtain vote weight.
@@ -35,6 +91,19 @@ public final class HealthStatusBasedScalingPolicy extends AbstractScalingPolicy 
      */
     @Override
     public double evaluate(final ScalingPolicyEvaluationContext context) {
-        return 0;
+        final BundleContext bc = Utils.getBundleContextOfObject(context);
+        assert bc != null;
+        HealthStatus summary = new OkStatus();
+        for (final String resourceName : context.getResources()) {
+            final HealthStatus status = ManagedResourceConnectorClient
+                    .tryCreate(bc, resourceName).map(HealthStatusBasedScalingPolicy::getHealthStatusAndClose)
+                    .orElseGet(OkStatus::new);
+            summary = summary.worst(status);
+        }
+        return vote(summary);
+    }
+
+    static HealthStatusBasedScalingPolicy parse(final String json, final ObjectMapper mapper) throws IOException {
+        return mapper.readValue(json, HealthStatusBasedScalingPolicy.class);
     }
 }

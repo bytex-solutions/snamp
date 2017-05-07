@@ -4,8 +4,6 @@ import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.openstack.ClusterNodes;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableSet;
 import org.openstack4j.api.senlin.SenlinNodeService;
 import org.openstack4j.model.senlin.Node;
 import org.stringtemplate.v4.ST;
@@ -14,9 +12,8 @@ import org.stringtemplate.v4.adaptors.ListAdaptor;
 import org.stringtemplate.v4.compiler.CompiledST;
 
 import javax.annotation.Nonnull;
-import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
+import java.util.Set;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
@@ -58,8 +55,6 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
 
     private String createConnectionString(final Node node){
         final Map<String, Object> nodeDetails = node.getDetails();
-        if(nodeDetails == null)
-            return null;
         nodeDetails.put("node", node.getMetadata());
         final ST connectionStringTemplate = createTemplateRenderer();
         nodeDetails.forEach(connectionStringTemplate::add);
@@ -70,22 +65,28 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
      * Imports nodes from cluster as a resources to SNAMP.
      * @param nodeService A client for retrieving nodes.
      * @param existingResources A set of existing resources.
+     * @return {@literal true}, if resources are modified; otherwise, {@literal false}.
      */
-    public void synchronizeNodes(@Nonnull final SenlinNodeService nodeService, final ImmutableSet<String> existingResources) throws ResourceDiscoveryException, TimeoutException, InterruptedException {
+    public boolean synchronizeNodes(@Nonnull final SenlinNodeService nodeService, final Set<String> existingResources) throws ResourceDiscoveryException {
         final ClusterNodes nodes = ClusterNodes.discover(nodeService, clusterID);
+        boolean synchronizationOccured = false;
         //remove resource if they are not available as a node
         for (final String resourceName : existingResources)
-            if (!nodes.names().contains(resourceName))
-                removeResource(resourceName, Duration.ofMinutes(2));
+            if (!nodes.names().contains(resourceName)) {
+                removeResource(resourceName);
+                synchronizationOccured = true;
+            }
         //add resource if is not present as a node
         for (Node node : nodes.values()) {
             if (!existingResources.contains(node.getName())) {
                 node = nodeService.get(node.getId());//obtain detailed information about node
+                if (node == null || node.getDetails() == null) continue;
                 final String connectionString = createConnectionString(node);
-                if (!Strings.isNullOrEmpty(connectionString))
-                    registerResource(node.getName(), connectionString, JsonUtils.toPlainMap(node.getMetadata(), '.'));
+                registerResource(node.getName(), connectionString, JsonUtils.toPlainMap(node.getMetadata(), '.'));
+                synchronizationOccured = true;
             }
         }
         nodes.clear();  //help GC
+        return synchronizationOccured;
     }
 }

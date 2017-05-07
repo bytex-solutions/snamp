@@ -6,6 +6,7 @@ import com.bytex.snamp.core.ScriptletCompiler;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -21,9 +22,12 @@ public class AttributeCheckerFactory implements ScriptletCompiler<AttributeCheck
     private final LazySoftReference<ObjectMapper> mapper = new LazySoftReference<>();
     private final LazySoftReference<GroovyAttributeCheckerFactory> groovyAttributeCheckerFactory = new LazySoftReference<>();
 
+    private void createGroovyCheckerFactory(final Consumer<GroovyAttributeCheckerFactory> acceptor) throws IOException {
+        acceptor.accept(new GroovyAttributeCheckerFactory(getClass().getClassLoader()));
+    }
+
     private GroovyAttributeChecker createGroovyChecker(final String scriptBody) throws IOException {
-        final ClassLoader loader = getClass().getClassLoader();
-        return groovyAttributeCheckerFactory.lazyGet(consumer -> consumer.accept(new GroovyAttributeCheckerFactory(loader))).create(scriptBody);
+        return groovyAttributeCheckerFactory.lazyGet(this::createGroovyCheckerFactory).create(scriptBody);
     }
 
     private ColoredAttributeChecker createColoredChecker(final String scriptBody) throws IOException {

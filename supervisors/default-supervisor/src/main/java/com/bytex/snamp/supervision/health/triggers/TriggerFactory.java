@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.core.ScriptletCompiler;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
@@ -18,9 +19,12 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
 public class TriggerFactory implements ScriptletCompiler<HealthStatusTrigger> {
     private final LazySoftReference<GroovyTriggerFactory> groovyTriggerFactory = new LazySoftReference<>();
 
+    private void createGroovyTriggerFactory(final Consumer<GroovyTriggerFactory> acceptor) throws IOException {
+        acceptor.accept(new GroovyTriggerFactory(getClass().getClassLoader()));
+    }
+
     private GroovyTrigger createGroovyTrigger(final String scriptBody) throws IOException {
-        final ClassLoader loader = getClass().getClassLoader();
-        return groovyTriggerFactory.lazyGet(consumer -> consumer.accept(new GroovyTriggerFactory(loader))).create(scriptBody);
+        return groovyTriggerFactory.lazyGet(this::createGroovyTriggerFactory).create(scriptBody);
     }
 
     @Override

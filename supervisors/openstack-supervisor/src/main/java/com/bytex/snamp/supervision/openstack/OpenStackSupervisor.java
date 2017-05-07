@@ -15,7 +15,6 @@ import com.bytex.snamp.supervision.openstack.elasticity.OpenStackElasticityManag
 import com.bytex.snamp.supervision.openstack.elasticity.OpenStackScalingEvaluationContext;
 import com.bytex.snamp.supervision.openstack.health.OpenStackHealthStatusProvider;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
 import org.openstack4j.api.senlin.SenlinClusterService;
@@ -27,7 +26,6 @@ import org.openstack4j.openstack.OSFactory;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -114,17 +112,16 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
         provider.updateStatus(getBundleContext(), senlin, getResources(), this);
     }
 
-    private void synchronizeNodes(@Nonnull final SenlinService senlin, @Nonnull final OpenStackDiscoveryService discoveryService) {
+    private boolean synchronizeNodes(@Nonnull final SenlinService senlin, @Nonnull final OpenStackDiscoveryService discoveryService) {
+        boolean synchronizationOccurs = false;
         if (clusterMember.isActive()) {  //synchronization nodes available only at active server node
-            final ImmutableSet<String> resources = ImmutableSet.copyOf(getResources());
             try {
-                discoveryService.synchronizeNodes(senlin.node(), resources);
-            } catch (final ResourceDiscoveryException | TimeoutException e) {
-                getLogger().log(Level.SEVERE, "Failed to synchronize cluster nodes from OpenStack to SNAMP", e);
-            } catch (final InterruptedException ignored) {
-
+                synchronizationOccurs = discoveryService.synchronizeNodes(senlin.node(), getResources());
+            } catch (final ResourceDiscoveryException e) {
+                getLogger().log(Level.SEVERE, "Failed to synchronize cluster nodes between OpenStack and SNAMP", e);
             }
         }
+        return !synchronizationOccurs; //false to break supervision pipeline
     }
 
     private void autoScaling(@Nonnull final SenlinService senlin, @Nonnull final OpenStackElasticityManager manager) {
@@ -138,7 +135,7 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
     @Override
     protected void supervise() {
         final Token openStackClientToken = this.openStackClientToken.get();
-        if(openStackClientToken == null) {
+        if (openStackClientToken == null) {
             getLogger().warning(String.format("OpenStack client for group %s is signed out", groupName));
             return;
         }
@@ -147,18 +144,19 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
         assert senlin != null;
 
         //the first, update nodes
-        queryObject(DefaultResourceDiscoveryService.class)
+        if (queryObject(DefaultResourceDiscoveryService.class)
                 .flatMap(Convert.toType(OpenStackDiscoveryService.class))
-                .ifPresent(discovery -> synchronizeNodes(senlin, discovery));
-        //only after updating node we should collect health checks
-        queryObject(DefaultHealthStatusProvider.class)
-                .flatMap(Convert.toType(OpenStackHealthStatusProvider.class))
-                .ifPresent(provider -> updateHealthStatus(senlin, provider));
+                .map(discovery -> synchronizeNodes(senlin, discovery)).orElse(true)) {
+            //only after updating node we should collect health checks
+            queryObject(DefaultHealthStatusProvider.class)
+                    .flatMap(Convert.toType(OpenStackHealthStatusProvider.class))
+                    .ifPresent(provider -> updateHealthStatus(senlin, provider));
 
-        //force scaling
-        queryObject(DefaultElasticityManager.class)
-                .flatMap(Convert.toType(OpenStackElasticityManager.class))
-                .ifPresent(manager -> autoScaling(senlin, manager));
+            //force scaling
+            queryObject(DefaultElasticityManager.class)
+                    .flatMap(Convert.toType(OpenStackElasticityManager.class))
+                    .ifPresent(manager -> autoScaling(senlin, manager));
+        }
 
         //OSAuthenticator.reAuthenticate();
         this.openStackClientToken.compareAndSet(openStackClientToken, openStackClient.getToken()); //if re-authentication forced

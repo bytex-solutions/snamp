@@ -6,12 +6,10 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.DurationDeserializer;
-import com.bytex.snamp.json.DurationSerializer;
 import com.bytex.snamp.json.RangeSerializer;
 import com.bytex.snamp.moa.DoubleReservoir;
 import com.bytex.snamp.moa.RangeUtils;
 import com.bytex.snamp.moa.ReduceOperation;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Range;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -24,11 +22,9 @@ import org.osgi.framework.BundleContext;
 import javax.annotation.Nonnull;
 import javax.management.JMException;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.OptionalDouble;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,22 +36,16 @@ import static com.bytex.snamp.Convert.toDouble;
  * @version 2.0
  * @since 2.0
  */
-public final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
+public final class MetricBasedScalingPolicy extends AbstractWeightedScalingPolicy {
     static final String LANGUAGE_NAME = "MetricBased";
     private static final String ATTRIBUTE_NAME_PROPERTY = "attributeName";
-    private static final String VOTE_WEIGHT_PROPERTY = "voteWeight";
     private static final String RANGE_PROPERTY = "operationalRange";
-    private static final String OBSERVATION_TIME_PROPERTY = "observationTime";
-    private static final String INCREMENTAL_WEIGHT_PROPERTY = "incrementalWeight";
     private static final String AGGREGATION_PROPERTY = "aggregation";
 
-    private long observationTimeMillis;
     private final Range<Double> operationalRange;
-    private boolean incrementalVoteWeight;
     private final String attributeName;
     private ReduceOperation aggregator;
     private int previousObservation;
-    private final Stopwatch observationTimer;
 
     @JsonCreator
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
@@ -66,12 +56,11 @@ public final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
                                     @JsonProperty(AGGREGATION_PROPERTY) @JsonDeserialize(using = ReduceOperationDeserializer.class) final ReduceOperation aggregator,
                                     @JsonProperty(INCREMENTAL_WEIGHT_PROPERTY) final boolean incrementalWeight){
         super(voteWeight);
-        observationTimeMillis = observationTime.toMillis();
+        setObservationTime(observationTime);
         this.operationalRange = Objects.requireNonNull(operationalRange);
-        incrementalVoteWeight = incrementalWeight;
+        setIncrementalVoteWeight(incrementalWeight);
         this.attributeName = attributeName;
         this.aggregator = Objects.requireNonNull(aggregator);
-        observationTimer = Stopwatch.createUnstarted();
     }
 
     public MetricBasedScalingPolicy(final String attributeName,
@@ -91,22 +80,6 @@ public final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
         return operationalRange;
     }
 
-    @JsonProperty(VOTE_WEIGHT_PROPERTY)
-    public double getVoteWeight(){
-        return voteWeight;
-    }
-
-    @JsonProperty(INCREMENTAL_WEIGHT_PROPERTY)
-    public boolean isIncrementalVoteWeight(){
-        return incrementalVoteWeight;
-    }
-
-    @JsonProperty(OBSERVATION_TIME_PROPERTY)
-    @JsonSerialize(using = DurationSerializer.class)
-    public Duration getObservationTime(){
-        return Duration.ofMillis(observationTimeMillis);
-    }
-
     @JsonProperty(AGGREGATION_PROPERTY)
     @JsonSerialize(using = ReduceOperationSerializer.class)
     public ReduceOperation getAggregator(){
@@ -118,33 +91,16 @@ public final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
         aggregator = Objects.requireNonNull(value);
     }
 
-    @JsonIgnore
-    void setObservationTime(@Nonnull final Duration value){
-        observationTimeMillis = Objects.requireNonNull(value).toMillis();
-    }
-
-    @JsonIgnore
-    void setIncrementalVoteWeight(final boolean value){
-        incrementalVoteWeight = value;
-    }
-
-    private double computeVoteWeight(final long elapsedMillis) {
-        final long multiplier = (incrementalVoteWeight && observationTimeMillis > 0L) ? (elapsedMillis / observationTimeMillis) : 1L;
-        return voteWeight * multiplier;
-    }
-
     synchronized double vote(final DoubleReservoir values) {
         final int freshObservation = RangeUtils.getLocation(values.applyAsDouble(aggregator), operationalRange);
         if (freshObservation == 0) {
             reset();
             return 0D;
-        }
-        else {
+        } else {
             if (previousObservation != freshObservation)
-                observationTimer.reset().start(); //reset timer if state of observation was changed
+                restartObservationTimer(); //reset timer if state of observation was changed
             previousObservation = freshObservation;
-            final long elapsedMillis = observationTimer.elapsed(TimeUnit.MILLISECONDS);
-            return elapsedMillis >= observationTimeMillis ? (freshObservation * computeVoteWeight(elapsedMillis)) : 0D;
+            return freshObservation * computeVoteWeight();
         }
     }
 
@@ -153,8 +109,8 @@ public final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
      */
     @Override
     public synchronized void reset() {
+        super.reset();
         previousObservation = 0;
-        observationTimer.reset();
     }
 
     private static void putAttributeIntoReservoir(final ManagedResourceConnectorClient connector,
@@ -206,16 +162,8 @@ public final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
         return mapper.readValue(json, MetricBasedScalingPolicy.class);
     }
 
+    @Override
     public void configureScriptlet(final ScriptletConfiguration scriptlet) {
-        scriptlet.setURL(false);
-        scriptlet.setLanguage(LANGUAGE_NAME);
-        final ObjectMapper mapper = new ObjectMapper();
-        final String json;
-        try {
-            json = mapper.writeValueAsString(this);
-        } catch (final IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        scriptlet.setScript(json);
+        configureScriptlet(scriptlet, LANGUAGE_NAME);
     }
 }

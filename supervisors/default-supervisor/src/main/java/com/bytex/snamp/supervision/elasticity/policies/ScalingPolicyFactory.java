@@ -35,6 +35,10 @@ public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {
         return MetricBasedScalingPolicy.parse(json, mapper.lazyGet((Supplier<ObjectMapper>) ObjectMapper::new));
     }
 
+    private HealthStatusBasedScalingPolicy createStatusBasedPolicy(final String json) throws IOException{
+        return HealthStatusBasedScalingPolicy.parse(json, mapper.lazyGet((Supplier<ObjectMapper>) ObjectMapper::new));
+    }
+
     @Override
     public final ScalingPolicy compile(final ScriptletConfiguration scalingPolicy) throws InvalidScalingPolicyException {
         final String scriptBody, language = scalingPolicy.getLanguage();
@@ -49,6 +53,8 @@ public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {
                 return callAndWrapException(() -> createGroovyPolicy(scriptBody), exceptionFactory);
             case MetricBasedScalingPolicy.LANGUAGE_NAME:
                 return callAndWrapException(() -> createMetricBasedPolicy(scriptBody), exceptionFactory);
+            case HealthStatusBasedScalingPolicy.LANGUAGE_NAME:
+                return callAndWrapException(() -> createStatusBasedPolicy(scriptBody), exceptionFactory);
             case "":
                 return ScalingPolicy.VOICELESS;
             default:

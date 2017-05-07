@@ -98,7 +98,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
             for (final Attribute attribute : attributes.asList()) {
                 final AttributeChecker checker = checkers.get(attribute.getName());
                 if (checker != null)
-                    newStatus = checker.getStatus(attribute).createStatus(resourceName, attribute).worst(newStatus);
+                    newStatus = checker.getStatus(attribute).createStatus(attribute).worst(newStatus);
             }
             put(resourceName, newStatus);
         }

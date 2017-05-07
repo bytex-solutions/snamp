@@ -2,8 +2,11 @@ package com.bytex.snamp.testing.supervision;
 
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.connector.health.MalfunctionStatus;
 import com.bytex.snamp.moa.ReduceOperation;
 import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.elasticity.policies.AbstractWeightedScalingPolicy;
+import com.bytex.snamp.supervision.elasticity.policies.HealthStatusBasedScalingPolicy;
 import com.bytex.snamp.supervision.elasticity.policies.MetricBasedScalingPolicy;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -18,7 +21,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -30,7 +32,7 @@ import java.util.concurrent.TimeoutException;
 @SnampDependencies({SnampFeature.STUB_CONNECTOR, SnampFeature.OS_SUPERVISOR})
 public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest {
     private static final String OS_AUTH_URL = "http://192.168.100.3:5000/v3";   //keystone V3
-    private static final String USERNAME = "demo";
+    private static final String USERNAME = "admin";
     private static final String PASSWORD = "secret";
     private static final String GROUP_NAME = "os_nodes";
 
@@ -55,7 +57,7 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
 
     @Test
     public void healthStatusTest() throws TimeoutException, InterruptedException {
-        TimeUnit.DAYS.sleep(1);
+        //TimeUnit.DAYS.sleep(1);
         try(final SupervisorClient client = SpinWait.untilNull(getTestBundleContext(), GROUP_NAME, OpenStackSupervisorTest::getSupervisor, Duration.ofSeconds(3))){
             final HealthStatusProvider provider = client.queryObject(HealthStatusProvider.class).orElseThrow(AssertionError::new);
             //wait for resources discovery (expected 3 nodes)
@@ -88,11 +90,11 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
             supervisor.put("userName", USERNAME);
             supervisor.put("password", PASSWORD);
             supervisor.put("checkNodes", Boolean.FALSE.toString());
-            supervisor.getAutoScalingConfig().setEnabled(true);
+            supervisor.getAutoScalingConfig().setEnabled(false);
             supervisor.getAutoScalingConfig().setMaxClusterSize(5);
             supervisor.getAutoScalingConfig().setMinClusterSize(1);
             supervisor.getAutoScalingConfig().setCooldownTime(Duration.ofSeconds(1));
-            MetricBasedScalingPolicy policy = new MetricBasedScalingPolicy("stag",
+            AbstractWeightedScalingPolicy policy = new MetricBasedScalingPolicy("stag",
                     0.5D,
                     Range.closed(-5D, 5D),
                     Duration.ofSeconds(1),
@@ -106,6 +108,8 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
                     ReduceOperation.MEAN,
                     false);
             supervisor.getAutoScalingConfig().getPolicies().addAndConsume("ipol", policy::configureScriptlet);
+            policy = new HealthStatusBasedScalingPolicy(1D, MalfunctionStatus.Level.CRITICAL);
+            supervisor.getAutoScalingConfig().getPolicies().addAndConsume("hs", policy::configureScriptlet);
             supervisor.getDiscoveryConfig().setConnectionStringTemplate("{first(addresses.private).addr}");
         });
     }
