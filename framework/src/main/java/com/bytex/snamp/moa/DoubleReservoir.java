@@ -51,7 +51,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      */
     public DoubleReservoir(final int samplingSize){
         super(SingleResourceGroup.class);
-        if(samplingSize < 2)
+        if(samplingSize < 1)
             throw new IllegalArgumentException("Sampling size cannot be less than 2");
         this.values = new double[samplingSize];
         this.actualSize = 0;

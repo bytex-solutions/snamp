@@ -2,11 +2,14 @@ package com.bytex.snamp.testing.supervision;
 
 import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.moa.ReduceOperation;
 import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.elasticity.policies.MetricBasedScalingPolicy;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
+import com.google.common.collect.Range;
 import org.junit.Assume;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -15,6 +18,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -51,7 +55,7 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
 
     @Test
     public void healthStatusTest() throws TimeoutException, InterruptedException {
-        //TimeUnit.DAYS.sleep(1);
+        TimeUnit.DAYS.sleep(1);
         try(final SupervisorClient client = SpinWait.untilNull(getTestBundleContext(), GROUP_NAME, OpenStackSupervisorTest::getSupervisor, Duration.ofSeconds(3))){
             final HealthStatusProvider provider = client.queryObject(HealthStatusProvider.class).orElseThrow(AssertionError::new);
             //wait for resources discovery (expected 3 nodes)
@@ -73,13 +77,35 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
      */
     @Override
     protected void setupTestConfiguration(final AgentConfiguration config) {
-        config.getResourceGroups().addAndConsume("os_nodes", group -> group.setType("stub"));
+        config.getResourceGroups().addAndConsume("os_nodes", group -> {
+            group.setType("stub");
+            group.getAttributes().addAndConsume("stag", attribute -> attribute.setAlternativeName("staggeringValue"));
+            group.getAttributes().addAndConsume("i", attribute -> attribute.setAlternativeName("intValue"));
+        });
         config.getSupervisors().addAndConsume(GROUP_NAME, supervisor -> {
             supervisor.setType("openstack");
             supervisor.put("authURL", OS_AUTH_URL);
             supervisor.put("userName", USERNAME);
             supervisor.put("password", PASSWORD);
             supervisor.put("checkNodes", Boolean.FALSE.toString());
+            supervisor.getAutoScalingConfig().setEnabled(true);
+            supervisor.getAutoScalingConfig().setMaxClusterSize(5);
+            supervisor.getAutoScalingConfig().setMinClusterSize(1);
+            supervisor.getAutoScalingConfig().setCooldownTime(Duration.ofSeconds(1));
+            MetricBasedScalingPolicy policy = new MetricBasedScalingPolicy("stag",
+                    0.5D,
+                    Range.closed(-5D, 5D),
+                    Duration.ofSeconds(1),
+                    ReduceOperation.MEAN,
+                    true);
+            supervisor.getAutoScalingConfig().getPolicies().addAndConsume("stagPolicy", policy::configureScriptlet);
+            policy = new MetricBasedScalingPolicy("i",
+                    1D,
+                    Range.all(),
+                    Duration.ZERO,
+                    ReduceOperation.MEAN,
+                    false);
+            supervisor.getAutoScalingConfig().getPolicies().addAndConsume("ipol", policy::configureScriptlet);
             supervisor.getDiscoveryConfig().setConnectionStringTemplate("{first(addresses.private).addr}");
         });
     }

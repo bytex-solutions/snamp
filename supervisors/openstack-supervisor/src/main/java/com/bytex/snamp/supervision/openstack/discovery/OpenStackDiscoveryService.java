@@ -4,6 +4,7 @@ import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.openstack.ClusterNodes;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.openstack4j.api.senlin.SenlinNodeService;
 import org.openstack4j.model.senlin.Node;
@@ -13,7 +14,10 @@ import org.stringtemplate.v4.adaptors.ListAdaptor;
 import org.stringtemplate.v4.compiler.CompiledST;
 
 import javax.annotation.Nonnull;
+import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
+
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
@@ -54,6 +58,8 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
 
     private String createConnectionString(final Node node){
         final Map<String, Object> nodeDetails = node.getDetails();
+        if(nodeDetails == null)
+            return null;
         nodeDetails.put("node", node.getMetadata());
         final ST connectionStringTemplate = createTemplateRenderer();
         nodeDetails.forEach(connectionStringTemplate::add);
@@ -65,18 +71,19 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
      * @param nodeService A client for retrieving nodes.
      * @param existingResources A set of existing resources.
      */
-    public void synchronizeNodes(@Nonnull final SenlinNodeService nodeService, final ImmutableSet<String> existingResources) throws ResourceDiscoveryException {
+    public void synchronizeNodes(@Nonnull final SenlinNodeService nodeService, final ImmutableSet<String> existingResources) throws ResourceDiscoveryException, TimeoutException, InterruptedException {
         final ClusterNodes nodes = ClusterNodes.discover(nodeService, clusterID);
         //remove resource if they are not available as a node
         for (final String resourceName : existingResources)
             if (!nodes.names().contains(resourceName))
-                removeResource(resourceName);
+                removeResource(resourceName, Duration.ofMinutes(2));
         //add resource if is not present as a node
         for (Node node : nodes.values()) {
             if (!existingResources.contains(node.getName())) {
                 node = nodeService.get(node.getId());//obtain detailed information about node
                 final String connectionString = createConnectionString(node);
-                registerResource(node.getName(), connectionString, JsonUtils.toPlainMap(node.getMetadata(), '.'));
+                if (!Strings.isNullOrEmpty(connectionString))
+                    registerResource(node.getName(), connectionString, JsonUtils.toPlainMap(node.getMetadata(), '.'));
             }
         }
         nodes.clear();  //help GC

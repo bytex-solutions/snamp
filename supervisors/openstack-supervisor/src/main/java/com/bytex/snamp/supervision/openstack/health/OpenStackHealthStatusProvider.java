@@ -2,21 +2,21 @@ package com.bytex.snamp.supervision.openstack.health;
 
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.health.ClusterMalfunctionStatus;
 import com.bytex.snamp.supervision.health.ClusterRecoveryStatus;
 import com.bytex.snamp.supervision.health.ClusterResizingStatus;
+import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.supervision.openstack.ClusterNodes;
 import com.google.common.collect.ImmutableMap;
 import org.openstack4j.api.exceptions.OS4JException;
 import org.openstack4j.api.senlin.SenlinService;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.senlin.Cluster;
+import org.openstack4j.model.senlin.ClusterActionCreate;
 import org.openstack4j.model.senlin.Node;
-import org.openstack4j.model.senlin.NodeActionCreate;
-import org.openstack4j.openstack.senlin.domain.SenlinNodeActionCreate;
+import org.openstack4j.openstack.senlin.domain.SenlinClusterActionCreate;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
@@ -117,12 +117,11 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
             }
             builder.build(callback);
         }
+        nodes.clear();  //help GC
         //force check nodes only at active cluster node
         if (checkNodes && clusterMember.isActive()) {
-            final NodeActionCreate checkAction = SenlinNodeActionCreate.build().check(ImmutableMap.of()).build();
-            for (final String nodeID : nodes.ids())
-                senlin.node().action(nodeID, checkAction);
+            final ClusterActionCreate checkAction = SenlinClusterActionCreate.build().check(ImmutableMap.of()).build();
+            senlin.cluster().action(clusterID, checkAction);
         }
-        nodes.clear();  //help GC
     }
 }

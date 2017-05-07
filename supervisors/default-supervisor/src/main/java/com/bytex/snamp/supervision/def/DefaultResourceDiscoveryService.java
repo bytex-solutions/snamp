@@ -2,10 +2,13 @@ package com.bytex.snamp.supervision.def;
 
 import com.bytex.snamp.BooleanBox;
 import com.bytex.snamp.BoxFactory;
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.concurrent.SpinWait;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.SupervisionEvent;
@@ -17,7 +20,9 @@ import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 
@@ -81,8 +86,12 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
             throw new InvalidResourceGroupException(resourceName, resourceConfig.getGroupName(), groupName);
     }
 
+    private BundleContext getBundleContext(){
+        return Utils.getBundleContextOfObject(this);
+    }
+
     private void processConfiguration(final ConfigurationManager.ConfigurationProcessor<? extends ResourceDiscoveryException> processor) throws ResourceDiscoveryException{
-        final BundleContext context = Utils.getBundleContextOfObject(this);
+        final BundleContext context = getBundleContext();
         final Optional<ServiceHolder<ConfigurationManager>> configurationManagerRef =
                 ServiceHolder.tryCreate(context, ConfigurationManager.class);
         if(configurationManagerRef.isPresent()){
@@ -123,6 +132,20 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
     protected boolean removeResource(final String resourceName,
                                      final ManagedResourceConfiguration resourceConfig) throws ResourceDiscoveryException{
         return true;
+    }
+
+    protected final boolean removeResource(@Nonnull final String resourceName, final Duration timeout) throws ResourceDiscoveryException, InterruptedException, TimeoutException {
+        if (removeResource(resourceName)) {
+            final BundleContext context = getBundleContext();
+            //wait for resource deletion
+            SpinWait.until(() -> {
+                final Optional<ManagedResourceConnectorClient> client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
+                client.ifPresent(SafeCloseable::close);
+                return client.isPresent();
+            }, timeout);
+            return true;
+        } else
+            return false;
     }
 
     /**

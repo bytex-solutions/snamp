@@ -7,6 +7,7 @@ import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
+import com.bytex.snamp.supervision.elasticity.MaxClusterSizeReachedEvent;
 import com.bytex.snamp.supervision.elasticity.ScaleInEvent;
 import com.bytex.snamp.supervision.elasticity.ScaleOutEvent;
 import com.bytex.snamp.supervision.openstack.discovery.OpenStackDiscoveryService;
@@ -25,6 +26,8 @@ import org.openstack4j.model.senlin.Cluster;
 import org.openstack4j.openstack.OSFactory;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -103,7 +106,7 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
             overrideDiscoveryService(new OpenStackDiscoveryService(groupName, clusterID, configuration.getDiscoveryConfig().getConnectionStringTemplate()));
         //setup elasticity manager
         if(configuration.getAutoScalingConfig().isEnabled())
-            overrideElasticityManager(new OpenStackElasticityManager());
+            overrideElasticityManager(new OpenStackElasticityManager(clusterID));
         super.start(configuration);
     }
 
@@ -112,12 +115,14 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
     }
 
     private void synchronizeNodes(@Nonnull final SenlinService senlin, @Nonnull final OpenStackDiscoveryService discoveryService) {
-        if(clusterMember.isActive()) {  //synchronization nodes available only at active server node
+        if (clusterMember.isActive()) {  //synchronization nodes available only at active server node
             final ImmutableSet<String> resources = ImmutableSet.copyOf(getResources());
             try {
                 discoveryService.synchronizeNodes(senlin.node(), resources);
-            } catch (final ResourceDiscoveryException e) {
+            } catch (final ResourceDiscoveryException | TimeoutException e) {
                 getLogger().log(Level.SEVERE, "Failed to synchronize cluster nodes from OpenStack to SNAMP", e);
+            } catch (final InterruptedException ignored) {
+
             }
         }
     }
@@ -159,7 +164,8 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
     }
 
     @Override
-    public void scaleIn(final double castingVoteWeight, final ImmutableMap<String, Double> policyEvaluation) {
+    public void scaleIn(final double castingVoteWeight, final Map<String, Double> policyEvaluation) {
+        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
         scalingHappens(new ScaleInEvent(this, groupName) {
             private static final long serialVersionUID = -7114648391882166130L;
 
@@ -175,13 +181,14 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
 
             @Override
             public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
-                return policyEvaluation;
+                return evaluation;
             }
         });
     }
 
     @Override
-    public void scaleOut(final double castingVoteWeight, final ImmutableMap<String, Double> policyEvaluation) {
+    public void scaleOut(final double castingVoteWeight, final Map<String, Double> policyEvaluation) {
+        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
         scalingHappens(new ScaleOutEvent(this, groupName) {
             private static final long serialVersionUID = 3268384740398039079L;
 
@@ -197,7 +204,30 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
 
             @Override
             public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
-                return policyEvaluation;
+                return evaluation;
+            }
+        });
+    }
+
+    @Override
+    public void maxClusterSizeReached(final double castingVoteWeight, final Map<String, Double> policyEvaluation) {
+        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
+        scalingHappens(new MaxClusterSizeReachedEvent(this, groupName) {
+            private static final long serialVersionUID = 4539949257630314963L;
+
+            @Override
+            public double getCastingVoteWeight() {
+                return castingVoteWeight;
+            }
+
+            @Override
+            public OpenStackSupervisor getSource() {
+                return OpenStackSupervisor.this;
+            }
+
+            @Override
+            public Map<String, Double> getPolicyEvaluationSnapshot() {
+                return evaluation;
             }
         });
     }

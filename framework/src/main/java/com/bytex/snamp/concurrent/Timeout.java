@@ -29,7 +29,7 @@ public class Timeout implements Stateful, Serializable {
     /**
      * Time-to-live of the value in this accumulator, in millis.
      */
-    protected final long timeout;
+    private final long timeout;
 
     private Timeout(final long timeoutInMillis){
         timeout = timeoutInMillis;
@@ -65,6 +65,10 @@ public class Timeout implements Stateful, Serializable {
     private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         setLocalTime(timer);  //reset timer to the local time
+    }
+
+    protected final Duration getTimeout(){
+        return Duration.ofMillis(timeout);
     }
 
     /**

@@ -136,7 +136,7 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
     }
 
     private void setupScalingPolicyFactory(){
-        if(checkerFactory == null)
+        if(policyFactory == null)
             overrideScalingPolicyFactory(new ScalingPolicyFactory());
         else
             getLogger().fine(String.format("ScalingPolicyFactory is overridden with %s", policyFactory));
@@ -271,6 +271,7 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
                 elasticityManager.addScalingPolicy(policyName, policyFactory.compile(policy));
                 return true;
             };
+            walker.walk(scalingConfig.getPolicies());
         }
     }
 

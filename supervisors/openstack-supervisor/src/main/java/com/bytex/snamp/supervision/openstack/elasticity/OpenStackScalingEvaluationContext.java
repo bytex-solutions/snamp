@@ -1,7 +1,8 @@
 package com.bytex.snamp.supervision.openstack.elasticity;
 
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
-import com.google.common.collect.ImmutableMap;
+
+import java.util.Map;
 
 /**
  * @author Roman Sakno
@@ -9,6 +10,7 @@ import com.google.common.collect.ImmutableMap;
  * @since 2.0
  */
 public interface OpenStackScalingEvaluationContext extends ScalingPolicyEvaluationContext {
-    void scaleIn(final double castingVoteWeight, final ImmutableMap<String, Double> policyEvaluation);
-    void scaleOut(final double castingVoteWeight, final ImmutableMap<String, Double> policyEvaluation);
+    void scaleIn(final double castingVoteWeight, final Map<String, Double> policyEvaluation);
+    void scaleOut(final double castingVoteWeight, final Map<String, Double> policyEvaluation);
+    void maxClusterSizeReached(final double castingVoteWeight, final Map<String, Double> policyEvaluation);
 }

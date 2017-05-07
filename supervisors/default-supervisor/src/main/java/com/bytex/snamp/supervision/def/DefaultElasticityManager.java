@@ -8,6 +8,7 @@ import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicy;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
 import java.util.HashMap;
@@ -23,23 +24,29 @@ import java.util.Objects;
  * @since 2.0
  */
 public class DefaultElasticityManager implements ElasticityManager, AutoCloseable {
-    private final class CooldownTimer extends Timeout {
-        private static final long serialVersionUID = -3781057798278842855L;
+    private static final class CooldownTimer extends Timeout{
+        private static final long serialVersionUID = 4146337540311692927L;
+        private boolean started;
 
         CooldownTimer(final Duration ttl) {
             super(ttl);
         }
 
-        CooldownTimer() {
-            this(Duration.ofMinutes(3));
+        Duration getCooldownTime(){
+            return getTimeout();
         }
 
-        Duration getCooldownTime() {
-            return Duration.ofMillis(timeout);
+        void start(){
+            started = true;
+            reset();
         }
 
-        boolean cooledDown(){
-            return resetIfExpired();
+        void stop(){
+            started = false;
+        }
+
+        boolean isCooledDown() {
+            return !started || isExpired();
         }
     }
 
@@ -88,7 +95,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
      */
     public DefaultElasticityManager() {
         policies = new HashMap<>();
-        cooldownTimer = new CooldownTimer();
+        cooldownTimer = new CooldownTimer(Duration.ZERO);
         scale = 1;
         minClusterSize = 0;
         maxClusterSize = Integer.MAX_VALUE;
@@ -110,28 +117,33 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
         if (context.getResources().size() >= maxClusterSize)
             return ScalingDecision.OUT_OF_SPACE;
         scaleOutRate.mark();
+        cooldownTimer.start();
         return ScalingDecision.SCALE_OUT;
     }
 
     private ScalingDecision scaleInDecision(final ScalingPolicyEvaluationContext context) {
-        if (context.getResources().isEmpty())
+        if (context.getResources().size() <= minClusterSize)
             return ScalingDecision.NOTHING_TO_DO;
         scaleInRate.mark();
+        cooldownTimer.start();
         return ScalingDecision.SCALE_IN;
     }
 
-    protected final ScalingDecision decide(final ScalingPolicyEvaluationContext context) {
+    protected synchronized final ScalingDecision decide(@Nonnull final ScalingPolicyEvaluationContext context, @Nullable final Map<String, Double> ballotBox) {
         double scaleInVotes = 0D, scaleOutVotes = 0D;
         for (final Map.Entry<String, ScalingPolicy> voter : policies.entrySet()) {
             double vote = voter.getValue().evaluate(context);
+            if (ballotBox != null)
+                ballotBox.put(voter.getKey(), vote);
             if (vote < 0D)
                 scaleInVotes += vote;
             else
                 scaleOutVotes += vote;
         }
-        if (cooldownTimer.cooledDown()) {
-            this.scaleInVotes = scaleInVotes = Math.abs(scaleInVotes);
-            this.scaleOutVotes = scaleOutVotes;
+        this.scaleInVotes = scaleInVotes = Math.abs(scaleInVotes);
+        this.scaleOutVotes = scaleOutVotes;
+        if (cooldownTimer.isCooledDown()) {
+            cooldownTimer.stop();
             final double castingVote = getCastingVoteWeight();
             if (scaleOutVotes > castingVote)
                 return scaleOutDecision(context);
@@ -231,7 +243,8 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
 
     @Override
     public final double getCastingVoteWeight() {
-        return policies.size() / 2D;
+        final int numberOfPolicies = policies.size();
+        return numberOfPolicies > 1 ? numberOfPolicies / 2D : numberOfPolicies;
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
@@ -23,6 +24,7 @@ import org.osgi.framework.BundleContext;
 import javax.annotation.Nonnull;
 import javax.management.JMException;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.OptionalDouble;
@@ -33,11 +35,12 @@ import java.util.logging.Logger;
 import static com.bytex.snamp.Convert.toDouble;
 
 /**
+ * Represents scaling policy based on value of attributes.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
+public final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
     static final String LANGUAGE_NAME = "MetricBased";
     private static final String ATTRIBUTE_NAME_PROPERTY = "attributeName";
     private static final String VOTE_WEIGHT_PROPERTY = "voteWeight";
@@ -71,7 +74,7 @@ final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
         observationTimer = Stopwatch.createUnstarted();
     }
 
-    MetricBasedScalingPolicy(final String attributeName,
+    public MetricBasedScalingPolicy(final String attributeName,
                              final double voteWeight,
                              final Range<Double> operationalRange) {
         this(attributeName, voteWeight, operationalRange, Duration.ZERO, ReduceOperation.MAX, false);
@@ -141,7 +144,7 @@ final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
                 observationTimer.reset().start(); //reset timer if state of observation was changed
             previousObservation = freshObservation;
             final long elapsedMillis = observationTimer.elapsed(TimeUnit.MILLISECONDS);
-            return elapsedMillis >= observationTimeMillis ? computeVoteWeight(elapsedMillis) : 0D;
+            return elapsedMillis >= observationTimeMillis ? (freshObservation * computeVoteWeight(elapsedMillis)) : 0D;
         }
     }
 
@@ -184,15 +187,35 @@ final class MetricBasedScalingPolicy extends AbstractScalingPolicy {
     public double evaluate(final ScalingPolicyEvaluationContext context) {
         final BundleContext bc = Utils.getBundleContextOfObject(context);
         assert bc != null;
-        final DoubleReservoir reservoir = new DoubleReservoir(context.getResources().size());
-        final String attributeName = this.attributeName;
-        final Logger logger = LoggerProvider.getLoggerForObject(context);
-        for (final String resourceName : context.getResources())
-            ManagedResourceConnectorClient.tryCreate(bc, resourceName).ifPresent(client -> putAttributeIntoReservoir(client, attributeName, reservoir, logger));
-        return vote(reservoir);
+
+        final int resources = context.getResources().size();
+        switch (resources) {
+            case 0:
+                return 0D;
+            default:
+                final DoubleReservoir reservoir = new DoubleReservoir(resources);
+                final String attributeName = this.attributeName;
+                final Logger logger = LoggerProvider.getLoggerForObject(context);
+                for (final String resourceName : context.getResources())
+                    ManagedResourceConnectorClient.tryCreate(bc, resourceName).ifPresent(client -> putAttributeIntoReservoir(client, attributeName, reservoir, logger));
+                return reservoir.getSize() == 0 ? 0D : vote(reservoir);
+        }
     }
 
     static MetricBasedScalingPolicy parse(final String json, final ObjectMapper mapper) throws IOException {
         return mapper.readValue(json, MetricBasedScalingPolicy.class);
+    }
+
+    public void configureScriptlet(final ScriptletConfiguration scriptlet) {
+        scriptlet.setURL(false);
+        scriptlet.setLanguage(LANGUAGE_NAME);
+        final ObjectMapper mapper = new ObjectMapper();
+        final String json;
+        try {
+            json = mapper.writeValueAsString(this);
+        } catch (final IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        scriptlet.setScript(json);
     }
 }
