@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.stub;
 
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceConnectorBean;
 import com.bytex.snamp.connector.attributes.reflection.ManagementAttribute;
 
@@ -19,10 +20,11 @@ public final class StubConnector extends ManagedResourceConnectorBean {
     private int intValue;
     private final AtomicInteger staggering;
 
-    StubConnector(final String resourceName) throws IntrospectionException {
+    StubConnector(final String resourceName, final ManagedResourceInfo configuration) throws IntrospectionException {
         super(resourceName);
         random = new Random(0xEDB88320);
         staggering = new AtomicInteger(-20);
+        setConfiguration(configuration);
     }
 
     @ManagementAttribute(description = "Randomized integer value")

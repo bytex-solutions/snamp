@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
 import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
+import com.bytex.snamp.connector.health.MalfunctionStatus;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
@@ -20,9 +21,13 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.json.JsonUtils;
+import com.bytex.snamp.moa.ReduceOperation;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
+import com.bytex.snamp.supervision.elasticity.policies.AbstractWeightedScalingPolicy;
+import com.bytex.snamp.supervision.elasticity.policies.HealthStatusBasedScalingPolicy;
+import com.bytex.snamp.supervision.elasticity.policies.MetricBasedScalingPolicy;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.PropagateSystemProperties;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -37,6 +42,7 @@ import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
 import com.bytex.snamp.web.serviceModel.e2e.ComponentModulesView;
 import com.bytex.snamp.web.serviceModel.e2e.LandscapeView;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Range;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
@@ -53,10 +59,7 @@ import org.osgi.framework.BundleException;
 
 import javax.management.*;
 import javax.ws.rs.core.HttpHeaders;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.math.BigInteger;
 import java.net.*;
@@ -93,6 +96,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
         SnampFeature.GROOVY_CONNECTOR,
         SnampFeature.COMPOSITE_CONNECTOR,
         SnampFeature.JMX_CONNECTOR,
+        SnampFeature.STUB_CONNECTOR,
         SnampFeature.HTTP_ACCEPTOR
 })
 @PropagateSystemProperties("com.bytex.snamp.testing.webconsole.dummy.test")
@@ -124,6 +128,10 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static final String GROUP2_NAME = "dispatcher";
     private static final String SIXTH_RESOURCE_NAME = "paypal";
     private static final String GROUP3_NAME = "paymentSystem";
+
+    private static final String STUB_CONNECTOR_TYPE = "stub";
+    private static final String STUB_RESOURCE_NAME = "stubResource";
+    private static final String SCALABLE_GROUP_NAME = "scalableGroup";
 
     private static final class TestApplicationInfo extends ApplicationInfo {
         static void setName(final String componentName, final String instanceName){
@@ -453,6 +461,11 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         }, Duration.ofSeconds(1), settings);
     }
 
+    @Test
+    public void elasticityTest() throws InterruptedException {
+        Thread.sleep(1_000_000L);
+    }
+
     /**
      * Test check simple resource with and without token.
      *
@@ -595,6 +608,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static void startConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ManagedResourceActivator.enableConnector(context, JMX_CONNECTOR_TYPE);
         ManagedResourceActivator.enableConnector(context, HTTP_ACCEPTOR_TYPE);
+        ManagedResourceActivator.enableConnector(context, STUB_CONNECTOR_TYPE);
         AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), FIRST_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), SECOND_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForConnector(Duration.ofSeconds(5), THIRD_RESOURCE_NAME, context);
@@ -606,6 +620,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static void stopConnectors(final BundleContext context) throws BundleException, TimeoutException, InterruptedException {
         ManagedResourceActivator.disableConnector(context, JMX_CONNECTOR_TYPE);
         ManagedResourceActivator.disableConnector(context, HTTP_ACCEPTOR_TYPE);
+        ManagedResourceActivator.disableConnector(context, STUB_CONNECTOR_TYPE);
         AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), SIXTH_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), FIFTH_RESOURCE_NAME, context);
         AbstractResourceConnectorTest.waitForNoConnector(Duration.ofSeconds(5), FOURTH_RESOURCE_NAME, context);
@@ -682,29 +697,52 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         group.setType(HTTP_ACCEPTOR_TYPE);
         //fillAlternativeJmxAttributes(group.getFeatures(AttributeConfiguration.class));
         fillSpanEvents(group.getEvents());
+
+        group = groups.getOrAdd(SCALABLE_GROUP_NAME);
+        group.setType(STUB_CONNECTOR_TYPE);
+        fillStubAttributes(group.getAttributes());
     }
 
-    private static void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> watchers){
+    private static void fillSupervisors(final EntityMap<? extends SupervisorConfiguration> watchers) {
         final String groovyTrigger;
         try {
             groovyTrigger = IOUtils.toString(DefaultSupervisorTest.class.getResourceAsStream("GroovyTrigger.groovy"));
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
-        watchers.addAndConsume(GROUP_NAME, watcher -> {
-            watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("requestsPerSecond", scriptlet -> {
+        watchers.addAndConsume(GROUP_NAME, supervisor -> {
+            supervisor.getHealthCheckConfig().getAttributeCheckers().addAndConsume("requestsPerSecond", scriptlet -> {
                 final ColoredAttributeChecker checker = new ColoredAttributeChecker();
                 checker.setGreenPredicate(new NumberComparatorPredicate(NumberComparatorPredicate.Operator.LESS_THAN, 1000D));
                 checker.setYellowPredicate(new IsInRangePredicate(1000D, true, 2000D, true));
                 checker.configureScriptlet(scriptlet);
             });
-            watcher.getHealthCheckConfig().getAttributeCheckers().addAndConsume("CPU", scriptlet -> {
+            supervisor.getHealthCheckConfig().getAttributeCheckers().addAndConsume("CPU", scriptlet -> {
                 scriptlet.setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
                 scriptlet.setScript("attributeValue > 3 ? OK : MALFUNCTION");
             });
-            watcher.getHealthCheckConfig().getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
-            watcher.getHealthCheckConfig().getTrigger().setScript(groovyTrigger);
-            watcher.getDiscoveryConfig().setConnectionStringTemplate("{first(addresses.private).addr}");
+            supervisor.getHealthCheckConfig().getTrigger().setLanguage(ScriptletConfiguration.GROOVY_LANGUAGE);
+            supervisor.getHealthCheckConfig().getTrigger().setScript(groovyTrigger);
+            supervisor.getDiscoveryConfig().setConnectionStringTemplate("{first(addresses.private).addr}");
+        });
+        final String ELASTMAN_NAME = "GroovyElasticityManager.groovy";
+        final String path = "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator;
+        watchers.addAndConsume(SCALABLE_GROUP_NAME, supervisor -> {
+            supervisor.getAutoScalingConfig().setEnabled(true);
+            supervisor.put("groovyElasticityManager", ELASTMAN_NAME + ';' + path);
+            supervisor.getAutoScalingConfig().setMinClusterSize(0);
+            supervisor.getAutoScalingConfig().setMaxClusterSize(10);
+            supervisor.getAutoScalingConfig().setCooldownTime(Duration.ofSeconds(5));
+            supervisor.getAutoScalingConfig().setScalingSize(1);
+            AbstractWeightedScalingPolicy policy = new MetricBasedScalingPolicy("stag",
+                    0.5D,
+                    Range.closed(-5D, 5D),
+                    Duration.ofSeconds(1),
+                    ReduceOperation.MEAN,
+                    true);
+            supervisor.getAutoScalingConfig().getPolicies().addAndConsume("stagPolicy", policy::configureScriptlet);
+            policy = new HealthStatusBasedScalingPolicy(1D, MalfunctionStatus.Level.CRITICAL);
+            supervisor.getAutoScalingConfig().getPolicies().addAndConsume("hsPolicy", policy::configureScriptlet);
         });
     }
 
@@ -737,6 +775,10 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.setGroupName(GROUP3_NAME);
         resource.setType(HTTP_ACCEPTOR_TYPE);
         fillSpanEvents(resource.getEvents());
+
+        resource = resources.getOrAdd(STUB_RESOURCE_NAME);
+        resource.setGroupName(SCALABLE_GROUP_NAME);
+        fillStubAttributes(resource.getAttributes());
     }
 
     private static void fillSpanEvents(final EntityMap<? extends EventConfiguration> events) {
@@ -778,5 +820,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         event.put("severity", "notice");
     }
 
-
+    private static void fillStubAttributes(final EntityMap<? extends AttributeConfiguration> attributes){
+        attributes.addAndConsume("stag", attribute -> attribute.setAlternativeName("staggeringValue"));
+    }
 }

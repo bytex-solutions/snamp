@@ -41,6 +41,7 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     private static final String URL_CONTEXT = "/resource-group-watcher";
 
     public abstract class SupervisionMessage extends WebConsoleServiceMessage{
+        private static final long serialVersionUID = -7345274984446689526L;
         private final Instant timeStamp;
         private final String groupName;
 

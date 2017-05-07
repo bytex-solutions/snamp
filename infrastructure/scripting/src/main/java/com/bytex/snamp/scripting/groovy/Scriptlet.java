@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -297,6 +298,11 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
         }
         else
             return null;
+    }
+
+    @Override
+    public final Set<String> getResources(){
+        return ManagedResourceConnectorClient.filterBuilder().getResources(getBundleContext());
     }
 
     @Override

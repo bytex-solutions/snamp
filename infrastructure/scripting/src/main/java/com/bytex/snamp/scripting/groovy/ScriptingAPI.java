@@ -11,6 +11,7 @@ import javax.management.*;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -119,6 +120,9 @@ public interface ScriptingAPI extends GroovyObject {
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     boolean isActiveClusterNode();
+
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
+    Set<String> getResources();
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     Communicator getCommunicator(final String sessionName);
