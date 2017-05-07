@@ -11,6 +11,9 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.AbstractSupervisor;
+import com.bytex.snamp.supervision.elasticity.MaxClusterSizeReachedEvent;
+import com.bytex.snamp.supervision.elasticity.ScaleInEvent;
+import com.bytex.snamp.supervision.elasticity.ScaleOutEvent;
 import com.bytex.snamp.supervision.elasticity.policies.InvalidScalingPolicyException;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyFactory;
@@ -19,10 +22,12 @@ import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.supervision.health.triggers.TriggerFactory;
+import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -273,6 +278,75 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
             };
             walker.walk(scalingConfig.getPolicies());
         }
+    }
+
+    protected final void scaleIn(final Map<String, Double> policyEvaluation) {
+        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
+        final double castingVoteWeight = elasticityManager.getCastingVoteWeight();
+        scalingHappens(new ScaleInEvent(this, groupName) {
+            private static final long serialVersionUID = -7114648391882166130L;
+
+            @Override
+            public double getCastingVoteWeight() {
+                return castingVoteWeight;
+            }
+
+            @Override
+            public DefaultSupervisor getSource() {
+                return DefaultSupervisor.this;
+            }
+
+            @Override
+            public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
+                return evaluation;
+            }
+        });
+    }
+
+    protected final void scaleOut(final Map<String, Double> policyEvaluation) {
+        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
+        final double castingVoteWeight = elasticityManager.getCastingVoteWeight();
+        scalingHappens(new ScaleOutEvent(this, groupName) {
+            private static final long serialVersionUID = 3268384740398039079L;
+
+            @Override
+            public double getCastingVoteWeight() {
+                return castingVoteWeight;
+            }
+
+            @Override
+            public DefaultSupervisor getSource() {
+                return DefaultSupervisor.this;
+            }
+
+            @Override
+            public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
+                return evaluation;
+            }
+        });
+    }
+
+    protected final void maxClusterSizeReached(final Map<String, Double> policyEvaluation) {
+        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
+        final double castingVoteWeight = elasticityManager.getCastingVoteWeight();
+        scalingHappens(new MaxClusterSizeReachedEvent(this, groupName) {
+            private static final long serialVersionUID = 4539949257630314963L;
+
+            @Override
+            public double getCastingVoteWeight() {
+                return castingVoteWeight;
+            }
+
+            @Override
+            public DefaultSupervisor getSource() {
+                return DefaultSupervisor.this;
+            }
+
+            @Override
+            public Map<String, Double> getPolicyEvaluationSnapshot() {
+                return evaluation;
+            }
+        });
     }
 
     protected DefaultSupervisorConfigurationDescriptionProvider getDescriptionProvider(){

@@ -19,6 +19,6 @@ public final class DefaultSupervisorActivator extends SupervisorActivator<Defaul
 
     private static DefaultSupervisor createSupervisor(final String groupName,
                                                       final DependencyManager dependencies){
-        return new DefaultSupervisor(groupName);
+        return new GroovySupervisor(groupName);
     }
 }

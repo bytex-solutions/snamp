@@ -7,14 +7,10 @@ import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
-import com.bytex.snamp.supervision.elasticity.MaxClusterSizeReachedEvent;
-import com.bytex.snamp.supervision.elasticity.ScaleInEvent;
-import com.bytex.snamp.supervision.elasticity.ScaleOutEvent;
 import com.bytex.snamp.supervision.openstack.discovery.OpenStackDiscoveryService;
 import com.bytex.snamp.supervision.openstack.elasticity.OpenStackElasticityManager;
 import com.bytex.snamp.supervision.openstack.elasticity.OpenStackScalingEvaluationContext;
 import com.bytex.snamp.supervision.openstack.health.OpenStackHealthStatusProvider;
-import com.google.common.collect.ImmutableMap;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
 import org.openstack4j.api.senlin.SenlinClusterService;
@@ -163,72 +159,18 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
     }
 
     @Override
-    public void scaleIn(final double castingVoteWeight, final Map<String, Double> policyEvaluation) {
-        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
-        scalingHappens(new ScaleInEvent(this, groupName) {
-            private static final long serialVersionUID = -7114648391882166130L;
-
-            @Override
-            public double getCastingVoteWeight() {
-                return castingVoteWeight;
-            }
-
-            @Override
-            public OpenStackSupervisor getSource() {
-                return OpenStackSupervisor.this;
-            }
-
-            @Override
-            public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
-                return evaluation;
-            }
-        });
+    public void reportScaleIn(final Map<String, Double> policyEvaluation) {
+        scaleIn(policyEvaluation);
     }
 
     @Override
-    public void scaleOut(final double castingVoteWeight, final Map<String, Double> policyEvaluation) {
-        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
-        scalingHappens(new ScaleOutEvent(this, groupName) {
-            private static final long serialVersionUID = 3268384740398039079L;
-
-            @Override
-            public double getCastingVoteWeight() {
-                return castingVoteWeight;
-            }
-
-            @Override
-            public OpenStackSupervisor getSource() {
-                return OpenStackSupervisor.this;
-            }
-
-            @Override
-            public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
-                return evaluation;
-            }
-        });
+    public void reportScaleOut(final Map<String, Double> policyEvaluation) {
+        scaleOut(policyEvaluation);
     }
 
     @Override
-    public void maxClusterSizeReached(final double castingVoteWeight, final Map<String, Double> policyEvaluation) {
-        final ImmutableMap<String, Double> evaluation = ImmutableMap.copyOf(policyEvaluation);
-        scalingHappens(new MaxClusterSizeReachedEvent(this, groupName) {
-            private static final long serialVersionUID = 4539949257630314963L;
-
-            @Override
-            public double getCastingVoteWeight() {
-                return castingVoteWeight;
-            }
-
-            @Override
-            public OpenStackSupervisor getSource() {
-                return OpenStackSupervisor.this;
-            }
-
-            @Override
-            public Map<String, Double> getPolicyEvaluationSnapshot() {
-                return evaluation;
-            }
-        });
+    public void reportMaxClusterSizeReached(final Map<String, Double> policyEvaluation) {
+        maxClusterSizeReached(policyEvaluation);
     }
 
     /**

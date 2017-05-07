@@ -10,7 +10,7 @@ import java.util.Map;
  * @since 2.0
  */
 public interface OpenStackScalingEvaluationContext extends ScalingPolicyEvaluationContext {
-    void scaleIn(final double castingVoteWeight, final Map<String, Double> policyEvaluation);
-    void scaleOut(final double castingVoteWeight, final Map<String, Double> policyEvaluation);
-    void maxClusterSizeReached(final double castingVoteWeight, final Map<String, Double> policyEvaluation);
+    void reportScaleIn(final Map<String, Double> policyEvaluation);
+    void reportScaleOut(final Map<String, Double> policyEvaluation);
+    void reportMaxClusterSizeReached(final Map<String, Double> policyEvaluation);
 }

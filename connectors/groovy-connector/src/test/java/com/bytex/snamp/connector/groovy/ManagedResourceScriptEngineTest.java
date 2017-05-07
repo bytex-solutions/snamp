@@ -22,7 +22,8 @@ public final class ManagedResourceScriptEngineTest extends Assert {
     public ManagedResourceScriptEngineTest() throws IOException, URISyntaxException {
         final URL resource = getClass().getClassLoader().getResource("scripts/");
         assertNotNull(resource);
-        engine = new ManagedResourceScriptEngine("testResource", getClass().getClassLoader(), false, new Properties(), resource);
+        final String path = ManagedResourceScriptEngine.createPath("ResourceScript.groovy", resource.toString());
+        engine = new ManagedResourceScriptEngine("testResource", getClass().getClassLoader(), false, new Properties(), path);
     }
 
     @Test

@@ -27,23 +27,24 @@ public final class OpenStackElasticityManager extends DefaultElasticityManager {
     public void performScaling(final OpenStackScalingEvaluationContext context, final SenlinService senlin) {
         final String RESIZE_COUNT_PARAM = "count";
         final Map<String, Double> ballotBox = new HashMap<>();
+        final int scalingStatus;
         switch (decide(context, ballotBox)) {
             case SCALE_IN:
                 ClusterActionCreate scalingAction = SenlinClusterActionCreate.build()
                         .scaleIn(ImmutableMap.of(RESIZE_COUNT_PARAM, Integer.toString(getScalingSize())))
                         .build();
                 senlin.cluster().action(clusterID, scalingAction);
-                context.scaleIn(getCastingVoteWeight(), ballotBox);
+                context.reportScaleIn(ballotBox);
                 break;
             case SCALE_OUT:
                 scalingAction = SenlinClusterActionCreate.build()
                         .scaleOut(ImmutableMap.of(RESIZE_COUNT_PARAM, Integer.toString(getScalingSize())))
                         .build();
                 senlin.cluster().action(clusterID, scalingAction);
-                context.scaleOut(getCastingVoteWeight(), ballotBox);
+                context.reportScaleOut(ballotBox);
                 break;
             case OUT_OF_SPACE:
-                context.maxClusterSizeReached(getCastingVoteWeight(), ballotBox);
+                context.reportMaxClusterSizeReached(ballotBox);
                 break;
         }
         ballotBox.clear();

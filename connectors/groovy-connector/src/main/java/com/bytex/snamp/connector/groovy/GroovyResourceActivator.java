@@ -40,15 +40,14 @@ public final class GroovyResourceActivator extends ManagedResourceActivator<Groo
         return new AbstractFeatureDiscoveryService<ManagedResourceInfo>() {
             @Override
             protected ManagedResourceInfo createProvider(final String connectionString, final Map<String, String> connectionOptions) throws IOException, ResourceException, ScriptException {
-                final GroovyConnectionString connectionInfo = new GroovyConnectionString(connectionString);
                 //the last path is a path to groovy
                 final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(
-                        connectionInfo.getScriptName(),
+                        "discovery",
                         getClass().getClassLoader(),
                         true,
                         toProperties(connectionOptions),
-                        connectionInfo.getScriptPath());
-                final ManagedResourceScriptlet scriptlet = engine.createScript(connectionInfo.getScriptName(), null);
+                        connectionString);
+                final ManagedResourceScriptlet scriptlet = engine.createScript(null);
                 scriptlet.run();
                 return scriptlet;
             }

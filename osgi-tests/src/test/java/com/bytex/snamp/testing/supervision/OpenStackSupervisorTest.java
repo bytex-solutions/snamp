@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -57,7 +58,7 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
 
     @Test
     public void healthStatusTest() throws TimeoutException, InterruptedException {
-        //TimeUnit.DAYS.sleep(1);
+        TimeUnit.DAYS.sleep(1);
         try(final SupervisorClient client = SpinWait.untilNull(getTestBundleContext(), GROUP_NAME, OpenStackSupervisorTest::getSupervisor, Duration.ofSeconds(3))){
             final HealthStatusProvider provider = client.queryObject(HealthStatusProvider.class).orElseThrow(AssertionError::new);
             //wait for resources discovery (expected 3 nodes)
@@ -90,7 +91,7 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
             supervisor.put("userName", USERNAME);
             supervisor.put("password", PASSWORD);
             supervisor.put("checkNodes", Boolean.FALSE.toString());
-            supervisor.getAutoScalingConfig().setEnabled(false);
+            supervisor.getAutoScalingConfig().setEnabled(true);
             supervisor.getAutoScalingConfig().setMaxClusterSize(5);
             supervisor.getAutoScalingConfig().setMinClusterSize(1);
             supervisor.getAutoScalingConfig().setCooldownTime(Duration.ofSeconds(1));

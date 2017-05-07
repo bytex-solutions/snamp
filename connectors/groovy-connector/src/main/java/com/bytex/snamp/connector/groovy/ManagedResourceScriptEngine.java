@@ -1,9 +1,8 @@
 package com.bytex.snamp.connector.groovy;
 
-import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
+import com.bytex.snamp.scripting.groovy.FileBasedGroovyScriptEngine;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Properties;
 
 /**
@@ -11,7 +10,7 @@ import java.util.Properties;
  * @version 2.0
  * @since 1.0
  */
-public final class ManagedResourceScriptEngine extends OSGiGroovyScriptEngine<ManagedResourceScriptlet> {
+public final class ManagedResourceScriptEngine extends FileBasedGroovyScriptEngine<ManagedResourceScriptlet> {
     private final boolean isDiscovery;
     private final String resourceName;
 
@@ -19,8 +18,8 @@ public final class ManagedResourceScriptEngine extends OSGiGroovyScriptEngine<Ma
                                        final ClassLoader rootClassLoader,
                                        final boolean isDiscovery,
                                        final Properties properties,
-                                       final URL... paths) throws IOException {
-        super(rootClassLoader, properties, ManagedResourceScriptlet.class, paths);
+                                       final String path) throws IOException {
+        super(rootClassLoader, properties, ManagedResourceScriptlet.class, path);
         this.resourceName = resourceName;
         this.isDiscovery = isDiscovery;
     }

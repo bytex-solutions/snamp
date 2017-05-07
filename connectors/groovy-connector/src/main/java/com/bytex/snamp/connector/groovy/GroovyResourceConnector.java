@@ -30,14 +30,13 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
     GroovyResourceConnector(final String resourceName,
                             final com.bytex.snamp.configuration.ManagedResourceInfo configuration) throws IOException, ResourceException, ScriptException {
-        final GroovyConnectionString connectionInfo = new GroovyConnectionString(configuration.getConnectionString());
         final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(resourceName,
                 getClass().getClassLoader(),
                 false,
                 toProperties(configuration),
-                connectionInfo.getScriptPath());
+                configuration.getConnectionString());
 
-        scriptlet = engine.createScript(connectionInfo.getScriptName(), null);
+        scriptlet = engine.createScript(null);
         scriptlet.run();
         attributes = new GroovyAttributeRepository(resourceName, scriptlet);
         final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(configuration);
