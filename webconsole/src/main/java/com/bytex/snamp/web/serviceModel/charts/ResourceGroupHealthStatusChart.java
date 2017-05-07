@@ -157,9 +157,9 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
     public Axis getAxis(final int dimensionIndex) {
         switch (dimensionIndex){
             case 0:
-                return axisX;
+                return getAxisX();
             case 1:
-                return axisY;
+                return getAxisY();
             default:
                 throw new IndexOutOfBoundsException();
         }

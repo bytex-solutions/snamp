@@ -437,8 +437,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         hsChart.setGroupName(GROUP_NAME);
         hsChart.setName("healthStatuses");
 
+        final NumberOfResourcesChart resourcesChart = new NumberOfResourcesChart();
+        resourcesChart.setGroupName(GROUP_NAME);
+        resourcesChart.setName("resources");
+
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{ lineChart, panelChart, hsChart }));
+        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{ lineChart, panelChart, hsChart, resourcesChart }));
         assertNotNull(node);
     }
 
@@ -459,11 +463,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             assertEquals("Test log", element.get("message").asText());
             assertEquals("error", element.get("level").asText());
         }, Duration.ofSeconds(1), settings);
-    }
-
-    @Test
-    public void elasticityTest() throws InterruptedException {
-        Thread.sleep(1_000_000L);
     }
 
     /**
