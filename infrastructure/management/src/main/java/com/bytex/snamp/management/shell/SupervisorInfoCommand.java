@@ -96,7 +96,7 @@ public final class SupervisorInfoCommand extends SupervisorConfigurationCommand 
             }
             checkInterrupted();
             if(showAutoScaling){
-                appendln(output, "==ELASTICITY MANAGEMENT==");
+                appendln(output, "==AUTO-SCALING==");
                 printAutoScalingConfig(supervisor.getAutoScalingConfig(), output);
             }
         } else
