@@ -127,8 +127,9 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
         }
     }
 
-    private void autoScaling(@Nonnull final SenlinService senlin, @Nonnull final OpenStackElasticityManager manager){
-        manager.performScaling(this, senlin);
+    private void autoScaling(@Nonnull final SenlinService senlin, @Nonnull final OpenStackElasticityManager manager) {
+        if (clusterMember.isActive())//scaling available only at active server node
+            manager.performScaling(this, senlin);
     }
 
     /**
