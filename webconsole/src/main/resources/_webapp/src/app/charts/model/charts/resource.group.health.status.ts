@@ -5,8 +5,7 @@ import { HealthStatusAxis } from "../axis/health.status.axis";
 import { AbstractChart } from "../abstract.chart";
 import { HealthStatusChartData } from "../data/health.status.chart.data";
 
-const d3 = require('d3');
-const nv = require('nvd3');
+import 'jstree';
 
 export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
     get type():string {
@@ -14,9 +13,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
     }
 
     public group:string;
-
     private _chartObject:any = undefined;
-    private _datum:any = undefined;
 
     createDefaultAxisX(): Axis {
         return new ResourceNameAxis();
@@ -46,113 +43,134 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         return _value;
     }
 
-    private getWidth():number {
-        return document.getElementById(this.id).getBoundingClientRect().width;
-    }
-
-    private getHeight():number {
-        return document.getElementById(this.id).getBoundingClientRect().height;
+    private strnormallize(input:string):string {
+        return input.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'_');
     }
 
     public draw(): void {
-        // https://nvd3-community.github.io/nvd3/ - see forceDirected
-        // https://github.com/nvd3-community/nvd3/blob/gh-pages/examples/forceDirected.html
-        let _thisReference = this;
-        nv.addGraph({
-            generate: function() {
-                let width = _thisReference.getWidth() - 40,
-                    height = _thisReference.getHeight() - 40;
-                console.log(width, height, 'd3 window calculated sizes');
-                let chart = nv.models.forceDirectedGraph()
-                    .width(width)
-                    .height(height)
-                    .linkDist(60)
-                    .radius(function(d) { return d.main ? 20 : 10})
-                    .margin({top: 20, right: 20, bottom: 20, left: 20})
-                    .color(function(d) { return d.color })
-                    .nodeExtras(function(node) {
-                        node
-                            .append("text")
-                            .attr("dx", 12)
-                            .attr("dy", ".35em")
-                            .text(function(d) { return d.name });
-                    });
-
-                _thisReference._datum =  d3.select('#' + _thisReference.id)
-                    .attr('width', width)
-                    .attr('height', height)
-                    .datum(_thisReference.prepareDatasets());
-
-                _thisReference._datum .call(chart);
-                _thisReference._chartObject = chart;
-                d3.select('#' + _thisReference.id).selectAll(".line").style('stroke', 'black');
-                return chart;
+        let _thisReference:any = this;
+        this._chartObject = $("#" + this.id).jstree({
+            "core" : {
+                'data' : _thisReference.prepareDatasets()
             },
-            callback: function(graph) {
-                window.onresize = function() {
-                    let width = _thisReference.getWidth() - 40,
-                        height = _thisReference.getHeight() - 40,
-                        margin = graph.margin();
-                    if (width < margin.left + margin.right + 20)
-                        width = margin.left + margin.right + 20;
-                    if (height < margin.top + margin.bottom + 20)
-                        height = margin.top + margin.bottom + 20;
-
-                    graph.width(width).height(height);
-                    d3.select('#' + _thisReference.id)
-                        .attr('width', width)
-                        .attr('height', height)
-                        .call(graph);
-                };
-            }
+            "types" : {
+                "#" : {
+                    "max_children" : 1,
+                    "max_depth" : 5,
+                    "valid_children" : ["summary"]
+                },
+                "summary" : {
+                    "icon" : "glyphicon glyphicon-certificate",
+                    "valid_children" : ["instance"]
+                },
+                "instance" : {
+                    "icon" : "glyphicon glyphicon-leaf",
+                    "valid_children" : ["healthStatus", "timestamp"]
+                },
+                "healthStatus" : {
+                    "icon" : "glyphicon glyphicon-list-alt",
+                    "valid_children" : ["additional"]
+                },
+                "timestamp" : {
+                    "icon" : "glyphicon glyphicon-time",
+                    "valid_children" : []
+                },
+                "additional": {
+                    "icon": false,
+                    "valid_children" : []
+                }
+            },
+            "plugins" : [ "search", "state", "types", "wholerow" ]
         });
     }
 
-    private static statusToColor(status:string):string {
-        return status == "info" ? "#099000" : "#ea0000";
-    }
-
     private prepareDatasets():any {
-        let _value:any = {
-            'nodes': [],
-            'links': []
-        };
-        for (let i = 0; i < this.chartData.length; i++) {
-            let _newNode:any = {
-                "name" : (<HealthStatusChartData>this.chartData[i]).name,
-                "color" : ResourceGroupHealthStatusChart.statusToColor((<HealthStatusChartData>this.chartData[i]).status.getNotificationLevel()),
-                "details" : (<HealthStatusChartData>this.chartData[i]).status.htmlDetails(),
-                "main": (<HealthStatusChartData>this.chartData[i]).summary,
-                "x": this.getWidth()/2,
-                "y": this.getHeight()/2
-            };
-/*            if ((<HealthStatusChartData>this.chartData[i]).summary) {
-                _newNode['x'] = ;
-                _newNode['y'] = this.getHeight()/2;
-            }*/
-            _value["nodes"].push(_newNode);
+        let _value:any = [];
 
-        }
         for (let i = 0; i < this.chartData.length; i++) {
             if ((<HealthStatusChartData>this.chartData[i]).summary) {
+                let _rootNode:any = {
+                    "id" : this.strnormallize((<HealthStatusChartData>this.chartData[i]).name),
+                    "text": (<HealthStatusChartData>this.chartData[i]).name,
+                    "state": {
+                        "opened" : true
+                    },
+                    "children": [],
+                    "type": "summary",
+                    "a_attr": { 'class' : "level-" + (<HealthStatusChartData>this.chartData[i]).status.getNotificationLevel()}
+                };
                 for (let j = 0; j < this.chartData.length; j++) {
-                    if (i != j) {
-                        _value["links"].push({
-                            "source": i,
-                            "target": j,
-                            "value": 1
+                    if (!(<HealthStatusChartData>this.chartData[j]).summary) {
+                        let _tmp:HealthStatusChartData = <HealthStatusChartData>this.chartData[j];
+                        let _childNode:any = {
+                            "id": this.strnormallize(_tmp.name),
+                            "text": _tmp.name,
+                            "state": {
+                                "opened" : true
+                            },
+                            "children": [],
+                            "type": "instance",
+                            "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()}
+                        };
+
+                        let _healthStatus:any = {
+                            "id": this.strnormallize(_tmp.name) + "_hs",
+                            "text": _tmp.status.innerType,
+                            "state": {
+                                "opened" : true
+                            },
+                            "children": [],
+                            "type": "healthStatus",
+                            "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()}
+                        };
+
+                        if (_tmp.status.serverDetails != undefined && _tmp.status.serverDetails.length > 0) {
+                            _healthStatus["children"].push({
+                                "text": "Details: " + _tmp.status.serverDetails,
+                                "type": "additional"
+                            });
+                        }
+
+                        if (_tmp.status.serverTimestamp != undefined && _tmp.status.serverTimestamp.length > 0) {
+                            _healthStatus["children"].push({
+                                "text": "Server time: " + _tmp.status.serverTimestamp,
+                                "type": "additional"
+                            });
+                        }
+
+                        _healthStatus["children"].push({
+                            "text": "Level: " + _tmp.status.getNotificationLevel(),
+                            "type": "additional"
                         });
+
+                        _healthStatus["children"].push({
+                            "text": "Details: " + _tmp.status.htmlDetails(),
+                            "type": "additional"
+                        });
+
+                        let _timeStamp:any = {
+                            "id": this.strnormallize(_tmp.name) + "_ts",
+                            "text": _tmp.timestamp,
+                            "children": [],
+                            "type": "timestamp"
+                        };
+                        _childNode["children"].push(_timeStamp);
+                        _childNode["children"].push(_healthStatus);
+                        _rootNode["children"].push(_childNode);
                     }
                 }
+                _value.push(_rootNode);
             }
         }
+        console.log("prepared data: ", _value);
         return _value;
     }
 
     public newValue(_data:HealthStatusChartData):void {
         if (document.hidden) return;
-        console.log("New data has been received for ResourceGroupHealthStatusChart entity: ", _data);
         let _index:number = -1;
+
+        let _oldStr:string = JSON.stringify(this.chartData);
 
         for (let i = 0; i < this.chartData.length; i++) {
             if ((<HealthStatusChartData>this.chartData[i]).name == _data.name) {
@@ -163,15 +181,12 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         }
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
-            if (this._chartObject != undefined) {
-                this._datum.datum(this.prepareDatasets()).call(this._chartObject);
-            }
-        } else {
-            if (this._chartObject != undefined) {
-                let _node:any = d3.select('#' + this.id).selectAll("g").filter(function(d) { return d.name === _data.name });
-                _node.attr('color', ResourceGroupHealthStatusChart.statusToColor(_data.status.getNotificationLevel()));
-                _node.attr('details', _data.status.htmlDetails());
-                _node.select('circle').style("fill",  ResourceGroupHealthStatusChart.statusToColor(_data.status.getNotificationLevel()));
+        }
+        let _newStr:string = JSON.stringify(this.chartData);
+        if (this._chartObject != undefined) {
+            $("#" + this.id).jstree(true).settings.core.data = this.prepareDatasets();
+            if (_oldStr != _newStr) {
+                $("#" + this.id).jstree(true).refresh(true)
             }
         }
     }

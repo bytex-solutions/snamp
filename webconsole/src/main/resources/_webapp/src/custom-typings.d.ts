@@ -48,7 +48,6 @@ declare module '*';
 
 // Extra variables that live on Global that will be replaced by webpack DefinePlugin
 declare var ENV: string;
-declare var HMR: boolean;
 declare var System: SystemJS;
 
 interface SystemJS {
@@ -125,4 +124,5 @@ interface Global extends GlobalEnvironment  {}
 interface JQuery {
   smartWizard(options?:any):JQuery;
   modal(options?:any):JQuery;
+  jstree(options?:any):any;
 }

@@ -13,6 +13,6 @@ export abstract class MalfunctionStatus extends HealthStatus {
     }
 
     getNotificationLevel(): string {
-       return this.level == "low" ? "warn" : "error";
+       return this.level;
     }
 }

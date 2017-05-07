@@ -87,6 +87,6 @@ export class HealthStatusNotification extends AbstractNotification {
         if (_json["mostProblematicResource"] != undefined) {
             this.mostProblematicResource = _json["mostProblematicResource"];
         }
-        this.level = this.currentStatus.getNotificationLevel();
+        this.level = this.currentStatus.getNotificationLevel() == "ok" ? "info" : "warn";
     }
 }

@@ -20,9 +20,6 @@ export abstract class HealthStatus {
     // partial implementation for details method (see below)
     public abstract represent():string;
 
-    // used for red/green table short descripton
-    public abstract getShortDescription():string;
-
     // used for displaying within details modal window
     public abstract htmlDetails():string;
 
@@ -30,7 +27,7 @@ export abstract class HealthStatus {
     public abstract getNotificationLevel():string;
 
     // used for short description at the notification (pnotify)
-    public details():string {
+    public details():string { // partial implementation
         return this.represent() + " (Click for details)";
     }
 }

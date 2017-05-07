@@ -3,7 +3,7 @@ import { HealthStatus } from './health.status';
 export class OkStatus extends HealthStatus {
 
     getNotificationLevel(): string {
-        return "info";
+        return "ok";
     }
 
     public represent():string {

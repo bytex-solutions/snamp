@@ -40,7 +40,7 @@ export class NotificationFactory {
                 _notification = Object.assign(new HealthStatusNotification(), _json);
                 (<HealthStatusNotification>_notification).prevStatus = StatusFactory.healthStatusFromObject(_json['_prevStatus']);
                 (<HealthStatusNotification>_notification).currentStatus = StatusFactory.healthStatusFromObject(_json['_currentStatus']);
-                _notification.level = (<HealthStatusNotification>_notification).currentStatus.getNotificationLevel();
+                _notification.level = (<HealthStatusNotification>_notification).currentStatus.getNotificationLevel() == "ok" ? "info" : "warn";
                 break;
             case AbstractNotification.RESOURCE:
                 _notification = Object.assign(new ResourceNotification(), _json);

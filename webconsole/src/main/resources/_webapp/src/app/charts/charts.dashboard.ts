@@ -342,11 +342,11 @@ export class Dashboard {
     }
 
     isSvgType(chart:AbstractChart):boolean {
-        return chart instanceof LineChartOfAttributeValues || chart instanceof ResourceGroupHealthStatusChart;
+        return chart instanceof LineChartOfAttributeValues;
     }
 
     isDivType(chart:AbstractChart):boolean {
-        return chart instanceof PanelOfAttributeValues;
+        return chart instanceof PanelOfAttributeValues || chart instanceof ResourceGroupHealthStatusChart;
     }
 
     isCanvasType(chart:AbstractChart):boolean {
