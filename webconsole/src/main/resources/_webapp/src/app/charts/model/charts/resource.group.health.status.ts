@@ -16,6 +16,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
     public group:string;
 
     private _chartObject:any = undefined;
+    private _datum:any = undefined;
 
     createDefaultAxisX(): Axis {
         return new ResourceNameAxis();
@@ -45,17 +46,28 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         return _value;
     }
 
+    private getWidth():number {
+        return document.getElementById(this.id).getBoundingClientRect().width;
+    }
+
+    private getHeight():number {
+        return document.getElementById(this.id).getBoundingClientRect().height;
+    }
+
     public draw(): void {
         // https://nvd3-community.github.io/nvd3/ - see forceDirected
         // https://github.com/nvd3-community/nvd3/blob/gh-pages/examples/forceDirected.html
         let _thisReference = this;
         nv.addGraph({
             generate: function() {
-                let width = nv.utils.windowSize().width - 40,
-                    height = nv.utils.windowSize().height - 40;
+                let width = _thisReference.getWidth() - 40,
+                    height = _thisReference.getHeight() - 40;
+                console.log(width, height, 'd3 window calculated sizes');
                 let chart = nv.models.forceDirectedGraph()
                     .width(width)
                     .height(height)
+                    .linkDist(60)
+                    .radius(function(d) { return d.main ? 20 : 10})
                     .margin({top: 20, right: 20, bottom: 20, left: 20})
                     .color(function(d) { return d.color })
                     .nodeExtras(function(node) {
@@ -65,26 +77,27 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                             .attr("dy", ".35em")
                             .text(function(d) { return d.name });
                     });
-                chart.dispatch.on('renderEnd', function(){
-                    console.log('render complete');
-                });
-                d3.select('#' + _thisReference.id)
+
+                _thisReference._datum =  d3.select('#' + _thisReference.id)
                     .attr('width', width)
                     .attr('height', height)
-                    .datum(_thisReference.prepareDatasets())
-                    .call(chart);
+                    .datum(_thisReference.prepareDatasets());
+
+                _thisReference._datum .call(chart);
                 _thisReference._chartObject = chart;
+                d3.select('#' + _thisReference.id).selectAll(".line").style('stroke', 'black');
                 return chart;
             },
             callback: function(graph) {
                 window.onresize = function() {
-                    let width = nv.utils.windowSize().width - 40,
-                        height = nv.utils.windowSize().height - 40,
+                    let width = _thisReference.getWidth() - 40,
+                        height = _thisReference.getHeight() - 40,
                         margin = graph.margin();
                     if (width < margin.left + margin.right + 20)
                         width = margin.left + margin.right + 20;
                     if (height < margin.top + margin.bottom + 20)
                         height = margin.top + margin.bottom + 20;
+
                     graph.width(width).height(height);
                     d3.select('#' + _thisReference.id)
                         .attr('width', width)
@@ -95,21 +108,31 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         });
     }
 
-    private statusToColor(status:string):string {
+    private static statusToColor(status:string):string {
         return status == "info" ? "#099000" : "#ea0000";
     }
 
     private prepareDatasets():any {
-        let _value:any[] = [];
-        _value["nodes"] = [];
+        let _value:any = {
+            'nodes': [],
+            'links': []
+        };
         for (let i = 0; i < this.chartData.length; i++) {
-            _value["nodes"].push({
+            let _newNode:any = {
                 "name" : (<HealthStatusChartData>this.chartData[i]).name,
-                "color" : this.statusToColor((<HealthStatusChartData>this.chartData[i]).status.getNotificationLevel()),
-                "details" : (<HealthStatusChartData>this.chartData[i]).status.htmlDetails()
-            });
+                "color" : ResourceGroupHealthStatusChart.statusToColor((<HealthStatusChartData>this.chartData[i]).status.getNotificationLevel()),
+                "details" : (<HealthStatusChartData>this.chartData[i]).status.htmlDetails(),
+                "main": (<HealthStatusChartData>this.chartData[i]).summary,
+                "x": this.getWidth()/2,
+                "y": this.getHeight()/2
+            };
+/*            if ((<HealthStatusChartData>this.chartData[i]).summary) {
+                _newNode['x'] = ;
+                _newNode['y'] = this.getHeight()/2;
+            }*/
+            _value["nodes"].push(_newNode);
+
         }
-        _value["links"] = [];
         for (let i = 0; i < this.chartData.length; i++) {
             if ((<HealthStatusChartData>this.chartData[i]).summary) {
                 for (let j = 0; j < this.chartData.length; j++) {
@@ -117,7 +140,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                         _value["links"].push({
                             "source": i,
                             "target": j,
-                            "value": "1"
+                            "value": 1
                         });
                     }
                 }
@@ -140,9 +163,16 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         }
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
-        if (this._chartObject != undefined) {
-            d3.select('#' + this.id).datum(this.prepareDatasets()).transition().duration(500).call(this._chartObject);
+            if (this._chartObject != undefined) {
+                this._datum.datum(this.prepareDatasets()).call(this._chartObject);
+            }
+        } else {
+            if (this._chartObject != undefined) {
+                let _node:any = d3.select('#' + this.id).selectAll("g").filter(function(d) { return d.name === _data.name });
+                _node.attr('color', ResourceGroupHealthStatusChart.statusToColor(_data.status.getNotificationLevel()));
+                _node.attr('details', _data.status.htmlDetails());
+                _node.select('circle').style("fill",  ResourceGroupHealthStatusChart.statusToColor(_data.status.getNotificationLevel()));
+            }
         }
     }
 }
