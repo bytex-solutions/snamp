@@ -297,7 +297,7 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
             }
 
             @Override
-            public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
+            public ImmutableMap<String, Double> getPolicyEvaluationResult() {
                 return evaluation;
             }
         });
@@ -320,7 +320,7 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
             }
 
             @Override
-            public ImmutableMap<String, Double> getPolicyEvaluationSnapshot() {
+            public ImmutableMap<String, Double> getPolicyEvaluationResult() {
                 return evaluation;
             }
         });
@@ -343,7 +343,7 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
             }
 
             @Override
-            public Map<String, Double> getPolicyEvaluationSnapshot() {
+            public Map<String, Double> getPolicyEvaluationResult() {
                 return evaluation;
             }
         });

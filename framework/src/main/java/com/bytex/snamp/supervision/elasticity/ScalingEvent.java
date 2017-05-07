@@ -29,5 +29,5 @@ public abstract class ScalingEvent extends SupervisionEvent {
      * Gets snapshot of policy evaluation.
      * @return Snapshot of policy evaluation.
      */
-    public abstract Map<String, Double> getPolicyEvaluationSnapshot();
+    public abstract Map<String, Double> getPolicyEvaluationResult();
 }

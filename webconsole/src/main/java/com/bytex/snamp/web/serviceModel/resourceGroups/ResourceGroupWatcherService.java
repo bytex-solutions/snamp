@@ -9,6 +9,10 @@ import com.bytex.snamp.supervision.GroupCompositionChanged;
 import com.bytex.snamp.supervision.SupervisionEvent;
 import com.bytex.snamp.supervision.SupervisionEventListener;
 import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.elasticity.MaxClusterSizeReachedEvent;
+import com.bytex.snamp.supervision.elasticity.ScaleInEvent;
+import com.bytex.snamp.supervision.elasticity.ScaleOutEvent;
+import com.bytex.snamp.supervision.elasticity.ScalingEvent;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
@@ -27,6 +31,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -59,6 +64,50 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         @JsonProperty("groupName")
         public final String getGroupName(){
             return groupName;
+        }
+    }
+
+    public enum ScalingAction{
+        UNKNOWN,
+        SCALE_IN,
+        SCALE_OUT,
+        OUT_OF_SPACE
+    }
+
+    @JsonTypeName("scalingHappens")
+    public final class ScalingHappensMessage extends SupervisionMessage{
+        private static final long serialVersionUID = -3466679934786763774L;
+        private final Map<String, Double> evaluationResult;
+        private final double castingVote;
+        private final ScalingAction action;
+
+        private ScalingHappensMessage(final ScalingEvent event) {
+            super(event);
+            evaluationResult = event.getPolicyEvaluationResult();
+            castingVote = event.getCastingVoteWeight();
+            if(event instanceof ScaleInEvent)
+                action = ScalingAction.SCALE_IN;
+            else if(event instanceof ScaleOutEvent)
+                action = ScalingAction.SCALE_OUT;
+            else if(event instanceof MaxClusterSizeReachedEvent)
+                action = ScalingAction.OUT_OF_SPACE;
+            else
+                action = ScalingAction.UNKNOWN;
+        }
+
+        @JsonProperty("castingVoteWeight")
+        public double getCastingVoteWeight(){
+            return castingVote;
+        }
+
+        @JsonProperty("evaluationResult")
+        public Map<String, Double> getEvaluationResult(){
+            return evaluationResult;
+        }
+
+        @JsonProperty("action")
+        public ScalingAction getAction(){
+            return action;
         }
     }
 
@@ -151,6 +200,10 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         //health status was changed
         Convert.toType(event, HealthStatusChangedEvent.class)
                 .map(GroupStatusChangedMessage::new)
+                .ifPresent(broadcastMessageSender);
+        //scaling event
+        Convert.toType(event, ScalingEvent.class)
+                .map(ScalingHappensMessage::new)
                 .ifPresent(broadcastMessageSender);
     }
 
