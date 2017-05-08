@@ -88,4 +88,9 @@ public class RatedTimeRecorder extends TimeRecorder implements RatedTimer {
     public final long getLastMaxRatePerMinute(MetricsInterval interval) {
         return rate.getLastMaxRatePerMinute(interval);
     }
+
+    @Override
+    public final long getLastMaxRatePer12Hours(final MetricsInterval interval) {
+        return rate.getLastMaxRatePer12Hours(interval);
+    }
 }

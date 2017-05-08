@@ -75,6 +75,11 @@ public final class Summary {
             }
 
             @Override
+            public long getLastMaxRatePer12Hours(final MetricsInterval interval) {
+                return sum(rate -> rate.getLastMaxRatePer12Hours(interval));
+            }
+
+            @Override
             public void reset() {
                 rates.get().forEach(Rate::reset);
             }

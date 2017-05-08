@@ -40,6 +40,11 @@ public interface Rate extends Metric {
         public long getLastMaxRatePerMinute(final MetricsInterval interval) {
             return 0;
         }
+        
+        @Override
+        public long getLastMaxRatePer12Hours(final MetricsInterval interval) {
+            return 0;
+        }
 
         @Override
         public String getName() {
@@ -72,21 +77,21 @@ public interface Rate extends Metric {
     long getLastRate(final MetricsInterval interval);
 
     /**
-     * Gets the mean rate of actions per unit of time from the historical perspective.
+     * Gets mean rate of actions per unit of time from the historical perspective.
      * @param scale Measurement interval.
      * @return Mean rate of actions per unit of time from the historical perspective.
      */
     double getMeanRate(final MetricsInterval scale);
 
     /**
-     * Gets the max rate of actions observed in the specified interval.
+     * Gets max rate of actions observed in the specified interval.
      * @param interval Measurement interval.
      * @return The max rate of actions received in the specified interval.
      */
     long getMaxRate(final MetricsInterval interval);
 
     /**
-     * Gets the max rate of actions received per second for the last time.
+     * Gets max rate of actions received per second for the last time.
      * @param interval Measurement interval.
      * @return The max rate of actions received per second for the last time.
      */
@@ -98,6 +103,13 @@ public interface Rate extends Metric {
      * @return The max rate of actions received per second for the last time.
      */
     long getLastMaxRatePerMinute(final MetricsInterval interval);
+
+    /**
+     * Gets the max rate of actions received per 12 hours for the last time.
+     * @param interval Measurement interval. Cannot be less than {@link MetricsInterval#TWELVE_HOURS}.
+     * @return The max rate of actions received per second for the last time.
+     */
+    long getLastMaxRatePer12Hours(final MetricsInterval interval);
 
     @Override
     Rate clone();

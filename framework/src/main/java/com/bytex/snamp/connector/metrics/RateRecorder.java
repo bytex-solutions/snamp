@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.TimeLimitedLong;
-import com.bytex.snamp.moa.ExponentialMovingAverage;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
@@ -24,6 +23,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
     private final MetricsIntervalMap<AtomicLong> maxRate;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerSecond;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerMinute;
+    private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePer12Hours;
     private final AtomicLong totalRate;
     private final AtomicReference<Instant> startTime;
 
@@ -35,9 +35,10 @@ public class RateRecorder extends AbstractMetric implements Rate {
         startTime = new AtomicReference<>(Instant.now());
         lastMaxRatePerSecond = new MetricsIntervalMap<>(MetricsInterval.SECOND.greater(), interval -> interval.createLongPeakDetector(0L));
         lastMaxRatePerMinute = new MetricsIntervalMap<>(MetricsInterval.MINUTE.greater(), interval -> interval.createLongPeakDetector(0L));
+        lastMaxRatePer12Hours = new MetricsIntervalMap<>(MetricsInterval.TWELVE_HOURS.greater(), interval -> interval.createLongPeakDetector(0L));
     }
 
-    protected RateRecorder(final RateRecorder source){
+    protected RateRecorder(final RateRecorder source) {
         super(source);
         startTime = new AtomicReference<>(source.getStartTime());
         totalRate = new AtomicLong(source.totalRate.get());
@@ -45,6 +46,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
         lastRate = new MetricsIntervalMap<>(source.lastRate, TimeLimitedLong::clone);
         lastMaxRatePerSecond = new MetricsIntervalMap<>(source.lastMaxRatePerSecond, TimeLimitedLong::clone);
         lastMaxRatePerMinute = new MetricsIntervalMap<>(source.lastMaxRatePerMinute, TimeLimitedLong::clone);
+        lastMaxRatePer12Hours = new MetricsIntervalMap<>(source.lastMaxRatePer12Hours, TimeLimitedLong::clone);
     }
 
     @Override
@@ -63,6 +65,8 @@ public class RateRecorder extends AbstractMetric implements Rate {
                     break;
                 case MINUTE: //write rate for the last minute
                     lastMaxRatePerMinute.forEachAcceptLong(lastRate, TimeLimitedLong::accept);
+                case TWELVE_HOURS:   //write rate for the last 12 hours
+                    lastMaxRatePer12Hours.forEachAcceptLong(lastRate, TimeLimitedLong::accept);
             }
         }
     }
@@ -144,6 +148,19 @@ public class RateRecorder extends AbstractMetric implements Rate {
     }
 
     /**
+     * Gets the max rate of actions received per second for the last time.
+     *
+     * @param interval Measurement interval. Cannot be less than {@link MetricsInterval#TWELVE_HOURS}.
+     * @return The max rate of actions received per second for the last time.
+     */
+    @Override
+    public final long getLastMaxRatePer12Hours(final MetricsInterval interval) {
+        return lastMaxRatePer12Hours.containsKey(interval) ?
+                lastMaxRatePer12Hours.getAsLong(interval, TimeLimitedLong::getAsLong) :
+                getLastRate(interval);
+    }
+
+    /**
      * Resets all metrics.
      */
     @Override
@@ -151,5 +168,8 @@ public class RateRecorder extends AbstractMetric implements Rate {
         totalRate.set(0L);
         lastRate.values().forEach(TimeLimitedLong::reset);
         maxRate.values().forEach(rate -> rate.set(0L));
+        lastMaxRatePerSecond.values().forEach(TimeLimitedLong::reset);
+        lastMaxRatePerMinute.values().forEach(TimeLimitedLong::reset);
+        lastMaxRatePer12Hours.values().forEach(TimeLimitedLong::reset);
     }
 }

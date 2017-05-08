@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
 import com.bytex.snamp.connector.attributes.checkers.NumberComparatorPredicate;
 import com.bytex.snamp.connector.health.MalfunctionStatus;
+import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayActivator;
@@ -441,8 +442,21 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resourcesChart.setGroupName(GROUP_NAME);
         resourcesChart.setName("resources");
 
+        final ScaleInChart scaleInChart = new ScaleInChart();
+        scaleInChart.setGroupName(SCALABLE_GROUP_NAME);
+        scaleInChart.setName("downscale");
+        scaleInChart.setInterval(MetricsInterval.MINUTE);
+        scaleInChart.setMetrics(RateChart.RateMetric.LAST_RATE, RateChart.RateMetric.MEAN_RATE);
+
+        final ScaleOutChart scaleOutChart = new ScaleOutChart();
+        scaleOutChart.setGroupName(SCALABLE_GROUP_NAME);
+        scaleOutChart.setName("upscale");
+        scaleOutChart.setInterval(MetricsInterval.MINUTE);
+        scaleOutChart.setMetrics(RateChart.RateMetric.LAST_RATE, RateChart.RateMetric.MEAN_RATE);
+
+
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{ lineChart, panelChart, hsChart, resourcesChart }));
+        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{lineChart, panelChart, hsChart, resourcesChart, scaleInChart, scaleOutChart}));
         assertNotNull(node);
     }
 
