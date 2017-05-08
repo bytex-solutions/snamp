@@ -82,17 +82,22 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                     "valid_children" : []
                 }
             },
-            "plugins" : [ "state", "types" ]
+            "plugins" : [ "types" ]
         });
+
+        $("#" + this.id).on("set_state.jstree", function() {
+            _thisReference._state =  $("#" + _thisReference.id).jstree(true).get_state()
+        })
     }
 
-    private fillStatusOfNode(...nodes:any[]):void {
-        nodes.forEach(node => {
-            if (this._state != undefined && this._state["core"] != undefined && node["id"] != undefined) {
-                node["state"]["opened"] =  this._state["core"]["open"] != undefined && this._state["core"]["open"].indexOf(node["id"] >= 0);
-                node["state"]["selected"] =  this._state["core"]["selected"] != undefined && this._state["core"]["selected"].indexOf(node["id"] >= 0);
-            }
-        });
+    private fillStatusOfNode(nodeId:string):any {
+        let _value = {};
+        if (this._state != undefined && this._state["core"] != undefined) {
+            _value["disabled"] = false;
+            _value["opened"] = this._state["core"]["open"] != undefined && (this._state["core"]["open"].indexOf(nodeId) >= 0);
+            _value["selected"] = this._state["core"]["selected"] != undefined && (this._state["core"]["selected"].indexOf(nodeId) >= 0);
+        }
+        return _value;
     }
 
     private prepareDatasets():any {
@@ -105,9 +110,10 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                     "text": (<HealthStatusChartData>this.chartData[i]).name,
                     "children": [],
                     "type": "summary",
-                    "a_attr": { 'class' : "level-" + (<HealthStatusChartData>this.chartData[i]).status.getNotificationLevel()}
+                    "a_attr": { 'class' : "level-" + (<HealthStatusChartData>this.chartData[i]).status.getNotificationLevel()},
+                    "state": this.fillStatusOfNode(this.strnormallize((<HealthStatusChartData>this.chartData[i]).name))
                 };
-                this.fillStatusOfNode(_rootNode);
+
                 for (let j = 0; j < this.chartData.length; j++) {
                     if (!(<HealthStatusChartData>this.chartData[j]).summary) {
                         let _tmp:HealthStatusChartData = <HealthStatusChartData>this.chartData[j];
@@ -116,7 +122,8 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                             "text": _tmp.name,
                             "children": [],
                             "type": "instance",
-                            "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()}
+                            "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()},
+                            "state": this.fillStatusOfNode(this.strnormallize(_tmp.name))
                         };
 
                         let _healthStatus:any = {
@@ -124,42 +131,49 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                             "text": _tmp.status.innerType,
                             "children": [],
                             "type": "healthStatus",
-                            "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()}
+                            "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()},
+                            "state": this.fillStatusOfNode(this.strnormallize(_tmp.name) + "_hs")
                         };
 
                         if (_tmp.status.serverDetails != undefined && _tmp.status.serverDetails.length > 0) {
                             _healthStatus["children"].push({
                                 "text": "Details: " + _tmp.status.serverDetails,
-                                "type": "additional"
+                                "type": "additional",
+                                "id": this.strnormallize(_tmp.name) + "_sdt",
+                                "state": this.fillStatusOfNode(this.strnormallize(_tmp.name) + "_sdt")
                             });
                         }
 
                         if (_tmp.status.serverTimestamp != undefined && _tmp.status.serverTimestamp.length > 0) {
                             _healthStatus["children"].push({
                                 "text": "Server time: " + _tmp.status.serverTimestamp,
-                                "type": "additional"
+                                "type": "additional",
+                                "id": this.strnormallize(_tmp.name) + "_st",
+                                "state": this.fillStatusOfNode(this.strnormallize(_tmp.name) + "_st")
                             });
                         }
 
                         _healthStatus["children"].push({
                             "text": "Level: " + _tmp.status.getNotificationLevel(),
-                            "type": "additional"
+                            "type": "additional",
+                            "id": this.strnormallize(_tmp.name) + "_lvl",
+                            "state": this.fillStatusOfNode(this.strnormallize(_tmp.name) + "_lvl")
                         });
 
                         _healthStatus["children"].push({
                             "text": "Details: " + _tmp.status.htmlDetails(),
-                            "type": "additional"
+                            "type": "additional",
+                            "id": this.strnormallize(_tmp.name) + "_dtl",
+                            "state": this.fillStatusOfNode(this.strnormallize(_tmp.name) + "dtl")
                         });
 
                         let _timeStamp:any = {
                             "id": this.strnormallize(_tmp.name) + "_ts",
                             "text": _tmp.timestamp,
                             "children": [],
-                            "type": "timestamp"
+                            "type": "timestamp",
+                            "state": this.fillStatusOfNode(this.strnormallize(_tmp.name) + "_ts")
                         };
-
-                        this.fillStatusOfNode(_timeStamp, _healthStatus, _childNode); // fill the state
-
                         _childNode["children"].push(_timeStamp);
                         _childNode["children"].push(_healthStatus);
                         _rootNode["children"].push(_childNode);
@@ -168,6 +182,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                 _value.push(_rootNode);
             }
         }
+        console.log("Constructed value is: ", _value);
         return _value;
     }
 
@@ -184,12 +199,13 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         }
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
-        if (this._chartObject != undefined) {
-            this._state = $("#" + this.id).jstree(true).get_state();
-            console.log("State: ", this._state);
             $("#" + this.id).jstree(true).settings.core.data = this.prepareDatasets();
             $("#" + this.id).jstree(true).refresh(true);
+        }
+        if (this._chartObject != undefined) {
+            console.log(this._state);
+            $("#" + this.id).jstree(true).settings.core.data = this.prepareDatasets();
+            $("#" + this.id).jstree(true).redraw(true);
         }
     }
 }
