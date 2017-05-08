@@ -7,8 +7,7 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import static com.bytex.snamp.management.ManagementUtils.append;
-import static com.bytex.snamp.management.ManagementUtils.appendln;
+import java.io.PrintWriter;
 
 /**
  * @author Roman Sakno
@@ -25,17 +24,16 @@ public class ClusterMemberStatusCommand extends ClusterMemberCommand {
     private boolean startElection = false;
 
     @Override
-    public CharSequence execute() {
+    public void execute(final PrintWriter output) {
         final StringBuilder result = new StringBuilder();
         if (startElection) {
             if (ResignOperation.resign(getBundleContext()))
-                appendln(result, "Resigned");
+                output.println("Resigned");
             else
-                appendln(result, "This node is not in a cluster member");
+                output.println("This node is not in a cluster member");
         }
-        appendln(result, "Is cluster member: %s", ClusterMember.isInCluster(getBundleContext()));
-        appendln(result, "Active Member: %s", clusterMember.isActive());
-        append(result, "Member Name: %s", clusterMember.getName());
-        return result;
+        output.format("Is cluster member: %s", ClusterMember.isInCluster(getBundleContext())).println();
+        output.format("Active Member: %s", clusterMember.isActive()).println();
+        output.format("Member Name: %s", clusterMember.getName());
     }
 }

@@ -7,8 +7,8 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.bytex.snamp.management.ManagementUtils.getStateString;
 
 /**
@@ -24,20 +24,18 @@ import static com.bytex.snamp.management.ManagementUtils.getStateString;
 public final class InstalledSupervisorsCommand extends SnampShellCommand {
     private final SnampManager manager = new DefaultSnampManager();
 
-    static void writeSupervisor(final SnampComponentDescriptor component, final StringBuilder output) {
-        appendln(output, "%s. Name: %s. Description: %s. Version: %s. State: %s",
+    static void writeSupervisor(final SnampComponentDescriptor component, final PrintWriter output) {
+        output.format("%s. Name: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.get(SnampComponentDescriptor.SUPERVISOR_TYPE_PROPERTY),
                 component.toString(null),
                 component.getVersion(),
-                getStateString(component));
+                getStateString(component)).println();
     }
 
     @Override
-    public CharSequence execute() throws IOException {
-        final StringBuilder result = new StringBuilder(42);
-        for(final SnampComponentDescriptor component: manager.getInstalledSupervisors())
-            writeSupervisor(component, result);
-        return result;
+    public void execute(final PrintWriter output) throws IOException {
+        for (final SnampComponentDescriptor component : manager.getInstalledSupervisors())
+            writeSupervisor(component, output);
     }
 }

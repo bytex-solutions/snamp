@@ -15,6 +15,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 
 /**
  * Read attribute value.
@@ -55,7 +56,7 @@ public final class ReadAttributesCommand extends SnampShellCommand  {
     }
 
     @Override
-    public Void execute() throws JMException, InterruptedException {
+    public void execute(final PrintWriter output) throws JMException, InterruptedException {
         try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName)
                 .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName)))) {
             String[] attributes = this.attributes;
@@ -72,7 +73,6 @@ public final class ReadAttributesCommand extends SnampShellCommand  {
             //read attributes and exit
             else
                 readAttributes(client, attributes, session.getConsole());
-            return null;
         }
     }
 }

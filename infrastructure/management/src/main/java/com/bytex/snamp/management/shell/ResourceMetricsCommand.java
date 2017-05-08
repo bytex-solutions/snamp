@@ -12,8 +12,9 @@ import javax.management.InstanceNotFoundException;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 
+import java.io.PrintWriter;
+
 import static com.bytex.snamp.jmx.MetricsConverter.fromRate;
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.collect.Iterables.getFirst;
 
 /**
@@ -44,42 +45,42 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean resetMetrics;
 
-    private static void printMetrics(final Rate rate, final StringBuilder output){
+    private static void printMetrics(final Rate rate, final PrintWriter output){
         final CompositeData data = fromRate(rate);
         final CompositeType type = data.getCompositeType();
         type.keySet().forEach(itemName -> {
             final String description = type.getDescription(itemName);
             final Object value = data.get(itemName);
-            appendln(output, "%s: %s", description, value);
+            output.format("%s: %s", description, value).println();
         });
     }
 
-    private static void collectMetrics(final AttributeMetric metrics, final StringBuilder output) {
+    private static void collectMetrics(final AttributeMetric metrics, final PrintWriter output) {
         if(metrics == null){
-            appendln(output, "No metrics for attributes");
+            output.println("No metrics for attributes");
             return;
         }
-        appendln(output, "Attribute writes:");
+        output.println("Attribute writes:");
         printMetrics(metrics.writes(), output);
-        appendln(output, "Attribute reads:");
+        output.println("Attribute reads:");
         printMetrics(metrics.reads(), output);
     }
 
-    private static void collectMetrics(final NotificationMetric metrics, final StringBuilder output) {
+    private static void collectMetrics(final NotificationMetric metrics, final PrintWriter output) {
         if(metrics == null) {
-            appendln(output, "No metrics for notifications");
+            output.println("No metrics for notifications");
             return;
         }
-        appendln(output, "Notification metrics:");
+        output.println("Notification metrics:");
         printMetrics(metrics.notifications(), output);
     }
 
-    private static void collectMetrics(final OperationMetric metrics, final StringBuilder output) {
+    private static void collectMetrics(final OperationMetric metrics, final PrintWriter output) {
         if(metrics == null) {
-            appendln(output, "No metrics for operations");
+            output.println("No metrics for operations");
             return;
         }
-        appendln(output, "Operation metrics:");
+        output.println("Operation metrics:");
         printMetrics(metrics.invocations(), output);
     }
 
@@ -87,35 +88,37 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
         return !(showAttributes | showNotifications | showOperations);
     }
 
-    private  CharSequence collectMetrics(final MetricsSupport metrics) {
-        final StringBuilder result = new StringBuilder();
+    private void collectMetrics(final MetricsSupport metrics, final PrintWriter output) {
         if (showAttributes || showAll())
-            collectMetrics(getFirst(metrics.getMetrics(AttributeMetric.class), (AttributeMetric)null), result);
+            collectMetrics(getFirst(metrics.getMetrics(AttributeMetric.class), (AttributeMetric)null), output);
         if (showNotifications || showAll())
-            collectMetrics(getFirst(metrics.getMetrics(NotificationMetric.class), (NotificationMetric)null), result);
+            collectMetrics(getFirst(metrics.getMetrics(NotificationMetric.class), (NotificationMetric)null), output);
         if (showOperations || showAll())
-            collectMetrics(getFirst(metrics.getMetrics(OperationMetric.class), (OperationMetric)null), result);
-        return result;
+            collectMetrics(getFirst(metrics.getMetrics(OperationMetric.class), (OperationMetric)null), output);
     }
 
     private static void resetMetrics(final Iterable<? extends Metric> m){
         m.forEach(Metric::reset);
     }
 
-    private CharSequence resetMetrics(final MetricsSupport metrics) {
+    private void resetMetrics(final MetricsSupport metrics, final PrintWriter output) {
         if (showAttributes || showAll())
             resetMetrics(metrics.getMetrics(AttributeMetric.class));
         if (showOperations || showAll())
             resetMetrics(metrics.getMetrics(OperationMetric.class));
         if (showNotifications || showAll())
             resetMetrics(metrics.getMetrics(NotificationMetric.class));
-        return "Metrics reset";
+        output.println("Metrics reset");
     }
 
     @Override
-    public CharSequence execute() throws InstanceNotFoundException {
-        return MetricsAttribute.getMetrics(resourceName, getBundleContext())
-                .map(metrics -> resetMetrics ? resetMetrics(metrics) : collectMetrics(metrics))
-                .orElse("Metrics are not supported");
+    public void execute(final PrintWriter output) throws InstanceNotFoundException {
+        MetricsAttribute.getMetrics(resourceName, getBundleContext())
+                .ifPresent(metrics -> {
+                    if (resetMetrics)
+                        resetMetrics(metrics, output);
+                    else
+                        collectMetrics(metrics, output);
+                });
     }
 }

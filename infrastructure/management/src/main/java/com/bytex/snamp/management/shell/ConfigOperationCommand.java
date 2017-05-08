@@ -12,9 +12,8 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import javax.annotation.Nonnull;
+import java.io.PrintWriter;
 import java.util.Arrays;
-
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Configures operation.
@@ -57,7 +56,7 @@ public final class ConfigOperationCommand extends TemplateConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
 
-    private boolean processOperations(final EntityMap<? extends OperationConfiguration> operations, final StringBuilder output) {
+    private boolean processOperations(final EntityMap<? extends OperationConfiguration> operations, final PrintWriter output) {
         if (del)
             operations.remove(operationName);
         else {
@@ -65,16 +64,16 @@ public final class ConfigOperationCommand extends TemplateConfigurationCommand {
             operation.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(operation::remove);
         }
-        appendln(output, "Operation configured successfully");
+        output.println("Operation configured successfully");
         return true;
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceTemplate> configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends ManagedResourceTemplate> configuration, final PrintWriter output) {
         if (configuration.containsKey(name))
             return processOperations(configuration.get(name).getOperations(), output);
         else {
-            appendln(output, "Resource doesn't exist");
+            output.println("Resource doesn't exist");
             return false;
         }
     }

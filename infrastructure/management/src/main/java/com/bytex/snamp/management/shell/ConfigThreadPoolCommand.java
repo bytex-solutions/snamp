@@ -8,10 +8,10 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
 import java.time.Duration;
 
 import static com.bytex.snamp.configuration.ThreadPoolConfiguration.*;
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Registers a new thread pool in globally accessible repository.
@@ -51,7 +51,7 @@ public final class ConfigThreadPoolCommand extends ThreadPoolCommand {
     private int queueSize = INFINITE_QUEUE_SIZE;
 
     @Override
-    boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> threadPools, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> threadPools, final PrintWriter output) {
         if (del)
             threadPools.remove(poolName);
         else {
@@ -65,7 +65,7 @@ public final class ConfigThreadPoolCommand extends ThreadPoolCommand {
                 config.setQueueSize(queueSize);
             config.setKeepAliveTime(Duration.ofMillis(keepAliveTime));
         }
-        appendln(output, "Thread pool is modified successfully");
+        output.println("Thread pool is modified successfully");
         return true;
     }
 }

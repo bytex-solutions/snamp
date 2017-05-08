@@ -6,6 +6,7 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Optional;
 
 /**
@@ -20,17 +21,15 @@ import java.util.Optional;
 @Service
 public final class ResetConfigurationCommand extends SnampShellCommand  {
     @Override
-    public CharSequence execute() throws IOException {
+    public void execute(final PrintWriter output) throws IOException {
         final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
         if (adminRef.isPresent()) {
             final ServiceHolder<ConfigurationManager> admin = adminRef.get();
             try {
-                final StringBuilder output = new StringBuilder(64);
                 admin.get().processConfiguration(config -> {
                     config.clear();
                     return true;
                 });
-                return output;
             } finally {
                 admin.release(getBundleContext());
             }

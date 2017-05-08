@@ -5,6 +5,8 @@ import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
+
 /**
  * Prints list of existing thread pools.
  */
@@ -16,7 +18,7 @@ public final class ListOfThreadPoolsCommand extends ThreadPoolCommand {
 
     private static void printThreadPoolConfig(final String name,
                                               final ThreadPoolConfiguration config,
-                                              final StringBuilder output) {
+                                              final PrintWriter output) {
         output
                 .append(name).append(System.lineSeparator())
                 .append(String.format("MinPoolSize: %s", config.getMinPoolSize())).append(System.lineSeparator())
@@ -27,7 +29,7 @@ public final class ListOfThreadPoolsCommand extends ThreadPoolCommand {
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends ThreadPoolConfiguration> configuration, final PrintWriter output) {
         output.append(System.lineSeparator());
         configuration.forEach((name, value) -> {
             printThreadPoolConfig(name, value, output);

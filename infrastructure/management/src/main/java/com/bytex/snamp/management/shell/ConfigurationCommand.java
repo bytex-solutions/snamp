@@ -4,6 +4,8 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -12,22 +14,23 @@ import java.util.Optional;
  * @since 1.0
  */
 abstract class ConfigurationCommand<E extends EntityConfiguration> extends SnampShellCommand implements EntityMapResolver<AgentConfiguration, E> {
-    abstract boolean doExecute(final EntityMap<? extends E> configuration, final StringBuilder output) throws Exception;
+    abstract boolean doExecute(final EntityMap<? extends E> configuration, final PrintWriter output) throws Exception;
 
     @Override
-    public final CharSequence execute() throws Exception {
+    public final void execute(final PrintWriter output) throws Exception {
         final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
         if (adminRef.isPresent()) {
             final ServiceHolder<ConfigurationManager> admin = adminRef.get();
             try {
-                final StringBuilder output = new StringBuilder(64);
                 admin.get().processConfiguration(config -> doExecute(apply(config), output));
-                return output;
             } finally {
                 admin.release(getBundleContext());
             }
-        }
-        else
+        } else
             throw new IOException("Configuration storage is not available");
+    }
+
+    static void printParameters(final Map<String, String> feature, final PrintWriter output) {
+        feature.forEach((key, value) -> output.format("%s=%s", key, value).println());
     }
 }

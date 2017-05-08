@@ -6,6 +6,8 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
+
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -21,9 +23,9 @@ public final class SendBroadcastMessageCommand extends MessageCommand {
     private String message = "";
 
     @Override
-    public String execute() throws Exception {
+    public void execute(final PrintWriter output) throws Exception {
         final Communicator communicator = getCommunicator();
         communicator.sendSignal(message);
-        return String.format("Message posted successfully: '%s'", message);
+        output.format("Message posted successfully: '%s'", message);
     }
 }

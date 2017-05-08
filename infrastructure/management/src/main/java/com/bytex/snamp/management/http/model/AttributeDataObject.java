@@ -39,11 +39,11 @@ public final class AttributeDataObject extends AbstractFeatureDataObject<Attribu
 
     @JsonProperty("readWriteTimeout")
     @JsonSerialize(using = DurationSerializer.class)
-    @JsonDeserialize(using = DurationDeserializer.class)
     public Duration getReadWriteTimeout() {
         return duration;
     }
 
+    @JsonDeserialize(using = DurationDeserializer.class)
     public void setReadWriteTimeout(final Duration value) {
         duration = value;
     }

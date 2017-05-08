@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.SupervisorConfiguration;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
+import java.io.PrintWriter;
 
 /**
  * Provides list of configured supervisors.
@@ -19,8 +19,8 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Service
 public class ListOfSupervisorsCommand extends SupervisorConfigurationCommand {
     @Override
-    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> configuration, final StringBuilder output) throws Exception {
-        configuration.forEach((instance, config) -> appendln(output, "Group name: %s. Supervisor type: %s", instance, config.getType()));
+    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> configuration, final PrintWriter output) throws Exception {
+        configuration.forEach((instance, config) -> output.format("Group name: %s. Supervisor type: %s", instance, config.getType()).println());
         return false;
     }
 }

@@ -12,10 +12,9 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Arrays;
-
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Configures attribute of the managed resource.
@@ -56,7 +55,7 @@ public final class ConfigHealthCheckTriggerCommand extends SupervisorConfigurati
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String script;
 
-    private boolean processHealthCheckTrigger(final ScriptletConfiguration healthCheckTrigger, final StringBuilder output) throws IOException {
+    private boolean processHealthCheckTrigger(final ScriptletConfiguration healthCheckTrigger, final PrintWriter output) throws IOException {
         if (del)
             ScriptletConfiguration.fillByDefault(healthCheckTrigger);
         else {
@@ -70,16 +69,16 @@ public final class ConfigHealthCheckTriggerCommand extends SupervisorConfigurati
             if (script != null)
                 healthCheckTrigger.setScript(isURL ? script : IOUtils.contentAsString(new URL(script)));
         }
-        appendln(output, "Supervisor is modified successfully");
+        output.println("Supervisor is modified successfully");
         return true;
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> supervisors, final StringBuilder output) throws IOException {
+    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> supervisors, final PrintWriter output) throws IOException {
         if (supervisors.containsKey(groupName))
             return processHealthCheckTrigger(supervisors.get(groupName).getHealthCheckConfig().getTrigger(), output);
         else {
-            appendln(output, "Supervisor doesn't exist");
+            output.println("Supervisor doesn't exist");
             return false;
         }
     }

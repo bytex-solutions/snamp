@@ -4,6 +4,8 @@ import com.bytex.snamp.core.PlatformVersion;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
+
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -15,7 +17,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 @Service
 public final class VersionCommand extends SnampShellCommand  {
     @Override
-    public CharSequence execute() {
-        return PlatformVersion.get().toString();
+    public void execute(final PrintWriter output) {
+        output.print(PlatformVersion.get());
     }
 }

@@ -7,10 +7,9 @@ import org.apache.karaf.shell.api.action.lifecycle.Reference;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.console.Session;
 
+import java.io.PrintWriter;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * @author Roman Sakno
@@ -27,16 +26,17 @@ public final class ReceiveMessageCommand extends MessageCommand {
     private Session session;
 
     @Override
-    public CharSequence execute() throws InterruptedException, TimeoutException {
+    public void execute(final PrintWriter output) throws InterruptedException, TimeoutException {
         final Communicator communicator = getCommunicator();
         session.getConsole().format("Waiting input message. Press Ctrl+C to abort");
         final Communicator.IncomingMessage message = communicator.receiveMessage(Communicator.ANY_MESSAGE, Function.identity(), null);
         if(message == null)
-            return "No message received";
-        final StringBuilder result = new StringBuilder();
-        appendln(result, "From: %s<%s>", message.getSender().getName(), message.getSender().getAddress());
-        appendln(result, "Message ID: %s", message.getMessageID());
-        appendln(result, "Message: %s", message.getPayload());
-        return result;
+            output.println("No message received");
+        else {
+            final StringBuilder result = new StringBuilder();
+            output.format("From: %s<%s>", message.getSender().getName(), message.getSender().getAddress()).println();
+            output.format("Message ID: %s", message.getMessageID()).println();
+            output.format("Message: %s", message.getPayload()).println();
+        }
     }
 }

@@ -12,9 +12,9 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import javax.annotation.Nonnull;
+import java.io.PrintWriter;
 import java.util.Arrays;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Configures resource event.
@@ -51,7 +51,7 @@ public final class ConfigEventCommand extends TemplateConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
 
-    private boolean processEvents(final EntityMap<? extends EventConfiguration> events, final StringBuilder output) {
+    private boolean processEvents(final EntityMap<? extends EventConfiguration> events, final PrintWriter output) {
         if (del)
             events.remove(category);
         else {
@@ -59,16 +59,16 @@ public final class ConfigEventCommand extends TemplateConfigurationCommand {
             event.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(event::remove);
         }
-        appendln(output, "Event configured successfully");
+        output.println("Event configured successfully");
         return true;
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceTemplate> configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends ManagedResourceTemplate> configuration, final PrintWriter output) {
         if (configuration.containsKey(name))
             return processEvents(configuration.get(name).getEvents(), output);
         else {
-            appendln(output, "Resource doesn't exist");
+            output.println("Resource doesn't exist");
             return false;
         }
     }

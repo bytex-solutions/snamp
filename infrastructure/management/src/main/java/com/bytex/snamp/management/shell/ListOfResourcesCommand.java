@@ -6,10 +6,10 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -27,12 +27,12 @@ public final class ListOfResourcesCommand extends ManagedResourceConfigurationCo
     private String groupName = "";
 
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> configuration, final PrintWriter output) {
         for (final Map.Entry<String, ? extends ManagedResourceConfiguration> resource : configuration.entrySet())
             if (isNullOrEmpty(groupName) || Objects.equals(groupName, resource.getValue().getGroupName()))
-                appendln(output, "Resource: %s. Type: %s. Connection string: %s", resource.getKey(),
+                output.format("Resource: %s. Type: %s. Connection string: %s", resource.getKey(),
                         resource.getValue().getType(),
-                        resource.getValue().getConnectionString());
+                        resource.getValue().getConnectionString()).println();
         return false;
     }
 }

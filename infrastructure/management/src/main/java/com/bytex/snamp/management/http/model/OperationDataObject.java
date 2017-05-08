@@ -39,11 +39,11 @@ public final class OperationDataObject extends AbstractFeatureDataObject<Operati
 
     @JsonProperty("invocationTimeout")
     @JsonSerialize(using = DurationSerializer.class)
-    @JsonDeserialize(using = DurationDeserializer.class)
     public Duration getInvocationTimeout() {
         return duration;
     }
 
+    @JsonDeserialize(using = DurationDeserializer.class)
     public void setInvocationTimeout(final Duration value) {
         duration = value;
     }

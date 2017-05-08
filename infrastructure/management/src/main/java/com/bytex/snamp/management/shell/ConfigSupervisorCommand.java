@@ -9,16 +9,16 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
- * Configures managed resource.
+ * Configures group supervisor.
  * @author Roman Sakno
  * @version 2.0
- * @since 1.0
+ * @since 2.0
  */
 @Command(scope = SnampShellCommand.SCOPE,
         name = "configure-supervisor",
@@ -46,7 +46,7 @@ public final class ConfigSupervisorCommand extends SupervisorConfigurationComman
     private String[] parametersToDelete = parameters;
 
     @Override
-    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> supervisors, final StringBuilder output) throws Exception {
+    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> supervisors, final PrintWriter output) throws Exception {
         if (del)
             supervisors.remove(groupName);
         else {
@@ -58,7 +58,7 @@ public final class ConfigSupervisorCommand extends SupervisorConfigurationComman
             supervisor.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(supervisor::remove);
         }
-        appendln(output, "Supervisor configured successfully");
+        output.print("Supervisor configured successfully");
         return true;
     }
 }

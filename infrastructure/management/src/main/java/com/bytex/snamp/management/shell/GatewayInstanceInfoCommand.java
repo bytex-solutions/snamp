@@ -7,7 +7,7 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
+import java.io.PrintWriter;
 
 /**
  * Displays configuration of gateway instance.
@@ -25,13 +25,13 @@ public final class GatewayInstanceInfoCommand extends GatewayConfigurationComman
     private String instanceName = "";
 
     @Override
-    boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final PrintWriter output) {
         if (configuration.containsKey(instanceName)) {
             final GatewayConfiguration gatewayInstanceConfig = configuration.get(instanceName);
-            appendln(output, "Instance Name: %s", instanceName);
-            appendln(output, "System Name: %s", gatewayInstanceConfig.getType());
-            appendln(output, "Configuration parameters:");
-            gatewayInstanceConfig.forEach((key, value) -> appendln(output, "%s = %s", key, value));
+            output.format("Instance Name: %s", instanceName).println();
+            output.format("System Name: %s", gatewayInstanceConfig.getType()).println();
+            output.println("Configuration parameters:");
+            printParameters(gatewayInstanceConfig, output);
         } else
             output.append("Gateway instance doesn't exist");
         return false;

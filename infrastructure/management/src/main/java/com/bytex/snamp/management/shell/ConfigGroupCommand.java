@@ -9,9 +9,9 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -44,8 +44,9 @@ public final class ConfigGroupCommand extends GroupConfigurationCommand {
     @Option(name = "-dp", aliases = {"--delete-parameter"}, multiValued = true, description = "Configuration parameters to be deleted")
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
+
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceGroupConfiguration> groups, final StringBuilder output) throws Exception {
+    boolean doExecute(final EntityMap<? extends ManagedResourceGroupConfiguration> groups, final PrintWriter output) throws Exception {
         if (del)
             groups.remove(groupName);
         else {
@@ -57,7 +58,7 @@ public final class ConfigGroupCommand extends GroupConfigurationCommand {
             resource.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(resource::remove);
         }
-        appendln(output, "Group configured successfully");
+        output.println("Group configured successfully");
         return true;
     }
 }

@@ -7,10 +7,9 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
 import java.util.Map;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
-import static com.bytex.snamp.management.ManagementUtils.newLine;
 import static com.bytex.snamp.management.shell.ResourceInfoCommand.*;
 ;
 /**
@@ -41,33 +40,33 @@ public final class GroupInfoCommand extends GroupConfigurationCommand {
     private boolean showOperations = false;
 
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceGroupConfiguration> configuration, final StringBuilder output) throws InterruptedException {
+    boolean doExecute(final EntityMap<? extends ManagedResourceGroupConfiguration> configuration, final PrintWriter output) throws InterruptedException {
         if (configuration.containsKey(groupName)) {
             final ManagedResourceGroupConfiguration group = configuration.get(groupName);
-            appendln(output, "Group Name: %s", groupName);
-            appendln(output, "Connection Type: %s", group.getType());
-            appendln(output, "Configuration parameters:");
-            group.forEach((key, value) -> appendln(output, "%s = %s", key, value));
+            output.format("Group Name: %s", groupName).println();
+            output.format("Connection Type: %s", group.getType()).println();
+            output.println("Configuration parameters:");
+            printParameters(group, output);
             checkInterrupted();
             if(showAttributes) {
-                appendln(output, "==ATTRIBUTES==");
+                output.println("==ATTRIBUTES==");
                 for (final Map.Entry<String, ? extends AttributeConfiguration> attr : group.getAttributes().entrySet())
                     printAttribute(attr.getKey(), attr.getValue(), output);
-                newLine(output);
+                output.println();
             }
             checkInterrupted();
             if(showEvents){
-                appendln(output, "==EVENTS==");
+                output.println("==EVENTS==");
                 for (final Map.Entry<String, ? extends EventConfiguration> attr : group.getEvents().entrySet())
                     printEvent(attr.getKey(), attr.getValue(), output);
-                newLine(output);
+                output.println();
             }
             checkInterrupted();
             if(showOperations){
-                appendln(output, "==OPERATIONS==");
+                output.println("==OPERATIONS==");
                 for (final Map.Entry<String, ? extends OperationConfiguration> attr : group.getOperations().entrySet())
                     printOperation(attr.getKey(), attr.getValue(), output);
-                newLine(output);
+                output.println();
             }
         } else
             output.append("Resource group doesn't exist");

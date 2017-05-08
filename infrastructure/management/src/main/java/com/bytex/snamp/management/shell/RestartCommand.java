@@ -5,6 +5,8 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleException;
 
+import java.io.PrintWriter;
+
 /**
  * Restarts SNAMP components.
  * @author Roman Sakno
@@ -18,8 +20,7 @@ import org.osgi.framework.BundleException;
 public final class RestartCommand extends SnampShellCommand {
 
     @Override
-    public Void execute() throws BundleException {
+    public void execute(final PrintWriter output) throws BundleException {
         DefaultSnampManager.restart(getBundleContext());
-        return null;
     }
 }

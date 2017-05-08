@@ -9,9 +9,9 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -46,7 +46,7 @@ public final class ConfigGatewayInstanceCommand extends GatewayConfigurationComm
     private String[] parametersToDelete = parameters;
 
     @Override
-    boolean doExecute(final EntityMap<? extends GatewayConfiguration> gateways, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends GatewayConfiguration> gateways, final PrintWriter output) {
         if (del)
             gateways.remove(instanceName);
         else {
@@ -56,7 +56,7 @@ public final class ConfigGatewayInstanceCommand extends GatewayConfigurationComm
             gateway.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(gateway::remove);
         }
-        appendln(output, "Gateway configured successfully");
+        output.println("Gateway configured successfully");
         return true;
     }
 }

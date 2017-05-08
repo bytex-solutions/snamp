@@ -8,6 +8,8 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleException;
 
+import java.io.PrintWriter;
+
 /**
  * Starts bundle with gateway.
  * @author Roman Sakno
@@ -28,11 +30,10 @@ public class ManageSupervisorCommand extends SnampShellCommand {
     private boolean enable = false;
 
     @Override
-    public Void execute() throws BundleException {
+    public void execute(final PrintWriter output) throws BundleException {
         if (enable)
             SupervisorActivator.enableSupervisor(getBundleContext(), supervisorType);
         else
             SupervisorActivator.disableSupervsior(getBundleContext(), supervisorType);
-        return null;
     }
 }

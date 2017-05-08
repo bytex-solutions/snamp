@@ -7,8 +7,8 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.bytex.snamp.management.ManagementUtils.getStateString;
 
 /**
@@ -24,20 +24,18 @@ import static com.bytex.snamp.management.ManagementUtils.getStateString;
 public final class InstalledGatewaysCommand extends SnampShellCommand  {
     private final SnampManager manager = new DefaultSnampManager();
 
-    static void writeGateway(final SnampComponentDescriptor component, final StringBuilder output) {
-        appendln(output, "%s. Name: %s. Description: %s. Version: %s. State: %s",
+    static void writeGateway(final SnampComponentDescriptor component, final PrintWriter output) {
+        output.format("%s. Name: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.get(SnampComponentDescriptor.GATEWAY_TYPE_PROPERTY),
                 component.toString(null),
                 component.getVersion(),
-                getStateString(component));
+                getStateString(component)).println();
     }
 
     @Override
-    public CharSequence execute() throws IOException {
-        final StringBuilder result = new StringBuilder(42);
+    public void execute(final PrintWriter output) throws IOException {
         for(final SnampComponentDescriptor component: manager.getInstalledGateways())
-            writeGateway(component, result);
-        return result;
+            writeGateway(component, output);
     }
 }

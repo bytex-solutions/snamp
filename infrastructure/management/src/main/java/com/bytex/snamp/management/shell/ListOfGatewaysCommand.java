@@ -5,7 +5,8 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
+import java.io.PrintWriter;
+
 
 /**
  * Prints list of configured gateway instances.
@@ -20,8 +21,8 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 public final class ListOfGatewaysCommand extends GatewayConfigurationCommand {
 
     @Override
-    boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final StringBuilder output) {
-        configuration.forEach((instance, config) -> appendln(output, "Instance: %s. Gateway: %s", instance, config.getType()));
+    boolean doExecute(final EntityMap<? extends GatewayConfiguration> configuration, final PrintWriter output) {
+        configuration.forEach((instance, config) -> output.format("Instance: %s. Gateway: %s", instance, config.getType()).println());
         return false;
     }
 }

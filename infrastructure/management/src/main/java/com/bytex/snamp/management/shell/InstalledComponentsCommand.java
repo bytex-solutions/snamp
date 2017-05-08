@@ -7,8 +7,8 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.bytex.snamp.management.ManagementUtils.getStateString;
 import static com.bytex.snamp.management.shell.InstalledConnectorsCommand.writeConnector;
 import static com.bytex.snamp.management.shell.InstalledGatewaysCommand.writeGateway;
@@ -28,25 +28,23 @@ import static com.bytex.snamp.management.shell.InstalledSupervisorsCommand.write
 public final class InstalledComponentsCommand extends SnampShellCommand  {
     private final SnampManager manager = new DefaultSnampManager();
 
-    private static void writeComponent(final SnampComponentDescriptor component, final StringBuilder output) {
-        appendln(output, "%s. Description: %s. Version: %s. State: %s",
+    private static void writeComponent(final SnampComponentDescriptor component, final PrintWriter output) {
+        output.format("%s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
                 component.toString(null),
                 component.getVersion(),
-                getStateString(component));
+                getStateString(component)).println();
     }
 
     @Override
-    public CharSequence execute() throws IOException {
-        final StringBuilder result = new StringBuilder(42);
+    public void execute(final PrintWriter output) throws IOException {
         for (final SnampComponentDescriptor component : manager.getInstalledGateways())
-            writeGateway(component, result);
+            writeGateway(component, output);
         for (final SnampComponentDescriptor component : manager.getInstalledResourceConnectors())
-            writeConnector(component, result);
+            writeConnector(component, output);
         for (final SnampComponentDescriptor component : manager.getInstalledComponents())
-            writeComponent(component, result);
+            writeComponent(component, output);
         for (final SnampComponentDescriptor component : manager.getInstalledSupervisors())
-            writeSupervisor(component, result);
-        return result;
+            writeSupervisor(component, output);
     }
 }

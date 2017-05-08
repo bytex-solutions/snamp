@@ -15,6 +15,7 @@ import org.apache.karaf.shell.api.console.Session;
 import javax.annotation.Nonnull;
 import javax.management.*;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
@@ -97,7 +98,7 @@ public final class ListenEventsCommand extends SnampShellCommand {
     }
 
     @Override
-    public Void execute() throws JMException, InterruptedException {
+    public void execute(final PrintWriter output) throws JMException, InterruptedException {
         try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName)
                 .orElseThrow(() -> new InstanceNotFoundException(String.format("Resource %s doesn't exist", resourceName)))) {
             String[] categories = this.categories;
@@ -112,7 +113,6 @@ public final class ListenEventsCommand extends SnampShellCommand {
                         session.getConsole());
             else
                 session.getConsole().println("Notifications are not supported");
-            return null;
         }
     }
 }

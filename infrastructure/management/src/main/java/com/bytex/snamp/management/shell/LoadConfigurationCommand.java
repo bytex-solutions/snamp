@@ -41,18 +41,17 @@ public final class LoadConfigurationCommand extends SnampShellCommand {
     }
 
     @Override
-    public Object execute() throws Exception {
+    public void execute(final PrintWriter writer) throws Exception {
         final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
         if (adminRef.isPresent()) {
             final ServiceHolder<ConfigurationManager> admin = adminRef.get();
             try {
                 admin.get().processConfiguration(config -> loadConfiguration(config, fileName));
-                return "Configuration saved successfully";
+                writer.append("Configuration saved successfully");
             } finally {
                 admin.release(getBundleContext());
             }
-        }
-        else
+        } else
             throw new IOException("Configuration storage is not available");
     }
 }

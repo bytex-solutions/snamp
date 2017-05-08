@@ -3,13 +3,13 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.configuration.SupervisorInfo;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
+import java.io.PrintWriter;
+
 
 /**
  * Provides configuration of resource discovery supplied by supervisor
@@ -31,7 +31,7 @@ public final class ConfigResourceDiscoveryCommand extends SupervisorConfiguratio
     @Option(name = "-t", aliases = {"--connection-string-template"}, description = "Delete health check trigger")
     private String connectionStringTemplate;
 
-    private boolean processDiscoveryConfig(final SupervisorConfiguration.ResourceDiscoveryConfiguration discoveryInfo, final StringBuilder output) {
+    private boolean processDiscoveryConfig(final SupervisorConfiguration.ResourceDiscoveryConfiguration discoveryInfo, final PrintWriter output) {
         if (del)
             discoveryInfo.setConnectionStringTemplate(null);
         else if (connectionStringTemplate != null)
@@ -40,11 +40,11 @@ public final class ConfigResourceDiscoveryCommand extends SupervisorConfiguratio
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> supervisors, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> supervisors, final PrintWriter output) {
         if (supervisors.containsKey(groupName))
             return processDiscoveryConfig(supervisors.get(groupName).getDiscoveryConfig(), output);
         else {
-            appendln(output, "Supervisor doesn't exist");
+            output.println("Supervisor doesn't exist");
             return false;
         }
     }

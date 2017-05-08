@@ -13,10 +13,9 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Arrays;
-
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Provides configuration of attribute checkers.
@@ -61,7 +60,7 @@ public final class ConfigAttributeCheckerCommand extends SupervisorConfiguration
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String script;
 
-    private boolean processAttributeCheckers(final FactoryMap<String, ? extends ScriptletConfiguration> checkers, final StringBuilder output) throws IOException {
+    private boolean processAttributeCheckers(final FactoryMap<String, ? extends ScriptletConfiguration> checkers, final PrintWriter output) throws IOException {
         if (del) {
             if (attributeName != null)
                 checkers.remove(attributeName);
@@ -69,7 +68,7 @@ public final class ConfigAttributeCheckerCommand extends SupervisorConfiguration
                 checkers.clear();
             return true;
         } else if (attributeName == null) {
-            appendln(output, "Attribute name is not specified");
+            output.println("Attribute name is not specified");
             return false;
         } else {
             final ScriptletConfiguration checker = checkers.getOrAdd(attributeName);
@@ -87,11 +86,11 @@ public final class ConfigAttributeCheckerCommand extends SupervisorConfiguration
     }
 
     @Override
-    boolean doExecute(EntityMap<? extends SupervisorConfiguration> supervisors, final StringBuilder output) throws IOException {
+    boolean doExecute(EntityMap<? extends SupervisorConfiguration> supervisors, final PrintWriter output) throws IOException {
         if (supervisors.containsKey(groupName))
             return processAttributeCheckers(supervisors.get(groupName).getHealthCheckConfig().getAttributeCheckers(), output);
         else {
-            appendln(output, "Supervisor doesn't exist");
+            output.print("Supervisor doesn't exist");
             return false;
         }
     }

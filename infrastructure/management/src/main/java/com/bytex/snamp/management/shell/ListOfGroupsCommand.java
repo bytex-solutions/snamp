@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
+import java.io.PrintWriter;
 
 /**
  * Prints list of configured groups.
@@ -19,8 +19,8 @@ import static com.bytex.snamp.management.ManagementUtils.appendln;
 @Service
 public class ListOfGroupsCommand extends GroupConfigurationCommand {
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceGroupConfiguration> configuration, final StringBuilder output) throws Exception {
-        configuration.forEach((instance, config) -> appendln(output, "Group name: %s. Type: %s", instance, config.getType()));
+    boolean doExecute(final EntityMap<? extends ManagedResourceGroupConfiguration> configuration, final PrintWriter output) throws Exception {
+        configuration.forEach((instance, config) -> output.format("Group name: %s. Type: %s", instance, config.getType()).println());
         return false;
     }
 }

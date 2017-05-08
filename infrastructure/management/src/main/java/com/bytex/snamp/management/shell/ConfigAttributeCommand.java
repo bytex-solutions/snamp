@@ -12,10 +12,9 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import javax.annotation.Nonnull;
+import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.Arrays;
-
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 
 /**
  * Configures attribute of the managed resource.
@@ -58,7 +57,7 @@ public final class ConfigAttributeCommand extends TemplateConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
 
-    private boolean processAttributes(final EntityMap<? extends AttributeConfiguration> attributes, final StringBuilder output){
+    private boolean processAttributes(final EntityMap<? extends AttributeConfiguration> attributes, final PrintWriter output){
         if(del)
             attributes.remove(attributeName);
         else {
@@ -68,16 +67,16 @@ public final class ConfigAttributeCommand extends TemplateConfigurationCommand {
             attribute.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(attribute::remove);
         }
-        appendln(output, "Attribute configured successfully");
+        output.println("Attribute configured successfully");
         return true;
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceTemplate> configuration, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends ManagedResourceTemplate> configuration, final PrintWriter output) {
         if (configuration.containsKey(name))
             return processAttributes(configuration.get(name).getAttributes(), output);
         else {
-            appendln(output, "Resource doesn't exist");
+            output.println("Resource doesn't exist");
             return false;
         }
     }

@@ -8,6 +8,8 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleException;
 
+import java.io.PrintWriter;
+
 /**
  * Starts bundle with resource connector.
  * @author Roman Sakno
@@ -28,11 +30,10 @@ public final class ManageConnectorCommand extends SnampShellCommand {
     private boolean enable = false;
 
     @Override
-    public Void execute() throws BundleException {
+    public void execute(final PrintWriter output) throws BundleException {
         if (enable)
             ManagedResourceActivator.enableConnector(getBundleContext(), connectorType);
         else
             ManagedResourceActivator.disableConnector(getBundleContext(), connectorType);
-        return null;
     }
 }

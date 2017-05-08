@@ -9,9 +9,9 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -50,7 +50,7 @@ public final class ConfigResourceCommand extends ManagedResourceConfigurationCom
     private String[] parametersToDelete = parameters;
 
     @Override
-    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> resources, final StringBuilder output) {
+    boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> resources, final PrintWriter output) {
         if (del)
             resources.remove(resourceName);
         else {
@@ -65,7 +65,7 @@ public final class ConfigResourceCommand extends ManagedResourceConfigurationCom
             resource.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(resource::remove);
         }
-        appendln(output, "Resource configured successfully");
+        output.println("Resource configured successfully");
         return true;
     }
 }

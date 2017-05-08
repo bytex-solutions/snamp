@@ -10,8 +10,8 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
-import static com.bytex.snamp.management.ManagementUtils.appendln;
-import static com.bytex.snamp.management.ManagementUtils.newLine;
+import java.io.PrintWriter;
+
 
 /**
  * Displays information about supervisor.
@@ -37,66 +37,66 @@ public final class SupervisorInfoCommand extends SupervisorConfigurationCommand 
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private boolean showAutoScaling;
 
-    private static void printScriptletConfig(final ScriptletConfiguration scriptlet, final StringBuilder output) {
-        appendln(output, "\tLanguage: %s", scriptlet.getLanguage());
-        appendln(output, "\tIs URL? %s", scriptlet.isURL());
-        appendln(output, "\tConfiguration parameters:");
-        scriptlet.getParameters().forEach((key, value) -> appendln(output, "\t%s = %s", key, value));
-        appendln(output, "\tScript: %s", scriptlet.getScript());
+    private static void printScriptletConfig(final ScriptletConfiguration scriptlet, final PrintWriter output) {
+        output.format("\tLanguage: %s", scriptlet.getLanguage()).println();
+        output.format("\tIs URL? %s", scriptlet.isURL()).println();
+        output.format("\tConfiguration parameters:").println();
+        printParameters(scriptlet.getParameters(), output);
+        output.format("\tScript: %s", scriptlet.getScript()).println();
     }
 
-    private static void printHealthCheckConfig(final SupervisorInfo.HealthCheckInfo healthCheckInfo, final StringBuilder output){
-        appendln(output, "Health check trigger:");
+    private static void printHealthCheckConfig(final SupervisorInfo.HealthCheckInfo healthCheckInfo, final PrintWriter output){
+        output.println("Health check trigger:");
         printScriptletConfig(healthCheckInfo.getTrigger(), output);
-        appendln(output, "Attribute checkers:");
+        output.println("Attribute checkers:");
         healthCheckInfo.getAttributeCheckers().forEach((attributeName, checker) -> {
-            appendln(output, "\tChecker for attribute %s", attributeName);
+            output.format("\tChecker for attribute %s", attributeName).println();
             printScriptletConfig(checker, output);
-            newLine(output);
+            output.println();
         });
     }
 
-    private static void printDiscoveryConfig(final SupervisorInfo.ResourceDiscoveryInfo discoveryInfo, final StringBuilder output){
-        appendln(output, "\tConnection String Template: %s", discoveryInfo.getConnectionStringTemplate());
+    private static void printDiscoveryConfig(final SupervisorInfo.ResourceDiscoveryInfo discoveryInfo, final PrintWriter output){
+        output.format("\tConnection String Template: %s", discoveryInfo.getConnectionStringTemplate()).println();
     }
 
-    private static void printAutoScalingConfig(final SupervisorInfo.AutoScalingInfo scalingInfo, final StringBuilder output) {
-        appendln(output, "Enabled: %s", scalingInfo.isEnabled());
-        appendln(output, "Maximum cluster size: %s", scalingInfo.getMaxClusterSize());
-        appendln(output, "Minimum cluster size: %s", scalingInfo.getMinClusterSize());
-        appendln(output, "Scaling size: %s", scalingInfo.getScalingSize());
-        appendln(output, "Cooldown time: %s", scalingInfo.getCooldownTime());
-        appendln(output, "Scaling policies:");
+    private static void printAutoScalingConfig(final SupervisorInfo.AutoScalingInfo scalingInfo, final PrintWriter output) {
+        output.format("Enabled: %s", scalingInfo.isEnabled()).println();
+        output.format("Maximum cluster size: %s", scalingInfo.getMaxClusterSize()).println();
+        output.format("Minimum cluster size: %s", scalingInfo.getMinClusterSize()).println();
+        output.format("Scaling size: %s", scalingInfo.getScalingSize()).println();
+        output.format("Cooldown time: %s", scalingInfo.getCooldownTime()).println();
+        output.format("Scaling policies:").println();
         scalingInfo.getPolicies().forEach((policyName, policy) -> {
-            appendln(output, "\tScaling policy %s", policyName);
+            output.format("\tScaling policy %s", policyName).println();
             printScriptletConfig(policy, output);
-            newLine(output);
+            output.println();
         });
     }
 
     @Override
-    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> configuration, final StringBuilder output) throws InterruptedException {
+    boolean doExecute(final EntityMap<? extends SupervisorConfiguration> configuration, final PrintWriter output) throws InterruptedException {
         if (configuration.containsKey(groupName)) {
             final SupervisorConfiguration supervisor = configuration.get(groupName);
-            appendln(output, "Group name: %s", groupName);
-            appendln(output, "Supervisor Type: %s", supervisor.getType());
-            appendln(output, "Configuration parameters:");
-            supervisor.forEach((key, value) -> appendln(output, "%s = %s", key, value));
+            output.format("Group name: %s", groupName).println();
+            output.format("Supervisor Type: %s", supervisor.getType()).println();
+            output.format("Configuration parameters:").println();
+            printParameters(supervisor, output);
             checkInterrupted();
             if(showHealthCheck) {
-                appendln(output, "==HEALTH CHECK==");
+                output.println("==HEALTH CHECK==");
                 printHealthCheckConfig(supervisor.getHealthCheckConfig(), output);
-                newLine(output);
+                output.println();
             }
             checkInterrupted();
             if(showResourceDiscovery){
-                appendln(output, "==RESOURCE DISCOVERY==");
+                output.println("==RESOURCE DISCOVERY==");
                 printDiscoveryConfig(supervisor.getDiscoveryConfig(), output);
-                newLine(output);
+                output.println();
             }
             checkInterrupted();
             if(showAutoScaling){
-                appendln(output, "==AUTO-SCALING==");
+                output.println("==AUTO-SCALING==");
                 printAutoScalingConfig(supervisor.getAutoScalingConfig(), output);
             }
         } else
