@@ -1106,3 +1106,27 @@
     margin-right: 0;
   }
 }
+
+.level-ok i.glyphicon {
+  color: green !important;
+}
+
+.level-low i.glyphicon {
+  color: yellowgreen !important;
+}
+
+.level-moderate i.glyphicon  {
+  color: greenyellow !important;
+}
+
+.level-substantial i.glyphicon {
+  color: darkorange !important;
+}
+
+.level-severe i.glyphicon {
+  color: orangered !important;
+}
+
+.level-critical i.glyphicon  {
+  color: red !important;
+}

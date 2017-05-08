@@ -162,27 +162,3 @@ ul.panel_toolbox i.fa-play-circle-o {
     height: 100%;
     overflow: hidden;
 }
-
-.level-ok {
-    color: green;
-}
-
-.level-low {
-    color: yellowgreen;
-}
-
-.level-moderate {
-    color: greenyellow;
-}
-
-.level-substantial {
-    color: darkorange;
-}
-
-.level-severe {
-    color: orangered;
-}
-
-.level-critical {
-    color: red;
-}

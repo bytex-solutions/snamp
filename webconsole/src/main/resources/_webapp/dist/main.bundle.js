@@ -105908,6 +105908,7 @@ var ResourceGroupHealthStatusChart = (function (_super) {
     function ResourceGroupHealthStatusChart() {
         _super.call(this);
         this._chartObject = undefined;
+        this._state = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
@@ -105943,7 +105944,8 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         var _thisReference = this;
         this._chartObject = $("#" + this.id).jstree({
             "core": {
-                'data': _thisReference.prepareDatasets()
+                'data': _thisReference.prepareDatasets(),
+                "check_callback": true
             },
             "types": {
                 "#": {
@@ -105972,7 +105974,20 @@ var ResourceGroupHealthStatusChart = (function (_super) {
                     "valid_children": []
                 }
             },
-            "plugins": ["search", "state", "types", "wholerow"]
+            "plugins": ["state", "types"]
+        });
+    };
+    ResourceGroupHealthStatusChart.prototype.fillStatusOfNode = function () {
+        var _this = this;
+        var nodes = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            nodes[_i - 0] = arguments[_i];
+        }
+        nodes.forEach(function (node) {
+            if (_this._state != undefined && _this._state["core"] != undefined && node["id"] != undefined) {
+                node["state"]["opened"] = _this._state["core"]["open"] != undefined && _this._state["core"]["open"].indexOf(node["id"] >= 0);
+                node["state"]["selected"] = _this._state["core"]["selected"] != undefined && _this._state["core"]["selected"].indexOf(node["id"] >= 0);
+            }
         });
     };
     ResourceGroupHealthStatusChart.prototype.prepareDatasets = function () {
@@ -105982,22 +105997,17 @@ var ResourceGroupHealthStatusChart = (function (_super) {
                 var _rootNode = {
                     "id": this.strnormallize(this.chartData[i].name),
                     "text": this.chartData[i].name,
-                    "state": {
-                        "opened": true
-                    },
                     "children": [],
                     "type": "summary",
                     "a_attr": { 'class': "level-" + this.chartData[i].status.getNotificationLevel() }
                 };
+                this.fillStatusOfNode(_rootNode);
                 for (var j = 0; j < this.chartData.length; j++) {
                     if (!this.chartData[j].summary) {
                         var _tmp = this.chartData[j];
                         var _childNode = {
                             "id": this.strnormallize(_tmp.name),
                             "text": _tmp.name,
-                            "state": {
-                                "opened": true
-                            },
                             "children": [],
                             "type": "instance",
                             "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel() }
@@ -106005,9 +106015,6 @@ var ResourceGroupHealthStatusChart = (function (_super) {
                         var _healthStatus = {
                             "id": this.strnormallize(_tmp.name) + "_hs",
                             "text": _tmp.status.innerType,
-                            "state": {
-                                "opened": true
-                            },
                             "children": [],
                             "type": "healthStatus",
                             "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel() }
@@ -106038,6 +106045,7 @@ var ResourceGroupHealthStatusChart = (function (_super) {
                             "children": [],
                             "type": "timestamp"
                         };
+                        this.fillStatusOfNode(_timeStamp, _healthStatus, _childNode); // fill the state
                         _childNode["children"].push(_timeStamp);
                         _childNode["children"].push(_healthStatus);
                         _rootNode["children"].push(_childNode);
@@ -106046,14 +106054,12 @@ var ResourceGroupHealthStatusChart = (function (_super) {
                 _value.push(_rootNode);
             }
         }
-        console.log("prepared data: ", _value);
         return _value;
     };
     ResourceGroupHealthStatusChart.prototype.newValue = function (_data) {
         if (document.hidden)
             return;
         var _index = -1;
-        var _oldStr = JSON.stringify(this.chartData);
         for (var i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].name == _data.name) {
                 _index = i; // remember the index
@@ -106064,12 +106070,11 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         if (_index == -1) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
-        var _newStr = JSON.stringify(this.chartData);
         if (this._chartObject != undefined) {
+            this._state = $("#" + this.id).jstree(true).get_state();
+            console.log("State: ", this._state);
             $("#" + this.id).jstree(true).settings.core.data = this.prepareDatasets();
-            if (_oldStr != _newStr) {
-                $("#" + this.id).jstree(true).refresh(true);
-            }
+            $("#" + this.id).jstree(true).refresh(true);
         }
     };
     return ResourceGroupHealthStatusChart;
