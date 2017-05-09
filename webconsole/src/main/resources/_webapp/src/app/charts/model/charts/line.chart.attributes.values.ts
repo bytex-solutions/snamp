@@ -92,7 +92,7 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
             d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
                 .transition().call(chart);
 
-            nv.utils.windowResize(chart.update);
+                nv.utils.windowResize(chart.update);
             _thisReference._chartObject = chart;
             return chart;
         });

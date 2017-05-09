@@ -92,14 +92,21 @@ export abstract class AbstractChart {
     // when new value comes - we should process it. see abstract.chart.attributes.values as a default implementation
     public abstract newValue(_data:ChartData):void;
 
+    // when new values comes - we should process it. see abstract.chart.attributes.values as a default implementation
+    public newValues(_data:ChartData[]):void {
+        for (let i = 0; i < _data.length; i++) {
+            this.newValue(_data[i]);
+        }
+    }
+
     protected isChartVisible():boolean {
         return $('#' + this.id).length && !this.updateStopped;
     }
 
-    public subscribeToSubject(_obs:Observable<ChartData>):void {
-        _obs.subscribe((data:ChartData) => {
+    public subscribeToSubject(_obs:Observable<ChartData[]>):void {
+        _obs.subscribe((data:ChartData[]) => {
             if(this.isChartVisible()) {
-                this.newValue(data); // if the chart is visible - update
+                this.newValues(data); // if the chart is visible - update
             }
         });
     }

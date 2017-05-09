@@ -21,7 +21,7 @@ import {ChartDataFabric} from "../charts/model/data/fabric";
 export class ChartService {
     private KEY_DATA:string = "snampChartData";
     private _dashboard:Dashboard;
-    private chartSubjects:{ [key:string]: Subject<ChartData> } = {};
+    private chartSubjects:{ [key:string]: Subject<ChartData[]> } = {};
 
     private groups:Observable<string[]>;
 
@@ -62,7 +62,6 @@ export class ChartService {
          this._http.post(REST.CHARTS_COMPUTE, _chArrJson)
             .map((res:Response) => res.json())
             .subscribe(data => {
-                console.log("Data received: ", data);
                 this.pushNewChartData(data);
             });
     }
@@ -80,7 +79,7 @@ export class ChartService {
             if (data.charts.length > 0) {
                 for (let i = 0; i < data.charts.length; i++) {
                     let _currentChart:AbstractChart = Factory.chartFromJSON(data.charts[i]);
-                    this.chartSubjects[_currentChart.name] = new Subject<ChartData>();
+                    this.chartSubjects[_currentChart.name] = new Subject<ChartData[]>();
                     _currentChart.subscribeToSubject(this.chartSubjects[_currentChart.name]);
                     this._dashboard.charts.push(_currentChart);
                 }
@@ -99,14 +98,10 @@ export class ChartService {
         for (let _currentChartName in _data) {
             // create a chart data instances
             let _d:any[] = _data[_currentChartName];
+            let _allChartData:ChartData[] = [];
             for (let i = 0; i < _d.length; i++) {
                 let _chartData:ChartData = ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]);
-
-                // notify all the components that something has changed
-                if (this.chartSubjects[_currentChartName] != undefined) {
-                    this.chartSubjects[_currentChartName].next(_chartData);
-                }
-
+                _allChartData.push(_chartData);
                 // append this data for this data array
                 if (_chartData.chartType == AbstractChart.LINE) {
                     // load data from localStorage, create one if no data exists
@@ -125,6 +120,11 @@ export class ChartService {
                     this.localStorageService.set(this.KEY_DATA, _dataNow);
                 }
             }
+            // notify all the components that something has changed
+            if (this.chartSubjects[_currentChartName] != undefined) {
+                this.chartSubjects[_currentChartName].next(_allChartData);
+            }
+
         }
     }
 
@@ -144,7 +144,7 @@ export class ChartService {
             throw new Error("Chart with that name already exists!");
         } else {
             this._dashboard.charts.push(chart);
-            this.chartSubjects[chart.name] = new Subject<ChartData>();
+            this.chartSubjects[chart.name] = new Subject<ChartData[]>();
             chart.subscribeToSubject(this.chartSubjects[chart.name]);
             this.saveDashboard();
         }
@@ -175,7 +175,7 @@ export class ChartService {
         throw new Error("Could not find a chart " + chartName);
     }
 
-    getObservableForChart(name:string):Observable<ChartData> {
+    getObservableForChart(name:string):Observable<ChartData[]> {
         if (this.chartSubjects[name] != undefined) {
             return this.chartSubjects[name].asObservable().share();
         } else {

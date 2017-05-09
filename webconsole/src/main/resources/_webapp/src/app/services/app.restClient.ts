@@ -29,7 +29,7 @@ export class ApiClient {
                 return emptyfyIfError ? Observable.empty() : error;
             }).do(
                 ((data: any) => {
-                    console.debug("Received data: ", data)
+                  //  console.debug("Received data: ", data)
                 }),
                 ((error: any) => {
                     console.log("Error occurred: ", error);
