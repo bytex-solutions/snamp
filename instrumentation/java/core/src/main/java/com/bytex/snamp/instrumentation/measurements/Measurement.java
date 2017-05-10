@@ -26,7 +26,8 @@ import java.util.Map;
         @JsonSubTypes.Type(StringMeasurement.class),
         @JsonSubTypes.Type(BooleanMeasurement.class),
         @JsonSubTypes.Type(TimeMeasurement.class),
-        @JsonSubTypes.Type(Span.class)
+        @JsonSubTypes.Type(Span.class),
+        @JsonSubTypes.Type(Health.class)
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class Measurement implements Externalizable {
@@ -62,7 +63,7 @@ public abstract class Measurement implements Externalizable {
     }
 
     @JsonProperty("n")
-    public void setName(final String value){
+    public final void setName(final String value){
         if(name == null)
             throw new IllegalArgumentException();
         else
@@ -89,8 +90,11 @@ public abstract class Measurement implements Externalizable {
         annotations.putAll(value);
     }
 
-    public final void addAnnotation(final String name, final String value){
-        annotations.put(name, value);
+    public final void addAnnotation(final String name, final String value) {
+        if (value == null)
+            annotations.remove(name);
+        else
+            annotations.put(name, value);
     }
 
     @JsonIgnore

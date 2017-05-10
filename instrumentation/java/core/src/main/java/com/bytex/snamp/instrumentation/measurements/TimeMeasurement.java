@@ -2,6 +2,7 @@ package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @author Roman Sakno
  */
+@JsonTypeName("timeSpan")
 public class TimeMeasurement extends Measurement {
     private static final long serialVersionUID = -6706383213005311530L;
 

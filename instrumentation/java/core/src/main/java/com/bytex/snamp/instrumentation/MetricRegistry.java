@@ -1,12 +1,16 @@
 package com.bytex.snamp.instrumentation;
 
+import com.bytex.snamp.instrumentation.measurements.Health;
 import com.bytex.snamp.instrumentation.reporters.Reporter;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents registry of all metrics.
@@ -58,6 +62,46 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
             return new SpanReporter(reporters, name, userData);
         }
     };
+    private static final MeasurementReporterFactory<HealthCheckReporter> HEALTH_REPORTER_FACTORY = new MeasurementReporterFactory<HealthCheckReporter>() {
+        @Override
+        public HealthCheckReporter create(Iterable<Reporter> reporters, String name, Map<String, String> userData) {
+            return new HealthCheckReporter(reporters, name, userData);
+        }
+    };
+
+    private static final class HealthUpdater extends Timer {
+        private HealthUpdater() {
+            super("HealthUpdateer-" + ApplicationInfo.getDefaultInstance(), true);
+        }
+    }
+
+    private static final class HealthCheckTask extends TimerTask {
+        private final WeakReference<HealthCheckReporter> reporter;
+        private final Callable<Health> healthChecker;
+
+        private HealthCheckTask(final HealthCheckReporter reporter, final Callable<Health> healthChecker) {
+            this.healthChecker = Objects.requireNonNull(healthChecker);
+            this.reporter = new WeakReference<>(reporter);
+        }
+
+        @Override
+        public void run() {
+            final HealthCheckReporter reporter = this.reporter.get();
+            if (reporter == null)
+                cancel();
+            else {
+                Health health;
+                try {
+                    health = healthChecker.call();
+                } catch (final Exception e) {
+                    reporter.down(e);
+                    return;
+                }
+                if (health != null)
+                    reporter.report(health);
+            }
+        }
+    }
 
     private final Iterable<Reporter> reporters;
     private boolean closeOnShutdown = false;
@@ -67,6 +111,8 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
     private final ConcurrentMap<String, StringMeasurementReporter> stringReporters = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, TimeMeasurementReporter> timeReporters = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, SpanReporter> spanReporters = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, HealthCheckReporter> healthCheckers = new ConcurrentHashMap<>();
+    private final HealthUpdater healthUpdater;
 
     /**
      * Initializes a new registry with reporters loaded from specified class loader.
@@ -93,6 +139,7 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
 
     MetricRegistry(final Iterable<Reporter> reporters){
         this.reporters = reporters;
+        healthUpdater = new HealthUpdater();
     }
 
     private static <T> T coalesce(final T first, final T second){
@@ -216,6 +263,23 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
         return getOrAddReporter(spanReporters, name, userData, SPAN_REPORTER_FACTORY);
     }
 
+    public final HealthCheckReporter health(final String name, final Map<String, String> userData) {
+        return getOrAddReporter(healthCheckers, name, userData, HEALTH_REPORTER_FACTORY);
+    }
+
+    public final HealthCheckReporter health(final String name) {
+        return health(name, Collections.<String, String>emptyMap());
+    }
+
+    public final void health(final String name, final Map<String, String> userData, final Callable<Health> healthChecker, final long period, final TimeUnit unit) {
+        final HealthCheckReporter reporter = health(name, userData);
+        healthUpdater.schedule(new HealthCheckTask(reporter, healthChecker), 0, unit.toMillis(period)); //fixed-delay checking, not fixed-rate
+    }
+
+    public final void health(final String name, final Callable<Health> healthChecker, final long period, final TimeUnit unit) {
+        health(name, Collections.<String, String>emptyMap(), healthChecker, period, unit);
+    }
+
     /**
      * Gets tracer with the specified name.
      * @param name Name of all traces detected by the tracer.
@@ -234,6 +298,8 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
         boolReporters.clear();
         stringReporters.clear();
         timeReporters.clear();
+        spanReporters.clear();
+        healthCheckers.clear();
     }
 
     /**
@@ -252,6 +318,7 @@ public class MetricRegistry implements Iterable<Reporter>, Closeable {
     @Override
     public void close() throws IOException {
         clear();
+        healthUpdater.cancel();
         for(final Reporter reporter: reporters)
             reporter.close();
     }

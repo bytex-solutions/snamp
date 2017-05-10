@@ -2,6 +2,7 @@ package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -13,6 +14,7 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @author Roman Sakno
  */
+@JsonTypeName("flag")
 public final class BooleanMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = -2769042034301266820L;
     private boolean value;

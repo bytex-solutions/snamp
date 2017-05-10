@@ -2,6 +2,7 @@ package com.bytex.snamp.instrumentation.measurements;
 
 import com.bytex.snamp.instrumentation.Identifier;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -13,7 +14,8 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @author Roman Sakno
  */
-public final class Span extends TimeMeasurement {
+@JsonTypeName("span")
+public final class Span extends TimeMeasurement implements ModuleScoped {
     private static final long serialVersionUID = -1873210335013467017L;
     private Identifier correlationID = Identifier.EMPTY;
     private Identifier spanID = Identifier.EMPTY;

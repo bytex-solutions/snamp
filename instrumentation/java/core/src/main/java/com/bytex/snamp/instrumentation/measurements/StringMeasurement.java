@@ -2,6 +2,7 @@ package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -13,6 +14,7 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @author Roman Sakno
  */
+@JsonTypeName("string")
 public final class StringMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = 3212183719121919189L;
     private String value;

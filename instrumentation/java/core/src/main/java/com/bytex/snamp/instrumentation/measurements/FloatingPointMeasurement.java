@@ -2,6 +2,7 @@ package com.bytex.snamp.instrumentation.measurements;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -13,7 +14,8 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @author Roman Sakno
  */
-public class FloatingPointMeasurement extends ValueMeasurement {
+@JsonTypeName("gaugeFP")
+public final class FloatingPointMeasurement extends ValueMeasurement {
     private static final long serialVersionUID = -5453349320908165683L;
     private double value;
 

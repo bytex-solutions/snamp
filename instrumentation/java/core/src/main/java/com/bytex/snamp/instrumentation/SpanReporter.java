@@ -91,7 +91,8 @@ public class SpanReporter extends MeasurementReporter<Span> {
      * @param <T> Type of object to be instrumented.
      * @return Instrumented object.
      */
-    public <T> Object wrap(final T obj, final Class<? super T>... interfaces) {
+    @SafeVarargs
+    public final <T> Object wrap(final T obj, final Class<? super T>... interfaces) {
         return wrapImpl(obj, interfaces.length == 0 ? obj.getClass().getInterfaces() : interfaces);
     }
 
