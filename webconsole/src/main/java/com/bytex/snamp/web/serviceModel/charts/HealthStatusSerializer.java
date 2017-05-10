@@ -60,6 +60,11 @@ public final class HealthStatusSerializer extends JsonSerializer<HealthStatus> {
         output.put("error", status.getError().getLocalizedMessage());
     }
 
+    private static void serialize(final ResourceSubsystemDownStatus status, final ObjectNode output){
+        putCommonFields(status, output);
+        output.put("subsystem", status.getSubsystem());
+    }
+
     @Override
     public void serialize(final HealthStatus status, final JsonGenerator jgen, final SerializerProvider provider) throws IOException {
         final ObjectNode node = ThreadLocalJsonFactory.getFactory().objectNode();

@@ -509,7 +509,10 @@ public final class Convert {
         return !(Double.isNaN(value.doubleValue()) || Double.isInfinite(value.doubleValue()));
     }
 
-
+    @SuppressWarnings("unchecked")
+    private static <T> T unsafeCast(final Object obj){
+        return (T) obj;
+    }
 
     /**
      * Determines whether the specified object is an instance of the type described by token.
@@ -521,9 +524,8 @@ public final class Convert {
         return value != null && target.isSupertypeOf(value.getClass());
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> Optional<T> toType(final Object value, final TypeToken<T> target) {
-        return isInstance(value, target) ? Optional.of((T) value) : Optional.empty();
+        return isInstance(value, target) ? Optional.of(unsafeCast(value)) : Optional.empty();
     }
 
     /**
@@ -533,14 +535,13 @@ public final class Convert {
      * @param type JMX Open Type. Cannot be {@literal null}.
      * @return Converter value.
      */
-    @SuppressWarnings("unchecked")
     public static <T> Optional<T> toType(final Object value, final OpenType<T> type){
-        return type.isValue(value) ? Optional.of((T) value) : Optional.empty();
+        return type.isValue(value) ? Optional.of(unsafeCast(value)) : Optional.empty();
     }
 
     public static <T> Optional<T> toType(final Object obj,
                                          @Nonnull final Class<T> expectedType) {
-        return Optional.ofNullable(obj).filter(expectedType::isInstance).map(expectedType::cast);
+        return expectedType.isInstance(obj) ? Optional.of(unsafeCast(obj)) : Optional.empty();
     }
 
     public static <I, T> Function<? super I, Optional<T>> toType(final Class<T> expectedType){

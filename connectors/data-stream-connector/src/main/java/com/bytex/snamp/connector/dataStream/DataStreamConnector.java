@@ -1,9 +1,12 @@
 package com.bytex.snamp.connector.dataStream;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.concurrent.Timeout;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
+import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
@@ -11,16 +14,21 @@ import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
+import com.bytex.snamp.instrumentation.measurements.Health;
+import com.bytex.snamp.instrumentation.measurements.jmx.HealthNotification;
 
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
+import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -39,7 +47,47 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  * @version 2.0
  */
-public abstract class DataStreamConnector extends AbstractManagedResourceConnector {
+public abstract class DataStreamConnector extends AbstractManagedResourceConnector implements HealthCheckSupport, Consumer<Notification> {
+    private static final class HeartbeatTimer extends Timeout implements Consumer<HealthNotification> {
+        private static final long serialVersionUID = -9146452762715540071L;
+        private volatile HealthStatus status;
+
+        HeartbeatTimer(final Duration timeout) {
+            super(timeout);
+            status = new OkStatus();
+        }
+
+        private void update(final Health health) {
+            switch (health.getStatus()) {
+                case UP:
+                    status = new OkStatus(Instant.ofEpochMilli(health.getTimeStamp()));
+                    reset();
+                    break;
+                case DOWN:
+                    ResourceSubsystemDownStatus downStatus = new ResourceSubsystemDownStatus(Instant.ofEpochMilli(health.getTimeStamp()), health.getName());
+                    downStatus.getData().putAll(health.getAnnotations());
+                    status = downStatus;
+                    reset();
+                    break;
+                case OUT_OF_SERVICE:
+                    downStatus = new ResourceSubsystemDownStatus(Instant.ofEpochMilli(health.getTimeStamp()), health.getName(), MalfunctionStatus.Level.LOW);
+                    downStatus.getData().putAll(health.getAnnotations());
+                    status = downStatus;
+                    reset();
+                    break;
+            }
+        }
+
+        @Override
+        public void accept(final HealthNotification notification) {
+            update(notification.getMeasurement());
+        }
+
+        HealthStatus getStatus() {
+            return isExpired() ? new ConnectionProblem(new IOException("Heartbeat is timed out")) : status;
+        }
+    }
+
     @Aggregation(cached = true)
     protected final SyntheticAttributeRepository attributes;
     @Aggregation(cached = true)
@@ -49,6 +97,8 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
     private final SharedCounter sequenceNumberProvider;
+    private final HeartbeatTimer heartbeat;
+
     /**
      * Represents thread pool for parallel operations.
      */
@@ -59,6 +109,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
                                   final ManagedResourceInfo configuration,
                                   final DataStreamConnectorConfigurationDescriptionProvider descriptor) {
         super(configuration);
+        this.heartbeat = descriptor.getHeartbeat(configuration).map(HeartbeatTimer::new).orElse(null);
         instanceName = resourceName;
         threadPool = descriptor.parseThreadPool(configuration);
         //init parser
@@ -73,7 +124,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         assert notifications != null;
         notifications.init(threadPool, descriptor);
         notifications.setSource(this);
-        
+
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
         sequenceNumberProvider = ClusterMember.get(getBundleContextOfObject(this)).getService("SequenceGenerator-".concat(resourceName), COUNTER)
@@ -112,8 +163,18 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
 
     public final void dispatch(final Map<String, ?> headers, final Object body) throws Exception {
         try (final Stream<Notification> notifications = notificationParser.parse(headers, body).filter(Objects::nonNull)) {
-            notifications.forEach(this::handleNotification);
+            notifications.forEach(this);
         }
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @return Status of the remove managed resource.
+     */
+    @Override
+    public HealthStatus getStatus() {
+        return heartbeat == null ? new OkStatus() : heartbeat.getStatus();
     }
 
     /**
@@ -123,11 +184,14 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
      *
      * @param notification The notification.
      */
-    public void handleNotification(final Notification notification) {
+    @Override
+    public void accept(final Notification notification) {
         notification.setSource(this);
         notification.setSequenceNumber(sequenceNumberProvider.getAsLong());
         attributes.handleNotification(notification, this::attributeProcessed);
         notifications.accept(notification);
+        if (heartbeat != null)                 //update heartbeat if it is enabled
+            Convert.toType(notification, HealthNotification.class).ifPresent(heartbeat);
     }
 
     private Logger getLogger(){

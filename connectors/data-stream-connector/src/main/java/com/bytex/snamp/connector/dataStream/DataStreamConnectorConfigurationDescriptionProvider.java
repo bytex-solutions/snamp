@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 
+import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
@@ -35,11 +36,12 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
     private static final String CHANNELS_PARAM = "channels";
     private static final String FILTER_PARAM = "filter";
     private static final String GAUGE_TYPE_PARAM = "gauge";
+    private static final String HEARTBEAT_PARAM = "heartbeat";
 
     protected static class ConnectorConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorConfiguration";
         private final ResourceReader fallbackReader;
-        private static final String[] DEFAULT_PARAMS = {SYNC_PERIOD_PARAM};
+        private static final String[] DEFAULT_PARAMS = {SYNC_PERIOD_PARAM, HEARTBEAT_PARAM};
 
         /**
          * Initializes a new resource-based descriptor.
@@ -205,5 +207,9 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
         if (filter.isEmpty())
             return notification -> true;
         return filterFactory.create(filter);
+    }
+
+    protected Optional<Duration> getHeartbeat(final Map<String, String> parameters) {
+        return getValue(parameters, HEARTBEAT_PARAM, Long::parseLong).map(Duration::ofMillis);
     }
 }
