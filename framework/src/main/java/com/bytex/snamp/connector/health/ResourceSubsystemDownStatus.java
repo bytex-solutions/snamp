@@ -6,6 +6,9 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
+ * Indicates that a subsystem in the remote component is down.
+ * <p>
+ *     Subsystem of some service may be represented as connected distributed cache, database, storage etc.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
