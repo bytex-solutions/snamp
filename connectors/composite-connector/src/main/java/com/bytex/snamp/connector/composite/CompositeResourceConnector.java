@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
@@ -83,6 +84,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
      * @return Status of the remove managed resource.
      */
     @Override
+    @Nonnull
     public HealthStatus getStatus() {
         return connectors.getStatus();
     }

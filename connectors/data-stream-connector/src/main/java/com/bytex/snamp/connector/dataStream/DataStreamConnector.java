@@ -17,6 +17,7 @@ import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.instrumentation.measurements.Health;
 import com.bytex.snamp.instrumentation.measurements.jmx.HealthNotification;
 
+import javax.annotation.Nonnull;
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
 import java.beans.BeanInfo;
@@ -173,6 +174,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
      * @return Status of the remove managed resource.
      */
     @Override
+    @Nonnull
     public HealthStatus getStatus() {
         return heartbeat == null ? new OkStatus() : heartbeat.getStatus();
     }

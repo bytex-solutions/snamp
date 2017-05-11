@@ -15,6 +15,7 @@ import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.util.*;
 
@@ -99,6 +100,7 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
      * @return Status of the remove managed resource.
      */
     @Override
+    @Nonnull
     public HealthStatus getStatus() {
         return readLock.apply(SingleResourceGroup.INSTANCE, connectors, connectors -> getStatus(connectors.values()));
     }

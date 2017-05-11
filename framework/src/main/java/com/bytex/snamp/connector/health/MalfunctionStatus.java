@@ -1,13 +1,9 @@
 package com.bytex.snamp.connector.health;
 
-import com.google.common.collect.ImmutableMap;
-
 import javax.annotation.Nonnull;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Indicates some malfunction.
@@ -98,6 +94,6 @@ public abstract class MalfunctionStatus extends HealthStatus {
      * @return Map with additional data associated with this instance.
      */
     public final Map<String, Object> getData() {
-        return firstNonNull(data, ImmutableMap.of());
+        return data;
     }
 }

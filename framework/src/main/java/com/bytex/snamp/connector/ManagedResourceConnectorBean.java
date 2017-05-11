@@ -25,6 +25,7 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.SharedCounter;
 import org.osgi.framework.BundleContext;
 
+import javax.annotation.Nonnull;
 import javax.management.openmbean.OpenType;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -341,6 +342,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @return Status of the remove managed resource.
      */
     @Override
+    @Nonnull
     public HealthStatus getStatus() {
         return new OkStatus();
     }

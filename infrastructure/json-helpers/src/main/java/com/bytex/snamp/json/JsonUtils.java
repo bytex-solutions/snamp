@@ -201,4 +201,11 @@ public final class JsonUtils extends SimpleModule {
             return map;
         }
     }
+
+    public static void exportToMap(final JsonNode node, final Map<String, Object> output, final Predicate<String> fieldFilter) {
+        node.getFields().forEachRemaining(field -> {
+            if (fieldFilter.test(field.getKey()))
+                output.put(field.getKey(), field.getValue());
+        });
+    }
 }

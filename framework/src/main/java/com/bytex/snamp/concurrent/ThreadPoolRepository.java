@@ -6,6 +6,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ManagedService;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 
 /**
  * Manages centralized manager of all thread pools used by SNAMP components.
@@ -37,14 +38,17 @@ public interface ThreadPoolRepository extends SupportService, ManagedService, It
      * @return Thread pool associated with the specified name.
      */
     static ExecutorService getThreadPool(final BundleContext context, final String name, final boolean useDefaultIfNotExists) {
-        return ServiceHolder.tryCreate(context, ThreadPoolRepository.class).map(repository -> {
-            try {
-                return repository.get().getThreadPool(name, useDefaultIfNotExists);
-            } finally {
-                repository.release(context);
-            }
-        })
-                .orElse(null);
+        if (context == null)
+            return useDefaultIfNotExists ? ForkJoinPool.commonPool() : null;
+        else
+            return ServiceHolder.tryCreate(context, ThreadPoolRepository.class).map(repository -> {
+                try {
+                    return repository.get().getThreadPool(name, useDefaultIfNotExists);
+                } finally {
+                    repository.release(context);
+                }
+            })
+                    .orElse(null);
     }
 
     static ExecutorService getDefaultThreadPool(final BundleContext context){

@@ -18,6 +18,8 @@ final class ActuatorConnectorDescriptionProvider extends ConfigurationEntityDesc
     private static final String AUTHENTICATION_PARAM = "authentication";
     private static final String USER_NAME_PARAM = "userName";
     private static final String PASSWORD_PARAM = "password";
+    private static final String METRICS_PATH_PARAM = "metricsPath";
+    private static final String HEALTH_PATH_PARAM = "healthPath";
     private static final LazySoftReference<ActuatorConnectorDescriptionProvider> INSTANCE = new LazySoftReference<>();
 
     private ActuatorConnectorDescriptionProvider(){
@@ -42,5 +44,13 @@ final class ActuatorConnectorDescriptionProvider extends ConfigurationEntityDesc
             }
         }
         return null;
+    }
+
+    String getMetricsPath(final Map<String, String> parameters){
+        return parameters.getOrDefault(METRICS_PATH_PARAM, "metrics.json");
+    }
+
+    String getHealthPath(final Map<String, String> parameters){
+        return parameters.getOrDefault(HEALTH_PATH_PARAM, "health.json");
     }
 }

@@ -722,6 +722,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
      * @return Status of the remove managed resource.
      */
     @Override
+    @Nonnull
     public HealthStatus getStatus() {
         try {
             return connectionManager.handleConnection(connection -> {

@@ -18,29 +18,28 @@ import static com.bytex.snamp.configuration.ConfigurationManager.createEntityCon
  * @since 2.0
  */
 final class ActuatorAttributeRepository extends AbstractAttributeRepository<SpringMetric> {
-    private final WebResource actuatorRoot;
+    private final WebResource metricsResource;
 
-    ActuatorAttributeRepository(final String resourceName, final WebResource actuatorRoot) {
+    ActuatorAttributeRepository(final String resourceName, final WebResource metricsResource) {
         super(resourceName, SpringMetric.class, true);
-        this.actuatorRoot = actuatorRoot;
+        this.metricsResource = metricsResource;
     }
 
     private Collection<? extends SpringMetric<?>> expandAttributes(final JsonNode metrics) {
         final Collection<SpringMetric<?>> result = new LinkedList<>();
-        for (final Iterator<Map.Entry<String, JsonNode>> fields = metrics.getFields(); fields.hasNext(); ) {
-            final Map.Entry<String, JsonNode> field = fields.next();
+        metrics.getFields().forEachRemaining(field -> {
             final AttributeConfiguration config = createEntityConfiguration(getClass().getClassLoader(), AttributeConfiguration.class);
             assert config != null;
             config.setAutomaticallyAdded(true);
             config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
             connectAttribute(field.getKey(), field.getValue(), new AttributeDescriptor(config)).ifPresent(result::add);
-        }
+        });
         return result;
     }
 
     @Override
     public Collection<? extends SpringMetric<?>> expandAttributes() {
-        final JsonNode node = actuatorRoot.get(JsonNode.class);
+        final JsonNode node = metricsResource.get(JsonNode.class);
         if (node.isObject())
             try {
                 return expandAttributes(node);
@@ -75,7 +74,7 @@ final class ActuatorAttributeRepository extends AbstractAttributeRepository<Spri
 
     @Override
     protected SpringMetric<?> connectAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
-        final JsonNode node = actuatorRoot.get(JsonNode.class);
+        final JsonNode node = metricsResource.get(JsonNode.class);
         final String metricName = descriptor.getAlternativeName().orElse(attributeName);
         if (node.isObject())
             return connectAttribute(attributeName, node.get(metricName), descriptor)
@@ -86,7 +85,7 @@ final class ActuatorAttributeRepository extends AbstractAttributeRepository<Spri
 
     @Override
     protected Object getAttribute(final SpringMetric metadata) throws Exception {
-        return metadata.getValue(actuatorRoot);
+        return metadata.getValue(metricsResource);
     }
 
     @Override
