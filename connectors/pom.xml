@@ -24,6 +24,6 @@
     <module>http-acceptor</module>
     <module>zipkin-connector</module>
     <module>stub-connector</module>
-      <module>actuator-connector</module>
+    <module>actuator-connector</module>
   </modules>
 </project>

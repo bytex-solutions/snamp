@@ -1,9 +1,11 @@
 package com.bytex.snamp.json;
 
 import com.google.common.collect.ImmutableMap;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,5 +26,11 @@ public final class JsonUtilsTest extends Assert {
         assertTrue(result.containsKey("key2.key3"));
         assertTrue(result.containsKey("key2.key4"));
         assertEquals(3, result.size());
+    }
+
+    @Test
+    public void serTest() throws IOException {
+        final Object value = new ObjectMapper().readTree("1E+2");
+        assertNotNull(value);
     }
 }
