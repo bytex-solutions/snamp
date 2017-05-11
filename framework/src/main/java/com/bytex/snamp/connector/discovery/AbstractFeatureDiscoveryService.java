@@ -23,7 +23,7 @@ public abstract class AbstractFeatureDiscoveryService<TProvider extends AutoClos
             super(service, "discovery");
         }
 
-        private void discovertFailed(final Exception e) {
+        private void discoveryFailed(final Exception e) {
             log(Level.WARNING, "Discovery request failed.", e);
         }
     }
@@ -39,19 +39,10 @@ public abstract class AbstractFeatureDiscoveryService<TProvider extends AutoClos
     /**
      * Attempts to discover collection of managed entities (such as attributes or notifications)
      * using managed resource connection string.
-     * <p/>
-     * Do not add elements from the returned collection directly in {@link ManagedResourceConfiguration#getFeatures(Class)}
-     * result set, use the following algorithm:
-     * <ul>
-     * <li>Create a new managed entity with {@link ManagedResourceConfiguration#getFeatures(Class)} method.</li>
-     * <li>Use {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(AttributeConfiguration, AttributeConfiguration)}
-     * or {@link com.bytex.snamp.configuration.AbstractAgentConfiguration#copy(EventConfiguration, EventConfiguration)} method
-     * to copy managed entity returned by this method into the newly created entity.</li>
-     * </ul>
      *
      * @param connectionString  Managed resource connection string.
      * @param connectionOptions Managed resource connection options (see {@link ManagedResourceConfiguration#getConnectionString()}).
-     * @param entityType        Type of the managed entity (see {@link ManagedResourceConfiguration#getParameters()}).
+     * @param entityType        Type of the managed entity (see {@link ManagedResourceConfiguration}).
      * @return A collection of discovered entities; or empty collection if no entities
      * was detected.
      * @see AttributeConfiguration
@@ -63,7 +54,7 @@ public abstract class AbstractFeatureDiscoveryService<TProvider extends AutoClos
         try (final TProvider provider = createProvider(connectionString, connectionOptions)) {
             return getEntities(entityType, provider);
         } catch (final Exception e) {
-            discoveryLogging.discovertFailed(e);
+            discoveryLogging.discoveryFailed(e);
             return Collections.emptyList();
         }
     }
@@ -108,7 +99,7 @@ public abstract class AbstractFeatureDiscoveryService<TProvider extends AutoClos
                 builder.addFeatures(t, getEntities(t, provider));
             return builder.get();
         } catch (final Exception e) {
-            discoveryLogging.discovertFailed(e);
+            discoveryLogging.discoveryFailed(e);
             return new EmptyDiscoveryResult(entityTypes);
         } finally {
             discoveryLogging.close();

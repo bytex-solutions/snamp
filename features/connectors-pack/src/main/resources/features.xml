@@ -17,7 +17,13 @@
         <bundle start="true">mvn:com.bytex.snamp.supervisors/openstack/${snamp.supervisor.openstack.version}</bundle>
     </feature>
 
-    <feature name="snamp-stub-connector" description="SNAMP stub connector for tests" version="${snamp.connector.stub.version}">
+    <feature name="snamp-actuator-connector" description="SNAMP connector for Spring Actuator" version="${snamp.connector.actuator.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-framework</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-json-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp.connectors/actuator/${snamp.connector.actuator.version}</bundle>
+    </feature>
+
+    <feature name="snamp-stub-connector" description="SNAMP stub connector for tests" version="${snamp.connector.stub.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-framework</feature>
         <bundle start="true">mvn:com.bytex.snamp.connectors/stub/${snamp.connector.stub.version}</bundle>
     </feature>

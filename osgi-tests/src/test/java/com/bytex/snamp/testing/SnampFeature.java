@@ -14,6 +14,7 @@ public enum SnampFeature {
     STUB_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stub-connector"),
     HTTP_ACCEPTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stream-connector", "snamp-http-acceptor"),
     JMX_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-jmx-connector"),
+    ACTUATOR_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-actuator-connector"),
     ZIPKIN_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stream-connector", "snamp-zipkin-connector"),
     COMPOSITE_CONNECTOR("connectors", "2.0.0","snamp-default-supervisor", "snamp-composite-connector"),
     SNMP_GATEWAY("gateways", "2.0.0", "snamp-snmp-gateway"),

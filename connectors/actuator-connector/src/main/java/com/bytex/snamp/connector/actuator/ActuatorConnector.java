@@ -6,13 +6,9 @@ import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.json.JsonUtils;
-import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.ClientFilter;
 import org.codehaus.jackson.JsonNode;
 
 import javax.annotation.Nonnull;
@@ -38,29 +34,17 @@ final class ActuatorConnector extends AbstractManagedResourceConnector implement
     @Aggregation(cached = true)
     private final ActuatorAttributeRepository attributes;
 
+    private ActuatorConnector(final String resourceName,
+                              final ActuatorConnectionOptions options) {
+        healthResource = options.getHealthResource();
+        attributes = new ActuatorAttributeRepository(resourceName, options.getMetricsResource(), options.isSmartModeEnabled());
+    }
+
     ActuatorConnector(final String resourceName,
                       final URI actuatorUri,
                       final ManagedResourceInfo configuration) {
+        this(resourceName, new ActuatorConnectionOptions(actuatorUri, configuration));
         setConfiguration(configuration);
-        final ActuatorConnectorDescriptionProvider provider = ActuatorConnectorDescriptionProvider.getInstance();
-        final ClientConfig config = new DefaultClientConfig();
-        config.getFeatures().put("com.sun.jersey.api.json.POJOMappingFeature", true);
-        final Client actuatorClient = Client.create(config);
-        setupAuthentication(actuatorClient, provider, configuration);
-        actuatorClient.setExecutorService(provider.parseThreadPool(configuration));
-        final WebResource actuatorRoot = actuatorClient.resource(actuatorUri);
-        final WebResource metrics =
-                actuatorClient.resource(actuatorRoot.getUriBuilder().segment(provider.getMetricsPath(configuration)).build());
-        attributes = new ActuatorAttributeRepository(resourceName, metrics);
-        healthResource = actuatorClient.resource(actuatorRoot.getUriBuilder().segment(provider.getHealthPath(configuration)).build());
-    }
-
-    private static void setupAuthentication(final Client actuatorClient,
-                                            final ActuatorConnectorDescriptionProvider provider,
-                                            final Map<String, String> configuration) {
-        final ClientFilter authFilter = provider.parseAuthentication(configuration);
-        if (authFilter != null)
-            actuatorClient.addFilter(authFilter);
     }
 
     private static HealthStatus toHealthStatus(final JsonNode healthNode) {
