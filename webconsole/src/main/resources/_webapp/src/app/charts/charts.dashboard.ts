@@ -304,7 +304,7 @@ export class Dashboard {
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
 
-        if (this.selectedChartType == "line") {
+        if (this.selectedChartType == "line" || this.selectedChartType == "resources") {
             chart.preferences["interval"] = this.timeInterval.id;
         }
         this._chartService.newChart(chart);

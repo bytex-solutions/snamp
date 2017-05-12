@@ -15,8 +15,10 @@ import { LineChartOfAttributeValues } from './charts/line.chart.attributes.value
 import { PanelOfAttributeValues } from './charts/panel.attributes.values';
 import { PieChartOfAttributeValues } from './charts/pie.chart.attributes.values';
 import { TwoDimensionalChart } from "./two.dimensional.chart";
-import {ResourceGroupHealthStatusChart} from "./charts/resource.group.health.status";
-import {HealthStatusAxis} from "./axis/health.status.axis";
+import { ResourceGroupHealthStatusChart } from "./charts/resource.group.health.status";
+import { HealthStatusAxis } from "./axis/health.status.axis";
+import {NumericAxis} from "./axis/numeric.axis";
+import {NumberOfResourcesChart} from "./charts/number.of.resources";
 
 // Factory to create appropriate objects from json
 export class Factory {
@@ -43,6 +45,9 @@ export class Factory {
                     break;
                 case Axis.HEALTH_STATUS:
                     _axis = new HealthStatusAxis();
+                    break;
+                case Axis.NUMERIC:
+                    _axis = new NumericAxis();
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
@@ -79,6 +84,10 @@ export class Factory {
                     break;
                 case AbstractChart.HEALTH_STATUS:
                     _chart = new ResourceGroupHealthStatusChart();
+                    break;
+                case AbstractChart.RESOURCE_COUNT:
+                    _chart = new NumberOfResourcesChart();
+                    (<NumberOfResourcesChart>_chart).group = _json["group"];
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
@@ -138,6 +147,10 @@ export class Factory {
                     _chart = new ResourceGroupHealthStatusChart();
                     (<ResourceGroupHealthStatusChart>_chart).group = component;
                     break;
+                case AbstractChart.RESOURCE_COUNT:
+                    _chart = new NumberOfResourcesChart();
+                    (<NumberOfResourcesChart>_chart).group = component;
+                    break;
                 default:
                     throw new Error("Type " + type + " is unknown and cannot be parsed correctly");
             }
@@ -165,6 +178,5 @@ export class Factory {
             }
 
             return _chart;
-
     }
 }

@@ -123,7 +123,7 @@
             <div id="save" style="margin-top: 70px;">
 
               <div class="row">
-                <div class="item form-group col-md-offset-3" *ngIf="selectedChartType == 'line'">
+                <div class="item form-group col-md-offset-3" *ngIf="selectedChartType == 'line' || selectedChartType == 'resources'">
                   <label
                           class="control-label col-md-3 col-sm-3 col-xs-12"
                           for="lineChartIntervalSelect"
@@ -178,6 +178,7 @@
   <li [tooltip]="'Simple line chart'" (click)="appendChartClicked('line')"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
   <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
   <li [tooltip]="'Resource group health status'" (click)="appendChartClicked('statuses')"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></li>
+  <li [tooltip]="'Resources count in a group'" (click)="appendChartClicked('resources')"><i class="fa fa-sitemap" aria-hidden="true"></i></li>
 </ul>
 
 <div class="right_col" role="main" style="min-height: 949px;">

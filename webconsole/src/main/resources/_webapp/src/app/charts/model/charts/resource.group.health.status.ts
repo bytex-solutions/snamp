@@ -14,7 +14,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
 
     public group:string;
     private _chartObject:any = undefined;
-    private _state:any = undefined;
+
 
     createDefaultAxisX(): Axis {
         return new ResourceNameAxis();
@@ -30,7 +30,6 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         this.setSizeY(10);
     }
 
-
     toJSON(): any {
         let _value:any = {};
         _value["@type"] = this.type;
@@ -44,7 +43,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         return _value;
     }
 
-    private strnormallize(input:string):string {
+    private static strnormallize(input:string):string {
         return input.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g,'_');
     }
 
@@ -87,23 +86,13 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         this._chartObject = $("#" + this.id).jstree(true);
     }
 
-    private fillStatusOfNode(nodeId:string):any {
-        let _value = {};
-        if (this._state != undefined && this._state["core"] != undefined) {
-            _value["disabled"] = false;
-            _value["opened"] = this._state["core"]["open"] != undefined && (this._state["core"]["open"].indexOf(nodeId) >= 0);
-            _value["selected"] = this._state["core"]["selected"] != undefined && (this._state["core"]["selected"].indexOf(nodeId) >= 0);
-        }
-        return _value;
-    }
-
     private prepareDatasets():any {
         let _value:any = [];
 
         for (let i = 0; i < this.chartData.length; i++) {
             if ((<HealthStatusChartData>this.chartData[i]).summary) {
                 let _rootNode:any = {
-                    "id" : this.strnormallize((<HealthStatusChartData>this.chartData[i]).name),
+                    "id" : ResourceGroupHealthStatusChart.strnormallize((<HealthStatusChartData>this.chartData[i]).name),
                     "text": (<HealthStatusChartData>this.chartData[i]).name,
                     "children": [],
                     "type": "summary",
@@ -115,7 +104,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                     if (!(<HealthStatusChartData>this.chartData[j]).summary) {
                         let _tmp:HealthStatusChartData = <HealthStatusChartData>this.chartData[j];
                         let _childNode:any = {
-                            "id": this.strnormallize(_tmp.name),
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name),
                             "text": _tmp.name,
                             "children": [],
                             "type": "instance",
@@ -124,7 +113,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                         };
 
                         let _healthStatus:any = {
-                            "id": this.strnormallize(_tmp.name) + "_hs",
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_hs",
                             "text": _tmp.status.innerType,
                             "children": [],
                             "type": "healthStatus",
@@ -136,7 +125,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                             _healthStatus["children"].push({
                                 "text": "Details: " + _tmp.status.serverDetails,
                                 "type": "additional",
-                                "id": this.strnormallize(_tmp.name) + "_sdt",
+                                "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_sdt",
                                 "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()},
 
                             });
@@ -146,7 +135,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                             _healthStatus["children"].push({
                                 "text": "Server time: " + _tmp.status.serverTimestamp,
                                 "type": "additional",
-                                "id": this.strnormallize(_tmp.name) + "_st",
+                                "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_st",
                                 "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()},
 
                             });
@@ -155,7 +144,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                         _healthStatus["children"].push({
                             "text": "Level: " + _tmp.status.getNotificationLevel(),
                             "type": "additional",
-                            "id": this.strnormallize(_tmp.name) + "_lvl",
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_lvl",
                             "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()},
 
                         });
@@ -163,13 +152,13 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                         _healthStatus["children"].push({
                             "text": "Details: " + _tmp.status.htmlDetails(),
                             "type": "additional",
-                            "id": this.strnormallize(_tmp.name) + "_dtl",
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_dtl",
                             "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()},
 
                         });
 
                         let _timeStamp:any = {
-                            "id": this.strnormallize(_tmp.name) + "_ts",
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_ts",
                             "text": _tmp.timestamp,
                             "children": [],
                             "type": "timestamp",
@@ -191,13 +180,8 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
         if (document.hidden) return;
         this.chartData = _data;
         if (this._chartObject != undefined) {
-            let _data:any[] = this.prepareDatasets();
-            console.log(this._state, _data);
-            this._chartObject.settings.core.data = _data;
-            this._chartObject.refresh(true, function (state) {
-                console.dir(state);
-                return state;
-            });
+            this._chartObject.settings.core.data = this.prepareDatasets();
+            this._chartObject.refresh(true);
         }
     }
 
@@ -216,13 +200,8 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
         if (this._chartObject != undefined) {
-            let _data:any[] = this.prepareDatasets();
-            console.log(this._state, _data);
-            this._chartObject.settings.core.data = _data;
-            this._chartObject.refresh(true, function (state) {
-                console.dir(state);
-                return state;
-            });
+            this._chartObject.settings.core.data = this.prepareDatasets();
+            this._chartObject.refresh(true);
         }
     }
 }

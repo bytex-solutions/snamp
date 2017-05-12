@@ -4,6 +4,7 @@ export abstract class Axis {
     public static RESOURCE:string = "resource";
     public static ATTRIBUTES:string = "attributeValue";
     public static HEALTH_STATUS:string = "healthStatus";
+    public static NUMERIC:string = "value";
 
     constructor(){};
 

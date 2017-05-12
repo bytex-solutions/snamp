@@ -16644,7 +16644,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "/* http://prismjs.com/download.html?themes=prism-coy&languages=markup+css+clike+javascript */\n/**\n * prism.js Coy theme for JavaScript, CoffeeScript, CSS and HTML\n * Based on https://github.com/tshedor/workshop-wp-theme (Example: http://workshop.kansan.com/category/sessions/basics or http://workshop.timshedor.com/category/sessions/basics);\n * @author Tim  Shedor\n */\n\ncode[class*=\"language-\"],\npre[class*=\"language-\"] {\n\tcolor: black;\n\tbackground: none;\n\tfont-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;\n\ttext-align: left;\n\twhite-space: pre;\n\tword-spacing: normal;\n\tword-break: normal;\n\tword-wrap: normal;\n\tline-height: 1.5;\n\n\t-moz-tab-size: 4;\n\t-o-tab-size: 4;\n\ttab-size: 4;\n\n\t-webkit-hyphens: none;\n\t-moz-hyphens: none;\n\t-ms-hyphens: none;\n\thyphens: none;\n}\n\n/* Code blocks */\npre[class*=\"language-\"] {\n\tposition: relative;\n\tmargin: .5em 0;\n\tbox-shadow: -1px 0px 0px 0px #358ccb, 0px 0px 0px 1px #dfdfdf;\n\tborder-left: 10px solid #358ccb;\n\tbackground-color: #fdfdfd;\n\tbackground-image: linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);\n\tbackground-size: 3em 3em;\n\tbackground-origin: content-box;\n\toverflow: visible;\n\tpadding: 0;\n}\n\ncode[class*=\"language\"] {\n\tmax-height: inherit;\n\theight: 100%;\n\tpadding: 0 1em;\n\tdisplay: block;\n\toverflow: auto;\n}\n\n/* Margin bottom to accomodate shadow */\n:not(pre) > code[class*=\"language-\"],\npre[class*=\"language-\"] {\n\tbackground-color: #fdfdfd;\n\t-webkit-box-sizing: border-box;\n\t-moz-box-sizing: border-box;\n\tbox-sizing: border-box;\n\tmargin-bottom: 1em;\n}\n\n/* Inline code */\n:not(pre) > code[class*=\"language-\"] {\n\tposition: relative;\n\tpadding: .2em;\n\tborder-radius: 0.3em;\n\tcolor: #c92c2c;\n\tborder: 1px solid rgba(0, 0, 0, 0.1);\n\tdisplay: inline;\n\twhite-space: normal;\n}\n\npre[class*=\"language-\"]:before,\npre[class*=\"language-\"]:after {\n\tcontent: '';\n\tz-index: -2;\n\tdisplay: block;\n\tposition: absolute;\n\tbottom: 0.75em;\n\tleft: 0.18em;\n\twidth: 40%;\n\theight: 20%;\n\tmax-height: 13em;\n\tbox-shadow: 0px 13px 8px #979797;\n\t-webkit-transform: rotate(-2deg);\n\t-moz-transform: rotate(-2deg);\n\t-ms-transform: rotate(-2deg);\n\t-o-transform: rotate(-2deg);\n\ttransform: rotate(-2deg);\n}\n\n:not(pre) > code[class*=\"language-\"]:after,\npre[class*=\"language-\"]:after {\n\tright: 0.75em;\n\tleft: auto;\n\t-webkit-transform: rotate(2deg);\n\t-moz-transform: rotate(2deg);\n\t-ms-transform: rotate(2deg);\n\t-o-transform: rotate(2deg);\n\ttransform: rotate(2deg);\n}\n\n.token.comment,\n.token.block-comment,\n.token.prolog,\n.token.doctype,\n.token.cdata {\n\tcolor: #7D8B99;\n}\n\n.token.punctuation {\n\tcolor: #5F6364;\n}\n\n.token.property,\n.token.tag,\n.token.boolean,\n.token.number,\n.token.function-name,\n.token.constant,\n.token.symbol,\n.token.deleted {\n\tcolor: #c92c2c;\n}\n\n.token.selector,\n.token.attr-name,\n.token.string,\n.token.char,\n.token.function,\n.token.builtin,\n.token.inserted {\n\tcolor: #2f9c0a;\n}\n\n.token.operator,\n.token.entity,\n.token.url,\n.token.variable {\n\tcolor: #a67f59;\n\tbackground: rgba(255, 255, 255, 0.5);\n}\n\n.token.atrule,\n.token.attr-value,\n.token.keyword,\n.token.class-name {\n\tcolor: #1990b8;\n}\n\n.token.regex,\n.token.important {\n\tcolor: #e90;\n}\n\n.language-css .token.string,\n.style .token.string {\n\tcolor: #a67f59;\n\tbackground: rgba(255, 255, 255, 0.5);\n}\n\n.token.important {\n\tfont-weight: normal;\n}\n\n.token.bold {\n\tfont-weight: bold;\n}\n.token.italic {\n\tfont-style: italic;\n}\n\n.token.entity {\n\tcursor: help;\n}\n\n.namespace {\n\topacity: .7;\n}\n\n@media screen and (max-width: 767px) {\n\tpre[class*=\"language-\"]:before,\n\tpre[class*=\"language-\"]:after {\n\t\tbottom: 14px;\n\t\tbox-shadow: none;\n\t}\n\n}\n\n/* Plugin styles */\n.token.tab:not(:empty):before,\n.token.cr:before,\n.token.lf:before {\n\tcolor: #e0d7d1;\n}\n\n/* Plugin styles: Line Numbers */\npre[class*=\"language-\"].line-numbers {\n\tpadding-left: 0;\n}\n\npre[class*=\"language-\"].line-numbers code {\n\tpadding-left: 3.8em;\n}\n\npre[class*=\"language-\"].line-numbers .line-numbers-rows {\n\tleft: 0;\n}\n\n/* Plugin styles: Line Highlight */\npre[class*=\"language-\"][data-line] {\n\tpadding-top: 0;\n\tpadding-bottom: 0;\n\tpadding-left: 0;\n}\npre[data-line] code {\n\tposition: relative;\n\tpadding-left: 4em;\n}\npre .line-highlight {\n\tmargin-top: 0;\n}\n", ""]);
+exports.push([module.i, "/* http://prismjs.com/download.html?themes=prism-coy&languages=markup+css+clike+javascript */\r\n/**\r\n * prism.js Coy theme for JavaScript, CoffeeScript, CSS and HTML\r\n * Based on https://github.com/tshedor/workshop-wp-theme (Example: http://workshop.kansan.com/category/sessions/basics or http://workshop.timshedor.com/category/sessions/basics);\r\n * @author Tim  Shedor\r\n */\r\n\r\ncode[class*=\"language-\"],\r\npre[class*=\"language-\"] {\r\n\tcolor: black;\r\n\tbackground: none;\r\n\tfont-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;\r\n\ttext-align: left;\r\n\twhite-space: pre;\r\n\tword-spacing: normal;\r\n\tword-break: normal;\r\n\tword-wrap: normal;\r\n\tline-height: 1.5;\r\n\r\n\t-moz-tab-size: 4;\r\n\t-o-tab-size: 4;\r\n\ttab-size: 4;\r\n\r\n\t-webkit-hyphens: none;\r\n\t-moz-hyphens: none;\r\n\t-ms-hyphens: none;\r\n\thyphens: none;\r\n}\r\n\r\n/* Code blocks */\r\npre[class*=\"language-\"] {\r\n\tposition: relative;\r\n\tmargin: .5em 0;\r\n\tbox-shadow: -1px 0px 0px 0px #358ccb, 0px 0px 0px 1px #dfdfdf;\r\n\tborder-left: 10px solid #358ccb;\r\n\tbackground-color: #fdfdfd;\r\n\tbackground-image: linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);\r\n\tbackground-size: 3em 3em;\r\n\tbackground-origin: content-box;\r\n\toverflow: visible;\r\n\tpadding: 0;\r\n}\r\n\r\ncode[class*=\"language\"] {\r\n\tmax-height: inherit;\r\n\theight: 100%;\r\n\tpadding: 0 1em;\r\n\tdisplay: block;\r\n\toverflow: auto;\r\n}\r\n\r\n/* Margin bottom to accomodate shadow */\r\n:not(pre) > code[class*=\"language-\"],\r\npre[class*=\"language-\"] {\r\n\tbackground-color: #fdfdfd;\r\n\t-webkit-box-sizing: border-box;\r\n\t-moz-box-sizing: border-box;\r\n\tbox-sizing: border-box;\r\n\tmargin-bottom: 1em;\r\n}\r\n\r\n/* Inline code */\r\n:not(pre) > code[class*=\"language-\"] {\r\n\tposition: relative;\r\n\tpadding: .2em;\r\n\tborder-radius: 0.3em;\r\n\tcolor: #c92c2c;\r\n\tborder: 1px solid rgba(0, 0, 0, 0.1);\r\n\tdisplay: inline;\r\n\twhite-space: normal;\r\n}\r\n\r\npre[class*=\"language-\"]:before,\r\npre[class*=\"language-\"]:after {\r\n\tcontent: '';\r\n\tz-index: -2;\r\n\tdisplay: block;\r\n\tposition: absolute;\r\n\tbottom: 0.75em;\r\n\tleft: 0.18em;\r\n\twidth: 40%;\r\n\theight: 20%;\r\n\tmax-height: 13em;\r\n\tbox-shadow: 0px 13px 8px #979797;\r\n\t-webkit-transform: rotate(-2deg);\r\n\t-moz-transform: rotate(-2deg);\r\n\t-ms-transform: rotate(-2deg);\r\n\t-o-transform: rotate(-2deg);\r\n\ttransform: rotate(-2deg);\r\n}\r\n\r\n:not(pre) > code[class*=\"language-\"]:after,\r\npre[class*=\"language-\"]:after {\r\n\tright: 0.75em;\r\n\tleft: auto;\r\n\t-webkit-transform: rotate(2deg);\r\n\t-moz-transform: rotate(2deg);\r\n\t-ms-transform: rotate(2deg);\r\n\t-o-transform: rotate(2deg);\r\n\ttransform: rotate(2deg);\r\n}\r\n\r\n.token.comment,\r\n.token.block-comment,\r\n.token.prolog,\r\n.token.doctype,\r\n.token.cdata {\r\n\tcolor: #7D8B99;\r\n}\r\n\r\n.token.punctuation {\r\n\tcolor: #5F6364;\r\n}\r\n\r\n.token.property,\r\n.token.tag,\r\n.token.boolean,\r\n.token.number,\r\n.token.function-name,\r\n.token.constant,\r\n.token.symbol,\r\n.token.deleted {\r\n\tcolor: #c92c2c;\r\n}\r\n\r\n.token.selector,\r\n.token.attr-name,\r\n.token.string,\r\n.token.char,\r\n.token.function,\r\n.token.builtin,\r\n.token.inserted {\r\n\tcolor: #2f9c0a;\r\n}\r\n\r\n.token.operator,\r\n.token.entity,\r\n.token.url,\r\n.token.variable {\r\n\tcolor: #a67f59;\r\n\tbackground: rgba(255, 255, 255, 0.5);\r\n}\r\n\r\n.token.atrule,\r\n.token.attr-value,\r\n.token.keyword,\r\n.token.class-name {\r\n\tcolor: #1990b8;\r\n}\r\n\r\n.token.regex,\r\n.token.important {\r\n\tcolor: #e90;\r\n}\r\n\r\n.language-css .token.string,\r\n.style .token.string {\r\n\tcolor: #a67f59;\r\n\tbackground: rgba(255, 255, 255, 0.5);\r\n}\r\n\r\n.token.important {\r\n\tfont-weight: normal;\r\n}\r\n\r\n.token.bold {\r\n\tfont-weight: bold;\r\n}\r\n.token.italic {\r\n\tfont-style: italic;\r\n}\r\n\r\n.token.entity {\r\n\tcursor: help;\r\n}\r\n\r\n.namespace {\r\n\topacity: .7;\r\n}\r\n\r\n@media screen and (max-width: 767px) {\r\n\tpre[class*=\"language-\"]:before,\r\n\tpre[class*=\"language-\"]:after {\r\n\t\tbottom: 14px;\r\n\t\tbox-shadow: none;\r\n\t}\r\n\r\n}\r\n\r\n/* Plugin styles */\r\n.token.tab:not(:empty):before,\r\n.token.cr:before,\r\n.token.lf:before {\r\n\tcolor: #e0d7d1;\r\n}\r\n\r\n/* Plugin styles: Line Numbers */\r\npre[class*=\"language-\"].line-numbers {\r\n\tpadding-left: 0;\r\n}\r\n\r\npre[class*=\"language-\"].line-numbers code {\r\n\tpadding-left: 3.8em;\r\n}\r\n\r\npre[class*=\"language-\"].line-numbers .line-numbers-rows {\r\n\tleft: 0;\r\n}\r\n\r\n/* Plugin styles: Line Highlight */\r\npre[class*=\"language-\"][data-line] {\r\n\tpadding-top: 0;\r\n\tpadding-bottom: 0;\r\n\tpadding-left: 0;\r\n}\r\npre[data-line] code {\r\n\tposition: relative;\r\n\tpadding-left: 4em;\r\n}\r\npre .line-highlight {\r\n\tmargin-top: 0;\r\n}\r\n", ""]);
 
 // exports
 
@@ -103147,7 +103147,7 @@ exports.Factory = Factory;
 /***/ "./src/app/app.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<side-bar></side-bar>\n<topnav-bar></topnav-bar>\n<router-outlet></router-outlet>\n<custom-footer></custom-footer>\n"
+module.exports = "<side-bar></side-bar>\r\n<topnav-bar></topnav-bar>\r\n<router-outlet></router-outlet>\r\n<custom-footer></custom-footer>\r\n"
 
 /***/ },
 
@@ -103596,6 +103596,7 @@ var AbstractChart = (function () {
     AbstractChart.PANEL = "panelOfAttributeValues";
     AbstractChart.LINE = "lineChartOfAttributeValues";
     AbstractChart.HEALTH_STATUS = "groupHealthStatus";
+    AbstractChart.RESOURCE_COUNT = "numberOfResourcesInGroup";
     // map chartjs types to current hierarchy types
     AbstractChart.TYPE_MAPPING = {
         'doughnut': AbstractChart.PIE,
@@ -103604,6 +103605,7 @@ var AbstractChart = (function () {
         'line': AbstractChart.LINE,
         'panel': AbstractChart.PANEL,
         'statuses': AbstractChart.HEALTH_STATUS,
+        'resources': AbstractChart.RESOURCE_COUNT
     };
     return AbstractChart;
 }());
@@ -103677,6 +103679,7 @@ var Axis = (function () {
     Axis.RESOURCE = "resource";
     Axis.ATTRIBUTES = "attributeValue";
     Axis.HEALTH_STATUS = "healthStatus";
+    Axis.NUMERIC = "value";
     return Axis;
 }());
 exports.Axis = Axis;
@@ -103774,6 +103777,32 @@ var HealthStatusAxis = (function (_super) {
     return HealthStatusAxis;
 }(abstract_axis_1.Axis));
 exports.HealthStatusAxis = HealthStatusAxis;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/axis/numeric.axis.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_axis_1 = __webpack_require__("./src/app/charts/model/axis/abstract.axis.ts");
+var NumericAxis = (function (_super) {
+    __extends(NumericAxis, _super);
+    function NumericAxis() {
+        _super.apply(this, arguments);
+        this.type = abstract_axis_1.Axis.NUMERIC;
+        this.unitOfMeasurement = "";
+    }
+    NumericAxis.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        return _value;
+    };
+    return NumericAxis;
+}(abstract_axis_1.Axis));
+exports.NumericAxis = NumericAxis;
 
 
 /***/ },
@@ -104020,6 +104049,78 @@ exports.LineChartOfAttributeValues = LineChartOfAttributeValues;
 
 /***/ },
 
+/***/ "./src/app/charts/model/charts/number.of.resources.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis.ts");
+var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
+var d3 = __webpack_require__("./node_modules/d3/index.js");
+var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
+var NumberOfResourcesChart = (function (_super) {
+    __extends(NumberOfResourcesChart, _super);
+    function NumberOfResourcesChart() {
+        _super.call(this);
+        this._chartObject = undefined;
+        this.setSizeX(20);
+        this.setSizeY(10);
+    }
+    Object.defineProperty(NumberOfResourcesChart.prototype, "type", {
+        get: function () {
+            return abstract_chart_1.AbstractChart.RESOURCE_COUNT;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    NumberOfResourcesChart.prototype.createDefaultAxisX = function () {
+        return new chrono_axis_1.ChronoAxis();
+    };
+    NumberOfResourcesChart.prototype.createDefaultAxisY = function () {
+        var _na = new numeric_axis_1.NumericAxis();
+        _na.unitOfMeasurement = "resources";
+        _na.name = "resources";
+        return _na;
+    };
+    NumberOfResourcesChart.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        _value["group"] = this.group;
+        _value["X"] = this.getAxisX().toJSON();
+        _value["Y"] = this.getAxisY().toJSON();
+        if (!$.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
+        return _value;
+    };
+    NumberOfResourcesChart.prototype.draw = function () {
+    };
+    NumberOfResourcesChart.prototype.prepareDatasets = function () {
+    };
+    NumberOfResourcesChart.prototype.newValues = function (_data) {
+        if (document.hidden)
+            return;
+        console.log("Data received for chart is: ", _data);
+        this.chartData = _data;
+        if (this._chartObject != undefined) {
+        }
+    };
+    NumberOfResourcesChart.prototype.newValue = function (_data) {
+        if (document.hidden)
+            return;
+        // do nothing
+    };
+    return NumberOfResourcesChart;
+}(two_dimensional_chart_1.TwoDimensionalChart));
+exports.NumberOfResourcesChart = NumberOfResourcesChart;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
 /***/ "./src/app/charts/model/charts/panel.attributes.values.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -104234,7 +104335,6 @@ var ResourceGroupHealthStatusChart = (function (_super) {
     function ResourceGroupHealthStatusChart() {
         _super.call(this);
         this._chartObject = undefined;
-        this._state = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
@@ -104263,7 +104363,7 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         }
         return _value;
     };
-    ResourceGroupHealthStatusChart.prototype.strnormallize = function (input) {
+    ResourceGroupHealthStatusChart.strnormallize = function (input) {
         return input.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '_');
     };
     ResourceGroupHealthStatusChart.prototype.draw = function () {
@@ -104303,21 +104403,12 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         });
         this._chartObject = $("#" + this.id).jstree(true);
     };
-    ResourceGroupHealthStatusChart.prototype.fillStatusOfNode = function (nodeId) {
-        var _value = {};
-        if (this._state != undefined && this._state["core"] != undefined) {
-            _value["disabled"] = false;
-            _value["opened"] = this._state["core"]["open"] != undefined && (this._state["core"]["open"].indexOf(nodeId) >= 0);
-            _value["selected"] = this._state["core"]["selected"] != undefined && (this._state["core"]["selected"].indexOf(nodeId) >= 0);
-        }
-        return _value;
-    };
     ResourceGroupHealthStatusChart.prototype.prepareDatasets = function () {
         var _value = [];
         for (var i = 0; i < this.chartData.length; i++) {
             if (this.chartData[i].summary) {
                 var _rootNode = {
-                    "id": this.strnormallize(this.chartData[i].name),
+                    "id": ResourceGroupHealthStatusChart.strnormallize(this.chartData[i].name),
                     "text": this.chartData[i].name,
                     "children": [],
                     "type": "summary",
@@ -104327,14 +104418,14 @@ var ResourceGroupHealthStatusChart = (function (_super) {
                     if (!this.chartData[j].summary) {
                         var _tmp = this.chartData[j];
                         var _childNode = {
-                            "id": this.strnormallize(_tmp.name),
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name),
                             "text": _tmp.name,
                             "children": [],
                             "type": "instance",
                             "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel() },
                         };
                         var _healthStatus = {
-                            "id": this.strnormallize(_tmp.name) + "_hs",
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_hs",
                             "text": _tmp.status.innerType,
                             "children": [],
                             "type": "healthStatus",
@@ -104344,7 +104435,7 @@ var ResourceGroupHealthStatusChart = (function (_super) {
                             _healthStatus["children"].push({
                                 "text": "Details: " + _tmp.status.serverDetails,
                                 "type": "additional",
-                                "id": this.strnormallize(_tmp.name) + "_sdt",
+                                "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_sdt",
                                 "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel() },
                             });
                         }
@@ -104352,24 +104443,24 @@ var ResourceGroupHealthStatusChart = (function (_super) {
                             _healthStatus["children"].push({
                                 "text": "Server time: " + _tmp.status.serverTimestamp,
                                 "type": "additional",
-                                "id": this.strnormallize(_tmp.name) + "_st",
+                                "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_st",
                                 "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel() },
                             });
                         }
                         _healthStatus["children"].push({
                             "text": "Level: " + _tmp.status.getNotificationLevel(),
                             "type": "additional",
-                            "id": this.strnormallize(_tmp.name) + "_lvl",
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_lvl",
                             "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel() },
                         });
                         _healthStatus["children"].push({
                             "text": "Details: " + _tmp.status.htmlDetails(),
                             "type": "additional",
-                            "id": this.strnormallize(_tmp.name) + "_dtl",
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_dtl",
                             "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel() },
                         });
                         var _timeStamp = {
-                            "id": this.strnormallize(_tmp.name) + "_ts",
+                            "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_ts",
                             "text": _tmp.timestamp,
                             "children": [],
                             "type": "timestamp",
@@ -104390,13 +104481,8 @@ var ResourceGroupHealthStatusChart = (function (_super) {
             return;
         this.chartData = _data;
         if (this._chartObject != undefined) {
-            var _data_1 = this.prepareDatasets();
-            console.log(this._state, _data_1);
-            this._chartObject.settings.core.data = _data_1;
-            this._chartObject.refresh(true, function (state) {
-                console.dir(state);
-                return state;
-            });
+            this._chartObject.settings.core.data = this.prepareDatasets();
+            this._chartObject.refresh(true);
         }
     };
     ResourceGroupHealthStatusChart.prototype.newValue = function (_data) {
@@ -104414,13 +104500,8 @@ var ResourceGroupHealthStatusChart = (function (_super) {
             this.chartData.push(_data); // if no data with this instance is found - append it to array
         }
         if (this._chartObject != undefined) {
-            var _data_2 = this.prepareDatasets();
-            console.log(this._state, _data_2);
-            this._chartObject.settings.core.data = _data_2;
-            this._chartObject.refresh(true, function (state) {
-                console.dir(state);
-                return state;
-            });
+            this._chartObject.settings.core.data = this.prepareDatasets();
+            this._chartObject.refresh(true);
         }
     };
     return ResourceGroupHealthStatusChart;
@@ -104647,16 +104728,28 @@ exports.AttributeChartData = AttributeChartData;
 var attribute_chart_data_1 = __webpack_require__("./src/app/charts/model/data/attribute.chart.data.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var health_status_chart_data_1 = __webpack_require__("./src/app/charts/model/data/health.status.chart.data.ts");
+var resource_count_data_1 = __webpack_require__("./src/app/charts/model/data/resource.count.data.ts");
 var ChartDataFabric = (function () {
     function ChartDataFabric() {
     }
     ChartDataFabric.chartDataFromJSON = function (chartType, _json) {
         var _data;
-        if (chartType != abstract_chart_1.AbstractChart.HEALTH_STATUS) {
-            _data = new attribute_chart_data_1.AttributeChartData();
-        }
-        else {
-            _data = new health_status_chart_data_1.HealthStatusChartData();
+        switch (chartType) {
+            case abstract_chart_1.AbstractChart.HEALTH_STATUS:
+                _data = new health_status_chart_data_1.HealthStatusChartData();
+                break;
+            case abstract_chart_1.AbstractChart.RESOURCE_COUNT:
+                _data = new resource_count_data_1.ResourceCountData();
+                break;
+            case abstract_chart_1.AbstractChart.HBAR:
+            case abstract_chart_1.AbstractChart.LINE:
+            case abstract_chart_1.AbstractChart.PANEL:
+            case abstract_chart_1.AbstractChart.PIE:
+            case abstract_chart_1.AbstractChart.VBAR:
+                _data = new attribute_chart_data_1.AttributeChartData();
+                break;
+            default:
+                throw new Error("Unrecognized chart type for constructing the chart data: " + chartType);
         }
         _data.fillFromJSON(_json);
         _data.chartType = chartType;
@@ -104729,6 +104822,52 @@ exports.HealthStatusChartData = HealthStatusChartData;
 
 /***/ },
 
+/***/ "./src/app/charts/model/data/resource.count.data.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_data_1 = __webpack_require__("./src/app/charts/model/data/abstract.data.ts");
+var ResourceCountData = (function (_super) {
+    __extends(ResourceCountData, _super);
+    function ResourceCountData() {
+        _super.apply(this, arguments);
+    }
+    Object.defineProperty(ResourceCountData.prototype, "count", {
+        get: function () {
+            return this._count;
+        },
+        set: function (value) {
+            this._count = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ResourceCountData.prototype, "serverTs", {
+        get: function () {
+            return this._serverTs;
+        },
+        set: function (value) {
+            this._serverTs = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ResourceCountData.prototype.fillFromJSON = function (_json) {
+        if (_json["count"] != undefined) {
+            this.count = _json["count"];
+        }
+        if (_json["timeStamp"] != undefined) {
+            this.serverTs = _json["timeStamp"];
+        }
+    };
+    return ResourceCountData;
+}(abstract_data_1.ChartData));
+exports.ResourceCountData = ResourceCountData;
+
+
+/***/ },
+
 /***/ "./src/app/charts/model/objectFactory.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -104750,6 +104889,8 @@ var pie_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/
 var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
 var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
 var health_status_axis_1 = __webpack_require__("./src/app/charts/model/axis/health.status.axis.ts");
+var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
+var number_of_resources_1 = __webpack_require__("./src/app/charts/model/charts/number.of.resources.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
@@ -104777,6 +104918,9 @@ var Factory = (function () {
                     break;
                 case abstract_axis_1.Axis.HEALTH_STATUS:
                     _axis = new health_status_axis_1.HealthStatusAxis();
+                    break;
+                case abstract_axis_1.Axis.NUMERIC:
+                    _axis = new numeric_axis_1.NumericAxis();
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
@@ -104813,6 +104957,10 @@ var Factory = (function () {
                     break;
                 case abstract_chart_1.AbstractChart.HEALTH_STATUS:
                     _chart = new resource_group_health_status_1.ResourceGroupHealthStatusChart();
+                    break;
+                case abstract_chart_1.AbstractChart.RESOURCE_COUNT:
+                    _chart = new number_of_resources_1.NumberOfResourcesChart();
+                    _chart.group = _json["group"];
                     break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
@@ -104866,6 +105014,10 @@ var Factory = (function () {
                 break;
             case abstract_chart_1.AbstractChart.HEALTH_STATUS:
                 _chart = new resource_group_health_status_1.ResourceGroupHealthStatusChart();
+                _chart.group = component;
+                break;
+            case abstract_chart_1.AbstractChart.RESOURCE_COUNT:
+                _chart = new number_of_resources_1.NumberOfResourcesChart();
                 _chart.group = component;
                 break;
             default:
@@ -105511,7 +105663,7 @@ exports.ResourceEntitiesTable = ResourceEntitiesTable;
 /***/ "./src/app/configuration/components/templates/add-entity.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for entity appending -->\n<div class=\"modal fade\" id=\"addEntity\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Create new entity</h4>\n            </div>\n            <br/>\n            <div class=\"modal-body\">\n                <div class=\"input-group\" style=\"margin-bottom: 20px;\">\n                    <span class=\"input-group-addon\">Name</span>\n                    <input\n                            type=\"text\"\n                            class=\"form-control\"\n                            [tooltip]=\"'Input at least 4 symbols please'\"\n                            [(ngModel)]=\"selectedName\">\n                </div>\n                <div class=\"input-group\" style=\"margin-bottom: 20px;\" *ngIf=\"type == 'resource'\">\n                    <span class=\"input-group-addon\">Connection string</span>\n                    <input\n                            type=\"text\"\n                            class=\"form-control\"\n                            [tooltip]=\"'Connection string is optional, but in almost all cases should be prefilled'\"\n                            [(ngModel)]=\"selectedConnectionString\">\n                </div>\n                <div class=\"panel-group group-accordeon\" id=\"entityAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"nameSelected()\">\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\n                            <h4 class=\"panel-title\">\n                                <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#entityAccordion\" href=\"#collapseType\" aria-expanded=\"true\" aria-controls=\"collapseRequired\">\n                                    Select type of new entity\n                                </a>\n                            </h4>\n                        </div>\n                        <div id=\"collapseType\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\n                            <div class=\"panel-body\">\n                                    <a *ngFor=\"let entity of availableEntities\"\n                                           class=\"grid-item-link pointerElement\"\n                                           (click)=\"selectType(entity)\"\n                                           [class.active]=\"selectedType == entity\"\n                                           [tooltip]=\"entity.description\">\n                                        <div [class.activeBundle]=\"entity.isActive\" class=\"grid-item\">\n                                                <h5 class=\"name\">{{entity.name}}</h5>\n                                                <p class=\"symbol\">{{entity.type}}</p>\n                                                <p class=\"weight\">v.{{entity.version}}</p>\n                                        </div>\n                                    </a>\n                                </div>\n                        </div>\n                    </div>\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"typeSelected()\">\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\n                            <h4 class=\"panel-title\">\n                                <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseParameters\" aria-expanded=\"true\" aria-controls=\"collapseOptional\">\n                                    Required parameters\n                                </a>\n                            </h4>\n                        </div>\n                        <div id=\"collapseParameters\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\n                            <div class=\"panel-body\">\n                                <table class=\"table\">\n                                    <thead>\n                                    <tr>\n                                        <th>Key</th>\n                                        <th>Value</th>\n                                    </tr>\n                                    </thead>\n                                    <tbody>\n                                    <tr *ngFor=\"let param of params\">\n                                        <td>{{param.key}}</td>\n                                        <td>\n                                            <inline-edit [(ngModel)]=\"param.value\"\n                                                         [ngModelOptions]=\"{standalone: true}\"\n                                                         (onSave)=\"saveParameter(param)\"\n                                                         [uniqueKey]=\"param.key\">\n                                            </inline-edit>\n                                        </td>\n                                    </tr>\n                                    </tbody>\n                                </table>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"modal-footer\">\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n                <button\n                        type=\"button\"\n                        class=\"btn btn-primary\"\n                        data-dismiss=\"modal\"\n                        [disabled]=\"readyForSave == false\"\n                        (click)=\"addEntity()\">\n                    Save changes\n                </button>\n            </div>\n        </div>\n    </div>\n</div>\n\n<div class=\"row\">\n  <button\n          class=\"center-block btn btn-primary\"\n          data-toggle=\"modal\"\n          (click)=\"clear()\"\n          [attr.data-target]=\"'#addEntity'\">\n    <i class=\"fa fa-plus\"></i> Add new\n  </button>\n</div>\n"
+module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"addEntity\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Create new entity</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n                <div class=\"input-group\" style=\"margin-bottom: 20px;\">\r\n                    <span class=\"input-group-addon\">Name</span>\r\n                    <input\r\n                            type=\"text\"\r\n                            class=\"form-control\"\r\n                            [tooltip]=\"'Input at least 4 symbols please'\"\r\n                            [(ngModel)]=\"selectedName\">\r\n                </div>\r\n                <div class=\"input-group\" style=\"margin-bottom: 20px;\" *ngIf=\"type == 'resource'\">\r\n                    <span class=\"input-group-addon\">Connection string</span>\r\n                    <input\r\n                            type=\"text\"\r\n                            class=\"form-control\"\r\n                            [tooltip]=\"'Connection string is optional, but in almost all cases should be prefilled'\"\r\n                            [(ngModel)]=\"selectedConnectionString\">\r\n                </div>\r\n                <div class=\"panel-group group-accordeon\" id=\"entityAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"nameSelected()\">\r\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                            <h4 class=\"panel-title\">\r\n                                <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#entityAccordion\" href=\"#collapseType\" aria-expanded=\"true\" aria-controls=\"collapseRequired\">\r\n                                    Select type of new entity\r\n                                </a>\r\n                            </h4>\r\n                        </div>\r\n                        <div id=\"collapseType\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                            <div class=\"panel-body\">\r\n                                    <a *ngFor=\"let entity of availableEntities\"\r\n                                           class=\"grid-item-link pointerElement\"\r\n                                           (click)=\"selectType(entity)\"\r\n                                           [class.active]=\"selectedType == entity\"\r\n                                           [tooltip]=\"entity.description\">\r\n                                        <div [class.activeBundle]=\"entity.isActive\" class=\"grid-item\">\r\n                                                <h5 class=\"name\">{{entity.name}}</h5>\r\n                                                <p class=\"symbol\">{{entity.type}}</p>\r\n                                                <p class=\"weight\">v.{{entity.version}}</p>\r\n                                        </div>\r\n                                    </a>\r\n                                </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"typeSelected()\">\r\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                            <h4 class=\"panel-title\">\r\n                                <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseParameters\" aria-expanded=\"true\" aria-controls=\"collapseOptional\">\r\n                                    Required parameters\r\n                                </a>\r\n                            </h4>\r\n                        </div>\r\n                        <div id=\"collapseParameters\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                            <div class=\"panel-body\">\r\n                                <table class=\"table\">\r\n                                    <thead>\r\n                                    <tr>\r\n                                        <th>Key</th>\r\n                                        <th>Value</th>\r\n                                    </tr>\r\n                                    </thead>\r\n                                    <tbody>\r\n                                    <tr *ngFor=\"let param of params\">\r\n                                        <td>{{param.key}}</td>\r\n                                        <td>\r\n                                            <inline-edit [(ngModel)]=\"param.value\"\r\n                                                         [ngModelOptions]=\"{standalone: true}\"\r\n                                                         (onSave)=\"saveParameter(param)\"\r\n                                                         [uniqueKey]=\"param.key\">\r\n                                            </inline-edit>\r\n                                        </td>\r\n                                    </tr>\r\n                                    </tbody>\r\n                                </table>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                <button\r\n                        type=\"button\"\r\n                        class=\"btn btn-primary\"\r\n                        data-dismiss=\"modal\"\r\n                        [disabled]=\"readyForSave == false\"\r\n                        (click)=\"addEntity()\">\r\n                    Save changes\r\n                </button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n  <button\r\n          class=\"center-block btn btn-primary\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"clear()\"\r\n          [attr.data-target]=\"'#addEntity'\">\r\n    <i class=\"fa fa-plus\"></i> Add new\r\n  </button>\r\n</div>\r\n"
 
 /***/ },
 
@@ -105555,7 +105707,7 @@ module.exports = "<!-- Modal for parameter appending -->\r\n<div class=\"modal f
 /***/ "./src/app/configuration/components/templates/resource-subentities-table.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for entity appending -->\n<div class=\"modal fade\" id=\"editEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"editEntityLabel\">\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title leftAlign\" id=\"editEntityLabel\">Edit {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\n            </div>\n            <br/>\n            <div class=\"modal-body\">\n              <div id=\"smartwizard{{entityType}}\" style=\"height: 95%\">\n                <ul>\n                      <li>\n                        <a [attr.href]=\"'#name'\">\n                          Name<br />\n                          <small>Name of {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#additional'\">\n                          Additional<br />\n                          <small>Additional {{activeEntity.getName()}}-related members</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#parameters'\">\n                          Parameters<br />\n                          <small>Parameters for {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#save'\">\n                          Save<br />\n                          <small>Saving the {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                </ul>\n\n                <div style=\"height:100%\">\n                  <div id=\"name\" class=\"row\" style=\"margin-top: 100px;\">\n                    <div class=\"item form-group\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"nameInput\"\n                        style=\"margin-top: 7px;\">\n                          Name <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"nameInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'At least 4 symbols'\"\n                          placeholder=\"input the name of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.name\">\n                      </div>\n                    </div>\n                  </div>\n                  <div id=\"additional\" class=\"row\" style=\"margin-top: 100px;\">\n                    <!-- input for operation -->\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'operation'\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"invtoInput\"\n                        style=\"margin-top: 7px;\">\n                          Invocation timeout <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"invtoInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'Input number (0 for infinite)'\"\n                          placeholder=\"input the invocation timeout of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.invokto\">\n                      </div>\n                    </div>\n\n                    <!-- input for attribute -->\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'attribute'\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"rwtoInput\"\n                        style=\"margin-top: 7px;\">\n                          Read/write timeout <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"rwtoInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'Input number (0 for infinite)'\"\n                          placeholder=\"input the read/write timeout of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.rwto\">\n                      </div>\n                    </div>\n                  </div>\n\n\n                  <!-- PARAMETERS -->\n                  <div id=\"parameters\" class=\"row\" style=\"margin-top: 10px;\">\n                    <div class=\"col-md-12\" id=\"tableParamsRow{{entityType}}\">\n                       <table class=\"table\">\n                          <thead>\n                          <tr>\n                            <th>#</th>\n                            <th>Key</th>\n                            <th>Value</th>\n                          </tr>\n                          </thead>\n                          <tbody>\n                          <tr *ngFor=\"let param of activeEntity.parameters\">\n                            <td>\n                              <span\n                                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\n                                (click)=\"checkAndRemoveParameter(param)\"\n                                aria-hidden=\"true\">\n                              </span>\n                            </td>\n                            <td>{{param.key}}</td>\n                            <td>\n                              <inline-edit [(ngModel)]=\"param.value\"\n                                           [ngModelOptions]=\"{standalone: true}\"\n                                           (onSave)=\"saveParameter(param)\"\n                                           [uniqueKey]=\"param.key\">\n                              </inline-edit>\n                            </td>\n                          </tr>\n                          <tr>\n                            <td></td>\n                            <td></td>\n                            <td align=\"right\">\n                              <button\n                                type=\"button\"\n                                class=\"btn btn-primary btn-sm\"\n                                (click)=\"addNewParameter()\">\n                                Add new <i class=\"fa fa-caret-down\" aria-hidden=\"true\"></i>\n                              </button>\n                            </td>\n                          </tr>\n                          </tbody>\n                      </table>\n                    </div>\n\n                    <div class=\"col-md-12\" style=\"display: none; margin-top: 15px\" id=\"newParamRow{{entityType}}\">\n                      <div class=\"row\">\n                        <div class=\"col-md-5 col-md-offset-3\" *ngIf=\"currentNewParam\">\n                          <select\n                                  style=\"width: 350px\"\n                                  id=\"newParamSelect{{entityType}}\"\n                                  [(ngModel)]=\"currentNewParam.key\"\n                                  class=\"select2_group form-control\">\n                            <optgroup label=\"Custom parameter\">\n                              <option value=\"custom\">Append your own param</option>\n                            </optgroup>\n                            <optgroup label=\"Suggested parameter\" *ngIf=\"activeEntity.paramDescriptors | async\">\n                              <option\n                                *ngFor=\"let descriptor of activeEntity.paramDescriptors | async\"\n                                [attr.required]=\"descriptor.required\"\n                                [attr.pattern]=\"descriptor.pattern\"\n                                [attr.defaultValue]=\"descriptor.defaultValue\"\n                                [value]=\"descriptor.name\">\n                                {{descriptor.name}}\n                              </option>\n                            </optgroup>\n                          </select>\n                        </div>\n                      </div>\n                      <div class=\"row\" style=\"margin: 10px 0;\">\n                        <div class=\"col-md-4 col-md-offset-4\">\n                          <div class=\"form-group row\" *ngIf=\"currentNewParam.key == 'custom'\">\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Parameter name</label>\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the name\" [(ngModel)]=\"customKey\">\n                            </div>\n                          </div>\n                          <div class=\"form-group row\">\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Value</label>\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the value\" [(ngModel)]=\"currentNewParam.value\">\n                            </div>\n                          </div>\n                        </div>\n                      </div>\n                      <div class=\"row\" style=\"margin-top:15px;\">\n                        <div class=\"col-md-4 col-md-offset-4\">\n                          <button class=\"btn\" (click)=\"cancelAppendingParam()\">\n                             Cancel\n                          </button>\n                          <button class=\"btn btn-primary\"  (click)=\"appendParameter()\" style=\"margin-left:10px\">\n                            Append parameter\n                          </button>\n                        </div>\n                      </div>\n                    </div>\n\n                  </div>\n                  <!-- PARAMETERS -->\n\n\n                  <div id=\"save\" class=\"row\" style=\"margin-top: 20px;\">\n                    <pre class=\"line-numbers\"><code class=\"language-javascript\" [innerHTML]=\"htmlViewForEntity()\"></code></pre>\n                    <button\n                      type=\"button\"\n                      class=\"btn btn-primary\"\n                      [disabled]=\"readyForSave == false\"\n                      (click)=\"saveEntity()\">\n                      Save changes\n                    </button>\n                  </div>\n                </div>\n              </div>\n            </div>\n           <!-- <div class=\"modal-footer\">\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n            </div>-->\n        </div>\n    </div>\n</div>\n\n<table class=\"table\">\n    <thead>\n    <tr>\n        <th>Name</th>\n        <th>Actions</th>\n    </tr>\n    </thead>\n    <tbody>\n    <tr *ngFor=\"let entity of entities\">\n\n        <td>{{entity.name}}</td>\n        <td>\n            <div class=\"btn-group\" role=\"group\">\n                <button\n                        type=\"button\"\n                        data-toggle=\"modal\"\n                        (click)=\"setEntity(entity)\"\n                        [attr.data-target]=\"'#editEntity' + entityType\"\n                        class=\"btn btn-default btn-xs\">\n                    Edit\n                </button>\n                <button type=\"button\" class=\"btn btn-default btn-xs\" (click)=\"remove(entity)\">Remove</button>\n            </div>\n        </td>\n    </tr>\n    <tr>\n      <td></td>\n      <td>\n        <button\n          type=\"button\"\n          data-toggle=\"modal\"\n          (click)=\"addNewEntity()\"\n          [attr.data-target]=\"'#editEntity' + entityType\"\n          class=\"btn btn-default btn-xs\">\n          Add new\n        </button>\n      </td>\n    </tr>\n    </tbody>\n</table>\n"
+module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"editEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"editEntityLabel\">\r\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"editEntityLabel\">Edit {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizard{{entityType}}\" style=\"height: 95%\">\r\n                <ul>\r\n                      <li>\r\n                        <a [attr.href]=\"'#name'\">\r\n                          Name<br />\r\n                          <small>Name of {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#additional'\">\r\n                          Additional<br />\r\n                          <small>Additional {{activeEntity.getName()}}-related members</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#parameters'\">\r\n                          Parameters<br />\r\n                          <small>Parameters for {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#save'\">\r\n                          Save<br />\r\n                          <small>Saving the {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n                  <div id=\"name\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"nameInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Name <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"nameInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          [tooltip]=\"'At least 4 symbols'\"\r\n                          placeholder=\"input the name of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.name\">\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                  <div id=\"additional\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <!-- input for operation -->\r\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'operation'\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"invtoInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Invocation timeout <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"invtoInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          [tooltip]=\"'Input number (0 for infinite)'\"\r\n                          placeholder=\"input the invocation timeout of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.invokto\">\r\n                      </div>\r\n                    </div>\r\n\r\n                    <!-- input for attribute -->\r\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'attribute'\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"rwtoInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Read/write timeout <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"rwtoInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          [tooltip]=\"'Input number (0 for infinite)'\"\r\n                          placeholder=\"input the read/write timeout of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.rwto\">\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n\r\n                  <!-- PARAMETERS -->\r\n                  <div id=\"parameters\" class=\"row\" style=\"margin-top: 10px;\">\r\n                    <div class=\"col-md-12\" id=\"tableParamsRow{{entityType}}\">\r\n                       <table class=\"table\">\r\n                          <thead>\r\n                          <tr>\r\n                            <th>#</th>\r\n                            <th>Key</th>\r\n                            <th>Value</th>\r\n                          </tr>\r\n                          </thead>\r\n                          <tbody>\r\n                          <tr *ngFor=\"let param of activeEntity.parameters\">\r\n                            <td>\r\n                              <span\r\n                                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                (click)=\"checkAndRemoveParameter(param)\"\r\n                                aria-hidden=\"true\">\r\n                              </span>\r\n                            </td>\r\n                            <td>{{param.key}}</td>\r\n                            <td>\r\n                              <inline-edit [(ngModel)]=\"param.value\"\r\n                                           [ngModelOptions]=\"{standalone: true}\"\r\n                                           (onSave)=\"saveParameter(param)\"\r\n                                           [uniqueKey]=\"param.key\">\r\n                              </inline-edit>\r\n                            </td>\r\n                          </tr>\r\n                          <tr>\r\n                            <td></td>\r\n                            <td></td>\r\n                            <td align=\"right\">\r\n                              <button\r\n                                type=\"button\"\r\n                                class=\"btn btn-primary btn-sm\"\r\n                                (click)=\"addNewParameter()\">\r\n                                Add new <i class=\"fa fa-caret-down\" aria-hidden=\"true\"></i>\r\n                              </button>\r\n                            </td>\r\n                          </tr>\r\n                          </tbody>\r\n                      </table>\r\n                    </div>\r\n\r\n                    <div class=\"col-md-12\" style=\"display: none; margin-top: 15px\" id=\"newParamRow{{entityType}}\">\r\n                      <div class=\"row\">\r\n                        <div class=\"col-md-5 col-md-offset-3\" *ngIf=\"currentNewParam\">\r\n                          <select\r\n                                  style=\"width: 350px\"\r\n                                  id=\"newParamSelect{{entityType}}\"\r\n                                  [(ngModel)]=\"currentNewParam.key\"\r\n                                  class=\"select2_group form-control\">\r\n                            <optgroup label=\"Custom parameter\">\r\n                              <option value=\"custom\">Append your own param</option>\r\n                            </optgroup>\r\n                            <optgroup label=\"Suggested parameter\" *ngIf=\"activeEntity.paramDescriptors | async\">\r\n                              <option\r\n                                *ngFor=\"let descriptor of activeEntity.paramDescriptors | async\"\r\n                                [attr.required]=\"descriptor.required\"\r\n                                [attr.pattern]=\"descriptor.pattern\"\r\n                                [attr.defaultValue]=\"descriptor.defaultValue\"\r\n                                [value]=\"descriptor.name\">\r\n                                {{descriptor.name}}\r\n                              </option>\r\n                            </optgroup>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"row\" style=\"margin: 10px 0;\">\r\n                        <div class=\"col-md-4 col-md-offset-4\">\r\n                          <div class=\"form-group row\" *ngIf=\"currentNewParam.key == 'custom'\">\r\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Parameter name</label>\r\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the name\" [(ngModel)]=\"customKey\">\r\n                            </div>\r\n                          </div>\r\n                          <div class=\"form-group row\">\r\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Value</label>\r\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the value\" [(ngModel)]=\"currentNewParam.value\">\r\n                            </div>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"row\" style=\"margin-top:15px;\">\r\n                        <div class=\"col-md-4 col-md-offset-4\">\r\n                          <button class=\"btn\" (click)=\"cancelAppendingParam()\">\r\n                             Cancel\r\n                          </button>\r\n                          <button class=\"btn btn-primary\"  (click)=\"appendParameter()\" style=\"margin-left:10px\">\r\n                            Append parameter\r\n                          </button>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                  </div>\r\n                  <!-- PARAMETERS -->\r\n\r\n\r\n                  <div id=\"save\" class=\"row\" style=\"margin-top: 20px;\">\r\n                    <pre class=\"line-numbers\"><code class=\"language-javascript\" [innerHTML]=\"htmlViewForEntity()\"></code></pre>\r\n                    <button\r\n                      type=\"button\"\r\n                      class=\"btn btn-primary\"\r\n                      [disabled]=\"readyForSave == false\"\r\n                      (click)=\"saveEntity()\">\r\n                      Save changes\r\n                    </button>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n           <!-- <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n            </div>-->\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        <th>Name</th>\r\n        <th>Actions</th>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr *ngFor=\"let entity of entities\">\r\n\r\n        <td>{{entity.name}}</td>\r\n        <td>\r\n            <div class=\"btn-group\" role=\"group\">\r\n                <button\r\n                        type=\"button\"\r\n                        data-toggle=\"modal\"\r\n                        (click)=\"setEntity(entity)\"\r\n                        [attr.data-target]=\"'#editEntity' + entityType\"\r\n                        class=\"btn btn-default btn-xs\">\r\n                    Edit\r\n                </button>\r\n                <button type=\"button\" class=\"btn btn-default btn-xs\" (click)=\"remove(entity)\">Remove</button>\r\n            </div>\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n      <td></td>\r\n      <td>\r\n        <button\r\n          type=\"button\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"addNewEntity()\"\r\n          [attr.data-target]=\"'#editEntity' + entityType\"\r\n          class=\"btn btn-default btn-xs\">\r\n          Add new\r\n        </button>\r\n      </td>\r\n    </tr>\r\n    </tbody>\r\n</table>\r\n"
 
 /***/ },
 
