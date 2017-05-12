@@ -104097,15 +104097,51 @@ var NumberOfResourcesChart = (function (_super) {
         return _value;
     };
     NumberOfResourcesChart.prototype.draw = function () {
+        var _thisReference = this;
+        nv.addGraph(function () {
+            var chart = nv.models.lineWithFocusChart();
+            chart.interactiveUpdateDelay(0);
+            d3.rebind('clipVoronoi');
+            chart.clipVoronoi(false);
+            chart.xAxis.tickFormat(function (d) {
+                return d3.time.format('%X')(new Date(d));
+            });
+            chart.xScale(d3.time.scale());
+            chart.yAxis
+                .tickFormat(d3.format('d'))
+                .axisLabel(_thisReference.getAxisY().unitOfMeasurement);
+            chart.x2Axis.tickFormat(function (d) { return ''; });
+            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
+                .transition().call(chart);
+            nv.utils.windowResize(chart.update);
+            _thisReference._chartObject = chart;
+            return chart;
+        });
     };
     NumberOfResourcesChart.prototype.prepareDatasets = function () {
+        var _value = [{ key: this.group, values: [] }];
+        for (var i = 0; i < this.chartData.length; i++) {
+            _value[0].values.push({ x: this.chartData[i].timestamp, y: this.chartData[i].count });
+        }
+        return _value;
     };
     NumberOfResourcesChart.prototype.newValues = function (_data) {
         if (document.hidden)
             return;
         console.log("Data received for chart is: ", _data);
-        this.chartData = _data;
+        this.chartData.push(_data[0]);
         if (this._chartObject != undefined) {
+            var _ds = d3.select('#' + this.id).datum();
+            if (_ds.length == 0) {
+                _ds = this.prepareDatasets();
+            }
+            else {
+                _ds[0].values.push({ x: _data[0].timestamp, y: _data[0].count });
+                if ((new Date().getTime() - _ds[0].values[0].x.getTime()) > this.preferences["interval"] * 60 * 1000) {
+                    _ds[0].values.shift(); // remove first element in case it's out of interval range
+                }
+            }
+            this._chartObject.update();
         }
     };
     NumberOfResourcesChart.prototype.newValue = function (_data) {
@@ -104989,7 +105025,6 @@ var Factory = (function () {
             if (_json["preferences"] != undefined) {
                 _chart.preferences = _json["preferences"];
             }
-            console.log("New chart has been instantiated from the json data object: ", _chart);
             return _chart;
         }
     };
@@ -107028,7 +107063,6 @@ var ChartService = (function () {
         for (var i = 0; i < _chs.length; i++) {
             _chArrJson.push(_chs[i].toJSON());
         }
-        console.log("Computing chart for following: ", _chArrJson);
         this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
@@ -107303,7 +107337,7 @@ var ApiClient = (function () {
             }
             return emptyfyIfError ? Observable_1.Observable.empty() : error;
         }).do((function (data) {
-            //  console.debug("Received data: ", data)
+            console.debug("Received data: ", data);
         }), (function (error) {
             console.log("Error occurred: ", error);
             $("#overlay").fadeOut();

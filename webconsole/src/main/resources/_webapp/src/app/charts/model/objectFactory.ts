@@ -118,7 +118,6 @@ export class Factory {
             if (_json["preferences"] != undefined) {
                 _chart.preferences = _json["preferences"];
             }
-            console.log("New chart has been instantiated from the json data object: ", _chart);
             return _chart;
         }
     }
@@ -176,7 +175,6 @@ export class Factory {
                     _chart.setSourceAttribute(sourceAttribute);
                 }
             }
-
             return _chart;
     }
 }

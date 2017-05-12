@@ -153,12 +153,12 @@ var Dashboard = (function () {
     Dashboard.prototype.initWizard = function () {
         $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
-            disabledSteps: this.selectedChartType == "statuses" ? [1, 2] : [],
+            disabledSteps: this.selectedChartType == "statuses" || this.selectedChartType == "resources" ? [1, 2] : [],
             useURLhash: false,
             showStepURLhash: false,
             transitionEffect: 'fade'
         });
-        if (this.selectedChartType == "statuses") {
+        if (this.selectedChartType == "statuses" || this.selectedChartType == "resources") {
             $(Dashboard.wizardId).find("#instances").parent().addClass("disabled");
             $(Dashboard.wizardId).find("#metric").parent().addClass("disabled");
         }
