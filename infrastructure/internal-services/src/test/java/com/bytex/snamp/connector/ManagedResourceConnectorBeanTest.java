@@ -170,7 +170,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
         connector.field1 = "123";
         final MBeanAttributeInfo md;
-        assertNotNull(md = connector.getAttributeSupport().addAttribute("p1", makeAttributeConfig("property1")));
+        md = connector.getAttributeSupport().addAttribute("p1", makeAttributeConfig("property1")).orElseThrow(AssertionError::new);
         //enables notifications
         assertNotNull(connector.getNotificationSupport().enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final Mailbox listener = MailboxFactory.newMailbox();

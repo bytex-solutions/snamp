@@ -19,7 +19,7 @@
 
     <feature name="snamp-actuator-connector" description="SNAMP connector for Spring Actuator" version="${snamp.connector.actuator.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-framework</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-json-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-web-support</feature>
         <bundle start="true">mvn:com.bytex.snamp.connectors/actuator/${snamp.connector.actuator.version}</bundle>
     </feature>
 

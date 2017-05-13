@@ -5,6 +5,7 @@ import com.bytex.snamp.connector.ManagedResourceAggregatedService;
 
 import javax.management.*;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -58,15 +59,15 @@ public interface AttributeSupport extends ManagedResourceAggregatedService {
      * @return Metadata of created attribute.
      * @since 2.0
      */
-    MBeanAttributeInfo addAttribute(final String attributeName, final AttributeDescriptor descriptor);
+    Optional<? extends MBeanAttributeInfo> addAttribute(final String attributeName, final AttributeDescriptor descriptor);
 
     /**
      * Removes attribute from the managed resource.
      * @param attributeName Name of the attribute to remove.
-     * @return An instance of removed attribute; or {@literal null}, if attribute with the specified name doesn't exist.
+     * @return An instance of removed attribute; or {@link Optional#empty()}, if attribute with the specified name doesn't exist.
      * @since 2.0
      */
-    MBeanAttributeInfo removeAttribute(final String attributeName);
+    Optional<? extends MBeanAttributeInfo> removeAttribute(final String attributeName);
 
     /**
      * Removes all attributes except specified in the collection.
@@ -145,9 +146,9 @@ public interface AttributeSupport extends ManagedResourceAggregatedService {
     /**
      * Gets attribute metadata.
      * @param attributeName The name of the attribute.
-     * @return The attribute metadata; or {@literal null}, if attribute doesn't exist.
+     * @return The attribute metadata; or {@link Optional#empty()}, if attribute doesn't exist.
      */
-    MBeanAttributeInfo getAttributeInfo(final String attributeName);
+    Optional<? extends MBeanAttributeInfo> getAttributeInfo(final String attributeName);
 
     /**
      * Determines whether this repository can be populated with attributes using call of {@link #expandAttributes()}.

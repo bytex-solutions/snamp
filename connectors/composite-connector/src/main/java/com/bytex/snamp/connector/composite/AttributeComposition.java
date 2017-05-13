@@ -133,9 +133,8 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
         final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType)
                 .orElseThrow(() -> new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType))));
         //process regular attribute
-        final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor);
-        if (underlyingAttribute == null)
-            throw AliasAttribute.attributeNotFound(connectorType, attributeName);
+        final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor)
+                .orElseThrow(() -> AliasAttribute.attributeNotFound(connectorType, attributeName));
         //check whether the type of function is compatible with type of attribute
         return new AliasAttribute(connectorType, underlyingAttribute);
     }

@@ -245,22 +245,25 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @return The metadata of deleted operation.
      */
     @Override
-    public final M remove(final String operationID) {
+    public final Optional<M> remove(final String operationID) {
         final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, operationID, AbstractOperationRepository<M>::removeImpl);
-        if (metadata != null)
+        if (metadata == null)
+            return Optional.empty();
+        else {
             disconnectOperation(metadata);
-        return metadata;
+            return Optional.of(metadata);
+        }
     }
 
     /**
      * Removes operation from the managed resource.
      *
      * @param operationName Name of the operation to remove.
-     * @return An instance of removed operation; or {@literal null}, if operation with the specified name doesn't exist.
+     * @return An instance of removed operation; or {@link Optional#empty()}, if operation with the specified name doesn't exist.
      * @since 2.0
      */
     @Override
-    public final M removeOperation(final String operationName) {
+    public final Optional<M> removeOperation(final String operationName) {
         return remove(operationName);
     }
 
@@ -315,13 +318,15 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @return Metadata of created operation.
      */
     @Override
-    public final M enableOperation(final String operationName, final OperationDescriptor descriptor) {
+    public final Optional<M> enableOperation(final String operationName, final OperationDescriptor descriptor) {
+        M result;
         try{
-            return writeLock.call(SingleResourceGroup.INSTANCE, () -> enableOperationImpl(operationName, descriptor), null);
+            result = writeLock.call(SingleResourceGroup.INSTANCE, () -> enableOperationImpl(operationName, descriptor), null);
         } catch (final Exception e) {
             getLogger().log(Level.WARNING, String.format("Failed to enable operation '%s'", operationName), e);
-            return null;
+            result = null;
         }
+        return Optional.ofNullable(result);
     }
 
     private Logger getLogger(){
@@ -342,11 +347,11 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * Returns a metadata of the operation.
      *
      * @param operationID The name of the operation.
-     * @return The operation metadata; or {@literal null}, if operation doesn't exist.
+     * @return The operation metadata; or {@link Optional#empty()}, if operation doesn't exist.
      */
     @Override
-    public final M getOperationInfo(final String operationID) {
-        return readLock.apply(SingleResourceGroup.INSTANCE, operations, operationID, Map::get);
+    public final Optional<M> getOperationInfo(final String operationID) {
+        return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, operations, operationID, Map::get));
     }
 
     /**
@@ -426,7 +431,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     @Override
-    public final M get(final String operationID) {
+    public final Optional<M> get(final String operationID) {
         return getOperationInfo(operationID);
     }
 
@@ -436,6 +441,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     @Override
+    @Nonnull
     public final Iterator<M> iterator() {
         return readLock.apply(SingleResourceGroup.INSTANCE, operations.values(), Collection::iterator);
     }

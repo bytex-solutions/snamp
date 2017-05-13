@@ -12,6 +12,7 @@ import java.beans.BeanInfo;
 import java.beans.MethodDescriptor;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
@@ -58,7 +59,8 @@ public abstract class JavaBeanOperationRepository extends AbstractOperationRepos
                     config.setInvocationTimeout(OperationConfiguration.TIMEOUT_FOR_SMART_MODE);
                     return enableOperation(method.getName(), new OperationDescriptor(config));
                 })
-                .filter(Objects::nonNull)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 

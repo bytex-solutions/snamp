@@ -155,11 +155,13 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @ManagementOperation(description = "Resets the specified metrics")
     public boolean resetMetric(@OperationParameter(name = "attributeName", description = "The name of the attribute to reset") final String attributeName) {
-        final SyntheticAttribute attribute = attributes.getAttributeInfo(attributeName);
-        final boolean success;
-        if (success = attribute instanceof MetricHolderAttribute<?, ?>)
-            ((MetricHolderAttribute<?, ?>) attribute).reset();
-        return success;
+        return attributes.getAttributeInfo(attributeName)
+                .flatMap(Convert.toType(MetricHolderAttribute.class))
+                .map(attribute -> {
+                    attribute.reset();
+                    return true;
+                })
+                .orElse(false);
     }
 
     public final void dispatch(final Map<String, ?> headers, final Object body) throws Exception {

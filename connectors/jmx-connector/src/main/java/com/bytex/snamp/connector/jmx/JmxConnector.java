@@ -246,7 +246,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
                         config.setInvocationTimeout(OperationConfiguration.TIMEOUT_FOR_SMART_MODE);
                         return enableOperation(operationInfo.getName(), new OperationDescriptor(config));
                     })
-                    .filter(Objects::nonNull)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
                     .collect(Collectors.toList());
         }
 
@@ -367,7 +368,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
                         config.put(OBJECT_NAME_PROPERTY, globalObjectName.getCanonicalName());
                         return addAttribute(attributeInfo.getName(), new AttributeDescriptor(config));
                     })
-                    .filter(Objects::nonNull)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
                     .collect(Collectors.toList());
         }
 
@@ -523,7 +525,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
                         final String notifType = ArrayUtils.getFirst(notificationInfo.getNotifTypes()).orElseThrow(AssertionError::new);
                         return enableNotifications(notifType, new NotificationDescriptor(config));
                     })
-                    .filter(Objects::nonNull)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
                     .collect(Collectors.toList());
         }
 

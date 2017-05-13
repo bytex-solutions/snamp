@@ -33,6 +33,11 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
+    /**
+     * Demonstration mode is enabled.
+     */
+    public static final boolean DEMO_MODE = Boolean.getBoolean("com.bytex.snamp.demo");
+
     @SuppressWarnings("unchecked")
     private static final Function CALL_SILENT_FN;
 

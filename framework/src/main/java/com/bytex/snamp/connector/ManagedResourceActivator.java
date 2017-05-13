@@ -109,14 +109,15 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             return getParser().getFactoryPersistentID(getConnectorType());
         }
 
-        private static <I extends FeatureConfiguration, O extends MBeanFeatureInfo> void updateFeatures(final BiFunction<String, I, O> featureAdder,
+        private static <I extends FeatureConfiguration, O extends MBeanFeatureInfo> void updateFeatures(final BiFunction<String, I, Optional<O>> featureAdder,
                                                                                                         final Function<O, String> nameResolver,
                                                                                                         final Consumer<Set<String>> retainer,
                                                                                                         final Map<String, ? extends I> features) {
             final Set<String> addedFeatures = new HashSet<>(10);
             features.entrySet().stream()
                     .map(entry -> featureAdder.apply(entry.getKey(), entry.getValue()))
-                    .filter(Objects::nonNull)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
                     .map(nameResolver)
                     .forEach(addedFeatures::add);
             retainer.accept(addedFeatures);

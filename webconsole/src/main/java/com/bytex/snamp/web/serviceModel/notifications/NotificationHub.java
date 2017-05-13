@@ -56,7 +56,7 @@ final class NotificationHub extends AbstractManagedResourceTracker<NotificationL
     public void handleNotification(final Notification notification, final Object handback) {
         final String resourceName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
         extractFromNotification(notification, NotificationSupport.class)
-                .map(support -> support.getNotificationInfo(notification.getType()))
+                .flatMap(support -> support.getNotificationInfo(notification.getType()))
                 .ifPresent(metadata -> handleNotification(new NotificationEvent(resourceName, metadata, notification)));
     }
 

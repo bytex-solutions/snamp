@@ -6,6 +6,7 @@ import javax.management.MBeanException;
 import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -41,15 +42,15 @@ public interface OperationSupport extends ManagedResourceAggregatedService {
      * @return Metadata of created operation.
      * @since 2.0
      */
-    MBeanOperationInfo enableOperation(final String operationName, final OperationDescriptor descriptor);
+    Optional<? extends MBeanOperationInfo> enableOperation(final String operationName, final OperationDescriptor descriptor);
 
     /**
      * Removes operation from the managed resource.
      * @param operationName Name of the operation to remove.
-     * @return An instance of removed operation; or {@literal null}, if operation with the specified name doesn't exist.
+     * @return An instance of removed operation; or {@link Optional#empty()}, if operation with the specified name doesn't exist.
      * @since 2.0
      */
-    MBeanOperationInfo removeOperation(final String operationName);
+    Optional<? extends MBeanOperationInfo> removeOperation(final String operationName);
 
     /**
      * Disables all operations except specified in the collection.
@@ -87,9 +88,9 @@ public interface OperationSupport extends ManagedResourceAggregatedService {
     /**
      * Returns a metadata of the operation.
      * @param operationName The name of the operation.
-     * @return The operation metadata; or {@literal null}, if operation doesn't exist.
+     * @return The operation metadata; or {@link Optional#empty()}, if operation doesn't exist.
      */
-    MBeanOperationInfo getOperationInfo(final String operationName);
+    Optional<? extends MBeanOperationInfo> getOperationInfo(final String operationName);
 
     /**
      * Determines whether this repository can be populated with operations using call of {@link #expandOperations()}.

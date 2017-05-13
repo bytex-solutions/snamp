@@ -112,8 +112,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return The attribute metadata; or {@literal null}, if attribute doesn't exist.
      */
     @Override
-    public final M getAttributeInfo(final String attributeName) {
-        return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributeName, Map::get);
+    public final Optional<M> getAttributeInfo(final String attributeName) {
+        return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributeName, Map::get));
     }
 
     protected final AttributeList getAttributesSequential() throws MBeanException, ReflectionException {
@@ -329,14 +329,16 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return Metadata of created attribute.
      */
     @Override
-    public final M addAttribute(final String attributeName,
+    public final Optional<M> addAttribute(final String attributeName,
                                 final AttributeDescriptor descriptor) {
+        M result;
         try {
-            return writeLock.call(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(attributeName, descriptor), null);
+            result = writeLock.call(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(attributeName, descriptor), null);
         } catch (final Exception e) {
             getLogger().log(Level.SEVERE, String.format("Failed to connect attribute '%s'", attributeName), e);
-            return null;
+            result = null;
         }
+        return Optional.ofNullable(result);
     }
 
     /**
@@ -469,22 +471,25 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return The metadata of deleted attribute.
      */
     @Override
-    public final M remove(final String attributeID) {
+    public final Optional<M> remove(final String attributeID) {
         final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, attributeID, AbstractAttributeRepository<M>::removeImpl);
-        if (metadata != null)
+        if (metadata == null)
+            return Optional.empty();
+        else {
             disconnectAttribute(metadata);
-        return metadata;
+            return Optional.of(metadata);
+        }
     }
 
     /**
      * Removes attribute from the managed resource.
      *
      * @param attributeName Name of the attribute to remove.
-     * @return An instance of removed attribute; or {@literal null}, if attribute with the specified name doesn't exist.
+     * @return An instance of removed attribute; or {@link Optional#empty()}, if attribute with the specified name doesn't exist.
      * @since 2.0
      */
     @Override
-    public final M removeAttribute(final String attributeName) {
+    public final Optional<M> removeAttribute(final String attributeName) {
         return remove(attributeName);
     }
 
@@ -536,7 +541,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     @Override
-    public final M get(final String attributeID) {
+    public final Optional<M> get(final String attributeID) {
         return getAttributeInfo(attributeID);
     }
 

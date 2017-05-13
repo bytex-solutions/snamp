@@ -44,9 +44,9 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        final CompositeNotification compositeNotification = getNotificationInfo(notification.getType());
-        if (compositeNotification != null)
-            fire(NotificationDescriptor.getName(compositeNotification), notification.getMessage(), notification.getSequenceNumber(), notification.getTimeStamp(), notification.getUserData());
+        final Optional<CompositeNotification> compositeNotification = getNotificationInfo(notification.getType());
+        if (compositeNotification.isPresent())
+            fire(NotificationDescriptor.getName(compositeNotification.get()), notification.getMessage(), notification.getSequenceNumber(), notification.getTimeStamp(), notification.getUserData());
     }
 
     /**
@@ -65,9 +65,8 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(metadata);
         final NotificationSupport support = provider.getNotificationSupport(connectorType)
                 .orElseThrow(() -> new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support notifications", connectorType))));
-        final MBeanNotificationInfo underlyingNotif = support.enableNotifications(notifType, metadata);
-        if (underlyingNotif == null)
-            throw new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable notification '%s'", connectorType, notifType)));
+        final MBeanNotificationInfo underlyingNotif = support.enableNotifications(notifType, metadata)
+                .orElseThrow(() -> new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable notification '%s'", connectorType, notifType))));
         //update state of subscription
         if (subscription.get(connectorType).isEmpty()) {
             support.addNotificationListener(this, null, null);

@@ -69,11 +69,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     }
 
     private static MBeanAttributeInfo getMetadata(final String attributeName, final AttributeSupport attributeSupport) throws AttributeNotFoundException {
-        final MBeanAttributeInfo attributeInfo = attributeSupport.getAttributeInfo(attributeName);
-        if(attributeInfo == null)
-            throw JMExceptionUtils.attributeNotFound(attributeName);
-        else
-            return attributeInfo;
+        return attributeSupport.getAttributeInfo(attributeName)
+                .orElseThrow(() -> JMExceptionUtils.attributeNotFound(attributeName));
     }
 
     /**

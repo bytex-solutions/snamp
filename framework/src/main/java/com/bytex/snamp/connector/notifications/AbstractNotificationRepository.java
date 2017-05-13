@@ -282,13 +282,15 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return Metadata of created notification.
      */
     @Override
-    public final M enableNotifications(final String category, final NotificationDescriptor descriptor) {
+    public final Optional<M> enableNotifications(final String category, final NotificationDescriptor descriptor) {
+        M result;
         try {
-            return writeLock.call(SingleResourceGroup.INSTANCE, () -> enableNotificationsImpl(category, descriptor), null);
+            result = writeLock.call(SingleResourceGroup.INSTANCE, () -> enableNotificationsImpl(category, descriptor), null);
         } catch (final Exception e) {
             getLogger().log(Level.WARNING, String.format("Failed to enable notifications '%s'", category), e);
-            return null;
+            result = null;
         }
+        return Optional.ofNullable(result);
     }
 
     private M removeImpl(final String category) {
@@ -305,21 +307,24 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return Metadata of deleted notification.
      */
     @Override
-    public final M remove(final String category) {
+    public final Optional<M> remove(final String category) {
         final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, category, AbstractNotificationRepository<M>::removeImpl);
-        if (metadata != null)
+        if (metadata == null)
+            return Optional.empty();
+        else {
             disconnectNotifications(metadata);
-        return metadata;
+            return Optional.of(metadata);
+        }
     }
 
     /**
      * Disables notifications of the specified category.
      * @param category Category of notifications to disable.
-     * @return An instance of disabled notification category; or {@literal null}, if notification with the specified category doesn't exist.
+     * @return An instance of disabled notification category; or {@link Optional#empty()}, if notification with the specified category doesn't exist.
      * @since 2.0
      */
     @Override
-    public final M disableNotifications(final String category) {
+    public final Optional<M> disableNotifications(final String category) {
         return remove(category);
     }
 
@@ -411,8 +416,8 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     @Override
-    public final M getNotificationInfo(final String category) {
-        return readLock.apply(SingleResourceGroup.INSTANCE, notifications, category, Map::get);
+    public final Optional<M> getNotificationInfo(final String category) {
+        return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, notifications, category, Map::get));
     }
 
     private Logger getLogger(){
@@ -459,7 +464,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     @Override
-    public final M get(final String notifType) {
+    public final Optional<M> get(final String notifType) {
         return getNotificationInfo(notifType);
     }
 

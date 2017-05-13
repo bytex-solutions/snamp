@@ -660,7 +660,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                         config.setAutomaticallyAdded(true);
                         return addAttribute(binding.getOid().toDottedString(), new AttributeDescriptor(config));
                     })
-                    .filter(Objects::nonNull)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
                     .collect(Collectors.toList());
         }
 

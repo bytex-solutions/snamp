@@ -11,6 +11,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.management.MBeanFeatureInfo;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -82,9 +83,9 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     /**
      * Gets feature by its ID.
      * @param featureID ID of the feature.
-     * @return Feature instance; or {@literal null}, if feature with the specified ID doesn't exist.
+     * @return Feature instance; or {@link Optional#empty()}, if feature with the specified ID doesn't exist.
      */
-    public abstract F get(final String featureID);
+    public abstract Optional<F> get(final String featureID);
 
     /**
      * Gets the size of this repository.
@@ -97,7 +98,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @param featureID ID of the feature to remove.
      * @return Metadata of the removed feature.
      */
-    public abstract F remove(final String featureID);
+    public abstract Optional<F> remove(final String featureID);
 
     /**
      * Gets a set of identifiers.
@@ -113,7 +114,8 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     protected final Collection<F> retainAll(final Set<String> featureIDs) {
         return Sets.difference(getIDs(), featureIDs).stream()
                 .map(this::remove)
-                .filter(Objects::nonNull)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toSet());
     }
 

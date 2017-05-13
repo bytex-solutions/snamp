@@ -32,7 +32,7 @@ final class ActuatorAttributeRepository extends AbstractAttributeRepository<Spri
             assert config != null;
             config.setAutomaticallyAdded(true);
             config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
-            connectAttribute(field.getKey(), field.getValue(), new AttributeDescriptor(config)).ifPresent(result::add);
+            addAttribute(field.getKey(), new AttributeDescriptor(config)).ifPresent(result::add);
         });
         return result;
     }
@@ -49,7 +49,7 @@ final class ActuatorAttributeRepository extends AbstractAttributeRepository<Spri
         return Collections.emptyList();
     }
 
-    private Optional<SpringMetric<?>> connectAttribute(final String attributeName,
+    private static Optional<SpringMetric<?>> connectAttribute(final String attributeName,
                                              final JsonNode valueNode,
                                              final AttributeDescriptor descriptor) {
         if (valueNode == null)

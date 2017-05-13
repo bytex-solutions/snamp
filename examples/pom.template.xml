@@ -13,4 +13,7 @@
     <name>SNAMP Examples</name>
     <description>Example applications</description>
     <packaging>pom</packaging>
+    <modules>
+        <module>spring-app</module>
+    </modules>
 </project>

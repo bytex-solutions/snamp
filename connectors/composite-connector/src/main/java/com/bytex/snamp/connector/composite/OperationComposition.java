@@ -26,11 +26,9 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
         final OperationSupport support = provider.getOperationSupport(connectorType)
                 .orElseThrow(() -> operationsNotSupported(connectorType));
-        final MBeanOperationInfo underlyingOperation = support.enableOperation(operationName, descriptor);
-        if (underlyingOperation == null)
-            throw new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable operation '%s'", connectorType, operationName)));
-        else
-            return new CompositeOperation(connectorType, underlyingOperation);
+        final MBeanOperationInfo underlyingOperation = support.enableOperation(operationName, descriptor)
+                .orElseThrow(() -> new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable operation '%s'", connectorType, operationName))));
+        return new CompositeOperation(connectorType, underlyingOperation);
     }
 
     private static ReflectionException operationsNotSupported(final Object connectorType) {
