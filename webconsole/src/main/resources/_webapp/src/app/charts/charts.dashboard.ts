@@ -11,6 +11,8 @@ import { LineChartOfAttributeValues } from "./model/charts/line.chart.attributes
 import { PanelOfAttributeValues } from "./model/charts/panel.attributes.values";
 import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
 import { ActivatedRoute } from '@angular/router';
+import { ResourceGroupHealthStatusChart } from "./model/charts/resource.group.health.status";
+import { NumberOfResourcesChart } from "./model/charts/number.of.resources";
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -20,7 +22,7 @@ import 'rxjs/add/observable/of';
 
 import 'smartwizard';
 import 'select2';
-import {ResourceGroupHealthStatusChart} from "./model/charts/resource.group.health.status";
+
 
 @Component({
     moduleId: module.id,
@@ -342,7 +344,7 @@ export class Dashboard {
     }
 
     isSvgType(chart:AbstractChart):boolean {
-        return chart instanceof LineChartOfAttributeValues;
+        return chart instanceof LineChartOfAttributeValues || chart instanceof NumberOfResourcesChart;
     }
 
     isDivType(chart:AbstractChart):boolean {

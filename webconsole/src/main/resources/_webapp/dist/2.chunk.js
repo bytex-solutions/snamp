@@ -30,6 +30,8 @@ var objectFactory_1 = __webpack_require__("./src/app/charts/model/objectFactory.
 var line_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/line.chart.attributes.values.ts");
 var panel_attributes_values_1 = __webpack_require__("./src/app/charts/model/charts/panel.attributes.values.ts");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
+var number_of_resources_1 = __webpack_require__("./src/app/charts/model/charts/number.of.resources.ts");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
@@ -37,7 +39,6 @@ __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 __webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
 __webpack_require__("./node_modules/select2/dist/js/select2.js");
-var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
 var Dashboard = (function () {
     function Dashboard(http, overlay, vcRef, _chartService, cd, route) {
         this.http = http;
@@ -309,7 +310,7 @@ var Dashboard = (function () {
         $('#toggleDraw' + chart.id + ' i').attr('class', chart.updateStopped ? 'fa fa-play-circle-o' : 'fa fa-pause-circle-o');
     };
     Dashboard.prototype.isSvgType = function (chart) {
-        return chart instanceof line_chart_attributes_values_1.LineChartOfAttributeValues;
+        return chart instanceof line_chart_attributes_values_1.LineChartOfAttributeValues || chart instanceof number_of_resources_1.NumberOfResourcesChart;
     };
     Dashboard.prototype.isDivType = function (chart) {
         return chart instanceof panel_attributes_values_1.PanelOfAttributeValues || chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart;

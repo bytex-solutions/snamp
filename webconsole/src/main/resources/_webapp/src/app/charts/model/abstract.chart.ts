@@ -92,7 +92,7 @@ export abstract class AbstractChart {
     public abstract draw():void;
 
     // when new value comes - we should process it. see abstract.chart.attributes.values as a default implementation
-    public abstract newValue(_data:ChartData):void;
+    public newValue(_data:ChartData):void {};
 
     // when new values comes - we should process it. see abstract.chart.attributes.values as a default implementation
     public newValues(_data:ChartData[]):void {

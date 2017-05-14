@@ -102,7 +102,7 @@ export class ChartService {
                 let _chartData:ChartData = ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]);
                 _allChartData.push(_chartData);
                 // append this data for this data array
-                if (_chartData.chartType == AbstractChart.LINE) {
+                if (1 < 0) {
                     // load data from localStorage, create one if no data exists
                     let _dataNow:any = this.getEntireChartData();
                     if (_dataNow == undefined) {

@@ -38,36 +38,35 @@ export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeVa
                 if (this.resources[i] == (<AttributeChartData>this.chartData[j]).resourceName) {
                     _currentValue.values.push({x: this.chartData[j].timestamp, y: (<AttributeChartData>this.chartData[j]).attributeValue});
                 }
-
             }
             _value.push(_currentValue);
         }
         return _value;
     }
 
-    public newValue(_data:AttributeChartData):void {
-        this.chartData.push(_data);
-        let _index:number = this.chartData.length - 1;
+    public newValues(allData:AttributeChartData[]):void {
+        if (document.hidden) return;
+        this.chartData.push(...allData);
         if (this._chartObject != undefined) {
             let _ds:any[] = d3.select('#' + this.id).datum();
-            let _found:boolean = false;
-            for (let i = 0; i < _ds.length; i++) {
-                if (_ds[i].key == _data.resourceName) {
-                    _ds[i].values.push({x: _data.timestamp, y: _data.attributeValue});
-                    _found = true;
-                    if ((new Date().getTime() - (<Date>_ds[i].values[0].x).getTime()) > this.preferences["interval"] * 60 * 1000) {
-                        _ds[i].values.shift(); // remove first element in case it's out of interval range
-                    }
-                    break;
-                }
-            }
-            if (!_found) {
+            if (_ds.length != allData.length) {
                 _ds = this.prepareDatasets();
+            } else {
+                for (let i = 0; i < _ds.length; i++) {
+                    for (let j = 0; j < allData.length; j++) {
+                        if (_ds[i].key == allData[j].resourceName) {
+                            _ds[i].values.push({x: allData[j].timestamp, y: allData[j].attributeValue});
+                            if ((new Date().getTime() - (<Date>_ds[i].values[0].x).getTime()) > this.preferences["interval"] * 60 * 1000) {
+                                _ds[i].values.shift(); // remove first element in case it's out of interval range
+                            }
+                            break;
+                        }
+                    }
+                }
             }
             this._chartObject.update();
         }
     }
-
 
     public draw():void {
         let _thisReference = this;
