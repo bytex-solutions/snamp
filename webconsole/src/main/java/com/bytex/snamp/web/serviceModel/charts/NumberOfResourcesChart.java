@@ -12,8 +12,6 @@ import org.osgi.framework.BundleContext;
 import javax.annotation.Nonnull;
 import java.time.Instant;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 /**
  * Represents number of resources in the specified group.
  * @author Roman Sakno
@@ -146,9 +144,7 @@ public final class NumberOfResourcesChart extends AbstractChart implements TwoDi
      */
     @Override
     public Iterable<? extends ChartData> collectChartData(final BundleContext context) throws Exception {
-        final ChartData data = isNullOrEmpty(groupName) ?
-                new ChartData(ManagedResourceConnectorClient.filterBuilder().getResources(context).size()) :
-                new ChartData(ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).size());
+        final ChartData data = new ChartData(ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(context).size());
         return ImmutableList.of(data);
     }
 }
