@@ -196,7 +196,6 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     @Test
     public void smartModeTest() throws IntrospectionException, JMException {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
-        assertTrue(ManagedResourceConnector.isSmartModeSupported(connector));
         assertFalse(connector.expandAll().isEmpty());
         connector.setAttribute(new Attribute("property1", "Frank Underwood"));
         assertEquals("Frank Underwood", connector.getProperty1());

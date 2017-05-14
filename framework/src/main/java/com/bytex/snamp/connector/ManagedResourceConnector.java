@@ -132,37 +132,18 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
         return bnd != null && !isNullOrEmpty(getConnectorType(bnd));
     }
 
-    /**
-     * Determines whether the Smart-mode is supported by the specified connector.
-     * @param connector An instance of the connector. Cannot be {@literal null}.
-     * @return {@literal true}, if Smart-mode is supported; otherwise, {@literal false}.
-     */
-    static boolean isSmartModeSupported(final ManagedResourceConnector connector) {
-        return connector.canExpand(MBeanAttributeInfo.class) ||
-                connector.canExpand(MBeanNotificationInfo.class) ||
-                connector.canExpand(MBeanOperationInfo.class);
-    }
-
-    default boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
-        if (featureType.equals(MBeanAttributeInfo.class))
-            return queryObject(AttributeSupport.class).map(AttributeSupport::canExpandAttributes).orElse(false);
-        else if (featureType.equals(MBeanNotificationInfo.class))
-            return queryObject(NotificationSupport.class).map(NotificationSupport::canExpandNotifications).orElse(false);
-        else if (featureType.equals(MBeanOperationInfo.class))
-            return queryObject(AttributeSupport.class).map(AttributeSupport::canExpandAttributes).orElse(false);
-        else
-            return false;
-    }
-
     default Collection<? extends MBeanFeatureInfo> expandAll() {
         final List<MBeanFeatureInfo> result = new LinkedList<>();
         queryObject(AttributeSupport.class)
+                .filter(AttributeSupport::canExpandAttributes)
                 .map(AttributeSupport::expandAttributes)
                 .ifPresent(result::addAll);
         queryObject(NotificationSupport.class)
+                .filter(NotificationSupport::canExpandNotifications)
                 .map(NotificationSupport::expandNotifications)
                 .ifPresent(result::addAll);
         queryObject(OperationSupport.class)
+                .filter(OperationSupport::canExpandOperations)
                 .map(OperationSupport::expandOperations)
                 .ifPresent(result::addAll);
         return result;

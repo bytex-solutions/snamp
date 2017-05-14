@@ -1,5 +1,6 @@
 package com.bytex.snamp.testing.connector.actuator;
 
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.OkStatus;
@@ -8,6 +9,7 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.AbstractResourceConnectorTest;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.junit.Assume;
 import org.junit.Test;
@@ -66,5 +68,16 @@ public final class ActuatorConnectorTest extends AbstractResourceConnectorTest {
         } finally {
             releaseManagementConnector();
         }
+    }
+
+    @Test
+    public void configurationTest(){
+        testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
+                "userName",
+                "password",
+                "authentication",
+                "metricsPath",
+                "healthPath"
+        ));
     }
 }

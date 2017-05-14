@@ -320,11 +320,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     }
 
     @Override
-    public boolean canExpand(final Class<? extends MBeanFeatureInfo> featureType) {
-        return getService().map(connector -> connector.canExpand(featureType)).orElse(false);
-    }
-
-    @Override
     public Collection<? extends MBeanFeatureInfo> expandAll() {
         return getService().map(ManagedResourceConnector::expandAll).orElse(Collections.emptyList());
     }
