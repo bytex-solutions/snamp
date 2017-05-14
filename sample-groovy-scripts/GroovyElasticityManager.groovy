@@ -13,6 +13,7 @@ final class ResourceNameGenerator extends AtomicInteger{
 }
 
 public void scaleIn(final Aggregator provisioningContext){
+    println "Groovy Elasticity Manager: SCALE-IN"
     //just remove resource
     final ResourceDiscoveryService service = provisioningContext.queryObject(ResourceDiscoveryService.class).orElse(null)
     for(final String resourceName: resources)
@@ -21,6 +22,7 @@ public void scaleIn(final Aggregator provisioningContext){
 }
 
 public void scaleOut(final Aggregator provisioningContext) {
+    println "Groovy Elasticity Manager: SCALE-OUT"
     //just register another resource
     final ResourceDiscoveryService service = provisioningContext.queryObject(ResourceDiscoveryService.class).orElse(null)
     service.registerResource(ResourceNameGenerator.INSTANCE.nextName(), "", ImmutableMap.of())

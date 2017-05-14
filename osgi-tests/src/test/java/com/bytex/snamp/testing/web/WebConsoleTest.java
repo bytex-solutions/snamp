@@ -748,11 +748,11 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             supervisor.getAutoScalingConfig().setCooldownTime(Duration.ofSeconds(5));
             supervisor.getAutoScalingConfig().setScalingSize(1);
             AbstractWeightedScalingPolicy policy = new MetricBasedScalingPolicy("stag",
-                    0.5D,
+                    1.5D,
                     Range.closed(-5D, 5D),
-                    Duration.ofSeconds(1),
+                    Duration.ZERO,
                     ReduceOperation.MEAN,
-                    true);
+                    false);
             supervisor.getAutoScalingConfig().getPolicies().addAndConsume("stagPolicy", policy::configureScriptlet);
             policy = new HealthStatusBasedScalingPolicy(1D, MalfunctionStatus.Level.CRITICAL);
             supervisor.getAutoScalingConfig().getPolicies().addAndConsume("hsPolicy", policy::configureScriptlet);
