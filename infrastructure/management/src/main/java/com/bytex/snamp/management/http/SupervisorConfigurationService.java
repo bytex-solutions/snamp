@@ -6,10 +6,8 @@ import com.bytex.snamp.management.http.model.ScriptletDataObject;
 import com.bytex.snamp.management.http.model.SupervisorDataObject;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.Optional;
 
 /**
@@ -39,9 +37,8 @@ public final class SupervisorConfigurationService extends AbstractEntityConfigur
     @Path("/{groupName}/discovery/connectionStringTemplate")
     @Consumes(MediaType.APPLICATION_JSON)
     public void setConnectionStringTemplate(@PathParam("groupName") final String groupName,
-                                            final String template,
-                                            @Context final SecurityContext context) {
-        setConfigurationByName(groupName, config -> config.getDiscoveryConfig().setConnectionStringTemplate(template), context);
+                                            final String template) {
+        setConfigurationByName(groupName, config -> config.getDiscoveryConfig().setConnectionStringTemplate(template));
     }
 
     @GET
@@ -55,9 +52,8 @@ public final class SupervisorConfigurationService extends AbstractEntityConfigur
     @Path("/{groupName}/healthCheck/trigger")
     @Consumes(MediaType.APPLICATION_JSON)
     public void setTrigger(@PathParam("groupName") final String groupName,
-                           final ScriptletDataObject trigger,
-                           @Context final SecurityContext context) {
-        setConfigurationByName(groupName, config -> trigger.exportTo(config.getHealthCheckConfig().getTrigger()), context);
+                           final ScriptletDataObject trigger) {
+        setConfigurationByName(groupName, config -> trigger.exportTo(config.getHealthCheckConfig().getTrigger()));
     }
 
     @Path("/{groupName}/healthCheck/attributeChecker/{attributeName}")
@@ -77,8 +73,7 @@ public final class SupervisorConfigurationService extends AbstractEntityConfigur
     @Consumes(MediaType.APPLICATION_JSON)
     public void setAttributeChecker(@PathParam("groupName") final String groupName,
                                     @PathParam("attributeName") final String attributeName,
-                                    final ScriptletDataObject checker,
-                                    @Context final SecurityContext context){
-        setConfigurationByName(groupName, config -> checker.exportTo(config.getHealthCheckConfig().getAttributeCheckers().getOrAdd(attributeName)), context);
+                                    final ScriptletDataObject checker){
+        setConfigurationByName(groupName, config -> checker.exportTo(config.getHealthCheckConfig().getAttributeCheckers().getOrAdd(attributeName)));
     }
 }

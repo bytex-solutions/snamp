@@ -5,7 +5,7 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SimpleFilterBuilder;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.security.web.WebSecurityFilter;
+import com.bytex.snamp.security.web.JWTAuthFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import org.eclipse.jetty.websocket.servlet.*;
 import org.osgi.framework.BundleContext;
@@ -30,7 +30,7 @@ import java.util.logging.Logger;
  */
 final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleEngine, WebSocketCreator {
     static final String CONTEXT = "/snamp/console/events";
-    private transient final WebSecurityFilter securityFilter;
+    private transient final JWTAuthFilter securityFilter;
 
     WebConsoleEngineImpl(final ClusterMember clusterMember) {
         securityFilter = WebConsoleSecurityFilter.forWebSocket(clusterMember);
@@ -62,7 +62,7 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
         } catch (final InvalidKeyException | SignatureException e) {
             return sendError(resp, Response.Status.UNAUTHORIZED, e.getMessage());
         }
-        final Principal principal = WebSecurityFilter.getPrincipal(req.getHttpServletRequest());
+        final Principal principal = JWTAuthFilter.getPrincipal(req.getHttpServletRequest());
         if (principal == null) {
             return sendError(resp, Response.Status.UNAUTHORIZED, "Authorization token required");
         } else {

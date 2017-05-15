@@ -5,10 +5,8 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.management.http.model.ResourceDataObject;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 
 /**
  * Provides API for SNAMP resources management.
@@ -52,8 +50,8 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     @Path("/{name}/connectionString")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response setConnectionString(@PathParam("name") final String resourceName, final String value, @Context final SecurityContext context){
-        return setConfigurationByName(resourceName, config -> config.setConnectionString(value), context);
+    public Response setConnectionString(@PathParam("name") final String resourceName, final String value){
+        return setConfigurationByName(resourceName, config -> config.setConnectionString(value));
     }
 
     /**
@@ -80,7 +78,7 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     @PUT
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response setGroupName(@PathParam("name") final String resourceName, final String value, @Context final SecurityContext context){
-        return setConfigurationByName(resourceName, config -> config.setGroupName(value), context);
+    public Response setGroupName(@PathParam("name") final String resourceName, final String value){
+        return setConfigurationByName(resourceName, config -> config.setGroupName(value));
     }
 }

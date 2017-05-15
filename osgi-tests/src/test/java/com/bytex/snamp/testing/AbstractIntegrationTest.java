@@ -152,6 +152,7 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
         result.addAll(builder.getBundles(getClass()));
         result.add(cleanCaches(true));
         result.add(editConfigurationFilePut(UsersProperties.FILE_PATH, "simpleUser", "simplePassword,snamp-user"));
+        result.add(editConfigurationFilePut(UsersProperties.FILE_PATH, "guest", "guest"));
         return result.toArray(new Option[result.size()]);
     }
 

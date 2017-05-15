@@ -4,10 +4,8 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.management.http.model.*;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.Map;
 
 /**
@@ -28,9 +26,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     private <F extends FeatureConfiguration> Response setFeature(final String holderName,
                                                                  final String featureName,
                                                                  final EntityMapResolver<ManagedResourceTemplate, F> featureMapResolver,
-                                                                 final AbstractFeatureDataObject<F> dto,
-                                                                 final SecurityContext security) {
-        return changingActions(getBundleContext(), security, config -> {
+                                                                 final AbstractFeatureDataObject<F> dto) {
+        return changingActions(getBundleContext(), config -> {
             final ManagedResourceTemplate resource = entityMapResolver.apply(config).get(holderName);
             if (resource != null) {
                 dto.exportTo(featureMapResolver.apply(resource).getOrAdd(featureName));
@@ -42,9 +39,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
 
     private <F extends FeatureConfiguration> Response setFeatures(final String holderName,
                                                                   final EntityMapResolver<ManagedResourceTemplate, F> featureMapResolver,
-                                                                  final Map<String, ? extends AbstractFeatureDataObject<F>> dto,
-                                                                  final SecurityContext security){
-        return changingActions(getBundleContext(), security, currentConfig -> {
+                                                                  final Map<String, ? extends AbstractFeatureDataObject<F>> dto){
+        return changingActions(getBundleContext(), currentConfig -> {
             final ManagedResourceTemplate mrc = entityMapResolver.apply(currentConfig).get(holderName);
             if (mrc != null) {
                 final EntityMap<? extends F> em = featureMapResolver.apply(mrc);
@@ -67,9 +63,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @DELETE
     @Path("/{name}/" + FeatureType.ATTRIBUTES_TYPE + "/{featureName}")
     public final Response deleteAttribute(@PathParam("name") final String name,
-                                          @PathParam("featureName") final String featureName,
-                                          @Context final SecurityContext security){
-        return FeatureType.ATTRIBUTES.removeFeature(getBundleContext(), security, name, entityMapResolver, featureName);
+                                          @PathParam("featureName") final String featureName){
+        return FeatureType.ATTRIBUTES.removeFeature(getBundleContext(), name, entityMapResolver, featureName);
     }
 
     /**
@@ -82,9 +77,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @DELETE
     @Path("/{name}/" + FeatureType.EVENTS_TYPE + "/{featureName}")
     public final Response deleteEvent(@PathParam("name") final String name,
-                                        @PathParam("featureName") final String featureName,
-                                      @Context final SecurityContext security){
-        return FeatureType.EVENTS.removeFeature(getBundleContext(), security, name, entityMapResolver, featureName);
+                                        @PathParam("featureName") final String featureName){
+        return FeatureType.EVENTS.removeFeature(getBundleContext(), name, entityMapResolver, featureName);
     }
 
     /**
@@ -97,9 +91,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @DELETE
     @Path("/{name}/" + FeatureType.OPERATIONS_TYPE + "/{featureName}")
     public final Response deleteOperation(@PathParam("name") final String name,
-                                        @PathParam("featureName") final String featureName,
-                                          @Context final SecurityContext security){
-        return FeatureType.OPERATIONS.removeFeature(getBundleContext(), security, name, entityMapResolver, featureName);
+                                        @PathParam("featureName") final String featureName){
+        return FeatureType.OPERATIONS.removeFeature(getBundleContext(), name, entityMapResolver, featureName);
     }
 
 
@@ -216,9 +209,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setAttribute(@PathParam("name") final String name,
                                              @PathParam("attributeName") final String attributeName,
-                                             final AttributeDataObject dto,
-                                       @Context final SecurityContext security) {
-        return setFeature(name, attributeName, ManagedResourceTemplate::getAttributes, dto, security);
+                                             final AttributeDataObject dto) {
+        return setFeature(name, attributeName, ManagedResourceTemplate::getAttributes, dto);
     }
 
     /**
@@ -233,9 +225,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setAttributes(@PathParam("name") final String name,
-                                             final Map<String, AttributeDataObject> dto,
-                                        @Context final SecurityContext security) {
-        return setFeatures(name, ManagedResourceTemplate::getAttributes, dto, security);
+                                             final Map<String, AttributeDataObject> dto) {
+        return setFeatures(name, ManagedResourceTemplate::getAttributes, dto);
     }
 
 
@@ -251,9 +242,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setEvents(@PathParam("name") final String name,
-                                         final Map<String, EventDataObject> dto,
-                                    @Context final SecurityContext security) {
-        return setFeatures(name, ManagedResourceTemplate::getEvents, dto, security);
+                                         final Map<String, EventDataObject> dto) {
+        return setFeatures(name, ManagedResourceTemplate::getEvents, dto);
     }
 
     /**
@@ -270,9 +260,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setEvent(@PathParam("name") final String name,
                                    @PathParam("eventName") final String eventName,
-                                   final EventDataObject dto,
-                                   @Context final SecurityContext security) {
-        return setFeature(name, eventName, ManagedResourceTemplate::getEvents, dto, security);
+                                   final EventDataObject dto) {
+        return setFeature(name, eventName, ManagedResourceTemplate::getEvents, dto);
     }
 
     /**
@@ -287,9 +276,8 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setOperations(@PathParam("name") final String name,
-                                             final Map<String, OperationDataObject> dto,
-                                        @Context final SecurityContext security) {
-        return setFeatures(name, ManagedResourceTemplate::getOperations, dto, security);
+                                             final Map<String, OperationDataObject> dto) {
+        return setFeatures(name, ManagedResourceTemplate::getOperations, dto);
     }
 
     /**
@@ -306,8 +294,7 @@ public abstract class TemplateConfigurationService<E extends ManagedResourceTemp
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setOperation(@PathParam("name") final String name,
                                        @PathParam("operationName") final String operationName,
-                                       final OperationDataObject dto,
-                                       @Context final SecurityContext security) {
-        return setFeature(name, operationName, ManagedResourceTemplate::getOperations, dto, security);
+                                       final OperationDataObject dto) {
+        return setFeature(name, operationName, ManagedResourceTemplate::getOperations, dto);
     }
 }

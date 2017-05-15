@@ -27,7 +27,7 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequestFilter {
+public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestFilter {
 
     private static final String PRINCIPAL_ATTRIBUTE = "principal";
 
@@ -39,11 +39,12 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
     private final String securedPath;
     private final ImmutableList<JWTokenExtractor> extractors;
     private final ClusterMember clusterMember;
+    private final Logger logger;
 
-    private WebSecurityFilter(final String authCookieName,
-                              final String securedPath,
-                              final ClusterMember clusterMember,
-                              final JWTokenLocation... tokenLocations) {
+    private JWTAuthFilter(final String authCookieName,
+                          final String securedPath,
+                          final ClusterMember clusterMember,
+                          final JWTokenLocation... tokenLocations) {
         this.authCookieName = Objects.requireNonNull(authCookieName);
         this.securedPath = Objects.requireNonNull(securedPath);
         this.clusterMember = Objects.requireNonNull(clusterMember);
@@ -61,15 +62,16 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
                 }
             extractors = builder.build();
         }
+        logger = LoggerProvider.getLoggerForObject(this);
     }
 
-    public WebSecurityFilter(final String authCookieName,
-                             final ClusterMember clusterMember,
-                             final JWTokenLocation... tokenLocations){
+    public JWTAuthFilter(final String authCookieName,
+                         final ClusterMember clusterMember,
+                         final JWTokenLocation... tokenLocations){
         this(authCookieName, "/", clusterMember, tokenLocations);
     }
 
-    public WebSecurityFilter(final ClusterMember clusterMember, final JWTokenLocation... tokenLocations) {
+    public JWTAuthFilter(final ClusterMember clusterMember, final JWTokenLocation... tokenLocations) {
         this(DEFAULT_AUTH_COOKIE, clusterMember, tokenLocations);
     }
 
@@ -85,7 +87,7 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
         return TokenSecretHolder.getInstance().getSecret(clusterMember);
     }
 
-    private JwtSecurityContext createSecurityContext(final HttpRequestContext request) {
+    private JwtSecurityContext createSecurityContext(final HttpRequestContext request) throws WebApplicationException {
         try {
             return new JwtSecurityContext(request, extractors, getTokenSecret());
         } catch (final NoSuchAlgorithmException | IOException e) {
@@ -95,15 +97,19 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
         }
     }
 
+    private JwtSecurityContext createSecurityContext(final HttpServletRequest request) throws SignatureException, NoSuchAlgorithmException, InvalidKeyException, IOException {
+        return new JwtSecurityContext(request, extractors, getTokenSecret());
+    }
+
     public final void filter(final HttpServletRequest request) throws NoSuchAlgorithmException, SignatureException, InvalidKeyException, IOException {
-        if(authenticationRequired(request)) {
-            final JwtSecurityContext securityContext = new JwtSecurityContext(request, extractors, getTokenSecret());
+        if (authenticationRequired(request)) {
+            final JwtSecurityContext securityContext = createSecurityContext(request);
             request.setAttribute(PRINCIPAL_ATTRIBUTE, securityContext.getUserPrincipal());
         }
     }
 
     public static Principal getPrincipal(final HttpServletRequest request) {
-        Object principal = request.getAttribute(PRINCIPAL_ATTRIBUTE);
+        final Object principal = request.getAttribute(PRINCIPAL_ATTRIBUTE);
         return principal instanceof Principal ? (Principal) principal : request.getUserPrincipal();
     }
 
@@ -116,10 +122,6 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
         return requestContext;
     }
 
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForObject(this);
-    }
-
     //intercept HTTP response
     @Override
     public final ContainerResponse filter(final ContainerRequest containerRequest, final ContainerResponse containerResponse) {
@@ -130,15 +132,15 @@ public class WebSecurityFilter implements ContainerResponseFilter, ContainerRequ
                 principal = ((JwtSecurityContext)
                         containerRequest.getSecurityContext()).getUserPrincipal();
             } else {
-                getLogger().fine(() -> String.format("RequestContext has Security context but not JwtSecurityContext. " +
+                logger.fine(() -> String.format("RequestContext has Security context but not JwtSecurityContext. " +
                                 "Actual class is %s. Trying to create security context from token...",
                         containerRequest.getSecurityContext().getClass()));
                 principal = createSecurityContext(containerRequest).getUserPrincipal();
             }
-            getLogger().fine(() -> String.format("TokenRefreshFilter is being applied. JWT principle is %s.", principal.getName()));
+            logger.fine(() -> String.format("TokenRefreshFilter is being applied. JWT principle is %s.", principal.getName()));
             // check if the token requires to be updated
             if (principal.isRefreshRequired()) {
-                getLogger().fine(() -> String.format("Refresh of the token for user %s is required", principal.getName()));
+                logger.fine(() -> String.format("Refresh of the token for user %s is required", principal.getName()));
                 final String jwToken = principal.refresh().createJwtToken(getTokenSecret());
                 containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, authCookieName + '=' + jwToken + "; Path=" + securedPath + ';');
             }

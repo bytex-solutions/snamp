@@ -3,7 +3,7 @@ package com.bytex.snamp.security.web.impl;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.security.web.JWTAuthenticator;
-import com.bytex.snamp.security.web.WebSecurityFilter;
+import com.bytex.snamp.security.web.JWTAuthFilter;
 
 import javax.security.auth.login.*;
 import javax.ws.rs.*;
@@ -35,7 +35,7 @@ public final class WebAuthenticator extends JWTAuthenticator {
     /**
      * Default name of cookie with authentication token.
      */
-    private static final String AUTH_COOKIE = WebSecurityFilter.DEFAULT_AUTH_COOKIE;
+    private static final String AUTH_COOKIE = JWTAuthFilter.DEFAULT_AUTH_COOKIE;
 
 
     WebAuthenticator(final ClusterMember clusterMember){

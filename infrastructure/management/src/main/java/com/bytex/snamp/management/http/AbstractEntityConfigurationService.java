@@ -6,14 +6,11 @@ import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.management.http.model.AbstractDataObject;
-import com.bytex.snamp.security.Role;
 import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
@@ -63,14 +60,13 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
 
     /**
      * Performs the processing of the configuration
+     * @param context Context of the calling bundle.
      * @param handler lambda for processing the configuration
      * @return empty response with 204 code
      * @throws WebApplicationException required by configuration admin
      */
      static Response changingActions(final BundleContext context,
-                                     final SecurityContext security,
                                      final ConfigurationManager.ConfigurationProcessor<WebApplicationException> handler) throws WebApplicationException {
-         Role.ADMIN.authorize(security, true);
          ServiceHolder.tryCreate(context, ConfigurationManager.class).ifPresent(admin -> {
              try {
                  admin.get().processConfiguration(handler);
@@ -121,9 +117,8 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
     }
 
     final Response setConfigurationByName(final String name,
-                                          final Consumer<? super E> configuration,
-                                          final SecurityContext context){
-        return changingActions(getBundleContext(), context, config -> {
+                                          final Consumer<? super E> configuration){
+        return changingActions(getBundleContext(), config -> {
             configuration.accept(entityMapResolver.apply(config).getOrAdd(name));
             return true;
         });
@@ -141,9 +136,8 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setConfigurationByName(@PathParam("name") final String name,
-                                                 final DTO entity,
-                                                 @Context final SecurityContext context) {
-        return setConfigurationByName(name, entity::exportTo, context);
+                                                 final DTO entity) {
+        return setConfigurationByName(name, entity::exportTo);
     }
 
     /**
@@ -156,8 +150,8 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
     @Path("/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public final Response removeConfigurationByName(@PathParam("name") final String name, @Context final SecurityContext security) {
-        return changingActions(getBundleContext(), security, config -> {
+    public final Response removeConfigurationByName(@PathParam("name") final String name) {
+        return changingActions(getBundleContext(), config -> {
             if(entityMapResolver.apply(config).remove(name) == null)
                 throw notFound();
             else
@@ -193,9 +187,8 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setParameters(@PathParam("name") final String name,
-                                        final Map<String, String> parameters,
-                                        @Context final SecurityContext security) {
-        return changingActions(getBundleContext(), security, config -> {
+                                        final Map<String, String> parameters) {
+        return changingActions(getBundleContext(), config -> {
                     entityMapResolver.apply(config)
                     .getIfPresent(name)
                     .orElseThrow(AbstractManagementService::notFound)
@@ -214,9 +207,9 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
     @Path("/{name}/parameters")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public final Response removeParameters(@PathParam("name") final String name, @Context final SecurityContext security) {
-        return changingActions(getBundleContext(), security, config -> {
-                    entityMapResolver.apply(config)
+    public final Response removeParameters(@PathParam("name") final String name) {
+        return changingActions(getBundleContext(), config -> {
+            entityMapResolver.apply(config)
                     .getIfPresent(name)
                     .orElseThrow(AbstractManagementService::notFound)
                     .load(Collections.emptyMap());
@@ -258,9 +251,8 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response setParameterByName(@PathParam("name") final String name,
                                        @PathParam("paramName") final String paramName,
-                                       final String value,
-                                             @Context final SecurityContext security) {
-        return changingActions(getBundleContext(), security, config -> {
+                                       final String value) {
+        return changingActions(getBundleContext(), config -> {
                     entityMapResolver.apply(config)
                     .getIfPresent(name)
                     .orElseThrow(AbstractManagementService::notFound)
@@ -281,9 +273,8 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response removeParameterByName(@PathParam("name") final String name,
-                                          @PathParam("paramName") final String paramName,
-                                                @Context final SecurityContext security) {
-        return changingActions(getBundleContext(), security, config -> {
+                                          @PathParam("paramName") final String paramName) {
+        return changingActions(getBundleContext(), config -> {
             if (entityMapResolver.apply(config).remove(paramName) == null)
                 throw notFound();
             else

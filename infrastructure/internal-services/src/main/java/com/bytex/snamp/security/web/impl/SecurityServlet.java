@@ -2,7 +2,7 @@ package com.bytex.snamp.security.web.impl;
 
 import com.bytex.snamp.ImportClass;
 import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.security.web.WebSecurityFilter;
+import com.bytex.snamp.security.web.JWTAuthFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.HttpRequestContext;
 import com.sun.jersey.server.impl.container.servlet.JerseyServletContainerInitializer;
@@ -26,7 +26,7 @@ public final class SecurityServlet extends ServletContainer {
         super(createAppConfig(clusterMember));
     }
 
-    private static class InternalAuthFilter extends WebSecurityFilter {
+    private static class InternalAuthFilter extends JWTAuthFilter {
         private InternalAuthFilter(final ClusterMember clusterMember) {
             super(clusterMember);
         }

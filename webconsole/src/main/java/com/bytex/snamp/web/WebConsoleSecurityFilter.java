@@ -2,7 +2,7 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.security.web.JWTokenLocation;
-import com.bytex.snamp.security.web.WebSecurityFilter;
+import com.bytex.snamp.security.web.JWTAuthFilter;
 
 /**
  * Represents security filter for all WebConsole services.
@@ -10,7 +10,7 @@ import com.bytex.snamp.security.web.WebSecurityFilter;
  * @version 2.0
  * @since 2.0
  */
-final class WebConsoleSecurityFilter extends WebSecurityFilter {
+final class WebConsoleSecurityFilter extends JWTAuthFilter {
     private WebConsoleSecurityFilter(final ClusterMember clusterMember, final JWTokenLocation... tokenLocations) {
         super(clusterMember, tokenLocations);
     }

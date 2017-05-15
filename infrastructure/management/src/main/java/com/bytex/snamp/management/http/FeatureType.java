@@ -15,7 +15,6 @@ import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -51,11 +50,10 @@ public enum FeatureType {
 
         @Override
         <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
-                               final SecurityContext security,
                                final String templateName,
                                final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return removeFeature(context, security, templateName, templateResolver, featureName, EntityMapResolver.ATTRIBUTES);
+            return removeFeature(context, templateName, templateResolver, featureName, EntityMapResolver.ATTRIBUTES);
         }
     },
     EVENTS {
@@ -79,11 +77,10 @@ public enum FeatureType {
 
         @Override
         <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
-                               final SecurityContext security,
                                final String templateName,
                                final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return removeFeature(context, security, templateName, templateResolver, featureName, EntityMapResolver.EVENTS);
+            return removeFeature(context, templateName, templateResolver, featureName, EntityMapResolver.EVENTS);
         }
     },
     OPERATIONS {
@@ -107,11 +104,10 @@ public enum FeatureType {
 
         @Override
         <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
-                               final SecurityContext security,
                                final String templateName,
                                final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                final String featureName) {
-            return removeFeature(context, security, templateName, templateResolver, featureName, EntityMapResolver.OPERATIONS);
+            return removeFeature(context, templateName, templateResolver, featureName, EntityMapResolver.OPERATIONS);
         }
     };
     static final String ATTRIBUTES_TYPE = "attributes";
@@ -130,7 +126,6 @@ public enum FeatureType {
                                                                          final String featureName);
 
     abstract <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
-                                    final SecurityContext security,
                                           final String templateName,
                                           final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                           final String featureName);
@@ -189,13 +184,12 @@ public enum FeatureType {
     }
 
     static <T extends ManagedResourceTemplate> Response removeFeature(final BundleContext context,
-                                          final SecurityContext security,
                                             final String templateName,
                                   final EntityMapResolver<AgentConfiguration, T> templateResolver,
                                   final String featureName,
                                           final EntityMapResolver<? super T, ? extends FeatureConfiguration> featureResolver
                                           ) {
-        return changingActions(context, security, config -> {
+        return changingActions(context, config -> {
             final T resource = templateResolver.apply(config)
                     .getIfPresent(templateName)
                     .orElseThrow(AbstractManagementService::notFound);
