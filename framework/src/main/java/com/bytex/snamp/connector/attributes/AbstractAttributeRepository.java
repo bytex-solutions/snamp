@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.attributes;
 
+import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.AttributeMetric;
@@ -177,8 +178,11 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     public AttributeList getAttributes() throws MBeanException, ReflectionException {
         try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
             final AttributeList result = new AttributeList();
-            for (final Map.Entry<String, M> attribute : attributes.entrySet())
-                result.add(new Attribute(attribute.getKey(), getAttribute(attribute.getValue())));
+            final EntryReader<String, M, Exception> walker = (name, metadata) -> {
+                result.add(new Attribute(name, getAttribute(metadata)));
+                return true;
+            };
+            walker.walk(this.attributes);
             return result;
         } catch (final MBeanException | ReflectionException e) {
             throw e;
