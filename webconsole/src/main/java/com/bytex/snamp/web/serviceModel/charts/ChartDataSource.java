@@ -100,16 +100,14 @@ public final class ChartDataSource extends ComputingService<List<Chart>, Map<Str
     @Consumes(MediaType.APPLICATION_JSON)
     @Override
     public Map<String, Collection<ChartData>> compute(final List<Chart> charts) throws WebApplicationException {
-        final BundleContext context = getBundleContext();
         switch (charts.size()) {
             case 0:
                 return ImmutableMap.of();
             case 1:
             case 2:
-            case 3:
-                return compute(context, charts).asMap();
+                return compute(getBundleContext(), charts).asMap();
             default:
-                return compute(context, charts, threadPool).asMap();
+                return compute(getBundleContext(), charts, threadPool).asMap();
         }
     }
 
