@@ -612,14 +612,13 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
          *
          * @param attributes A list of the attributes to be retrieved.
          * @return The list of attributes retrieved.
-         * @see #getAttributesSequential(String[])
          * @see #getAttributesParallel(java.util.concurrent.ExecutorService, String[], Duration)
          */
         @Override
         public AttributeList getAttributes(final String[] attributes) {
             try {
                 return getAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
-            } catch (final InterruptedException | TimeoutException e) {
+            } catch (final ReflectionException e) {
                 getLogger().log(Level.SEVERE, "Unable to read attributes", e);
                 return new AttributeList();
             }
@@ -631,21 +630,20 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
          * @param attributes A list of attributes: The identification of the
          *                   attributes to be set and  the values they are to be set to.
          * @return The list of attributes that were set, with their new values.
-         * @see #setAttributesSequential(javax.management.AttributeList)
          * @see #setAttributesParallel(java.util.concurrent.ExecutorService, javax.management.AttributeList, Duration)
          */
         @Override
         public AttributeList setAttributes(final AttributeList attributes) {
             try {
                 return setAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
-            } catch (final TimeoutException | InterruptedException e) {
+            } catch (final ReflectionException e) {
                 getLogger().log(Level.SEVERE, "Unable to write attributes", e);
                 return new AttributeList();
             }
         }
 
         @Override
-        public AttributeList getAttributes() throws MBeanException, ReflectionException {
+        public AttributeList getAttributes() throws ReflectionException {
             return getAttributesParallel(executor, BATCH_READ_WRITE_TIMEOUT);
         }
 

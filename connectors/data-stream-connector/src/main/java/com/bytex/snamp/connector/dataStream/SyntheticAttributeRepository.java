@@ -6,7 +6,6 @@ import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.core.LoggerProvider;
 
 import javax.management.AttributeList;
-import javax.management.MBeanException;
 import javax.management.Notification;
 import javax.management.ReflectionException;
 import java.io.Serializable;
@@ -14,7 +13,6 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +43,7 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
     public AttributeList getAttributes(final String[] attributes) {
         try {
             return getAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
-        } catch (final InterruptedException | TimeoutException e) {
+        } catch (final ReflectionException e) {
             getLogger().log(Level.SEVERE, "Unable to read attributes", e);
             return new AttributeList();
         }
@@ -59,14 +57,14 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
     public AttributeList setAttributes(final AttributeList attributes) {
         try {
             return setAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
-        } catch (final InterruptedException | TimeoutException e) {
+        } catch (final ReflectionException e) {
             getLogger().log(Level.SEVERE, "Unable to write attributes", e);
             return new AttributeList();
         }
     }
 
     @Override
-    public AttributeList getAttributes() throws MBeanException, ReflectionException {
+    public AttributeList getAttributes() throws ReflectionException {
         return getAttributesParallel(threadPool, BATCH_READ_WRITE_TIMEOUT);
     }
 

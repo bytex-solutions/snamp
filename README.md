@@ -6,7 +6,7 @@ protocols and your monitoring&management software. SNAMP can help you to reduce 
 for the complex IT infrastructure.
 
 ## Prerequisites
-* CPU Arch: x86/x64
+* CPU Arch: x86/x64 (ARM is untested)
 * Runtime: Java SE 8 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
 * OS: Ubuntu (Server) 12.04 or higher, Windows 7/8/10, Windows Server 2003/2012, RedHat, OpenSUSE, CentOS
 * RAM: 2Gb or higher
@@ -16,10 +16,7 @@ for the complex IT infrastructure.
 * JDK 8 or higher (Oracle HotSpot or OpenJDK is recommended but not required)
 
 ## How to build
-First, you should build SNAMP using _Development_ profile. After, you can switch to _Release_ profile and build SNAMP Distribution Package.
-
-Not all dependencies located at the Maven Central. Some dependencies are proprietary libraries. Therefore,
-it is necessary to prepare your local Maven repository as follows.
+First, you should build SNAMP using **Development** profile. After, you can switch to **Release** profile and build SNAMP Distribution Package.
 
 ### Third-party repositories
 SNAMP uses the following third-party repositories:
@@ -33,7 +30,7 @@ Generally, you need to pass
 ```
 to the `maven` process when first importing the project.
 
-If you use IntelliJ IDEA 15/2016 as IDE - follow the instructions:
+If you use IntelliJ IDEA 15/2016/2017 as IDE - follow the instructions:
 
 1. Open _File_ -> _Settings_ menu
 1. Find _Build, Execution, Deployment_ -> _Build Tools_ -> _Maven_ -> _Runner_
@@ -57,7 +54,7 @@ mvn clean package
 SNAMP project contains two category of tests:
 
 * Unit tests located in their bundles and running at `test` phase
-* Integration tests located in `osgi-tests` project
+* Integration tests located in module `osgi-tests`
 
 It is necessary to install all OSGi bundles into local Maven repository before running integration tests.
 Therefore, integration tests can be executed at `site` build phase of `osgi-tests` project
@@ -65,9 +62,10 @@ Therefore, integration tests can be executed at `site` build phase of `osgi-test
 ## Profiles
 SNAM project provides the following Maven profiles:
 
-* `Development` profile disables all unit and integrations tests in the project
-* `Release` profile enables to assembly final SNAMP Distribution package on top of Apache Karaf container
-* `Remote Debug` enables breakpoints for debug session in integration tests
+* **Development** profile disables all unit and integrations tests in the project
+* **Release** profile enables to assembly final SNAMP Distribution package on top of Apache Karaf container
+* **Remote Debug** enables breakpoints for debug session in integration tests
+* **Webconsole live test** for testing SNAMP Web Console from IDE (see `WebConsoleTest`)
 
 ## OpenStack
 To enable integration tests with OpenStack you should install DevStack on virtual machine:
@@ -77,7 +75,7 @@ To enable integration tests with OpenStack you should install DevStack on virtua
 * `cd devstack`
 * `source openrc`
 * `cd ..`
-* Create key pair in OpenStack Horizon (Compute tab)
+* Create key pair named _snamp-key_ in OpenStack Horizon (Compute tab) using username _demo_ and password _secret_
 * Test profile for Senlin (in file `cirros-cluster-profile.yaml`):
 
 ```yaml
@@ -98,3 +96,4 @@ properties:
 ```
 
 * `openstack cluster profile create --spec-file cirros-cluster-profile.yaml ProfileForTests`
+* Back to Horizon and create cluster using this profile

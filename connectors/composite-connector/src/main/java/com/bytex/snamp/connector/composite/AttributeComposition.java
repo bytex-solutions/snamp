@@ -17,7 +17,6 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,7 +50,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     public AttributeList getAttributes(final String[] attributes) {
         try {
             return getAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
-        } catch (final InterruptedException | TimeoutException e) {
+        } catch (final ReflectionException e) {
             getLogger().log(Level.SEVERE, "Unable to read attributes", e);
             return new AttributeList();
         }
@@ -61,14 +60,14 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     public AttributeList setAttributes(final AttributeList attributes) {
         try {
             return setAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
-        } catch (final InterruptedException | TimeoutException e) {
+        } catch (final ReflectionException e) {
             getLogger().log(Level.SEVERE, "Unable to write attributes", e);
             return new AttributeList();
         }
     }
 
     @Override
-    public AttributeList getAttributes() throws MBeanException, ReflectionException {
+    public AttributeList getAttributes() throws ReflectionException {
         return getAttributesParallel(threadPool, BATCH_READ_WRITE_TIMEOUT);
     }
 

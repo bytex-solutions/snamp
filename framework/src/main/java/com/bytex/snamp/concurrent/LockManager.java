@@ -2,7 +2,6 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.internal.Utils;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -195,18 +194,6 @@ public abstract class LockManager {
     public final <V> V call(final Enum<?> resourceGroup, final Callable<? extends V> action, final Duration timeout) throws Exception {
         try(final SafeCloseable ignored = acquireLock(resourceGroup, timeout)){
             return action.call();
-        }
-    }
-
-    public final <V> V callUnchecked(final Enum<?> resourceGroup, final Callable<? extends V> action) {
-        try (final SafeCloseable ignored = acquireLock(resourceGroup)) {
-            return Utils.callUnchecked(action);
-        }
-    }
-
-    public final <V> V callUnchecked(final Enum<?> resourceGroup, final Callable<? extends V> action, final Duration timeout) throws TimeoutException, InterruptedException {
-        try(final SafeCloseable ignored = acquireLock(resourceGroup, timeout)){
-            return Utils.callUnchecked(action);
         }
     }
 
