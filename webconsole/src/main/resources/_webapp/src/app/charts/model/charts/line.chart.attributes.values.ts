@@ -3,11 +3,12 @@ import { ChronoAxis } from '../axis/chrono.axis';
 import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
 import { AttributeChartData } from "../data/attribute.chart.data";
+import {SeriesBasedChart} from "../abstract.line.based.chart";
 
 const d3 = require('d3');
 const nv = require('nvd3');
 
-export class LineChartOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
+export class LineChartOfAttributeValues extends SeriesBasedChart {
     get type():string {
         return AbstractChart.LINE;
     }

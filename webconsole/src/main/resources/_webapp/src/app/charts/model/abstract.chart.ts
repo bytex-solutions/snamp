@@ -11,6 +11,8 @@ export abstract class AbstractChart {
     public static LINE:string = "lineChartOfAttributeValues";
     public static HEALTH_STATUS:string = "groupHealthStatus";
     public static RESOURCE_COUNT:string = "numberOfResourcesInGroup";
+    public static SCALE_IN:string = "scaleIn";
+    public static SCALE_OUT:string = "scaleOut";
 
     // map chartjs types to current hierarchy types
     public static TYPE_MAPPING:{[key:string]:string} = {
@@ -20,7 +22,9 @@ export abstract class AbstractChart {
         'line':             AbstractChart.LINE,
         'panel':            AbstractChart.PANEL,
         'statuses':         AbstractChart.HEALTH_STATUS,
-        'resources':        AbstractChart.RESOURCE_COUNT
+        'resources':        AbstractChart.RESOURCE_COUNT,
+        'scaleIn':          AbstractChart.SCALE_IN,
+        'scaleOut':          AbstractChart.SCALE_OUT
     };
 
     public name:string;

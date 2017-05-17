@@ -1,15 +1,15 @@
-import { TwoDimensionalChart } from "../two.dimensional.chart";
 import { Axis } from "../axis/abstract.axis";
 import { AbstractChart } from "../abstract.chart";
 import { HealthStatusChartData } from "../data/health.status.chart.data";
 import { ChronoAxis } from "../axis/chrono.axis";
 import { NumericAxis } from "../axis/numeric.axis";
 import { ResourceCountData } from "../data/resource.count.data";
+import { SeriesBasedChart } from "../abstract.line.based.chart";
 
 const d3 = require('d3');
 const nv = require('nvd3');
 
-export class NumberOfResourcesChart extends TwoDimensionalChart {
+export class NumberOfResourcesChart extends SeriesBasedChart {
     get type():string {
         return AbstractChart.RESOURCE_COUNT;
     }

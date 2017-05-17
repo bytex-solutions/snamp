@@ -29,6 +29,12 @@
               </a>
             </li>
             <li>
+              <a [attr.href]="'#rate'">
+                Rate<br />
+                <small>Rate of actions</small>
+              </a>
+            </li>
+            <li>
               <a [attr.href]="'#save'">
                 Save<br />
                 <small>Add to dashboard</small>
@@ -120,6 +126,10 @@
               </div>
             </div>
 
+            <div id="rate" class="row" style="margin-top: 10px;">
+                <h5>Rate selecting here</h5>
+            </div>
+
             <div id="save" style="margin-top: 70px;">
 
               <div class="row">
@@ -179,6 +189,8 @@
   <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
   <li [tooltip]="'Resource group health status'" (click)="appendChartClicked('statuses')"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></li>
   <li [tooltip]="'Resources count in a group'" (click)="appendChartClicked('resources')"><i class="fa fa-sitemap" aria-hidden="true"></i></li>
+  <li [tooltip]="'Rate of downscale'" (click)="appendChartClicked('scaleIn')"><i class="fa fa-arrow-circle-down" aria-hidden="true"></i></li>
+  <li [tooltip]="'Rate of upscale'" (click)="appendChartClicked('scaleOut')"><i class="fa fa-arrow-circle-up" aria-hidden="true"></i></li>
 </ul>
 
 <div class="right_col" role="main" style="min-height: 949px;">

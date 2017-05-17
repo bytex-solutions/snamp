@@ -7,12 +7,11 @@ import { AttributeInformation } from './model/attribute';
 import { ChartService } from '../services/app.chartService';
 import { Factory } from './model/objectFactory';
 import { AbstractChart } from './model/abstract.chart';
-import { LineChartOfAttributeValues } from "./model/charts/line.chart.attributes.values";
 import { PanelOfAttributeValues } from "./model/charts/panel.attributes.values";
 import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
 import { ActivatedRoute } from '@angular/router';
 import { ResourceGroupHealthStatusChart } from "./model/charts/resource.group.health.status";
-import { NumberOfResourcesChart } from "./model/charts/number.of.resources";
+import { SeriesBasedChart, TimeInterval } from "./model/abstract.line.based.chart";
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -22,7 +21,6 @@ import 'rxjs/add/observable/of';
 
 import 'smartwizard';
 import 'select2';
-
 
 @Component({
     moduleId: module.id,
@@ -52,7 +50,7 @@ export class Dashboard {
 
     private groupName:string = "";
 
-    private intervals:TimeInterval[] = TimeInterval.generateIntervals();
+    private intervals:TimeInterval[] = SeriesBasedChart.generateIntervals();
 
     private timeInterval:TimeInterval = undefined;
 
@@ -173,22 +171,27 @@ export class Dashboard {
     }
 
     private initWizard():void {
+        let _thisReference:any = this;
+
         $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
-            disabledSteps: this.selectedChartType == "statuses" || this.selectedChartType == "resources" ? [1,2] : [],
+            hiddenSteps: _thisReference.getHiddenSteps(),
             useURLhash: false,
             showStepURLhash: false,
             transitionEffect: 'fade'
         });
 
+        $(Dashboard.wizardId).find("ul.nav li.hidden").removeClass("hidden");
         if (this.selectedChartType == "statuses" || this.selectedChartType == "resources") {
-            $(Dashboard.wizardId).find("#instances").parent().addClass("disabled");
-            $(Dashboard.wizardId).find("#metric").parent().addClass("disabled");
+            $(Dashboard.wizardId).find("#instances").parent().addClass("hidden");
+            $(Dashboard.wizardId).find("#metric").parent().addClass("hidden");
+            $(Dashboard.wizardId).find("#rate").parent().addClass("hidden");
+        } else if (this.selectedChartType == "scaleIn" || this.selectedChartType == "scaleOut") {
+            $(Dashboard.wizardId).find("#instances").parent().addClass("hidden");
+            $(Dashboard.wizardId).find("#metric").parent().addClass("hidden");
         } else {
-            $(Dashboard.wizardId).find("ul.nav li.disabled").removeClass("disabled"); // reset does not affect disabled steps
+            $(Dashboard.wizardId).find("#rate").parent().addClass("hidden");
         }
-
-        let _thisReference:any = this;
 
         $(Dashboard.wizardId).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
             if (stepNumber == 3) {
@@ -344,7 +347,7 @@ export class Dashboard {
     }
 
     isSvgType(chart:AbstractChart):boolean {
-        return chart instanceof LineChartOfAttributeValues || chart instanceof NumberOfResourcesChart;
+        return chart instanceof SeriesBasedChart;
     }
 
     isDivType(chart:AbstractChart):boolean {
@@ -354,26 +357,18 @@ export class Dashboard {
     isCanvasType(chart:AbstractChart):boolean {
         return !this.isDivType(chart) && !this.isSvgType(chart);
     }
-}
 
-class TimeInterval {
-    public id:number = 0;
-    public description:string = "";
-
-    constructor(id:number, description:string) {
-        this.id = id;
-        this.description = description;
-    }
-
-    public static generateIntervals():TimeInterval[] {
-        let value:TimeInterval[] = [];
-        value.push(new TimeInterval(1, "1 minute"));
-        value.push(new TimeInterval(5, "5 minutes"));
-        value.push(new TimeInterval(15, "15 minutes"));
-        value.push(new TimeInterval(60, "1 hour"));
-        value.push(new TimeInterval(720, "12 hours"));
-        value.push(new TimeInterval(1440, "24 hours"));
-        return value;
+    private getHiddenSteps():number[] {
+        switch (this.selectedChartType) {
+            case "statuses":
+            case "resources":
+                return [1,2,3];
+            case "scaleIn":
+            case "scaleOut":
+                return [1, 2];
+            default:
+                return [3];
+        }
     }
 }
 
