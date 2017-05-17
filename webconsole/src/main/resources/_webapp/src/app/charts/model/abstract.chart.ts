@@ -95,37 +95,19 @@ export abstract class AbstractChart {
     // different types of charts should be rendered in different ways
     public abstract draw():void;
 
-    // when new value comes - we should process it. see abstract.chart.attributes.values as a default implementation
-    public newValue(_data:ChartData):void {};
-
     // when new values comes - we should process it. see abstract.chart.attributes.values as a default implementation
-    public newValues(_data:ChartData[]):void {
-        for (let i = 0; i < _data.length; i++) {
-            this.newValue(_data[i]);
-        }
-    }
+    public abstract newValues(_data:ChartData[]);
 
-    protected isChartVisible():boolean {
+    protected isUpdateRequired():boolean {
         return $('#' + this.id).length && !this.updateStopped;
     }
 
     public subscribeToSubject(_obs:Observable<ChartData[]>):void {
         _obs.subscribe((data:ChartData[]) => {
-            if(this.isChartVisible()) {
+            if(this.isUpdateRequired()) {
                 this.newValues(data); // if the chart is visible - update
             }
         });
-    }
-
-    // do not use this method until it's really necessary
-    public fitToContainer():void {
-        let canvas:any = document.getElementById(this.id);
-        if (canvas != undefined) {
-            canvas.style.width = '100%';
-            canvas.style.height = '100%';
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-        }
     }
 }
 

@@ -23,28 +23,31 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
         this.setSizeY(10);
     }
 
-    public newValue(_data:AttributeChartData):void {
+    public newValues(data:AttributeChartData[]):void {
         if (document.hidden) return;
-        let _index:number = -1;
-        for (let i = 0; i < this.chartData.length; i++) {
-            if ((<AttributeChartData>this.chartData[i]).resourceName == _data.resourceName) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
+        for (let i = 0; i < data.length; i++) {
+            let _data = data[i];
+            let _index:number = -1;
+            for (let j = 0; j < this.chartData.length; j++) {
+                if ((<AttributeChartData>this.chartData[j]).resourceName == _data.resourceName) {
+                    _index = j; // remember the index
+                    this.chartData[j] = _data; // change the data
+                    break;
+                }
             }
-        }
-        if (_index < 0) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
-        let _table = $("#" + this.id + " table");
-        if (_table != undefined) {
             if (_index < 0) {
-                let _tr = $("<tr/>");
-                _tr.append("<td>" + _data.resourceName + "</td>");
-                _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
-                _table.append(_tr);
-            } else {
-                _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
+                this.chartData.push(_data); // if no data with this instance is found - append it to array
+            }
+            let _table = $("#" + this.id + " table");
+            if (_table != undefined) {
+                if (_index < 0) {
+                    let _tr = $("<tr/>");
+                    _tr.append("<td>" + _data.resourceName + "</td>");
+                    _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
+                    _table.append(_tr);
+                } else {
+                    _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
+                }
             }
         }
     }

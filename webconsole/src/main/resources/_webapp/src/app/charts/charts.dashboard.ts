@@ -62,7 +62,7 @@ export class Dashboard {
         'margins': [10],
         'draggable': true,
         'resizable': true,
-        'max_cols': 140,
+        'max_cols': 50,
         'max_rows': 0,
         'visible_cols': 0,
         'visible_rows': 0,
@@ -72,12 +72,12 @@ export class Dashboard {
         'min_height': 10,
         'col_width': 20,
         'row_height': 20,
-        'cascade': 'left',
-        'fix_to_grid': false,
+        'cascade': 'up',
+        'fix_to_grid': true  ,
         'auto_style': true,
-        'auto_resize': false,
+        'auto_resize': true,
         'maintain_ratio': false,
-        'prefer_new': true,
+        'prefer_new': false,
         'zoom_on_drag': false,
         'limit_to_screen': true
     };
@@ -172,29 +172,27 @@ export class Dashboard {
 
     private initWizard():void {
         let _thisReference:any = this;
+        let _hidden:number[] =  _thisReference.getHiddenSteps();
 
         $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
-            hiddenSteps: _thisReference.getHiddenSteps(),
+            hiddenSteps: _hidden,
             useURLhash: false,
             showStepURLhash: false,
             transitionEffect: 'fade'
         });
 
-        $(Dashboard.wizardId).find("ul.nav li.hidden").removeClass("hidden");
-        if (this.selectedChartType == "statuses" || this.selectedChartType == "resources") {
-            $(Dashboard.wizardId).find("#instances").parent().addClass("hidden");
-            $(Dashboard.wizardId).find("#metric").parent().addClass("hidden");
-            $(Dashboard.wizardId).find("#rate").parent().addClass("hidden");
-        } else if (this.selectedChartType == "scaleIn" || this.selectedChartType == "scaleOut") {
-            $(Dashboard.wizardId).find("#instances").parent().addClass("hidden");
-            $(Dashboard.wizardId).find("#metric").parent().addClass("hidden");
-        } else {
-            $(Dashboard.wizardId).find("#rate").parent().addClass("hidden");
+        let _elements:any = $(".nav.nav-tabs.step-anchor").find("li");
+        for (let i = 0; i < _elements.length; i++) {
+            if (_hidden.indexOf(i) >= 0) {
+                $(_elements[i]).addClass("hidden");
+            } else {
+                $(_elements[i]).removeClass("hidden");
+            }
         }
 
         $(Dashboard.wizardId).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
-            if (stepNumber == 3) {
+            if (stepNumber == 4) {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2) {
                 _thisReference.loadMetricsOnInstancesSelected();
@@ -324,8 +322,10 @@ export class Dashboard {
     }
 
     onChangeStop(index: number, event: NgGridItemEvent): void {
-        this._charts[index].preferences["gridcfg"] = event;
-        this._chartService.saveDashboard();
+        if (index != undefined && this._charts[index] != undefined) {
+            this._charts[index].preferences["gridcfg"] = event;
+            this._chartService.saveDashboard();
+        }
     }
 
     removeChart(chartName:string):void {

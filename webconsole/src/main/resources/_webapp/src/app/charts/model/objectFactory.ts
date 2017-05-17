@@ -17,8 +17,8 @@ import { PieChartOfAttributeValues } from './charts/pie.chart.attributes.values'
 import { TwoDimensionalChart } from "./two.dimensional.chart";
 import { ResourceGroupHealthStatusChart } from "./charts/resource.group.health.status";
 import { HealthStatusAxis } from "./axis/health.status.axis";
-import {NumericAxis} from "./axis/numeric.axis";
-import {NumberOfResourcesChart} from "./charts/number.of.resources";
+import { NumericAxis } from "./axis/numeric.axis";
+import { NumberOfResourcesChart } from "./charts/number.of.resources";
 
 // Factory to create appropriate objects from json
 export class Factory {

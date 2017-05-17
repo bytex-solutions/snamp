@@ -1,6 +1,5 @@
 import { Axis } from "../axis/abstract.axis";
 import { AbstractChart } from "../abstract.chart";
-import { HealthStatusChartData } from "../data/health.status.chart.data";
 import { ChronoAxis } from "../axis/chrono.axis";
 import { NumericAxis } from "../axis/numeric.axis";
 import { ResourceCountData } from "../data/resource.count.data";
@@ -87,7 +86,6 @@ export class NumberOfResourcesChart extends SeriesBasedChart {
 
     public newValues(_data:ResourceCountData[]):void { // its guaranteed the only element of array exists
         if (document.hidden) return;
-        console.log("Data received for chart is: ", _data);
         this.chartData.push(_data[0]);
         if (this._chartObject != undefined) {
             let _ds:any[] = d3.select('#' + this.id).datum();
@@ -101,10 +99,5 @@ export class NumberOfResourcesChart extends SeriesBasedChart {
             }
             this._chartObject.update();
         }
-    }
-
-    public newValue(_data:HealthStatusChartData):void {
-        if (document.hidden) return;
-        // do nothing
     }
 }

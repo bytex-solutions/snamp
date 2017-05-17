@@ -103442,23 +103442,7 @@ var TwoDimensionalChartOfAttributeValues = (function (_super) {
     __extends(TwoDimensionalChartOfAttributeValues, _super);
     function TwoDimensionalChartOfAttributeValues() {
         _super.apply(this, arguments);
-        // for chartJS purposes
-        this._borderColorData = [];
-        this._backgroundColors = [];
-        this._backgroundHoverColors = [];
     }
-    // for chartJS purposes
-    TwoDimensionalChartOfAttributeValues.hslFromValue = function (i, count, opacity) {
-        var clr = 360 * i / count;
-        return 'hsla(' + clr + ', 100%, 50%, ' + opacity + ')';
-    };
-    // for chartJS purposes
-    TwoDimensionalChartOfAttributeValues.prototype.updateColors = function () {
-        var _this = this;
-        this._backgroundColors = this.chartData.map(function (data, i) { return TwoDimensionalChartOfAttributeValues.hslFromValue(i, _this.chartData.length, 0.3); });
-        this._borderColorData = new Array(this.chartData.length).fill(TwoDimensionalChartOfAttributeValues.borderColor);
-        this._backgroundHoverColors = this.chartData.map(function (data, i) { return TwoDimensionalChartOfAttributeValues.hslFromValue(i, _this.chartData.length, 0.75); });
-    };
     TwoDimensionalChartOfAttributeValues.prototype.setSourceAttribute = function (sourceAttribute) {
         if (this.getAxisX() instanceof attribute_value_axis_1.AttributeValueAxis) {
             this.getAxisX().sourceAttribute = sourceAttribute;
@@ -103467,8 +103451,6 @@ var TwoDimensionalChartOfAttributeValues = (function (_super) {
             this.getAxisY().sourceAttribute = sourceAttribute;
         }
     };
-    // for chartJS purposes
-    TwoDimensionalChartOfAttributeValues.borderColor = "#536980";
     return TwoDimensionalChartOfAttributeValues;
 }(abstract_chart_attributes_values_1.ChartOfAttributeValues));
 exports.TwoDimensionalChartOfAttributeValues = TwoDimensionalChartOfAttributeValues;
@@ -103488,9 +103470,6 @@ var ChartOfAttributeValues = (function (_super) {
         _super.apply(this, arguments);
         this.resources = [];
     }
-    ChartOfAttributeValues.prototype.newValue = function (_data) {
-        this.chartData.push(_data);
-    };
     return ChartOfAttributeValues;
 }(two_dimensional_chart_1.TwoDimensionalChart));
 exports.ChartOfAttributeValues = ChartOfAttributeValues;
@@ -103563,35 +103542,16 @@ var AbstractChart = (function () {
         enumerable: true,
         configurable: true
     });
-    // when new value comes - we should process it. see abstract.chart.attributes.values as a default implementation
-    AbstractChart.prototype.newValue = function (_data) { };
-    ;
-    // when new values comes - we should process it. see abstract.chart.attributes.values as a default implementation
-    AbstractChart.prototype.newValues = function (_data) {
-        for (var i = 0; i < _data.length; i++) {
-            this.newValue(_data[i]);
-        }
-    };
-    AbstractChart.prototype.isChartVisible = function () {
+    AbstractChart.prototype.isUpdateRequired = function () {
         return $('#' + this.id).length && !this.updateStopped;
     };
     AbstractChart.prototype.subscribeToSubject = function (_obs) {
         var _this = this;
         _obs.subscribe(function (data) {
-            if (_this.isChartVisible()) {
+            if (_this.isUpdateRequired()) {
                 _this.newValues(data); // if the chart is visible - update
             }
         });
-    };
-    // do not use this method until it's really necessary
-    AbstractChart.prototype.fitToContainer = function () {
-        var canvas = document.getElementById(this.id);
-        if (canvas != undefined) {
-            canvas.style.width = '100%';
-            canvas.style.height = '100%';
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-        }
     };
     AbstractChart.VBAR = "verticalBarChartOfAttributeValues";
     AbstractChart.PIE = "pieChartOfAttributeValues";
@@ -103600,6 +103560,8 @@ var AbstractChart = (function () {
     AbstractChart.LINE = "lineChartOfAttributeValues";
     AbstractChart.HEALTH_STATUS = "groupHealthStatus";
     AbstractChart.RESOURCE_COUNT = "numberOfResourcesInGroup";
+    AbstractChart.SCALE_IN = "scaleIn";
+    AbstractChart.SCALE_OUT = "scaleOut";
     // map chartjs types to current hierarchy types
     AbstractChart.TYPE_MAPPING = {
         'doughnut': AbstractChart.PIE,
@@ -103608,7 +103570,9 @@ var AbstractChart = (function () {
         'line': AbstractChart.LINE,
         'panel': AbstractChart.PANEL,
         'statuses': AbstractChart.HEALTH_STATUS,
-        'resources': AbstractChart.RESOURCE_COUNT
+        'resources': AbstractChart.RESOURCE_COUNT,
+        'scaleIn': AbstractChart.SCALE_IN,
+        'scaleOut': AbstractChart.SCALE_OUT
     };
     return AbstractChart;
 }());
@@ -103626,6 +103590,110 @@ var GUID = (function () {
 }());
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/charts/model/abstract.chartjs.chart.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
+var ChartJsChart = (function (_super) {
+    __extends(ChartJsChart, _super);
+    function ChartJsChart() {
+        _super.apply(this, arguments);
+        // for chartJS purposes
+        this._borderColorData = [];
+        this._backgroundColors = [];
+        this._backgroundHoverColors = [];
+        this._chartObject = undefined;
+    }
+    // for chartJS purposes
+    ChartJsChart.hslFromValue = function (i, count, opacity) {
+        var clr = 360 * i / count;
+        return 'hsla(' + clr + ', 100%, 50%, ' + opacity + ')';
+    };
+    // for chartJS purposes
+    ChartJsChart.prototype.updateColors = function () {
+        var _this = this;
+        this._backgroundColors = this.chartData.map(function (data, i) { return ChartJsChart.hslFromValue(i, _this.chartData.length, 0.3); });
+        this._borderColorData = new Array(this.chartData.length).fill(ChartJsChart.borderColor);
+        this._backgroundHoverColors = this.chartData.map(function (data, i) { return ChartJsChart.hslFromValue(i, _this.chartData.length, 0.75); });
+    };
+    ChartJsChart.prototype.newValues = function (_data) {
+        if (document.hidden)
+            return;
+        for (var i = 0; i < _data.length; i++) {
+            var _index = -1;
+            for (var j = 0; j < this.chartData.length; j++) {
+                if (this.chartData[j].resourceName == _data[i].resourceName) {
+                    _index = j; // remember the index
+                    this.chartData[j] = _data[i]; // change the data
+                    break;
+                }
+            }
+            if (_index == -1) {
+                if (this._chartObject != undefined) {
+                    this._chartObject.destroy();
+                }
+                this.chartData = _data;
+                this.draw();
+                return;
+            }
+            else if (this._chartObject != undefined) {
+                this._chartObject.data.datasets[0].data[_index] = _data[i].attributeValue;
+            }
+        }
+        if (this._chartObject != undefined) {
+            this._chartObject.update();
+        }
+    };
+    // for chartJS purposes
+    ChartJsChart.borderColor = "#536980";
+    return ChartJsChart;
+}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+exports.ChartJsChart = ChartJsChart;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/abstract.line.based.chart.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
+var SeriesBasedChart = (function (_super) {
+    __extends(SeriesBasedChart, _super);
+    function SeriesBasedChart() {
+        _super.apply(this, arguments);
+    }
+    // generate time intervals to crop the older values from being drawing.
+    SeriesBasedChart.generateIntervals = function () {
+        var value = [];
+        value.push(new TimeInterval(1, "1 minute"));
+        value.push(new TimeInterval(5, "5 minutes"));
+        value.push(new TimeInterval(15, "15 minutes"));
+        value.push(new TimeInterval(60, "1 hour"));
+        value.push(new TimeInterval(720, "12 hours"));
+        value.push(new TimeInterval(1440, "24 hours"));
+        return value;
+    };
+    return SeriesBasedChart;
+}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+exports.SeriesBasedChart = SeriesBasedChart;
+var TimeInterval = (function () {
+    function TimeInterval(id, description) {
+        this.id = 0;
+        this.description = "";
+        this.id = id;
+        this.description = description;
+    }
+    return TimeInterval;
+}());
+exports.TimeInterval = TimeInterval;
+
 
 /***/ },
 
@@ -103841,16 +103909,15 @@ exports.ResourceNameAxis = ResourceNameAxis;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
-var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var abstract_chartjs_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chartjs.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var HorizontalBarChartOfAttributeValues = (function (_super) {
     __extends(HorizontalBarChartOfAttributeValues, _super);
     function HorizontalBarChartOfAttributeValues() {
         _super.call(this);
-        this._chartObject = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
@@ -103867,40 +103934,12 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
     HorizontalBarChartOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new resource_name_axis_1.ResourceNameAxis();
     };
-    HorizontalBarChartOfAttributeValues.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].resourceName == _data.resourceName) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        var updateColors = false;
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-            _index = this.chartData.length - 1; // and set it to the end of the array
-            updateColors = true;
-        }
-        if (this._chartObject != undefined) {
-            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
-            if (updateColors) {
-                this.updateColors();
-                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
-                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
-                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
-            }
-            this._chartObject.update();
-        }
-    };
     HorizontalBarChartOfAttributeValues.prototype.draw = function () {
         this.updateColors();
         this._chartObject = new Chart($("#" + this.id), {
             type: 'horizontalBar',
             data: {
-                labels: this.resources,
+                labels: this.chartData.map(function (data) { return data.resourceName; }),
                 datasets: [{
                         label: this.getAxisX().getLabelRepresentation(),
                         data: this.chartData.map(function (data) { return data.attributeValue; }),
@@ -103933,7 +103972,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         return _value;
     };
     return HorizontalBarChartOfAttributeValues;
-}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+}(abstract_chartjs_chart_1.ChartJsChart));
 exports.HorizontalBarChartOfAttributeValues = HorizontalBarChartOfAttributeValues;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
@@ -103945,10 +103984,10 @@ exports.HorizontalBarChartOfAttributeValues = HorizontalBarChartOfAttributeValue
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
-var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var LineChartOfAttributeValues = (function (_super) {
@@ -104049,7 +104088,7 @@ var LineChartOfAttributeValues = (function (_super) {
         return _value;
     };
     return LineChartOfAttributeValues;
-}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+}(abstract_line_based_chart_1.SeriesBasedChart));
 exports.LineChartOfAttributeValues = LineChartOfAttributeValues;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
@@ -104061,10 +104100,10 @@ exports.LineChartOfAttributeValues = LineChartOfAttributeValues;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
-var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis.ts");
 var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
+var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var NumberOfResourcesChart = (function (_super) {
@@ -104135,7 +104174,6 @@ var NumberOfResourcesChart = (function (_super) {
     NumberOfResourcesChart.prototype.newValues = function (_data) {
         if (document.hidden)
             return;
-        console.log("Data received for chart is: ", _data);
         this.chartData.push(_data[0]);
         if (this._chartObject != undefined) {
             var _ds = d3.select('#' + this.id).datum();
@@ -104151,13 +104189,8 @@ var NumberOfResourcesChart = (function (_super) {
             this._chartObject.update();
         }
     };
-    NumberOfResourcesChart.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        // do nothing
-    };
     return NumberOfResourcesChart;
-}(two_dimensional_chart_1.TwoDimensionalChart));
+}(abstract_line_based_chart_1.SeriesBasedChart));
 exports.NumberOfResourcesChart = NumberOfResourcesChart;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
@@ -104193,30 +104226,33 @@ var PanelOfAttributeValues = (function (_super) {
     PanelOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
-    PanelOfAttributeValues.prototype.newValue = function (_data) {
+    PanelOfAttributeValues.prototype.newValues = function (data) {
         if (document.hidden)
             return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].resourceName == _data.resourceName) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
+        for (var i = 0; i < data.length; i++) {
+            var _data = data[i];
+            var _index = -1;
+            for (var j = 0; j < this.chartData.length; j++) {
+                if (this.chartData[j].resourceName == _data.resourceName) {
+                    _index = j; // remember the index
+                    this.chartData[j] = _data; // change the data
+                    break;
+                }
             }
-        }
-        if (_index < 0) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
-        var _table = $("#" + this.id + " table");
-        if (_table != undefined) {
             if (_index < 0) {
-                var _tr = $("<tr/>");
-                _tr.append("<td>" + _data.resourceName + "</td>");
-                _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
-                _table.append(_tr);
+                this.chartData.push(_data); // if no data with this instance is found - append it to array
             }
-            else {
-                _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
+            var _table = $("#" + this.id + " table");
+            if (_table != undefined) {
+                if (_index < 0) {
+                    var _tr = $("<tr/>");
+                    _tr.append("<td>" + _data.resourceName + "</td>");
+                    _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
+                    _table.append(_tr);
+                }
+                else {
+                    _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
+                }
             }
         }
     };
@@ -104262,16 +104298,15 @@ exports.PanelOfAttributeValues = PanelOfAttributeValues;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
-var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var abstract_chartjs_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chartjs.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var PieChartOfAttributeValues = (function (_super) {
     __extends(PieChartOfAttributeValues, _super);
     function PieChartOfAttributeValues() {
         _super.call(this);
-        this._chartObject = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
@@ -104288,39 +104323,12 @@ var PieChartOfAttributeValues = (function (_super) {
     PieChartOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
-    PieChartOfAttributeValues.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].resourceName == _data.resourceName) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        var updateColors = false;
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-            _index = this.chartData.length - 1; // and set it to the end of the array
-            updateColors = true;
-        }
-        if (this._chartObject != undefined) {
-            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
-            if (updateColors) {
-                this.updateColors();
-                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
-                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
-                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
-            }
-            this._chartObject.update();
-        }
-    };
     PieChartOfAttributeValues.prototype.draw = function () {
+        this.updateColors();
         this._chartObject = new Chart($("#" + this.id), {
             type: 'doughnut',
             data: {
-                labels: this.resources,
+                labels: this.chartData.map(function (data) { return data.resourceName; }),
                 datasets: [{
                         label: this.getAxisY().getLabelRepresentation(),
                         data: this.chartData.map(function (data) { return data.attributeValue; }),
@@ -104356,7 +104364,7 @@ var PieChartOfAttributeValues = (function (_super) {
         return _value;
     };
     return PieChartOfAttributeValues;
-}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+}(abstract_chartjs_chart_1.ChartJsChart));
 exports.PieChartOfAttributeValues = PieChartOfAttributeValues;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
@@ -104560,16 +104568,15 @@ exports.ResourceGroupHealthStatusChart = ResourceGroupHealthStatusChart;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
-var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var abstract_chartjs_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chartjs.chart.ts");
 var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var VerticalBarChartOfAttributeValues = (function (_super) {
     __extends(VerticalBarChartOfAttributeValues, _super);
     function VerticalBarChartOfAttributeValues() {
         _super.call(this);
-        this._chartObject = undefined;
         this.setSizeX(10);
         this.setSizeY(10);
     }
@@ -104586,39 +104593,12 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
     VerticalBarChartOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
-    VerticalBarChartOfAttributeValues.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].resourceName == _data.resourceName) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        var updateColors = false;
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-            _index = this.chartData.length - 1; // and set it to the end of the array
-            updateColors = true;
-        }
-        if (this._chartObject != undefined) {
-            this._chartObject.data.datasets[0].data[_index] = _data.attributeValue;
-            if (updateColors) {
-                this.updateColors();
-                this._chartObject.data.datasets[0].backgroundColor = this._backgroundColors;
-                this._chartObject.data.datasets[0].borderColor = this._borderColorData;
-                this._chartObject.data.datasets[0].hoverBackgroundColor = this._backgroundHoverColors;
-            }
-            this._chartObject.update();
-        }
-    };
     VerticalBarChartOfAttributeValues.prototype.draw = function () {
+        this.updateColors();
         this._chartObject = new Chart($("#" + this.id), {
             type: "bar",
             data: {
-                labels: this.resources,
+                labels: this.chartData.map(function (data) { return data.resourceName; }),
                 datasets: [{
                         label: this.getAxisY().getLabelRepresentation(),
                         data: this.chartData.map(function (data) { return data.attributeValue; }),
@@ -104651,7 +104631,7 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
         return _value;
     };
     return VerticalBarChartOfAttributeValues;
-}(abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues));
+}(abstract_chartjs_chart_1.ChartJsChart));
 exports.VerticalBarChartOfAttributeValues = VerticalBarChartOfAttributeValues;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
