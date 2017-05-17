@@ -618,8 +618,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         public AttributeList getAttributes(final String[] attributes) {
             try {
                 return getAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
-            } catch (final ReflectionException e) {
-                getLogger().log(Level.SEVERE, "Unable to read attributes", e);
+            } catch (final MBeanException e) {
+                getLogger().log(Level.SEVERE, "Unable to read attributes", e.getCause());
                 return new AttributeList();
             }
         }
@@ -636,14 +636,14 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         public AttributeList setAttributes(final AttributeList attributes) {
             try {
                 return setAttributesParallel(executor, attributes, BATCH_READ_WRITE_TIMEOUT);
-            } catch (final ReflectionException e) {
-                getLogger().log(Level.SEVERE, "Unable to write attributes", e);
+            } catch (final MBeanException e) {
+                getLogger().log(Level.SEVERE, "Unable to write attributes", e.getCause());
                 return new AttributeList();
             }
         }
 
         @Override
-        public AttributeList getAttributes() throws ReflectionException {
+        public AttributeList getAttributes() throws MBeanException {
             return getAttributesParallel(executor, BATCH_READ_WRITE_TIMEOUT);
         }
 

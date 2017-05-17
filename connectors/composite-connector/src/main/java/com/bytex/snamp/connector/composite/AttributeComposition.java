@@ -50,8 +50,8 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     public AttributeList getAttributes(final String[] attributes) {
         try {
             return getAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
-        } catch (final ReflectionException e) {
-            getLogger().log(Level.SEVERE, "Unable to read attributes", e);
+        } catch (final MBeanException e) {
+            getLogger().log(Level.SEVERE, "Unable to read attributes", e.getCause());
             return new AttributeList();
         }
     }
@@ -60,14 +60,14 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
     public AttributeList setAttributes(final AttributeList attributes) {
         try {
             return setAttributesParallel(threadPool, attributes, BATCH_READ_WRITE_TIMEOUT);
-        } catch (final ReflectionException e) {
-            getLogger().log(Level.SEVERE, "Unable to write attributes", e);
+        } catch (final MBeanException e) {
+            getLogger().log(Level.SEVERE, "Unable to write attributes", e.getCause());
             return new AttributeList();
         }
     }
 
     @Override
-    public AttributeList getAttributes() throws ReflectionException {
+    public AttributeList getAttributes() throws MBeanException {
         return getAttributesParallel(threadPool, BATCH_READ_WRITE_TIMEOUT);
     }
 

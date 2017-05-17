@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.attributes;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
@@ -11,6 +12,7 @@ import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 import javax.annotation.Nonnull;
 import javax.management.*;
@@ -149,25 +151,40 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributeName, Map::get));
     }
 
-    private static AttributeList toAttributeList(final Collection<Future<Attribute>> completedTasks) throws ReflectionException {
+    private static AttributeList toAttributeList(final Collection<Future<Attribute>> completedTasks) throws MBeanException {
         final AttributeList result = new AttributeList(completedTasks.size());
         for (final Future<Attribute> task : completedTasks)
             if (task.isDone())
-                result.add(callAndWrapException(task::get, ReflectionException::new));
+                result.add(callAndWrapException(task::get, MBeanException::new));
         return result;
     }
 
-    protected final AttributeList getAttributesParallel(final ExecutorService executor, final Duration timeout) throws ReflectionException {
+    private static AttributeList toAttributeList(final Attribute... attributes){
+        final AttributeList result = new AttributeList(attributes.length);
+        Collections.addAll(result, attributes);
+        return result;
+    }
+
+    protected final AttributeList getAttributesParallel(final ExecutorService executor, final Duration timeout) throws MBeanException {
         final Collection<Future<Attribute>> completedTasks;
         try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, timeout)) {
-            final Collection<ReadAttributeTask<M>> tasks = new LinkedList<>();
-            attributes.forEach((name, metadata) -> tasks.add(new ReadAttributeTask<>(name, metadata, this)));
-            completedTasks = timeout == null ?
-                    executor.invokeAll(tasks) :
-                    executor.invokeAll(tasks, timeout.toMillis(), TimeUnit.MILLISECONDS);
-            tasks.clear();
-        } catch (final InterruptedException | TimeoutException e) {
-            throw new ReflectionException(e);
+            switch (attributes.size()) {
+                case 1:
+                    final Map.Entry<String, M> attribute = Iterables.getFirst(attributes.entrySet(), null);
+                    assert attribute != null;
+                    return toAttributeList(new Attribute(attribute.getKey(), getAttribute(attribute.getValue())));
+                case 0:
+                    return new AttributeList();
+                default:
+                    final Collection<ReadAttributeTask<M>> tasks = new LinkedList<>();
+                    attributes.forEach((name, metadata) -> tasks.add(new ReadAttributeTask<>(name, metadata, this)));
+                    completedTasks = timeout == null ?
+                            executor.invokeAll(tasks) :
+                            executor.invokeAll(tasks, timeout.toMillis(), TimeUnit.MILLISECONDS);
+                    tasks.clear();
+            }
+        } catch (final Exception e) {
+            throw new MBeanException(e);
         } finally {
             metrics.updateReads();
         }
@@ -177,6 +194,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public AttributeList getAttributes() throws MBeanException, ReflectionException {
         try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+            if(attributes.isEmpty())
+                return new AttributeList();
             final AttributeList result = new AttributeList();
             final EntryReader<String, M, Exception> walker = (name, metadata) -> {
                 result.add(new Attribute(name, getAttribute(metadata)));
@@ -200,25 +219,38 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param attributes A set of attributes to read. Cannot be {@literal null}.
      * @param timeout    Synchronization timeout. May be {@literal null}.
      * @return A list of obtained attributes.
-     * @throws ReflectionException Unable to read one or more attributes.
+     * @throws MBeanException Unable to read one or more attributes.
      */
     protected final AttributeList getAttributesParallel(final ExecutorService executor,
                                                         final String[] attributes,
-                                                        final Duration timeout) throws ReflectionException {
+                                                        final Duration timeout) throws MBeanException {
+        if(ArrayUtils.isNullOrEmpty(attributes))
+            return new AttributeList();
         final List<Future<Attribute>> completedTasks;
         try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
-            final Collection<ReadAttributeTask<M>> tasks = new LinkedList<>();
-            for (final String attributeName : attributes) {
-                final M metadata = this.attributes.get(attributeName);
-                if (metadata != null)
-                    tasks.add(new ReadAttributeTask<>(attributeName, metadata, this));
+            switch (this.attributes.size()) {
+                case 1:
+                    final Map.Entry<String, M> attribute = Iterables.getFirst(this.attributes.entrySet(), null);
+                    assert attribute != null;
+                    for (final String attributeName : attributes)
+                        if (attribute.getKey().equals(attributeName))
+                            return toAttributeList(new Attribute(attributeName, getAttribute(attribute.getValue())));
+                case 0:
+                    return new AttributeList();
+                default:
+                    final Collection<ReadAttributeTask<M>> tasks = new LinkedList<>();
+                    for (final String attributeName : attributes) {
+                        final M metadata = this.attributes.get(attributeName);
+                        if (metadata != null)
+                            tasks.add(new ReadAttributeTask<>(attributeName, metadata, this));
+                    }
+                    completedTasks = timeout == null ?
+                            executor.invokeAll(tasks) :
+                            executor.invokeAll(tasks, timeout.toMillis(), TimeUnit.MILLISECONDS);
+                    tasks.clear();
             }
-            completedTasks = timeout == null ?
-                    executor.invokeAll(tasks) :
-                    executor.invokeAll(tasks, timeout.toMillis(), TimeUnit.MILLISECONDS);
-            tasks.clear();
-        } catch (final InterruptedException e) {
-            throw new ReflectionException(e);
+        } catch (final Exception e) {
+            throw new MBeanException(e);
         } finally {
             metrics.updateReads();
         }
@@ -234,6 +266,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public AttributeList getAttributes(final String[] attributes) {
+        if(ArrayUtils.isNullOrEmpty(attributes))
+            return new AttributeList();
         final AttributeList result = new AttributeList(attributes.length);
         for (final String attributeName : attributes)
             try {
@@ -252,27 +286,41 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      *                   attributes to be set and  the values they are to be set to.
      * @param timeout    Synchronization timeout. May be {@literal null}.
      * @return The list of attributes that were set, with their new values.
-     * @throws ReflectionException Unable to set attributes
+     * @throws MBeanException Unable to set attributes
      */
     protected final AttributeList setAttributesParallel(final ExecutorService executor,
                                                         final AttributeList attributes,
-                                                        final Duration timeout) throws ReflectionException {
+                                                        final Duration timeout) throws MBeanException {
         if (attributes.isEmpty())
             return attributes;
         final Collection<Future<Attribute>> completedTasks;
         try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, timeout)) {
-            final Collection<WriteAttributeTask<M>> tasks = new LinkedList<>();
-            for (final Attribute attribute : attributes.asList()) {
-                final M metadata = this.attributes.get(attribute.getName());
-                if (metadata != null)
-                    tasks.add(new WriteAttributeTask<>(metadata, attribute, this));
+            switch (attributes.size()) {
+                case 1:
+                    final Map.Entry<String, M> attribute = Iterables.getFirst(this.attributes.entrySet(), null);
+                    assert attribute != null;
+                    for (final Attribute newAttribute : attributes.asList())
+                        if (attribute.getKey().equals(newAttribute.getName())) {
+                            setAttribute(attribute.getValue(), newAttribute.getValue());
+                            return toAttributeList(newAttribute);
+                        }
+                case 0:
+                    return new AttributeList();
+                default:
+                    final Collection<WriteAttributeTask<M>> tasks = new LinkedList<>();
+                    for (final Attribute a : attributes.asList()) {
+                        final M metadata = this.attributes.get(a.getName());
+                        if (metadata != null)
+                            tasks.add(new WriteAttributeTask<>(metadata, a, this));
+                    }
+                    completedTasks = timeout == null ?
+                            executor.invokeAll(tasks) :
+                            executor.invokeAll(tasks, timeout.toMillis(), TimeUnit.MILLISECONDS);
+                    tasks.clear();
             }
-            completedTasks = timeout == null ?
-                    executor.invokeAll(tasks) :
-                    executor.invokeAll(tasks, timeout.toMillis(), TimeUnit.MILLISECONDS);
-            tasks.clear();
-        } catch (final InterruptedException | TimeoutException e) {
-            throw new ReflectionException(e);
+
+        } catch (final Exception e) {
+            throw new MBeanException(e);
         } finally {
             metrics.updateWrites();
         }
