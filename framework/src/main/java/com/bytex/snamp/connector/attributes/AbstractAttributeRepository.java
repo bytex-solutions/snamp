@@ -169,12 +169,12 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         final Collection<Future<Attribute>> completedTasks;
         try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, timeout)) {
             switch (attributes.size()) {
+                case 0:
+                    return new AttributeList();
                 case 1:
                     final Map.Entry<String, M> attribute = Iterables.getFirst(attributes.entrySet(), null);
                     assert attribute != null;
                     return toAttributeList(new Attribute(attribute.getKey(), getAttribute(attribute.getValue())));
-                case 0:
-                    return new AttributeList();
                 default:
                     final Collection<ReadAttributeTask<M>> tasks = new LinkedList<>();
                     attributes.forEach((name, metadata) -> tasks.add(new ReadAttributeTask<>(name, metadata, this)));
