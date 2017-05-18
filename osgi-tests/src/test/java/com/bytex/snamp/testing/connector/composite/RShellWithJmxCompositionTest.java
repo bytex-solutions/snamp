@@ -2,7 +2,7 @@ package com.bytex.snamp.testing.connector.composite;
 
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.metrics.AttributeMetric;
+import com.bytex.snamp.connector.metrics.AttributeMetrics;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.Mailbox;
@@ -167,11 +167,11 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
         final ManagedResourceConnector client = getManagementConnector();
         try {
             final MetricsSupport metrics = client.queryObject(MetricsSupport.class).orElseThrow(AssertionError::new);
-            assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
+            assertTrue(metrics.getMetrics(AttributeMetrics.class).iterator().hasNext());
             //read and write attributes
             booleanAttributeTest();
             //verify metrics
-            final AttributeMetric attrMetrics = metrics.getMetrics(AttributeMetric.class).iterator().next();
+            final AttributeMetrics attrMetrics = metrics.getMetrics(AttributeMetrics.class).iterator().next();
             assertTrue(attrMetrics.reads().getLastRate(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.reads().getTotalRate() > 0);
         } finally {

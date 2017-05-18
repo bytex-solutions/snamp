@@ -1,9 +1,10 @@
 package com.bytex.snamp.supervision.def;
 
 import com.bytex.snamp.concurrent.Timeout;
-import com.bytex.snamp.connector.metrics.Rate;
-import com.bytex.snamp.connector.metrics.RateRecorder;
+import com.bytex.snamp.connector.metrics.Metric;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
+import com.bytex.snamp.supervision.elasticity.ScalingMetrics;
+import com.bytex.snamp.supervision.elasticity.ScalingMetricsRecorder;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicy;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
 
@@ -11,9 +12,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents eventual implementation of elasticity manager that can be used to make decisions only.
@@ -83,8 +82,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     private final Map<String, ScalingPolicy> policies;
     private volatile double scaleInVotes;
     private volatile double scaleOutVotes;
-    private final RateRecorder scaleInRate;
-    private final RateRecorder scaleOutRate;
+    private final ScalingMetricsRecorder scalingMetrics;
     private CooldownTimer cooldownTimer;
     private int scale;
     private int minClusterSize;
@@ -100,8 +98,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
         minClusterSize = 0;
         maxClusterSize = Integer.MAX_VALUE;
         scaleOutVotes = scaleInVotes = 0D;
-        scaleInRate = new RateRecorder("scaleIn");
-        scaleOutRate = new RateRecorder("scaleOut");
+        scalingMetrics = new ScalingMetricsRecorder();
     }
 
     /**
@@ -116,7 +113,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     private ScalingDecision scaleOutDecision(final ScalingPolicyEvaluationContext context) {
         if (context.getResources().size() >= maxClusterSize)
             return ScalingDecision.OUT_OF_SPACE;
-        scaleOutRate.mark();
+        scalingMetrics.upscale();
         cooldownTimer.start();
         return ScalingDecision.SCALE_OUT;
     }
@@ -124,7 +121,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     private ScalingDecision scaleInDecision(final ScalingPolicyEvaluationContext context) {
         if (context.getResources().size() <= minClusterSize)
             return ScalingDecision.NOTHING_TO_DO;
-        scaleInRate.mark();
+        scalingMetrics.downscale();
         cooldownTimer.start();
         return ScalingDecision.SCALE_IN;
     }
@@ -178,28 +175,6 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     }
 
     /**
-     * Gets downscale rate.
-     *
-     * @return Downscale rate.
-     */
-    @Nonnull
-    @Override
-    public final Rate getScaleInRate() {
-        return scaleInRate;
-    }
-
-    /**
-     * Gets upscale rate.
-     *
-     * @return Upscale rate.
-     */
-    @Nonnull
-    @Override
-    public final Rate getScaleOutRate() {
-        return scaleOutRate;
-    }
-
-    /**
      * Gets maximum number of resources in cluster.
      *
      * @return Maximum number of resources in cluster.
@@ -248,12 +223,57 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     }
 
     /**
+     * Gets scaling metrics.
+     *
+     * @return Scaling metrics.
+     */
+    @Override
+    public final ScalingMetrics getScalingMetrics() {
+        return scalingMetrics;
+    }
+
+    /**
+     * Returns a set of supported metrics.
+     *
+     * @param metricType Type of the metrics.
+     * @return Immutable set of metrics.
+     */
+    @Override
+    public <M extends Metric> Iterable<? extends M> getMetrics(final Class<M> metricType) {
+        if (metricType.equals(ScalingMetrics.class))
+            return Collections.singletonList(metricType.cast(scalingMetrics));
+        else
+            return Collections.emptyList();
+    }
+
+    /**
+     * Gets metric by its name.
+     *
+     * @param metricName Name of the metric.
+     * @return An instance of metric; or {@literal null}, if metrics doesn't exist.
+     */
+    @Override
+    public Metric getMetric(final String metricName) {
+        return scalingMetrics.getName().equals(metricName) ? scalingMetrics : null;
+    }
+
+    /**
+     * Returns an iterator over elements of type {@code T}.
+     *
+     * @return an Iterator.
+     */
+    @Override
+    @Nonnull
+    public Iterator<Metric> iterator() {
+        return Collections.<Metric>singletonList(scalingMetrics).iterator();
+    }
+
+    /**
      * Resets internal state of the object.
      */
     @Override
     public void reset() {
-        scaleInRate.reset();
-        scaleOutRate.reset();
+        scalingMetrics.reset();
         policies.values().forEach(ScalingPolicy::reset);
     }
 

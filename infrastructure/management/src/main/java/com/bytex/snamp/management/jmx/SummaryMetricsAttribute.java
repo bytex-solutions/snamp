@@ -33,7 +33,7 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
             .addItem(INVOCATIONS_FIELD, "Rate of invoked operations", RATE_TYPE)
             .build());
 
-    private static void collectMetrics(final AttributeMetric metrics, final Map<String, CompositeData> output) {
+    private static void collectMetrics(final AttributeMetrics metrics, final Map<String, CompositeData> output) {
         final Rate attributeReads;
         final Rate attributeWrites;
         if(metrics == null)
@@ -56,7 +56,7 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
 
     static CompositeData collectMetrics(final MetricsSupport metrics) throws OpenDataException {
         final Map<String, CompositeData> entries = Maps.newHashMapWithExpectedSize(TYPE.keySet().size());
-        for(final AttributeMetric metric: metrics.getMetrics(AttributeMetric.class))
+        for(final AttributeMetrics metric: metrics.getMetrics(AttributeMetrics.class))
             collectMetrics(metric, entries);
         for(final NotificationMetric metric: metrics.getMetrics(NotificationMetric.class))
             collectMetrics(metric, entries);

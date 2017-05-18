@@ -17,7 +17,7 @@ import java.util.concurrent.*;
 public final class SimpleMetricsTest extends Assert {
     @Test
     public void numberOfReadsTest() throws InterruptedException {
-        final AttributeMetricRecorder writer = new AttributeMetricRecorder();
+        final AttributeMetricsRecorder writer = new AttributeMetricsRecorder();
         writer.updateReads();
         assertEquals(1, writer.reads().getTotalRate());
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.DAY));
@@ -34,7 +34,7 @@ public final class SimpleMetricsTest extends Assert {
 
     @Test
     public void numberOfWritesTest() throws InterruptedException {
-        final AttributeMetricRecorder writer = new AttributeMetricRecorder();
+        final AttributeMetricsRecorder writer = new AttributeMetricsRecorder();
         writer.updateWrites();
         assertEquals(1, writer.writes().getTotalRate());
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.DAY));
@@ -51,7 +51,7 @@ public final class SimpleMetricsTest extends Assert {
 
     @Test
     public void concurrentTest2() throws ExecutionException, InterruptedException {
-        final AttributeMetricRecorder writer = new AttributeMetricRecorder();
+        final AttributeMetricsRecorder writer = new AttributeMetricsRecorder();
         final int numOfThreads = Runtime.getRuntime().availableProcessors() + 1;
         final ExecutorService executor = Executors.newFixedThreadPool(numOfThreads);
         Future<?> firstTask = null;
@@ -71,7 +71,7 @@ public final class SimpleMetricsTest extends Assert {
 
     @Test
     public void concurrentTest() throws ExecutionException, InterruptedException {
-        final AttributeMetricRecorder writer = new AttributeMetricRecorder();
+        final AttributeMetricsRecorder writer = new AttributeMetricsRecorder();
         final int numOfThreads = Runtime.getRuntime().availableProcessors() + 1;
         final ExecutorService executor = Executors.newFixedThreadPool(numOfThreads);
         for (int i = 0; i < numOfThreads; i++)

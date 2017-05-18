@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.metrics.AttributeMetric;
+import com.bytex.snamp.connector.metrics.AttributeMetrics;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
@@ -89,11 +89,11 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         final ManagedResourceConnector client = getManagementConnector();
         try{
             final MetricsSupport metrics = client.queryObject(MetricsSupport.class).orElseThrow(AssertionError::new);
-            assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
+            assertTrue(metrics.getMetrics(AttributeMetrics.class).iterator().hasNext());
             //read and write attributes
             readMemStatusAttribute();
             //verify metrics
-            final AttributeMetric attrMetrics = metrics.getMetrics(AttributeMetric.class).iterator().next();
+            final AttributeMetrics attrMetrics = metrics.getMetrics(AttributeMetrics.class).iterator().next();
             assertTrue(attrMetrics.reads().getLastRate(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.reads().getTotalRate() > 0);
         } finally {

@@ -55,7 +55,7 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
         });
     }
 
-    private static void collectMetrics(final AttributeMetric metrics, final PrintWriter output) {
+    private static void collectMetrics(final AttributeMetrics metrics, final PrintWriter output) {
         if(metrics == null){
             output.println("No metrics for attributes");
             return;
@@ -90,7 +90,7 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
 
     private void collectMetrics(final MetricsSupport metrics, final PrintWriter output) {
         if (showAttributes || showAll())
-            collectMetrics(getFirst(metrics.getMetrics(AttributeMetric.class), (AttributeMetric)null), output);
+            collectMetrics(getFirst(metrics.getMetrics(AttributeMetrics.class), (AttributeMetrics)null), output);
         if (showNotifications || showAll())
             collectMetrics(getFirst(metrics.getMetrics(NotificationMetric.class), (NotificationMetric)null), output);
         if (showOperations || showAll())
@@ -103,7 +103,7 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
 
     private void resetMetrics(final MetricsSupport metrics, final PrintWriter output) {
         if (showAttributes || showAll())
-            resetMetrics(metrics.getMetrics(AttributeMetric.class));
+            resetMetrics(metrics.getMetrics(AttributeMetrics.class));
         if (showOperations || showAll())
             resetMetrics(metrics.getMetrics(OperationMetric.class));
         if (showNotifications || showAll())

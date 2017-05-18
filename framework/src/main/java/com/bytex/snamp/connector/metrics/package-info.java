@@ -12,7 +12,7 @@
  * Complex metrics:
  * <ul>
  *     <li>{@link com.bytex.snamp.connector.metrics.Arrivals} for measurement of arrivals in terms of Queuing Theory</li>
- *     <li>{@link com.bytex.snamp.connector.metrics.AttributeMetric} represents usage statistics of resource attributes</li>
+ *     <li>{@link com.bytex.snamp.connector.metrics.AttributeMetrics} represents usage statistics of resource attributes</li>
  *     <li>{@link com.bytex.snamp.connector.metrics.OperationMetric} represents usage statistics of resource operations</li>
  *     <li>{@link com.bytex.snamp.connector.metrics.NotificationMetric} represents usage statistics of resource notifications</li>
  * </ul>

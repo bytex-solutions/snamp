@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.connector.ManagedResourceAggregatedService;
 
 /**
  * Provides statistical information about managed resource connector.
@@ -11,7 +10,7 @@ import com.bytex.snamp.connector.ManagedResourceAggregatedService;
  * @version 2.0
  * @since 1.0
  */
-public interface MetricsSupport extends Iterable<Metric>, ManagedResourceAggregatedService, Stateful {
+public interface MetricsSupport extends Iterable<Metric>, Stateful {
     /**
      * Returns a set of supported metrics.
      * @param metricType Type of the metrics.

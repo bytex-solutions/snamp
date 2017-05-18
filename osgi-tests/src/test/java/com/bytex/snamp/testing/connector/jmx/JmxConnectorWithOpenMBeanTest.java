@@ -219,13 +219,13 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final ManagedResourceConnector client = getManagementConnector();
         try {
             final MetricsSupport metrics = client.queryObject(MetricsSupport.class).orElseThrow(AssertionError::new);
-            assertTrue(metrics.getMetrics(AttributeMetric.class).iterator().hasNext());
+            assertTrue(metrics.getMetrics(AttributeMetrics.class).iterator().hasNext());
             assertTrue(metrics.getMetrics(NotificationMetric.class).iterator().hasNext());
             assertTrue(metrics.getMetrics(OperationMetric.class).iterator().hasNext());
             //read and write attributes
             testForStringProperty();
             //verify metrics
-            final AttributeMetric attrMetrics = metrics.getMetrics(AttributeMetric.class).iterator().next();
+            final AttributeMetrics attrMetrics = metrics.getMetrics(AttributeMetrics.class).iterator().next();
             assertTrue(attrMetrics.reads().getLastRate(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.reads().getLastRate(MetricsInterval.HOUR) > 0);
             assertTrue(attrMetrics.reads().getTotalRate() > 0);

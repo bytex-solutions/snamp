@@ -1,49 +1,49 @@
 package com.bytex.snamp.connector.metrics;
 
 /**
- * Represents default implementation of {@link AttributeMetric} interface.
+ * Represents default implementation of interface {@link AttributeMetrics}.
  * @author Roman Sakno
  * @version 2.0
  * @since 1.0
  */
-public class AttributeMetricRecorder extends AbstractMetric implements AttributeMetric {
+public class AttributeMetricsRecorder extends AbstractMetric implements AttributeMetrics {
     public static final String DEFAULT_NAME = "attributes";
     private static final long serialVersionUID = 8697867855627851983L;
     private final RateRecorder readRate;
     private final RateRecorder writeRate;
 
-    public AttributeMetricRecorder(final String name){
+    public AttributeMetricsRecorder(final String name){
         super(name);
         readRate = new RateRecorder(name);
         writeRate = new RateRecorder(name);
     }
 
-    protected AttributeMetricRecorder(final AttributeMetricRecorder source){
+    protected AttributeMetricsRecorder(final AttributeMetricsRecorder source){
         super(source);
         readRate = source.readRate.clone();
         writeRate = source.writeRate.clone();
     }
 
-    public AttributeMetricRecorder(){
+    public AttributeMetricsRecorder(){
         this(DEFAULT_NAME);
     }
 
     @Override
-    public AttributeMetricRecorder clone() {
-        return new AttributeMetricRecorder(this);
+    public AttributeMetricsRecorder clone() {
+        return new AttributeMetricsRecorder(this);
     }
 
     /**
      * Marks single read.
      */
-    public void updateReads(){
+    public final void updateReads(){
         readRate.mark();
     }
 
     /**
      * Marks single write.
      */
-    public void updateWrites(){
+    public final void updateWrites(){
         writeRate.mark();
     }
 

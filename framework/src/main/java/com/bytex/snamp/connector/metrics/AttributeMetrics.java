@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.0
  * @since 1.0
  */
-public interface AttributeMetric extends Metric {
+public interface AttributeMetrics extends Metric {
     /**
      * Gets rate of attribute writes.
      * @return Rate of attribute writes.
@@ -20,5 +20,5 @@ public interface AttributeMetric extends Metric {
     Rate reads();
 
     @Override
-    AttributeMetric clone();
+    AttributeMetrics clone();
 }

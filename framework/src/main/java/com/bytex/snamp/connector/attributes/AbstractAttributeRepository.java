@@ -4,8 +4,8 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
-import com.bytex.snamp.connector.metrics.AttributeMetric;
-import com.bytex.snamp.connector.metrics.AttributeMetricRecorder;
+import com.bytex.snamp.connector.metrics.AttributeMetrics;
+import com.bytex.snamp.connector.metrics.AttributeMetricsRecorder;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
@@ -91,7 +91,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     private final KeyedObjects<String, M> attributes;
-    private final AttributeMetricRecorder metrics;
+    private final AttributeMetricsRecorder metrics;
     private final boolean expandable;
 
     /**
@@ -106,7 +106,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                           final boolean expandable) {
         super(resourceName, attributeMetadataType);
         attributes = AbstractKeyedObjects.create(MBeanAttributeInfo::getName);
-        metrics = new AttributeMetricRecorder();
+        metrics = new AttributeMetricsRecorder();
         this.expandable = expandable;
     }
 
@@ -471,7 +471,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     private void failedToGetAttribute(final String attributeName,
                                                  final Exception e){
-        getLogger().log(Level.WARNING, String.format("Failed to get attribute '%s'", attributeName), e);
+        getLogger().log(Level.SEVERE, String.format("Failed to get attribute '%s'", attributeName), e);
     }
 
     /**
@@ -520,7 +520,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     private void failedToSetAttribute(final String attributeName, final Object attributeValue, final Exception e){
-        getLogger().log(Level.WARNING, String.format("Failed to update attribute %s with %s value", attributeName, attributeValue), e);
+        getLogger().log(Level.SEVERE, String.format("Failed to update attribute %s with %s value", attributeName, attributeValue), e);
     }
 
     /**
@@ -617,7 +617,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return Metrics associated with activity in this repository.
      */
     @Override
-    public final AttributeMetric getMetrics() {
+    public final AttributeMetrics getMetrics() {
         return metrics;
     }
 

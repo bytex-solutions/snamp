@@ -58,34 +58,34 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
     }
 
-    private static final class SummaryAttributeMetric extends SummaryMetric<AttributeMetric> implements AttributeMetric {
+    private static final class SummaryAttributeMetrics extends SummaryMetric<AttributeMetrics> implements AttributeMetrics {
         private static final String NAME = "summaryAttributes";
         private final Rate readRate;
         private final Rate writeRate;
 
-        private SummaryAttributeMetric(final BundleContext context) {
-            super(AttributeMetric.class, context);
+        private SummaryAttributeMetrics(final BundleContext context) {
+            super(AttributeMetrics.class, context);
             readRate = Summary.summaryRate(NAME, this::readsStream);
             writeRate = Summary.summaryRate(NAME, this::writesStream);
         }
 
-        private SummaryAttributeMetric(final SummaryAttributeMetric source){
+        private SummaryAttributeMetrics(final SummaryAttributeMetrics source){
             super(source);
             readRate = source.readRate.clone();
             writeRate = source.writeRate.clone();
         }
 
         @Override
-        public SummaryAttributeMetric clone() {
-            return new SummaryAttributeMetric(this);
+        public SummaryAttributeMetrics clone() {
+            return new SummaryAttributeMetrics(this);
         }
 
         private Stream<Rate> readsStream() {
-            return toStream(AttributeMetric::reads);
+            return toStream(AttributeMetrics::reads);
         }
 
         private Stream<Rate> writesStream(){
-            return toStream(AttributeMetric::writes);
+            return toStream(AttributeMetrics::writes);
         }
 
         @Override
@@ -175,6 +175,6 @@ public final class SummaryMetrics extends ImmutableMetrics {
     }
 
     public SummaryMetrics(final BundleContext context) {
-        super(new SummaryAttributeMetric(context), new SummaryNotificationMetric(context), new SummaryOperationMetric(context));
+        super(new SummaryAttributeMetrics(context), new SummaryNotificationMetric(context), new SummaryOperationMetric(context));
     }
 }

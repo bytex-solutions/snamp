@@ -1,7 +1,7 @@
 package com.bytex.snamp.supervision.elasticity;
 
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.connector.metrics.Rate;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.supervision.SupervisorAggregatedService;
 
 import javax.annotation.Nonnull;
@@ -13,7 +13,7 @@ import java.time.Duration;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface ElasticityManager extends SupervisorAggregatedService, Stateful {
+public interface ElasticityManager extends SupervisorAggregatedService, Stateful, MetricsSupport {
 
     /**
      * Gets period that helps to ensure that Elasticity Manager doesn't launch or terminate additional instances before the previous scaling activity takes effect.
@@ -55,16 +55,8 @@ public interface ElasticityManager extends SupervisorAggregatedService, Stateful
     double getCastingVoteWeight();
 
     /**
-     * Gets downscale rate.
-     * @return Downscale rate.
+     * Gets scaling metrics.
+     * @return Scaling metrics.
      */
-    @Nonnull
-    Rate getScaleInRate();
-
-    /**
-     * Gets upscale rate.
-     * @return Upscale rate.
-     */
-    @Nonnull
-    Rate getScaleOutRate();
+    ScalingMetrics getScalingMetrics();
 }

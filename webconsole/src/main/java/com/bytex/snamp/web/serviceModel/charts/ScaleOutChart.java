@@ -1,6 +1,6 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import com.bytex.snamp.supervision.elasticity.ElasticityManager;
+import com.bytex.snamp.supervision.elasticity.ScalingMetrics;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 /**
@@ -10,8 +10,8 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  */
 @JsonTypeName("scaleOut")
 public final class ScaleOutChart extends ScalingRateChart {
-    public ScaleOutChart(){
-        super(ElasticityManager::getScaleOutRate);
+    public ScaleOutChart() {
+        super(ScalingMetrics::scaleOut);
     }
 
     @Override

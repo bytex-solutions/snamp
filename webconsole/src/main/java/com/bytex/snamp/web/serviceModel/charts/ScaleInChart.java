@@ -1,6 +1,6 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import com.bytex.snamp.supervision.elasticity.ElasticityManager;
+import com.bytex.snamp.supervision.elasticity.ScalingMetrics;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 /**
@@ -12,7 +12,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 @JsonTypeName("scaleIn")
 public final class ScaleInChart extends ScalingRateChart {
     public ScaleInChart() {
-        super(ElasticityManager::getScaleInRate);
+        super(ScalingMetrics::scaleIn);
     }
 
     @Override

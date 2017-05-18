@@ -3,6 +3,7 @@ package com.bytex.snamp.web.serviceModel.charts;
 import com.bytex.snamp.connector.metrics.Rate;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
+import com.bytex.snamp.supervision.elasticity.ScalingMetrics;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.osgi.framework.BundleContext;
 
@@ -17,9 +18,9 @@ import java.util.function.Function;
  */
 abstract class ScalingRateChart extends RateChart {
     private String groupName = "";
-    private final Function<ElasticityManager, Rate> extractor;
+    private final Function<ScalingMetrics, Rate> extractor;
 
-    ScalingRateChart(@Nonnull final Function<ElasticityManager, Rate> extractor) {
+    ScalingRateChart(@Nonnull final Function<ScalingMetrics, Rate> extractor) {
         this.extractor = extractor;
     }
 
@@ -34,7 +35,10 @@ abstract class ScalingRateChart extends RateChart {
 
     private Rate getRate(final SupervisorClient client) {
         try {
-            return client.queryObject(ElasticityManager.class).map(extractor).orElse(Rate.EMPTY);
+            return client.queryObject(ElasticityManager.class)
+                    .map(ElasticityManager::getScalingMetrics)
+                    .map(extractor)
+                    .orElse(Rate.EMPTY);
         } finally {
             client.close();
         }
