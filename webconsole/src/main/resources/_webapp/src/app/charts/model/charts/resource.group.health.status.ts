@@ -150,7 +150,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
                         });
 
                         _healthStatus["children"].push({
-                            "text": "Details: " + _tmp.status.htmlDetails(),
+                            "text": "Details: " + _tmp.status.details(),
                             "type": "additional",
                             "id": ResourceGroupHealthStatusChart.strnormallize(_tmp.name) + "_dtl",
                             "a_attr": { 'class': "level-" + _tmp.status.getNotificationLevel()},

@@ -20,11 +20,20 @@ export class SnampLogService {
     private buffer:AbstractNotification[] = []; // buffer to write logs on before setting it back to the storage
     private KEY:string = "snampLogs";
     private logObs:Subject<AbstractNotification>;
+    private _displayAlerts:boolean = true;
 
     constructor(private localStorageService: LocalStorageService) {
           let welcomeMessage:AbstractNotification = new LogNotification();
           welcomeMessage.message = "SNAMP WEB UI has started successfully";
           this.logObs = new Subject<AbstractNotification>();
+    }
+
+    get displayAlerts(): boolean {
+        return this._displayAlerts;
+    }
+
+    set displayAlerts(value: boolean) {
+        this._displayAlerts = value;
     }
 
     public getLogObs():Observable<AbstractNotification> {
@@ -56,13 +65,13 @@ export class SnampLogService {
          return _retArray;
     }
 
-    ngOnInit() {
+    ngOnInit():void {
         let welcomeMessage:AbstractNotification = new LogNotification();
         welcomeMessage.message = "SNAMP WEB UI has started successfully";
         this.pushLog(welcomeMessage);
     }
 
-    public pushLog(log:AbstractNotification) {
+    public pushLog(log:AbstractNotification):void {
         this.buffer.unshift(log);
         if (this.buffer.length > this.SPLICE_COUNT) {
           this.flushBuffer();
@@ -88,7 +97,11 @@ export class SnampLogService {
         return this.getArray().reverse();
     }
 
-    public clear() {
+    public clear():void {
         this.localStorageService.clearAll();
+    }
+
+    public toggleDisplayAlerts():void {
+        this.displayAlerts = !this.displayAlerts;
     }
 }

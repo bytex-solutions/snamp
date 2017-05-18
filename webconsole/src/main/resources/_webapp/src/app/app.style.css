@@ -4568,3 +4568,17 @@ select.form-control:not([size]):not([multiple]) {
   left: 50% !important;;
   transform: translate(-50%, -50%) !important;;
 }
+
+.alert-toggle-button {
+  width: 48%;
+  display: inline-block;
+  border: 1px solid;
+  cursor: pointer;
+  margin: auto;
+  padding: 3px;
+  font-size: smaller;
+}
+
+.alert-toggle-button i.fa {
+  padding-left: 10px;
+}

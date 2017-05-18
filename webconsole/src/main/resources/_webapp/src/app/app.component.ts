@@ -42,7 +42,7 @@ export class App {
             {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true});
 
         this.ws.getDataStream()
-            .map((msg) => { console.log("New event: ", msg); return JSON.parse(msg.data); })
+            .map((msg) => { return JSON.parse(msg.data); })
             .subscribe(
                 (msg)=> {
                     let _log:AbstractNotification = NotificationFactory.makeFromJson(msg);
@@ -56,7 +56,7 @@ export class App {
                             PNotify.removeAll();
                             this.notificationCount = 0;
                         }
-                        if (!document.hidden) {
+                        if (!document.hidden && this._snampLogService.displayAlerts) {
                             let notice = new PNotify({
                                 title: _log.level,
                                 text: _log.shortDescription() + "<a class='details'>Details</a>",

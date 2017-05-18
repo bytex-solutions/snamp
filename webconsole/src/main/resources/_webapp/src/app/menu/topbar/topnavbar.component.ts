@@ -90,4 +90,9 @@ export class TopNavBar {
             this.cd.detectChanges();
         });
     }
+
+    toggleAlerts():void {
+        this._snampLogService.toggleDisplayAlerts();
+        $("#togglableAlertIcon").attr("class", this._snampLogService.displayAlerts ? "fa fa-pause" : "fa fa-play");
+    }
 }

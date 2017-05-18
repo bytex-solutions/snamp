@@ -4,6 +4,7 @@ export abstract class AbstractNotification {
     public static LOG:string = "log";
     public static RESOURCE:string = "resourceNotification";
     public static COMPOSITION:string = "groupCompositionChanged";
+    public static SCALING:string = "scalingHappens";
 
     private _level:string;
     private _timestamp:Date;

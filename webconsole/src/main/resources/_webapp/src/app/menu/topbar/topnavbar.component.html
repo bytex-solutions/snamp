@@ -24,10 +24,16 @@
           </a>
           <ul id="menu1" class="dropdown-menu list-unstyled msg_list" dropdown-not-closable-zone>
             <li *ngIf="logs && logs.length > 0">
-              <div class="text-center">
+              <div class="text-center alert-toggle-button">
                 <a (click)="clearAlerts()">
                   <strong>Clear alerts</strong>
                   <i class="fa fa-remove"></i>
+                </a>
+              </div>
+              <div class="text-center alert-toggle-button">
+                <a (click)="toggleAlerts()">
+                  <strong>Toggle alerts</strong>
+                  <i class="fa fa-pause" id="togglableAlertIcon"></i>
                 </a>
               </div>
             </li>

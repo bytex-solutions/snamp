@@ -4,6 +4,7 @@ import { HealthStatusNotification } from "./health.status.notification";
 import { ResourceNotification } from "./resource.notification";
 import { StatusFactory } from "../healthstatus/factory";
 import { GroupCompositionChangedMessage } from "./group.composition.changed.notification";
+import { ScalingNotification } from "./scaling.happened";
 
 export class NotificationFactory {
     public static makeFromJson(_json:any):AbstractNotification {
@@ -20,6 +21,9 @@ export class NotificationFactory {
                 break;
             case AbstractNotification.COMPOSITION:
                 _notification = new GroupCompositionChangedMessage();
+                break;
+            case AbstractNotification.SCALING:
+                _notification = new ScalingNotification();
                 break;
             default:
                 console.log("Whole the json object is: ", _json);
@@ -47,6 +51,9 @@ export class NotificationFactory {
                 break;
             case AbstractNotification.COMPOSITION:
                 _notification = Object.assign(new GroupCompositionChangedMessage(), _json);
+                break;
+            case AbstractNotification.SCALING:
+                _notification = Object.assign(new ScalingNotification(), _json);
                 break;
             default:
                 console.log("Whole the json object is: ", _json);
