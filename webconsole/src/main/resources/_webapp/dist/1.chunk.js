@@ -417,7 +417,7 @@ exports.Guid = Guid;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var watcher_1 = __webpack_require__("./src/app/watchers/model/watcher.ts");
 var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scriptlet.data.object.ts");
 var Factory = (function () {
@@ -425,17 +425,18 @@ var Factory = (function () {
     }
     Factory.watcherFromJSON = function (name, json) {
         var _watcher = new watcher_1.Watcher(name, json["parameters"]);
-        if (json["attributeCheckers"] != undefined) {
+        if (json["attributeCheckers"] != undefined && !$.isEmptyObject(json["attributeCheckers"])) {
             for (var key in json["attributeCheckers"]) {
                 _watcher.attributeCheckers[key] = scriptlet_data_object_1.ScriptletDataObject.fromJSON(json["attributeCheckers"][key]);
             }
         }
-        if (json["trigger"] != undefined) {
+        if (json["trigger"] != undefined && !$.isEmptyObject(json["trigger"])) {
             _watcher.trigger = scriptlet_data_object_1.ScriptletDataObject.fromJSON(json["trigger"]);
         }
         return _watcher;
     };
     Factory.watchersArrayFromJSON = function (json) {
+        console.log("Whole watchers configuration is: ", json);
         var result = [];
         for (var key in json) {
             result.push(Factory.watcherFromJSON(key, json[key]));
@@ -446,6 +447,7 @@ var Factory = (function () {
 }());
 exports.Factory = Factory;
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -559,6 +561,7 @@ var ScriptletDataObject = (function () {
         return ((this.script.length > 60) ? this.script.substring(0, 60) + '...' : this.script);
     };
     ScriptletDataObject.fromJSON = function (json) {
+        console.log("Json from data object is: ", json);
         var instance = new ScriptletDataObject();
         if (json["language"] != undefined) {
             instance.language = json["language"];

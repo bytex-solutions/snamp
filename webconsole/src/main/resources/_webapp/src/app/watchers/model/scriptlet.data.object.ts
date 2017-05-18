@@ -25,6 +25,7 @@ export class ScriptletDataObject {
     }
 
     public static fromJSON(json:string):ScriptletDataObject {
+        console.log("Json from data object is: ", json);
         let instance:ScriptletDataObject = new ScriptletDataObject();
         if (json["language"] != undefined) {
             instance.language = json["language"];
