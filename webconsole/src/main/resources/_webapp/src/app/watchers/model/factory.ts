@@ -7,10 +7,16 @@ export class Factory {
         let _watcher:Watcher = new Watcher(name, json["parameters"]);
         if (json["attributeCheckers"] != undefined && !$.isEmptyObject(json["attributeCheckers"])) {
             for (let key in json["attributeCheckers"]) {
-                _watcher.attributeCheckers[key] = ScriptletDataObject.fromJSON(json["attributeCheckers"][key]);
+                if (json["attributeCheckers"][key]["language"] != undefined
+                    && json["attributeCheckers"][key]["language"].length > 0) {
+                    _watcher.attributeCheckers[key] = ScriptletDataObject.fromJSON(json["attributeCheckers"][key]);
+                }
             }
         }
-        if (json["trigger"] != undefined && !$.isEmptyObject(json["trigger"])) {
+        if (json["trigger"] != undefined
+            && !$.isEmptyObject(json["trigger"])
+            && json["trigger"]["language"] != undefined
+            && json["trigger"]["language"].length > 0) {
             _watcher.trigger = ScriptletDataObject.fromJSON(json["trigger"]);
         }
         return _watcher;

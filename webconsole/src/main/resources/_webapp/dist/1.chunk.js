@@ -427,10 +427,16 @@ var Factory = (function () {
         var _watcher = new watcher_1.Watcher(name, json["parameters"]);
         if (json["attributeCheckers"] != undefined && !$.isEmptyObject(json["attributeCheckers"])) {
             for (var key in json["attributeCheckers"]) {
-                _watcher.attributeCheckers[key] = scriptlet_data_object_1.ScriptletDataObject.fromJSON(json["attributeCheckers"][key]);
+                if (json["attributeCheckers"][key]["language"] != undefined
+                    && json["attributeCheckers"][key]["language"].length > 0) {
+                    _watcher.attributeCheckers[key] = scriptlet_data_object_1.ScriptletDataObject.fromJSON(json["attributeCheckers"][key]);
+                }
             }
         }
-        if (json["trigger"] != undefined && !$.isEmptyObject(json["trigger"])) {
+        if (json["trigger"] != undefined
+            && !$.isEmptyObject(json["trigger"])
+            && json["trigger"]["language"] != undefined
+            && json["trigger"]["language"].length > 0) {
             _watcher.trigger = scriptlet_data_object_1.ScriptletDataObject.fromJSON(json["trigger"]);
         }
         return _watcher;
