@@ -39,7 +39,7 @@ More information about memory tuning:
 
 * [Java 8 GC tuning](http://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/index.html)
 * [Java 6 GC tuning](http://www.oracle.com/technetwork/java/javase/gc-tuning-6-140523.html)
-* [Karaf Tuning](http://karaf.apache.org/manual/latest/users-guide/tuning.html)
+* [Karaf Tuning](https://github.com/apache/karaf/blob/master/manual/src/main/asciidoc/user-guide/tuning.adoc)
 
 ### Memory utilization profile
 All the Java objects created during SNAMP execution can be divided by its lifecycle:
