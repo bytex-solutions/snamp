@@ -2,6 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
+import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
@@ -10,7 +11,7 @@ import java.io.PrintWriter;
 /**
  * Prints list of existing thread pools.
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
         name = "thread-pool-list",
         description = "List of SNAMP thread pools")
 @Service

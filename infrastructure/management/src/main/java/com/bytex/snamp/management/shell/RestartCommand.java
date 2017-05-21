@@ -1,5 +1,6 @@
 package com.bytex.snamp.management.shell;
 
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.DefaultSnampManager;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
@@ -13,7 +14,7 @@ import java.io.PrintWriter;
  * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
     name = "restart",
     description = "Restarts SNAMP components")
 @Service

@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Map;
 
 /**
@@ -101,11 +100,7 @@ public interface ScriptletConfiguration {
     default String resolveScriptBody() throws IOException {
         final String result;
         if (isURL()) {
-            final URL url = new URL(getScript());
-            final URLConnection connection = url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            try (final InputStream is = connection.getInputStream()) {
+            try (final InputStream is = new URL(getScript()).openStream()) {
                 return IOUtils.toString(is);
             }
         } else

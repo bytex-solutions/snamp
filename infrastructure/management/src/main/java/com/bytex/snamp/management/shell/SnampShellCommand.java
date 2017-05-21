@@ -14,10 +14,6 @@ import java.io.StringWriter;
  * @since 1.0
  */
 abstract class SnampShellCommand implements Action {
-    /**
-     * Namespace of commands.
-     */
-    static final String SCOPE = "snamp";
 
     final BundleContext getBundleContext(){
         return Utils.getBundleContextOfObject(this);

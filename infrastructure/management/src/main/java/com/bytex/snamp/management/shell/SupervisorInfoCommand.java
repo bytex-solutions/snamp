@@ -5,6 +5,7 @@ import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -16,7 +17,7 @@ import java.io.PrintWriter;
 /**
  * Displays information about supervisor.
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
         name = "supervisor",
         description = "Display configuration of the managed resource group")
 @Service

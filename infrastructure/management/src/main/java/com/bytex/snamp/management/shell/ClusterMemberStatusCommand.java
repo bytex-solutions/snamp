@@ -2,6 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.jmx.ResignOperation;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -14,7 +15,7 @@ import java.io.PrintWriter;
  * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
         name = "cluster-member",
     description = "Show status of the local cluster member")
 @Service

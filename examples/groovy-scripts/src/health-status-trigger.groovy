@@ -3,6 +3,10 @@ import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus
 import com.bytex.snamp.connector.health.HealthStatus
 
+/*
+ * Code inside of this class represents body of health status trigger.
+ * This example script can be used to debug triggers before putting it into SNAMP configuration
+ */
 class MyHealthStatusTrigger implements HealthStatusTrigger{
     @Override
     public void statusChanged(final ResourceGroupHealthStatus previousStatus, final ResourceGroupHealthStatus newStatus){

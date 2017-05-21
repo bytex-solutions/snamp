@@ -2,6 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.metrics.*;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.jmx.MetricsAttribute;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
@@ -20,7 +21,7 @@ import static com.google.common.collect.Iterables.getFirst;
 /**
  * Provides access to metrics.
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
     name = "resource-metrics",
     description = "View runtime metrics associated with managed resources")
 @Service

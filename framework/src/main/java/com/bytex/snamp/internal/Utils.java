@@ -32,7 +32,12 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  * @since 1.0
  */
 @Internal
-public final class Utils {  
+public final class Utils {
+    /**
+     * Namespace of commands.
+     */
+    public static final String SHELL_COMMAND_SCOPE = "snamp";
+
     @SuppressWarnings("unchecked")
     private static final Function CALL_SILENT_FN;
 

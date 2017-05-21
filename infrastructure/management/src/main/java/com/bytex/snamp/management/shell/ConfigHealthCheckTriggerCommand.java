@@ -5,6 +5,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
@@ -22,7 +23,7 @@ import java.util.Arrays;
  * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
         description = "Configure health check trigger",
         name = "configure-health-check-trigger")
 @Service

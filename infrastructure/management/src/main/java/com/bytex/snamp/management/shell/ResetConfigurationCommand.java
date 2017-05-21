@@ -2,6 +2,7 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
@@ -15,7 +16,7 @@ import java.util.Optional;
  * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
     name = "reset-config",
     description = "Reset configuration to empty")
 @Service

@@ -1,6 +1,7 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.core.PlatformVersion;
+import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
@@ -11,7 +12,7 @@ import java.io.PrintWriter;
  * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
     name = "version",
     description = "Show version of SNAMP platform")
 @Service
