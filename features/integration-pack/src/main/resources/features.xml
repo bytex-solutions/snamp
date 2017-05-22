@@ -2,8 +2,8 @@
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-integration">
     <repository>mvn:com.bytex.snamp.features/core/${snamp.version}/xml/features</repository>
 
-    <feature name="snamp-discovery-over-http" description="REST Discovery Service" version="${project.version}">
-        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-framework</feature>
+    <feature name="snamp-discovery-over-http" description="REST Discovery Service" version="${project.version}" install="manual">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-web-support</feature>
         <bundle start="true">mvn:com.bytex.snamp.integration/discovery-over-http/${project.version}</bundle>
     </feature>

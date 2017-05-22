@@ -25,7 +25,7 @@
         <bundle>mvn:com.orientechnologies/orientdb-distributed/${orientdb.version}</bundle>
     </feature>
 
-    <feature name="snamp-framework" description="SNAMP Framework libraries" version="${project.version}">
+    <feature name="snamp-framework" description="SNAMP framework" version="${project.version}">
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle>mvn:com.google.code.findbugs/jsr305/${jsr305.version}</bundle>
         <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
@@ -33,16 +33,14 @@
 
     <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
         <details>${project.description}</details>
-        <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
-        <!-- Third-party features -->
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">eventadmin</feature>
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">framework</feature>
+        <!-- Required features -->
+        <feature version="[${karaf.version}, ${karaf.maxVersion})">http-whiteboard</feature>
         <feature version="${jersey.version}">jersey-server</feature>
         <feature version="${orientdb.version}">orientdb-server</feature>
-        <!--SNAMP dependencies-->
         <feature version="${project.version}">snamp-json-support</feature>
         <feature version="${project.version}">snamp-framework</feature>
+        <!--Required bundles-->
+        <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/security/${snamp.security.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
     </feature>

@@ -59,9 +59,16 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         }
     }
     private static final EnvironmentBuilder SNAMP_ENV_BUILDER = new EnvironmentBuilder() {
+        private KarafFeaturesOption feature(final String groupId, final String artifactId, final String version, final String... features) {
+            return new KarafFeaturesOption(
+                    new MavenArtifactUrlReference().groupId(groupId).artifactId(artifactId).version(version).type("xml").classifier("features"),
+                    features);
+        }
+
         @Override
         public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
             final Collection<KarafFeaturesOption> result = new LinkedList<>();
+            //setup SNAMP features
             for (final SnampDependencies deps : TestUtils.getAnnotations(testType, SnampDependencies.class))
                 for (final SnampFeature feature : deps.value())
                     try {
@@ -69,9 +76,10 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                     } catch (final MalformedURLException e) {
                         fail(e.getMessage());
                     }
-            for(final MavenDependencies deps: TestUtils.getAnnotations(testType, MavenDependencies.class))
-                for(final MavenFeature feature: deps.features())
-                        result.add(new KarafFeaturesOption(new MavenArtifactUrlReference().artifactId(feature.artifact().artifactId()).groupId(feature.artifact().groupId()).version(feature.artifact().version()).type("xml").classifier("features"), feature.value()));
+            //setup extra dependencies
+            for (final MavenDependencies deps : TestUtils.getAnnotations(testType, MavenDependencies.class))
+                for (final MavenFeature feature : deps.features())
+                    result.add(feature(feature.artifact().groupId(), feature.artifact().artifactId(), feature.artifact().version(), feature.value()));
             return result;
         }
 

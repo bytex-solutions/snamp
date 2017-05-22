@@ -108,6 +108,7 @@
             <Bundle-Activator>com.bytex.snamp.connector.rshell.RShellResourceConnectorActivator</Bundle-Activator>
             <Export-Package>com.bytex.jcommands</Export-Package>
             <Import-Package>com.bytex.snamp,
+                            com.bytex.snamp.configuration,
                             com.bytex.snamp.connector,
                             com.bytex.snamp.connector.attributes,
                             com.bytex.snamp.connector.metrics,

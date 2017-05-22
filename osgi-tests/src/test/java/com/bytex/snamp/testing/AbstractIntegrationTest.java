@@ -2,10 +2,7 @@ package com.bytex.snamp.testing;
 
 import com.google.common.base.StandardSystemProperty;
 import org.junit.runner.RunWith;
-import org.ops4j.pax.exam.Configuration;
-import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.ProbeBuilder;
-import org.ops4j.pax.exam.TestProbeBuilder;
+import org.ops4j.pax.exam.*;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.ops4j.pax.exam.karaf.options.LogLevelOption;
