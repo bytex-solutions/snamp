@@ -75,8 +75,7 @@
         <configuration>
           <instructions>
             <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-            <Karaf-Commands>com.bytex.snamp.scripting.debugging.DebugHealthStatusTriggerCommand,
-              com.bytex.snamp.scripting.debugging.DebugAttributeCheckerCommand</Karaf-Commands>
+            <Karaf-Commands>com.bytex.snamp.scripting.debugging.*</Karaf-Commands>
           </instructions>
         </configuration>
       </plugin>

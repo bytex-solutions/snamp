@@ -43,8 +43,7 @@
                     <instructions>
                         <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
                         <Karaf-Commands>
-                            com.bytex.snamp.scripting.debugging.DebugHealthStatusTriggerCommand,
-                            com.bytex.snamp.scripting.debugging.DebugAttributeCheckerCommand
+                            com.bytex.snamp.scripting.debugging.*
                         </Karaf-Commands>
                     </instructions>
                 </configuration>

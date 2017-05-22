@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-standard">
     <repository>mvn:com.bytex.snamp.features/core/${snamp.version}/xml/features</repository>
+    <repository>mvn:com.bytex.snamp.features/connectors/${snamp.connectors.version}/xml/features</repository>
+
+    <feature name="snamp-devops-tools" description="SNAMP command-line tools for DevOps" version="${snamp.version}">
+        <feature version="${snamp.supervisors.version}">snamp-default-supervisor</feature>
+        <bundle start="true">mvn:com.bytex.snamp/devops-tools/${snamp.version}</bundle>
+    </feature>
 
     <feature name="snamp-management" description="SNAMP management tools" version="${snamp.management.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-core</feature>

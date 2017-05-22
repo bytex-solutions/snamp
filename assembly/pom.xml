@@ -149,6 +149,14 @@
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                 </artifactItem>
+                <artifactItem>
+                  <groupId>com.bytex.snamp.features</groupId>
+                  <artifactId>integration</artifactId>
+                  <version>${snamp.integration.version}</version>
+                  <type>kar</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
+                </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
