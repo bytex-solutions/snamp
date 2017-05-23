@@ -66,6 +66,12 @@
     <feature name="snamp-xmpp-gateway" description="SNAMP XMPP Gateway" version="${snamp.gateway.xmpp.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-security</feature>
-        <bundle>mvn:com.bytex.snamp.gateways/xmpp/${snamp.gateway.xmpp.version}</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/xmpp/${snamp.gateway.xmpp.version}</bundle>
+    </feature>
+
+    <feature name="snamp-smtp-gateway" description="SNAMP SMTP Gateway" version="${snamp.gateway.smtp.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <bundle>mvn:javax.mail/mail/1.4.4</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/smtp/${snamp.gateway.smtp.version}</bundle>
     </feature>
 </features>

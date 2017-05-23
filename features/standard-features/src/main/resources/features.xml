@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-standard">
+    <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
     <repository>mvn:com.bytex.snamp.features/core/${snamp.version}/xml/features</repository>
     <repository>mvn:com.bytex.snamp.features/connectors/${snamp.connectors.version}/xml/features</repository>
 
@@ -22,6 +23,7 @@
     </feature>
 
     <feature name="snamp-web-console" description="SNAMP Web Console" version="${snamp.webconsole.version}" install="auto" >
+        <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
         <feature version="${snamp.analysis.version}">snamp-data-analysis</feature>

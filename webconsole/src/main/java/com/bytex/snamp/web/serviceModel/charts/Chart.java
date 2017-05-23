@@ -22,7 +22,8 @@ import java.util.Map;
         @JsonSubTypes.Type(ResourceGroupHealthStatusChart.class),
         @JsonSubTypes.Type(NumberOfResourcesChart.class),
         @JsonSubTypes.Type(ScaleInChart.class),
-        @JsonSubTypes.Type(ScaleOutChart.class)
+        @JsonSubTypes.Type(ScaleOutChart.class),
+        @JsonSubTypes.Type(VotingResultChart.class)
 })
 public interface Chart {
     /**

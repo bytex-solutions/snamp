@@ -454,9 +454,12 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         scaleOutChart.setInterval(MetricsInterval.MINUTE);
         scaleOutChart.setMetrics(RateChart.RateMetric.LAST_RATE, RateChart.RateMetric.MEAN_RATE);
 
+        final VotingResultChart votingResult = new VotingResultChart();
+        votingResult.setGroupName(SCALABLE_GROUP_NAME);
+        votingResult.setName("scaling");
 
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{lineChart, panelChart, hsChart, resourcesChart, scaleInChart, scaleOutChart}));
+        final JsonNode node = httpPost("/charts/compute", authenticationToken, FORMATTER.valueToTree(new Chart[]{lineChart, panelChart, hsChart, resourcesChart, scaleInChart, scaleOutChart, votingResult}));
         assertNotNull(node);
     }
 
@@ -546,7 +549,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         } finally {
             connection.disconnect();
         }
-
     }
 
     @Test

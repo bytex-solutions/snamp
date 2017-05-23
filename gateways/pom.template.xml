@@ -39,5 +39,6 @@
       <module>xmpp-gateway</module>
       <module>groovy-gateway</module>
       <module>influx-gateway</module>
+      <module>smtp-gateway</module>
   </modules>
 </project>

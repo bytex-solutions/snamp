@@ -11,6 +11,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <!--Global dependencies-->
+    <javax.mail.version>1.4.4</javax.mail.version>
     <karaf.version>4.0.9</karaf.version>
     <karaf.maxVersion>5</karaf.maxVersion>
     <osgi.version>5.0.0</osgi.version>
@@ -42,6 +43,7 @@
     <snamp.maxVersion>3</snamp.maxVersion>
 
     <snamp.gateways.version>2.0.0</snamp.gateways.version>
+    <snamp.gateway.smtp.version>2.0.0</snamp.gateway.smtp.version>
     <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>

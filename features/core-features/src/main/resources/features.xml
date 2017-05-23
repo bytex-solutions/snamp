@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-platform">
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
-    <repository>mvn:org.apache.karaf.features/framework/${karaf.version}/xml/features</repository>
     
     <feature name="jersey-server" description="Jersey 1.x server-side libraries" version="${jersey.version}">
         <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
