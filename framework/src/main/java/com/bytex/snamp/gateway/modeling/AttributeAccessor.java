@@ -11,6 +11,7 @@ import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.reflect.TypeToken;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import javax.management.openmbean.OpenType;
 import java.math.BigDecimal;
@@ -114,11 +115,11 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * Disconnects attribute accessor from the managed resource.
      */
     @Override
-    public final void close() {
+    @OverridingMethodsMustInvokeSuper
+    public void close() {
         attributeSupport = null;
         wellKnownType.reset();
         openType.reset();
-        super.close();
     }
 
     /**

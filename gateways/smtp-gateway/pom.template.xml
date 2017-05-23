@@ -55,5 +55,15 @@
             <scope>provided</scope>
             <version>${javax.mail.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>json-helpers</artifactId>
+            <version>${snamp.json.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

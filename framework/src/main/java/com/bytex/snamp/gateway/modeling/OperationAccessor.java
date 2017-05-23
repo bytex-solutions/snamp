@@ -3,6 +3,7 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.operations.OperationSupport;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.MBeanOperationInfo;
 
 /**
@@ -47,9 +48,9 @@ public abstract class OperationAccessor extends FeatureAccessor<MBeanOperationIn
      * Disconnects notification accessor from the managed resource.
      */
     @Override
-    public final void close() {
+    @OverridingMethodsMustInvokeSuper
+    public void close() {
         this.operationSupport = null;
-        super.close();
     }
 
     public static int removeAll(final Iterable<? extends OperationAccessor> notifications,

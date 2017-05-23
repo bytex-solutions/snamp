@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.notifications.TypeBasedNotificationFilter;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.Optional;
 
@@ -64,7 +65,8 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
      * Disconnects notification accessor from the managed resource.
      */
     @Override
-    public final void close() {
+    @OverridingMethodsMustInvokeSuper
+    public void close() {
         try {
             final NotificationSupport ns = this.notificationSupport;
             if (ns != null)
@@ -72,7 +74,6 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
         } catch (final ListenerNotFoundException ignored) {
         } finally {
             this.notificationSupport = null;
-            super.close();
         }
     }
 
@@ -89,7 +90,7 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
      * @return A new notification filter.
      * @see javax.management.MBeanNotificationInfo#getNotifTypes()
      */
-    public final NotificationFilter createFilter(){
+    protected NotificationFilter createFilter(){
         return new TypeBasedNotificationFilter(getMetadata());
     }
 

@@ -39,11 +39,6 @@ public class NotificationRouter extends NotificationAccessor {
         return resourceName;
     }
 
-    @Override
-    public final void disconnected() {
-        weakListener.clear();
-    }
-
     protected NotificationEvent createNotificationEvent(final Notification notification,
                                                         final Object handback){
         return new NotificationEvent(resourceName, getMetadata(), notification);
@@ -58,5 +53,14 @@ public class NotificationRouter extends NotificationAccessor {
     public final void handleNotification(final Notification notification, final Object handback) {
         final NotificationListener listener = weakListener.get();
         if (listener != null) listener.handleNotification(createNotificationEvent(notification, handback));
+    }
+
+    /**
+     * Disconnects notification accessor from the managed resource.
+     */
+    @Override
+    public final void close() {
+        weakListener.clear();
+        super.close();
     }
 }

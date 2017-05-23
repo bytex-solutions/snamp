@@ -5,6 +5,7 @@ import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.json.JsonUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
 
@@ -24,11 +25,12 @@ import java.util.Map;
  */
 final class XMPPNotificationAccessor extends NotificationRouter {
     static final String LISTEN_COMMAND_PATTERN = "notifs %s";
-    private static final ObjectMapper FORMATTER;
+    private static final ObjectWriter FORMATTER;
 
     static {
-        FORMATTER = new ObjectMapper();
-        FORMATTER.registerModule(new JsonUtils());
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JsonUtils());
+        FORMATTER = mapper.writer();
     }
 
     XMPPNotificationAccessor(final MBeanNotificationInfo metadata,
@@ -64,7 +66,7 @@ final class XMPPNotificationAccessor extends NotificationRouter {
                         .stream()
                         .map(entry -> String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue())))
                         .findFirst()
-                        .orElseGet(() -> null);
+                        .orElse(null);
             default:
                 final StringBuilder filter = new StringBuilder(30);
                 for (final Map.Entry<String, ?> entry : filterParams.entrySet())

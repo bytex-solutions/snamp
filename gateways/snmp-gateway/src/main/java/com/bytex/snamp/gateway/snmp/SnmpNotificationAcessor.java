@@ -111,10 +111,14 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
         }
     }
 
+    /**
+     * Disconnects notification accessor from the managed resource.
+     */
     @Override
-    public void disconnected() {
+    public void close() {
         final WeakReference<NotificationOriginator> originatorRef = this.notificationOriginator;
         this.notificationOriginator = null;
         if (originatorRef != null) originatorRef.clear();
+        super.close();
     }
 }
