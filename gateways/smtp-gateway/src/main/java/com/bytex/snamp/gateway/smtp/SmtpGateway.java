@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
+ * Represents SMTP gateway.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0

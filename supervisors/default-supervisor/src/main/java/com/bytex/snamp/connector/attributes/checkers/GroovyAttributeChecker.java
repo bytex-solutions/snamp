@@ -37,11 +37,13 @@ public abstract class GroovyAttributeChecker extends Scriptlet implements Attrib
         return Optional.ofNullable(attributeStorage.get()).map(transformation);
     }
 
-    public final Object getAttributeValue(){
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
+    protected final Object getAttributeValue(){
         return getAttribute(Attribute::getValue).orElse(null);
     }
 
-    public final String getAttributeName() {
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
+    protected final String getAttributeName() {
         return getAttribute(Attribute::getName).orElse("");
     }
 }
