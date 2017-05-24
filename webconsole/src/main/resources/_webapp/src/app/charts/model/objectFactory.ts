@@ -19,6 +19,9 @@ import { ResourceGroupHealthStatusChart } from "./charts/resource.group.health.s
 import { HealthStatusAxis } from "./axis/health.status.axis";
 import { NumericAxis } from "./axis/numeric.axis";
 import { NumberOfResourcesChart } from "./charts/number.of.resources";
+import {ScaleInChart} from "./charts/scale.in.chart";
+import {ScaleOutChart} from "./charts/scale.out.chart";
+import {ScalingRateChart} from "./scaling.rate.chart";
 
 // Factory to create appropriate objects from json
 export class Factory {
@@ -89,6 +92,12 @@ export class Factory {
                     _chart = new NumberOfResourcesChart();
                     (<NumberOfResourcesChart>_chart).group = _json["group"];
                     break;
+                case AbstractChart.SCALE_IN:
+                    _chart = new ScaleInChart();
+                    break;
+                case AbstractChart.SCALE_OUT:
+                    _chart = new ScaleOutChart();
+                    break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
             }
@@ -112,6 +121,13 @@ export class Factory {
                 (<TwoDimensionalChart>_chart).getAxisX(); // set not null axis. just secure it.
                 (<TwoDimensionalChart>_chart).getAxisY(); // set not null axis. just secure it.
             }
+
+            if (_chart instanceof ScalingRateChart) {
+                (<ScalingRateChart>_chart).metrics = _json["metrics"];
+                (<ScalingRateChart>_chart).group = _json["group"];
+                (<ScalingRateChart>_chart).interval = _json["interval"];
+            }
+
             if (_json["name"] != undefined) {
                 _chart.name = _json["name"];
             }
@@ -149,6 +165,14 @@ export class Factory {
                 case AbstractChart.RESOURCE_COUNT:
                     _chart = new NumberOfResourcesChart();
                     (<NumberOfResourcesChart>_chart).group = component;
+                    break;
+                case AbstractChart.SCALE_IN:
+                    _chart = new ScaleInChart();
+                    (<ScaleInChart>_chart).group = component;
+                    break;
+                case AbstractChart.SCALE_OUT:
+                    _chart = new ScaleOutChart();
+                    (<ScaleOutChart>_chart).group = component;
                     break;
                 default:
                     throw new Error("Type " + type + " is unknown and cannot be parsed correctly");

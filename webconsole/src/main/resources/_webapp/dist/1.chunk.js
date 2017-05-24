@@ -442,7 +442,6 @@ var Factory = (function () {
         return _watcher;
     };
     Factory.watchersArrayFromJSON = function (json) {
-        console.log("Whole watchers configuration is: ", json);
         var result = [];
         for (var key in json) {
             result.push(Factory.watcherFromJSON(key, json[key]));

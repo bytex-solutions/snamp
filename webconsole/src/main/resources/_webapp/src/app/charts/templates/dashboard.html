@@ -89,11 +89,11 @@
             </div>
 
             <div id="metric" class="row" style="margin-top: 10px;">
-              <div class="col-md-12 col-sm-12 col-xs-12 text-center" style="margin-top:100px" *ngIf="(metrics | async) == undefined || (metrics | async).length == 0">
-                <strong>No metrics are found - cannot proceed</strong>
-              </div>
-
-              <div  *ngIf="(metrics | async) != undefined && (metrics | async).length > 0">
+              <div *ngIf="selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut'">
+                <div class="col-md-12 col-sm-12 col-xs-12 text-center" style="margin-top:100px" *ngIf="(metrics | async) == undefined || (metrics | async).length == 0">
+                  <strong>No metrics are found - cannot proceed</strong>
+                </div>
+                <div  *ngIf="(metrics | async) != undefined && (metrics | async).length > 0">
                 <div class="bs-example" data-example-id="simple-jumbotron" *ngIf="selectedMetric != undefined">
                   <div class="jumbotron">
                     <p>
@@ -124,6 +124,22 @@
                   </div>
                 </div>
               </div>
+              </div>
+              <div *ngIf="selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'">
+                <div class="item form-group">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="rateMetricSelect"
+                          style="margin-top: 7px;">
+                    Select rate metrics (multiple selection) <span class="required">*</span>
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <select class="select2_multiple form-control" id="rateMetricSelect"  multiple="multiple">
+                      <option *ngFor="let rateMetric of rateMetrics" [attr.selected]="isRateMetricSelected(rateMetric.id) ? true : null">{{rateMetric.id}}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div id="rate" class="row" style="margin-top: 10px;">
@@ -143,6 +159,20 @@
                   <div class="col-md-6 col-sm-6 col-xs-12">
                     <select class="form-control" [(ngModel)]="timeInterval" id="lineChartIntervalSelect">
                       <option *ngFor="let interval of intervals" [ngValue]="interval">{{interval.description}}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="item form-group col-md-offset-3" *ngIf="selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="rateIntervalSelect"
+                          style="margin-top: 7px;">
+                    Select rate interval <span class="required">*</span>
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <select class="form-control" [(ngModel)]="timeInterval" id="rateIntervalSelect">
+                      <option *ngFor="let interval of rateIntervals" [ngValue]="rateInterval">{{interval.description}}</option>
                     </select>
                   </div>
                 </div>

@@ -23,7 +23,6 @@ export class Factory {
     }
 
     public static watchersArrayFromJSON(json:any):Watcher[] {
-        console.log("Whole watchers configuration is: ", json);
         let result:Watcher[] = [];
         for (let key in json) {
             result.push(Factory.watcherFromJSON(key, json[key]));

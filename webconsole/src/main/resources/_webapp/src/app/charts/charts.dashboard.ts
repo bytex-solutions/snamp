@@ -11,7 +11,7 @@ import { PanelOfAttributeValues } from "./model/charts/panel.attributes.values";
 import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
 import { ActivatedRoute } from '@angular/router';
 import { ResourceGroupHealthStatusChart } from "./model/charts/resource.group.health.status";
-import { SeriesBasedChart, TimeInterval } from "./model/abstract.line.based.chart";
+import { SeriesBasedChart, DescriptionIdClass } from "./model/abstract.line.based.chart";
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -21,6 +21,7 @@ import 'rxjs/add/observable/of';
 
 import 'smartwizard';
 import 'select2';
+import { ScalingRateChart } from "./model/scaling.rate.chart";
 
 @Component({
     moduleId: module.id,
@@ -41,6 +42,7 @@ export class Dashboard {
     private selectedInstances:string[] = [];
     private allInstances:string[] = [];
     private selectedAllInstances:boolean = true;
+    private selectedRateMetrics:string[] = [];
 
     private selectedChartType:string = "";
 
@@ -50,15 +52,19 @@ export class Dashboard {
 
     private groupName:string = "";
 
-    private intervals:TimeInterval[] = SeriesBasedChart.generateIntervals();
+    private intervals:DescriptionIdClass[] = SeriesBasedChart.generateIntervals();
+    private rateIntervals:DescriptionIdClass[] = SeriesBasedChart.generateRateIntervals();
+    private rateMetrics:DescriptionIdClass[] = ScalingRateChart.prepareRareMetrics();
 
-    private timeInterval:TimeInterval = undefined;
+    private timeInterval:DescriptionIdClass = undefined;
+    private rateInterval:DescriptionIdClass = undefined;
 
     private static select2Id:string = "#instancesSelect";
     private static chartModalId:string = "#addChartModal";
     private static wizardId:string = "#smartwizardForChart";
+    private static rateMetricSelect2Id:string = "#rateMetricSelect";
 
-    private gridConfig: NgGridConfig = <NgGridConfig>{
+    private gridConfig: NgGridConfig = <NgGridConfig> {
         'margins': [10],
         'draggable': true,
         'resizable': true,
@@ -92,6 +98,7 @@ export class Dashboard {
 
         overlay.defaultViewContainer = vcRef;
         this.timeInterval = this.intervals[0];
+        this.rateInterval = this.rateIntervals[0];
     }
 
     appendChartClicked(type:string) {
@@ -109,6 +116,7 @@ export class Dashboard {
         this.selectedMetric = undefined;
         this.selectedComponent = "";
         this.timeInterval = this.intervals[0];
+        this.selectedRateMetrics = [];
 
         // fill components and selected component
         this.ngOnInit();
@@ -121,6 +129,19 @@ export class Dashboard {
         if ($(Dashboard.select2Id).data('select2')) {
             $(Dashboard.select2Id).select2("destroy");
         }
+
+        // reset rate metric select2 component
+        let _thisReference = this;
+        if ($(Dashboard.rateMetricSelect2Id).data('select2')) {
+            $(Dashboard.rateMetricSelect2Id).select2("destroy");
+        }
+        $(Dashboard.rateMetricSelect2Id).select2({
+            placeholder: "Select rate metrics from the dropdown",
+            allowClear: true
+        });
+        $(Dashboard.rateMetricSelect2Id).on('change', (e) => {
+            _thisReference.onRateMetricSelect($(e.target).val());
+        });
 
         // open the modal
         $(Dashboard.chartModalId).modal("show");
@@ -192,6 +213,7 @@ export class Dashboard {
         }
 
         $(Dashboard.wizardId).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
+            this.cd.detectChanges();
             if (stepNumber == 4) {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2) {
@@ -215,8 +237,12 @@ export class Dashboard {
         this.instances.subscribe((data:string[]) => { this.allInstances = data});
     }
 
-    onInstanceSelect(event):void {
+    private onInstanceSelect(event):void {
         this.selectedInstances = event;
+    }
+
+    private onRateMetricSelect(event):void {
+        this.selectedRateMetrics = event;
     }
 
     private loadMetricsOnInstancesSelected():void {
@@ -282,7 +308,7 @@ export class Dashboard {
     }
 
     triggerShowInstances(event:any):void {
-        let _select:any = $("#instancesSelect");
+        let _select:any = $(Dashboard.select2Id);
         let _thisReference:any = this;
         if (event == false) {
             _select.select2({
@@ -307,8 +333,13 @@ export class Dashboard {
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
 
-        if (this.selectedChartType == "line" || this.selectedChartType == "resources") {
+        // if this is a line chart - add time interval
+        if (chart instanceof SeriesBasedChart) {
             chart.preferences["interval"] = this.timeInterval.id;
+        }
+        if (chart instanceof ScalingRateChart) {
+            chart.metrics = this.selectedRateMetrics;
+            chart.interval = this.rateInterval.additionalId;
         }
         this._chartService.newChart(chart);
         this._charts = this._chartService.getChartsByGroupName(this.groupName);
@@ -347,7 +378,7 @@ export class Dashboard {
     }
 
     isSvgType(chart:AbstractChart):boolean {
-        return chart instanceof SeriesBasedChart;
+        return chart instanceof SeriesBasedChart || chart instanceof ScalingRateChart;
     }
 
     isDivType(chart:AbstractChart):boolean {
@@ -358,6 +389,10 @@ export class Dashboard {
         return !this.isDivType(chart) && !this.isSvgType(chart);
     }
 
+    isRateMetricSelected(metric:string):boolean {
+        return this.selectedRateMetrics.find(value => value == metric).length > 0;
+    }
+
     private getHiddenSteps():number[] {
         switch (this.selectedChartType) {
             case "statuses":
@@ -365,7 +400,7 @@ export class Dashboard {
                 return [1,2,3];
             case "scaleIn":
             case "scaleOut":
-                return [1, 2];
+                return [2];
             default:
                 return [3];
         }
