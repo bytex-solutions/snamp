@@ -161,8 +161,8 @@
                     Select rate interval <span class="required">*</span>
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12">
-                    <select class="form-control" [(ngModel)]="timeInterval" id="rateIntervalSelect">
-                      <option *ngFor="let interval of rateIntervals" [ngValue]="rateInterval">{{interval.description}}</option>
+                    <select class="form-control" [(ngModel)]="rateInterval" id="rateIntervalSelect">
+                      <option *ngFor="let interval of rateIntervals" [ngValue]="interval">{{interval.description}}</option>
                     </select>
                   </div>
                 </div>
