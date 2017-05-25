@@ -137,6 +137,7 @@ export class Dashboard {
         }
         $(Dashboard.rateMetricSelect2Id).select2({
             placeholder: "Select rate metrics from the dropdown",
+            width: 'resolve',
             allowClear: true
         });
         $(Dashboard.rateMetricSelect2Id).on('change', (e) => {
@@ -213,8 +214,8 @@ export class Dashboard {
         }
 
         $(Dashboard.wizardId).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
-            this.cd.detectChanges();
-            if (stepNumber == 4) {
+            _thisReference.cd.detectChanges();
+            if (stepNumber == 3) {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2) {
                 _thisReference.loadMetricsOnInstancesSelected();
@@ -390,19 +391,19 @@ export class Dashboard {
     }
 
     isRateMetricSelected(metric:string):boolean {
-        return this.selectedRateMetrics.find(value => value == metric).length > 0;
+        return this.selectedRateMetrics.find(value => (value == metric)) != undefined;
     }
 
     private getHiddenSteps():number[] {
         switch (this.selectedChartType) {
             case "statuses":
             case "resources":
-                return [1,2,3];
+                return [1,2];
             case "scaleIn":
             case "scaleOut":
-                return [2];
+                return [1];
             default:
-                return [3];
+                return [];
         }
     }
 }

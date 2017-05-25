@@ -414,6 +414,13 @@
             <version>${snamp.webconsole.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- dependency for making groovy work under the firewall - proxy issue-->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>2.4.5</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

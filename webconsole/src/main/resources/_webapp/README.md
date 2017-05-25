@@ -55,6 +55,11 @@ Once you have those, you should install these globals with `npm install --global
 * `npm install` to install all dependencies
 * `npm run server` to start the dev server in another tab
 
+## Additional debug info
+In case you receive non informative exceptions such as "Cannot set property stack of [object Object] which has only a getter" - you 
+may open node_modules/zone.js/dist/long-stack-trace-zone.js and change 135 line to:
+`Object.defineProperty(error, 'stack', renderLongStackTrace(parentTask.data && parentTask.data[creationTrace], error.stack));`
+
 # Configuration
 Configuration files live in `config/` we are currently using webpack, karma, and protractor for different stages of your application
 

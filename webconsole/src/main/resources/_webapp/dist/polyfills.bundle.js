@@ -6996,10 +6996,10 @@ module.exports = g;
 	                            return renderLongStackTrace(parentTask.data && parentTask.data[creationTrace], delegateGet_1 ? delegateGet_1.apply(this) : value_1);
 	                        }
 	                    };
-	                    Object.defineProperty(error, 'stack', descriptor);
+                        Object.defineProperty(error, 'stack', renderLongStackTrace(parentTask.data && parentTask.data[creationTrace], error.stack));
 	                }
 	                else {
-	                    error.stack = renderLongStackTrace(parentTask.data && parentTask.data[creationTrace], error.stack);
+                        Object.defineProperty(error, 'stack', renderLongStackTrace(parentTask.data && parentTask.data[creationTrace], error.stack));
 	                }
 	            }
 	            return parentZoneDelegate.handleError(targetZone, error);

@@ -29,12 +29,6 @@
               </a>
             </li>
             <li>
-              <a [attr.href]="'#rate'">
-                Rate<br />
-                <small>Rate of actions</small>
-              </a>
-            </li>
-            <li>
               <a [attr.href]="'#save'">
                 Save<br />
                 <small>Add to dashboard</small>
@@ -125,7 +119,7 @@
                 </div>
               </div>
               </div>
-              <div *ngIf="selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'">
+              <div *ngIf="selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'" style="margin-top:100px">
                 <div class="item form-group">
                   <label
                           class="control-label col-md-3 col-sm-3 col-xs-12"
@@ -133,17 +127,13 @@
                           style="margin-top: 7px;">
                     Select rate metrics (multiple selection) <span class="required">*</span>
                   </label>
-                  <div class="col-md-6 col-sm-6 col-xs-12">
+                  <div class="col-md-9 col-sm-9 col-xs-12">
                     <select class="select2_multiple form-control" id="rateMetricSelect"  multiple="multiple">
                       <option *ngFor="let rateMetric of rateMetrics" [attr.selected]="isRateMetricSelected(rateMetric.id) ? true : null">{{rateMetric.id}}</option>
                     </select>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div id="rate" class="row" style="margin-top: 10px;">
-                <h5>Rate selecting here</h5>
             </div>
 
             <div id="save" style="margin-top: 70px;">
