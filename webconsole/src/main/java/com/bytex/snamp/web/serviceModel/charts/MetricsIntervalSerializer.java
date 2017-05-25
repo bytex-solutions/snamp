@@ -13,7 +13,7 @@ import java.io.IOException;
  * @version 2.0
  * @since 2.0
  */
-final class MetricIntervalSerializer extends JsonSerializer<MetricsInterval> {
+final class MetricsIntervalSerializer extends JsonSerializer<MetricsInterval> {
     @Override
     public void serialize(final MetricsInterval value, final JsonGenerator jgen, final SerializerProvider provider) throws IOException {
         jgen.writeString(value.name().toLowerCase());

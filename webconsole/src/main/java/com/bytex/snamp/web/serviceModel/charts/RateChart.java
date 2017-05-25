@@ -174,10 +174,12 @@ public abstract class RateChart extends AbstractChart implements TwoDimensionalC
     }
 
     @JsonProperty("interval")
+    @JsonSerialize(using = MetricsIntervalSerializer.class)
     public final MetricsInterval getInterval(){
         return interval;
     }
 
+    @JsonDeserialize(using = MetricsIntervalDeserializer.class)
     public final void setInterval(@Nonnull final MetricsInterval value){
         interval = Objects.requireNonNull(value);
     }

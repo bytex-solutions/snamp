@@ -13,7 +13,7 @@ import java.io.IOException;
  * @version 2.0
  * @since 2.0
  */
-final class MetricIntervalDeserializer extends JsonDeserializer<MetricsInterval> {
+final class MetricsIntervalDeserializer extends JsonDeserializer<MetricsInterval> {
     @Override
     public MetricsInterval deserialize(final JsonParser jp, final DeserializationContext ctxt) throws IOException {
         return MetricsInterval.valueOf(jp.getText().toUpperCase());
