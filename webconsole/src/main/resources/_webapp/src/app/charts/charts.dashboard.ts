@@ -137,7 +137,7 @@ export class Dashboard {
         }
         $(Dashboard.rateMetricSelect2Id).select2({
             placeholder: "Select rate metrics from the dropdown",
-            width: 'resolve',
+            width: '100%',
             allowClear: true
         });
         $(Dashboard.rateMetricSelect2Id).on('change', (e) => {
