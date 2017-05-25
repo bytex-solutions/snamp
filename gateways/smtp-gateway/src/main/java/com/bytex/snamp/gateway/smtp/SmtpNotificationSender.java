@@ -9,7 +9,6 @@ import com.google.common.net.MediaType;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.compiler.CompiledST;
 
 import javax.activation.DataHandler;
@@ -32,18 +31,9 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 final class SmtpNotificationSender extends NotificationAccessor {
-    private static final ObjectWriter FORMATTER;
-    private static final STGroup TEMPLATE_GROUP;
-
-    static {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JsonUtils());
-        FORMATTER = mapper.writerWithDefaultPrettyPrinter();
-        TEMPLATE_GROUP = new STGroup('{', '}');
-    }
-
+    private final ObjectWriter jsonSerializer;
     private MailMessageFactory messageFactory;
-    private final CompiledST mailTemplate;      //pre-compiled template
+    private CompiledST mailTemplate;      //pre-compiled template
     private final String resourceName;
     private final Logger logger;
 
@@ -53,41 +43,48 @@ final class SmtpNotificationSender extends NotificationAccessor {
         mailTemplate = SmtpGatewayConfigurationDescriptionProvider.getNotificationTemplate(metadata);
         this.resourceName = resourceName;
         logger = LoggerProvider.getLoggerForObject(this);
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JsonUtils());
+        jsonSerializer = mapper.writerWithDefaultPrettyPrinter();
     }
 
     void setMessageFactory(final MailMessageFactory value){
         messageFactory = Objects.requireNonNull(value);
+        mailTemplate = value.compileNotificationTemplate(getMetadata());
     }
 
-    private ST prepareRenderer(final Notification notification) throws CloneNotSupportedException {
-        final ST template = TEMPLATE_GROUP.createStringTemplate(mailTemplate.clone());
-        template.add("timeStamp", Instant.ofEpochMilli(notification.getTimeStamp()));
-        template.add("notificationType", notification.getType());
-        template.add("message", notification.getMessage());
-        template.add("sequenceNumber", notification.getSequenceNumber());
-        template.add("source", notification.getSource());
-        template.add("resourceName", resourceName);
-        template.add("description", getMetadata().getDescription());
-        template.add("severity", NotificationDescriptor.getSeverity(getMetadata()));
-        return template;
+    private static ST prepareRenderer(final CompiledST mailTemplate,
+                                      final Notification notification,
+                                      final MBeanNotificationInfo metadata,
+                                      final String resourceName) {
+        return DefaultMailTemplate.createTemplateRenderer(mailTemplate)
+                .add("timeStamp", Instant.ofEpochMilli(notification.getTimeStamp()))
+                .add("notificationType", notification.getType())
+                .add("message", notification.getMessage())
+                .add("sequenceNumber", notification.getSequenceNumber())
+                .add("source", notification.getSource())
+                .add("resourceName", resourceName)
+                .add("description", metadata.getDescription())
+                .add("severity", NotificationDescriptor.getSeverity(metadata));
     }
 
-    private void sendNotificationToMail(final Notification notification) throws MessagingException, IOException, CloneNotSupportedException {
-        final MailMessageFactory factory = messageFactory;
-        if (factory == null)
+    private void sendNotificationToMail(final Notification notification) throws MessagingException, IOException {
+        final MailMessageFactory messageFactory = this.messageFactory;
+        final CompiledST mailTemplate = this.mailTemplate;
+        if (messageFactory == null || mailTemplate == null)
             return;
-        final Message message = factory.call();
-        message.setSubject(resourceName + ':' + notification.getType());
+        final Message message = messageFactory.createMessage();
+        message.setSubject("Notification from " + resourceName + ':' + notification.getType());
         final MimeMultipart attachments = new MimeMultipart();
         //set message text
         MimeBodyPart part = new MimeBodyPart();
-        part.setText(prepareRenderer(notification).render(), IOUtils.DEFAULT_CHARSET.name());
+        part.setText(prepareRenderer(mailTemplate, notification, getMetadata(), resourceName).render(), IOUtils.DEFAULT_CHARSET.name());
         attachments.addBodyPart(part);
         //save notification as attachment
         part = new MimeBodyPart();
         part.setFileName("notification.json");
         part.setDescription("Raw notification in JSON format");
-        final String rawNotification = FORMATTER.writeValueAsString(notification);
+        final String rawNotification = jsonSerializer.writeValueAsString(notification);
         part.setDataHandler(new DataHandler(rawNotification, MediaType.JSON_UTF_8.toString()));
         attachments.addBodyPart(part);
         message.setContent(attachments);
@@ -108,7 +105,7 @@ final class SmtpNotificationSender extends NotificationAccessor {
     public void handleNotification(final Notification notification, final Object handback) {
         try {
             sendNotificationToMail(notification);
-        } catch (final MessagingException | IOException | CloneNotSupportedException e) {
+        } catch (final MessagingException | IOException e) {
             logger.log(Level.SEVERE, "Unable to send e-mail", e);
         }
     }
@@ -119,6 +116,7 @@ final class SmtpNotificationSender extends NotificationAccessor {
     @Override
     public void close() {
         messageFactory = null;
+        mailTemplate = null;
         super.close();
     }
 }

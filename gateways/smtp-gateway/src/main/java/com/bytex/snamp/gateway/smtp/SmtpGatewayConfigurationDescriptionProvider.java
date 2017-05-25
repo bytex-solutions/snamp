@@ -4,13 +4,10 @@ import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
-import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.compiler.CompiledST;
 
 import javax.mail.Message;
@@ -18,13 +15,11 @@ import javax.mail.PasswordAuthentication;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.management.MBeanNotificationInfo;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
 
 import static com.bytex.snamp.MapUtils.getValue;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * @author Roman Sakno
@@ -32,37 +27,46 @@ import static com.bytex.snamp.MapUtils.getValue;
  * @since 1.0
  */
 final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements GatewayDescriptionProvider {
-    private static final class DefaultNotificationTemplateLoader{
-        String getTemplate() throws IOException {
-            try(final InputStream stream = getClass().getResourceAsStream("NotificationMessageTemplate.txt")){
-                return IOUtils.toString(stream);
-            }
-        }
-    }
-
     private static final Splitter MAIL_SPLITTER = Splitter.on(';').trimResults().omitEmptyStrings();
+    //gateway
     private static final String USER_NAME_PARAM = "userName";
     private static final String PASSWORD_PARAM = "password";
     private static final String SENDER_PARAM = "from";
     private static final String RECEIVERS_PARAM = "to";
     private static final String COPY_RECEIVERS_PARAM = "Cc";
+    private static final String HEALTH_STATUS_TEMPLATE_PARAM = "healthStatusTemplate";
+    private static final String NEW_RESOURCE_TEMPLATE_PARAM = "newResourceTemplate";
+    private static final String REMOVED_RESOURCE_TEMPLATE_PARAM = "removedResourceTemplate";
+    private static final String SCALE_OUT_TEMPLATE_PARAM = "scaleOutTemplate";
+    private static final String SCALE_IN_TEMPLATE_PARAM = "scaleInTemplate";
+    private static final String MAX_CLUSTER_SIZE_TEMPLATE_PARAM = "maxClusterSizeReachedTemplate";
     //notifications
     private static final String NOTIF_TO_EMAIL_PARAM = "sendToEmail";
     private static final String EMAIL_TEMPLATE_PARAM = "mailTemplate";
 
-    private static final STGroup TEMPLATE_GROUP;
+
     private static final LazySoftReference<SmtpGatewayConfigurationDescriptionProvider> INSTANCE;
     private static final CompiledST DEFAULT_NOTIFICATION_TEMPLATE;
 
     static {
-        TEMPLATE_GROUP = new STGroup('{', '}');
         INSTANCE = new LazySoftReference<>();
-        String template = Utils.callAndWrapException(new DefaultNotificationTemplateLoader()::getTemplate, ExceptionInInitializerError::new);
-        DEFAULT_NOTIFICATION_TEMPLATE = TEMPLATE_GROUP.compile(TEMPLATE_GROUP.getFileName(), "DefaultNotificationMessageTemplate", null, template, null);
+        DEFAULT_NOTIFICATION_TEMPLATE = callUnchecked(DefaultMailTemplate.NOTIFICATION);
     }
+
+    private final CompiledST defaultHealthStatusTemplate;
+    private final CompiledST defaultNewResourceTemplate;
+    private final CompiledST defaultRemovedResourceTemplate;
+    private final CompiledST defaultScaleOutTemplate;
+    private final CompiledST defaultScaleInTemplate;
+    private final CompiledST defaultMaxSizeTemplate;
     
     private SmtpGatewayConfigurationDescriptionProvider(){
-
+        defaultHealthStatusTemplate  = callUnchecked(DefaultMailTemplate.HEALTH_STATUS);
+        defaultNewResourceTemplate = callUnchecked(DefaultMailTemplate.NEW_RESOURCE);
+        defaultRemovedResourceTemplate = callUnchecked(DefaultMailTemplate.REMOVED_RESOURCE);
+        defaultScaleOutTemplate = callUnchecked(DefaultMailTemplate.SCALE_OUT);
+        defaultScaleInTemplate = callUnchecked(DefaultMailTemplate.SCALE_IN);
+        defaultMaxSizeTemplate = callUnchecked(DefaultMailTemplate.MAX_CLUSTER_SIZE_REACHED);
     }
 
     static SmtpGatewayConfigurationDescriptionProvider getInstance(){
@@ -104,16 +108,43 @@ final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEnt
 
     static CompiledST getNotificationTemplate(final MBeanNotificationInfo metadata) {
         return DescriptorUtils.getField(metadata.getDescriptor(), EMAIL_TEMPLATE_PARAM, Objects::toString)
-                .map(templateLocation -> {
-                    String template;
-                    try {
-                        template = IOUtils.contentAsString(new URL(templateLocation));
-                    } catch (final IOException e) {
-                        template = null;
-                    }
-                    return template;
-                }).map(template -> TEMPLATE_GROUP.compile(TEMPLATE_GROUP.getFileName(), metadata.getName(), null, template, null))
+                .map(templateLocation -> callUnchecked(new TemplateResolver(metadata.getName(), templateLocation)))
                 .orElse(DEFAULT_NOTIFICATION_TEMPLATE);
+    }
 
+    CompiledST parseHealthStatusTemplate(final Map<String, String> parameters) {
+        return getValue(parameters, HEALTH_STATUS_TEMPLATE_PARAM, Function.identity())
+                .map(templateLocation -> callUnchecked(new TemplateResolver("HealthStatus", templateLocation)))
+                .orElse(defaultHealthStatusTemplate);
+    }
+
+    CompiledST parseNewResourceTemplate(final Map<String, String> parameters) {
+        return getValue(parameters, NEW_RESOURCE_TEMPLATE_PARAM, Function.identity())
+                .map(templateLocation -> callUnchecked(new TemplateResolver("NewResource", templateLocation)))
+                .orElse(defaultNewResourceTemplate);
+    }
+
+    CompiledST parseRemovedResourceTemplate(final Map<String, String> parameters) {
+        return getValue(parameters, REMOVED_RESOURCE_TEMPLATE_PARAM, Function.identity())
+                .map(templateLocation -> callUnchecked(new TemplateResolver("RemovedResource", templateLocation)))
+                .orElse(defaultRemovedResourceTemplate);
+    }
+
+    CompiledST parseScaleOutTemplate(final Map<String, String> parameters) {
+        return getValue(parameters, SCALE_OUT_TEMPLATE_PARAM, Function.identity())
+                .map(templateLocation -> callUnchecked(new TemplateResolver("ScaleOut", templateLocation)))
+                .orElse(defaultScaleOutTemplate);
+    }
+
+    CompiledST parseScaleInTemplate(final Map<String, String> parameters) {
+        return getValue(parameters, SCALE_IN_TEMPLATE_PARAM, Function.identity())
+                .map(templateLocation -> callUnchecked(new TemplateResolver("ScaleIn", templateLocation)))
+                .orElse(defaultScaleInTemplate);
+    }
+
+    CompiledST parseMaxClusterSizeReachedTemplate(final Map<String, String> parameters) {
+        return getValue(parameters, MAX_CLUSTER_SIZE_TEMPLATE_PARAM, Function.identity())
+                .map(templateLocation -> callUnchecked(new TemplateResolver("MaxClusterSizeReached", templateLocation)))
+                .orElse(defaultMaxSizeTemplate);
     }
 }

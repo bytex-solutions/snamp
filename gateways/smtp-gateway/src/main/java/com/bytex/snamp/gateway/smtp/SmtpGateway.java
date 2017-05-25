@@ -3,8 +3,11 @@ package com.bytex.snamp.gateway.smtp;
 import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.compiler.CompiledST;
 
 import javax.mail.*;
 import javax.mail.internet.AddressException;
@@ -23,13 +26,92 @@ import java.util.stream.Stream;
  * @since 2.0
  */
 final class SmtpGateway extends AbstractGateway {
+    private static final class DefaultMailMessageFactory implements MailMessageFactory {
+        private final InternetAddress sender;
+        private final Session mailSession;
+        private final Multimap<Message.RecipientType, InternetAddress> recipients;
+        private final CompiledST healthStatusTemplate;
+        private final CompiledST newResourceTemplate;
+        private final CompiledST removedResourceTemplate;
+        private final CompiledST scaleOutTemplate;
+        private final CompiledST scaleInTemplate;
+        private final CompiledST maxClusterSizeReached;
+
+        DefaultMailMessageFactory(final Map<String, String> parameters,
+                                        final SmtpGatewayConfigurationDescriptionProvider provider) throws SmtpGatewayAbsentConfigurationParameterException, AddressException {
+            sender = provider.parseSender(parameters);
+            mailSession = Session.getInstance(MapUtils.toProperties(parameters), createAuthenticator(provider.parseCredentials(parameters)));
+            recipients = provider.parseRecipients(parameters);
+            healthStatusTemplate = provider.parseHealthStatusTemplate(parameters);
+            newResourceTemplate = provider.parseNewResourceTemplate(parameters);
+            removedResourceTemplate = provider.parseRemovedResourceTemplate(parameters);
+            scaleOutTemplate = provider.parseScaleOutTemplate(parameters);
+            scaleInTemplate = provider.parseScaleInTemplate(parameters);
+            maxClusterSizeReached = provider.parseMaxClusterSizeReachedTemplate(parameters);
+        }
+
+        private static Authenticator createAuthenticator(final PasswordAuthentication credentials){
+            return new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return credentials;
+                }
+            };
+        }
+
+        @Override
+        public Message createMessage() throws MessagingException {
+            final Message message = new MimeMessage(mailSession);
+            message.setFlag(Flags.Flag.FLAGGED, true);
+            message.setSentDate(new Date());
+            message.setFrom(sender);
+            for (final Map.Entry<Message.RecipientType, InternetAddress> recipient : recipients.entries())
+                message.addRecipient(recipient.getKey(), recipient.getValue());
+            return message;
+        }
+
+        @Override
+        public CompiledST compileNotificationTemplate(final MBeanNotificationInfo metadata) {
+            return SmtpGatewayConfigurationDescriptionProvider.getNotificationTemplate(metadata);
+        }
+
+        @Override
+        public ST prepareMaxClusterSizeReachedTemplate() {
+            return DefaultMailTemplate.createTemplateRenderer(maxClusterSizeReached);
+        }
+
+        @Override
+        public ST prepareHealthStatusTemplate(){
+            return DefaultMailTemplate.createTemplateRenderer(healthStatusTemplate);
+        }
+
+        @Override
+        public ST prepareNewResourceTemplate(){
+            return DefaultMailTemplate.createTemplateRenderer(newResourceTemplate);
+        }
+
+        @Override
+        public ST prepareRemovedResourceTemplate(){
+            return DefaultMailTemplate.createTemplateRenderer(removedResourceTemplate);
+        }
+
+        @Override
+        public ST prepareScaleOutTemplate(){
+            return DefaultMailTemplate.createTemplateRenderer(scaleOutTemplate);
+        }
+
+        @Override
+        public ST prepareScaleInTemplate(){
+            return DefaultMailTemplate.createTemplateRenderer(scaleInTemplate);
+        }
+    }
+
     private final SmtpModelOfNotifications notifications;
-    private final SmtpModelOfSupervisors supervisors;
+    private SmtpModelOfSupervisors supervisors;
 
     SmtpGateway(final String instanceName) {
         super(instanceName);
         notifications = new SmtpModelOfNotifications();
-        supervisors = new SmtpModelOfSupervisors();
     }
 
     @SuppressWarnings("unchecked")
@@ -55,42 +137,17 @@ final class SmtpGateway extends AbstractGateway {
             return null;
     }
 
-    private static Authenticator createAuthenticator(final PasswordAuthentication credentials){
-        return new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return credentials;
-            }
-        };
-    }
-
-    private static MailMessageFactory createMessageFactory(final InternetAddress sender,
-                                                           final Session mailSession,
-                                                           final Multimap<Message.RecipientType, InternetAddress> recipients) {
-        return () -> {
-            final Message message = new MimeMessage(mailSession);
-            message.setFlag(Flags.Flag.FLAGGED, true);
-            message.setSentDate(new Date());
-            message.setFrom(sender);
-            for (final Map.Entry<Message.RecipientType, InternetAddress> recipient : recipients.entries())
-                message.addRecipient(recipient.getKey(), recipient.getValue());
-            return message;
-        };
-    }
-
     @Override
-    protected void start(final Map<String, String> parameters) throws SmtpGatewayAbsentConfigurationParameterException, AddressException {
+    protected void start(final Map<String, String> parameters) throws Exception {
         final SmtpGatewayConfigurationDescriptionProvider parser = SmtpGatewayConfigurationDescriptionProvider.getInstance();
-        final MailMessageFactory messageFactory = createMessageFactory(parser.parseSender(parameters),
-                Session.getInstance(MapUtils.toProperties(parameters), createAuthenticator(parser.parseCredentials(parameters))),
-                parser.parseRecipients(parameters));
+        final MailMessageFactory messageFactory = new DefaultMailMessageFactory(parameters, parser);
         notifications.setMessageFactory(messageFactory);
-        supervisors.start(ImmutableMap.of("default", messageFactory));
+        supervisors = new SmtpModelOfSupervisors();
+        supervisors.update(ImmutableMap.of("default", messageFactory));
     }
 
     @Override
-    protected void stop() {
-        notifications.clear();
-        supervisors.stop();
+    protected void stop() throws Exception {
+        Utils.closeAll(notifications::clear, supervisors);
     }
 }

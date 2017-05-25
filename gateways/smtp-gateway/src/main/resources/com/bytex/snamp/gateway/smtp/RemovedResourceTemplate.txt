@@ -1,0 +1,1 @@
+Resource {resourceName} was removed from group {groupName} at {timeStamp}.

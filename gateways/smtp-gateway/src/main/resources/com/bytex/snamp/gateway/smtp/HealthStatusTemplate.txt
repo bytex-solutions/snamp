@@ -1,0 +1,8 @@
+Resource {resourceName} in group {groupName} has bad health status
+
+{status}
+
+Time stamp: {timeStamp}
+Severity: {malfunctionLevel}
+Health statuses of group members:
+{statuses; separator="\n"}

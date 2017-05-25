@@ -5,10 +5,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.InstantSerializer;
-import com.bytex.snamp.supervision.GroupCompositionChanged;
-import com.bytex.snamp.supervision.SupervisionEvent;
-import com.bytex.snamp.supervision.SupervisionEventListener;
-import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.*;
 import com.bytex.snamp.supervision.elasticity.*;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
@@ -143,21 +140,45 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
         }
     }
 
+    /**
+     * Group modification type.
+     */
+    public enum GroupCompositionModifier {
+        /**
+         * Resource was added to the group.
+         */
+        ADDED,
+
+        /**
+         * Resource was removed from the group.
+         */
+        REMOVED,
+
+        /**
+         * Unknown action.
+         */
+        UNKNOWN,
+    }
+
     @JsonTypeName("groupCompositionChanged")
     public final class GroupCompositionChangedMessage extends SupervisionMessage {
         private static final long serialVersionUID = 469376947661340798L;
-        private final GroupCompositionChanged.Modifier modifier;
+        private final GroupCompositionModifier modifier;
         private final String resourceName;
 
-        private GroupCompositionChangedMessage(@Nonnull final GroupCompositionChanged event) {
+        private GroupCompositionChangedMessage(@Nonnull final GroupCompositionChangedEvent event) {
             super(event);
-            this.modifier = event.getModifier();
+            if (event instanceof ResourceAddedEvent)
+                modifier = GroupCompositionModifier.ADDED;
+            else if (event instanceof ResourceRemovedEvent)
+                modifier = GroupCompositionModifier.REMOVED;
+            else
+                modifier = GroupCompositionModifier.UNKNOWN;
             this.resourceName = event.getResourceName();
         }
 
         @JsonProperty("modifier")
-        @JsonSerialize(using = ModifierSerializer.class)
-        public GroupCompositionChanged.Modifier getModifier() {
+        public GroupCompositionModifier getModifier() {
             return modifier;
         }
 
@@ -191,7 +212,7 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     public void handle(@Nonnull final SupervisionEvent event, final Object handback) {
         final Consumer<? super WebMessage> broadcastMessageSender = this::sendBroadcastMessage;
         //send message when resource added or removed
-        Convert.toType(event, GroupCompositionChanged.class)
+        Convert.toType(event, GroupCompositionChangedEvent.class)
                 .map(GroupCompositionChangedMessage::new)
                 .ifPresent(broadcastMessageSender);
         //health status was changed

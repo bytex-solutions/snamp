@@ -1,0 +1,4 @@
+Group {groupName} was increased automatically during scale-out operation at {timeStamp}.
+Casting vote: {castingVoteWeight}
+Voting result:
+{evaluationResult; separator="\n"}

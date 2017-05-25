@@ -11,7 +11,7 @@ import com.bytex.snamp.connector.health.InvalidAttributeValue;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.json.ThreadLocalJsonFactory;
-import com.bytex.snamp.supervision.GroupCompositionChanged;
+import com.bytex.snamp.supervision.GroupCompositionChangedEvent;
 import com.bytex.snamp.supervision.SupervisionEventListener;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
@@ -107,7 +107,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
                 .orElseThrow(AssertionError::new)) {
             final Box<String> addedResource = BoxFactory.create("");
             final SupervisionEventListener listener = (event, handback) ->
-                Convert.toType(event, GroupCompositionChanged.class).ifPresent(changed -> {
+                Convert.toType(event, GroupCompositionChangedEvent.class).ifPresent(changed -> {
                     addedResource.set(changed.getResourceName());
                 });
             supervisor.addSupervisionEventListener(listener);

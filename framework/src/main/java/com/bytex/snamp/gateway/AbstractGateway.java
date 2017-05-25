@@ -346,9 +346,11 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
+    protected void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector) {
         connector.removeResourceEventListener(this);
-        removeAllFeaturesImpl(resourceName).forEach(FeatureAccessor::close);
+        try (final Stream<? extends FeatureAccessor<?>> features = removeAllFeaturesImpl(resourceName)) {
+            features.forEach(FeatureAccessor::close);
+        }
     }
 
     @Override

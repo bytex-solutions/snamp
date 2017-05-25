@@ -1,0 +1,4 @@
+Group {groupName} was decreased automatically during scale-in operation at {timeStamp}.
+Casting vote: {castingVoteWeight}
+Voting result:
+{evaluationResult; separator="\n"}

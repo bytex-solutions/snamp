@@ -118,7 +118,7 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
 
     @OverridingMethodsMustInvokeSuper
     protected void addResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
-        listeners.fire(GroupCompositionChanged.resourceAdded(this, resourceName, groupName));
+        listeners.fire(new ResourceAddedEvent(this, resourceName, groupName));
     }
 
     /**
@@ -136,8 +136,8 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
-        listeners.fire(GroupCompositionChanged.resourceRemoved(this, resourceName, groupName));
+    protected void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector) {
+        listeners.fire(new ResourceRemovedEvent(this, resourceName, groupName));
     }
 
     /**

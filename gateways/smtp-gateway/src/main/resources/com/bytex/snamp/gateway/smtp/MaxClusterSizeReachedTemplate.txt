@@ -1,0 +1,4 @@
+Group {groupName} reached its maximum size at {timeStamp}.
+Casting vote: {castingVoteWeight}
+Voting result:
+{evaluationResult; separator="\n"}
