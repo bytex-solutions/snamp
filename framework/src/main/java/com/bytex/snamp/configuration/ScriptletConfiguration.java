@@ -4,7 +4,6 @@ import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 
@@ -98,14 +97,7 @@ public interface ScriptletConfiguration {
     Map<String, String> getParameters();
 
     default String resolveScriptBody() throws IOException {
-        final String result;
-        if (isURL()) {
-            try (final InputStream is = new URL(getScript()).openStream()) {
-                return IOUtils.toString(is);
-            }
-        } else
-            result = getScript();
-        return result;
+        return isURL() ? IOUtils.contentAsString(new URL(getScript())) : getScript();
     }
 
     static void fillByDefault(final ScriptletConfiguration scriptlet){

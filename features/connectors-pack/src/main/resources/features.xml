@@ -10,8 +10,8 @@
 
     <feature name="snamp-openstack-supervisor" description="SNAMP supervisor for OpenStack environment" version="${snamp.supervisor.openstack.version}" install="auto">
         <feature version="${snamp.supervisors.version}" >snamp-default-supervisor</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-text-support</feature>
         <bundle>mvn:com.bytex.snamp.osgi/openstack4j/${openstack4j.version}</bundle>
-        <bundle>mvn:com.bytex.snamp.osgi/stringtemplate4/${stringtemplate.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp.supervisors/openstack/${snamp.supervisor.openstack.version}</bundle>
     </feature>
 
@@ -65,6 +65,7 @@
     <feature name="snamp-rshell-connector" description="RShell Connector Karaf Feature" version="${snamp.connector.rshell.version}" install="auto">
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-ssh-support</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-text-support</feature>
         <bundle start="true">mvn:com.bytex.snamp.connectors/rshell/${snamp.connector.rshell.version}</bundle>
     </feature>
 

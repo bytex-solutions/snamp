@@ -18,11 +18,17 @@ final class SmtpModelOfNotifications extends ModelOfNotifications<SmtpNotificati
     @Override
     protected SmtpNotificationSender createAccessor(final String resourceName,
                                                     final MBeanNotificationInfo metadata) throws Exception {
-        return new SmtpNotificationSender(resourceName, metadata, this);
+        final SmtpNotificationSender sender = new SmtpNotificationSender(resourceName, metadata, this);
+        sender.setMessageFactory(messageFactory);
+        return sender;
     }
 
     void setMessageFactory(final MailMessageFactory factory){
         messageFactory = Objects.requireNonNull(factory);
+        forEachNotification((resourceName, sender) -> {
+            sender.setMessageFactory(factory);
+            return true;
+        });
     }
 
     /**

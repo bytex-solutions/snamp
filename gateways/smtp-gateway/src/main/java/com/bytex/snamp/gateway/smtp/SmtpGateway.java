@@ -3,6 +3,7 @@ package com.bytex.snamp.gateway.smtp;
 import com.bytex.snamp.MapUtils;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 
 import javax.mail.*;
@@ -23,10 +24,12 @@ import java.util.stream.Stream;
  */
 final class SmtpGateway extends AbstractGateway {
     private final SmtpModelOfNotifications notifications;
+    private final SmtpModelOfSupervisors supervisors;
 
     SmtpGateway(final String instanceName) {
         super(instanceName);
         notifications = new SmtpModelOfNotifications();
+        supervisors = new SmtpModelOfSupervisors();
     }
 
     @SuppressWarnings("unchecked")
@@ -82,10 +85,12 @@ final class SmtpGateway extends AbstractGateway {
                 Session.getInstance(MapUtils.toProperties(parameters), createAuthenticator(parser.parseCredentials(parameters))),
                 parser.parseRecipients(parameters));
         notifications.setMessageFactory(messageFactory);
+        supervisors.start(ImmutableMap.of("default", messageFactory));
     }
 
     @Override
     protected void stop() {
         notifications.clear();
+        supervisors.stop();
     }
 }

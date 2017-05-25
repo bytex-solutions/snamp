@@ -46,6 +46,10 @@
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
@@ -63,6 +67,12 @@
             <groupId>com.bytex.snamp</groupId>
             <artifactId>json-helpers</artifactId>
             <version>${snamp.json.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp.osgi</groupId>
+            <artifactId>stringtemplate4</artifactId>
+            <version>${stringtemplate.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

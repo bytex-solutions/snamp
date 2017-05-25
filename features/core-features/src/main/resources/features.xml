@@ -85,4 +85,8 @@
     <feature name="snamp-instrumentation" description="SNAMP instrumentation library" version="${snamp.instrumentation.version}">
         <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
     </feature>
+
+    <feature name="snamp-text-support" description="SNAMP support bundles for working with text templates" version="${project.version}">
+        <bundle>mvn:com.bytex.snamp.osgi/stringtemplate4/${stringtemplate.version}</bundle>
+    </feature>
 </features>
