@@ -105244,6 +105244,8 @@ var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis
 var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
 var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
 var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
+var d3 = __webpack_require__("./node_modules/d3/index.js");
+var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var ScalingRateChart = (function (_super) {
     __extends(ScalingRateChart, _super);
     function ScalingRateChart() {
@@ -105251,7 +105253,8 @@ var ScalingRateChart = (function (_super) {
         this.group = "";
         this.metrics = [];
         this.interval = "";
-        this.setSizeX(10);
+        this._chartObject = undefined;
+        this.setSizeX(15);
         this.setSizeY(10);
     }
     /**
@@ -105273,10 +105276,68 @@ var ScalingRateChart = (function (_super) {
     ScalingRateChart.prototype.createDefaultAxisY = function () {
         return new numeric_axis_1.NumericAxis();
     };
-    ScalingRateChart.prototype.newValues = function (data) {
-        console.log("Data for chart of type ", this.type, " is: ", data);
+    ScalingRateChart.prototype.prepareDatasets = function () {
+        var _value = [];
+        for (var i = 0; i < this.metrics.length; i++) {
+            var _currentValue = {};
+            _currentValue.key = this.metrics[i];
+            _currentValue.values = [];
+            for (var j = 0; j < this.chartData.length; j++) {
+                if (this.metrics[i] == this.chartData[j].type) {
+                    _currentValue.values.push({ x: this.chartData[j].timestamp, y: this.chartData[j].value });
+                }
+            }
+            _value.push(_currentValue);
+        }
+        return _value;
+    };
+    ScalingRateChart.prototype.newValues = function (allData) {
+        if (document.hidden)
+            return;
+        (_a = this.chartData).push.apply(_a, allData);
+        if (this._chartObject != undefined) {
+            var _ds = d3.select('#' + this.id).datum();
+            if (_ds.length != allData.length) {
+                _ds = this.prepareDatasets();
+            }
+            else {
+                for (var i = 0; i < _ds.length; i++) {
+                    for (var j = 0; j < allData.length; j++) {
+                        if (_ds[i].key == allData[j].type) {
+                            _ds[i].values.push({ x: allData[j].timestamp, y: allData[j].value });
+                            if ((new Date().getTime() - _ds[i].values[0].x.getTime()) > this.preferences["interval"] * 60 * 1000) {
+                                _ds[i].values.shift(); // remove first element in case it's out of interval range
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            this._chartObject.update();
+        }
+        var _a;
     };
     ScalingRateChart.prototype.draw = function () {
+        var _thisReference = this;
+        nv.addGraph(function () {
+            var chart = nv.models.lineWithFocusChart();
+            chart.interactiveUpdateDelay(0);
+            d3.rebind('clipVoronoi');
+            chart.clipVoronoi(false);
+            chart.xAxis.tickFormat(function (d) {
+                return d3.time.format('%X')(new Date(d));
+            });
+            chart.xScale(d3.time.scale());
+            chart.yAxis
+                .tickFormat(d3.format('d'))
+                .axisLabel(_thisReference.getAxisY().unitOfMeasurement);
+            chart.x2Axis.tickFormat(function (d) { return ''; });
+            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
+                .transition().call(chart);
+            nv.utils.windowResize(chart.update);
+            _thisReference._chartObject = chart;
+            return chart;
+        });
     };
     ScalingRateChart.prototype.toJSON = function () {
         var _value = {};
