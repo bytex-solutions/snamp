@@ -3,6 +3,7 @@ import { AttributeChartData } from "./attribute.chart.data";
 import { AbstractChart } from "../abstract.chart";
 import { HealthStatusChartData } from "./health.status.chart.data";
 import { ResourceCountData } from "./resource.count.data";
+import { ScalingData } from "./scaling.data";
 
 export class ChartDataFabric {
 
@@ -21,6 +22,10 @@ export class ChartDataFabric {
             case AbstractChart.PIE:
             case AbstractChart.VBAR:
                 _data = new AttributeChartData();
+                break;
+            case AbstractChart.SCALE_IN:
+            case AbstractChart.SCALE_OUT:
+                _data = new ScalingData();
                 break;
             default:
                 throw new Error("Unrecognized chart type for constructing the chart data: " + chartType);

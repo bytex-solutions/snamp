@@ -104830,6 +104830,7 @@ var attribute_chart_data_1 = __webpack_require__("./src/app/charts/model/data/at
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var health_status_chart_data_1 = __webpack_require__("./src/app/charts/model/data/health.status.chart.data.ts");
 var resource_count_data_1 = __webpack_require__("./src/app/charts/model/data/resource.count.data.ts");
+var scaling_data_1 = __webpack_require__("./src/app/charts/model/data/scaling.data.ts");
 var ChartDataFabric = (function () {
     function ChartDataFabric() {
     }
@@ -104848,6 +104849,10 @@ var ChartDataFabric = (function () {
             case abstract_chart_1.AbstractChart.PIE:
             case abstract_chart_1.AbstractChart.VBAR:
                 _data = new attribute_chart_data_1.AttributeChartData();
+                break;
+            case abstract_chart_1.AbstractChart.SCALE_IN:
+            case abstract_chart_1.AbstractChart.SCALE_OUT:
+                _data = new scaling_data_1.ScalingData();
                 break;
             default:
                 throw new Error("Unrecognized chart type for constructing the chart data: " + chartType);
@@ -104965,6 +104970,65 @@ var ResourceCountData = (function (_super) {
     return ResourceCountData;
 }(abstract_data_1.ChartData));
 exports.ResourceCountData = ResourceCountData;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/data/scaling.data.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_data_1 = __webpack_require__("./src/app/charts/model/data/abstract.data.ts");
+var ScalingData = (function (_super) {
+    __extends(ScalingData, _super);
+    function ScalingData() {
+        _super.apply(this, arguments);
+    }
+    Object.defineProperty(ScalingData.prototype, "serverTs", {
+        get: function () {
+            return this._serverTs;
+        },
+        set: function (value) {
+            this._serverTs = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ScalingData.prototype, "value", {
+        get: function () {
+            return this._value;
+        },
+        set: function (value) {
+            this._value = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(ScalingData.prototype, "type", {
+        get: function () {
+            return this._type;
+        },
+        set: function (value) {
+            this._type = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ScalingData.prototype.fillFromJSON = function (_json) {
+        if (_json["timeStamp"] != undefined) {
+            this.serverTs = _json["timeStamp"];
+        }
+        if (_json["type"] != undefined) {
+            this.type = _json["type"];
+        }
+        if (_json["value"] != undefined) {
+            this.value = _json["value"];
+        }
+    };
+    return ScalingData;
+}(abstract_data_1.ChartData));
+exports.ScalingData = ScalingData;
 
 
 /***/ },
