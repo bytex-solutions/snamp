@@ -15,8 +15,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
+import javax.net.ssl.SSLSocketFactory;
 import java.util.Date;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Stream;
 
 /**
@@ -40,7 +42,17 @@ final class SmtpGateway extends AbstractGateway {
         DefaultMailMessageFactory(final Map<String, String> parameters,
                                         final SmtpGatewayConfigurationDescriptionProvider provider) throws SmtpGatewayAbsentConfigurationParameterException, AddressException {
             sender = provider.parseSender(parameters);
-            mailSession = Session.getInstance(MapUtils.toProperties(parameters), createAuthenticator(provider.parseCredentials(parameters)));
+            final Properties mailProperties = MapUtils.toProperties(parameters);
+            mailProperties.setProperty("mail.smtp.host", provider.getSmtpHost(parameters));
+            mailProperties.setProperty("mail.smtp.port", provider.getSmtpPort(parameters));
+            mailProperties.setProperty("mail.smtp.auth", "true");
+            mailProperties.setProperty("mail.smtp.connectiontimeout", provider.getSocketTimeout(parameters));
+            mailProperties.setProperty("mail.smtp.timeout", provider.getSocketTimeout(parameters));
+            if(provider.isTlsEnabled(parameters)){
+                mailProperties.setProperty("mail.smtp.socketFactory.port", provider.getSmtpPort(parameters));
+                mailProperties.setProperty("mail.smtp.socketFactory.class", SSLSocketFactory.class.getName());
+            }
+            mailSession = Session.getInstance(new Properties(mailProperties), createAuthenticator(provider.parseCredentials(parameters)));
             recipients = provider.parseRecipients(parameters);
             healthStatusTemplate = provider.parseHealthStatusTemplate(parameters);
             newResourceTemplate = provider.parseNewResourceTemplate(parameters);

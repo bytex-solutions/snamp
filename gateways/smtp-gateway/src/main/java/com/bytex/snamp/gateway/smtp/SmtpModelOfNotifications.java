@@ -19,7 +19,8 @@ final class SmtpModelOfNotifications extends ModelOfNotifications<SmtpNotificati
     protected SmtpNotificationSender createAccessor(final String resourceName,
                                                     final MBeanNotificationInfo metadata) throws Exception {
         final SmtpNotificationSender sender = new SmtpNotificationSender(resourceName, metadata);
-        sender.setMessageFactory(messageFactory);
+        if (messageFactory != null)
+            sender.setMessageFactory(messageFactory);
         return sender;
     }
 

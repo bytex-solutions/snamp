@@ -20,5 +20,6 @@
         <bundle>mvn:io.zipkin.reporter/zipkin-sender-kafka08/0.6.9</bundle>
         <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
         <bundle>mvn:com.bytex.snamp.instrumentation/http-reporter/${snamp.instrumentation.version}</bundle>
+        <bundle>wrap:mvn:com.icegreen/greenmail/1.5.5$Export-Package=com.icegreen.greenmail.util.*;version="1.5.5",com.icegreen.greenmail.smtp.*;version="1.5.5"</bundle>
     </feature>
 </features>

@@ -29,6 +29,10 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
 final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements GatewayDescriptionProvider {
     private static final Splitter MAIL_SPLITTER = Splitter.on(';').trimResults().omitEmptyStrings();
     //gateway
+    private static final String USE_TLS_PARAM = "enableTLS";
+    private static final String SOCKET_TIMEOUT_PARAM = "socketTimeout";
+    private static final String HOST_PARAM = "host";
+    private static final String PORT_PARAM = "port";
     private static final String USER_NAME_PARAM = "userName";
     private static final String PASSWORD_PARAM = "password";
     private static final String SENDER_PARAM = "from";
@@ -146,5 +150,21 @@ final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEnt
         return getValue(parameters, MAX_CLUSTER_SIZE_TEMPLATE_PARAM, Function.identity())
                 .map(templateLocation -> callUnchecked(new TemplateResolver("MaxClusterSizeReached", templateLocation)))
                 .orElse(defaultMaxSizeTemplate);
+    }
+
+    String getSocketTimeout(final Map<String, String> parameters){
+        return parameters.getOrDefault(SOCKET_TIMEOUT_PARAM, "10000");
+    }
+
+    String getSmtpHost(final Map<String, String> parameters){
+        return parameters.getOrDefault(HOST_PARAM, "localhost");
+    }
+
+    String getSmtpPort(final Map<String, String> parameters){
+        return parameters.getOrDefault(PORT_PARAM, "25");
+    }
+
+    boolean isTlsEnabled(final Map<String, String> parameters){
+        return getValue(parameters, USE_TLS_PARAM, Boolean::parseBoolean).orElse(true);
     }
 }

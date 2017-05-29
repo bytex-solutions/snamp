@@ -9,7 +9,7 @@ import java.util.Objects;
  * @since 1.0
  */
 public enum SnampFeature {
-    PLATFORM("core", "2.0.0", "snamp-core"),
+    PLATFORM("core", "2.0.0", "snamp-core", "snamp-web-support"),
     OS_SUPERVISOR("connectors", "2.0.0", "snamp-openstack-supervisor"),
     STUB_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stub-connector"),
     HTTP_ACCEPTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stream-connector", "snamp-http-acceptor"),
@@ -30,6 +30,7 @@ public enum SnampFeature {
     NAGIOS_GATEWAY("gateways", "2.0.0", "snamp-nagios-gateway"),
     SYSLOG_GATEWAY("gateways", "2.0.0", "snamp-syslog-gateway"),
     XMPP_GATEWAY("gateways", "2.0.0", "snamp-xmpp-gateway"),
+    SMTP_GATEWAY("gateways", "2.0.0", "snamp-smtp-gateway"),
     GROOVY_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-groovy-connector"),
     GROOVY_GATEWAY("gateways", "2.0.0", "snamp-groovy-gateway"),
     MODBUS_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-modbus-connector"),

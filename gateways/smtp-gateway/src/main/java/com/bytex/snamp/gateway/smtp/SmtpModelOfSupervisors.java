@@ -4,7 +4,6 @@ import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.MalfunctionStatus;
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.json.JsonUtils;
 import com.bytex.snamp.supervision.*;
 import com.bytex.snamp.supervision.elasticity.MaxClusterSizeReachedEvent;
 import com.bytex.snamp.supervision.elasticity.ScaleInEvent;
@@ -12,9 +11,6 @@ import com.bytex.snamp.supervision.elasticity.ScaleOutEvent;
 import com.bytex.snamp.supervision.elasticity.ScalingEvent;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
-import com.google.common.net.MediaType;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 import org.osgi.framework.ServiceReference;
 import org.stringtemplate.v4.ST;
 
@@ -27,7 +23,6 @@ import javax.mail.Transport;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.management.InstanceNotFoundException;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
@@ -39,13 +34,8 @@ import java.util.logging.Level;
  * @since 2.0
  */
 final class SmtpModelOfSupervisors extends AbstractStatefulFrameworkServiceTracker<Supervisor, SupervisorClient, Map<String, MailMessageFactory>> implements SupervisionEventListener {
-    private final ObjectWriter jsonSerializer;
-
     SmtpModelOfSupervisors() {
         super(Supervisor.class, new InternalState<>(Collections.emptyMap()));
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JsonUtils());
-        jsonSerializer = mapper.writerWithDefaultPrettyPrinter();
     }
 
     private static ST addCommonParameters(final SupervisionEvent event,
@@ -88,12 +78,13 @@ final class SmtpModelOfSupervisors extends AbstractStatefulFrameworkServiceTrack
                 attachments.addBodyPart(part);
                 //set details about health status
                 part = new MimeBodyPart();
-                final String details = jsonSerializer.writeValueAsString(((MalfunctionStatus) newStatus).getData());
-                part.setDataHandler(new DataHandler(details, MediaType.JSON_UTF_8.toString()));
+                part.setFileName("health_status.json");
+                part.setDescription("Detailed information about health status");
+                part.setDataHandler(new DataHandler(new JsonDataSource(part.getFileName(), ((MalfunctionStatus) newStatus).getData())));
                 attachments.addBodyPart(part);
                 message.setContent(attachments);
                 Transport.send(message);
-            } catch (final MessagingException | IOException e) {
+            } catch (final MessagingException e) {
                 getLogger().log(Level.SEVERE, "Unable to send e-mail with health status", e);
             }
     }

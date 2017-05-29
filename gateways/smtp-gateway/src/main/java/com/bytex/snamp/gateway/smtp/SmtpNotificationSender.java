@@ -4,10 +4,6 @@ import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.json.JsonUtils;
-import com.google.common.net.MediaType;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 import org.stringtemplate.v4.ST;
 import org.stringtemplate.v4.compiler.CompiledST;
 
@@ -31,7 +27,6 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 final class SmtpNotificationSender extends NotificationAccessor {
-    private final ObjectWriter jsonSerializer;
     private MailMessageFactory messageFactory;
     private CompiledST mailTemplate;      //pre-compiled template
     private final String resourceName;
@@ -43,9 +38,6 @@ final class SmtpNotificationSender extends NotificationAccessor {
         mailTemplate = SmtpGatewayConfigurationDescriptionProvider.getNotificationTemplate(metadata);
         this.resourceName = resourceName;
         logger = LoggerProvider.getLoggerForObject(this);
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JsonUtils());
-        jsonSerializer = mapper.writerWithDefaultPrettyPrinter();
     }
 
     void setMessageFactory(final MailMessageFactory value){
@@ -78,14 +70,13 @@ final class SmtpNotificationSender extends NotificationAccessor {
         final MimeMultipart attachments = new MimeMultipart();
         //set message text
         MimeBodyPart part = new MimeBodyPart();
-        part.setText(prepareRenderer(mailTemplate, notification, getMetadata(), resourceName).render(), IOUtils.DEFAULT_CHARSET.name());
+        part.setText(prepareRenderer(mailTemplate, notification, getMetadata(), resourceName).render(), IOUtils.DEFAULT_CHARSET.name().toLowerCase());
         attachments.addBodyPart(part);
         //save notification as attachment
         part = new MimeBodyPart();
         part.setFileName("notification.json");
         part.setDescription("Raw notification in JSON format");
-        final String rawNotification = jsonSerializer.writeValueAsString(notification);
-        part.setDataHandler(new DataHandler(rawNotification, MediaType.JSON_UTF_8.toString()));
+        part.setDataHandler(new DataHandler(new JsonDataSource(part.getFileName(), notification)));
         attachments.addBodyPart(part);
         message.setContent(attachments);
         Transport.send(message);
