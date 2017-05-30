@@ -23,8 +23,7 @@ public final class JmxConnectorActivator extends ManagedResourceActivator<JmxCon
     @SpecialUse(SpecialUse.Case.OSGi)
     public JmxConnectorActivator() {
         super(JmxConnectorActivator::createConnector,
-                configurationDescriptor(JmxConnectorDescriptionProvider::getInstance),
-                discoveryService(JmxConnectorActivator::newDiscoveryService));
+                configurationDescriptor(JmxConnectorDescriptionProvider::getInstance));
     }
 
     @Nonnull
@@ -34,9 +33,5 @@ public final class JmxConnectorActivator extends ManagedResourceActivator<JmxCon
         final JmxConnector connector = new JmxConnector(resourceName, configuration);
         connector.init();
         return connector;
-    }
-
-    private static JmxFeatureDiscoveryService newDiscoveryService(final DependencyManager dependencies){
-        return new JmxFeatureDiscoveryService();
     }
 }

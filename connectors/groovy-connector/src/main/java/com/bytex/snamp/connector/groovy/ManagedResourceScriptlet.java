@@ -19,6 +19,7 @@ import groovy.lang.DelegatesTo;
 
 import javax.management.*;
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -132,16 +133,16 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
         else return null;
     }
 
-    final Collection<GroovyAttribute> expandAttributes(){
-        return attributes.values().stream().map(GroovyAttributeBuilder::build).collect(Collectors.toList());
+    final Set<String> getAttributes(){
+        return attributes.keySet();
     }
 
-    final Collection<GroovyEvent> expandEvents(){
-        return events.values().stream().map(GroovyEventBuilder::build).collect(Collectors.toList());
+    final Set<String> getEvents(){
+        return events.keySet();
     }
 
-    final Collection<GroovyOperation> expandOperations(){
-        return operations.values().stream().map(GroovyOperationBuilder::build).collect(Collectors.toList());
+    final Set<String> getOperations(){
+        return operations.keySet();
     }
 
     /**

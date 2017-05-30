@@ -7,7 +7,8 @@ import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -31,12 +32,13 @@ import org.snmp4j.smi.*;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 import org.snmp4j.transport.TransportMappings;
 
+import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.Notification;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -435,14 +437,17 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     }
 
     @Test
-    public void discoveryServiceTest() {
-        final Collection<AttributeConfiguration> attributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
-                CONNECTOR_NAME,
-                connectionString,
-                getParameters(LOCAL_PORT + 1),
-                AttributeConfiguration.class);
-        assertNotNull(attributes);
-        assertFalse(attributes.isEmpty());
+    public void discoveryServiceTest() throws InstanceNotFoundException {
+        final ManagedResourceConnector snmpConnector = getManagementConnector();
+        try {
+            final Map<String, AttributeDescriptor> attributes = snmpConnector.queryObject(AttributeSupport.class)
+                    .map(AttributeSupport::discoverAttributes)
+                    .orElseGet(Collections::emptyMap);
+            assertNotNull(attributes);
+            assertFalse(attributes.isEmpty());
+        } finally {
+            releaseManagementConnector();
+        }
     }
 
     @Test

@@ -3,8 +3,6 @@ package com.bytex.snamp.connector.stub;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
-import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 
 import javax.annotation.Nonnull;
 import java.beans.IntrospectionException;
@@ -17,14 +15,7 @@ import java.beans.IntrospectionException;
 public final class StubConnectorActivator extends ManagedResourceActivator<StubConnector> {
     @SpecialUse(SpecialUse.Case.OSGi)
     public StubConnectorActivator(){
-        super(StubConnectorActivator::createConnector, discoveryService(StubConnectorActivator::createDiscoveryService));
-    }
-
-    @Nonnull
-    private static FeatureDiscoveryService createDiscoveryService(final DependencyManager dependencies) throws Exception {
-        try (final StubConnector connector = new StubConnector("discovery", StubConnector.EMPTY_CONFIGURATION)) {
-            return connector.createDiscoveryService();
-        }
+        super(StubConnectorActivator::createConnector);
     }
 
     @Nonnull

@@ -4,6 +4,8 @@ import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 
 import javax.management.OperationsException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -15,9 +17,17 @@ import java.util.Objects;
 final class GroovyOperationRepository extends AbstractOperationRepository<GroovyOperation> {
     private final ManagedResourceScriptlet scriptlet;
 
-    GroovyOperationRepository(final String resourceName, final ManagedResourceScriptlet scriptlet){
-        super(resourceName, GroovyOperation.class, true);
+    GroovyOperationRepository(final String resourceName, final ManagedResourceScriptlet scriptlet, final boolean expandable){
+        super(resourceName, GroovyOperation.class, expandable);
         this.scriptlet = Objects.requireNonNull(scriptlet);
+    }
+
+    @Override
+    public Map<String, OperationDescriptor> discoverOperations() {
+        final Map<String, OperationDescriptor> result = new HashMap<>();
+        for(final String operationName: scriptlet.getOperations())
+            result.put(operationName, createDescriptor());
+        return result;
     }
 
     @Override

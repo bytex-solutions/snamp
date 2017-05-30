@@ -31,8 +31,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
         super(SnmpResourceConnectorActivator::createConnector,
                 requiredBy(SnmpResourceConnector.class).require(ThreadPoolRepository.class),
                 new SupportServiceManager<?, ?>[]{
-                        configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
-                        discoveryService(SnmpResourceConnectorActivator::newDiscoveryService, requiredBy(SnmpResourceConnector.class).require(ConfigurationManager.class))
+                        configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance)
                 });
     }
 
@@ -56,12 +55,5 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
                         configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
         result.listen();
         return result;
-    }
-
-    private static SnmpFeatureDiscoveryService newDiscoveryService(final DependencyManager dependencies) throws IOException {
-        @SuppressWarnings("unchecked")
-        final ConfigurationManager configManager = dependencies.getService(ConfigurationManager.class)
-                .orElseThrow(AssertionError::new);
-        return new SnmpFeatureDiscoveryService(configManager.transformConfiguration(SnmpResourceConnectorActivator::getDiscoveryTimeout));
     }
 }

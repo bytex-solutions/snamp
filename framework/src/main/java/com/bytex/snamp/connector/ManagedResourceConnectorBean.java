@@ -1,16 +1,8 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Localizable;
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.EventConfiguration;
-import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeInfo;
 import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeRepository;
-import com.bytex.snamp.connector.discovery.DiscoveryResultBuilder;
-import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
@@ -30,11 +22,8 @@ import javax.management.openmbean.OpenType;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -126,10 +115,18 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private JavaBeanNotificationRepository(final String resourceName,
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
                                                final BundleContext context) {
-            super(resourceName, AbstractNotificationInfo.class, false);
+            super(resourceName, AbstractNotificationInfo.class, true);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER)
                     .orElseThrow(AssertionError::new);
+        }
+
+        @Override
+        public Map<String, NotificationDescriptor> discoverNotifications() {
+            final Map<String, NotificationDescriptor> result = new HashMap<>();
+            for (final ManagementNotificationType<?> notificationType : notifTypes)
+                result.put(notificationType.getCategory(), createDescriptor());
+            return result;
         }
 
         @Override
@@ -154,73 +151,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
 
         private boolean fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
             return fire(category.getCategory(), message, sequenceNumberGenerator, userData);
-        }
-    }
-
-    /**
-     * Represents default implementation of {@link FeatureDiscoveryService} based on information
-     * supplied through reflection of the bean.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.0
-     */
-    public static class BeanFeatureDiscoveryService extends AbstractAggregator implements FeatureDiscoveryService {
-        private final Collection<? extends ManagementNotificationType<?>> notifications;
-        private final BeanInfo beanMetadata;
-
-        private BeanFeatureDiscoveryService(final BeanInfo beanMetadata,
-                                            final Collection<? extends ManagementNotificationType<?>> notifications){
-            this.beanMetadata = Objects.requireNonNull(beanMetadata);
-            this.notifications = Objects.requireNonNull(notifications);
-        }
-
-        private ClassLoader getConnectorClassLoader(){
-            return beanMetadata.getBeanDescriptor().getBeanClass().getClassLoader();
-        }
-
-        private Collection<AttributeConfiguration> discoverAttributes(final PropertyDescriptor[] properties) {
-            return Arrays.stream(properties)
-                    .filter(JavaBeanAttributeInfo::isValidDescriptor)
-                    .map(descriptor -> {
-                        final AttributeConfiguration attribute = ConfigurationManager.createEntityConfiguration(getConnectorClassLoader(), AttributeConfiguration.class);
-                        assert attribute != null;
-                        attribute.setAlternativeName(descriptor.getName());
-                        return attribute;
-                    })
-                    .collect(Collectors.toList());
-        }
-
-        private Collection<EventConfiguration> discoverNotifications(final Collection<? extends ManagementNotificationType<?>> notifications) {
-            return notifications.stream()
-                    .map(notificationType -> {
-                        final EventConfiguration event = createEntityConfiguration(getConnectorClassLoader(), EventConfiguration.class);
-                        assert event != null;
-                        event.setAlternativeName(notificationType.getCategory());
-                        return event;
-                    })
-                    .collect(Collectors.toList());
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T extends FeatureConfiguration> Collection<T> discover(final String connectionString,
-                                                                       final Map<String, String> connectionOptions,
-                                                                       final Class<T> entityType) {
-            if(Objects.equals(entityType, AttributeConfiguration.class))
-                return (Collection<T>)discoverAttributes(beanMetadata.getPropertyDescriptors());
-            else if(Objects.equals(entityType, EventConfiguration.class))
-                return (Collection<T>)discoverNotifications(notifications);
-            else return Collections.emptyList();
-        }
-
-        @SafeVarargs
-        @Override
-        public final DiscoveryResult discover(final String connectionString,
-                                        final Map<String, String> connectionOptions,
-                                        final Class<? extends FeatureConfiguration>... entityTypes) {
-            final DiscoveryResultBuilder result = new DiscoveryResultBuilder();
-            Arrays.stream(entityTypes).forEach(type -> result.importFeatures(this, connectionString, connectionOptions, type));
-            return result.get();
         }
     }
 
@@ -345,17 +275,6 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
     @Nonnull
     public HealthStatus getStatus() {
         return new OkStatus();
-    }
-
-    /**
-     * Creates a new instance of the resource metadata discovery service.
-     * @return A new instance of the discovery service.
-     * @throws IntrospectionException Unable to reflect this bean.
-     */
-    public FeatureDiscoveryService createDiscoveryService() throws IntrospectionException{
-        final BeanInfo beanMetadata = reflectBeanInfo();
-        final Set<? extends ManagementNotificationType<?>> notifTypes = notifications.notifTypes;
-        return new BeanFeatureDiscoveryService(beanMetadata, notifTypes);
     }
 
     /**

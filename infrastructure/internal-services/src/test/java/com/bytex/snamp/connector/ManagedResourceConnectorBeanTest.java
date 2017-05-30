@@ -6,9 +6,9 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.reflection.ManagementAttribute;
 import com.bytex.snamp.connector.attributes.reflection.ManagementAttributeMarshaller;
-import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
@@ -17,7 +17,6 @@ import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 import com.bytex.snamp.gateway.modeling.AttributeValue;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,9 +24,10 @@ import javax.management.*;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.SimpleType;
 import java.beans.IntrospectionException;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.bytex.snamp.configuration.impl.SerializableAgentConfiguration.newEntityConfiguration;
@@ -135,12 +135,13 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     @Test
     public void discoveryTest() throws IntrospectionException {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
-        final FeatureDiscoveryService discovery = connector.createDiscoveryService();
-        final Collection<AttributeConfiguration> attributes =
-                discovery.discover("", ImmutableMap.of(), AttributeConfiguration.class);
+        final Map<String, AttributeDescriptor> attributes = connector.queryObject(AttributeSupport.class)
+                .map(AttributeSupport::discoverAttributes)
+                .orElseGet(Collections::emptyMap);
         assertEquals(3, attributes.size());
-        final Collection<EventConfiguration> events =
-                discovery.discover("", ImmutableMap.of(), EventConfiguration.class);
+        final Map<String, NotificationDescriptor> events = connector.queryObject(NotificationSupport.class)
+                .map(NotificationSupport::discoverNotifications)
+                .orElseGet(Collections::emptyMap);
         assertEquals(1, events.size());
     }
 

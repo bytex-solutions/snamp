@@ -1,15 +1,14 @@
 package com.bytex.snamp.connector.actuator;
 
-import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.sun.jersey.api.client.WebResource;
 import org.codehaus.jackson.JsonNode;
 
 import javax.management.openmbean.OpenDataException;
-import java.util.*;
-
-import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Repository of metrics provided by Spring Actuator.
@@ -25,28 +24,12 @@ final class ActuatorAttributeRepository extends AbstractAttributeRepository<Spri
         this.metricsResource = metricsResource;
     }
 
-    private Collection<? extends SpringMetric<?>> expandAttributes(final JsonNode metrics) {
-        final Collection<SpringMetric<?>> result = new LinkedList<>();
-        metrics.getFields().forEachRemaining(field -> {
-            final AttributeConfiguration config = createEntityConfiguration(getClass().getClassLoader(), AttributeConfiguration.class);
-            assert config != null;
-            config.setAutomaticallyAdded(true);
-            config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
-            addAttribute(field.getKey(), new AttributeDescriptor(config)).ifPresent(result::add);
-        });
-        return result;
-    }
-
     @Override
-    public Collection<? extends SpringMetric<?>> expandAttributes() {
-        final JsonNode node = metricsResource.get(JsonNode.class);
-        if (node.isObject())
-            try {
-                return expandAttributes(node);
-            } catch (final Exception e) {
-                e.printStackTrace();
-            }
-        return Collections.emptyList();
+    public Map<String, AttributeDescriptor> discoverAttributes() {
+        final JsonNode metrics = metricsResource.get(JsonNode.class);
+        final Map<String, AttributeDescriptor> result = new HashMap<>();
+        metrics.getFields().forEachRemaining(field -> result.put(field.getKey(), createDescriptor()));
+        return result;
     }
 
     private static Optional<SpringMetric<?>> connectAttribute(final String attributeName,

@@ -5,7 +5,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.LazyStrongReference;
-import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
@@ -32,7 +31,10 @@ import org.snmp4j.PDU;
 import org.snmp4j.smi.*;
 
 import javax.annotation.Nonnull;
-import javax.management.*;
+import javax.management.AttributeList;
+import javax.management.AttributeNotFoundException;
+import javax.management.InvalidAttributeValueException;
+import javax.management.MBeanException;
 import javax.management.openmbean.ArrayType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
@@ -48,10 +50,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-import static com.bytex.snamp.configuration.AttributeConfiguration.TIMEOUT_FOR_SMART_MODE;
-import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 
@@ -647,29 +646,25 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             return getAttributesParallel(executor, BATCH_READ_WRITE_TIMEOUT);
         }
 
-        private List<SnmpAttributeInfo> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
-            return client.walk(discoveryTimeout).stream()
-                    .map(binding -> {
-                        final AttributeConfiguration config = createEntityConfiguration(getClass().getClassLoader(), AttributeConfiguration.class);
-                        assert config != null;
-                        if (binding.getVariable() instanceof OctetString)
-                            config.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
-                        config.setReadWriteTimeout(TIMEOUT_FOR_SMART_MODE);
-                        config.setAutomaticallyAdded(true);
-                        return addAttribute(binding.getOid().toDottedString(), new AttributeDescriptor(config));
-                    })
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .collect(Collectors.toList());
+        private Map<String, AttributeDescriptor> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
+            final Map<String, AttributeDescriptor> result = new HashMap<>();
+            for (final VariableBinding binding : client.walk(discoveryTimeout)) {
+                final AttributeDescriptor descriptor = createDescriptor(config -> {
+                    if (binding.getVariable() instanceof OctetString)
+                        config.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
+                });
+                result.put(binding.getOid().toDottedString(), descriptor);
+            }
+            return result;
         }
 
         @Override
-        public List<SnmpAttributeInfo> expandAttributes() {
+        public Map<String, AttributeDescriptor> discoverAttributes() {
             try {
                 return client.read(this::expandImpl);
             } catch (final Exception e) {
                 failedToExpand(Level.WARNING, e);
-                return Collections.emptyList();
+                return Collections.emptyMap();
             }
         }
 

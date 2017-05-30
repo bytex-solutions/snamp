@@ -6,13 +6,15 @@ import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.SharedCounter;
+import com.bytex.snamp.internal.Utils;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
 import javax.management.MBeanException;
 import javax.management.Notification;
 import javax.management.NotificationListener;
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -30,10 +32,11 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
     GroovyNotificationRepository(final String resourceName,
                                  final ManagedResourceScriptlet scriptlet,
                                  final ExecutorService threadPool,
-                                 final BundleContext context) {
-        super(resourceName, GroovyEvent.class, true);
+                                 final boolean expandable) {
+        super(resourceName, GroovyEvent.class, expandable);
         this.scriptlet = Objects.requireNonNull(scriptlet);
         this.listenerInvoker = threadPool;
+        final BundleContext context = Utils.getBundleContextOfObject(this);
         this.sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
         scriptlet.addEventListener(this);
     }
@@ -50,8 +53,11 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
     }
 
     @Override
-    public Collection<? extends GroovyEvent> expandNotifications() {
-        return scriptlet.expandEvents();
+    public Map<String, NotificationDescriptor> discoverNotifications() {
+        final Map<String, NotificationDescriptor> result = new HashMap<>();
+        for(final String category: scriptlet.getEvents())
+            result.put(category, createDescriptor());
+        return result;
     }
 
     @Override

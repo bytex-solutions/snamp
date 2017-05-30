@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.operations;
 
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.OperationMetric;
 import com.bytex.snamp.connector.metrics.OperationMetricRecorder;
@@ -456,23 +457,24 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     /**
-     * Populate this repository with operations.
-     *
-     * @return A collection of registered operations; or empty collection if nothing tot populate.
-     */
-    @Override
-    public Collection<? extends M> expandOperations() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Determines whether this repository can be populated with operations using call of {@link #expandOperations()}.
+     * Determines whether this repository can be populated with operations using call of {@link #discoverOperations()}.
      *
      * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
      * @since 2.0
      */
     @Override
-    public final boolean canExpandOperations() {
+    public final boolean canDiscoverOperations() {
         return expandable;
+    }
+
+    protected final OperationDescriptor createDescriptor(Consumer<OperationConfiguration> initializer) {
+        final Consumer<OperationConfiguration> adjustTimeout = config -> config.setInvocationTimeout(OperationConfiguration.TIMEOUT_FOR_SMART_MODE);
+        initializer = adjustTimeout.andThen(initializer);
+        return createDescriptor(OperationConfiguration.class, initializer, OperationDescriptor::new);
+    }
+
+    protected final OperationDescriptor createDescriptor() {
+        return createDescriptor(config -> {
+        });
     }
 }

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.operations.reflection;
 
-import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
@@ -11,11 +10,9 @@ import javax.management.ReflectionException;
 import java.beans.BeanInfo;
 import java.beans.MethodDescriptor;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 
 /**
  * Represents repository of attributes reflected from JavaBean methods.
@@ -48,20 +45,12 @@ public abstract class JavaBeanOperationRepository extends AbstractOperationRepos
     }
 
     @Override
-    public Collection<JavaBeanOperationInfo> expandOperations() {
-        return getMethods().stream()
-                .filter(JavaBeanOperationInfo::isValidDescriptor)
-                .map(method -> {
-                    final OperationConfiguration config = createEntityConfiguration(getClassLoader(), OperationConfiguration.class);
-                    assert config != null;
-                    config.setAlternativeName(method.getName());
-                    config.setAutomaticallyAdded(true);
-                    config.setInvocationTimeout(OperationConfiguration.TIMEOUT_FOR_SMART_MODE);
-                    return enableOperation(method.getName(), new OperationDescriptor(config));
-                })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+    public Map<String, OperationDescriptor> discoverOperations() {
+        final Map<String, OperationDescriptor> result = new HashMap<>();
+        for (final MethodDescriptor method : getMethods())
+            if (JavaBeanOperationInfo.isValidDescriptor(method))
+                result.put(method.getName(), createDescriptor());
+        return result;
     }
 
     @Override

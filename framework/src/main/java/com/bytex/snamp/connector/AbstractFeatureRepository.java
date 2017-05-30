@@ -3,6 +3,8 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.WeakEventListenerList;
 import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.metrics.Metric;
 import com.google.common.collect.Sets;
 
@@ -14,6 +16,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.ArrayUtils.arrayConstructor;
@@ -147,5 +150,14 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     public void close() {
         clear();
         resourceEventListeners.clear();
+    }
+
+    protected final <E extends FeatureConfiguration, D extends FeatureDescriptor<E>> D createDescriptor(final Class<E> entityType,
+                                                                                              final Consumer<E> initializer,
+                                                                                              final Function<E, D> descriptorFactory) {
+        final E entity = ConfigurationManager.createEntityConfiguration(getClass().getClassLoader(), entityType);
+        assert entity != null;
+        initializer.accept(entity);
+        return descriptorFactory.apply(entity);
     }
 }

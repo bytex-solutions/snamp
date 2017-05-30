@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.attributes;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.AttributeMetrics;
 import com.bytex.snamp.connector.metrics.AttributeMetricsRecorder;
@@ -638,27 +639,28 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     }
 
     /**
-     * Populate this repository with attributes.
-     *
-     * @return A collection of registered attributes; or empty collection if nothing tot populate.
-     */
-    @Override
-    public Collection<? extends M> expandAttributes() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Determines whether this repository can be populated with attributes using call of {@link #expandAttributes()}.
+     * Determines whether this repository can be populated with attributes using call of {@link #discoverAttributes()}.
      *
      * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
      * @since 2.0
      */
     @Override
-    public final boolean canExpandAttributes() {
+    public final boolean canDiscoverAttributes() {
         return expandable;
     }
 
     protected final void failedToExpand(final Level level, final Exception e){
         getLogger().log(level, String.format("Unable to expand attributes for resource %s", getResourceName()), e);
+    }
+
+    protected final AttributeDescriptor createDescriptor(Consumer<AttributeConfiguration> initializer) {
+        final Consumer<AttributeConfiguration> autoAdjust = config -> config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
+        initializer = autoAdjust.andThen(initializer);
+        return createDescriptor(AttributeConfiguration.class, initializer, AttributeDescriptor::new);
+    }
+
+    protected final AttributeDescriptor createDescriptor() {
+        return createDescriptor(config -> {
+        });
     }
 }

@@ -4,7 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.internal.Utils;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
@@ -30,6 +29,7 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
     GroovyResourceConnector(final String resourceName,
                             final com.bytex.snamp.configuration.ManagedResourceInfo configuration) throws IOException, ResourceException, ScriptException {
+        super(configuration);
         final ManagedResourceScriptEngine engine = new ManagedResourceScriptEngine(resourceName,
                 getClass().getClassLoader(),
                 false,
@@ -38,11 +38,12 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
         scriptlet = engine.createScript(null);
         scriptlet.run();
-        attributes = new GroovyAttributeRepository(resourceName, scriptlet);
+        final boolean smartMode = GroovyResourceConfigurationDescriptor.getInstance().isSmartModeEnabled(configuration);
+        attributes = new GroovyAttributeRepository(resourceName, scriptlet, smartMode);
         final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(configuration);
-        events = new GroovyNotificationRepository(resourceName, scriptlet, threadPool, Utils.getBundleContextOfObject(this));
+        events = new GroovyNotificationRepository(resourceName, scriptlet, threadPool, smartMode);
         events.setSource(this);
-        operations = new GroovyOperationRepository(resourceName, scriptlet);
+        operations = new GroovyOperationRepository(resourceName, scriptlet, smartMode);
     }
 
     @Aggregation

@@ -111,7 +111,12 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
         entity.setReadWriteTimeout(getReadWriteTimeout());
         for (final String fieldName : getFieldNames())
             switch (fieldName) {
-                default: entity.put(fieldName, Objects.toString(getFieldValue(fieldName)));
+                default:
+                    final Object fieldValue = getFieldValue(fieldName);
+                    if (fieldValue == null)
+                        continue;
+                    else
+                        entity.put(fieldName, fieldValue.toString());
                 case ATTRIBUTE_NAME_FIELD:
                 case READ_WRITE_TIMEOUT_FIELD:
             }

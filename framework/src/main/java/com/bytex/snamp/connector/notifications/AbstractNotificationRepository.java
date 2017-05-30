@@ -5,6 +5,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
 import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
@@ -443,23 +444,13 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     /**
-     * Populate this repository with notifications.
-     *
-     * @return A collection of registered notifications; or empty collection if nothing tot populate.
-     */
-    @Override
-    public Collection<? extends M> expandNotifications() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Determines whether this repository can be populated with notifications using call of {@link #expandNotifications()}.
+     * Determines whether this repository can be populated with notifications using call of {@link #discoverNotifications()}.
      *
      * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
      * @since 2.0
      */
     @Override
-    public final boolean canExpandNotifications() {
+    public final boolean canDiscoverNotifications() {
         return expandable;
     }
 
@@ -517,5 +508,13 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         notificationSource = null;
         metrics.reset();
         super.close();
+    }
+
+    protected final NotificationDescriptor createDescriptor(final Consumer<EventConfiguration> initializer) {
+        return createDescriptor(EventConfiguration.class, initializer, NotificationDescriptor::new);
+    }
+
+    protected final NotificationDescriptor createDescriptor(){
+        return createDescriptor(config -> {});
     }
 }

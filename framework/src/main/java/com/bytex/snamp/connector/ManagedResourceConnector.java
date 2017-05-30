@@ -10,7 +10,8 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
-import javax.management.*;
+import javax.management.DynamicMBean;
+import javax.management.MBeanFeatureInfo;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -134,18 +135,19 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
 
     default Collection<? extends MBeanFeatureInfo> expandAll() {
         final List<MBeanFeatureInfo> result = new LinkedList<>();
+
         queryObject(AttributeSupport.class)
-                .filter(AttributeSupport::canExpandAttributes)
-                .map(AttributeSupport::expandAttributes)
-                .ifPresent(result::addAll);
+                .filter(AttributeSupport::canDiscoverAttributes)
+                .ifPresent(support -> support.discoverAttributes().forEach((attributeName, descriptor) -> support.addAttribute(attributeName, descriptor).ifPresent(result::add)));
+
         queryObject(NotificationSupport.class)
-                .filter(NotificationSupport::canExpandNotifications)
-                .map(NotificationSupport::expandNotifications)
-                .ifPresent(result::addAll);
+                .filter(NotificationSupport::canDiscoverNotifications)
+                .ifPresent(support -> support.discoverNotifications().forEach((category, descriptor) -> support.enableNotifications(category, descriptor).ifPresent(result::add)));
+
         queryObject(OperationSupport.class)
-                .filter(OperationSupport::canExpandOperations)
-                .map(OperationSupport::expandOperations)
-                .ifPresent(result::addAll);
+                .filter(OperationSupport::canDiscoverOperations)
+                .ifPresent(support -> support.discoverOperations().forEach((operationName, descriptor) -> support.enableOperation(operationName, descriptor).ifPresent(result::add)));
+
         return result;
     }
 }

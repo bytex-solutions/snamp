@@ -4,7 +4,8 @@ import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.connector.ManagedResourceAggregatedService;
 
 import javax.management.*;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -151,17 +152,21 @@ public interface AttributeSupport extends ManagedResourceAggregatedService {
     Optional<? extends MBeanAttributeInfo> getAttributeInfo(final String attributeName);
 
     /**
-     * Determines whether this repository can be populated with attributes using call of {@link #expandAttributes()}.
-     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
+     * Determines whether the attributes can be discovered using call of {@link #discoverAttributes()}.
+     * @return {@literal true}, if discovery is supported; otherwise, {@literal false}.
      * @since 2.0
      */
-    boolean canExpandAttributes();
+    default boolean canDiscoverAttributes(){
+        return false;
+    }
 
     /**
-     * Populate this repository with attributes.
+     * Discover attributes.
      *
-     * @return A collection of registered attributes; or empty collection if nothing to populate.
+     * @return A map of discovered attributed that can be added using method {@link #addAttribute(String, AttributeDescriptor)}.
      * @since 2.0
      */
-    Collection<? extends MBeanAttributeInfo> expandAttributes();
+    default Map<String, AttributeDescriptor> discoverAttributes(){
+        return Collections.emptyMap();
+    }
 }

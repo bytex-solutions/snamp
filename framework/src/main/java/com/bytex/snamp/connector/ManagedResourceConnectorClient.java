@@ -3,7 +3,6 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.*;
@@ -167,40 +166,6 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                     .orElseThrow(() -> unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class));
             final ManagedResourceConnectorFactoryService service = context.getService(ref);
             return service.createConnector(resourceName, configuration);
-        } finally {
-            if (ref != null) context.ungetService(ref);
-        }
-    }
-
-    /**
-     * Discovers elements for the managed resource.
-     * <p>
-     *     The connector bundle should expose {@link FeatureDiscoveryService} service.
-     * </p>
-     * @param context The context of the caller bundle.
-     * @param connectorType The system name of the connector.
-     * @param connectionString Managed resource connection string.
-     * @param connectionOptions Managed resource connection options.
-     * @param entityType Type of the managed resource element.
-     * @param <T> Type of the managed resource element.
-     * @return A collection of discovered managed resource elements
-     * @throws java.lang.UnsupportedOperationException Managed resource doesn't support metadata discovery.
-     */
-    public static <T extends FeatureConfiguration> Collection<T> discoverEntities(final BundleContext context,
-                                                                                  final String connectorType,
-                                                                                  final String connectionString,
-                                                                                  final Map<String, String> connectionOptions,
-                                                                                  final Class<T> entityType) throws UnsupportedOperationException {
-        if (context == null || entityType == null) return Collections.emptyList();
-        ServiceReference<FeatureDiscoveryService> ref = null;
-        try {
-            ref = filterBuilder()
-                    .setConnectorType(connectorType)
-                    .setServiceType(FeatureDiscoveryService.class)
-                    .getServiceReference(context, FeatureDiscoveryService.class)
-                    .orElseThrow(() -> unsupportedServiceRequest(connectorType, FeatureDiscoveryService.class));
-            final FeatureDiscoveryService service = context.getService(ref);
-            return service.discover(connectionString, connectionOptions, entityType);
         } finally {
             if (ref != null) context.ungetService(ref);
         }

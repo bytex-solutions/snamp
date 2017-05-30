@@ -8,7 +8,8 @@ import com.bytex.snamp.connector.ManagedResourceAggregatedService;
 import javax.annotation.Nonnull;
 import javax.management.MBeanNotificationInfo;
 import javax.management.NotificationBroadcaster;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -76,11 +77,13 @@ public interface NotificationSupport extends NotificationBroadcaster, ManagedRes
     Optional<? extends MBeanNotificationInfo> getNotificationInfo(final String notificationType);
 
     /**
-     * Determines whether this repository can be populated with notifications using call of {@link #expandNotifications()}.
-     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
+     * Determines whether the notifications can be discovered using call of {@link #discoverNotifications()}.
+     * @return {@literal true}, if discovery is supported; otherwise, {@literal false}.
      * @since 2.0
      */
-    boolean canExpandNotifications();
+    default boolean canDiscoverNotifications(){
+        return false;
+    }
 
     /**
      * Defines source for all outbound notifications.
@@ -91,10 +94,12 @@ public interface NotificationSupport extends NotificationBroadcaster, ManagedRes
     void setSource(@Nonnull final Aggregator source);
 
     /**
-     * Populate this repository with notifications.
+     * Discover notifications.
      *
-     * @return A collection of registered notifications; or empty collection if nothing to populate.
+     * @return A map of discovered notifications that can be enabled using method {@link #enableNotifications(String, NotificationDescriptor)}.
      * @since 2.0
      */
-    Collection<? extends MBeanNotificationInfo> expandNotifications();
+    default Map<String, NotificationDescriptor> discoverNotifications(){
+        return Collections.emptyMap();
+    }
 }

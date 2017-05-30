@@ -22,8 +22,7 @@ public final class ActuatorConnectorActivator extends ManagedResourceActivator<A
         super(ActuatorConnectorActivator::createConnector,
                 requiredBy(ActuatorConnector.class).require(ThreadPoolRepository.class),
                 new SupportServiceManager<?, ?>[]{
-                    configurationDescriptor(ActuatorConnectorDescriptionProvider::getInstance),
-                    discoveryService(ActuatorConnectorActivator::createDiscoveryService)
+                    configurationDescriptor(ActuatorConnectorDescriptionProvider::getInstance)
         });
     }
 
@@ -34,9 +33,5 @@ public final class ActuatorConnectorActivator extends ManagedResourceActivator<A
         return new ActuatorConnector(resourceName,
                 new URI(configuration.getConnectionString()),
                 configuration);
-    }
-
-    private static ActuatorFeatureDiscoveryService createDiscoveryService(final DependencyManager dependencies){
-        return new ActuatorFeatureDiscoveryService();
     }
 }

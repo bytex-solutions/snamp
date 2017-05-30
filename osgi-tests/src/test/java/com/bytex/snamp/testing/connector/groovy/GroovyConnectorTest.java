@@ -1,15 +1,14 @@
 package com.bytex.snamp.testing.connector.groovy;
 
-import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.jmx.CompositeDataUtils;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
@@ -18,7 +17,8 @@ import javax.management.JMException;
 import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -125,12 +125,16 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     }
 
     @Test
-    public void discoveryTest() throws Exception{
-        final Collection<AttributeConfiguration> attributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(), CONNECTOR_TYPE,
-                getConnectionString(),
-                ImmutableMap.of(),
-                AttributeConfiguration.class);
-        assertEquals(5, attributes.size());
+    public void discoveryTest() throws Exception {
+        final ManagedResourceConnector groovyConnector = getManagementConnector();
+        try {
+            final Map<String, AttributeDescriptor> attributes = groovyConnector.queryObject(AttributeSupport.class)
+                    .map(AttributeSupport::discoverAttributes)
+                    .orElseGet(Collections::emptyMap);
+            assertEquals(5, attributes.size());
+        } finally {
+            releaseManagementConnector();
+        }
     }
 
     @Test

@@ -4,10 +4,12 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.metrics.*;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
+import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.internal.Utils;
@@ -25,9 +27,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import java.math.BigInteger;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -316,30 +316,32 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     }
 
     @Test
-    public void testForAttributesDiscovery(){
-        final Collection<AttributeConfiguration> discoveredAttributes = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
-                CONNECTOR_NAME,
-                getConnectionString(),
-                AbstractJmxConnectorTest.DEFAULT_PARAMS,
-                AttributeConfiguration.class);
-        assertTrue(discoveredAttributes.size() > 30);
-        for(final AttributeConfiguration config: discoveredAttributes) {
-            assertTrue(config.containsKey("objectName"));
-            assertTrue(config.containsKey(AttributeConfiguration.NAME_KEY));
+    public void testForAttributesDiscovery() throws InstanceNotFoundException {
+        final ManagedResourceConnector jmxConnector = getManagementConnector();
+        try {
+            final Map<String, AttributeDescriptor> discoveredAttributes = jmxConnector.queryObject(AttributeSupport.class)
+                    .map(AttributeSupport::discoverAttributes)
+                    .orElseGet(Collections::emptyMap);
+            assertTrue(discoveredAttributes.size() > 30);
+            for (final AttributeDescriptor descriptor : discoveredAttributes.values())
+                assertTrue(descriptor.hasField("objectName"));
+        } finally {
+            releaseManagementConnector();
         }
     }
 
     @Test
-    public void testForNotificationsDiscovery(){
-        final Collection<EventConfiguration> discoveredEvents = ManagedResourceConnectorClient.discoverEntities(getTestBundleContext(),
-                CONNECTOR_NAME,
-                getConnectionString(),
-                AbstractJmxConnectorTest.DEFAULT_PARAMS,
-                EventConfiguration.class);
-        assertTrue(discoveredEvents.size() > 2);
-        for(final EventConfiguration config: discoveredEvents) {
-            assertTrue(config.containsKey("objectName"));
-            assertTrue(config.containsKey(EventConfiguration.NAME_KEY));
+    public void testForNotificationsDiscovery() throws InstanceNotFoundException {
+        final ManagedResourceConnector jmxConnector = getManagementConnector();
+        try {
+            final Map<String, NotificationDescriptor> discoveredEvents = jmxConnector.queryObject(NotificationSupport.class)
+                    .map(NotificationSupport::discoverNotifications)
+                    .orElseGet(Collections::emptyMap);
+            assertTrue(discoveredEvents.size() > 2);
+            for (final NotificationDescriptor descriptor : discoveredEvents.values())
+                assertTrue(descriptor.hasField("objectName"));
+        } finally {
+            releaseManagementConnector();
         }
     }
 }

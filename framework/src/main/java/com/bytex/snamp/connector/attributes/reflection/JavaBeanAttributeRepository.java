@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.attributes.reflection;
 
-import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -14,11 +13,9 @@ import javax.management.openmbean.OpenDataException;
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static com.bytex.snamp.configuration.ConfigurationManager.createEntityConfiguration;
 
 /**
  * Represents repository of attributes reflected from JavaBean properties.
@@ -101,19 +98,12 @@ public abstract class JavaBeanAttributeRepository extends AbstractAttributeRepos
      * @return A collection of attributes discovered through reflection.
      */
     @Override
-    public Collection<JavaBeanAttributeInfo> expandAttributes() {
-        return getProperties().stream()
-                .map(property -> {
-                    final AttributeConfiguration config = createEntityConfiguration(getClassLoader(), AttributeConfiguration.class);
-                    assert config != null;
-                    config.setAlternativeName(property.getName());
-                    config.setAutomaticallyAdded(true);
-                    config.setReadWriteTimeout(AttributeConfiguration.TIMEOUT_FOR_SMART_MODE);
-                    return addAttribute(property.getName(), new AttributeDescriptor(config));
-                })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
+    public Map<String, AttributeDescriptor> discoverAttributes() {
+        final Map<String, AttributeDescriptor> result = new HashMap<>();
+        for (final PropertyDescriptor property : getProperties())
+            if (JavaBeanAttributeInfo.isValidDescriptor(property))
+                result.put(property.getName(), createDescriptor());
+        return result;
     }
 
     public static JavaBeanAttributeRepository create(final String resourceName,

@@ -5,7 +5,8 @@ import com.bytex.snamp.connector.ManagedResourceAggregatedService;
 import javax.management.MBeanException;
 import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -93,17 +94,21 @@ public interface OperationSupport extends ManagedResourceAggregatedService {
     Optional<? extends MBeanOperationInfo> getOperationInfo(final String operationName);
 
     /**
-     * Determines whether this repository can be populated with operations using call of {@link #expandOperations()}.
-     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
+     * Determines whether the operations can be discovered using call of {@link #discoverOperations()} ()}.
+     * @return {@literal true}, if discovery is supported; otherwise, {@literal false}.
      * @since 2.0
      */
-    boolean canExpandOperations();
+    default boolean canDiscoverOperations(){
+        return false;
+    }
 
     /**
-     * Populate this repository with operations.
+     * Discover operations.
      *
-     * @return A collection of registered operations; or empty collection if nothing to populate.
+     * @return A map of discovered operations that can be enabled using method {@link #enableOperation(String, OperationDescriptor)}.
      * @since 2.0
      */
-    Collection<? extends MBeanOperationInfo> expandOperations();
+    default Map<String, OperationDescriptor> discoverOperations(){
+        return Collections.emptyMap();
+    }
 }
