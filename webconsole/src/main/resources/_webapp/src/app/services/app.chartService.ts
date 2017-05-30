@@ -149,6 +149,20 @@ export class ChartService {
         }
     }
 
+    modifyChart(chart:AbstractChart):void {
+        if (!this.hasChartWithName(chart.name)) {
+            throw new Error("Trying to modify chart that does not exist within the active dashboard");
+        } else {
+            for (let i = 0; i < this._dashboard.charts.length; i++) {
+                if (this._dashboard.charts[i].name == chart.name) {
+                    this._dashboard.charts[i] = chart;
+                    break;
+                }
+            }
+            this.saveDashboard();
+        }
+    }
+
     removeChart(chartName:string):void {
         for (let i = 0; i < this._dashboard.charts.length; i++ ) {
             if (this._dashboard.charts[i].name == chartName) {

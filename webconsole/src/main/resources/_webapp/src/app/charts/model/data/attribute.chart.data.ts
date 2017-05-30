@@ -29,12 +29,20 @@ export class AttributeChartData extends ChartData {
         this._resourceName = value;
     }
 
+    private static isNumber(n):boolean {
+        return !isNaN(parseFloat(n)) && isFinite(n);
+    }
+
+    private static toFixed(n):any {
+        return AttributeChartData.isNumber(n) ? n.toFixed(2) : n;
+    }
+
     fillFromJSON(_json: any): void {
         if (_json["attributeName"] != undefined) {
             this.attributeName = _json["attributeName"];
         }
         if (_json["attributeValue"] != undefined) {
-            this.attributeValue = _json["attributeValue"];
+            this.attributeValue = AttributeChartData.toFixed(_json["attributeValue"]);
         }
         if (_json["resourceName"] != undefined) {
             this.resourceName = _json["resourceName"];

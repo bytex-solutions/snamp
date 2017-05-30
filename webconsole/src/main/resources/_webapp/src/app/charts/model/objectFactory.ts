@@ -19,9 +19,9 @@ import { ResourceGroupHealthStatusChart } from "./charts/resource.group.health.s
 import { HealthStatusAxis } from "./axis/health.status.axis";
 import { NumericAxis } from "./axis/numeric.axis";
 import { NumberOfResourcesChart } from "./charts/number.of.resources";
-import {ScaleInChart} from "./charts/scale.in.chart";
-import {ScaleOutChart} from "./charts/scale.out.chart";
-import {ScalingRateChart} from "./scaling.rate.chart";
+import { ScaleInChart } from "./charts/scale.in.chart";
+import { ScaleOutChart } from "./charts/scale.out.chart";
+import { ScalingRateChart } from "./scaling.rate.chart";
 
 // Factory to create appropriate objects from json
 export class Factory {

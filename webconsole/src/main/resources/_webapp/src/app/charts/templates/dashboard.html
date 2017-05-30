@@ -47,7 +47,7 @@
                 </label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
                   <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
-                    <option value="" *ngIf="selectedChartType != 'statuses'">NO GROUP</option>
+                    <option value="" *ngIf="selectedChartType != 'statuses' && selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut'">NO GROUP</option>
                     <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
                   </select>
                 </div>
@@ -181,17 +181,26 @@
                     Chart name <span class="required">*</span>
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12">
-                    <input type="text" class="form-control" id="chartNameInput" placeholder="Chart name" [(ngModel)]="chartName">
+                    <input type="text" class="form-control" id="chartNameInput" placeholder="Chart name" [(ngModel)]="chartName" [disabled]="!isNewChart()">
                   </div>
                 </div>
               </div>
 
               <div class="row" style="margin-top: 15px">
                 <button
+                        *ngIf="isNewChart()"
                         type="button"
                         class="btn btn-primary col-md-4 col-md-offset-4"
                         (click)="addChartToDashboard()">
                   Append to dashboard
+                </button>
+
+                <button
+                        *ngIf="!isNewChart()"
+                        type="button"
+                        class="btn btn-primary col-md-4 col-md-offset-4"
+                        (click)="saveChart()">
+                  Save the chart
                 </button>
               </div>
             </div>
@@ -240,6 +249,7 @@
                 <h5 *ngIf="chart.updateStopped">(Paused at {{chart.pausedTime | date:'dd/MM/y HH:mm:ss'}})</h5>
                 <ul class="nav navbar-right panel_toolbox">
                   <li>
+                    <a (click)="modifyChart(chart)"><i class="fa fa-wrench"></i></a>
                     <a [attr.id]="'toggleDraw' + chart.id" class="toggle-link" (click)="toggleDrawingChart(chart)"><i class="fa fa-pause-circle-o"></i></a>
                     <a class="close-link" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
                   </li>

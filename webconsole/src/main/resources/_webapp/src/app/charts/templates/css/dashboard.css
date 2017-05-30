@@ -126,7 +126,7 @@ select.form-control:not([size]):not([multiple]) {
     font-size: inherit !important;
     color: black;
     display: inline;
-    max-width: calc(100% - 46px);
+    max-width: calc(100% - 65px);
 }
 
 .x_title h5 {
@@ -145,16 +145,12 @@ select.form-control:not([size]):not([multiple]) {
     display: inline;
 }
 
-ul.panel_toolbox i.fa{
-    color:black;
-}
-
 ul.panel_toolbox i.fa-pause-circle-o {
-    color:red;
+    color:#ffa3a3;
 }
 
 ul.panel_toolbox i.fa-play-circle-o {
-    color:green;
+    color:#639863;
 }
 
 .tableWrapper {

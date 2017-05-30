@@ -13,4 +13,14 @@ export abstract class TwoDimensionalChartOfAttributeValues extends ChartOfAttrib
             (<AttributeValueAxis>this.getAxisY()).sourceAttribute = sourceAttribute;
         }
     }
+
+    public getSourceAttribute():AttributeInformation {
+        if (this.getAxisX() instanceof AttributeValueAxis) {
+            return (<AttributeValueAxis>this.getAxisX()).sourceAttribute;
+        } else if (this.getAxisY() instanceof AttributeValueAxis) {
+            return (<AttributeValueAxis>this.getAxisY()).sourceAttribute;
+        } else {
+            return undefined;
+        }
+    }
 }

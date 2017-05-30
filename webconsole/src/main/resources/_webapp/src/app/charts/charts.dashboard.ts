@@ -22,6 +22,10 @@ import 'rxjs/add/observable/of';
 import 'smartwizard';
 import 'select2';
 import { ScalingRateChart } from "./model/scaling.rate.chart";
+import {ChartOfAttributeValues} from "./model/abstract.chart.attributes.values";
+import {TwoDimensionalChart} from "./model/two.dimensional.chart";
+import {AttributeValueAxis} from "./model/axis/attribute.value.axis";
+import {TwoDimensionalChartOfAttributeValues} from "./model/abstract.2d.chart.attributes.values";
 
 @Component({
     moduleId: module.id,
@@ -64,6 +68,8 @@ export class Dashboard {
     private static wizardId:string = "#smartwizardForChart";
     private static rateMetricSelect2Id:string = "#rateMetricSelect";
 
+    private currentChart:AbstractChart = undefined;
+
     private gridConfig: NgGridConfig = <NgGridConfig> {
         'margins': [10],
         'draggable': true,
@@ -104,10 +110,10 @@ export class Dashboard {
     appendChartClicked(type:string) {
         this.selectedChartType = type;
         this.cd.detectChanges(); // draw the modal html
-        this.initModal();
+        this.initNewChart();
     }
 
-    private initModal():void {
+    private initNewChart():void {
 
         // set all elements to the initial state
         this.selectedAllInstances = true;
@@ -117,10 +123,67 @@ export class Dashboard {
         this.selectedComponent = "";
         this.timeInterval = this.intervals[0];
         this.selectedRateMetrics = [];
+        this.rateInterval = this.rateIntervals[0];
+        this.currentChart = undefined;
 
         // fill components and selected component
         this.ngOnInit();
 
+        // init modal components and show modal itself
+        this.initModal();
+    }
+
+    modifyChart(chart:AbstractChart):void {
+        // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
+        this.currentChart = chart;
+
+        // prefill instances from the existing chart
+        if (chart instanceof ChartOfAttributeValues && chart.resources != undefined && chart.resources.length > 0) {
+            this.selectedAllInstances = false;
+            this.selectedInstances = chart.resources;
+        } else {
+            this.selectedAllInstances = true;
+            this.selectedInstances = [];
+        }
+
+        // fill the group (I used property check because some charts have 'group' property defined in different places - fix@todo)
+        if (chart['group'] != undefined && chart['group'].length > 0) {
+            this.selectedComponent = chart['group'];
+        } else {
+            this.selectedComponent = "";
+        }
+
+        // fill the rate metric and rate intervals from the chart
+        if (chart instanceof ScalingRateChart) {
+            this.selectedRateMetrics =  chart.metrics;
+            this.rateInterval = this.rateIntervals.filter(element => element.additionalId == chart.interval)[0];
+        } else {
+            this.selectedRateMetrics = [];
+            this.rateInterval = this.intervals[0];
+        }
+
+        // fill the time interval if the chart belongs to series based charts
+        if (chart instanceof SeriesBasedChart) {
+            this.timeInterval = this.rateIntervals.filter(element => element.id == chart.preferences["interval"])[0];
+        } else {
+            this.timeInterval = this.intervals[0];
+        }
+
+        // fill the selected metric if the chart has metric in one of its axes
+        if (chart instanceof TwoDimensionalChartOfAttributeValues) {
+            this.selectedMetric = chart.getSourceAttribute();
+        } else {
+            this.selectedMetric = undefined;
+        }
+
+        // make sure the front end has received the changes
+        this.cd.detectChanges();
+
+        // init modal components and show the modal
+        this.initModal();
+    }
+
+    private initModal():void {
         // reset wizard
         $(Dashboard.wizardId).off("showStep");
         $(Dashboard.wizardId).smartWizard("reset");
@@ -215,12 +278,12 @@ export class Dashboard {
 
         $(Dashboard.wizardId).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
             _thisReference.cd.detectChanges();
-            if (stepNumber == 3) {
+            if (stepNumber == 3 && _thisReference.isNewChart()) {
                 _thisReference.updateChartName();
-            } else if (stepNumber == 2) {
+            } else if (stepNumber == 2 && stepDirection == "forward") {
                 _thisReference.loadMetricsOnInstancesSelected();
             } else if (stepNumber == 1) {
-                if (stepDirection == "forward") {
+                if (stepDirection == "forward" && _thisReference.isNewChart()) {
                     _thisReference.selectedAllInstances = true;
                     _thisReference.selectedInstances = [];
                 }
@@ -353,6 +416,12 @@ export class Dashboard {
         }, 400);
     }
 
+    saveChart():void {
+        this._chartService.modifyChart(this.currentChart);
+        this.cd.detectChanges();
+        this.currentChart.draw();
+    }
+
     onChangeStop(index: number, event: NgGridItemEvent): void {
         if (index != undefined && this._charts[index] != undefined) {
             this._charts[index].preferences["gridcfg"] = event;
@@ -392,6 +461,10 @@ export class Dashboard {
 
     isRateMetricSelected(metric:string):boolean {
         return this.selectedRateMetrics.find(value => (value == metric)) != undefined;
+    }
+
+    isNewChart():boolean {
+        return this.currentChart == undefined;
     }
 
     private getHiddenSteps():number[] {

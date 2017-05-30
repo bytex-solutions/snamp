@@ -103451,6 +103451,17 @@ var TwoDimensionalChartOfAttributeValues = (function (_super) {
             this.getAxisY().sourceAttribute = sourceAttribute;
         }
     };
+    TwoDimensionalChartOfAttributeValues.prototype.getSourceAttribute = function () {
+        if (this.getAxisX() instanceof attribute_value_axis_1.AttributeValueAxis) {
+            return this.getAxisX().sourceAttribute;
+        }
+        else if (this.getAxisY() instanceof attribute_value_axis_1.AttributeValueAxis) {
+            return this.getAxisY().sourceAttribute;
+        }
+        else {
+            return undefined;
+        }
+    };
     return TwoDimensionalChartOfAttributeValues;
 }(abstract_chart_attributes_values_1.ChartOfAttributeValues));
 exports.TwoDimensionalChartOfAttributeValues = TwoDimensionalChartOfAttributeValues;
@@ -103617,9 +103628,9 @@ var ChartJsChart = (function (_super) {
     // for chartJS purposes
     ChartJsChart.prototype.updateColors = function () {
         var _this = this;
-        this._backgroundColors = this.chartData.map(function (data, i) { return ChartJsChart.hslFromValue(i, _this.chartData.length, 0.3); });
+        this._backgroundColors = this.chartData.map(function (data, i) { return ChartJsChart.hslFromValue(i, _this.chartData.length, 0.6); });
         this._borderColorData = new Array(this.chartData.length).fill(ChartJsChart.borderColor);
-        this._backgroundHoverColors = this.chartData.map(function (data, i) { return ChartJsChart.hslFromValue(i, _this.chartData.length, 0.75); });
+        this._backgroundHoverColors = this.chartData.map(function (data, i) { return ChartJsChart.hslFromValue(i, _this.chartData.length, 0.85); });
     };
     ChartJsChart.prototype.newValues = function (_data) {
         if (document.hidden)
@@ -104803,12 +104814,18 @@ var AttributeChartData = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    AttributeChartData.isNumber = function (n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
+    };
+    AttributeChartData.toFixed = function (n) {
+        return AttributeChartData.isNumber(n) ? n.toFixed(2) : n;
+    };
     AttributeChartData.prototype.fillFromJSON = function (_json) {
         if (_json["attributeName"] != undefined) {
             this.attributeName = _json["attributeName"];
         }
         if (_json["attributeValue"] != undefined) {
-            this.attributeValue = _json["attributeValue"];
+            this.attributeValue = AttributeChartData.toFixed(_json["attributeValue"]);
         }
         if (_json["resourceName"] != undefined) {
             this.resourceName = _json["resourceName"];
@@ -107424,6 +107441,20 @@ var ChartService = (function () {
             this._dashboard.charts.push(chart);
             this.chartSubjects[chart.name] = new Subject_1.Subject();
             chart.subscribeToSubject(this.chartSubjects[chart.name]);
+            this.saveDashboard();
+        }
+    };
+    ChartService.prototype.modifyChart = function (chart) {
+        if (!this.hasChartWithName(chart.name)) {
+            throw new Error("Trying to modify chart that does not exist within the active dashboard");
+        }
+        else {
+            for (var i = 0; i < this._dashboard.charts.length; i++) {
+                if (this._dashboard.charts[i].name == chart.name) {
+                    this._dashboard.charts[i] = chart;
+                    break;
+                }
+            }
             this.saveDashboard();
         }
     };

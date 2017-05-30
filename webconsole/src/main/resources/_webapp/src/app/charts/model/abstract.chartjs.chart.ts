@@ -20,9 +20,9 @@ export abstract class ChartJsChart extends TwoDimensionalChartOfAttributeValues 
 
     // for chartJS purposes
     protected updateColors():void {
-        this._backgroundColors = this.chartData.map((data, i) => ChartJsChart.hslFromValue(i, this.chartData.length, 0.3));
+        this._backgroundColors = this.chartData.map((data, i) => ChartJsChart.hslFromValue(i, this.chartData.length, 0.6));
         this._borderColorData = new Array(this.chartData.length).fill(ChartJsChart.borderColor);
-        this._backgroundHoverColors = this.chartData.map((data, i) => ChartJsChart.hslFromValue(i, this.chartData.length, 0.75));
+        this._backgroundHoverColors = this.chartData.map((data, i) => ChartJsChart.hslFromValue(i, this.chartData.length, 0.85));
     }
 
     protected _chartObject:any = undefined;
