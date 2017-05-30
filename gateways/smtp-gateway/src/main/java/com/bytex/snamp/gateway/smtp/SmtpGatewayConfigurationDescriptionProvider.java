@@ -3,6 +3,9 @@ package com.bytex.snamp.gateway.smtp;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.LazySoftReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
+import com.bytex.snamp.configuration.EventConfiguration;
+import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.base.Splitter;
@@ -57,6 +60,37 @@ final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEnt
         DEFAULT_NOTIFICATION_TEMPLATE = callUnchecked(DefaultMailTemplate.NOTIFICATION);
     }
 
+    private static final class GatewayConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
+        private static final String RESOURCE_NAME = "GatewayConfiguration";
+
+        private GatewayConfigurationDescriptor() {
+            super(RESOURCE_NAME, GatewayConfiguration.class,
+                    USE_TLS_PARAM,
+                    SOCKET_TIMEOUT_PARAM,
+                    HOST_PARAM,
+                    PORT_PARAM,
+                    USER_NAME_PARAM,
+                    PASSWORD_PARAM,
+                    SENDER_PARAM,
+                    RECEIVERS_PARAM,
+                    COPY_RECEIVERS_PARAM,
+                    HEALTH_STATUS_TEMPLATE_PARAM,
+                    NEW_RESOURCE_TEMPLATE_PARAM,
+                    REMOVED_RESOURCE_TEMPLATE_PARAM,
+                    SCALE_IN_TEMPLATE_PARAM,
+                    SCALE_OUT_TEMPLATE_PARAM,
+                    MAX_CLUSTER_SIZE_TEMPLATE_PARAM);
+        }
+    }
+
+    private static final class EventConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
+        private static final String RESOURCE_NAME = "EventConfiguration";
+
+        private EventConfigurationDescriptor(){
+            super(RESOURCE_NAME, EventConfiguration.class, NOTIF_TO_EMAIL_PARAM, EMAIL_TEMPLATE_PARAM);
+        }
+    }
+
     private final CompiledST defaultHealthStatusTemplate;
     private final CompiledST defaultNewResourceTemplate;
     private final CompiledST defaultRemovedResourceTemplate;
@@ -65,6 +99,7 @@ final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEnt
     private final CompiledST defaultMaxSizeTemplate;
     
     private SmtpGatewayConfigurationDescriptionProvider(){
+        super(new GatewayConfigurationDescriptor(), new EventConfigurationDescriptor());
         defaultHealthStatusTemplate  = callUnchecked(DefaultMailTemplate.HEALTH_STATUS);
         defaultNewResourceTemplate = callUnchecked(DefaultMailTemplate.NEW_RESOURCE);
         defaultRemovedResourceTemplate = callUnchecked(DefaultMailTemplate.REMOVED_RESOURCE);

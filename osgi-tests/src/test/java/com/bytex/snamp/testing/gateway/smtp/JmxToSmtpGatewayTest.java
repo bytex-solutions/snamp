@@ -1,10 +1,8 @@
 package com.bytex.snamp.testing.gateway.smtp;
 
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EntityMap;
-import com.bytex.snamp.configuration.EventConfiguration;
-import com.bytex.snamp.configuration.GatewayConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayActivator;
+import com.bytex.snamp.gateway.GatewayClient;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
@@ -56,7 +54,35 @@ public final class JmxToSmtpGatewayTest extends AbstractJmxConnectorTest<TestOpe
     @Test
     public void attributeChangeTest() throws JMException, InterruptedException {
         testAttribute("int32", TypeToken.of(Integer.class), 42);
-        assertTrue(smtpServer.waitForIncomingEmail(4_000_000, 1));
+        testAttribute("boolean", TypeToken.of(Boolean.class), true);
+        testAttribute("string", TypeToken.of(String.class), "Frank Underwood");
+        assertTrue(smtpServer.waitForIncomingEmail(4_000, 3));
+    }
+
+    @Test
+    public void configurationTest() {
+        ConfigurationEntityDescription<?> description =
+                GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, GatewayConfiguration.class);
+        testConfigurationDescriptor(description,
+                "enableTLS",
+                "socketTimeout",
+                "host",
+                "port",
+                "userName",
+                "password",
+                "from",
+                "to",
+                "Cc",
+                "healthStatusTemplate",
+                "newResourceTemplate",
+                "removedResourceTemplate",
+                "scaleOutTemplate",
+                "scaleInTemplate",
+                "maxClusterSizeReachedTemplate");
+        description = GatewayClient.getConfigurationEntityDescriptor(getTestBundleContext(), GATEWAY_NAME, EventConfiguration.class);
+        testConfigurationDescriptor(description,
+                "sendToEmail",
+                "mailTemplate");
     }
 
     @Override
@@ -84,7 +110,7 @@ public final class JmxToSmtpGatewayTest extends AbstractJmxConnectorTest<TestOpe
 
     @Override
     protected void fillGateways(final EntityMap<? extends GatewayConfiguration> gateways) {
-        gateways.addAndConsume("gw", gateway -> {
+        gateways.addAndConsume("mail-sender", gateway -> {
             gateway.setType(GATEWAY_NAME);
             gateway.put("userName", "sender");
             gateway.put("password", "456");
@@ -109,39 +135,11 @@ public final class JmxToSmtpGatewayTest extends AbstractJmxConnectorTest<TestOpe
 
         attribute = attributes.getOrAdd("int32");
         attribute.put("objectName", BEAN_NAME);
-
-        attribute = attributes.getOrAdd("bigint");
-        attribute.put("objectName", BEAN_NAME);
-
-        attribute = attributes.getOrAdd("array");
-        attribute.put("objectName", BEAN_NAME);
-
-        attribute = attributes.getOrAdd("dictionary");
-        attribute.put("objectName", BEAN_NAME);
-        attribute.put("typeName", "dict");
-
-        attribute = attributes.getOrAdd("table");
-        attribute.put("objectName", BEAN_NAME);
-        attribute.put("typeName", "table");
-
-        attribute = attributes.getOrAdd("float");
-        attribute.put("objectName", BEAN_NAME);
-
-        attribute = attributes.getOrAdd("date");
-        attribute.put("objectName", BEAN_NAME);
     }
 
     @Override
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd(AttributeChangeNotification.ATTRIBUTE_CHANGE);
-        event.put("severity", "notice");
-        event.put("objectName", BEAN_NAME);
-
-        event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.testnotif");
-        event.put("severity", "panic");
-        event.put("objectName", BEAN_NAME);
-
-        event = events.getOrAdd("com.bytex.snamp.connector.tests.impl.plainnotif");
         event.put("severity", "notice");
         event.put("objectName", BEAN_NAME);
     }
