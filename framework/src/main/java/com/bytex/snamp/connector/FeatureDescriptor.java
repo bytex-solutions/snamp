@@ -17,19 +17,19 @@ import java.util.Optional;
  * @version 2.0
  * @since 1.0
  */
-public interface FeatureDescriptor<E extends FeatureConfiguration> extends CopyOnWriteDescriptor {
+public interface FeatureDescriptor<F extends FeatureConfiguration> extends CopyOnWriteDescriptor {
 
     /**
      * The type of the configuration entity.
      * @return The type of the configuration entity.
      */
-    Class<E> getEntityType();
+    Class<F> getEntityType();
 
     /**
      * Fills the specified configuration entity.
      * @param entity The configuration entity to fill.
      */
-    void fill(final E entity);
+    void fill(final F entity);
 
     /**
      * Returns cloned descriptor with modified fields.
@@ -38,7 +38,7 @@ public interface FeatureDescriptor<E extends FeatureConfiguration> extends CopyO
      * @return A new descriptor with modified fields.
      */
     @Override
-    FeatureDescriptor<E> setFields(final Map<String, ?> values);
+    FeatureDescriptor<F> setFields(final Map<String, ?> values);
 
     /**
      * Returns cloned descriptor with modified fields.
@@ -47,7 +47,7 @@ public interface FeatureDescriptor<E extends FeatureConfiguration> extends CopyO
      * @return A new descriptor with modified fields.
      */
     @Override
-    FeatureDescriptor<E> setFields(final Descriptor values);
+    FeatureDescriptor<F> setFields(final Descriptor values);
 
     /**
      * Gets alternative name of the feature.

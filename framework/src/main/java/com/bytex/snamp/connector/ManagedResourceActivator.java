@@ -164,7 +164,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             //may remove all automatically added attributes
             if (configuration.isSmartMode())
                 connector.expandAll();
-        }
+        }                                           
 
         private SingletonMap<String, ? extends ManagedResourceConfiguration> parseConfig(final Dictionary<String, ?> configuration) throws IOException{
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = getParser().parse(configuration);

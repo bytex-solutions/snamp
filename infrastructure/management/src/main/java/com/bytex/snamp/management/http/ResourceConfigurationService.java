@@ -1,12 +1,22 @@
 package com.bytex.snamp.management.http;
 
-import com.bytex.snamp.configuration.EntityMapResolver;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.management.http.model.ResourceDataObject;
+import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.connector.FeatureDescriptor;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.management.http.model.*;
+import com.google.common.collect.Maps;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Provides API for SNAMP resources management.
@@ -24,6 +34,57 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     @Override
     protected ResourceDataObject toDataTransferObject(final ManagedResourceConfiguration entity) {
         return new ResourceDataObject(entity);
+    }
+
+    private <F extends FeatureConfiguration, DTO extends AbstractFeatureDataObject<F>> Map<String, DTO> discoverFeatures(final String resourceName,
+                                                                                                                         final Class<F> featureType,
+                                                                                                                         final Function<? super ManagedResourceConnector, Map<String, ? extends FeatureDescriptor<F>>> discoveryFunction,
+                                                                                                                         final Function<F, DTO> dtoFactory) {
+        final Optional<ManagedResourceConnectorClient> clientRef = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName);
+        if (clientRef.isPresent())
+            try (final ManagedResourceConnectorClient connector = clientRef.get()) {
+                final Map<String, DTO> result = Maps.newHashMapWithExpectedSize(10);
+                final ClassLoader loader = getClass().getClassLoader();
+                discoveryFunction.apply(connector).forEach((featureName, descriptor) -> {
+                    final F config = ConfigurationManager.createEntityConfiguration(loader, featureType);
+                    assert config != null;
+                    descriptor.fill(config);
+                    result.put(featureName, dtoFactory.apply(config));
+                });
+                return result;
+            }
+        else
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+    }
+
+    @Path("/{resourceName}/discovery/attributes")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, AttributeDataObject> discoverAttributes(@PathParam("resourceName") final String resourceName) {
+        return discoverFeatures(resourceName,
+                AttributeConfiguration.class,
+                connector -> connector.queryObject(AttributeSupport.class).map(AttributeSupport::discoverAttributes).orElseGet(Collections::emptyMap),
+                AttributeDataObject::new);
+    }
+
+    @Path("/{resourceName}/discovery/events")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, EventDataObject> discoverEvents(@PathParam("resourceName") final String resourceName) {
+        return discoverFeatures(resourceName,
+                EventConfiguration.class,
+                connector -> connector.queryObject(NotificationSupport.class).map(NotificationSupport::discoverNotifications).orElseGet(Collections::emptyMap),
+                EventDataObject::new);
+    }
+
+    @Path("/{resourceName}/discovery/operations")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Map<String, OperationDataObject> discoverOperations(@PathParam("resourceName") final String resourceName) {
+        return discoverFeatures(resourceName,
+                OperationConfiguration.class,
+                connector -> connector.queryObject(OperationSupport.class).map(OperationSupport::discoverOperations).orElseGet(Collections::emptyMap),
+                OperationDataObject::new);
     }
 
     /**
