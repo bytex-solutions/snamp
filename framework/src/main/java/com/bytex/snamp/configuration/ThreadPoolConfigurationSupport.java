@@ -2,8 +2,6 @@ package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 
-import java.util.Map;
-
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -12,7 +10,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-interface ThreadPoolConfigurationSupport extends Map<String, String> {
+public interface ThreadPoolConfigurationSupport extends ThreadPoolBounded {
     /**
      * Represents name of configuration parameter that points to thread pool in {@link com.bytex.snamp.concurrent.ThreadPoolRepository}
      * service used by gateway.

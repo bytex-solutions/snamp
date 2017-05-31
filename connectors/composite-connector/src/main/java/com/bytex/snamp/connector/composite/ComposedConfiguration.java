@@ -2,6 +2,8 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
+import com.bytex.snamp.configuration.ManagedResourceTemplate;
+import com.bytex.snamp.configuration.ThreadPoolConfigurationSupport;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -22,11 +24,11 @@ import java.util.regex.PatternSyntaxException;
  * @since 2.0
  */
 final class ComposedConfiguration extends HashMap<String, ManagedResourceInfo> {
-    private static final class ComposedManagedResourceInfo extends HashMap<String, String> implements ManagedResourceInfo {
+    private static final class ComposedManagedResourceInfo extends HashMap<String, String> implements ManagedResourceInfo, ThreadPoolConfigurationSupport {
         private static final long serialVersionUID = -3185159768725211394L;
         private final String connectionString;
 
-        private ComposedManagedResourceInfo(final String connectionString){
+        private ComposedManagedResourceInfo(final String connectionString) {
             this.connectionString = Strings.nullToEmpty(connectionString);
         }
 
@@ -38,6 +40,11 @@ final class ComposedConfiguration extends HashMap<String, ManagedResourceInfo> {
         @Override
         public String getGroupName() {
             return get(ManagedResourceConfiguration.GROUP_NAME_PROPERTY);
+        }
+
+        @Override
+        public boolean isSmartMode() {
+            return ManagedResourceTemplate.isSmartModeEnabled(this);
         }
 
         private boolean equals(final ManagedResourceInfo other){
@@ -72,12 +79,8 @@ final class ComposedConfiguration extends HashMap<String, ManagedResourceInfo> {
     }
 
     private void add(final String connectorType, final String paramName, final String paramValue) {
-        final ManagedResourceInfo connectorParams;
         if (containsKey(connectorType))
-            connectorParams = get(connectorType);
-        else
-            put(connectorType, connectorParams = new ComposedManagedResourceInfo(""));
-        connectorParams.put(paramName, paramValue);
+            get(connectorType).put(paramName, paramValue);
     }
 
     private boolean add(final String paramName, final String paramValue) {

@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector;
 
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.internal.ImmutableEmptyMap;
 
@@ -28,5 +29,15 @@ final class EmptyManagedResourceInfo extends ImmutableEmptyMap<String, String> i
     @Override
     public String getGroupName() {
         return "";
+    }
+
+    @Override
+    public boolean isSmartMode() {
+        return false;
+    }
+
+    @Override
+    public String getThreadPool() {
+        return ThreadPoolRepository.DEFAULT_POOL;
     }
 }

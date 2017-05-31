@@ -6,7 +6,7 @@ package com.bytex.snamp.configuration;
  * @version 2.0
  * @author Roman Sakno
  */
-public interface ManagedResourceInfo extends ThreadPoolConfigurationSupport {
+public interface ManagedResourceInfo extends ThreadPoolBounded {
     /**
      * Gets connection string uniquely representing remote resource.
      * @return Connection string to the resource.
@@ -18,4 +18,10 @@ public interface ManagedResourceInfo extends ThreadPoolConfigurationSupport {
      * @return Name of the group of this managed resource.
      */
     String getGroupName();
+
+    /**
+     * Determines whether the smart mode is enabled for managed resource.
+     * @return {@literal true}, if smart mode is enabled; otherwise, {@literal false}.
+     */
+    boolean isSmartMode();
 }
