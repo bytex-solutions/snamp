@@ -93,22 +93,18 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     private final KeyedObjects<String, M> attributes;
     private final AttributeMetricsRecorder metrics;
-    private final boolean expandable;
 
     /**
      * Initializes a new support of management attributes.
      *
      * @param resourceName          The name of the managed resource.
      * @param attributeMetadataType The type of the attribute metadata.
-     * @param expandable {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
      */
     protected AbstractAttributeRepository(final String resourceName,
-                                          final Class<M> attributeMetadataType,
-                                          final boolean expandable) {
+                                          final Class<M> attributeMetadataType) {
         super(resourceName, attributeMetadataType);
         attributes = AbstractKeyedObjects.create(MBeanAttributeInfo::getName);
         metrics = new AttributeMetricsRecorder();
-        this.expandable = expandable;
     }
 
     //this method should be called AFTER registering attribute in this manager
@@ -636,17 +632,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public final void forEach(final Consumer<? super M> action) {
         readLock.accept(SingleResourceGroup.INSTANCE, attributes, action, (attributes, act) -> attributes.values().forEach(act));
-    }
-
-    /**
-     * Determines whether this repository can be populated with attributes using call of {@link #discoverAttributes()}.
-     *
-     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
-     * @since 2.0
-     */
-    @Override
-    public final boolean canDiscoverAttributes() {
-        return expandable;
     }
 
     protected final void failedToExpand(final Level level, final Exception e){

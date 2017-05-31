@@ -77,15 +77,6 @@ public interface NotificationSupport extends NotificationBroadcaster, ManagedRes
     Optional<? extends MBeanNotificationInfo> getNotificationInfo(final String notificationType);
 
     /**
-     * Determines whether the notifications can be discovered using call of {@link #discoverNotifications()}.
-     * @return {@literal true}, if discovery is supported; otherwise, {@literal false}.
-     * @since 2.0
-     */
-    default boolean canDiscoverNotifications(){
-        return false;
-    }
-
-    /**
      * Defines source for all outbound notifications.
      * @param source Source for all outbound notifications. Cannot be {@literal null}.
      * @throws IllegalArgumentException Source object doesn't provide {@link NotificationSupport} object.

@@ -277,7 +277,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         private RShellAttributes(final String resourceName,
                                  final CommandExecutionChannel channel,
                                  final ScriptEngineManager engineManager) {
-            super(resourceName, RShellAttributeInfo.class, false);
+            super(resourceName, RShellAttributeInfo.class);
             this.executionChannel = Objects.requireNonNull(channel);
             this.scriptEngineManager = engineManager;
         }
@@ -342,7 +342,7 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
             private RShellOperations(final String resourceName,
                                      final CommandExecutionChannel channel,
                                      final ScriptEngineManager engineManager) {
-                super(resourceName, RShellOperationInfo.class, false);
+                super(resourceName, RShellOperationInfo.class);
                 this.executionChannel = Objects.requireNonNull(channel);
                 this.scriptEngineManager = engineManager;
             }

@@ -73,9 +73,8 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
 
     protected DistributedAttributeRepository(final String resourceName,
                                              final Class<M> attributeMetadataType,
-                                             final boolean expandable,
                                              final Duration syncPeriod) {
-        super(resourceName, attributeMetadataType, expandable);
+        super(resourceName, attributeMetadataType);
         clusterMember = ClusterMember.get(getBundleContextOfObject(this));
         storage = clusterMember.getService(getResourceName().concat(STORAGE_NAME_POSTFIX), KV_STORAGE).orElseThrow(AssertionError::new);
         syncThread = new SynchronizationJob<>(syncPeriod, this);

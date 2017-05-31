@@ -24,7 +24,7 @@ public abstract class JavaBeanOperationRepository extends AbstractOperationRepos
     private Object owner;
 
     protected JavaBeanOperationRepository(final String resourceName, final Object owner) {
-        super(resourceName, JavaBeanOperationInfo.class, true);
+        super(resourceName, JavaBeanOperationInfo.class);
         this.owner = Objects.requireNonNull(owner);
     }
 

@@ -94,23 +94,19 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final NotificationListenerList listeners;
     private final NotificationMetricRecorder metrics;
     private Aggregator notificationSource;
-    private final boolean expandable;
     private final LazyStrongReference<Executor> defaultExecutor;
 
     /**
      * Initializes a new notification manager.
      * @param resourceName The name of the managed resource.
      * @param notifMetadataType Type of the notification metadata.
-     * @param expandable {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
      */
     protected AbstractNotificationRepository(final String resourceName,
-                                             final Class<M> notifMetadataType,
-                                             final boolean expandable) {
+                                             final Class<M> notifMetadataType) {
         super(resourceName, notifMetadataType);
         notifications = AbstractKeyedObjects.create(AbstractNotificationRepository::extractNotificationType);
         listeners = new NotificationListenerList();
         metrics = new NotificationMetricRecorder();
-        this.expandable = expandable;
         defaultExecutor = new LazyStrongReference<>();
     }
 
@@ -441,17 +437,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     @Override
     public final void clear() {
         writeLock.run(SingleResourceGroup.INSTANCE, this::clearImpl);
-    }
-
-    /**
-     * Determines whether this repository can be populated with notifications using call of {@link #discoverNotifications()}.
-     *
-     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
-     * @since 2.0
-     */
-    @Override
-    public final boolean canDiscoverNotifications() {
-        return expandable;
     }
 
     @Override

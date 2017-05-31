@@ -162,7 +162,8 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                     .ifPresent(operationSupport -> updateOperations(operationSupport, configuration.getOperations()));
             //expansion should be the last instruction in this method because updating procedure
             //may remove all automatically added attributes
-            connector.expandAll();
+            if (configuration.isSmartMode())
+                connector.expandAll();
         }
 
         private SingletonMap<String, ? extends ManagedResourceConfiguration> parseConfig(final Dictionary<String, ?> configuration) throws IOException{

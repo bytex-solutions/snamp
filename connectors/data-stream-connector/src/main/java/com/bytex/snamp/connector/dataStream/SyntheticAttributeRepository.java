@@ -31,7 +31,7 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
 
     public SyntheticAttributeRepository(final String resourceName,
                                         final Duration syncPeriod) {
-        super(resourceName, SyntheticAttribute.class, false, syncPeriod);
+        super(resourceName, SyntheticAttribute.class, syncPeriod);
     }
 
     final void init(final ExecutorService threadPool, final DataStreamConnectorConfigurationDescriptionProvider parser) {

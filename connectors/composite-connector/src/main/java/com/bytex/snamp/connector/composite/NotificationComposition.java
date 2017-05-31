@@ -36,7 +36,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
     NotificationComposition(final String resourceName,
                             final NotificationSupportProvider provider,
                             final ExecutorService threadPool){
-        super(resourceName, CompositeNotification.class, false);
+        super(resourceName, CompositeNotification.class);
         this.provider = Objects.requireNonNull(provider);
         this.subscription = HashMultimap.create();
         listenerInvoker = threadPool;

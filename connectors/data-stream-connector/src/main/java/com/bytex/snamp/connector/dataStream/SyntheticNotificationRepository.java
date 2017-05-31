@@ -26,7 +26,7 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
     private Executor listenerInvoker;
 
     public SyntheticNotificationRepository(final String resourceName) {
-        super(resourceName, SyntheticNotificationInfo.class, false);
+        super(resourceName, SyntheticNotificationInfo.class);
     }
 
     final void init(final ExecutorService threadPool, final DataStreamConnectorConfigurationDescriptionProvider configurationParser) {

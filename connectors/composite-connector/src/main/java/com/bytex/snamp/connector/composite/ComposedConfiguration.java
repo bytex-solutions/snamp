@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
-import com.bytex.snamp.configuration.ManagedResourceTemplate;
 import com.bytex.snamp.configuration.ThreadPoolConfigurationSupport;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
@@ -40,11 +39,6 @@ final class ComposedConfiguration extends HashMap<String, ManagedResourceInfo> {
         @Override
         public String getGroupName() {
             return get(ManagedResourceConfiguration.GROUP_NAME_PROPERTY);
-        }
-
-        @Override
-        public boolean isSmartMode() {
-            return ManagedResourceTemplate.isSmartModeEnabled(this);
         }
 
         private boolean equals(final ManagedResourceInfo other){

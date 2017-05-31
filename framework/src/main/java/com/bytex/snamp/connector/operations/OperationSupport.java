@@ -94,15 +94,6 @@ public interface OperationSupport extends ManagedResourceAggregatedService {
     Optional<? extends MBeanOperationInfo> getOperationInfo(final String operationName);
 
     /**
-     * Determines whether the operations can be discovered using call of {@link #discoverOperations()} ()}.
-     * @return {@literal true}, if discovery is supported; otherwise, {@literal false}.
-     * @since 2.0
-     */
-    default boolean canDiscoverOperations(){
-        return false;
-    }
-
-    /**
      * Discover operations.
      *
      * @return A map of discovered operations that can be enabled using method {@link #enableOperation(String, OperationDescriptor)}.

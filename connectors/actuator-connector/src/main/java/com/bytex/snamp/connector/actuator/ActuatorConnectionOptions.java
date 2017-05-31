@@ -18,7 +18,6 @@ import java.util.Map;
 final class ActuatorConnectionOptions implements SafeCloseable {
     private final WebResource healthResource;
     private final WebResource metricsResource;
-    private final boolean smartMode;
 
     ActuatorConnectionOptions(final URI actuatorUri,
                               final Map<String, String> configuration){
@@ -31,7 +30,6 @@ final class ActuatorConnectionOptions implements SafeCloseable {
         final WebResource actuatorRoot = actuatorClient.resource(actuatorUri);
         metricsResource = actuatorClient.resource(actuatorRoot.getUriBuilder().segment(provider.getMetricsPath(configuration)).build());
         healthResource = actuatorClient.resource(actuatorRoot.getUriBuilder().segment(provider.getHealthPath(configuration)).build());
-        smartMode = provider.isSmartModeEnabled(configuration);
     }
 
     private static void setupAuthentication(final Client actuatorClient,
@@ -48,10 +46,6 @@ final class ActuatorConnectionOptions implements SafeCloseable {
 
     WebResource getMetricsResource(){
         return metricsResource;
-    }
-
-    boolean isSmartModeEnabled(){
-        return smartMode;
     }
 
     @Override

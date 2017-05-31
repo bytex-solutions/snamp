@@ -32,7 +32,7 @@ public abstract class JavaBeanAttributeRepository extends AbstractAttributeRepos
      * @param owner JavaBean instance. Cannot be {@literal null}.
      */
     protected JavaBeanAttributeRepository(final String resourceName, final Object owner){
-        super(resourceName, JavaBeanAttributeInfo.class, true);
+        super(resourceName, JavaBeanAttributeInfo.class);
         this.owner = Objects.requireNonNull(owner);
     }
 

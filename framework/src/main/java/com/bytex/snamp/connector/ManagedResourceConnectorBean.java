@@ -115,7 +115,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         private JavaBeanNotificationRepository(final String resourceName,
                                                final Set<? extends ManagementNotificationType<?>> notifTypes,
                                                final BundleContext context) {
-            super(resourceName, AbstractNotificationInfo.class, true);
+            super(resourceName, AbstractNotificationInfo.class);
             this.notifTypes = Objects.requireNonNull(notifTypes);
             this.sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER)
                     .orElseThrow(AssertionError::new);

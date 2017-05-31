@@ -17,9 +17,8 @@ final class GroovyAttributeRepository extends AbstractAttributeRepository<Groovy
     private final ManagedResourceScriptlet scriptlet;
 
     GroovyAttributeRepository(final String resourceName,
-                              final ManagedResourceScriptlet scriptlet,
-                              final boolean expandable) {
-        super(resourceName, GroovyAttribute.class, expandable);
+                              final ManagedResourceScriptlet scriptlet) {
+        super(resourceName, GroovyAttribute.class);
         this.scriptlet = Objects.requireNonNull(scriptlet);
 
     }

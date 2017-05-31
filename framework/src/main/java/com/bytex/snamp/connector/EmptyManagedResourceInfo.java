@@ -32,11 +32,6 @@ final class EmptyManagedResourceInfo extends ImmutableEmptyMap<String, String> i
     }
 
     @Override
-    public boolean isSmartMode() {
-        return false;
-    }
-
-    @Override
     public String getThreadPool() {
         return ThreadPoolRepository.DEFAULT_POOL;
     }

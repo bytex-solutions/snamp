@@ -31,9 +31,8 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
 
     GroovyNotificationRepository(final String resourceName,
                                  final ManagedResourceScriptlet scriptlet,
-                                 final ExecutorService threadPool,
-                                 final boolean expandable) {
-        super(resourceName, GroovyEvent.class, expandable);
+                                 final ExecutorService threadPool) {
+        super(resourceName, GroovyEvent.class);
         this.scriptlet = Objects.requireNonNull(scriptlet);
         this.listenerInvoker = threadPool;
         final BundleContext context = Utils.getBundleContextOfObject(this);

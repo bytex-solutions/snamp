@@ -137,15 +137,12 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
         final List<MBeanFeatureInfo> result = new LinkedList<>();
 
         queryObject(AttributeSupport.class)
-                .filter(AttributeSupport::canDiscoverAttributes)
                 .ifPresent(support -> support.discoverAttributes().forEach((attributeName, descriptor) -> support.addAttribute(attributeName, descriptor).ifPresent(result::add)));
 
         queryObject(NotificationSupport.class)
-                .filter(NotificationSupport::canDiscoverNotifications)
                 .ifPresent(support -> support.discoverNotifications().forEach((category, descriptor) -> support.enableNotifications(category, descriptor).ifPresent(result::add)));
 
         queryObject(OperationSupport.class)
-                .filter(OperationSupport::canDiscoverOperations)
                 .ifPresent(support -> support.discoverOperations().forEach((operationName, descriptor) -> support.enableOperation(operationName, descriptor).ifPresent(result::add)));
 
         return result;

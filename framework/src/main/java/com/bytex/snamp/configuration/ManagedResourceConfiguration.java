@@ -42,14 +42,4 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate, M
      * @param connectionString The connection string that is used to connect to the management server.
      */
     void setConnectionString(final String connectionString);
-
-    /**
-     * Determines whether the smart mode is enabled for managed resource.
-     *
-     * @return {@literal true}, if smart mode is enabled; otherwise, {@literal false}.
-     */
-    @Override
-    default boolean isSmartMode() {
-        return ManagedResourceTemplate.super.isSmartMode();
-    }
 }

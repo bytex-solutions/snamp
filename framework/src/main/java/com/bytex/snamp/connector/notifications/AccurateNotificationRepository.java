@@ -38,10 +38,9 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
      *
      * @param resourceName      The name of the managed resource.
      * @param notifMetadataType Type of the notification metadata.
-     * @param expandable        {@literal true}, if repository can be populated automatically; otherwise, {@literal false}.
      */
-    protected AccurateNotificationRepository(final String resourceName, final Class<M> notifMetadataType, final boolean expandable) {
-        super(resourceName, notifMetadataType, expandable);
+    protected AccurateNotificationRepository(final String resourceName, final Class<M> notifMetadataType) {
+        super(resourceName, notifMetadataType);
         clusterMember = ClusterMember.get(getBundleContext());
         final Communicator communicator = clusterMember.getService(CHANNEL_NAME, COMMUNICATOR)
                 .orElseThrow(AssertionError::new);

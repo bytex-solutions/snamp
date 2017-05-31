@@ -17,7 +17,7 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
 
     OperationComposition(final String resourceName,
                          final OperationSupportProvider provider) {
-        super(resourceName, CompositeOperation.class, false);
+        super(resourceName, CompositeOperation.class);
         this.provider = Objects.requireNonNull(provider);
     }
 

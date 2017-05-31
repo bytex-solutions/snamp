@@ -152,15 +152,6 @@ public interface AttributeSupport extends ManagedResourceAggregatedService {
     Optional<? extends MBeanAttributeInfo> getAttributeInfo(final String attributeName);
 
     /**
-     * Determines whether the attributes can be discovered using call of {@link #discoverAttributes()}.
-     * @return {@literal true}, if discovery is supported; otherwise, {@literal false}.
-     * @since 2.0
-     */
-    default boolean canDiscoverAttributes(){
-        return false;
-    }
-
-    /**
      * Discover attributes.
      *
      * @return A map of discovered attributed that can be added using method {@link #addAttribute(String, AttributeDescriptor)}.

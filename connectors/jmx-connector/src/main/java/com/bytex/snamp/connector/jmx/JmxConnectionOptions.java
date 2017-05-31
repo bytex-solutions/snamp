@@ -30,7 +30,6 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     private final String login;
     private final String password;
     private final long watchDogPeriod;
-    private final boolean smartMode;
     private final ObjectName globalNamespace;
     private final ExecutorService threadPool;
 
@@ -42,7 +41,6 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
         this.login = userName.get();
         this.password = password.get();
         this.watchDogPeriod = parser.parseWatchDogPeriod(options);
-        this.smartMode = parser.isSmartModeEnabled(options);
         this.globalNamespace = parser.parseRootObjectName(options);
         this.threadPool = parser.parseThreadPool(options);
     }
@@ -59,10 +57,6 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
 
     ObjectName getGlobalObjectName(){
         return globalNamespace;
-    }
-
-    boolean isSmartModeEnabled(){
-        return smartMode;
     }
 
     /**

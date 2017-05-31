@@ -168,9 +168,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
 
         private JmxOperationRepository(final String resourceName,
                                        final ObjectName globalName,
-                                       final JmxConnectionManager connectionManager,
-                                       final boolean expandable){
-            super(resourceName, JmxOperationInfo.class, expandable);
+                                       final JmxConnectionManager connectionManager){
+            super(resourceName, JmxOperationInfo.class);
             this.globalObjectName = globalName;
             this.connectionManager = connectionManager;
         }
@@ -296,9 +295,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
 
         private JmxAttributeRepository(final String resourceName,
                                        final ObjectName globalName,
-                                       final JmxConnectionManager connectionManager,
-                                       final boolean expandable){
-            super(resourceName, JmxAttributeInfo.class, expandable);
+                                       final JmxConnectionManager connectionManager){
+            super(resourceName, JmxAttributeInfo.class);
             this.globalObjectName = globalName;
             this.connectionManager = connectionManager;
         }
@@ -418,9 +416,8 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
         private JmxNotificationRepository(final String resourceName,
                                           final ObjectName globalName,
                                           final JmxConnectionManager connectionManager,
-                                          final ExecutorService threadPool,
-                                          final boolean expandable) {
-            super(resourceName, JmxNotificationInfo.class, expandable);
+                                          final ExecutorService threadPool) {
+            super(resourceName, JmxNotificationInfo.class);
             this.connectionManager = connectionManager;
             this.globalObjectName = globalName;
             this.connectionManager.addReconnectionHandler(this);
@@ -685,29 +682,20 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
     @Aggregation(cached = true)
     private final JmxOperationRepository operations;
     private final String resourceName;
+    private final boolean canExpand;
 
     private JmxConnector(final String resourceName,
                  final JmxConnectionOptions connectionOptions) {
         this.resourceName = resourceName;
         this.connectionManager = connectionOptions.createConnectionManager(getLogger());
-        //SmartMode can be enabled if
-        final boolean smartMode;
-        if(connectionOptions.isSmartModeEnabled()){
-            smartMode = connectionOptions.getGlobalObjectName() != null;
-            if(!smartMode)
-                getLogger().log(Level.SEVERE, String.format("SmartMode cannot be enabled for %s resource. Configuration property '%s' is not specified",
-                        resourceName,
-                        JmxConnectorDescriptionProvider.OBJECT_NAME_PROPERTY));
-        }
-        else smartMode = false;
         this.notifications = new JmxNotificationRepository(resourceName,
                 connectionOptions.getGlobalObjectName(),
                 connectionManager,
-                connectionOptions.getThreadPool(),
-                smartMode);
+                connectionOptions.getThreadPool());
         this.notifications.setSource(this);
-        this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager, smartMode);
-        this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager, smartMode);
+        canExpand = connectionOptions.getGlobalObjectName() != null;
+        this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
+        this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
     }
 
     JmxConnector(final String resourceName,
@@ -771,6 +759,16 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
     @Override
     public void removeResourceEventListener(final ResourceEventListener listener) {
         removeResourceEventListener(listener, attributes, notifications, operations);
+    }
+
+    @Override
+    public Collection<? extends MBeanFeatureInfo> expandAll() {
+        if (canExpand)
+            return super.expandAll();
+        else {
+            getLogger().warning(String.format("Cannot expand resource %s because global MBean name is not specified", resourceName));
+            return Collections.emptyList();
+        }
     }
 
     /**

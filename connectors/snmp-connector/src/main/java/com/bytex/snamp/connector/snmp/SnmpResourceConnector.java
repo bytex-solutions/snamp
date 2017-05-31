@@ -92,8 +92,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
                                            final BundleContext context){
             super(resourceName,
-                    SnmpNotificationInfo.class,
-                    false);
+                    SnmpNotificationInfo.class);
             this.client = client;
             listenerInvoker = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
 
@@ -509,9 +508,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
         private SnmpAttributeRepository(final String resourceName,
                                         final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                        final boolean expandable,
                                         final Duration discoveryTimeout){
-            super(resourceName, SnmpAttributeInfo.class, expandable);
+            super(resourceName, SnmpAttributeInfo.class);
             this.client = client;
             this.discoveryTimeout = Objects.requireNonNull(discoveryTimeout);
             this.executor = client.read(cl -> cl.queryObject(ExecutorService.class)).orElseThrow(AssertionError::new);
@@ -692,14 +690,12 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                           final ManagedResourceInfo configuration,
                           final Duration discoveryTimeout) throws IOException {
         super(configuration);
-        final boolean smartMode = SnmpConnectorDescriptionProvider.getInstance().isSmartModeEnabled(configuration);
         client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(configuration.getConnectionString()), configuration));
-        attributes = new SnmpAttributeRepository(resourceName, client, smartMode, discoveryTimeout);
+        attributes = new SnmpAttributeRepository(resourceName, client, discoveryTimeout);
         notifications = new SnmpNotificationRepository(resourceName,
                 client,
                 Utils.getBundleContextOfObject(this));
         notifications.setSource(this);
-
     }
 
     @Override

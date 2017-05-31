@@ -17,8 +17,8 @@ import java.util.Objects;
 final class GroovyOperationRepository extends AbstractOperationRepository<GroovyOperation> {
     private final ManagedResourceScriptlet scriptlet;
 
-    GroovyOperationRepository(final String resourceName, final ManagedResourceScriptlet scriptlet, final boolean expandable){
-        super(resourceName, GroovyOperation.class, expandable);
+    GroovyOperationRepository(final String resourceName, final ManagedResourceScriptlet scriptlet){
+        super(resourceName, GroovyOperation.class);
         this.scriptlet = Objects.requireNonNull(scriptlet);
     }
 

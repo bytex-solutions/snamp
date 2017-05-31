@@ -1,7 +1,6 @@
 package com.bytex.snamp.configuration;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 
 /**
  * Represents template of managed resource.
@@ -30,18 +29,7 @@ public interface ManagedResourceTemplate extends TypedEntityConfiguration, Threa
      * @return {@literal true}, if smart mode is enabled; otherwise, {@literal false}.
      */
     default boolean isSmartMode() {
-        return isSmartModeEnabled(this);
-    }
-
-    default void setSmartMode(final boolean value){
-        if(value)
-            put(SMART_MODE_KEY, Boolean.TRUE.toString());
-        else
-            remove(SMART_MODE_KEY);
-    }
-
-    static boolean isSmartModeEnabled(final Map<String, String> parameters){
-        switch (parameters.getOrDefault(SMART_MODE_KEY, Boolean.FALSE.toString())) {
+        switch (getOrDefault(SMART_MODE_KEY, Boolean.FALSE.toString())) {
             case "true":
             case "TRUE":
             case "yes":
@@ -50,5 +38,12 @@ public interface ManagedResourceTemplate extends TypedEntityConfiguration, Threa
             default:
                 return false;
         }
+    }
+
+    default void setSmartMode(final boolean value){
+        if(value)
+            put(SMART_MODE_KEY, Boolean.TRUE.toString());
+        else
+            remove(SMART_MODE_KEY);
     }
 }

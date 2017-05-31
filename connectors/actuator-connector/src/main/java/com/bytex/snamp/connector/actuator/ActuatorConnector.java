@@ -37,7 +37,7 @@ final class ActuatorConnector extends AbstractManagedResourceConnector implement
     private ActuatorConnector(final String resourceName,
                               final ActuatorConnectionOptions options) {
         healthResource = options.getHealthResource();
-        attributes = new ActuatorAttributeRepository(resourceName, options.getMetricsResource(), options.isSmartModeEnabled());
+        attributes = new ActuatorAttributeRepository(resourceName, options.getMetricsResource());
     }
 
     ActuatorConnector(final String resourceName,

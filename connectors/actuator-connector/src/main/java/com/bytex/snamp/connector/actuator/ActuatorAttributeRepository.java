@@ -19,8 +19,8 @@ import java.util.Optional;
 final class ActuatorAttributeRepository extends AbstractAttributeRepository<SpringMetric> {
     private final WebResource metricsResource;
 
-    ActuatorAttributeRepository(final String resourceName, final WebResource metricsResource, final boolean smartMode) {
-        super(resourceName, SpringMetric.class, smartMode);
+    ActuatorAttributeRepository(final String resourceName, final WebResource metricsResource) {
+        super(resourceName, SpringMetric.class);
         this.metricsResource = metricsResource;
     }
 

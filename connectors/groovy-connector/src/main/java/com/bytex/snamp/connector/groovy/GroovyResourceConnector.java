@@ -38,12 +38,11 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
 
         scriptlet = engine.createScript(null);
         scriptlet.run();
-        final boolean smartMode = GroovyResourceConfigurationDescriptor.getInstance().isSmartModeEnabled(configuration);
-        attributes = new GroovyAttributeRepository(resourceName, scriptlet, smartMode);
+        attributes = new GroovyAttributeRepository(resourceName, scriptlet);
         final ExecutorService threadPool = GroovyResourceConfigurationDescriptor.getInstance().parseThreadPool(configuration);
-        events = new GroovyNotificationRepository(resourceName, scriptlet, threadPool, smartMode);
+        events = new GroovyNotificationRepository(resourceName, scriptlet, threadPool);
         events.setSource(this);
-        operations = new GroovyOperationRepository(resourceName, scriptlet, smartMode);
+        operations = new GroovyOperationRepository(resourceName, scriptlet);
     }
 
     @Aggregation

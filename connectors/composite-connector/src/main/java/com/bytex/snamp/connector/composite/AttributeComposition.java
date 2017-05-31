@@ -36,7 +36,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
                          final ExecutorService threadPool,
                          final Duration syncPeriod,
                          final ScriptLoader loader){
-        super(resourceName, AbstractCompositeAttribute.class, false, syncPeriod);
+        super(resourceName, AbstractCompositeAttribute.class, syncPeriod);
         attributeSupportProvider = Objects.requireNonNull(provider);
         this.threadPool = Objects.requireNonNull(threadPool);
         this.scriptLoader = Objects.requireNonNull(loader);

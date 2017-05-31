@@ -205,15 +205,12 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     private final KeyedObjects<String, M> operations;
     private final OperationMetricRecorder metrics;
-    private final boolean expandable;
 
     protected AbstractOperationRepository(final String resourceName,
-                                          final Class<M> metadataType,
-                                          final boolean expandable) {
+                                          final Class<M> metadataType) {
         super(resourceName, metadataType);
         operations = AbstractKeyedObjects.create(MBeanOperationInfo::getName);
         metrics = new OperationMetricRecorder();
-        this.expandable = expandable;
     }
 
     private void operationAdded(final M metadata){
@@ -454,17 +451,6 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     protected final void failedToExpand(final Level level, final Exception e){
         getLogger().log(level, String.format("Unable to expand operations for resource %s", getResourceName()), e);
-    }
-
-    /**
-     * Determines whether this repository can be populated with operations using call of {@link #discoverOperations()}.
-     *
-     * @return {@literal true}, if this repository can be populated; otherwise, {@literal false}.
-     * @since 2.0
-     */
-    @Override
-    public final boolean canDiscoverOperations() {
-        return expandable;
     }
 
     protected final OperationDescriptor createDescriptor(Consumer<OperationConfiguration> initializer) {

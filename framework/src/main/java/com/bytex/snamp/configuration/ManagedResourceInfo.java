@@ -18,10 +18,4 @@ public interface ManagedResourceInfo extends ThreadPoolBounded {
      * @return Name of the group of this managed resource.
      */
     String getGroupName();
-
-    /**
-     * Determines whether the smart mode is enabled for managed resource.
-     * @return {@literal true}, if smart mode is enabled; otherwise, {@literal false}.
-     */
-    boolean isSmartMode();
 }
