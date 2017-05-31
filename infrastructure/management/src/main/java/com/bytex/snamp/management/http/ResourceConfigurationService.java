@@ -36,6 +36,20 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
         return new ResourceDataObject(entity);
     }
 
+    private static <F extends FeatureConfiguration, DTO extends AbstractFeatureDataObject<F>> Map<String, DTO> transformFeatures(final ClassLoader context,
+                                                                                                                                 final Class<F> featureType,
+                                                                                                                                 final Map<String, ? extends FeatureDescriptor<F>> descriptors,
+                                                                                                                                 final Function<F, DTO> dtoFactory) {
+        final Map<String, DTO> result = Maps.newHashMapWithExpectedSize(descriptors.size());
+        descriptors.forEach((featureName, descriptor) -> {
+            final F config = ConfigurationManager.createEntityConfiguration(context, featureType);
+            assert config != null;
+            descriptor.fill(config);
+            result.put(featureName, dtoFactory.apply(config));
+        });
+        return result;
+    }
+
     private <F extends FeatureConfiguration, DTO extends AbstractFeatureDataObject<F>> Map<String, DTO> discoverFeatures(final String resourceName,
                                                                                                                          final Class<F> featureType,
                                                                                                                          final Function<? super ManagedResourceConnector, Map<String, ? extends FeatureDescriptor<F>>> discoveryFunction,
@@ -43,15 +57,7 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
         final Optional<ManagedResourceConnectorClient> clientRef = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName);
         if (clientRef.isPresent())
             try (final ManagedResourceConnectorClient connector = clientRef.get()) {
-                final Map<String, DTO> result = Maps.newHashMapWithExpectedSize(10);
-                final ClassLoader loader = getClass().getClassLoader();
-                discoveryFunction.apply(connector).forEach((featureName, descriptor) -> {
-                    final F config = ConfigurationManager.createEntityConfiguration(loader, featureType);
-                    assert config != null;
-                    descriptor.fill(config);
-                    result.put(featureName, dtoFactory.apply(config));
-                });
-                return result;
+                return transformFeatures(getClass().getClassLoader(), featureType, discoveryFunction.apply(connector), dtoFactory);
             }
         else
             throw new WebApplicationException(Response.Status.NOT_FOUND);
