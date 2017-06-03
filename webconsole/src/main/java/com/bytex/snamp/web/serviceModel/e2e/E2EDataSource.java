@@ -1,17 +1,18 @@
 package com.bytex.snamp.web.serviceModel.e2e;
 
+import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.ComputingService;
 import com.bytex.snamp.web.serviceModel.RESTController;
+import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * @author Roman Sakno
@@ -21,11 +22,9 @@ import java.io.IOException;
 @Path("/")
 public final class E2EDataSource extends ComputingService<E2EView, Object, Dashboard> implements RESTController {
     private static final String URL_CONTEXT = "/e2e";
-    private final TopologyAnalyzer analyzer;
 
-    public E2EDataSource(@Nonnull final TopologyAnalyzer topologyAnalyzer) throws IOException {
+    public E2EDataSource() throws IOException {
         super(Dashboard.class);
-        analyzer = topologyAnalyzer;
     }
 
     @Override
@@ -33,11 +32,33 @@ public final class E2EDataSource extends ComputingService<E2EView, Object, Dashb
         //nothing to do
     }
 
+    private static WebApplicationException notAvailable(){
+        return new WebApplicationException(Response.status(Response.Status.SERVICE_UNAVAILABLE).entity("Topology analyzer is not configured properly").build());
+    }
+
+    private <T> Optional<T> processAnalyzer(final Function<? super TopologyAnalyzer, ? extends T> handler) {
+        final BundleContext context = getBundleContext();
+        final Optional<ServiceHolder<TopologyAnalyzer>> analyzerRef = ServiceHolder.tryCreate(context, TopologyAnalyzer.class);
+        if (analyzerRef.isPresent()) {
+            final ServiceHolder<TopologyAnalyzer> analyzer = analyzerRef.get();
+            final T result;
+            try {
+                result = handler.apply(analyzer.get());
+            } finally {
+                analyzer.release(context);
+            }
+            return Optional.ofNullable(result);
+        } else
+            return Optional.empty();
+    }
+
     @POST
     @Path("/reset")
     public Response reset() {
-        analyzer.reset();
-        return Response.noContent().build();
+        return processAnalyzer(topologyAnalyzer -> {
+            topologyAnalyzer.reset();
+            return Response.noContent().build();
+        }).orElseThrow(E2EDataSource::notAvailable);
     }
 
     @Override
@@ -57,7 +78,8 @@ public final class E2EDataSource extends ComputingService<E2EView, Object, Dashb
     @Path("/compute")
     @Override
     public Object compute(final E2EView input) {
-        return input.build(analyzer);
+        return processAnalyzer(input::build)
+                .orElseThrow(E2EDataSource::notAvailable);
     }
 
     @Nonnull

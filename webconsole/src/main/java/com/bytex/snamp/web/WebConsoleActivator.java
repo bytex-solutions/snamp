@@ -5,7 +5,6 @@ import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.internal.Utils;
-import com.bytex.snamp.moa.topology.TopologyAnalyzer;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
@@ -154,17 +153,17 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class E2EDataSourceProvider extends WebConsoleServiceProvider<RESTController, E2EDataSource>{
+    private static final class E2EDataSourceProvider extends WebConsoleServiceProvider<RESTController, E2EDataSource> {
         private static final String SERVICE_NAME = "E2E";
 
         private E2EDataSourceProvider() {
-            super(RESTController.class, SERVICE_NAME, requiredBy(E2EDataSource.class).require(TopologyAnalyzer.class));
+            super(RESTController.class, SERVICE_NAME);
         }
 
         @Nonnull
         @Override
         E2EDataSource activateService() throws IOException {
-            return new E2EDataSource(dependencies.getService(TopologyAnalyzer.class).orElseThrow(AssertionError::new));
+            return new E2EDataSource();
         }
     }
 
