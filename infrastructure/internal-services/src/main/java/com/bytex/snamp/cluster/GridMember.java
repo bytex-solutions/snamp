@@ -249,12 +249,8 @@ public final class GridMember implements ClusterMember, AutoCloseable {
         GridSharedObject sharedObject = sharedObjects.asMap().remove(serviceKey);
         if (sharedObject == null)
             sharedObject = getOrCreateSharedObject(serviceKey, false);
-        if (sharedObject == null)
-            getLogger().info(() -> String.format("Distributed service %s cannot be destroyed because it doesn't exist", serviceKey));
-        else {
-            sharedObject.destroy();
-            getLogger().info(() -> String.format("Distributed service %s is destroyed", serviceKey));
-        }
+        sharedObject.destroy();
+        getLogger().info(() -> String.format("Distributed service %s is destroyed", serviceKey));
     }
 
     /**

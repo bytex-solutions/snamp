@@ -197,7 +197,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         });
     }
 
-    private void destroyImpl() {
+    private void destroyImpl() { 
         final OClass documentClass = this.documentClass.getAndSet(null);
         if (documentClass != null) {
             database.command(new OCommandSQL(String.format("drop class %s", documentClass.getName()))).execute(); //remove class
