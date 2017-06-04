@@ -2,7 +2,6 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Localizable;
-import com.bytex.snamp.connector.discovery.FeatureDiscoveryService;
 import org.osgi.framework.Version;
 
 import java.util.Locale;
