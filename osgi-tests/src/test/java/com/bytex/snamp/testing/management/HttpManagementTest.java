@@ -159,6 +159,29 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         }
     }
 
+    private JsonNode discoverFeatures(final String features) throws IOException{
+        final HttpCookie cookie = authenticator.authenticateTestUser();
+
+        // Get full configuration
+        final URL query = new URL("http://localhost:8181/snamp/management/configuration/resource/" + TEST_RESOURCE_NAME + "/discovery/" + features);
+        final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try{
+            return mapper.readValue(IOUtils.toString(connection.getInputStream(), Charset.defaultCharset()), JsonNode.class);
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    @Test
+    public void discoveryTest() throws IOException{
+        JsonNode attributes = discoverFeatures("attributes");
+        assertNotNull(attributes);
+    }
+
     /**
      * Test check simple resource with and without token.
      *
