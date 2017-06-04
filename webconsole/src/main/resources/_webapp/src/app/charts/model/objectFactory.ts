@@ -22,6 +22,7 @@ import { NumberOfResourcesChart } from "./charts/number.of.resources";
 import { ScaleInChart } from "./charts/scale.in.chart";
 import { ScaleOutChart } from "./charts/scale.out.chart";
 import { ScalingRateChart } from "./scaling.rate.chart";
+import { VotingResultChart } from "./charts/voting.result.chart";
 
 // Factory to create appropriate objects from json
 export class Factory {
@@ -98,6 +99,11 @@ export class Factory {
                 case AbstractChart.SCALE_OUT:
                     _chart = new ScaleOutChart();
                     break;
+                case AbstractChart.VOTING:
+                    _chart = new VotingResultChart();
+                    (<VotingResultChart>_chart).group = _json["group"];
+                    (<VotingResultChart>_chart).setAxisX(Factory.axisFromJSON(_json["X"]));
+                    break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
             }
@@ -173,6 +179,11 @@ export class Factory {
                 case AbstractChart.SCALE_OUT:
                     _chart = new ScaleOutChart();
                     (<ScaleOutChart>_chart).group = component;
+                    break;
+                case AbstractChart.VOTING:
+                    _chart = new VotingResultChart();
+                    (<VotingResultChart>_chart).group = component;
+                    (<VotingResultChart>_chart).getAxisX();
                     break;
                 default:
                     throw new Error("Type " + type + " is unknown and cannot be parsed correctly");

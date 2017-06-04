@@ -103573,6 +103573,7 @@ var AbstractChart = (function () {
     AbstractChart.RESOURCE_COUNT = "numberOfResourcesInGroup";
     AbstractChart.SCALE_IN = "scaleIn";
     AbstractChart.SCALE_OUT = "scaleOut";
+    AbstractChart.VOTING = "votesForScaling";
     // map chartjs types to current hierarchy types
     AbstractChart.TYPE_MAPPING = {
         'doughnut': AbstractChart.PIE,
@@ -103583,7 +103584,8 @@ var AbstractChart = (function () {
         'statuses': AbstractChart.HEALTH_STATUS,
         'resources': AbstractChart.RESOURCE_COUNT,
         'scaleIn': AbstractChart.SCALE_IN,
-        'scaleOut': AbstractChart.SCALE_OUT
+        'scaleOut': AbstractChart.SCALE_OUT,
+        'voting': AbstractChart.VOTING
     };
     return AbstractChart;
 }());
@@ -104727,6 +104729,61 @@ exports.VerticalBarChartOfAttributeValues = VerticalBarChartOfAttributeValues;
 
 /***/ },
 
+/***/ "./src/app/charts/model/charts/voting.result.chart.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
+var VotingResultChart = (function (_super) {
+    __extends(VotingResultChart, _super);
+    function VotingResultChart() {
+        _super.apply(this, arguments);
+    }
+    Object.defineProperty(VotingResultChart.prototype, "type", {
+        get: function () {
+            return abstract_chart_1.AbstractChart.VOTING;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    VotingResultChart.prototype.draw = function () {
+        console.log("render new voting chart...");
+    };
+    VotingResultChart.prototype.newValues = function (_data) {
+        console.log("New voting result data is: ", _data);
+    };
+    VotingResultChart.prototype.getAxisX = function () {
+        if (this.axisX == null) {
+            this.axisX = new numeric_axis_1.NumericAxis();
+            this.axisX.unitOfMeasurement = "weight";
+            this.axisX.name = "votesForScaling";
+        }
+        return this.axisX;
+    };
+    VotingResultChart.prototype.setAxisX = function (axis) {
+        this.axisX = axis;
+    };
+    VotingResultChart.prototype.toJSON = function () {
+        var _value = {};
+        _value["@type"] = this.type;
+        _value["name"] = this.name;
+        _value["group"] = this.group;
+        _value["X"] = this.getAxisX().toJSON();
+        if (!$.isEmptyObject(this.preferences)) {
+            _value["preferences"] = this.preferences;
+        }
+        return _value;
+    };
+    return VotingResultChart;
+}(abstract_chart_1.AbstractChart));
+exports.VotingResultChart = VotingResultChart;
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
 /***/ "./src/app/charts/model/dashboard.ts":
 /***/ function(module, exports) {
 
@@ -104848,6 +104905,7 @@ var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.char
 var health_status_chart_data_1 = __webpack_require__("./src/app/charts/model/data/health.status.chart.data.ts");
 var resource_count_data_1 = __webpack_require__("./src/app/charts/model/data/resource.count.data.ts");
 var scaling_data_1 = __webpack_require__("./src/app/charts/model/data/scaling.data.ts");
+var voting_data_1 = __webpack_require__("./src/app/charts/model/data/voting.data.ts");
 var ChartDataFabric = (function () {
     function ChartDataFabric() {
     }
@@ -104870,6 +104928,9 @@ var ChartDataFabric = (function () {
             case abstract_chart_1.AbstractChart.SCALE_IN:
             case abstract_chart_1.AbstractChart.SCALE_OUT:
                 _data = new scaling_data_1.ScalingData();
+                break;
+            case abstract_chart_1.AbstractChart.VOTING:
+                _data = new voting_data_1.VotingData();
                 break;
             default:
                 throw new Error("Unrecognized chart type for constructing the chart data: " + chartType);
@@ -105050,6 +105111,52 @@ exports.ScalingData = ScalingData;
 
 /***/ },
 
+/***/ "./src/app/charts/model/data/voting.data.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_data_1 = __webpack_require__("./src/app/charts/model/data/abstract.data.ts");
+var VotingData = (function (_super) {
+    __extends(VotingData, _super);
+    function VotingData() {
+        _super.apply(this, arguments);
+    }
+    Object.defineProperty(VotingData.prototype, "votingResult", {
+        get: function () {
+            return this._votingResult;
+        },
+        set: function (value) {
+            this._votingResult = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(VotingData.prototype, "castingVote", {
+        get: function () {
+            return this._castingVote;
+        },
+        set: function (value) {
+            this._castingVote = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    VotingData.prototype.fillFromJSON = function (_json) {
+        if (_json["votingResult"] != undefined) {
+            this.votingResult = _json["votingResult"];
+        }
+        if (_json["castingVote"] != undefined) {
+            this.castingVote = _json["castingVote"];
+        }
+    };
+    return VotingData;
+}(abstract_data_1.ChartData));
+exports.VotingData = VotingData;
+
+
+/***/ },
+
 /***/ "./src/app/charts/model/objectFactory.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -105076,6 +105183,7 @@ var number_of_resources_1 = __webpack_require__("./src/app/charts/model/charts/n
 var scale_in_chart_1 = __webpack_require__("./src/app/charts/model/charts/scale.in.chart.ts");
 var scale_out_chart_1 = __webpack_require__("./src/app/charts/model/charts/scale.out.chart.ts");
 var scaling_rate_chart_1 = __webpack_require__("./src/app/charts/model/scaling.rate.chart.ts");
+var voting_result_chart_1 = __webpack_require__("./src/app/charts/model/charts/voting.result.chart.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
@@ -105153,6 +105261,11 @@ var Factory = (function () {
                 case abstract_chart_1.AbstractChart.SCALE_OUT:
                     _chart = new scale_out_chart_1.ScaleOutChart();
                     break;
+                case abstract_chart_1.AbstractChart.VOTING:
+                    _chart = new voting_result_chart_1.VotingResultChart();
+                    _chart.group = _json["group"];
+                    _chart.setAxisX(Factory.axisFromJSON(_json["X"]));
+                    break;
                 default:
                     throw new Error("Type " + _type + " is unknown and cannot be parsed correctly");
             }
@@ -105222,6 +105335,11 @@ var Factory = (function () {
             case abstract_chart_1.AbstractChart.SCALE_OUT:
                 _chart = new scale_out_chart_1.ScaleOutChart();
                 _chart.group = component;
+                break;
+            case abstract_chart_1.AbstractChart.VOTING:
+                _chart = new voting_result_chart_1.VotingResultChart();
+                _chart.group = component;
+                _chart.getAxisX();
                 break;
             default:
                 throw new Error("Type " + type + " is unknown and cannot be parsed correctly");

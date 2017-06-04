@@ -13,6 +13,7 @@ export abstract class AbstractChart {
     public static RESOURCE_COUNT:string = "numberOfResourcesInGroup";
     public static SCALE_IN:string = "scaleIn";
     public static SCALE_OUT:string = "scaleOut";
+    public static VOTING:string = "votesForScaling";
 
     // map chartjs types to current hierarchy types
     public static TYPE_MAPPING:{[key:string]:string} = {
@@ -24,7 +25,8 @@ export abstract class AbstractChart {
         'statuses':         AbstractChart.HEALTH_STATUS,
         'resources':        AbstractChart.RESOURCE_COUNT,
         'scaleIn':          AbstractChart.SCALE_IN,
-        'scaleOut':          AbstractChart.SCALE_OUT
+        'scaleOut':         AbstractChart.SCALE_OUT,
+        'voting':           AbstractChart.VOTING
     };
 
     public name:string;

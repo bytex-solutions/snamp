@@ -26,6 +26,7 @@ import {ChartOfAttributeValues} from "./model/abstract.chart.attributes.values";
 import {TwoDimensionalChart} from "./model/two.dimensional.chart";
 import {AttributeValueAxis} from "./model/axis/attribute.value.axis";
 import {TwoDimensionalChartOfAttributeValues} from "./model/abstract.2d.chart.attributes.values";
+import {VotingResultChart} from "./model/charts/voting.result.chart";
 
 @Component({
     moduleId: module.id,
@@ -452,7 +453,7 @@ export class Dashboard {
     }
 
     isDivType(chart:AbstractChart):boolean {
-        return chart instanceof PanelOfAttributeValues || chart instanceof ResourceGroupHealthStatusChart;
+        return chart instanceof PanelOfAttributeValues || chart instanceof ResourceGroupHealthStatusChart || chart instanceof VotingResultChart;
     }
 
     isCanvasType(chart:AbstractChart):boolean {
@@ -471,6 +472,7 @@ export class Dashboard {
         switch (this.selectedChartType) {
             case "statuses":
             case "resources":
+            case "voting":
                 return [1,2];
             case "scaleIn":
             case "scaleOut":

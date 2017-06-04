@@ -4,6 +4,7 @@ import { AbstractChart } from "../abstract.chart";
 import { HealthStatusChartData } from "./health.status.chart.data";
 import { ResourceCountData } from "./resource.count.data";
 import { ScalingData } from "./scaling.data";
+import { VotingData } from "./voting.data";
 
 export class ChartDataFabric {
 
@@ -26,6 +27,9 @@ export class ChartDataFabric {
             case AbstractChart.SCALE_IN:
             case AbstractChart.SCALE_OUT:
                 _data = new ScalingData();
+                break;
+            case AbstractChart.VOTING:
+                _data = new VotingData();
                 break;
             default:
                 throw new Error("Unrecognized chart type for constructing the chart data: " + chartType);
