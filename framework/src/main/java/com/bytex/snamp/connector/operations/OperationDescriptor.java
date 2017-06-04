@@ -66,6 +66,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements FeatureD
      */
     @Override
     public final void fill(final OperationConfiguration entity) {
+        entity.setInvocationTimeout(getInvocationTimeout());
         for (final String fieldName : getFieldNames())
             switch (fieldName) {
                 default:

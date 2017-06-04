@@ -58,7 +58,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     private static final String SNMP_HOST = "127.0.0.1";
     private static final String TEST_PARAMETER = "testParameter";
 
-    private final TestAuthenticator authenticator;
+    private TestAuthenticator authenticator;
 
     /**
      * Instantiates a new Snamp webconsole test.
@@ -67,7 +67,6 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
      */
     public HttpManagementTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
-        authenticator = new TestAuthenticator(getTestBundleContext());
         mapper = new ObjectMapper();
     }
 
@@ -178,8 +177,13 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Test
     public void discoveryTest() throws IOException{
-        JsonNode attributes = discoverFeatures("attributes");
-        assertNotNull(attributes);
+        JsonNode features = discoverFeatures("attributes");
+        assertNotNull(features);
+        assertTrue(features.size() > 10);
+        features = discoverFeatures("events");
+        assertTrue(features.size() > 10);
+        features = discoverFeatures("operations");
+        assertTrue(features.size() > 10);
     }
 
     /**
@@ -676,6 +680,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
 
     @Override
     protected void beforeStartTest(final BundleContext context) throws Exception {
+        authenticator = new TestAuthenticator(getTestBundleContext());
         super.beforeStartTest(context);
         beforeCleanupTest(context);
     }
@@ -693,6 +698,12 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
     protected void beforeCleanupTest(final BundleContext context) throws Exception {
         GatewayActivator.disableGateway(context, ADAPTER_NAME);
         stopResourceConnector(context);
+    }
+
+    @Override
+    protected void afterCleanupTest(final BundleContext context) throws Exception {
+        authenticator = null;
+        super.afterCleanupTest(context);
     }
 
     @Override
