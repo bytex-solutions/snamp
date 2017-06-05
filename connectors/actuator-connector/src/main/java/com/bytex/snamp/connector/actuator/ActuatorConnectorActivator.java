@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 import javax.annotation.Nonnull;
 import java.net.URI;
 import java.net.URISyntaxException;
+import static com.bytex.snamp.ArrayUtils.toArray;
 
 /**
  * Represents activator of {@link ActuatorConnector}.
@@ -21,9 +22,7 @@ public final class ActuatorConnectorActivator extends ManagedResourceActivator<A
     public ActuatorConnectorActivator() {
         super(ActuatorConnectorActivator::createConnector,
                 requiredBy(ActuatorConnector.class).require(ThreadPoolRepository.class),
-                new SupportServiceManager<?, ?>[]{
-                    configurationDescriptor(ActuatorConnectorDescriptionProvider::getInstance)
-        });
+                toArray(configurationDescriptor(ActuatorConnectorDescriptionProvider::getInstance)));
     }
 
     @Nonnull

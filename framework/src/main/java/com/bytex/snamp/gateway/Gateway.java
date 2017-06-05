@@ -3,6 +3,7 @@ package com.bytex.snamp.gateway;
 import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.StatefulFrameworkService;
 import com.bytex.snamp.internal.Utils;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -118,7 +119,9 @@ public interface Gateway extends StatefulFrameworkService, Closeable {
      * @return A collection of features associated with resource name.
      * @see Gateway.FeatureBindingInfo
      */
-    <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType);
+    default <M extends MBeanFeatureInfo> Multimap<String, ? extends FeatureBindingInfo<M>> getBindings(final Class<M> featureType) {
+        return ImmutableMultimap.of();
+    }
 
     static String getGatewayType(final Class<? extends Gateway> gatewayType) {
         final BundleContext context = Utils.getBundleContext(gatewayType);

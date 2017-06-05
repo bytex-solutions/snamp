@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.time.Duration;
 
 import static com.bytex.snamp.MapUtils.getValueAsLong;
+import static com.bytex.snamp.ArrayUtils.toArray;
 
 
 /**
@@ -30,9 +31,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     public SnmpResourceConnectorActivator() {
         super(SnmpResourceConnectorActivator::createConnector,
                 requiredBy(SnmpResourceConnector.class).require(ThreadPoolRepository.class),
-                new SupportServiceManager<?, ?>[]{
-                        configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance)
-                });
+                toArray(configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance)));
     }
 
     private static Duration getDiscoveryTimeout(final AgentConfiguration configuration) {

@@ -3,6 +3,7 @@ package com.bytex.snamp.gateway.http;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.service.http.HttpService;
+import static com.bytex.snamp.ArrayUtils.toArray;
 
 /**
  * Represents bundle activator for HTTP gateway.
@@ -16,9 +17,7 @@ public final class HttpGatewayActivator extends GatewayActivator<HttpGateway> {
     public HttpGatewayActivator() {
         super(HttpGatewayActivator::newGateway,
                 requiredBy(HttpGateway.class).require(HttpService.class),
-                new SupportServiceManager<?, ?>[]{
-                        configurationDescriptor(HttpGatewayConfigurationDescriptor::new)
-                });
+                toArray(configurationDescriptor(HttpGatewayConfigurationDescriptor::new)));
     }
 
     @SuppressWarnings("unchecked")

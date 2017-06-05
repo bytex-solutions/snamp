@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.xmpp;
 
 import com.bytex.snamp.gateway.GatewayActivator;
+import static com.bytex.snamp.ArrayUtils.toArray;
 
 /**
  * @author Roman Sakno
@@ -11,7 +12,7 @@ public final class XMPPGatewayActivator extends GatewayActivator<XMPPGateway> {
     public XMPPGatewayActivator() {
         super(XMPPGatewayActivator::newGateway,
                 noRequiredServices(),
-                new SupportServiceManager<?, ?>[]{configurationDescriptor(XMPPGatewayConfigurationProvider::new)});
+                toArray(configurationDescriptor(XMPPGatewayConfigurationProvider::new)));
     }
 
     private static XMPPGateway newGateway(final String instanceName, final DependencyManager dependencies) {

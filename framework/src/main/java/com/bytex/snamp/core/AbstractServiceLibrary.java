@@ -115,17 +115,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws IllegalArgumentException contract is {@literal null}.
          */
         protected ProvidedService(@Nonnull final Class<S> contract, final RequiredService<?>... dependencies) {
-            this(toArray(contract), dependencies);
+            this(ArrayUtils.toArray(contract), dependencies);
         }
 
         @SafeVarargs
         protected ProvidedService(final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super S>... subContracts){
             this(ObjectArrays.concat(mainContract, subContracts), dependencies);
-        }
-
-        @SafeVarargs
-        private static <T> T[] toArray(final T... items){
-            return items;
         }
 
         /**
@@ -494,10 +489,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      */
     @ThreadSafe
     public static abstract class ServiceSubRegistryManager<S, T extends S> extends DynamicServiceManager<ServiceRegistrationHolder<S, T>> {
-        /**
-         * Represents the contract of the dynamic service.
-         */
-        protected final Class<S> serviceContract;
+        private final Class<? super S>[] serviceContracts;
 
         /**
          * Initializes a new dynamic service manager.
@@ -507,7 +499,17 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected ServiceSubRegistryManager(final Class<S> serviceContract,
                                             final RequiredService<?>... dependencies){
             super(dependencies);
-            this.serviceContract = serviceContract;
+            serviceContracts = ArrayUtils.toArray(serviceContract);
+        }
+
+        protected ServiceSubRegistryManager(final Class<? super S>[] serviceContracts,
+                                            final RequiredService<?>... dependencies) {
+            super(dependencies);
+            this.serviceContracts = serviceContracts.clone();
+        }
+
+        private ServiceRegistrationHolder<S, T> createServiceRegistration(final T newService, final Dictionary<String, ?> identity){
+            return new ServiceRegistrationHolder<>(getBundleContext(), newService, identity, serviceContracts);
         }
 
         /**
@@ -542,7 +544,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             } else if (oldService != newService) {
                 //save the identity of the service and removes registration of the previous version of service
                 final Hashtable<String, ?> identity = dispose(registration);
-                registration = new ServiceRegistrationHolder<>(super.getBundleContext(), newService, identity, serviceContract);
+                registration = createServiceRegistration(newService, identity);
             }
             return registration;
         }
@@ -573,7 +575,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
             final T service = createService(identity, configuration);
-            return service != null ? new ServiceRegistrationHolder<>(super.getBundleContext(), service, identity, serviceContract) : null;
+            return service != null ? createServiceRegistration(service, identity) : null;
         }
 
         /**
