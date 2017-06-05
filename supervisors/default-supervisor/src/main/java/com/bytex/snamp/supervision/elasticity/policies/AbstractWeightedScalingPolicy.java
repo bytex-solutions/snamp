@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
 import com.bytex.snamp.configuration.ScriptletConfiguration;
+import com.bytex.snamp.configuration.scriptlet.ScriptletConfigurationSupport;
 import com.bytex.snamp.json.DurationSerializer;
 import com.google.common.base.Stopwatch;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * @version 2.0
  * @since 2.0
  */
-public abstract class AbstractWeightedScalingPolicy implements ScalingPolicy {
+public abstract class AbstractWeightedScalingPolicy implements ScalingPolicy, ScriptletConfigurationSupport {
     static final String OBSERVATION_TIME_PROPERTY = "observationTime";
     static final String VOTE_WEIGHT_PROPERTY = "voteWeight";
     static final String INCREMENTAL_WEIGHT_PROPERTY = "incrementalWeight";
@@ -102,6 +103,4 @@ public abstract class AbstractWeightedScalingPolicy implements ScalingPolicy {
         }
         scriptlet.setScript(json);
     }
-
-    public abstract void configureScriptlet(final ScriptletConfiguration scriptlet);
 }

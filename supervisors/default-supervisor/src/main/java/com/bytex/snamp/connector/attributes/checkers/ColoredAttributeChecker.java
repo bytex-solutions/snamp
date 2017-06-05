@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.attributes.checkers;
 
 import com.bytex.snamp.configuration.ScriptletConfiguration;
+import com.bytex.snamp.configuration.scriptlet.ScriptletConfigurationSupport;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -15,7 +16,7 @@ import java.io.UncheckedIOException;
  * @version 2.0
  * @since 2.0
  */
-public final class ColoredAttributeChecker implements AttributeChecker {
+public final class ColoredAttributeChecker implements AttributeChecker, ScriptletConfigurationSupport {
     public static final String LANGUAGE_NAME = "ColoredAttributeChecker";
     private ColoredAttributePredicate green;
     private ColoredAttributePredicate yellow;
@@ -33,6 +34,7 @@ public final class ColoredAttributeChecker implements AttributeChecker {
         return mapper.readValue(scriptBody, ColoredAttributeChecker.class);
     }
 
+    @Override
     public void configureScriptlet(final ScriptletConfiguration scriptlet) {
         final ObjectMapper mapper = new ObjectMapper();
         scriptlet.setLanguage(LANGUAGE_NAME);
