@@ -11,8 +11,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>data-analysis</artifactId>
     <version>${snamp.analysis.version}</version>
-    <name>Data Analysis and Operations</name>
-    <description>Module for real-time data analysis, elasticity management and operations</description>
+    <name>Data Analysis</name>
+    <description>Module for real-time data analysis</description>
     <packaging>bundle</packaging>
     <build>
         <resources>
