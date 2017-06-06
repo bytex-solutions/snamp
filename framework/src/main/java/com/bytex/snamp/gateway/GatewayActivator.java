@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.concurrent.LazyStrongReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
@@ -55,6 +56,10 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         @Nonnull
         G createInstance(final String gatewayInstance,
                          final DependencyManager dependencies) throws Exception;
+
+        default Class<? super G>[] extraContracts(){
+            return ArrayUtils.toArray(Gateway.class);
+        }
     }
 
     private static final class GatewayInstances<G extends Gateway> extends ServiceSubRegistryManager<Gateway, G>{
@@ -197,7 +202,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
     }
 
     protected final String gatewayType;
-    private final Logger logger;
+    final Logger logger;
 
     /**
      * Initializes a new instance of the gateway activator.

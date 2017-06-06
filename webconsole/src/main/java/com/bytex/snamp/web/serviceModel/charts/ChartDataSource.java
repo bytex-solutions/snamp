@@ -1,5 +1,6 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.ComputingService;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.google.common.collect.HashMultimap;
@@ -21,8 +22,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents source of charts data.
@@ -54,7 +53,7 @@ public final class ChartDataSource extends ComputingService<List<Chart>, Map<Str
                                                       final BundleContext context,
                                                       final Function<? super Exception, E> exceptionFactory) throws E {
             chartName = chart.getName();
-            series = callAndWrapException(() -> chart.collectChartData(context), exceptionFactory);
+            series = Utils.callAndWrapException(() -> chart.collectChartData(context), exceptionFactory);
         }
 
         void exportTo(final Multimap<String, ChartData> output){
@@ -81,10 +80,10 @@ public final class ChartDataSource extends ComputingService<List<Chart>, Map<Str
 
         final ChartCollectionTaskList tasks = new ChartCollectionTaskList();
         charts.forEach(tasks);
-        return callAndWrapException(tasks, e -> new WebApplicationException(e, Response.status(408).build()))
+        return Utils.callAndWrapException(tasks, e -> new WebApplicationException(e, Response.status(408).build()))
                 .stream()
                 .filter(Future::isDone)
-                .map(task -> callAndWrapException(task::get, WebApplicationException::new))
+                .map(task -> Utils.<ChartDataSeries, WebApplicationException>callAndWrapException(task::get, WebApplicationException::new))
                 .collect(HashMultimap::<String, ChartData>create, (result, series) -> series.exportTo(result), HashMultimap::putAll);
     }
 
