@@ -11,8 +11,8 @@
   <artifactId>e2e-analyzer</artifactId>
   <version>2.0.0</version>
   <packaging>bundle</packaging>
-  <name>Data Analysis</name>
-  <description>Module for real-time data analysis</description>
+  <name>E2E Analyzer</name>
+  <description>Module for real-time topology analysis</description>
   <dependencies>
     <dependency>
       <groupId>com.bytex.snamp</groupId>
