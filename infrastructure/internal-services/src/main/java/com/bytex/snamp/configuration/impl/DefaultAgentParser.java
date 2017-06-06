@@ -25,6 +25,10 @@ import static com.bytex.snamp.MapUtils.getValue;
 final class DefaultAgentParser {
     private static final String PID = "com.bytex.snamp.configuration";
 
+    private DefaultAgentParser(){
+        throw new InstantiationError();
+    }
+
     private static Configuration getConfig(final ConfigurationAdmin admin) throws IOException {
         return admin.getConfiguration(PID);
     }
@@ -34,8 +38,13 @@ final class DefaultAgentParser {
         conf.update(new Hashtable<>(agentConfig));
     }
 
-    private static boolean isValidParameter(final String key){
-        return !Constants.SERVICE_PID.equals(key);
+    private static boolean isValidParameter(final String key) {
+        switch (key) {
+            case Constants.SERVICE_PID:
+                return false;
+            default:
+                return true;
+        }
     }
 
     static void loadParameters(final ConfigurationAdmin admin, final AgentConfiguration agentConfig) throws IOException {

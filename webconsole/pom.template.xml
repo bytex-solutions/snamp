@@ -67,8 +67,8 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>data-analysis</artifactId>
-            <version>${snamp.analysis.version}</version>
+            <artifactId>e2e-analyzer</artifactId>
+            <version>${snamp.e2e_analyzer.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

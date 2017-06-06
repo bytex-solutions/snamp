@@ -9,8 +9,8 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>data-analysis</artifactId>
-    <version>${snamp.analysis.version}</version>
+    <artifactId>e2e-analyzer</artifactId>
+    <version>${snamp.e2e_analyzer.version}</version>
     <name>Data Analysis</name>
     <description>Module for real-time data analysis</description>
     <packaging>bundle</packaging>

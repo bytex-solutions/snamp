@@ -19,7 +19,7 @@
     <module>infrastructure/scripting</module>
     <module>infrastructure/groovy-xml-bridge</module>
     <module>infrastructure/json-helpers</module>
-    <module>infrastructure/data-analysis</module>
+    <module>infrastructure/e2e-analyzer</module>
     <module>supervisors</module>
     <module>connectors</module>
     <module>gateways</module>
@@ -39,7 +39,6 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <snamp.version>2.0.0</snamp.version>
     <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
-    <snamp.analysis.version>2.0.0</snamp.analysis.version>
     <junit.version>4.12</junit.version>
     <snmp4j.version>2.5.3</snmp4j.version>
     <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
@@ -74,6 +73,7 @@
     <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <cellar.version>4.0.3</cellar.version>
+    <snamp.e2e_analyzer.version>2.0.0</snamp.e2e_analyzer.version>
     <snamp.json.version>2.0.0</snamp.json.version>
     <snamp.integration.version>2.0.0</snamp.integration.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
