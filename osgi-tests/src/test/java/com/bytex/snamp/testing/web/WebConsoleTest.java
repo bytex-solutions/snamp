@@ -28,7 +28,7 @@ import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
 import com.bytex.snamp.supervision.elasticity.policies.AbstractWeightedScalingPolicy;
 import com.bytex.snamp.supervision.elasticity.policies.HealthStatusBasedScalingPolicy;
-import com.bytex.snamp.supervision.elasticity.policies.MetricBasedScalingPolicy;
+import com.bytex.snamp.supervision.elasticity.policies.AttributeBasedScalingPolicy;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.PropagateSystemProperties;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -749,7 +749,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             supervisor.getAutoScalingConfig().setMaxClusterSize(10);
             supervisor.getAutoScalingConfig().setCooldownTime(Duration.ofSeconds(5));
             supervisor.getAutoScalingConfig().setScalingSize(1);
-            AbstractWeightedScalingPolicy policy = new MetricBasedScalingPolicy("stag",
+            AbstractWeightedScalingPolicy policy = new AttributeBasedScalingPolicy("stag",
                     1.5D,
                     Range.closed(-5D, 5D),
                     Duration.ZERO,

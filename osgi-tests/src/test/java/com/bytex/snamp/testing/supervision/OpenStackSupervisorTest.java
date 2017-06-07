@@ -7,7 +7,7 @@ import com.bytex.snamp.moa.ReduceOperation;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.elasticity.policies.AbstractWeightedScalingPolicy;
 import com.bytex.snamp.supervision.elasticity.policies.HealthStatusBasedScalingPolicy;
-import com.bytex.snamp.supervision.elasticity.policies.MetricBasedScalingPolicy;
+import com.bytex.snamp.supervision.elasticity.policies.AttributeBasedScalingPolicy;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -94,14 +94,14 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
             supervisor.getAutoScalingConfig().setMaxClusterSize(5);
             supervisor.getAutoScalingConfig().setMinClusterSize(1);
             supervisor.getAutoScalingConfig().setCooldownTime(Duration.ofSeconds(1));
-            AbstractWeightedScalingPolicy policy = new MetricBasedScalingPolicy("stag",
+            AbstractWeightedScalingPolicy policy = new AttributeBasedScalingPolicy("stag",
                     0.5D,
                     Range.closed(-5D, 5D),
                     Duration.ofSeconds(1),
                     ReduceOperation.MEAN,
                     true);
             supervisor.getAutoScalingConfig().getPolicies().addAndConsume("stagPolicy", policy::configureScriptlet);
-            policy = new MetricBasedScalingPolicy("i",
+            policy = new AttributeBasedScalingPolicy("i",
                     1D,
                     Range.all(),
                     Duration.ZERO,

@@ -24,7 +24,7 @@ import java.util.Objects;
  * @version 2.0
  * @since 2.0
  */
-public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolicy {
+public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolicy implements com.bytex.snamp.supervision.elasticity.HealthStatusBasedScalingPolicy {
     private static final String LEVEL_PROPERTY = "level";
     static final String LANGUAGE_NAME = "HealthStatusBased";
     private final MalfunctionStatus.Level level;
@@ -47,6 +47,7 @@ public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalin
 
     @JsonProperty(LEVEL_PROPERTY)
     @JsonSerialize(using = MalfunctionLevelSerializer.class)
+    @Override
     public MalfunctionStatus.Level getLevel(){
         return level;
     }

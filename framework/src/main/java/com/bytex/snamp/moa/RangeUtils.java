@@ -1,6 +1,7 @@
 package com.bytex.snamp.moa;
 
 import com.bytex.snamp.internal.Utils;
+import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 
 /**
@@ -9,6 +10,11 @@ import com.google.common.collect.Range;
  * @since 2.0
  */
 public final class RangeUtils {
+    /**
+     * Represents empty range of double values.
+     */
+    public static final Range<Double> EMPTY_DOUBLE_RANGE = Range.range(0D, BoundType.OPEN, 0D, BoundType.CLOSED);
+
     /**
      * Parses interval notation into range of double values.
      * @param intervalNotation Text in interval notation such as [42.0‥+∞)

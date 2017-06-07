@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.time.Duration;
 
 /**
- * Test for {@link MetricBasedScalingPolicy} and {@link HealthStatusBasedScalingPolicy}.
+ * Test for {@link AttributeBasedScalingPolicy} and {@link HealthStatusBasedScalingPolicy}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
@@ -40,7 +40,7 @@ public final class WeightedScalingPolicyTest extends Assert {
     @Test
     public void attributeBasedVoting() throws InterruptedException {
         final double WEIGHT = 10D;
-        final MetricBasedScalingPolicy voter = new MetricBasedScalingPolicy("dummy",
+        final AttributeBasedScalingPolicy voter = new AttributeBasedScalingPolicy("dummy",
                 WEIGHT,
                 RangeUtils.parseDoubleRange("[3‥5]"));
         voter.setValuesAggregator(ReduceOperation.MAX);
@@ -74,14 +74,14 @@ public final class WeightedScalingPolicyTest extends Assert {
     @Test
     public void metricBasedSerialization() throws IOException {
         final double WEIGHT = 10D;
-        final MetricBasedScalingPolicy voter = new MetricBasedScalingPolicy("dummy",
+        final AttributeBasedScalingPolicy voter = new AttributeBasedScalingPolicy("dummy",
                 WEIGHT,
                 RangeUtils.parseDoubleRange("[3‥5]"));
         voter.setValuesAggregator(ReduceOperation.PERCENTILE_90);
         final ObjectMapper mapper = new ObjectMapper();
         final String json = mapper.writeValueAsString(voter);
         assertNotNull(json);
-        final MetricBasedScalingPolicy deserializedVoter = MetricBasedScalingPolicy.parse(json, mapper);
+        final AttributeBasedScalingPolicy deserializedVoter = AttributeBasedScalingPolicy.parse(json, mapper);
         assertNotNull(deserializedVoter);
         assertEquals(voter.getAttributeName(), deserializedVoter.getAttributeName());
         assertEquals(voter.isIncrementalVoteWeight(), deserializedVoter.isIncrementalVoteWeight());

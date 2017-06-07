@@ -36,7 +36,7 @@ import static com.bytex.snamp.Convert.toDouble;
  * @version 2.0
  * @since 2.0
  */
-public final class MetricBasedScalingPolicy extends AbstractWeightedScalingPolicy {
+public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPolicy implements com.bytex.snamp.supervision.elasticity.AttributeBasedScalingPolicy {
     static final String LANGUAGE_NAME = "MetricBased";
     private static final String ATTRIBUTE_NAME_PROPERTY = "attributeName";
     private static final String RANGE_PROPERTY = "operationalRange";
@@ -49,12 +49,12 @@ public final class MetricBasedScalingPolicy extends AbstractWeightedScalingPolic
 
     @JsonCreator
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    public MetricBasedScalingPolicy(@JsonProperty(ATTRIBUTE_NAME_PROPERTY) final String attributeName,
-                                    @JsonProperty(VOTE_WEIGHT_PROPERTY) final double voteWeight,
-                                    @JsonProperty(RANGE_PROPERTY) @JsonDeserialize(using = DoubleRangeDeserializer.class) final Range<Double> operationalRange,
-                                    @JsonProperty(OBSERVATION_TIME_PROPERTY) @JsonDeserialize(using = DurationDeserializer.class) final Duration observationTime,
-                                    @JsonProperty(AGGREGATION_PROPERTY) @JsonDeserialize(using = ReduceOperationDeserializer.class) final ReduceOperation aggregator,
-                                    @JsonProperty(INCREMENTAL_WEIGHT_PROPERTY) final boolean incrementalWeight){
+    public AttributeBasedScalingPolicy(@JsonProperty(ATTRIBUTE_NAME_PROPERTY) final String attributeName,
+                                       @JsonProperty(VOTE_WEIGHT_PROPERTY) final double voteWeight,
+                                       @JsonProperty(RANGE_PROPERTY) @JsonDeserialize(using = DoubleRangeDeserializer.class) final Range<Double> operationalRange,
+                                       @JsonProperty(OBSERVATION_TIME_PROPERTY) @JsonDeserialize(using = DurationDeserializer.class) final Duration observationTime,
+                                       @JsonProperty(AGGREGATION_PROPERTY) @JsonDeserialize(using = ReduceOperationDeserializer.class) final ReduceOperation aggregator,
+                                       @JsonProperty(INCREMENTAL_WEIGHT_PROPERTY) final boolean incrementalWeight){
         super(voteWeight);
         setObservationTime(observationTime);
         this.operationalRange = Objects.requireNonNull(operationalRange);
@@ -63,25 +63,43 @@ public final class MetricBasedScalingPolicy extends AbstractWeightedScalingPolic
         this.aggregator = Objects.requireNonNull(aggregator);
     }
 
-    public MetricBasedScalingPolicy(final String attributeName,
-                             final double voteWeight,
-                             final Range<Double> operationalRange) {
+    public AttributeBasedScalingPolicy(final String attributeName,
+                                       final double voteWeight,
+                                       final Range<Double> operationalRange) {
         this(attributeName, voteWeight, operationalRange, Duration.ZERO, ReduceOperation.MAX, false);
     }
 
+    /**
+     * Gets advice about more optimal operational range.
+     *
+     * @return More optimal operational range; or empty range if recommendation is not supported.
+     */
+    @Override
+    @JsonIgnore
+    @Nonnull
+    public Range<Double> getRecommendation() {
+        return RangeUtils.EMPTY_DOUBLE_RANGE;
+    }
+
     @JsonProperty(ATTRIBUTE_NAME_PROPERTY)
+    @Override
+    @Nonnull
     public String getAttributeName(){
         return attributeName;
     }
 
     @JsonProperty(RANGE_PROPERTY)
     @JsonSerialize(using = RangeSerializer.class)
+    @Override
+    @Nonnull
     public Range<Double> getOperationalRange(){
         return operationalRange;
     }
 
     @JsonProperty(AGGREGATION_PROPERTY)
     @JsonSerialize(using = ReduceOperationSerializer.class)
+    @Override
+    @Nonnull
     public ReduceOperation getAggregator(){
         return aggregator;
     }
@@ -158,8 +176,8 @@ public final class MetricBasedScalingPolicy extends AbstractWeightedScalingPolic
         }
     }
 
-    static MetricBasedScalingPolicy parse(final String json, final ObjectMapper mapper) throws IOException {
-        return mapper.readValue(json, MetricBasedScalingPolicy.class);
+    static AttributeBasedScalingPolicy parse(final String json, final ObjectMapper mapper) throws IOException {
+        return mapper.readValue(json, AttributeBasedScalingPolicy.class);
     }
 
     @Override

@@ -31,8 +31,8 @@ public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {
         return groovyPolicyFactory.lazyGet(this::createGroovyScalingPolicyFactory).create(script);
     }
 
-    private MetricBasedScalingPolicy createMetricBasedPolicy(final String json) throws IOException {
-        return MetricBasedScalingPolicy.parse(json, mapper.lazyGet((Supplier<ObjectMapper>) ObjectMapper::new));
+    private AttributeBasedScalingPolicy createMetricBasedPolicy(final String json) throws IOException {
+        return AttributeBasedScalingPolicy.parse(json, mapper.lazyGet((Supplier<ObjectMapper>) ObjectMapper::new));
     }
 
     private HealthStatusBasedScalingPolicy createStatusBasedPolicy(final String json) throws IOException{
@@ -51,7 +51,7 @@ public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {
         switch (scalingPolicy.getLanguage()) {
             case ScriptletConfiguration.GROOVY_LANGUAGE:
                 return callAndWrapException(() -> createGroovyPolicy(scriptBody), exceptionFactory);
-            case MetricBasedScalingPolicy.LANGUAGE_NAME:
+            case AttributeBasedScalingPolicy.LANGUAGE_NAME:
                 return callAndWrapException(() -> createMetricBasedPolicy(scriptBody), exceptionFactory);
             case HealthStatusBasedScalingPolicy.LANGUAGE_NAME:
                 return callAndWrapException(() -> createStatusBasedPolicy(scriptBody), exceptionFactory);

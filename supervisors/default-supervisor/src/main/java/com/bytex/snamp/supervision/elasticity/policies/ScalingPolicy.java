@@ -1,14 +1,12 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
-import com.bytex.snamp.Stateful;
-
 /**
  * Represents a voter in elasticity management process.
  * @author Roman Sakno
  * @since 2.0
  * @version 2.0
  */
-public interface ScalingPolicy extends Stateful {
+public interface ScalingPolicy extends com.bytex.snamp.supervision.elasticity.ScalingPolicy {
     ScalingPolicy VOICELESS = new ScalingPolicy() {
         @Override
         public double evaluate(final ScalingPolicyEvaluationContext context) {

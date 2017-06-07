@@ -6,6 +6,7 @@ import com.bytex.snamp.supervision.SupervisorAggregatedService;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * Represents elasticity manager for group of resources.
@@ -59,4 +60,10 @@ public interface ElasticityManager extends SupervisorAggregatedService, Stateful
      * @return Scaling metrics.
      */
     ScalingMetrics getScalingMetrics();
+
+    /**
+     * Gets read-only map of active scaling policies.
+     * @return A map of scaling policies.
+     */
+    Map<String, ? extends ScalingPolicy> getPolicies();
 }

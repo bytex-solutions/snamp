@@ -84,4 +84,10 @@ public final class RangeUtilsTest extends Assert {
         actual = RangeUtils.parseDoubleRange(expected.toString());
         assertEquals(expected, actual);
     }
+
+    @Test
+    public void emptyRangeTest(){
+        final Range<Double> range = RangeUtils.EMPTY_DOUBLE_RANGE;
+        assertTrue(range.isEmpty());
+    }
 }

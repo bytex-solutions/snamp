@@ -11,7 +11,6 @@ import com.bytex.snamp.connector.metrics.RateRecorder;
  * @since 2.0
  */
 public class ScalingMetricsRecorder extends AbstractMetric implements ScalingMetrics {
-    public static final String DEFAULT_NAME = "scaling";
     private static final long serialVersionUID = -133927668958872736L;
     private final RateRecorder scaleIn;
     private final RateRecorder scaleOut;

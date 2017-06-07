@@ -7,6 +7,7 @@ import com.bytex.snamp.supervision.elasticity.ScalingMetrics;
 import com.bytex.snamp.supervision.elasticity.ScalingMetricsRecorder;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicy;
 import com.bytex.snamp.supervision.elasticity.policies.ScalingPolicyEvaluationContext;
+import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -106,7 +107,7 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
      * @param policyName Name of the policy.
      * @param voter A voter that will be used to compute decision about scaling.
      */
-    public final void addScalingPolicy(@Nonnull final String policyName, @Nonnull final ScalingPolicy voter) {
+    public final synchronized void addScalingPolicy(@Nonnull final String policyName, @Nonnull final ScalingPolicy voter) {
         policies.put(Objects.requireNonNull(policyName), Objects.requireNonNull(voter));
     }
 
@@ -285,6 +286,16 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     @Override
     public double getVotesForScaleOut() {
         return scaleOutVotes;
+    }
+
+    /**
+     * Gets read-only map of active scaling policies.
+     *
+     * @return A map of scaling policies.
+     */
+    @Override
+    public final synchronized ImmutableMap<String, ScalingPolicy> getPolicies() {
+        return ImmutableMap.copyOf(policies);
     }
 
     @Override
