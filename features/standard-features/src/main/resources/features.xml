@@ -26,7 +26,7 @@
         <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-core</feature>
         <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
-        <feature version="${snamp.analysis.version}">snamp-e2e-analyzer</feature>
+        <feature version="${snamp.e2e_analyzer.version}">snamp-e2e-analyzer</feature>
         <bundle>mvn:org.ops4j.pax.logging/pax-logging-api/1.8.5</bundle>
         <bundle start="true">mvn:com.bytex.snamp/webconsole/${snamp.webconsole.version}</bundle>
     </feature>
