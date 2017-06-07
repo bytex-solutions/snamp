@@ -34,7 +34,7 @@ public enum SnampFeature {
     GROOVY_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-groovy-connector"),
     GROOVY_GATEWAY("gateways", "2.0.0", "snamp-groovy-gateway"),
     MODBUS_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-modbus-connector"),
-    STANDARD_TOOLS("standard", "2.0.0", "snamp-management", "snamp-data-analysis", "snamp-web-console"),
+    STANDARD_TOOLS("standard", "2.0.0", "snamp-management", "snamp-e2e-analyzer", "snamp-web-console"),
     INTEGRATION_TOOLS("integration", "2.0.0", "snamp-discovery-over-http");
 
     private static final String FEATURES_FILE_NAME = "features.xml";
