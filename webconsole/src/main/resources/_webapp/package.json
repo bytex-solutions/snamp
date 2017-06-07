@@ -109,7 +109,8 @@
     "cytoscape": "2.7.14",
     "angular2-jwt": "0.2.2",
     "chart.js": "2.4.0",
-    "jstree": "3.0.3"
+    "jstree": "3.0.3",
+    "c3": "0.4.12"
   },
   "devDependencies": {
     "@types/hammerjs": "^2.0.33",

@@ -47,7 +47,7 @@
                 </label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
                   <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
-                    <option value="" *ngIf="selectedChartType != 'statuses' && selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut'">NO GROUP</option>
+                    <option value="" *ngIf="selectedChartType != 'statuses' && selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut' && selectedChartType != 'voting' ">NO GROUP</option>
                     <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
                   </select>
                 </div>
