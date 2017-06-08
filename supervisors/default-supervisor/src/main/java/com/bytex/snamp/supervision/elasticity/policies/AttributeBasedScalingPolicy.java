@@ -47,7 +47,7 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
     private final String attributeName;
     private ReduceOperation aggregator;
     private int previousObservation;
-    private final AbstractEMA attributeValueAverage;
+    private final EWMA attributeValueAverage;
 
     @JsonCreator
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
@@ -64,7 +64,7 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
         setIncrementalVoteWeight(incrementalWeight);
         this.attributeName = attributeName;
         this.aggregator = Objects.requireNonNull(aggregator);
-        attributeValueAverage = analysisDepth.isZero() ? null : new BigDecimalEMA(analysisDepth, MathContext.DECIMAL32);
+        attributeValueAverage = analysisDepth.isZero() ? null : new BigDecimalEWMA(analysisDepth, MathContext.DECIMAL32);
     }
 
     public AttributeBasedScalingPolicy(final String attributeName,

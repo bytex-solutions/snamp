@@ -15,16 +15,16 @@ import java.util.function.DoubleUnaryOperator;
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average">Exponential moving average</a>
  */
-public final class DoubleEMA extends AbstractEMA implements DoubleConsumer, Stateful, DoubleUnaryOperator, Cloneable {
+public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, DoubleUnaryOperator, Cloneable {
     private static final long serialVersionUID = -8885874345563930420L;
 
     private final AtomicDouble adder;
     private final AtomicDouble accumulator;
     private final long precisionNanos;
 
-    private DoubleEMA(final Duration meanLifetime,
-                      final Duration precision,
-                      final Duration measurementInterval) {
+    private DoubleEWMA(final Duration meanLifetime,
+                       final Duration precision,
+                       final Duration measurementInterval) {
         super(meanLifetime, measurementInterval);
         adder = new AtomicDouble(0D);
         accumulator = new AtomicDouble(Double.NaN);
@@ -35,23 +35,23 @@ public final class DoubleEMA extends AbstractEMA implements DoubleConsumer, Stat
      * Initializes a new average calculator.
      * @param meanLifetime Interval of time, over which the reading is said to be averaged. Cannot be {@literal null}.
      */
-    public DoubleEMA(final Duration meanLifetime){
+    public DoubleEWMA(final Duration meanLifetime){
         this(meanLifetime, DEFAULT_PRECISION, DEFAULT_INTERVAL);
     }
 
-    public DoubleEMA(final long interval, final TemporalUnit unit) {
+    public DoubleEWMA(final long interval, final TemporalUnit unit) {
         this(Duration.of(interval, unit), DEFAULT_PRECISION, DEFAULT_INTERVAL);
     }
 
-    private DoubleEMA(final DoubleEMA source){
+    private DoubleEWMA(final DoubleEWMA source){
         super(source);
         adder = new AtomicDouble(source.adder.get());
         accumulator = new AtomicDouble(source.accumulator.get());
         precisionNanos = source.precisionNanos;
     }
 
-    public DoubleEMA clone(){
-        return new DoubleEMA(this);
+    public DoubleEWMA clone(){
+        return new DoubleEWMA(this);
     }
 
     private double getAverage() {

@@ -7,7 +7,7 @@ import java.math.MathContext;
 import java.time.temporal.ChronoUnit;
 
 /**
- * Represents tests for {@link DoubleEMA}.
+ * Represents tests for {@link DoubleEWMA}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit;
 public final class EMATest extends Assert {
     @Test
     public void doubleEmaTest() throws InterruptedException {
-        final AbstractEMA ema = new DoubleEMA(2, ChronoUnit.SECONDS);
+        final EWMA ema = new DoubleEWMA(2, ChronoUnit.SECONDS);
         ema.accept(10);
         ema.accept(20);
         Thread.sleep(2001);
@@ -27,7 +27,7 @@ public final class EMATest extends Assert {
 
     @Test
     public void bigDecimalEmaTest() throws InterruptedException{
-        final AbstractEMA ema = new BigDecimalEMA(2, ChronoUnit.SECONDS, MathContext.DECIMAL32);
+        final EWMA ema = new BigDecimalEWMA(2, ChronoUnit.SECONDS, MathContext.DECIMAL32);
         ema.accept(10);
         ema.accept(20);
         Thread.sleep(2001);

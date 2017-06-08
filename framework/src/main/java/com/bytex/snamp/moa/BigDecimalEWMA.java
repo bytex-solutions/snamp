@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average">Exponential moving average</a>
  */
-public final class BigDecimalEMA extends AbstractEMA implements Consumer<BigDecimal>, DoubleConsumer, Serializable, Supplier<BigDecimal>, Stateful, Cloneable {
+public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, DoubleConsumer, Serializable, Supplier<BigDecimal>, Stateful, Cloneable {
     private static final long serialVersionUID = -8885874345563930420L;
 
     private final AtomicReference<BigDecimal> adder;
@@ -30,10 +30,10 @@ public final class BigDecimalEMA extends AbstractEMA implements Consumer<BigDeci
     private final BigDecimal alpha;
     private final BigDecimal measurementIntervalNanos;
 
-    private BigDecimalEMA(final Duration meanLifetime,
-                                     final MathContext context,
-                                     final Duration precision,
-                                     final Duration measurementInterval) {
+    private BigDecimalEWMA(final Duration meanLifetime,
+                           final MathContext context,
+                           final Duration precision,
+                           final Duration measurementInterval) {
         super(meanLifetime, measurementInterval);
         adder = new AtomicReference<>(BigDecimal.ZERO);
         alpha = new BigDecimal(super.alpha, context);
@@ -43,16 +43,16 @@ public final class BigDecimalEMA extends AbstractEMA implements Consumer<BigDeci
         measurementIntervalNanos = new BigDecimal(super.measurementIntervalNanos, context);
     }
 
-    public BigDecimalEMA(final Duration meanLifetime,
-                                    final MathContext context){
+    public BigDecimalEWMA(final Duration meanLifetime,
+                          final MathContext context){
         this(meanLifetime, context, DEFAULT_PRECISION, DEFAULT_INTERVAL);
     }
 
-    public BigDecimalEMA(final long meanLifetime, final TemporalUnit unit, final MathContext context){
+    public BigDecimalEWMA(final long meanLifetime, final TemporalUnit unit, final MathContext context){
         this(Duration.of(meanLifetime, unit), context);
     }
 
-    private BigDecimalEMA(final BigDecimalEMA other) {
+    private BigDecimalEWMA(final BigDecimalEWMA other) {
         super(other);
         adder = new AtomicReference<>(other.adder.get());
         accumulator = new AtomicReference<>(other.accumulator.get());
@@ -66,8 +66,8 @@ public final class BigDecimalEMA extends AbstractEMA implements Consumer<BigDeci
      * Creates deep clone of this object.
      * @return Deep clone of this object.
      */
-    public BigDecimalEMA clone() {
-        return new BigDecimalEMA(this);
+    public BigDecimalEWMA clone() {
+        return new BigDecimalEWMA(this);
     }
 
     @Override

@@ -15,7 +15,7 @@ import java.util.function.DoubleConsumer;
  * @since 2.0.
  * @version 2.0
  */
-public abstract class AbstractEMA extends Number implements DoubleConsumer, Stateful, Cloneable {
+public abstract class EWMA extends Number implements DoubleConsumer, Stateful, Cloneable {
     static final Duration DEFAULT_PRECISION = Duration.ofSeconds(1L);
     static final Duration DEFAULT_INTERVAL = DEFAULT_PRECISION.multipliedBy(1L);
     private static final long serialVersionUID = -2018143871044363564L;
@@ -25,14 +25,14 @@ public abstract class AbstractEMA extends Number implements DoubleConsumer, Stat
     final double alpha;
     private final Duration meanLifetime;
 
-    AbstractEMA(final Duration meanLifetime, final Duration measurementInterval){
+    EWMA(final Duration meanLifetime, final Duration measurementInterval){
         startTime = new AtomicLong(System.nanoTime());
         measurementIntervalNanos = measurementInterval.toNanos();
         this.meanLifetime = Objects.requireNonNull(meanLifetime);
         alpha = computeAlpha(meanLifetime, measurementInterval);
     }
 
-    AbstractEMA(final AbstractEMA other) {
+    EWMA(final EWMA other) {
         startTime = new AtomicLong(other.startTime.get());
         measurementIntervalNanos = other.measurementIntervalNanos;
         meanLifetime = other.getMeanLifetime();
@@ -52,7 +52,7 @@ public abstract class AbstractEMA extends Number implements DoubleConsumer, Stat
     }
 
     @Override
-    public abstract AbstractEMA clone();
+    public abstract EWMA clone();
 
     final long getStartTime(){
         return startTime.get();

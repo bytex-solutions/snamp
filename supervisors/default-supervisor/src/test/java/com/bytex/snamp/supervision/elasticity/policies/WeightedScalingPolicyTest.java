@@ -5,6 +5,7 @@ import com.bytex.snamp.connector.health.MalfunctionStatus;
 import com.bytex.snamp.moa.DoubleReservoir;
 import com.bytex.snamp.moa.RangeUtils;
 import com.bytex.snamp.moa.ReduceOperation;
+import com.google.common.collect.Range;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.junit.Test;
 import javax.management.Attribute;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test for {@link AttributeBasedScalingPolicy} and {@link HealthStatusBasedScalingPolicy}.
@@ -102,5 +104,42 @@ public final class WeightedScalingPolicyTest extends Assert {
         assertEquals(voter.getLevel(), deserializedVoter.getLevel());
         assertEquals(voter.isIncrementalVoteWeight(), deserializedVoter.isIncrementalVoteWeight());
         assertEquals(voter.getVoteWeight(), deserializedVoter.getVoteWeight(), 0.01D);
+    }
+
+    @Test
+    public void recommendationTest() throws InterruptedException {
+        final AttributeBasedScalingPolicy voter = new AttributeBasedScalingPolicy("dummy",
+                1D,
+                RangeUtils.parseDoubleRange("[6‥10]"),
+                Duration.ofSeconds(1L));
+        voter.setValuesAggregator(ReduceOperation.MAX);
+        final DoubleReservoir reservoir = new DoubleReservoir(10);
+
+        reservoir.add(6);
+        Thread.sleep(1001);
+        voter.vote(reservoir);
+
+        reservoir.reset();
+        reservoir.add(7);
+        Thread.sleep(1001);
+        voter.vote(reservoir);
+
+        reservoir.reset();
+        reservoir.add(5);
+        Thread.sleep(1001);
+        voter.vote(reservoir);
+
+        reservoir.reset();
+        reservoir.add(5);
+        Thread.sleep(201);
+        voter.vote(reservoir);
+
+        reservoir.reset();
+        reservoir.add(6);
+        Thread.sleep(201);
+        voter.vote(reservoir);
+        TimeUnit.SECONDS.sleep(1);
+        final Range<Double> recommendation = voter.getRecommendation();
+        assertFalse(recommendation.isEmpty());
     }
 }
