@@ -6,8 +6,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.Duration;
+import java.time.temporal.TemporalUnit;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
@@ -25,34 +25,41 @@ public final class BigDecimalEMA extends AbstractEMA implements Consumer<BigDeci
 
     private final AtomicReference<BigDecimal> adder;
     private final AtomicReference<BigDecimal> accumulator;
-    private final BigDecimal alpha;
     private final MathContext context;
     private final BigDecimal precisionNanos;
+    private final BigDecimal alpha;
+    private final BigDecimal measurementIntervalNanos;
 
-    private BigDecimalEMA(final double intervalSeconds,
+    private BigDecimalEMA(final Duration meanLifetime,
                                      final MathContext context,
                                      final Duration precision,
-                                     final Duration measurementInterval){
-        super(measurementInterval);
+                                     final Duration measurementInterval) {
+        super(meanLifetime, measurementInterval);
         adder = new AtomicReference<>(BigDecimal.ZERO);
+        alpha = new BigDecimal(super.alpha, context);
         accumulator = new AtomicReference<>();
-        alpha = BigDecimal.valueOf(1 - Math.exp(-measurementInterval.getSeconds() / intervalSeconds));
         this.context = Objects.requireNonNull(context);
-        this.precisionNanos = BigDecimal.valueOf(precision.toNanos());
+        precisionNanos = BigDecimal.valueOf(precision.toNanos());
+        measurementIntervalNanos = new BigDecimal(super.measurementIntervalNanos, context);
     }
 
-    public BigDecimalEMA(final Duration interval,
+    public BigDecimalEMA(final Duration meanLifetime,
                                     final MathContext context){
-        this(interval.getSeconds(), context, DEFAULT_PRECISION, DEFAULT_INTERVAL);
+        this(meanLifetime, context, DEFAULT_PRECISION, DEFAULT_INTERVAL);
+    }
+
+    public BigDecimalEMA(final long meanLifetime, final TemporalUnit unit, final MathContext context){
+        this(Duration.of(meanLifetime, unit), context);
     }
 
     private BigDecimalEMA(final BigDecimalEMA other) {
         super(other);
         adder = new AtomicReference<>(other.adder.get());
         accumulator = new AtomicReference<>(other.accumulator.get());
-        alpha = other.alpha;
         context = other.context;
         precisionNanos = other.precisionNanos;
+        alpha = other.alpha;
+        measurementIntervalNanos = other.measurementIntervalNanos;
     }
 
     /**
@@ -71,7 +78,7 @@ public final class BigDecimalEMA extends AbstractEMA implements Consumer<BigDeci
     }
 
     private BigDecimal getAverage() {
-        final BigDecimal instantCount = adder.getAndSet(BigDecimal.ZERO).divide(BigDecimal.valueOf(measurementIntervalNanos), context);
+        final BigDecimal instantCount = adder.getAndSet(BigDecimal.ZERO).divide(measurementIntervalNanos, context);
         if (accumulator.compareAndSet(null, instantCount)) //first time set
             return instantCount;
         else {
@@ -104,10 +111,10 @@ public final class BigDecimalEMA extends AbstractEMA implements Consumer<BigDeci
         final long startTime = getStartTime();
         final long age = currentTime - startTime;
         BigDecimal result = accumulator.get();
-        if (age > measurementIntervalNanos) {
-            final long newStartTime = currentTime - age % measurementIntervalNanos;
+        if (age > super.measurementIntervalNanos) {
+            final long newStartTime = currentTime - age % super.measurementIntervalNanos;
             if (setStartTime(startTime, newStartTime)) {
-                for (int i = 0; i < age / measurementIntervalNanos; i++)
+                for (int i = 0; i < age / super.measurementIntervalNanos; i++)
                     result = getAverage();
             }
         } else if (result == null)

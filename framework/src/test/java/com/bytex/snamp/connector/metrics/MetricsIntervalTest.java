@@ -14,7 +14,7 @@ import java.util.SortedSet;
 public final class MetricsIntervalTest extends Assert {
     @Test
     public void nextTest(){
-        assertEquals(MetricsInterval.DAY, MetricsInterval.TWELVE_HOURS.next());
+        assertEquals(MetricsInterval.DAY, MetricsInterval.HALF_DAY.next());
         assertEquals(MetricsInterval.MINUTE, MetricsInterval.SECOND.next());
         assertNull(MetricsInterval.DAY.next());
     }
@@ -27,7 +27,7 @@ public final class MetricsIntervalTest extends Assert {
 
     @Test
     public void greaterTest(){
-        SortedSet<MetricsInterval> actual = MetricsInterval.TWELVE_HOURS.greater();
+        SortedSet<MetricsInterval> actual = MetricsInterval.HALF_DAY.greater();
         assertEquals(1, actual.size());
         assertTrue(actual.contains(MetricsInterval.DAY));
         actual = MetricsInterval.DAY.greater();

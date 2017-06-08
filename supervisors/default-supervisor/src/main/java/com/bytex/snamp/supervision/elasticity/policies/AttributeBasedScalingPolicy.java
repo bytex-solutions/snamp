@@ -6,10 +6,9 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.DurationDeserializer;
+import com.bytex.snamp.json.DurationSerializer;
 import com.bytex.snamp.json.RangeSerializer;
-import com.bytex.snamp.moa.DoubleReservoir;
-import com.bytex.snamp.moa.RangeUtils;
-import com.bytex.snamp.moa.ReduceOperation;
+import com.bytex.snamp.moa.*;
 import com.google.common.collect.Range;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -22,6 +21,7 @@ import org.osgi.framework.BundleContext;
 import javax.annotation.Nonnull;
 import javax.management.JMException;
 import java.io.IOException;
+import java.math.MathContext;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.OptionalDouble;
@@ -41,11 +41,13 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
     private static final String ATTRIBUTE_NAME_PROPERTY = "attributeName";
     private static final String RANGE_PROPERTY = "operationalRange";
     private static final String AGGREGATION_PROPERTY = "aggregation";
+    private static final String ANALYSIS_DEPTH = "analysisDepth";
 
     private final Range<Double> operationalRange;
     private final String attributeName;
     private ReduceOperation aggregator;
     private int previousObservation;
+    private final AbstractEMA attributeValueAverage;
 
     @JsonCreator
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
@@ -54,19 +56,34 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
                                        @JsonProperty(RANGE_PROPERTY) @JsonDeserialize(using = DoubleRangeDeserializer.class) final Range<Double> operationalRange,
                                        @JsonProperty(OBSERVATION_TIME_PROPERTY) @JsonDeserialize(using = DurationDeserializer.class) final Duration observationTime,
                                        @JsonProperty(AGGREGATION_PROPERTY) @JsonDeserialize(using = ReduceOperationDeserializer.class) final ReduceOperation aggregator,
-                                       @JsonProperty(INCREMENTAL_WEIGHT_PROPERTY) final boolean incrementalWeight){
+                                       @JsonProperty(INCREMENTAL_WEIGHT_PROPERTY) final boolean incrementalWeight,
+                                       @JsonProperty(ANALYSIS_DEPTH) @JsonDeserialize(using = DurationDeserializer.class) final Duration analysisDepth){
         super(voteWeight);
         setObservationTime(observationTime);
         this.operationalRange = Objects.requireNonNull(operationalRange);
         setIncrementalVoteWeight(incrementalWeight);
         this.attributeName = attributeName;
         this.aggregator = Objects.requireNonNull(aggregator);
+        attributeValueAverage = analysisDepth.isZero() ? null : new BigDecimalEMA(analysisDepth, MathContext.DECIMAL32);
     }
 
     public AttributeBasedScalingPolicy(final String attributeName,
                                        final double voteWeight,
-                                       final Range<Double> operationalRange) {
-        this(attributeName, voteWeight, operationalRange, Duration.ZERO, ReduceOperation.MAX, false);
+                                       final Range<Double> operationalRange,
+                                       final Duration analysisDepth) {
+        this(attributeName, voteWeight, operationalRange, Duration.ZERO, ReduceOperation.MAX, false, analysisDepth);
+    }
+
+    public AttributeBasedScalingPolicy(final String attributeName,
+                                       final double voteWeight,
+                                       final Range<Double> operationalRange){
+        this(attributeName, voteWeight, operationalRange, Duration.ZERO);
+    }
+
+    @JsonProperty(ANALYSIS_DEPTH)
+    @JsonSerialize(using = DurationSerializer.class)
+    public Duration getAnalysisDepth(){
+        return attributeValueAverage.getMeanLifetime();
     }
 
     /**
@@ -78,7 +95,15 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
     @JsonIgnore
     @Nonnull
     public Range<Double> getRecommendation() {
-        return RangeUtils.EMPTY_DOUBLE_RANGE;
+        if (attributeValueAverage != null && operationalRange.hasLowerBound() && operationalRange.hasUpperBound()) {
+            final double lowerBound = operationalRange.lowerEndpoint();
+            final double upperBound = operationalRange.upperEndpoint();
+            final double expectedAverage = (lowerBound + upperBound) / 2D;
+            final double actualAverage = attributeValueAverage.doubleValue();
+            final double delta = actualAverage - expectedAverage;
+            return Range.range(lowerBound + delta, operationalRange.lowerBoundType(), upperBound + delta, operationalRange.upperBoundType());
+        } else
+            return RangeUtils.EMPTY_DOUBLE_RANGE;
     }
 
     @JsonProperty(ATTRIBUTE_NAME_PROPERTY)
@@ -110,7 +135,9 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
     }
 
     synchronized double vote(final DoubleReservoir values) {
-        final int freshObservation = RangeUtils.getLocation(values.applyAsDouble(aggregator), operationalRange);
+        final double value = values.applyAsDouble(aggregator);
+        attributeValueAverage.accept(value);
+        final int freshObservation = RangeUtils.getLocation(value, operationalRange);
         if (freshObservation == 0) {
             reset();
             return 0D;

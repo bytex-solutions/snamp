@@ -3,6 +3,8 @@ package com.bytex.snamp.connector.composite.functions;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.parser.*;
 
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -19,28 +21,28 @@ public final class FunctionParser extends Tokenizer {
         super(input);
     }
 
-    private TimeUnit parseTimeUnit() throws ParseException {
+    private TemporalUnit parseTimeUnit() throws ParseException {
         final String unitName;
         switch (unitName = nextToken(NameToken.class).toString()) {
             case "s":
             case "sec":
             case "seconds":
-                return TimeUnit.SECONDS;
+                return ChronoUnit.SECONDS;
             case "ms":
             case "millis":
-                return TimeUnit.MILLISECONDS;
+                return ChronoUnit.MILLIS;
             case "ns":
             case "nanos":
-                return TimeUnit.NANOSECONDS;
+                return ChronoUnit.NANOS;
             case "m":
             case "minutes":
-                return TimeUnit.MINUTES;
+                return ChronoUnit.MINUTES;
             case "h":
             case "hours":
-                return TimeUnit.HOURS;
+                return ChronoUnit.HOURS;
             case "d":
             case "days":
-                return TimeUnit.DAYS;
+                return ChronoUnit.DAYS;
             default:
                 throw FunctionParserException.unknownTimeUnit(unitName);
         }
@@ -49,7 +51,7 @@ public final class FunctionParser extends Tokenizer {
     private AverageFunction parseAvgFunction() throws ParseException{
         nextToken(LeftBracketToken.class);
         final long interval = nextToken(IntegerToken.class).getAsLong();
-        final TimeUnit unit = parseTimeUnit();
+        final TemporalUnit unit = parseTimeUnit();
         nextToken(RightBracketToken.class);
         return new AverageFunction(interval, unit);
     }
@@ -64,7 +66,7 @@ public final class FunctionParser extends Tokenizer {
     private SumFunction parseSumFunction() throws ParseException{
         nextToken(LeftBracketToken.class);
         final long interval = nextToken(IntegerToken.class).getAsLong();
-        final TimeUnit unit = parseTimeUnit();
+        final TemporalUnit unit = parseTimeUnit();
         nextToken(RightBracketToken.class);
         return new SumFunction(interval, unit);
     }

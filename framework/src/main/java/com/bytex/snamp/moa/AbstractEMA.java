@@ -4,6 +4,8 @@ import com.bytex.snamp.Stateful;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.DoubleConsumer;
 
@@ -16,17 +18,37 @@ import java.util.function.DoubleConsumer;
 public abstract class AbstractEMA extends Number implements DoubleConsumer, Stateful, Cloneable {
     static final Duration DEFAULT_PRECISION = Duration.ofSeconds(1L);
     static final Duration DEFAULT_INTERVAL = DEFAULT_PRECISION.multipliedBy(1L);
+    private static final long serialVersionUID = -2018143871044363564L;
+
     private final AtomicLong startTime;
     final long measurementIntervalNanos;
+    final double alpha;
+    private final Duration meanLifetime;
 
-    AbstractEMA(final Duration measurementInterval){
+    AbstractEMA(final Duration meanLifetime, final Duration measurementInterval){
         startTime = new AtomicLong(System.nanoTime());
         measurementIntervalNanos = measurementInterval.toNanos();
+        this.meanLifetime = Objects.requireNonNull(meanLifetime);
+        alpha = computeAlpha(meanLifetime, measurementInterval);
     }
 
     AbstractEMA(final AbstractEMA other) {
         startTime = new AtomicLong(other.startTime.get());
         measurementIntervalNanos = other.measurementIntervalNanos;
+        meanLifetime = other.getMeanLifetime();
+        alpha = other.alpha;
+    }
+
+    private static double computeAlpha(final double meanLifetimeSec, final double measurementIntervalSec){
+        return 1 - Math.exp(-measurementIntervalSec / meanLifetimeSec);
+    }
+
+    private static double computeAlpha(final Duration meanLifetime, final Duration measurementInterval) {
+        return computeAlpha(meanLifetime.get(ChronoUnit.SECONDS), measurementInterval.get(ChronoUnit.SECONDS));
+    }
+
+    public final Duration getMeanLifetime(){
+        return meanLifetime;
     }
 
     @Override

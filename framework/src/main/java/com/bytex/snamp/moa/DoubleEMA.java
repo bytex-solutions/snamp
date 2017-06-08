@@ -4,7 +4,7 @@ import com.bytex.snamp.Stateful;
 import com.google.common.util.concurrent.AtomicDouble;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleUnaryOperator;
 
@@ -20,36 +20,33 @@ public final class DoubleEMA extends AbstractEMA implements DoubleConsumer, Stat
 
     private final AtomicDouble adder;
     private final AtomicDouble accumulator;
-    private final double alpha;
     private final long precisionNanos;
 
-    private DoubleEMA(final double intervalSeconds,
+    private DoubleEMA(final Duration meanLifetime,
                       final Duration precision,
                       final Duration measurementInterval) {
-        super(measurementInterval);
+        super(meanLifetime, measurementInterval);
         adder = new AtomicDouble(0D);
         accumulator = new AtomicDouble(Double.NaN);
-        alpha = 1 - Math.exp(-measurementInterval.getSeconds() / intervalSeconds);
         precisionNanos = precision.toNanos();
     }
 
     /**
      * Initializes a new average calculator.
-     * @param interval Interval of time, over which the reading is said to be averaged
+     * @param meanLifetime Interval of time, over which the reading is said to be averaged. Cannot be {@literal null}.
      */
-    public DoubleEMA(final Duration interval){
-        this(interval.getSeconds(), DEFAULT_PRECISION, DEFAULT_INTERVAL);
+    public DoubleEMA(final Duration meanLifetime){
+        this(meanLifetime, DEFAULT_PRECISION, DEFAULT_INTERVAL);
     }
 
-    public DoubleEMA(final long interval, final TimeUnit unit){
-        this(unit.toSeconds(interval), DEFAULT_PRECISION, DEFAULT_INTERVAL);
+    public DoubleEMA(final long interval, final TemporalUnit unit) {
+        this(Duration.of(interval, unit), DEFAULT_PRECISION, DEFAULT_INTERVAL);
     }
 
     private DoubleEMA(final DoubleEMA source){
         super(source);
         adder = new AtomicDouble(source.adder.get());
         accumulator = new AtomicDouble(source.accumulator.get());
-        alpha = source.alpha;
         precisionNanos = source.precisionNanos;
     }
 

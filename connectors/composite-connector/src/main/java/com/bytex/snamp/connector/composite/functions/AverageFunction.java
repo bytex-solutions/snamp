@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.composite.functions;
 
 import com.bytex.snamp.moa.DoubleEMA;
 
-import java.util.concurrent.TimeUnit;
+import java.time.temporal.TemporalUnit;
 
 /**
  * Represents function that computes average value in time interval.
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 final class AverageFunction extends NumericFunction {
     private final DoubleEMA avg;
 
-    AverageFunction(final long interval, final TimeUnit unit){
+    AverageFunction(final long interval, final TemporalUnit unit){
         avg = new DoubleEMA(interval, unit);
     }
 

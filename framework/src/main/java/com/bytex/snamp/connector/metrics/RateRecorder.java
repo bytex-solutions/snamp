@@ -35,7 +35,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
         startTime = new AtomicReference<>(Instant.now());
         lastMaxRatePerSecond = new MetricsIntervalMap<>(MetricsInterval.SECOND.greater(), interval -> interval.createLongPeakDetector(0L));
         lastMaxRatePerMinute = new MetricsIntervalMap<>(MetricsInterval.MINUTE.greater(), interval -> interval.createLongPeakDetector(0L));
-        lastMaxRatePer12Hours = new MetricsIntervalMap<>(MetricsInterval.TWELVE_HOURS.greater(), interval -> interval.createLongPeakDetector(0L));
+        lastMaxRatePer12Hours = new MetricsIntervalMap<>(MetricsInterval.HALF_DAY.greater(), interval -> interval.createLongPeakDetector(0L));
     }
 
     protected RateRecorder(final RateRecorder source) {
@@ -65,7 +65,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
                     break;
                 case MINUTE: //write rate for the last minute
                     lastMaxRatePerMinute.forEachAcceptLong(lastRate, TimeLimitedLong::accept);
-                case TWELVE_HOURS:   //write rate for the last 12 hours
+                case HALF_DAY:   //write rate for the last 12 hours
                     lastMaxRatePer12Hours.forEachAcceptLong(lastRate, TimeLimitedLong::accept);
             }
         }
@@ -150,7 +150,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
     /**
      * Gets the max rate of actions received per second for the last time.
      *
-     * @param interval Measurement interval. Cannot be less than {@link MetricsInterval#TWELVE_HOURS}.
+     * @param interval Measurement interval. Cannot be less than {@link MetricsInterval#HALF_DAY}.
      * @return The max rate of actions received per second for the last time.
      */
     @Override

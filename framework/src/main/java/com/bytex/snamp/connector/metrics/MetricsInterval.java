@@ -9,8 +9,9 @@ import com.google.common.collect.ImmutableSortedSet;
 
 import java.io.Serializable;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BinaryOperator;
 
 /**
@@ -20,43 +21,43 @@ import java.util.function.BinaryOperator;
  * @since 1.0
  */
 public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable {
-    SECOND(1, TimeUnit.SECONDS){
+    SECOND(1, ChronoUnit.SECONDS){
         @Override
         public String toString() {
             return "Second";
         }
     },
-    MINUTE(1, TimeUnit.MINUTES){
+    MINUTE(1, ChronoUnit.MINUTES){
         @Override
         public String toString() {
             return "Minute";
         }
     },
-    FIVE_MINUTES(5, TimeUnit.MINUTES){
+    FIVE_MINUTES(5, ChronoUnit.MINUTES){
         @Override
         public String toString() {
             return "5Minutes";
         }
     },
-    FIFTEEN_MINUTES(15, TimeUnit.MINUTES){
+    QUARTER_OF_HOUR(15, ChronoUnit.MINUTES){
         @Override
         public String toString() {
             return "15Minutes";
         }
     },
-    HOUR(1, TimeUnit.HOURS){
+    HOUR(1, ChronoUnit.HOURS){
         @Override
         public String toString() {
             return "Hour";
         }
     },
-    TWELVE_HOURS(12, TimeUnit.HOURS){
+    HALF_DAY(1, ChronoUnit.HALF_DAYS){
         @Override
         public String toString() {
             return "12Hours";
         }
     },
-    DAY(1, TimeUnit.DAYS){
+    DAY(1, ChronoUnit.DAYS){
         @Override
         public String toString() {
             return "Day";
@@ -68,22 +69,25 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
      */
     public static final ImmutableSortedSet<MetricsInterval> ALL_INTERVALS = ImmutableSortedSet.copyOf(MetricsInterval::compareTo, Arrays.asList(values()));
 
-    private final long timeToLive;
+    /**
+     * Represents duration of interval.
+     */
+    public final Duration duration;
 
-    MetricsInterval(final long amount, final TimeUnit unit){
-        this.timeToLive = unit.toMillis(amount);
+    MetricsInterval(final long amount, final TemporalUnit unit){
+        this.duration = Duration.of(amount, unit);
     }
 
     final TimeLimitedLong createdAdder(final long initialValue){
-        return TimeLimitedLong.adder(initialValue, Duration.ofMillis(timeToLive));
+        return TimeLimitedLong.adder(initialValue, duration);
     }
 
     final TimeLimitedLong createLongPeakDetector(final long initialValue){
-        return TimeLimitedLong.peak(initialValue, Duration.ofMillis(timeToLive));
+        return TimeLimitedLong.peak(initialValue, duration);
     }
 
     final AbstractEMA createEMA(){
-        return new DoubleEMA(Duration.ofMillis(timeToLive));
+        return new DoubleEMA(duration);
     }
 
     final double divideFP(final Duration value) {
@@ -91,19 +95,19 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
     }
 
     final double divideFP(final double value){
-        return value / timeToLive;
+        return value / duration.toMillis();
     }
 
     final TimeLimitedDouble createDoublePeakDetector(final double initialValue){
-        return TimeLimitedDouble.peak(initialValue, Duration.ofMillis(timeToLive));
+        return TimeLimitedDouble.peak(initialValue, duration);
     }
 
     final TimeLimitedDouble createDoubleMinDetector(final double initialValue){
-        return TimeLimitedDouble.min(initialValue, Duration.ofMillis(timeToLive));
+        return TimeLimitedDouble.min(initialValue, duration);
     }
 
     final <V>TimeLimitedObject<V> createTemporaryBox(final V initialValue, final BinaryOperator<V> operator){
-        return new TimeLimitedObject<>(initialValue, Duration.ofMillis(timeToLive), operator);
+        return new TimeLimitedObject<>(initialValue, duration, operator);
     }
 
     /**

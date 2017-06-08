@@ -155,7 +155,7 @@ public abstract class AbstractRangedRecorder extends AbstractMetric implements R
     /**
      * Gets the max rate of actions received per 12 hours for the last time.
      *
-     * @param interval Measurement interval. Cannot be less than {@link MetricsInterval#TWELVE_HOURS}.
+     * @param interval Measurement interval. Cannot be less than {@link MetricsInterval#HALF_DAY}.
      * @return The max rate of actions received per second for the last time.
      */
     @Override

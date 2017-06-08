@@ -99,14 +99,16 @@ public final class OpenStackSupervisorTest extends AbstractSnampIntegrationTest 
                     Range.closed(-5D, 5D),
                     Duration.ofSeconds(1),
                     ReduceOperation.MEAN,
-                    true);
+                    true,
+                    Duration.ZERO);
             supervisor.getAutoScalingConfig().getPolicies().addAndConsume("stagPolicy", policy::configureScriptlet);
             policy = new AttributeBasedScalingPolicy("i",
                     1D,
                     Range.all(),
                     Duration.ZERO,
                     ReduceOperation.MEAN,
-                    false);
+                    false,
+                    Duration.ZERO);
             supervisor.getAutoScalingConfig().getPolicies().addAndConsume("ipol", policy::configureScriptlet);
             policy = new HealthStatusBasedScalingPolicy(1D, MalfunctionStatus.Level.CRITICAL);
             supervisor.getAutoScalingConfig().getPolicies().addAndConsume("hs", policy::configureScriptlet);
