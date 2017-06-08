@@ -128,7 +128,7 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     }
 
     private double getNumberOfCompletedTasks(final MetricsInterval interval, final Supplier<Duration> durationProvider){
-        return 1D / interval.divideFP(durationProvider.get());
+        return 1D / interval.divide(durationProvider.get());
     }
 
     @Override

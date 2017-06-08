@@ -113,7 +113,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
     @Override
     public final double getMeanRate(final MetricsInterval scale) {
         final Duration timeline = Duration.between(startTime.get(), Instant.now());
-        return getTotalRate() / scale.divideFP(timeline);
+        return getTotalRate() / scale.divide(timeline);
     }
 
     @Override

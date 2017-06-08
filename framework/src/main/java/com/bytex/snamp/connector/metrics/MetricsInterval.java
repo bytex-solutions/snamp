@@ -90,12 +90,8 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
         return new DoubleEMA(duration);
     }
 
-    final double divideFP(final Duration value) {
-        return divideFP(value.toMillis());
-    }
-
-    final double divideFP(final double value){
-        return value / duration.toMillis();
+    final double divide(final Duration value) {
+        return (double) value.toNanos() / duration.toNanos();
     }
 
     final TimeLimitedDouble createDoublePeakDetector(final double initialValue){
