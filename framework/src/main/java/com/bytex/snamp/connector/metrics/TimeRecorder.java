@@ -2,8 +2,8 @@ package com.bytex.snamp.connector.metrics;
 
 
 import com.bytex.snamp.io.SerializedState;
+import com.bytex.snamp.moa.AbstractEMA;
 import com.bytex.snamp.moa.DoubleReservoir;
-import com.bytex.snamp.moa.ExponentialMovingAverage;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 @ThreadSafe
 public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     private static final long serialVersionUID = 7250210436685797077L;
-    private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
+    private final MetricsIntervalMap<AbstractEMA> meanValues;
     private final AtomicLong count;
     private final DoubleReservoir reservoir;
     private final AtomicReference<Duration> summary;
@@ -45,7 +45,7 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
 
     protected TimeRecorder(final TimeRecorder source){
         super(source);
-        meanValues = new MetricsIntervalMap<>(source.meanValues, ExponentialMovingAverage::clone);
+        meanValues = new MetricsIntervalMap<>(source.meanValues, AbstractEMA::clone);
         count = new AtomicLong(source.count.get());
         reservoir = ((SerializedState<DoubleReservoir>)source.reservoir.takeSnapshot()).get();
         summary = new AtomicReference<>(source.summary.get());
@@ -63,7 +63,7 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     @Override
     public void reset() {
         super.reset();
-        meanValues.values().forEach(ExponentialMovingAverage::reset);
+        meanValues.values().forEach(AbstractEMA::reset);
         reservoir.reset();
         summary.set(Duration.ZERO);
         count.set(0L);
@@ -84,13 +84,13 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
 
     @Override
     public final Duration getLastMeanValue(final MetricsInterval interval) {
-        return meanValues.get(interval, avg -> fromDouble(avg.getAsDouble()));
+        return meanValues.get(interval, avg -> fromDouble(avg.doubleValue()));
     }
 
     @Override
     protected void writeValue(final Duration value) {
         super.writeValue(value);
-        meanValues.forEachAcceptDouble(toDouble(value), ExponentialMovingAverage::accept);
+        meanValues.forEachAcceptDouble(toDouble(value), AbstractEMA::accept);
         reservoir.accept(toDouble(value));
         summary.accumulateAndGet(value, Duration::plus);
         count.incrementAndGet();

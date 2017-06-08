@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
+import com.bytex.snamp.moa.AbstractEMA;
 import com.bytex.snamp.moa.DoubleReservoir;
-import com.bytex.snamp.moa.ExponentialMovingAverage;
 
 import java.util.function.Supplier;
 
@@ -15,12 +15,12 @@ abstract class AbstractNumericGauge extends AbstractMetric implements NumericGau
     static final int DEFAULT_SAMPLING_SIZE = 4096;
     private static final long serialVersionUID = 6307047277703768318L;
     private final DoubleReservoir reservoir;
-    private final MetricsIntervalMap<ExponentialMovingAverage> meanValues;
+    private final MetricsIntervalMap<AbstractEMA> meanValues;
 
     AbstractNumericGauge(final AbstractNumericGauge source) {
         super(source);
         reservoir = ((Supplier<DoubleReservoir>) source.reservoir.takeSnapshot()).get();
-        meanValues = new MetricsIntervalMap<>(source.meanValues, ExponentialMovingAverage::clone);
+        meanValues = new MetricsIntervalMap<>(source.meanValues, AbstractEMA::clone);
     }
 
     AbstractNumericGauge(final String name, final int samplingSize) {
@@ -34,12 +34,12 @@ abstract class AbstractNumericGauge extends AbstractMetric implements NumericGau
 
     final void updateReservoir(final double value){
         reservoir.add(value);
-        meanValues.forEachAcceptDouble(value, ExponentialMovingAverage::accept);
+        meanValues.forEachAcceptDouble(value, AbstractEMA::accept);
     }
 
     @Override
     public final double getLastMeanValue(final MetricsInterval interval) {
-        return meanValues.getAsDouble(interval, ExponentialMovingAverage::getAsDouble);
+        return meanValues.getAsDouble(interval, AbstractEMA::doubleValue);
     }
 
     @Override
@@ -58,6 +58,6 @@ abstract class AbstractNumericGauge extends AbstractMetric implements NumericGau
     @Override
     public void reset() {
         reservoir.reset();
-        meanValues.values().forEach(ExponentialMovingAverage::reset);
+        meanValues.values().forEach(AbstractEMA::reset);
     }
 }

@@ -3,7 +3,8 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.concurrent.TimeLimitedObject;
-import com.bytex.snamp.moa.ExponentialMovingAverage;
+import com.bytex.snamp.moa.AbstractEMA;
+import com.bytex.snamp.moa.DoubleEMA;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.io.Serializable;
@@ -81,8 +82,8 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
         return TimeLimitedLong.peak(initialValue, Duration.ofMillis(timeToLive));
     }
 
-    final ExponentialMovingAverage createEMA(){
-        return new ExponentialMovingAverage(Duration.ofMillis(timeToLive));
+    final AbstractEMA createEMA(){
+        return new DoubleEMA(Duration.ofMillis(timeToLive));
     }
 
     final double divideFP(final Duration value) {

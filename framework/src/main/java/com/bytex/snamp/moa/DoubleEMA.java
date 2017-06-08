@@ -5,60 +5,60 @@ import com.google.common.util.concurrent.AtomicDouble;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.DoubleConsumer;
-import java.util.function.DoubleSupplier;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.LongSupplier;
 
 /**
- * An exponentially-weighted moving average.
+ * An exponentially-weighted moving average based on {@code double} values.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average">Exponential moving average</a>
  */
-public final class ExponentialMovingAverage extends AtomicDouble implements DoubleConsumer, DoubleSupplier, LongSupplier, Stateful, DoubleUnaryOperator, Cloneable {
-    private static final Duration PRECISION = Duration.ofSeconds(1L);
-    private static final Duration INTERVAL = PRECISION.multipliedBy(1L);
+public final class DoubleEMA extends AbstractEMA implements DoubleConsumer, Stateful, DoubleUnaryOperator, Cloneable {
     private static final long serialVersionUID = -8885874345563930420L;
 
+    private final AtomicDouble adder;
     private final AtomicDouble accumulator;
     private final double alpha;
-    private final AtomicLong startTime;
+    private final long precisionNanos;
 
-    private ExponentialMovingAverage(final double intervalSeconds){
-        super(0D);
-        startTime = new AtomicLong(System.nanoTime());
+    private DoubleEMA(final double intervalSeconds,
+                      final Duration precision,
+                      final Duration measurementInterval) {
+        super(measurementInterval);
+        adder = new AtomicDouble(0D);
         accumulator = new AtomicDouble(Double.NaN);
-        alpha = 1 - Math.exp(-INTERVAL.getSeconds() / intervalSeconds);
+        alpha = 1 - Math.exp(-measurementInterval.getSeconds() / intervalSeconds);
+        precisionNanos = precision.toNanos();
     }
 
     /**
      * Initializes a new average calculator.
      * @param interval Interval of time, over which the reading is said to be averaged
      */
-    public ExponentialMovingAverage(final Duration interval){
-        this(interval.getSeconds());
+    public DoubleEMA(final Duration interval){
+        this(interval.getSeconds(), DEFAULT_PRECISION, DEFAULT_INTERVAL);
     }
 
-    public ExponentialMovingAverage(final long interval, final TimeUnit unit){
-        this(unit.toSeconds(interval));
+    public DoubleEMA(final long interval, final TimeUnit unit){
+        this(unit.toSeconds(interval), DEFAULT_PRECISION, DEFAULT_INTERVAL);
     }
 
-    private ExponentialMovingAverage(final ExponentialMovingAverage source){
-        super(source.get());
+    private DoubleEMA(final DoubleEMA source){
+        super(source);
+        adder = new AtomicDouble(source.adder.get());
         accumulator = new AtomicDouble(source.accumulator.get());
         alpha = source.alpha;
-        startTime = source.startTime;
+        precisionNanos = source.precisionNanos;
     }
 
-    public ExponentialMovingAverage clone(){
-        return new ExponentialMovingAverage(this);
+    public DoubleEMA clone(){
+        return new DoubleEMA(this);
     }
 
     private double getAverage() {
-        final double instantCount = getAndSet(0D) / INTERVAL.toNanos();
+        final double instantCount = adder.getAndSet(0D) / measurementIntervalNanos;
         if(accumulator.compareAndSet(Double.NaN, instantCount)) //first time set
             return instantCount;
         else {
@@ -78,16 +78,7 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
      */
     @Override
     public void accept(final double value) {
-        addAndGet(value);
-    }
-
-    /**
-     * Gets weighted average as {@code long} value.
-     * @return The weighted average as {@code long} value.
-     */
-    @Override
-    public long getAsLong() {
-        return Math.round(getAsDouble());
+        adder.addAndGet(value);
     }
 
     /**
@@ -95,27 +86,27 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
      * @return The weighted average.
      */
     @Override
-    public double getAsDouble() {
+    public double doubleValue() {
         final long currentTime = System.nanoTime();
-        final long startTime = this.startTime.get();
+        final long startTime = getStartTime();
         final long age = currentTime - startTime;
         double result = accumulator.get();
-        if (age > INTERVAL.toNanos()) {
-            final long newStartTime = currentTime - age % INTERVAL.toNanos();
-            if (this.startTime.compareAndSet(startTime, newStartTime)) {
-                for (int i = 0; i < age / INTERVAL.toNanos(); i++)
+        if (age > measurementIntervalNanos) {
+            final long newStartTime = currentTime - age % measurementIntervalNanos;
+            if (setStartTime(startTime, newStartTime)) {
+                for (int i = 0; i < age / measurementIntervalNanos; i++)
                     result = getAverage();
             }
         } else if (Double.isNaN(result))
             result = 0D;
-        return result * PRECISION.toNanos();
+        return result * precisionNanos;
     }
 
 
     @Override
     public double applyAsDouble(final double value) {
         accept(value);
-        return getAsDouble();
+        return doubleValue();
     }
 
     /**
@@ -123,7 +114,8 @@ public final class ExponentialMovingAverage extends AtomicDouble implements Doub
      */
     @Override
     public void reset() {
-        this.startTime.set(System.nanoTime());
-        set(0D);
+        super.reset();
+        adder.set(0D);
+        accumulator.set(Double.NaN);
     }
 }

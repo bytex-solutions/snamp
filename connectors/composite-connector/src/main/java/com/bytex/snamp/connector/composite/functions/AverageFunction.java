@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import com.bytex.snamp.moa.ExponentialMovingAverage;
+import com.bytex.snamp.moa.DoubleEMA;
 
 import java.util.concurrent.TimeUnit;
 
@@ -11,15 +11,15 @@ import java.util.concurrent.TimeUnit;
  * @since 2.0
  */
 final class AverageFunction extends NumericFunction {
-    private final ExponentialMovingAverage avg;
+    private final DoubleEMA avg;
 
     AverageFunction(final long interval, final TimeUnit unit){
-        avg = new ExponentialMovingAverage(interval, unit);
+        avg = new DoubleEMA(interval, unit);
     }
 
     @Override
     double getFallbackValue() {
-        return avg.getAsDouble();
+        return avg.doubleValue();
     }
 
     @Override
