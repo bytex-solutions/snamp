@@ -5,6 +5,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.InstantSerializer;
+import com.bytex.snamp.json.RangeSerializer;
 import com.bytex.snamp.supervision.*;
 import com.bytex.snamp.supervision.elasticity.*;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
@@ -14,14 +15,13 @@ import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.bytex.snamp.web.serviceModel.WebMessage;
 import com.bytex.snamp.web.serviceModel.charts.HealthStatusSerializer;
+import com.google.common.collect.Range;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.annotation.Nonnull;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
- * Represents notification service.
+ * Represents operations to work with resource groups.
  * @author Roman Sakno
  * @since 2.0
  * @version 2.0
@@ -225,36 +225,74 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
                 .ifPresent(broadcastMessageSender);
     }
 
-    private static void resetHealthStatus(final SupervisorClient client) {
+    private static Response notFound(){
+        return Response.status(Response.Status.NOT_FOUND).build();
+    }
+
+    private static Response resetHealthStatus(final SupervisorClient client) {
         try {
             client.queryObject(HealthStatusProvider.class).ifPresent(HealthStatusProvider::reset);
         } finally {
             client.close();
         }
+        return Response.noContent().build();
     }
 
-    private static void resetElasticity(final SupervisorClient client){
+    private static Response resetElasticity(final SupervisorClient client){
         try {
             client.queryObject(ElasticityManager.class).ifPresent(ElasticityManager::reset);
         } finally {
             client.close();
         }
-    }
-
-    @POST
-    @Path("/groupStatus/reset")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response resetHealthStatus(final String groupName){
-        SupervisorClient.tryCreate(getBundleContext(), groupName).ifPresent(ResourceGroupWatcherService::resetHealthStatus);
         return Response.noContent().build();
     }
 
     @POST
-    @Path("/elasticity/reset")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response resetElasticity(final String groupName){
-        SupervisorClient.tryCreate(getBundleContext(), groupName).ifPresent(ResourceGroupWatcherService::resetElasticity);
-        return Response.noContent().build();
+    @Path("/{groupName}/groupStatus/reset")
+    public Response resetHealthStatus(@PathParam("groupName") final String groupName) {
+        return SupervisorClient.tryCreate(getBundleContext(), groupName)
+                .map(ResourceGroupWatcherService::resetHealthStatus)
+                .orElseGet(ResourceGroupWatcherService::notFound);
+    }
+
+    @POST
+    @Path("/{groupName}/elasticity/reset")
+    public Response resetElasticity(@PathParam("groupName") final String groupName) {
+        return SupervisorClient.tryCreate(getBundleContext(), groupName)
+                .map(ResourceGroupWatcherService::resetElasticity)
+                .orElseGet(ResourceGroupWatcherService::notFound);
+    }
+
+    private static Range<Double> getRecommendation(final SupervisorClient client, final String policyName) {
+        try {
+            return client.queryObject(ElasticityManager.class)
+                    .map(manager -> {
+                        final ScalingPolicy policy = manager.getPolicies().get(policyName);
+                        if (policy == null)
+                            throw new WebApplicationException(Response.Status.NOT_FOUND);
+                        else
+                            return Convert.toType(policy, AttributeBasedScalingPolicy.class)
+                                    .map(AttributeBasedScalingPolicy::getRecommendation)
+                                    .<WebApplicationException>orElseThrow(() -> new WebApplicationException(Response.Status.BAD_REQUEST));
+                    })
+                    .orElseThrow(() -> new WebApplicationException(501));
+        } finally {
+            client.close();
+        }
+    }
+
+    @GET
+    @Path("/{groupName}/scaling-policies/attribute-based/{policyName}/recommendation")
+    @Produces(MediaType.APPLICATION_JSON)
+    @JsonSerialize(using = RangeSerializer.class)
+    //501 error code if group supervisor doesn't provide elasticity manager
+    //400 error code if specified scaling policy name has invalid type (attribute-based policy is expected)
+    //404 if group supervisor or policy doesn't exist
+    public Range<Double> getRecommendation(@PathParam("groupName") final String groupName,
+                                           @PathParam("policyName") final String policyName) {
+        return SupervisorClient.tryCreate(getBundleContext(), groupName)
+                .map(client -> getRecommendation(client, policyName))
+                .orElseThrow(() -> new WebApplicationException(notFound()));
     }
 
     @Override
