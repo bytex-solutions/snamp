@@ -2,8 +2,10 @@ package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.moa.Correlation;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 
 import static com.bytex.snamp.moa.Q.getAvailability;
 
@@ -20,11 +22,13 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     private static final long serialVersionUID = 6146322787615499495L;
     private final Correlation rpsAndTimeCorrelation;  //correlation between rps and response time.
     private int channels;
+    private Instant startTime;
 
     public ArrivalsRecorder(final String name, final int samplingSize){
         super(name, samplingSize, NANOS_IN_SECOND);
         rpsAndTimeCorrelation = new Correlation();
         channels = 1;
+        startTime = Instant.now();
     }
 
     public ArrivalsRecorder(final String name){
@@ -34,6 +38,7 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     private ArrivalsRecorder(final ArrivalsRecorder source){
         super(source);
         rpsAndTimeCorrelation = source.rpsAndTimeCorrelation.clone();
+        startTime = source.startTime;
     }
 
     @Override
@@ -82,8 +87,12 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     @Override
     public double getEfficiency(){
         final double summaryDuration = toSeconds(getSummaryValue());
-        final double uptime = toSeconds(Duration.between(getStartTime(), Instant.now()));
+        final double uptime = toSeconds(Duration.between(startTime, Instant.now()));
         return Double.min(summaryDuration / uptime, 1D);
+    }
+
+    public final void setStartTime(@Nonnull final Instant value){
+        startTime = Objects.requireNonNull(value);
     }
 
     /**

@@ -110,10 +110,4 @@ public class Timeout implements Stateful, Serializable {
             action.accept(input1, input2);
         return expired;
     }
-
-    public final <I1, I2, O> Optional<O> applyIfExpired(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> action) {
-        return resetIfExpired() ?
-                Optional.ofNullable(action.apply(input1, input2)) :
-                Optional.empty();
-    }
 }

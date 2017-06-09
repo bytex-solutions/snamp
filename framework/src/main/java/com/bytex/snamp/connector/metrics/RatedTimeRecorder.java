@@ -34,14 +34,6 @@ public class RatedTimeRecorder extends TimeRecorder implements RatedTimer {
         rate = source.rate.clone();
     }
 
-    public final void setStartTime(final Instant startTime){
-        rate.setStartTime(startTime);
-    }
-
-    public final Instant getStartTime(){
-        return rate.getStartTime();
-    }
-
     @Override
     public RatedTimeRecorder clone() {
         return new RatedTimeRecorder(this);

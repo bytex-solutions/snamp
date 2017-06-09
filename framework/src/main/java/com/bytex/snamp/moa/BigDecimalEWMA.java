@@ -1,16 +1,20 @@
 package com.bytex.snamp.moa;
 
 import com.bytex.snamp.Stateful;
+import com.bytex.snamp.concurrent.Timeout;
+import com.google.common.util.concurrent.AtomicDouble;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 /**
@@ -23,33 +27,72 @@ import java.util.function.Supplier;
 public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, DoubleConsumer, Serializable, Supplier<BigDecimal>, Stateful, Cloneable {
     private static final long serialVersionUID = -8885874345563930420L;
 
+    private static final class IntervalMemory extends Timeout implements Supplier<BigDecimal> {
+        private static final long serialVersionUID = -3405864345563930421L;
+        private final AtomicReference<BigDecimal> memory;
+
+        private IntervalMemory(final Duration ttl) {
+            super(ttl);
+            memory = new AtomicReference<>(BigDecimal.ZERO);
+        }
+
+        private IntervalMemory(final IntervalMemory other) {
+            super(other.getTimeout());
+            memory = new AtomicReference<>(other.memory.get());
+        }
+
+        BigDecimal swap(final BigDecimal value) {
+            if(resetIfExpired())
+                return memory.getAndSet(value);
+            else{
+                memory.set(value);
+                return BigDecimal.ZERO;
+            }
+        }
+
+        @Override
+        public void reset() {
+            super.reset();
+            memory.set(BigDecimal.ZERO);
+        }
+
+        @Override
+        public BigDecimal get() {
+            super.reset();
+            return memory.getAndSet(BigDecimal.ZERO);
+        }
+    }
+
     private final AtomicReference<BigDecimal> adder;
     private final AtomicReference<BigDecimal> accumulator;
     private final MathContext context;
     private final BigDecimal precisionNanos;
     private final BigDecimal alpha;
     private final BigDecimal measurementIntervalNanos;
+    private final IntervalMemory memory;
 
-    private BigDecimalEWMA(final Duration meanLifetime,
-                           final MathContext context,
-                           final Duration precision,
-                           final Duration measurementInterval) {
-        super(meanLifetime, measurementInterval);
+    public BigDecimalEWMA(final Duration meanLifetime,
+                           final Duration measurementInterval,
+                           final Precision precision,
+                           final MathContext context) {
+        super(meanLifetime, measurementInterval, precision);
         adder = new AtomicReference<>(BigDecimal.ZERO);
         alpha = new BigDecimal(super.alpha, context);
         accumulator = new AtomicReference<>();
         this.context = Objects.requireNonNull(context);
-        precisionNanos = BigDecimal.valueOf(precision.toNanos());
+        precisionNanos = BigDecimal.valueOf(super.precisionNanos);
         measurementIntervalNanos = new BigDecimal(super.measurementIntervalNanos, context);
+        memory = new IntervalMemory(measurementInterval);
     }
 
+    /**
+     * Initializes a new average calculator with measurement interval of 1 second.
+     * @param meanLifetime Interval of time, over which the reading is said to be averaged. Cannot be {@literal null}.
+     * @param context Settings which describe certain rules for numerical operators, such as those implemented by the {@link BigDecimal} class.
+     */
     public BigDecimalEWMA(final Duration meanLifetime,
-                          final MathContext context){
-        this(meanLifetime, context, DEFAULT_PRECISION, DEFAULT_INTERVAL);
-    }
-
-    public BigDecimalEWMA(final long meanLifetime, final TemporalUnit unit, final MathContext context){
-        this(Duration.of(meanLifetime, unit), context);
+                          final MathContext context) {
+        this(meanLifetime, Duration.ofSeconds(1), Precision.SECOND, context);
     }
 
     private BigDecimalEWMA(final BigDecimalEWMA other) {
@@ -60,6 +103,7 @@ public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, 
         precisionNanos = other.precisionNanos;
         alpha = other.alpha;
         measurementIntervalNanos = other.measurementIntervalNanos;
+        memory = new IntervalMemory(other.memory);
     }
 
     /**
@@ -78,7 +122,10 @@ public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, 
     }
 
     private BigDecimal getAverage() {
-        final BigDecimal instantCount = adder.getAndSet(BigDecimal.ZERO).divide(measurementIntervalNanos, context);
+        final BigDecimal instantCount = adder
+                .getAndSet(BigDecimal.ZERO)
+                .add(memory.get())
+                .divide(measurementIntervalNanos, context);
         if (accumulator.compareAndSet(null, instantCount)) //first time set
             return instantCount;
         else {
@@ -91,8 +138,7 @@ public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, 
         }
     }
 
-    @Override
-    public void accept(final BigDecimal value) {
+    public void append(final BigDecimal value){
         BigDecimal next, prev;
         do {
             prev = adder.get();
@@ -101,8 +147,18 @@ public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, 
     }
 
     @Override
-    public void accept(double value) {
-        accept(BigDecimal.valueOf(value));
+    public void append(final double value) {
+        append(new BigDecimal(value, context));
+    }
+
+    @Override
+    public void accept(final BigDecimal value) {
+        append(memory.swap(value));
+    }
+
+    @Override
+    public void accept(final double value) {
+        accept(new BigDecimal(value, context));
     }
 
     @Override

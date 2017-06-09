@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.TimeLimitedLong;
+import com.bytex.snamp.moa.EWMA;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
@@ -20,19 +21,19 @@ import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 public class RateRecorder extends AbstractMetric implements Rate {
     private static final long serialVersionUID = -6735931494509416689L;
     private final MetricsIntervalMap<TimeLimitedLong> lastRate;
+    private final MetricsIntervalMap<EWMA> meanRate;
     private final MetricsIntervalMap<AtomicLong> maxRate;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerSecond;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerMinute;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePer12Hours;
     private final AtomicLong totalRate;
-    private final AtomicReference<Instant> startTime;
 
     public RateRecorder(final String name){
         super(name);
+        meanRate = new MetricsIntervalMap<>(MetricsInterval::createEMA);
         totalRate = new AtomicLong(0L);
         lastRate = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
         maxRate = new MetricsIntervalMap<>(interval -> new AtomicLong(0L));
-        startTime = new AtomicReference<>(Instant.now());
         lastMaxRatePerSecond = new MetricsIntervalMap<>(MetricsInterval.SECOND.greater(), interval -> interval.createLongPeakDetector(0L));
         lastMaxRatePerMinute = new MetricsIntervalMap<>(MetricsInterval.MINUTE.greater(), interval -> interval.createLongPeakDetector(0L));
         lastMaxRatePer12Hours = new MetricsIntervalMap<>(MetricsInterval.HALF_DAY.greater(), interval -> interval.createLongPeakDetector(0L));
@@ -40,13 +41,13 @@ public class RateRecorder extends AbstractMetric implements Rate {
 
     protected RateRecorder(final RateRecorder source) {
         super(source);
-        startTime = new AtomicReference<>(source.getStartTime());
         totalRate = new AtomicLong(source.totalRate.get());
         maxRate = new MetricsIntervalMap<>(source.maxRate, al -> new AtomicLong(al.get()));
         lastRate = new MetricsIntervalMap<>(source.lastRate, TimeLimitedLong::clone);
         lastMaxRatePerSecond = new MetricsIntervalMap<>(source.lastMaxRatePerSecond, TimeLimitedLong::clone);
         lastMaxRatePerMinute = new MetricsIntervalMap<>(source.lastMaxRatePerMinute, TimeLimitedLong::clone);
         lastMaxRatePer12Hours = new MetricsIntervalMap<>(source.lastMaxRatePer12Hours, TimeLimitedLong::clone);
+        meanRate = new MetricsIntervalMap<EWMA>(source.meanRate, EWMA::clone);
     }
 
     @Override
@@ -57,6 +58,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
     public void mark() {
         totalRate.incrementAndGet();
         for (final MetricsInterval interval : ALL_INTERVALS) {
+            meanRate.get(interval).append(1);
             final long lastRate = this.lastRate.getAsLong(interval, TimeLimitedLong::updateByOne);
             maxRate.acceptAsLong(interval, lastRate, (counter, lr) -> counter.accumulateAndGet(lr, Math::max));
             switch (interval){
@@ -73,14 +75,6 @@ public class RateRecorder extends AbstractMetric implements Rate {
 
     private static Instant minInstant(final Instant current, final Instant provided){
         return current.compareTo(provided) < 0 ? current : provided;
-    }
-
-    final Instant getStartTime(){
-        return startTime.get();
-    }
-
-    public final void setStartTime(final Instant value) {
-        startTime.accumulateAndGet(value, RateRecorder::minInstant);
     }
 
     /**
@@ -112,8 +106,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
      */
     @Override
     public final double getMeanRate(final MetricsInterval scale) {
-        final Duration timeline = Duration.between(startTime.get(), Instant.now());
-        return getTotalRate() / scale.divide(timeline);
+        return meanRate.get(scale).doubleValue();
     }
 
     @Override

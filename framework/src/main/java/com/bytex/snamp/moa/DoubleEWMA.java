@@ -1,11 +1,13 @@
 package com.bytex.snamp.moa;
 
 import com.bytex.snamp.Stateful;
+import com.bytex.snamp.concurrent.TimeLimitedDouble;
+import com.bytex.snamp.concurrent.Timeout;
 import com.google.common.util.concurrent.AtomicDouble;
 
 import java.time.Duration;
-import java.time.temporal.TemporalUnit;
 import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.DoubleUnaryOperator;
 
 /**
@@ -15,39 +17,71 @@ import java.util.function.DoubleUnaryOperator;
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average">Exponential moving average</a>
  */
-public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, DoubleUnaryOperator, Cloneable {
+public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, Cloneable {
     private static final long serialVersionUID = -8885874345563930420L;
+
+    private static final class IntervalMemory extends Timeout implements DoubleSupplier {
+        private static final long serialVersionUID = -3405864345563930421L;
+        private final AtomicDouble memory;
+
+        private IntervalMemory(final Duration ttl) {
+            super(ttl);
+            memory = new AtomicDouble(0D);
+        }
+
+        private IntervalMemory(final IntervalMemory other) {
+            super(other.getTimeout());
+            memory = new AtomicDouble(other.memory.get());
+        }
+
+        double swap(final double value) {
+            if(resetIfExpired())
+                return memory.getAndSet(value);
+            else {
+                memory.set(value);
+                return 0D;
+            }
+        }
+
+        @Override
+        public void reset() {
+            super.reset();
+            memory.set(0D);
+        }
+
+        @Override
+        public double getAsDouble() {
+            super.reset();
+            return memory.getAndSet(0D);
+        }
+    }
 
     private final AtomicDouble adder;
     private final AtomicDouble accumulator;
-    private final long precisionNanos;
+    private final IntervalMemory memory;
 
-    private DoubleEWMA(final Duration meanLifetime,
-                       final Duration precision,
-                       final Duration measurementInterval) {
-        super(meanLifetime, measurementInterval);
+    public DoubleEWMA(final Duration meanLifetime,
+                       final Duration measurementInterval,
+                       final Precision precision) {
+        super(meanLifetime, measurementInterval, precision);
         adder = new AtomicDouble(0D);
         accumulator = new AtomicDouble(Double.NaN);
-        precisionNanos = precision.toNanos();
+        memory = new IntervalMemory(measurementInterval);
     }
 
     /**
-     * Initializes a new average calculator.
+     * Initializes a new average calculator with measurement interval of 1 second.
      * @param meanLifetime Interval of time, over which the reading is said to be averaged. Cannot be {@literal null}.
      */
     public DoubleEWMA(final Duration meanLifetime){
-        this(meanLifetime, DEFAULT_PRECISION, DEFAULT_INTERVAL);
+        this(meanLifetime, Duration.ofSeconds(1), Precision.SECOND);
     }
 
-    public DoubleEWMA(final long interval, final TemporalUnit unit) {
-        this(Duration.of(interval, unit), DEFAULT_PRECISION, DEFAULT_INTERVAL);
-    }
-
-    private DoubleEWMA(final DoubleEWMA source){
+    private DoubleEWMA(final DoubleEWMA source) {
         super(source);
         adder = new AtomicDouble(source.adder.get());
         accumulator = new AtomicDouble(source.accumulator.get());
-        precisionNanos = source.precisionNanos;
+        memory = new IntervalMemory(source.memory);
     }
 
     public DoubleEWMA clone(){
@@ -55,8 +89,8 @@ public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, 
     }
 
     private double getAverage() {
-        final double instantCount = adder.getAndSet(0D) / measurementIntervalNanos;
-        if(accumulator.compareAndSet(Double.NaN, instantCount)) //first time set
+        final double instantCount = (memory.getAsDouble() + adder.getAndSet(0D)) / measurementIntervalNanos;
+        if (accumulator.compareAndSet(Double.NaN, instantCount)) //first time set
             return instantCount;
         else {
             double next, prev;
@@ -68,14 +102,14 @@ public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, 
         }
     }
 
-    /**
-     * Performs this operation on the given argument.
-     *
-     * @param value the input argument
-     */
+    @Override
+    public void append(double value) {
+        adder.addAndGet(value);
+    }
+
     @Override
     public void accept(final double value) {
-        adder.addAndGet(value);
+        append(memory.swap(value));
     }
 
     /**
@@ -99,13 +133,6 @@ public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, 
         return result * precisionNanos;
     }
 
-
-    @Override
-    public double applyAsDouble(final double value) {
-        accept(value);
-        return doubleValue();
-    }
-
     /**
      * Resets internal state of the object.
      */
@@ -114,5 +141,6 @@ public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, 
         super.reset();
         adder.set(0D);
         accumulator.set(Double.NaN);
+        memory.reset();
     }
 }
