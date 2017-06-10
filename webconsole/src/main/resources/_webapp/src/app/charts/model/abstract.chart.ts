@@ -82,6 +82,8 @@ export abstract class AbstractChart {
 
     abstract get type():string;
 
+    public resize():void {}; // redraw if the chart drawing does not support autoresizing
+
     constructor() {
         this.preferences["gridcfg"] = {};
         this.preferences["gridcfg"]['dragHandle'] = '.handle';

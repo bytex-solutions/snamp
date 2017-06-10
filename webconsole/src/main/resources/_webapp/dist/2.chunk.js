@@ -41,7 +41,6 @@ __webpack_require__("./node_modules/select2/dist/js/select2.js");
 var scaling_rate_chart_1 = __webpack_require__("./src/app/charts/model/scaling.rate.chart.ts");
 var abstract_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.chart.attributes.values.ts");
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
-var voting_result_chart_1 = __webpack_require__("./src/app/charts/model/charts/voting.result.chart.ts");
 var Dashboard = (function () {
     function Dashboard(http, overlay, vcRef, _chartService, cd, route) {
         this.http = http;
@@ -388,6 +387,7 @@ var Dashboard = (function () {
         if (index != undefined && this._charts[index] != undefined) {
             this._charts[index].preferences["gridcfg"] = event;
             this._chartService.saveDashboard();
+            this._charts[index].resize();
         }
     };
     Dashboard.prototype.removeChart = function (chartName) {
@@ -405,7 +405,7 @@ var Dashboard = (function () {
         $('#toggleDraw' + chart.id + ' i').attr('class', chart.updateStopped ? 'fa fa-play-circle-o' : 'fa fa-pause-circle-o');
     };
     Dashboard.prototype.isSvgType = function (chart) {
-        return chart instanceof abstract_line_based_chart_1.SeriesBasedChart || chart instanceof scaling_rate_chart_1.ScalingRateChart || chart instanceof voting_result_chart_1.VotingResultChart;
+        return chart instanceof abstract_line_based_chart_1.SeriesBasedChart || chart instanceof scaling_rate_chart_1.ScalingRateChart;
     };
     Dashboard.prototype.isDivType = function (chart) {
         return chart instanceof panel_attributes_values_1.PanelOfAttributeValues || chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart;

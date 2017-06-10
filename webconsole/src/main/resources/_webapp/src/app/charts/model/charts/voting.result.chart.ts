@@ -3,7 +3,7 @@ import { NumericAxis } from "../axis/numeric.axis";
 import { Axis } from "../axis/abstract.axis";
 import { VotingData } from "../data/voting.data";
 
-const c3 = require('c3');
+import { RadialGauge } from 'canvas-gauges';
 
 export class VotingResultChart extends AbstractChart {
 
@@ -24,55 +24,51 @@ export class VotingResultChart extends AbstractChart {
 
     draw(): void {
         if (this.chartData == undefined || this.chartData.length == 0) return;
-        let _chartId:string = "#" + this.id;
         let _voteIntervalTick:any = (<VotingData>this.chartData[0]).castingVote;
         let _currentValue:any = (<VotingData>this.chartData[0]).votingResult;
-        this._chart = c3.generate({
-            bindto: _chartId,
-            data: {
-                columns: [
-                    ['data', _currentValue]
-                ],
-                type: 'gauge',
-                onclick: function (d, i) { console.log("onclick", d, i); },
-                onmouseover: function (d, i) { console.log("onmouseover", d, i); },
-                onmouseout: function (d, i) { console.log("onmouseout", d, i); }
-            },
-            gauge: {
-                min: _voteIntervalTick * (-2),
-                max: _voteIntervalTick * 2,
-//        label: {
-//            format: function(value, ratio) {
-//                return value;
-//            },
-//            show: false // to turn off the min/max labels.
-//        },
-//    min: 0, // 0 is default, //can handle negative min e.g. vacuum / voltage / current flow / rate of change
-//    max: 100, // 100 is default
-//    units: ' %',
-//    width: 39 // for adjusting arc thickness
-            },
-            color: {
-                pattern: ['#2db62d', '#ffffff', '#d9463e'], // the three color levels for the percentage values.
-                threshold: {
-                 unit: 'value', // percentage is default
-                // max: 4*_voteIntervalTick, // 100 is default
-                 values: [ -_voteIntervalTick, 0,  _voteIntervalTick]
-                }
-            },
-        });
+
+        let _parent = $("#" + this.id).parent();
+        let _width = _parent.width();
+        let _height = _parent.height();
+
+        let opts = {
+            height: _height,
+            width: _width,
+            value: _currentValue,
+            colorPlate: '#F0F0F0',
+            colorNeedle: 'rgba(240, 128, 128, 1)',
+            colorNeedleEnd: 'rgba(255, 160, 122, .9)',
+            valueBox: false,
+            renderTo: this.id,
+            title: this.group,
+            minValue: -2 * _voteIntervalTick,
+            maxValue: 2 * _voteIntervalTick,
+            highlights:[
+                {"from": -_voteIntervalTick*2, "to": -_voteIntervalTick, "color": "#ff2211"},
+                {"from": -_voteIntervalTick, "to": _voteIntervalTick, "color": "#ffffff"},
+                {"from": _voteIntervalTick, "to": _voteIntervalTick*2, "color": "#00ff00"},
+            ]
+        };
+        this._chart = new RadialGauge(opts).draw(); // create sexy gauge!
     }
 
     newValues(_data: VotingData[]) {
-        console.log("New voting result data is: ", _data);
         this.chartData = _data;
         if (this._chart != undefined && !document.hidden) {
-            this._chart.load({
-                columns: [['data', _data[0].votingResult]]
-            });
+           this._chart.value = _data[0].votingResult;
         } else {
             this.draw();
         }
+    }
+
+    public resize():void {
+        let _thisReference = this;
+        setTimeout(function(){
+            let _parent = $("#" + _thisReference.id).parent();
+            let _width = _parent.width();
+            let _height = _parent.height();
+            _thisReference._chart.update({height: _height, width: _width,});
+        }, 400);
     }
 
     public getAxisX():Axis {

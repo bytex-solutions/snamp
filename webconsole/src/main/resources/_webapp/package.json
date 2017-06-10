@@ -110,7 +110,8 @@
     "angular2-jwt": "0.2.2",
     "chart.js": "2.4.0",
     "jstree": "3.0.3",
-    "c3": "0.4.12"
+    "canvas-gauges": "2.1.0",
+    "@types/canvas-gauges": "2.1.0"
   },
   "devDependencies": {
     "@types/hammerjs": "^2.0.33",

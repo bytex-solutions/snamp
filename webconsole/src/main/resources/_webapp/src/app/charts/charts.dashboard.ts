@@ -427,6 +427,7 @@ export class Dashboard {
         if (index != undefined && this._charts[index] != undefined) {
             this._charts[index].preferences["gridcfg"] = event;
             this._chartService.saveDashboard();
+            this._charts[index].resize();
         }
     }
 
@@ -449,7 +450,7 @@ export class Dashboard {
     }
 
     isSvgType(chart:AbstractChart):boolean {
-        return chart instanceof SeriesBasedChart || chart instanceof ScalingRateChart || chart instanceof VotingResultChart;
+        return chart instanceof SeriesBasedChart || chart instanceof ScalingRateChart;
     }
 
     isDivType(chart:AbstractChart):boolean {
