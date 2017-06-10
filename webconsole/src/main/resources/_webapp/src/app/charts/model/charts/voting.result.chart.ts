@@ -18,18 +18,20 @@ export class VotingResultChart extends AbstractChart {
 
     constructor() {
         super();
-        this.setSizeX(15);
-        this.setSizeY(15);
+        this.setSizeX(8);
+        this.setSizeY(4);
     }
 
     draw(): void {
         if (this.chartData == undefined || this.chartData.length == 0) return;
         let _chartId:string = "#" + this.id;
+        let _voteIntervalTick:any = (<VotingData>this.chartData[0]).castingVote;
+        let _currentValue:any = (<VotingData>this.chartData[0]).votingResult;
         this._chart = c3.generate({
             bindto: _chartId,
             data: {
                 columns: [
-                    ['data', 91.4]
+                    ['data', _currentValue]
                 ],
                 type: 'gauge',
                 onclick: function (d, i) { console.log("onclick", d, i); },
@@ -37,28 +39,27 @@ export class VotingResultChart extends AbstractChart {
                 onmouseout: function (d, i) { console.log("onmouseout", d, i); }
             },
             gauge: {
+                min: _voteIntervalTick * (-2),
+                max: _voteIntervalTick * 2,
 //        label: {
 //            format: function(value, ratio) {
 //                return value;
 //            },
 //            show: false // to turn off the min/max labels.
 //        },
-    min: 0, // 0 is default, //can handle negative min e.g. vacuum / voltage / current flow / rate of change
-    max: 100, // 100 is default
+//    min: 0, // 0 is default, //can handle negative min e.g. vacuum / voltage / current flow / rate of change
+//    max: 100, // 100 is default
 //    units: ' %',
 //    width: 39 // for adjusting arc thickness
             },
             color: {
-                pattern: ['#FF0000', '#F97600', '#F6C600', '#60B044'], // the three color levels for the percentage values.
+                pattern: ['#2db62d', '#ffffff', '#d9463e'], // the three color levels for the percentage values.
                 threshold: {
-//            unit: 'value', // percentage is default
-//            max: 200, // 100 is default
-                    values: [30, 60, 90, 100]
+                 unit: 'value', // percentage is default
+                // max: 4*_voteIntervalTick, // 100 is default
+                 values: [ -_voteIntervalTick, 0,  _voteIntervalTick]
                 }
             },
-            size: {
-                height: 180
-            }
         });
     }
 
@@ -67,7 +68,7 @@ export class VotingResultChart extends AbstractChart {
         this.chartData = _data;
         if (this._chart != undefined && !document.hidden) {
             this._chart.load({
-                columns: [['data', _data[0]]]
+                columns: [['data', _data[0].votingResult]]
             });
         } else {
             this.draw();
