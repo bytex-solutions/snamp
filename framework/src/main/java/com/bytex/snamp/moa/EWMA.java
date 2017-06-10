@@ -5,16 +5,13 @@ import com.bytex.snamp.Stateful;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.DoubleConsumer;
-import java.util.function.ToDoubleBiFunction;
-import java.util.function.ToDoubleFunction;
 import java.util.function.ToLongFunction;
 
 /**
- * Represents basic class for all implementations of exponntial moving average.
+ * Represents basic class for all implementations of exponential moving average.
  * @author Roman Sakno
  * @since 2.0.
  * @version 2.0
