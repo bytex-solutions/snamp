@@ -449,11 +449,11 @@ export class Dashboard {
     }
 
     isSvgType(chart:AbstractChart):boolean {
-        return chart instanceof SeriesBasedChart || chart instanceof ScalingRateChart;
+        return chart instanceof SeriesBasedChart || chart instanceof ScalingRateChart || chart instanceof VotingResultChart;
     }
 
     isDivType(chart:AbstractChart):boolean {
-        return chart instanceof PanelOfAttributeValues || chart instanceof ResourceGroupHealthStatusChart || chart instanceof VotingResultChart;
+        return chart instanceof PanelOfAttributeValues || chart instanceof ResourceGroupHealthStatusChart;
     }
 
     isCanvasType(chart:AbstractChart):boolean {

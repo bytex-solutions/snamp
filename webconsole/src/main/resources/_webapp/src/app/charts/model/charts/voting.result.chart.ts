@@ -24,7 +24,9 @@ export class VotingResultChart extends AbstractChart {
 
     draw(): void {
         if (this.chartData == undefined || this.chartData.length == 0) return;
+        let _chartId:string = "#" + this.id;
         this._chart = c3.generate({
+            bindto: _chartId,
             data: {
                 columns: [
                     ['data', 91.4]

@@ -405,10 +405,10 @@ var Dashboard = (function () {
         $('#toggleDraw' + chart.id + ' i').attr('class', chart.updateStopped ? 'fa fa-play-circle-o' : 'fa fa-pause-circle-o');
     };
     Dashboard.prototype.isSvgType = function (chart) {
-        return chart instanceof abstract_line_based_chart_1.SeriesBasedChart || chart instanceof scaling_rate_chart_1.ScalingRateChart;
+        return chart instanceof abstract_line_based_chart_1.SeriesBasedChart || chart instanceof scaling_rate_chart_1.ScalingRateChart || chart instanceof voting_result_chart_1.VotingResultChart;
     };
     Dashboard.prototype.isDivType = function (chart) {
-        return chart instanceof panel_attributes_values_1.PanelOfAttributeValues || chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart || chart instanceof voting_result_chart_1.VotingResultChart;
+        return chart instanceof panel_attributes_values_1.PanelOfAttributeValues || chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart;
     };
     Dashboard.prototype.isCanvasType = function (chart) {
         return !this.isDivType(chart) && !this.isSvgType(chart);
