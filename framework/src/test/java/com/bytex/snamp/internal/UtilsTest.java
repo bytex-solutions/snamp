@@ -70,7 +70,7 @@ public final class UtilsTest extends Assert {
     @Test
     public void reflectSetterTest() throws ReflectiveOperationException{
         final Box<String> box = Box.of("");
-        final Consumer<String> setter = reflectSetter(MethodHandles.lookup(), box, box.getClass().getDeclaredMethod("set", Object.class));
+        final Consumer<String> setter = reflectSetter(MethodHandles.lookup(), box, Box.class.getDeclaredMethod("set", Object.class));
         setter.accept("Frank Underwood");
         assertEquals("Frank Underwood", box.get());
     }

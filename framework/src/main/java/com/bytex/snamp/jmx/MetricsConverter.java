@@ -70,13 +70,6 @@ public final class MetricsConverter {
     private static final String MEAN_RATE_PER_HOUR_FIELD = "meanRatePerHour";
     private static final String MEAN_RATE_PER_12_HOURS_FIELD = "meanRatePer12Hours";
     private static final String MEAN_RATE_PER_DAY_FIELD = "meanRatePerDay";
-    private static final String MEAN_RATE_FOR_LAST_SECOND_FIELD = "meanRateLastSecond";
-    private static final String MEAN_RATE_FOR_LAST_MINUTE_FIELD = "meanRateLastMinute";
-    private static final String MEAN_RATE_FOR_LAST_5_MINUTES_FIELD = "meanRateLast5Minutes";
-    private static final String MEAN_RATE_FOR_LAST_15_MINUTES_FIELD = "meanRateLast15Minutes";
-    private static final String MEAN_RATE_FOR_LAST_HOUR_FIELD = "meanRateLastHour";
-    private static final String MEAN_RATE_FOR_LAST_12_HOURS_FIELD = "meanRateLast12Hours";
-    private static final String MEAN_RATE_FOR_LAST_DAY_FIELD = "meanRateLastDay";
     private static final String RATE_FOR_LAST_SECOND_FIELD = "rateLastSecond";
     private static final String RATE_FOR_LAST_MINUTE_FIELD = "rateLastMinute";
     private static final String RATE_FOR_LAST_5_MINUTES_FIELD = "rateLast5Minutes";
@@ -382,14 +375,6 @@ public final class MetricsConverter {
      */
     public static final CompositeType RATE_TYPE = staticInit(() -> new CompositeTypeBuilder("com.bytex.snamp.metrics.Rate", "Rate counter")
         .addItem(TOTAL_RATE_FIELD, "Total rate", SimpleType.LONG)
-            //mean rate for the last time
-        .addItem(MEAN_RATE_FOR_LAST_SECOND_FIELD, "Mean rate per second computed for the last second", SimpleType.DOUBLE)
-        .addItem(MEAN_RATE_FOR_LAST_MINUTE_FIELD, "Mean rate per second computed for the last minute", SimpleType.DOUBLE)
-            .addItem(MEAN_RATE_FOR_LAST_5_MINUTES_FIELD, "Mean rate per second computed for the last 5 minutes", SimpleType.DOUBLE)
-            .addItem(MEAN_RATE_FOR_LAST_15_MINUTES_FIELD, "Mean rate per second computed for the last 15 minutes", SimpleType.DOUBLE)
-            .addItem(MEAN_RATE_FOR_LAST_HOUR_FIELD, "Mean rate per second computed for the last hour", SimpleType.DOUBLE)
-            .addItem(MEAN_RATE_FOR_LAST_12_HOURS_FIELD, "Mean rate per second computed for the last 12 hours", SimpleType.DOUBLE)
-            .addItem(MEAN_RATE_FOR_LAST_DAY_FIELD, "Mean rate per second computed for the last day", SimpleType.DOUBLE)
             //mean rate
             .addItem(MEAN_RATE_PER_SECOND_FIELD, "Mean rate per second", SimpleType.DOUBLE)
             .addItem(MEAN_RATE_PER_MINUTE_FIELD, "Mean rate per minute", SimpleType.DOUBLE)
