@@ -23,6 +23,11 @@ import java.util.function.BinaryOperator;
 public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable {
     SECOND(1, ChronoUnit.SECONDS){
         @Override
+        EWMA createEMA() {
+            return new DoubleEWMA(duration, Duration.ofMillis(10), EWMA.Precision.MILLIS);
+        }
+
+        @Override
         public String toString() {
             return "Second";
         }
@@ -86,7 +91,7 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
         return TimeLimitedLong.peak(initialValue, duration);
     }
 
-    final EWMA createEMA(){
+    EWMA createEMA(){
         return new DoubleEWMA(duration);
     }
 

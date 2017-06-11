@@ -68,6 +68,11 @@ public class RangedTimerRecorder extends AbstractRangedRecorder implements Range
         return timer.getMaxValue();
     }
 
+    @Override
+    public final Duration getSummaryValue(final MetricsInterval interval) {
+        return timer.getSummaryValue(interval);
+    }
+
     /**
      * Gets maximum value for the last period.
      *

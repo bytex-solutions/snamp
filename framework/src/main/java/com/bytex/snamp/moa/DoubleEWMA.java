@@ -33,7 +33,7 @@ public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, 
         }
 
         double swap(final double value) {
-            if(resetIfExpired())
+            if(resetTimerIfExpired())
                 return memory.getAndSet(value);
             else {
                 memory.set(value);

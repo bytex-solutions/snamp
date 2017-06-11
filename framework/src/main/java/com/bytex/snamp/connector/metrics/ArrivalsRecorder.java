@@ -57,17 +57,15 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
         return new ArrivalsRecorder(this);
     }
 
-    private static double toSeconds(final Duration value){
+    private static double toSeconds(final Duration value) {
         //value.toMillis() may return 0 when duration is less than 1 second
-        return value.toNanos() / NANOS_IN_SECOND;
+        return value.getSeconds() + value.getNano() / NANOS_IN_SECOND;
     }
 
     @Override
     protected void writeValue(final Duration value) {
         super.writeValue(value);
-        final double lastMeanRate = getLastRate(MetricsInterval.SECOND);
-        final double lastMeanResponseTime = toSeconds(getLastMeanValue(MetricsInterval.SECOND));
-        rpsAndTimeCorrelation.applyAsDouble(/*rps*/lastMeanRate, /*response time*/lastMeanResponseTime);
+        rpsAndTimeCorrelation.applyAsDouble(getTotalRate(), toSeconds(getSummaryValue()));
     }
 
     @Override

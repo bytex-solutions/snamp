@@ -1,6 +1,8 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.io.IOUtils;
+import com.google.common.collect.BoundType;
+import com.google.common.collect.Range;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,6 +19,7 @@ public final class ArrivalsTest extends Assert {
     @Test
     public void correlationTest() throws InterruptedException {
         final ArrivalsRecorder recorder = new ArrivalsRecorder("testGauge");
+        Thread.sleep(1001);
         recorder.accept(Duration.ofSeconds(1L));
         recorder.accept(Duration.ofSeconds(1L));
         assertEquals(2, recorder.getTotalRate());
@@ -29,8 +32,7 @@ public final class ArrivalsTest extends Assert {
         recorder.accept(Duration.ofSeconds(3L));
         recorder.accept(Duration.ofSeconds(3L));
         recorder.accept(Duration.ofSeconds(3L));
-        Thread.sleep(1001);
-        assertEquals(0.93D, recorder.getCorrelation(), 0.01D);
+        assertEquals(0.99D, recorder.getCorrelation(), 0.01D);
     }
 
     @Test
@@ -41,9 +43,8 @@ public final class ArrivalsTest extends Assert {
         recorder.accept(Duration.ofSeconds(1L));
         recorder.accept(Duration.ofSeconds(2L));
         Thread.sleep(1001);
-        final double avail = recorder.getLastMeanAvailability(MetricsInterval.SECOND) * 100;
-        assertTrue(avail > 0D);
-        assertTrue(avail < 1D);
+        final double avail = recorder.getLastMeanAvailability(MetricsInterval.SECOND);
+        assertTrue(Range.range(0D, BoundType.CLOSED, 1D, BoundType.CLOSED).contains(avail));
     }
 
     @Test

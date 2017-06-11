@@ -54,6 +54,13 @@ public interface Timer extends Gauge<Duration> {
 
     Duration getMeanValue();
 
+    /**
+     * Gets summary duration of all events for the last time.
+     * @param interval Interval of measurement.
+     * @return Summary duration of all events for the last time.
+     */
+    Duration getSummaryValue(final MetricsInterval interval);
+
     @Override
     Timer clone();
 }

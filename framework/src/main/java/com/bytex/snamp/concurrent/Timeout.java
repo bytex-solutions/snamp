@@ -82,7 +82,7 @@ public class Timeout implements Stateful, Serializable {
      * @return {@literal true}, if this timeout is reached; otherwise {@literal false}.
      * @implNote This method changes the internal state of the object.
      */
-    protected final boolean resetIfExpired() {
+    protected final boolean resetTimerIfExpired() {
         final long ticks = timer.get();
         final long now = System.currentTimeMillis();
         return now - ticks > timeout && timer.compareAndSet(ticks, now);
@@ -90,21 +90,21 @@ public class Timeout implements Stateful, Serializable {
 
     public final boolean runIfExpired(final Runnable action){
         final boolean expired;
-        if(expired = resetIfExpired())
+        if(expired = resetTimerIfExpired())
             action.run();
         return expired;
     }
 
     public final <I> boolean acceptIfExpired(final I input, final Consumer<? super I> action) {
         final boolean expired;
-        if (expired = resetIfExpired())
+        if (expired = resetTimerIfExpired())
             action.accept(input);
         return expired;
     }
 
     public final <I1, I2> boolean acceptIfExpired(final I1 input1, final I2 input2, final BiConsumer<? super I1, ? super I2> action){
         final boolean expired;
-        if(expired = resetIfExpired())
+        if(expired = resetTimerIfExpired())
             action.accept(input1, input2);
         return expired;
     }

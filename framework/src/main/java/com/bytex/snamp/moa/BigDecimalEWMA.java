@@ -38,7 +38,7 @@ public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, 
         }
 
         BigDecimal swap(final BigDecimal value) {
-            if(resetIfExpired())
+            if(resetTimerIfExpired())
                 return memory.getAndSet(value);
             else{
                 memory.set(value);
