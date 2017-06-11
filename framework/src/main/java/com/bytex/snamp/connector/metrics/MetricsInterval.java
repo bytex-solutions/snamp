@@ -24,7 +24,7 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
     SECOND(1, ChronoUnit.SECONDS){
         @Override
         EWMA createEMA() {
-            return new DoubleEWMA(duration, Duration.ofMillis(10), EWMA.Precision.MILLIS);
+            return new DoubleEWMA(duration, Duration.ofMillis(10), ChronoUnit.MILLIS);
         }
 
         @Override

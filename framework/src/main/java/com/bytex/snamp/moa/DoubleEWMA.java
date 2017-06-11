@@ -5,6 +5,8 @@ import com.bytex.snamp.concurrent.Timeout;
 import com.google.common.util.concurrent.AtomicDouble;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 
@@ -28,7 +30,7 @@ public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, 
         }
 
         private IntervalMemory(final IntervalMemory other) {
-            super(other.getTimeout());
+            super(other);
             memory = new AtomicDouble(other.memory.get());
         }
 
@@ -60,7 +62,7 @@ public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, 
 
     public DoubleEWMA(final Duration meanLifetime,
                        final Duration measurementInterval,
-                       final Precision precision) {
+                       final TemporalUnit precision) {
         super(meanLifetime, measurementInterval, precision);
         adder = new AtomicDouble(0D);
         accumulator = new AtomicDouble(Double.NaN);
@@ -72,7 +74,7 @@ public final class DoubleEWMA extends EWMA implements DoubleConsumer, Stateful, 
      * @param meanLifetime Interval of time, over which the reading is said to be averaged. Cannot be {@literal null}.
      */
     public DoubleEWMA(final Duration meanLifetime){
-        this(meanLifetime, Duration.ofSeconds(1), Precision.SECOND);
+        this(meanLifetime, Duration.ofSeconds(1), ChronoUnit.SECONDS);
     }
 
     private DoubleEWMA(final DoubleEWMA source) {

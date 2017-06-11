@@ -24,31 +24,39 @@ public class Timeout implements Stateful, Serializable {
     private static final long serialVersionUID = -3419420505943412983L;
     private final AtomicLong timer;
 
-    /**
-     * Time-to-live of the value in this accumulator, in millis.
-     */
-    private final long timeout;
 
-    private Timeout(final long timeoutInMillis){
-        timeout = timeoutInMillis;
-        setLocalTime(timer = new AtomicLong());
+    /**
+     * Minimum possible value of timeout controller.
+     */
+    public static final Duration MIN_VALUE = Duration.ofNanos(1L);
+
+    /**
+     * Time-to-live of the value in this accumulator, in nanos.
+     */
+    private final long timeoutNanos;
+
+    private Timeout(final long timeoutNanos) {
+        if (timeoutNanos < MIN_VALUE.toNanos())
+            throw new IllegalArgumentException(String.format("Timeout cannot be less than %s", MIN_VALUE));
+        this.timeoutNanos = timeoutNanos;
+        setLocalTime(timer = new AtomicLong(0L));
     }
 
     public Timeout(final Duration ttl){
-        this(ttl.toMillis());
+        this(ttl.toNanos());
     }
 
-    Timeout(final Timeout source){
+    protected Timeout(final Timeout source) {
+        timeoutNanos = source.timeoutNanos;
         timer = new AtomicLong(source.timer.get());
-        timeout = source.timeout;
     }
 
     public Timeout(final long timeout, final TimeUnit unit){
-        this(unit.toMillis(timeout));
+        this(unit.toNanos(timeout));
     }
 
     private static void setLocalTime(final AtomicLong timer){
-        timer.set(System.currentTimeMillis());
+        timer.set(System.nanoTime());
     }
 
     /**
@@ -66,7 +74,7 @@ public class Timeout implements Stateful, Serializable {
     }
 
     protected final Duration getTimeout(){
-        return Duration.ofMillis(timeout);
+        return Duration.ofNanos(timeoutNanos);
     }
 
     /**
@@ -74,7 +82,7 @@ public class Timeout implements Stateful, Serializable {
      * @return {@literal true}, if this timeout is reached; otherwise, {@literal false}.
      */
     public final boolean isExpired(){
-        return System.currentTimeMillis() - timer.get() > timeout;
+        return System.nanoTime() - timer.get() > timeoutNanos;
     }
 
     /**
@@ -84,8 +92,8 @@ public class Timeout implements Stateful, Serializable {
      */
     protected final boolean resetTimerIfExpired() {
         final long ticks = timer.get();
-        final long now = System.currentTimeMillis();
-        return now - ticks > timeout && timer.compareAndSet(ticks, now);
+        final long now = System.nanoTime();
+        return now - ticks > timeoutNanos && timer.compareAndSet(ticks, now);
     }
 
     public final boolean runIfExpired(final Runnable action){

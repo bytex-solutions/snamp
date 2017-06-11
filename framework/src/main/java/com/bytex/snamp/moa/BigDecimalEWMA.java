@@ -1,16 +1,14 @@
 package com.bytex.snamp.moa;
 
-import com.bytex.snamp.Stateful;
 import com.bytex.snamp.concurrent.Timeout;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
 /**
@@ -20,7 +18,7 @@ import java.util.function.Supplier;
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average">Exponential moving average</a>
  */
-public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, DoubleConsumer, Serializable, Supplier<BigDecimal>, Stateful, Cloneable {
+public final class BigDecimalEWMA extends EWMA implements BigDecimalAverage {
     private static final long serialVersionUID = -8885874345563930420L;
 
     private static final class IntervalMemory extends Timeout implements Supplier<BigDecimal> {
@@ -33,7 +31,7 @@ public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, 
         }
 
         private IntervalMemory(final IntervalMemory other) {
-            super(other.getTimeout());
+            super(other);
             memory = new AtomicReference<>(other.memory.get());
         }
 
@@ -69,7 +67,7 @@ public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, 
 
     public BigDecimalEWMA(final Duration meanLifetime,
                            final Duration measurementInterval,
-                           final Precision precision,
+                           final TemporalUnit precision,
                            final MathContext context) {
         super(meanLifetime, measurementInterval, precision);
         adder = new AtomicReference<>(BigDecimal.ZERO);
@@ -88,7 +86,7 @@ public final class BigDecimalEWMA extends EWMA implements Consumer<BigDecimal>, 
      */
     public BigDecimalEWMA(final Duration meanLifetime,
                           final MathContext context) {
-        this(meanLifetime, Duration.ofSeconds(1), Precision.SECOND, context);
+        this(meanLifetime, Duration.ofSeconds(1), ChronoUnit.SECONDS, context);
     }
 
     private BigDecimalEWMA(final BigDecimalEWMA other) {

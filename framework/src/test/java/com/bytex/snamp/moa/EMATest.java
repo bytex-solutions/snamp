@@ -13,6 +13,22 @@ import java.time.Duration;
  * @since 2.0
  */
 public final class EMATest extends Assert {
+
+    @Test
+    public void test() throws InterruptedException {
+        final MeanRate rate = new MeanRate(Duration.ofMillis(100), Duration.ofMillis(10));
+        rate.mark();
+        rate.mark();
+        rate.mark();
+        rate.mark();
+        Thread.sleep(100);
+        rate.mark();
+        rate.mark();
+        rate.mark();
+        Thread.sleep(100);
+        System.out.println(rate.getAsDouble());
+    }
+
     @Test
     public void doubleEmaTest() throws InterruptedException {
         final EWMA ema = new DoubleEWMA(Duration.ofSeconds(2));
