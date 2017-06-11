@@ -108,7 +108,9 @@ public final class Convert {
 
         @SuppressWarnings("unchecked")
         Optional<O> convert(final Object value) {
-            return getConverter(value).flatMap(c -> toType(value, outputType));
+            return getConverter(value)
+                    .map(c -> c.apply(value))
+                    .flatMap(v -> toType(v, outputType));
         }
 
         Optional<O> convert(final Object value,
