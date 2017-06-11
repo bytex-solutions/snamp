@@ -1,7 +1,6 @@
 package com.bytex.snamp.supervision.def;
 
 import com.bytex.snamp.BooleanBox;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
@@ -135,7 +134,7 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
      * @throws ResourceDiscoveryException Unable to remove resource.
      */
     public final boolean removeResource(@Nonnull final String resourceName) throws ResourceDiscoveryException {
-        final BooleanBox result = BoxFactory.createForBoolean(false);
+        final BooleanBox result = BooleanBox.of(false);
         processConfiguration(config -> {
             final ManagedResourceConfiguration resourceConfig = config.getResources().get(resourceName);
             final boolean saveChanges;

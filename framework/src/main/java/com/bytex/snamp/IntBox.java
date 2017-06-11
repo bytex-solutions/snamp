@@ -17,4 +17,8 @@ public interface IntBox extends Box<Integer>, IntSupplier, IntConsumer, Comparab
     int updateAndGet(final IntUnaryOperator operator);
     int compareTo(final int newValue);
     <R> R get(final IntFunction<? extends R> fn);
+
+    static IntBox of(final int initialValue){
+        return new MutableInteger(initialValue);
+    }
 }

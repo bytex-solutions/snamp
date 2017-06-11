@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.supervision;
 
 import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
@@ -105,7 +104,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     public void serviceDiscovery() throws ResourceDiscoveryException, TimeoutException, InterruptedException {
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
-            final Box<String> addedResource = BoxFactory.create("");
+            final Box<String> addedResource = Box.of("");
             final SupervisionEventListener listener = (event, handback) ->
                 Convert.toType(event, GroupCompositionChangedEvent.class).ifPresent(changed -> {
                     addedResource.set(changed.getResourceName());

@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.internal.Utils;
 
@@ -36,7 +35,7 @@ final class JmxConnectionOptions extends JMXServiceURL implements JmxConnectionF
     JmxConnectionOptions(final String connectionString, final Map<String, String> options) throws MalformedURLException, MalformedObjectNameException {
         super(connectionString);
         final JmxConnectorDescriptionProvider parser = JmxConnectorDescriptionProvider.getInstance();
-        final Box<String> userName = BoxFactory.create(null), password = BoxFactory.create(null);
+        final Box<String> userName = Box.of(null), password = Box.of(null);
         parser.parseUserNameAndPassword(options, userName, password);
         this.login = userName.get();
         this.password = password.get();

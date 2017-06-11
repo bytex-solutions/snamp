@@ -3,7 +3,6 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.internal.Utils;
@@ -136,7 +135,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      */
     @Override
     public <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
-        final Box<O> result = BoxFactory.create(null);
+        final Box<O> result = Box.of(null);
         readConfiguration(result.changeConsumingType(handler));
         return result.get();
     }

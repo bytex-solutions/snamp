@@ -2,7 +2,6 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.BooleanBox;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.TypedEntityConfiguration;
@@ -67,7 +66,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
 
     private void serialize(final String identityName, final E entity, final ConfigurationAdmin admin) throws IOException {
         //find existing configuration of gateway
-        final BooleanBox updated = BoxFactory.createForBoolean(false);
+        final BooleanBox updated = BooleanBox.of(false);
         forEachConfiguration(admin, createIdentityFilter(identityName), config -> {
             serialize(identityName, entity, config);
             updated.set(true);

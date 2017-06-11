@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
  * @version 2.0
  * @since 1.0
  */
-final class SimpleBox<T> implements Box<T>, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder>, Serializable{
+final class MutableReference<T> implements Box<T>, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder>, Serializable{
     private static final long serialVersionUID = -3932725773035687013L;
     private T value;
 
@@ -22,7 +22,7 @@ final class SimpleBox<T> implements Box<T>, Supplier<T>, Consumer<T>, Acceptor<T
      * Initializes a new instance of the mutable container.
      * @param initial The initial value of placed to the container.
      */
-    SimpleBox(final T initial){
+    MutableReference(final T initial){
         this.value = initial;
     }
 

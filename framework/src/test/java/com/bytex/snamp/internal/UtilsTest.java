@@ -2,7 +2,6 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.SpinWait;
 import org.junit.Assert;
@@ -70,7 +69,7 @@ public final class UtilsTest extends Assert {
     @SuppressWarnings("unchecked")
     @Test
     public void reflectSetterTest() throws ReflectiveOperationException{
-        final Box<String> box = BoxFactory.create("");
+        final Box<String> box = Box.of("");
         final Consumer<String> setter = reflectSetter(MethodHandles.lookup(), box, box.getClass().getDeclaredMethod("set", Object.class));
         setter.accept("Frank Underwood");
         assertEquals("Frank Underwood", box.get());

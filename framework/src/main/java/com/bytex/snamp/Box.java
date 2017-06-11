@@ -42,4 +42,8 @@ public interface Box<T> extends Serializable, Supplier<T>, Consumer<T>, Acceptor
      * @return {@literal true}, if this container has stored value.
      */
     boolean hasValue();
+
+    static <T> Box<T> of(final T initialValue){
+        return new MutableReference<>(initialValue);
+    }
 }
