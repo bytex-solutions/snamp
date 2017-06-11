@@ -1,7 +1,10 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.ConfigurationEntityDescription;
+import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
+import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;

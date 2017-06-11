@@ -1,14 +1,12 @@
 package com.bytex.snamp.moa;
 
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.bytex.snamp.concurrent.Timeout;
 import com.google.common.util.concurrent.AtomicDouble;
 
 import java.time.Duration;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
-import java.util.function.DoubleUnaryOperator;
 
 /**
  * An exponentially-weighted moving average based on {@code double} values.

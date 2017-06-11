@@ -9,7 +9,9 @@ import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.google.common.collect.ImmutableList;
-import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.osgi.framework.BundleContext;
 

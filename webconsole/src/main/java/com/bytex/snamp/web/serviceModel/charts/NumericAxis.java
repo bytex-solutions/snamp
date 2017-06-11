@@ -2,6 +2,7 @@ package com.bytex.snamp.web.serviceModel.charts;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
+
 import static com.google.common.base.Strings.nullToEmpty;
 
 /**

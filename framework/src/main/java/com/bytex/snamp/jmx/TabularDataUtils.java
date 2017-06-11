@@ -1,20 +1,13 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Box;
-import com.bytex.snamp.MutableReference;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Provides helper methods that allows to create and

@@ -3,8 +3,8 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.concurrent.TimeLimitedObject;
-import com.bytex.snamp.moa.EWMA;
 import com.bytex.snamp.moa.DoubleEWMA;
+import com.bytex.snamp.moa.EWMA;
 import com.google.common.collect.ImmutableSortedSet;
 
 import java.io.Serializable;

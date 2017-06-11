@@ -1,6 +1,5 @@
 package com.bytex.snamp.instrumentation.measurements;
 
-import com.bytex.snamp.instrumentation.measurements.Measurement;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 

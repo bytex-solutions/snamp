@@ -4,10 +4,8 @@ import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.moa.EWMA;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 

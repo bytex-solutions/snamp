@@ -12,8 +12,8 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.time.Duration;
 
-import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.ArrayUtils.toArray;
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 
 
 /**

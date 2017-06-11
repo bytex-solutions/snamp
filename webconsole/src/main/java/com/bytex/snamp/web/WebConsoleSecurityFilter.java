@@ -1,8 +1,8 @@
 package com.bytex.snamp.web;
 
 import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.security.web.JWTokenLocation;
 import com.bytex.snamp.security.web.JWTAuthFilter;
+import com.bytex.snamp.security.web.JWTokenLocation;
 
 /**
  * Represents security filter for all WebConsole services.

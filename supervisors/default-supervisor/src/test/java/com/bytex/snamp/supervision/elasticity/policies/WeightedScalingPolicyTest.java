@@ -13,7 +13,6 @@ import org.junit.Test;
 import javax.management.Attribute;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Test for {@link AttributeBasedScalingPolicy} and {@link HealthStatusBasedScalingPolicy}.

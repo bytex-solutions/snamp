@@ -6,7 +6,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
 import javax.activation.DataSource;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * @author Roman Sakno

@@ -12,7 +12,6 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 import javax.management.InstanceNotFoundException;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
-
 import java.io.PrintWriter;
 
 import static com.bytex.snamp.jmx.MetricsConverter.fromRate;

@@ -2,8 +2,8 @@ package com.bytex.snamp.testing.web;
 
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.io.IOUtils;
-import com.bytex.snamp.security.web.JWTAuthenticator;
 import com.bytex.snamp.security.web.JWTAuthFilter;
+import com.bytex.snamp.security.web.JWTAuthenticator;
 import org.osgi.framework.BundleContext;
 
 import javax.ws.rs.core.MediaType;

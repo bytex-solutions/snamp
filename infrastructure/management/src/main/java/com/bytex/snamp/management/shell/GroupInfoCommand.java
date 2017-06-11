@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 import static com.bytex.snamp.management.shell.ResourceInfoCommand.*;
+
 ;
 /**
  * Displays full information about managed resource group.

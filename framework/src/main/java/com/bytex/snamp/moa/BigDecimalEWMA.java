@@ -2,19 +2,15 @@ package com.bytex.snamp.moa;
 
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.concurrent.Timeout;
-import com.google.common.util.concurrent.AtomicDouble;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.DoubleConsumer;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 /**

@@ -2,8 +2,8 @@ package com.bytex.snamp.connector.metrics;
 
 
 import com.bytex.snamp.io.SerializedState;
-import com.bytex.snamp.moa.EWMA;
 import com.bytex.snamp.moa.DoubleReservoir;
+import com.bytex.snamp.moa.EWMA;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;

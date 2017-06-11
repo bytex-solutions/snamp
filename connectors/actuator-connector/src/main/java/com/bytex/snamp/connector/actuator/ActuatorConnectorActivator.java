@@ -8,6 +8,7 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 import javax.annotation.Nonnull;
 import java.net.URI;
 import java.net.URISyntaxException;
+
 import static com.bytex.snamp.ArrayUtils.toArray;
 
 /**

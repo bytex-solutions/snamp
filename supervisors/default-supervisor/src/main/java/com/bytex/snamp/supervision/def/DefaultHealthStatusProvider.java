@@ -7,9 +7,9 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
 import com.bytex.snamp.connector.health.*;
-import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
+import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;

@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.moa.EWMA;
 import com.bytex.snamp.moa.DoubleReservoir;
+import com.bytex.snamp.moa.EWMA;
 
 import java.util.function.Supplier;
 

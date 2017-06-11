@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.metrics;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Duration;
-import java.time.Instant;
 
 /**
  * Represents implementation of {@link RatedTimer}.
