@@ -37,24 +37,27 @@ final class NagiosThreshold implements Predicate<Number>, Supplier<String> {
             final String upperBound = result.group("upper");
             final boolean isPositiveInfinity = !isNullOrEmpty(result.group("delim")) &&
                     isNullOrEmpty(upperBound);
-            final Predicate<BigDecimal> predicate;
+            final Range<BigDecimal> range;
             if (isPositiveInfinity)
-                predicate = Range.atLeast(new BigDecimal(lowerBound))::contains;
+                range = Range.atLeast(new BigDecimal(lowerBound));
             else if (isNegativeInfinity)
-                predicate = Range.atMost(new BigDecimal(upperBound))::contains;
+                range = Range.atMost(new BigDecimal(upperBound));
             else if (!isNullOrEmpty(upperBound))
-                predicate = Range.closed(new BigDecimal(lowerBound), new BigDecimal(upperBound))::contains;
+                range = Range.closed(new BigDecimal(lowerBound), new BigDecimal(upperBound));
             else
-                predicate = Range.closed(BigDecimal.ZERO, new BigDecimal(lowerBound))::contains;
-            this.rangeChecker = inverse ?
-                    predicate.negate() :
-                    predicate;
+                range = Range.closed(BigDecimal.ZERO, new BigDecimal(lowerBound));
+            this.rangeChecker = toPredicate(range, inverse);
         } else
             throw new IllegalArgumentException(String.format("'%s' is not a threshold", threshold));
     }
 
     NagiosThreshold(final Number value, final DecimalFormat format){
         this(format.format(value));
+    }
+
+    private static Predicate<BigDecimal> toPredicate(final Range<BigDecimal> range, final boolean inverse){
+        final Predicate<BigDecimal> result = range::contains;
+        return inverse ? result.negate() : result;
     }
 
     boolean test(final String value, final DecimalFormat format) throws ParseException {
