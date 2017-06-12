@@ -73,7 +73,7 @@ final class NagiosPluginOutput {
     }
 
     boolean checkWarnThreshold(final Number value){
-        return warnThreshold == null || warnThreshold.check(value);
+        return warnThreshold == null || warnThreshold.test(value);
     }
 
     void setWarnThreshold(final String value) {
@@ -81,7 +81,7 @@ final class NagiosPluginOutput {
     }
 
     boolean checkCritThreshold(final Number value) {
-        return critThreshold == null || critThreshold.check(value);
+        return critThreshold == null || critThreshold.test(value);
     }
 
     void setCritThreshold(final String value) {
@@ -130,6 +130,6 @@ final class NagiosPluginOutput {
     }
 
     private static String toString(final NagiosThreshold threshold){
-        return threshold != null ? threshold.getValue() : "";
+        return threshold != null ? threshold.get() : "";
     }
 }

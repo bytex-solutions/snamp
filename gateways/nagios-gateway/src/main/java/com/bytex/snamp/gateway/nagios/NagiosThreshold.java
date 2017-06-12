@@ -1,13 +1,14 @@
 package com.bytex.snamp.gateway.nagios;
 
+import com.bytex.snamp.Convert;
 import com.google.common.collect.Range;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,14 +21,14 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-final class NagiosThreshold implements Predicate<Number> {
+final class NagiosThreshold implements Predicate<Number>, Supplier<String> {
     //https://nagios-plugins.org/doc/guidelines.html#THRESHOLDFORMAT
     private static final Pattern THRESHOLD_FORMAT = Pattern.compile("(?<inverse>@)?(?<lower>~|[0-9]+)((?<delim>:)(?<upper>[0-9]*))?");
 
     private final Predicate<BigDecimal> rangeChecker;
     private final String thresholdValue;
 
-    public NagiosThreshold(final String threshold) throws IllegalArgumentException {
+    NagiosThreshold(final String threshold) throws IllegalArgumentException {
         final Matcher result = THRESHOLD_FORMAT.matcher(this.thresholdValue = threshold);
         if (result.matches()) {
             final boolean inverse = !isNullOrEmpty(result.group("inverse"));
@@ -47,35 +48,29 @@ final class NagiosThreshold implements Predicate<Number> {
             this.rangeChecker = inverse ?
                     predicate.negate() :
                     predicate;
-        } else throw new IllegalArgumentException(String.format("'%s' is not a threshold", threshold));
+        } else
+            throw new IllegalArgumentException(String.format("'%s' is not a threshold", threshold));
     }
 
-    public NagiosThreshold(final Number value, final DecimalFormat format){
+    NagiosThreshold(final Number value, final DecimalFormat format){
         this(format.format(value));
     }
 
-    public boolean check(final Number value) {
-        if (value instanceof BigDecimal)
-            return rangeChecker.test((BigDecimal) value);
-        else if (value instanceof BigInteger)
-            return rangeChecker.test(new BigDecimal((BigInteger) value));
-        else return rangeChecker.test(new BigDecimal(value.doubleValue()));
-    }
-
-    public boolean check(final String value, final DecimalFormat format) throws ParseException {
-        return check(format.parse(value));
+    boolean test(final String value, final DecimalFormat format) throws ParseException {
+        return test(format.parse(value));
     }
 
     @Override
     public boolean test(final Number value) {
-        return check(value);
+        return Convert.toBigDecimal(value).filter(rangeChecker).isPresent();
     }
 
     /**
      * Gets threshold in Nagios format.
      * @return Nagios threshold.
      */
-    public String getValue(){
+    @Override
+    public String get(){
         return thresholdValue;
     }
 

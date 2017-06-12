@@ -31,7 +31,7 @@ public final class Convert {
     private static abstract class TypeConverter<C> extends ClassMap<C> {
         private static final long serialVersionUID = -2745877310143387409L;
 
-        Optional<C> getConverter(final Object value) {
+        final Optional<C> getConverter(final Object value) {
             return Optional.ofNullable(getOrAdd(value.getClass()));
         }
     }
@@ -249,7 +249,8 @@ public final class Convert {
                 .addConverter(BigDecimal.class, BigDecimal::toBigInteger)
                 .addConverter(Date.class, v -> BigInteger.valueOf(v.getTime()))
                 .addConverter(Instant.class, v -> BigInteger.valueOf(v.toEpochMilli()))
-                .addConverter(Duration.class, v -> BigInteger.valueOf(v.toMillis()));
+                .addConverter(Duration.class, v -> BigInteger.valueOf(v.toMillis()))
+                .addConverter(Number.class, v -> BigInteger.valueOf(v.longValue()));
 
         TO_BIG_DECIMAL = new ToTypeConverter<>(BigDecimal.class)
                 .addConverter(BigDecimal.class, Function.identity())
@@ -264,7 +265,8 @@ public final class Convert {
                 .addConverter(BigInteger.class, BigDecimal::new)
                 .addConverter(Date.class, v -> BigDecimal.valueOf(v.getTime()))
                 .addConverter(Instant.class, v -> BigDecimal.valueOf(v.toEpochMilli()))
-                .addConverter(Duration.class, v -> BigDecimal.valueOf(v.toMillis()));
+                .addConverter(Duration.class, v -> BigDecimal.valueOf(v.toMillis()))
+                .addConverter(Number.class, v -> BigDecimal.valueOf(v.doubleValue()));
 
         TO_BOOLEAN = new ToTypeConverter<>(Boolean.class)
                 .addConverter(Boolean.class, Function.identity())
