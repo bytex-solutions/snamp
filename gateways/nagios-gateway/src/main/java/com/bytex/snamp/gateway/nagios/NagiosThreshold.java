@@ -44,7 +44,8 @@ final class NagiosThreshold implements Predicate<Number>, Supplier<String> {
                 predicate = Range.atMost(new BigDecimal(upperBound))::contains;
             else if (!isNullOrEmpty(upperBound))
                 predicate = Range.closed(new BigDecimal(lowerBound), new BigDecimal(upperBound))::contains;
-            else predicate = Range.closed(BigDecimal.ZERO, new BigDecimal(lowerBound))::contains;
+            else
+                predicate = Range.closed(BigDecimal.ZERO, new BigDecimal(lowerBound))::contains;
             this.rangeChecker = inverse ?
                     predicate.negate() :
                     predicate;
