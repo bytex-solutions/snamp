@@ -215,6 +215,80 @@
     </div>
 </div>
 
+
+<div class="modal fade" id="addExistentEntity{{entityType}}" role="dialog" aria-labelledby="discoveryLabel" *ngIf="discoveredEntities != undefined && discoveredEntities.length > 0">
+    <div class="modal-dialog modal-xlg modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title leftAlign" id="discoveryLabel">Automatic discovered {{entityType}}s for  {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>
+            </div>
+            <br/>
+            <div class="modal-body">
+
+                <div id="discoveredEntityId" class="row" *ngIf="selectedEntity != undefined">
+                    <div class="item form-group">
+                        <label
+                                class="control-label col-md-3 col-sm-3 col-xs-12"
+                                for="discoveredEntityId"
+                                style="margin-top: 7px;">
+                            Name <span class="required">*</span>
+                        </label>
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <input
+                                    id="discoveredEntityIdInput"
+                                    class="form-control col-md-7 col-xs-12"
+                                    [tooltip]="'At least 4 symbols'"
+                                    placeholder="input the name of new entity"
+                                    [(ngModel)]="selectedEntityName">
+                        </div>
+                    </div>
+                </div>
+                <div class="table-wrapper row">
+                    <table class="table table-hover table-bordered" *ngIf="entityType == 'attribute'">
+                        <thead class="thead-inverse">
+                        <tr>
+                            <th>Attribute name</th>
+                            <th>Already set</th>
+                            <th>Read/write timeout</th>
+                            <th>Parameters</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr *ngFor="let attribute of discoveredEntities" class="clickableTr" [class.activeTr]="((selectedEntity != undefined) && (selectedEntity.name == attribute.name))" (click)="setActiveEntity(attribute)">
+                            <th scope="row">{{attribute.name}}</th>
+                            <td>
+                                    <span class="discovery-set"  *ngIf="isAttributeSet(attribute.name)">
+                                          <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true"></span>
+                                     </span>
+                            </td>
+                            <td>{{attribute.rwto}}</td>
+                            <td [innerHTML]="formatParams(attribute)"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <button
+                        type="button"
+                        data-toggle="modal"
+                        (click)="cancelEntitySelection()"
+                        [disabled]="selectedEntity == undefined"
+                        class="btn btn-primary">
+                    Cancel
+                </button>
+                <button
+                        type="button"
+                        data-toggle="modal"
+                        (click)="addSelectedEntityToResource()"
+                        class="btn btn-default">
+                    Add new
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <table class="table">
     <thead>
     <tr>
@@ -247,9 +321,17 @@
           type="button"
           data-toggle="modal"
           (click)="addNewEntity()"
-          [attr.data-target]="'#editEntity' + entityType"
           class="btn btn-default btn-xs">
-          Add new
+               Add new
+        </button>
+
+        <button
+          *ngIf="hasAvailableEntities()"
+          type="button"
+          data-toggle="modal"
+          (click)="addEntityFromList()"
+          class="btn btn-default btn-xs">
+             Add from the list
         </button>
       </td>
     </tr>

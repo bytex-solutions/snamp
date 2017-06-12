@@ -148,6 +148,10 @@ export class REST {
         return REST.RESOURCE_BY_NAME(entityName) + "/connectionString";
     }
 
+    public static RESOURCE_DISCOVERY(resourceName: string, entityType:string): string {
+        return REST.RESOURCE_BY_NAME(resourceName) + "/discovery/" + entityType; //attributes|events|operations
+    }
+
     public static RGROUP_LIST:string = REST.RGROUP_CONFIG + "/list";
 
     public static RESOURCE_GROUP(name: string): string {

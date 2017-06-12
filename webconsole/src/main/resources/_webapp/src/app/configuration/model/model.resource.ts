@@ -1,10 +1,11 @@
 import { TypedEntity } from './model.typedEntity';
 import { KeyValue } from './model.entity';
-import { ApiClient } from '../../services/app.restClient';
+import { ApiClient, REST } from '../../services/app.restClient';
 import { Attribute } from './model.attribute';
 import { ParamDescriptor } from './model.paramDescriptor';
 import { Event } from './model.event';
 import { Operation } from './model.operation';
+import { Observable } from "rxjs/Observable";
 
 export class Resource extends TypedEntity {
     http:ApiClient;
@@ -84,5 +85,9 @@ export class Resource extends TypedEntity {
         returnValue["connectionString"] = cstring;
         returnValue["parameters"] = KeyValue.stringifyParametersStatic(params);
         return returnValue;
+    }
+
+    public discovery(type:string):Observable<any> {
+        return this.http.getWithErrors(REST.RESOURCE_DISCOVERY(this.name, type));
     }
 }

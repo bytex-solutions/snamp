@@ -12,6 +12,9 @@ import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
 import { ActivatedRoute } from '@angular/router';
 import { ResourceGroupHealthStatusChart } from "./model/charts/resource.group.health.status";
 import { SeriesBasedChart, DescriptionIdClass } from "./model/abstract.line.based.chart";
+import { ScalingRateChart } from "./model/scaling.rate.chart";
+import { ChartOfAttributeValues } from "./model/abstract.chart.attributes.values";
+import { TwoDimensionalChartOfAttributeValues } from "./model/abstract.2d.chart.attributes.values";
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -21,12 +24,6 @@ import 'rxjs/add/observable/of';
 
 import 'smartwizard';
 import 'select2';
-import { ScalingRateChart } from "./model/scaling.rate.chart";
-import {ChartOfAttributeValues} from "./model/abstract.chart.attributes.values";
-import {TwoDimensionalChart} from "./model/two.dimensional.chart";
-import {AttributeValueAxis} from "./model/axis/attribute.value.axis";
-import {TwoDimensionalChartOfAttributeValues} from "./model/abstract.2d.chart.attributes.values";
-import {VotingResultChart} from "./model/charts/voting.result.chart";
 
 @Component({
     moduleId: module.id,
