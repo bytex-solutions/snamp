@@ -11,11 +11,9 @@ import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanNotificationInfo;
 import javax.management.openmbean.OpenType;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.connector.notifications.NotificationSupport.*;
 
 /**
@@ -33,22 +31,12 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
     private static final long serialVersionUID = 6447489441284228878L;
     public static final NotificationDescriptor EMPTY_DESCRIPTOR = new NotificationDescriptor(ImmutableMap.<String, String>of());
 
-    private NotificationDescriptor(final boolean dummy, final Map<String, ?> fields){
-        super(fields);
+    public NotificationDescriptor(final Map<String, ?> options){
+        super(options);
     }
 
     public NotificationDescriptor(final EventConfiguration eventConfig) {
         this((Map<String, String>) eventConfig);
-    }
-
-    public NotificationDescriptor(final Map<String, String> options){
-        this(false, getFields(options));
-    }
-
-    private static Map<String, ?> getFields(final Map<String, String> options){
-        final Map<String, Object> fields = new HashMap<>(options);
-        fields.put(SEVERITY_FIELD, getValue(options, SEVERITY_PARAM, Severity::resolve).orElse(Severity.UNKNOWN));
-        return fields;
     }
 
     @Override
@@ -56,7 +44,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
         if(values == null || values.isEmpty()) return this;
         final Map<String, Object> newFields = DescriptorUtils.toMap(this, false);
         newFields.putAll(values);
-        return new NotificationDescriptor(false, newFields);
+        return new NotificationDescriptor(newFields);
     }
 
     @Override

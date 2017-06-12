@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.junit.Assert;
@@ -51,9 +52,8 @@ public final class FunctionParserTest extends Assert {
         fn.eval(EMPTY_RESOLVER, 10);
         fn.eval(EMPTY_RESOLVER, 20);
         fn.eval(EMPTY_RESOLVER, 30);
-        assertEquals(16.25, fn.eval(EMPTY_RESOLVER, 5));
-        Thread.sleep(1001);
-        assertEquals(5.0, fn.eval(EMPTY_RESOLVER, 5));
+        final double average = Convert.toDouble(fn.eval(EMPTY_RESOLVER, 5)).orElseThrow(AssertionError::new);
+        assertEquals(10.0D, average, 0.1D);
     }
 
     @Test

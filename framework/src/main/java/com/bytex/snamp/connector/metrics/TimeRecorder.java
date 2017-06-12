@@ -2,6 +2,7 @@ package com.bytex.snamp.connector.metrics;
 
 
 import com.bytex.snamp.concurrent.TimeLimitedObject;
+import com.bytex.snamp.io.SerializableBinaryOperator;
 import com.bytex.snamp.io.SerializedState;
 import com.bytex.snamp.moa.Average;
 import com.bytex.snamp.moa.DoubleReservoir;
@@ -35,7 +36,7 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
         summary = new AtomicReference<>(Duration.ZERO);
         timeScaleFactor = scaleFactor;
         count = new AtomicLong(0L);
-        lastDurations = new MetricsIntervalMap<>(MetricsInterval.ALL_INTERVALS, interval -> interval.createTemporaryBox(Duration.ZERO, Duration::plus));
+        lastDurations = new MetricsIntervalMap<>(MetricsInterval.ALL_INTERVALS, interval -> interval.createTemporaryBox(Duration.ZERO, (SerializableBinaryOperator<Duration>) Duration::plus));
     }
 
     public TimeRecorder(final String name, final int samplingSize) {

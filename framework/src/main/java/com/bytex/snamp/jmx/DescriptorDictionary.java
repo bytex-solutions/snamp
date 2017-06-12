@@ -23,7 +23,7 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
 
     DescriptorDictionary(final Descriptor descr){
         this.descr = Objects.requireNonNull(descr);
-        this.fields = descr.getFields();
+        this.fields = descr.getFieldNames();
     }
 
     /**

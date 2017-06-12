@@ -19,6 +19,7 @@ import java.util.Map;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.*;
 
 /**
  * Represents XML-serializable template of the command-line tool.
@@ -30,14 +31,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 @XmlType(namespace = XmlConstants.NAMESPACE, name = "XmlCommandLineTemplate")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Map<String, ?>, Object, ScriptException> {
-    private static final STGroup TEMPLATE_GROUP;
     private static final long serialVersionUID = -7260435161943556221L;
-
-    static {
-        TEMPLATE_GROUP = new STGroup('{', '}');
-        CommonAdaptors.register(TEMPLATE_GROUP);
-        CompositeDataAdaptor.register(TEMPLATE_GROUP);
-    }
 
     private transient CompiledST precompiledTemplate;
     private XmlParserDefinition outputParser;
@@ -92,13 +86,10 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return A new instance of the command template.
      */
     public static CompiledST createCommandTemplate(final String template) {
-        final CompiledST compiledST = TEMPLATE_GROUP.compile(TEMPLATE_GROUP.getFileName(),
-                "CommandLineTemplate",
-                null,
-                template,
-                null);
-        compiledST.hasFormalArgs = false;
-        return compiledST;
+        final STGroup templateGroup = new STGroup('{', '}');
+        CommonAdaptors.register(templateGroup);
+        CompositeDataAdaptor.register(templateGroup);
+        return compileTemplate(templateGroup, template, "CommandLineTemplate");
     }
 
     private static void findTemplateParameters(final Tree tree, final List<String> output) {
@@ -124,9 +115,9 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
         return result;
     }
 
-    private static ST createCommandTemplate(CompiledST compiledST){
+    private static ST createCommandTemplate(CompiledST compiledST) {
         compiledST = callUnchecked(compiledST::clone);
-        return TEMPLATE_GROUP.createStringTemplate(compiledST);
+        return compiledST.nativeGroup.createStringTemplate(compiledST);
     }
 
     /**
@@ -139,17 +130,16 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
     @Override
     public final String renderCommand(final Map<String, ?> channelParameters,
                                                    final Map<String, ?> input) {
-        if(precompiledTemplate == null)
+        if (precompiledTemplate == null)
             throw new IllegalStateException("Template is not configured");
-        final ST template = createCommandTemplate(precompiledTemplate);
-        //fill template attributes from channel parameters
-        channelParameters.forEach(template::add);
+        final ST template = createRenderer(callUnchecked(precompiledTemplate::clone), channelParameters);
         //fill template attributes from custom input
         if (input != null)
             //attribute name cannot be null or contain '.'
-            input.entrySet().stream()
-                    .filter(pair -> pair.getKey().indexOf('.') < 0)
-                    .forEach(pair -> template.add(pair.getKey(), pair.getValue()));
+            input.forEach((key, value) -> {
+                if (key.indexOf('.') < 0)
+                    template.add(key, value);
+            });
         return template.render();
     }
 

@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
+import com.bytex.snamp.moa.Average;
 import com.bytex.snamp.moa.DoubleEWMA;
 
 import java.time.Duration;
@@ -12,10 +13,10 @@ import java.time.temporal.TemporalUnit;
  * @since 2.0
  */
 final class AverageFunction extends NumericFunction {
-    private final DoubleEWMA avg;
+    private final Average avg;
 
     AverageFunction(final long interval, final TemporalUnit unit){
-        avg = new DoubleEWMA(Duration.of(interval, unit));
+        avg = DoubleEWMA.floatingInterval(Duration.of(interval, unit));
     }
 
     @Override

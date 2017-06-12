@@ -149,22 +149,22 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final BooleanMeasurement measurement){
-        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+        getNotifications().add(() -> new ValueMeasurementNotification<>(this, measurement));
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final IntegerMeasurement measurement){
-        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+        getNotifications().add(() -> new ValueMeasurementNotification<>(this, measurement));
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final StringMeasurement measurement){
-        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+        getNotifications().add(() -> new ValueMeasurementNotification<>(this, measurement));
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final FloatingPointMeasurement measurement){
-        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+        getNotifications().add(() -> new ValueMeasurementNotification<>(this, measurement));
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)

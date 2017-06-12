@@ -138,7 +138,8 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
 
     synchronized double vote(final DoubleReservoir values) {
         final double value = values.applyAsDouble(aggregator);
-        attributeValueAverage.accept(value);
+        if (attributeValueAverage != null)
+            attributeValueAverage.accept(value);
         final int freshObservation = RangeUtils.getLocation(value, operationalRange);
         if (freshObservation == 0) {
             reset();

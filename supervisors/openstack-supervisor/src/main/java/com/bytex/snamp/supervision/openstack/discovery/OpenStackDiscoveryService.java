@@ -15,6 +15,8 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
 
+import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.compileTemplate;
+import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.createRenderer;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
@@ -25,13 +27,6 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  */
 
 public final class OpenStackDiscoveryService extends DefaultResourceDiscoveryService {
-    private static final STGroup TEMPLATE_GROUP;
-
-    static {
-        TEMPLATE_GROUP = new STGroup('{', '}');
-        ListAdaptor.register(TEMPLATE_GROUP);
-    }
-
     private final String clusterID;
     private final CompiledST connectionStringTemplate;      //pre-compiled template
 
@@ -40,24 +35,15 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
                                      final String connectionStringTemplate) {
         super(groupName);
         this.clusterID = clusterID;
-        this.connectionStringTemplate = TEMPLATE_GROUP.compile(TEMPLATE_GROUP.getFileName(),
-                "ConnectionStringTemplate",
-                null,
-                connectionStringTemplate,
-                null);
-        this.connectionStringTemplate.hasFormalArgs = false;
+        final STGroup templateGroup = new STGroup('{', '}');
+        ListAdaptor.register(templateGroup);
+        this.connectionStringTemplate = compileTemplate(templateGroup, connectionStringTemplate, "ConnectionStringTemplate");
     }
 
-    private ST createTemplateRenderer(){
-        final CompiledST compiledST = callUnchecked(connectionStringTemplate::clone);
-        return TEMPLATE_GROUP.createStringTemplate(compiledST);
-    }
-
-    private String createConnectionString(final Node node){
+    private String createConnectionString(final Node node) {
         final Map<String, Object> nodeDetails = node.getDetails();
         nodeDetails.put("node", node.getMetadata());
-        final ST connectionStringTemplate = createTemplateRenderer();
-        nodeDetails.forEach(connectionStringTemplate::add);
+        final ST connectionStringTemplate = createRenderer(callUnchecked(this.connectionStringTemplate::clone), nodeDetails);
         return connectionStringTemplate.render();
     }
 
