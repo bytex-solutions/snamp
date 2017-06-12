@@ -28,8 +28,8 @@ public class FlagRecorder extends AbstractMetric implements Flag {
         value = new AtomicBoolean(false);
         totalTrueCount = new AtomicLong(0L);
         totalFalseCount = new AtomicLong(0L);
-        lastFalseCount = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
-        lastTrueCount = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
+        lastFalseCount = new MetricsIntervalMap<>(MetricsInterval::createdAdder);
+        lastTrueCount = new MetricsIntervalMap<>(MetricsInterval::createdAdder);
     }
 
     protected FlagRecorder(final FlagRecorder source){

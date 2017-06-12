@@ -17,7 +17,7 @@ public abstract class Average extends Number implements DoubleConsumer, Stateful
     @Override
     @Nonnull
     public abstract Average clone();
-    
+
     /**
      * Computes average value.
      * @return Average value.

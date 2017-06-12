@@ -30,12 +30,12 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
 
     TimeRecorder(final String name, final int samplingSize, final double scaleFactor) {
         super(name, Duration.ZERO);
-        meanValues = new MetricsIntervalMap<>(MetricsInterval::createEMA);
+        meanValues = new MetricsIntervalMap<>(MetricsInterval::createAverage);
         reservoir = new DoubleReservoir(samplingSize);
         summary = new AtomicReference<>(Duration.ZERO);
         timeScaleFactor = scaleFactor;
         count = new AtomicLong(0L);
-        lastDurations = new MetricsIntervalMap<>(MetricsInterval.ALL_INTERVALS, interval -> new TimeLimitedObject<>(Duration.ZERO, interval.duration, Duration::plus));
+        lastDurations = new MetricsIntervalMap<>(MetricsInterval.ALL_INTERVALS, interval -> interval.createTemporaryBox(Duration.ZERO, Duration::plus));
     }
 
     public TimeRecorder(final String name, final int samplingSize) {

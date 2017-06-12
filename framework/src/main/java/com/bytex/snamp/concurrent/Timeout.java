@@ -3,6 +3,7 @@ package com.bytex.snamp.concurrent;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -63,6 +64,7 @@ public class Timeout implements Stateful, Serializable {
      * Resets internal state of the object.
      */
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void reset() {
         setLocalTime(timer);
     }

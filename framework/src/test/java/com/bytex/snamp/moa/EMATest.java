@@ -13,61 +13,33 @@ import java.time.Duration;
  * @since 2.0
  */
 public final class EMATest extends Assert {
-
-    @Test
-    public void test() throws InterruptedException {
-        final MeanRate rate = new MeanRate(Duration.ofMillis(100), Duration.ofMillis(10));
-        rate.mark();
-        rate.mark();
-        rate.mark();
-        rate.mark();
-        Thread.sleep(100);
-        rate.mark();
-        rate.mark();
-        rate.mark();
-        Thread.sleep(100);
-        System.out.println(rate.getAsDouble());
-    }
-
     @Test
     public void doubleEmaTest() throws InterruptedException {
-        final EWMA ema = new DoubleEWMA(Duration.ofSeconds(2));
-        ema.append(10);
-        ema.append(20);
-        Thread.sleep(2001);
-        ema.append(10);
-        ema.append(20);
-        Thread.sleep(2001);
-        assertEquals(13.3D, ema.doubleValue(), 0.1D);
+        final EWMA ema = DoubleEWMA.floatingInterval(Duration.ofMillis(300));
+        Thread.sleep(100);
+        ema.accept(3);
 
-        ema.reset();
-        ema.accept(10);
-        ema.accept(30);
-        Thread.sleep(2001);
-        ema.accept(10);
-        ema.accept(30);
-        Thread.sleep(2001);
-        assertEquals(13.3D, ema.doubleValue(), 0.1D);
+        Thread.sleep(100);
+        ema.accept(3);
+
+        Thread.sleep(100);
+        ema.accept(2);
+
+        assertEquals(2.7D, ema.doubleValue(), 0.1D);
     }
 
     @Test
     public void bigDecimalEmaTest() throws InterruptedException{
-        final EWMA ema = new BigDecimalEWMA(Duration.ofSeconds(2), MathContext.DECIMAL32);
-        ema.append(10);
-        ema.append(20);
-        Thread.sleep(2001);
-        ema.append(10);
-        ema.append(20);
-        Thread.sleep(2001);
-        assertEquals(13.3D, ema.doubleValue(), 0.1D);
+        final EWMA ema = BigDecimalEWMA.floatingInterval(Duration.ofMillis(300), MathContext.DECIMAL64);
+        Thread.sleep(100);
+        ema.accept(3);
 
-        ema.reset();
-        ema.accept(10);
-        ema.accept(30);
-        Thread.sleep(2001);
-        ema.accept(10);
-        ema.accept(30);
-        Thread.sleep(2001);
-        assertEquals(13.3D, ema.doubleValue(), 0.1D);
+        Thread.sleep(100);
+        ema.accept(3);
+
+        Thread.sleep(100);
+        ema.accept(2);
+
+        assertEquals(2.7D, ema.doubleValue(), 0.1D);
     }
 }

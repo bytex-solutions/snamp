@@ -9,6 +9,7 @@ import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
 /**
+ * Represents common interface for average implementation based on {@link BigDecimal} value.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
