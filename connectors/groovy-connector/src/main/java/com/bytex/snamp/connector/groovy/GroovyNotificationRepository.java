@@ -1,8 +1,6 @@
 package com.bytex.snamp.connector.groovy;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.AccurateNotificationRepository;
-import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.SharedCounter;
@@ -71,8 +69,7 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        notification.setSource(this);
         notification.setSequenceNumber(sequenceNumberGenerator.getAsLong());
-        fire(notification.getType(), holder -> ArrayUtils.getFirst(holder.getNotifTypes()).map(newNotifType -> new NotificationContainer(newNotifType, notification)).orElse(null));
+        fire(notification, false);
     }
 }

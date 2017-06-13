@@ -1,8 +1,6 @@
 package com.bytex.snamp.connector.dataStream;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
-import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.instrumentation.measurements.jmx.TimeMeasurementNotification;
@@ -34,13 +32,9 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
     }
 
     private static Notification prepareNotification(final SyntheticNotificationInfo metadata, final Notification notification) {
-        if (metadata.isNotificationEnabled(notification)) {
-            final String newNotifType = ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new);
-            return newNotifType.equals(notification.getType()) ?
-                    notification :
-                    new NotificationContainer(newNotifType, notification);
-        } else
-            return null;
+        return metadata.isNotificationEnabled(notification) ?
+                wrapNotification(metadata, notification) :
+                null;
     }
 
     @Override

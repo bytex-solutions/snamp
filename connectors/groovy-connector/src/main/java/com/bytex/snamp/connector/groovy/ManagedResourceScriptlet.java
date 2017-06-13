@@ -109,8 +109,7 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void emit(@DelegatesTo(NotificationBuilder.class) final Closure<?> statement) {
         final NotificationBuilder builder = invokeDslStatement(statement, NotificationBuilder::new);
-        builder.setSource(this);
-        emit(builder.get());
+        emit(builder.setSource(this).get());
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)

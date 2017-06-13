@@ -69,7 +69,7 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
      */
     @Override
     protected final boolean isSuspended() {
-        return clusterMember.isActive();
+        return !clusterMember.isActive();
     }
 
     private void fireListeners(final Notification n) {

@@ -14,9 +14,13 @@ public final class NotificationContainer extends Notification implements Supplie
     private static final long serialVersionUID = -6438758971188748019L;
     private final Notification wrappedNotification;
 
-    public NotificationContainer(final String type, final Notification notification){
+    private NotificationContainer(final String type, final Notification notification){
         super(type, notification.getSource(), notification.getSequenceNumber());
         wrappedNotification = notification;
+    }
+
+    static Notification create(final String type, final Notification notification){
+        return notification.getType().equals(type) ? notification : new NotificationContainer(type, notification);
     }
 
     /**

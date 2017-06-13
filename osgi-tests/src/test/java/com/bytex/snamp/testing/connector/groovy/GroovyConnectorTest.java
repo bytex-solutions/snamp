@@ -102,7 +102,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
             final NotificationSupport notificationSupport = groovyConnector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
             final Mailbox listener = MailboxFactory.newMailbox(n -> n.getType().equals("GroovyEvent"));
             notificationSupport.addNotificationListener(listener, listener, null);
-            final Notification notif = listener.poll(2, TimeUnit.SECONDS);
+            final Notification notif = listener.poll(2000000, TimeUnit.SECONDS);
             assertNotNull(notif);
             assertEquals("Dummy event", notif.getMessage());
         }

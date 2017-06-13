@@ -41,17 +41,9 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         listenerInvoker = threadPool;
     }
 
-    private void handleNotification(final CompositeNotification metadata, final Notification notification){
-        fire(NotificationDescriptor.getName(metadata),
-                notification.getMessage(),
-                notification.getSequenceNumber(),
-                notification.getTimeStamp(),
-                notification.getUserData());
-    }
-
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        getNotificationInfo(notification.getType()).ifPresent(metadata -> handleNotification(metadata, notification));
+        fire(notification, true);
     }
 
     /**
