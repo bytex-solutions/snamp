@@ -41,7 +41,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
         return isNullOrEmpty(entity.getType()) ? null : getFactoryPersistentID(entity.getType());
     }
 
-    final String getIdentityName(final Dictionary<String, ?> config) {
+    private String getIdentityName(final Dictionary<String, ?> config) {
         return getValue(config, identityHolderName, Objects::toString).orElse("");
     }
 
@@ -60,7 +60,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
         output.update(configuration);
     }
 
-    String createIdentityFilter(final String identityName){
+    private String createIdentityFilter(final String identityName){
         return String.format("(%s=%s)", identityHolderName, identityName);
     }
 
@@ -74,9 +74,9 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
         //no existing configuration, creates a new configuration
         if (!updated.get()) {
             final String persistentID = getFactoryPersistentID(entity);
-            if (isNullOrEmpty(persistentID)) {
-                getLogger().severe(String.format("Configuration entity %s could not be saved because its type is not specified", identityName));
-            } else
+            if (isNullOrEmpty(persistentID))
+                throw new IOException(String.format("Configuration entity %s could not be saved because its type is not specified", identityName));
+            else
                 serialize(identityName,
                         entity,
                         admin.createFactoryConfiguration(persistentID, null));

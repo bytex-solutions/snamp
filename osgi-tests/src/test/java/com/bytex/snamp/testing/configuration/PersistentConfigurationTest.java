@@ -24,14 +24,15 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
                 //resource without group
                 ManagedResourceConfiguration resource = currentConfig.getResources().getOrAdd("resource1");
                 resource.put("key1", "value1");
+                resource.setType("jmx");
                 //resource with group
                 resource = currentConfig.getResources().getOrAdd("resource2");
-                resource.put("key1", "value1");
                 resource.setGroupName("group1");
+                resource.put("key2", "value2");
                 //group
                 ManagedResourceGroupConfiguration group = currentConfig.getResourceGroups().getOrAdd("group1");
                 group.put("key1", "valueFromGroup");
-                group.put("key2", "value2");
+                group.setType("http");
                 //attribute in group
                 assertTrue(group.getAttributes().addAndConsume("attribute1", attr -> {
                     attr.setAlternativeName("altName");
