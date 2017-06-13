@@ -1,6 +1,5 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.ComputingService;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.google.common.collect.HashMultimap;
@@ -22,6 +21,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents source of charts data.
@@ -53,7 +54,7 @@ public final class ChartDataSource extends ComputingService<List<Chart>, Map<Str
                                                       final BundleContext context,
                                                       final Function<? super Exception, E> exceptionFactory) throws E {
             chartName = chart.getName();
-            series = Utils.callAndWrapException(() -> chart.collectChartData(context), exceptionFactory);
+            series = callAndWrapException(() -> chart.collectChartData(context), exceptionFactory);
         }
 
         void exportTo(final Multimap<String, ChartData> output){
@@ -64,12 +65,18 @@ public final class ChartDataSource extends ComputingService<List<Chart>, Map<Str
     private static Multimap<String, ChartData> compute(final BundleContext context,
                                                        final Collection<Chart> charts,
                                                        final ExecutorService threadPool) {
-        final class ChartCollectionTaskList extends LinkedList<Callable<ChartDataSeries>> implements Callable<Collection<Future<ChartDataSeries>>>, Consumer<Chart> {
+        final class ChartCollectionTaskList extends LinkedList<Callable<ChartDataSeries>> implements Callable<Multimap<String, ChartData>>, Consumer<Chart> {
             private static final long serialVersionUID = -8887756456174880343L;
 
             @Override
-            public List<Future<ChartDataSeries>> call() throws InterruptedException {
-                return threadPool.invokeAll(this, 60, TimeUnit.SECONDS);
+            public Multimap<String, ChartData> call() throws InterruptedException {
+                final Multimap<String, ChartData> result = HashMultimap.create();
+                for (final Future<ChartDataSeries> task : threadPool.invokeAll(this, 60, TimeUnit.SECONDS))
+                    if (task.isDone()) {
+                        callAndWrapException(task::get, WebApplicationException::new).exportTo(result);
+                    } else
+                        task.cancel(true);
+                return result;
             }
 
             @Override
@@ -80,11 +87,7 @@ public final class ChartDataSource extends ComputingService<List<Chart>, Map<Str
 
         final ChartCollectionTaskList tasks = new ChartCollectionTaskList();
         charts.forEach(tasks);
-        return Utils.callAndWrapException(tasks, e -> new WebApplicationException(e, Response.status(408).build()))
-                .stream()
-                .filter(Future::isDone)
-                .map(task -> Utils.<ChartDataSeries, WebApplicationException>callAndWrapException(task::get, WebApplicationException::new))
-                .collect(HashMultimap::<String, ChartData>create, (result, series) -> series.exportTo(result), HashMultimap::putAll);
+        return callAndWrapException(tasks, e -> new WebApplicationException(e, Response.status(408).build()));
     }
 
     private static Multimap<String, ChartData> compute(final BundleContext context, final Collection<Chart> charts) {

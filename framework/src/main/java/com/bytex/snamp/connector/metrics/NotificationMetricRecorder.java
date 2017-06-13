@@ -52,6 +52,6 @@ public class NotificationMetricRecorder extends AbstractMetric implements Notifi
      */
     @Override
     public void reset() {
-        notificationsRate.mark();
+        notificationsRate.reset();
     }
 }

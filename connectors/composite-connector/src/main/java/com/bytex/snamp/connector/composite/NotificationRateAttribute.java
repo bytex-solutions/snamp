@@ -34,7 +34,7 @@ final class NotificationRateAttribute extends MetricAttribute<RateRecorder> impl
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        if(notificationType.equals(notification.getType()))
+        if (notificationType.equals(notification.getType()))
             updateMetric(RateRecorder::mark);
     }
 }

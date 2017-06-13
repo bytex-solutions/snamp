@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -94,7 +94,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final NotificationListenerList listeners;
     private final NotificationMetricRecorder metrics;
     private Aggregator notificationSource;
-    private final LazyStrongReference<Executor> defaultExecutor;
+    private final LazyStrongReference<ExecutorService> defaultExecutor;
 
     /**
      * Initializes a new notification manager.
@@ -129,7 +129,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return Executor service.
      */
     @Nonnull
-    protected Executor getListenerExecutor(){
+    protected ExecutorService getListenerExecutor(){
         return defaultExecutor.lazyGet(MoreExecutors::newDirectExecutorService);
     }
 

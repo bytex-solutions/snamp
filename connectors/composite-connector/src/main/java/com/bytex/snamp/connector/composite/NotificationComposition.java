@@ -11,7 +11,6 @@ import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,7 +30,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         This state used to attach and remove listeners
      */
     private final Multimap<String, String> subscription;
-    private final Executor listenerInvoker;
+    private final ExecutorService listenerInvoker;
 
     NotificationComposition(final String resourceName,
                             final NotificationSupportProvider provider,
@@ -42,11 +41,17 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
         listenerInvoker = threadPool;
     }
 
+    private void handleNotification(final CompositeNotification metadata, final Notification notification){
+        fire(NotificationDescriptor.getName(metadata),
+                notification.getMessage(),
+                notification.getSequenceNumber(),
+                notification.getTimeStamp(),
+                notification.getUserData());
+    }
+
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        final Optional<CompositeNotification> compositeNotification = getNotificationInfo(notification.getType());
-        if (compositeNotification.isPresent())
-            fire(NotificationDescriptor.getName(compositeNotification.get()), notification.getMessage(), notification.getSequenceNumber(), notification.getTimeStamp(), notification.getUserData());
+        getNotificationInfo(notification.getType()).ifPresent(metadata -> handleNotification(metadata, notification));
     }
 
     /**
@@ -56,7 +61,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
      */
     @Nonnull
     @Override
-    protected Executor getListenerExecutor() {
+    protected ExecutorService getListenerExecutor() {
         return listenerInvoker;
     }
 
@@ -82,19 +87,18 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
     @Override
     protected void disconnectNotifications(final CompositeNotification metadata) {
         final Optional<NotificationSupport> support = provider.getNotificationSupport(metadata.getConnectorType());
-        support.ifPresent(notificationSupport -> {
-            for (final String notifType : metadata.getNotifTypes())
-                notificationSupport.disableNotifications(notifType);
-        });
-        //update state of subscription
-        for (final String notifType : metadata.getNotifTypes())
+        for (final String notifType : metadata.getNotifTypes()) {
+            support.ifPresent(sup -> sup.disableNotifications(notifType));
             subscription.remove(metadata.getConnectorType(), notifType);
-        if (support.isPresent() && subscription.get(metadata.getConnectorType()).isEmpty())
-            try {
-                support.get().removeNotificationListener(this);
-            } catch (final ListenerNotFoundException e) {
-                getLogger().log(Level.SEVERE, String.format("Unable to unsubscribe normally from notifications provided by connector '%s'. Subscription state: %s", metadata.getConnectorType(), subscription));
-            }
+        }
+        if (subscription.get(metadata.getConnectorType()).isEmpty())
+            support.ifPresent(sup -> {
+                try {
+                    sup.removeNotificationListener(this);
+                } catch (final ListenerNotFoundException e) {
+                    getLogger().log(Level.SEVERE, String.format("Unable to unsubscribe normally from notifications provided by connector '%s'. Subscription state: %s", metadata.getConnectorType(), subscription));
+                }
+            });
     }
 
     /**
@@ -102,7 +106,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
      */
     @Override
     public void close() {
-        subscription.clear();
         super.close();
+        subscription.clear();   //subscription should be cleared after disconnection of all notifications
     }
 }

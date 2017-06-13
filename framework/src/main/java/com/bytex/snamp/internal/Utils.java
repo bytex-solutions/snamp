@@ -4,18 +4,21 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.SpecialUse;
+import com.google.common.base.Joiner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
+import java.io.PrintStream;
 import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedList;
 import java.util.Spliterator;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -61,6 +64,22 @@ public final class Utils {
 
     private Utils(){
         throw new InstantiationError();
+    }
+
+    private static String getStackTrace(StackTraceElement[] stackTrace) {
+        if (stackTrace.length > 0)
+            stackTrace = ArrayUtils.remove(stackTrace, 0);
+        return Joiner.on(System.lineSeparator()).join(stackTrace);
+    }
+
+    /**
+     * Prints the stack trace. Used for debugging purposes.
+     */
+    public static void printStackTrace(final PrintStream output){
+        final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        for(int i = 2; i < stackTrace.length; i++)
+            output.println(stackTrace[i]);
+
     }
 
     public static BundleContext getBundleContext(final Class<?> classFromBundle){
@@ -187,17 +206,33 @@ public final class Utils {
         return reflectSetter(lookup, owner, lookup.unreflect(setter));
     }
 
-    private static <T> Runnable runnableForEach(final Spliterator<T> spliterator, final Consumer<? super T> action){
-        return () -> spliterator.forEachRemaining(action);
-    }
-
     public static <T> void parallelForEach(final Spliterator<T> spliterator,
                                                                        final Consumer<? super T> action,
-                                                                       final Executor threadPool) {
-        Spliterator<T> subset = spliterator.trySplit();
-        for (int i = 0; i < Runtime.getRuntime().availableProcessors() && subset != null; i++, subset = spliterator.trySplit())
-            threadPool.execute(runnableForEach(subset, action));
-        threadPool.execute(runnableForEach(spliterator, action));
+                                                                       final ExecutorService threadPool) {
+        final class ParallelForEachTasks extends LinkedList<Callable<Void>> implements Callable<Object> {
+            private static final long serialVersionUID = -2010068532370568252L;
+
+            @Override
+            public Object call() throws InterruptedException {
+                return threadPool.invokeAll(this);
+            }
+
+            private void add(final Spliterator<T> s) {
+                add(() -> {
+                    s.forEachRemaining(action);
+                    return null;
+                });
+            }
+        }
+
+        final ParallelForEachTasks tasks = new ParallelForEachTasks();
+        {
+            Spliterator<T> subset = spliterator.trySplit();
+            for (int i = 0; i < Runtime.getRuntime().availableProcessors() && subset != null; i++, subset = spliterator.trySplit())
+                tasks.add(subset);
+        }
+        tasks.add(spliterator);
+        callUnchecked(tasks);
     }
 
     @SpecialUse(SpecialUse.Case.REFLECTION)

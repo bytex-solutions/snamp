@@ -158,6 +158,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
         totalRate.set(0L);
         lastRate.values().forEach(TimeLimitedLong::reset);
         maxRate.values().forEach(rate -> rate.set(0L));
+        meanRate.values().forEach(MeanRate::reset);
         lastMaxRatePerSecond.values().forEach(TimeLimitedLong::reset);
         lastMaxRatePerMinute.values().forEach(TimeLimitedLong::reset);
         lastMaxRatePer12Hours.values().forEach(TimeLimitedLong::reset);

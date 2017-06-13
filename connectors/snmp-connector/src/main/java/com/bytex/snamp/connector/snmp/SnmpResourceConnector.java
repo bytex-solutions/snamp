@@ -45,7 +45,6 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -86,7 +85,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     private static final class SnmpNotificationRepository extends AccurateNotificationRepository<SnmpNotificationInfo> implements CommandResponder{
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final SharedCounter sequenceNumberGenerator;
-        private final Executor listenerInvoker;
+        private final ExecutorService listenerInvoker;
 
         private SnmpNotificationRepository(final String resourceName,
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
@@ -94,7 +93,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             super(resourceName,
                     SnmpNotificationInfo.class);
             this.client = client;
-            listenerInvoker = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
+            listenerInvoker = client.read(cl -> cl.queryObject(ExecutorService.class)).orElseThrow(AssertionError::new);
 
             sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
         }
@@ -106,7 +105,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
          */
         @Nonnull
         @Override
-        protected Executor getListenerExecutor() {
+        protected ExecutorService getListenerExecutor() {
             return listenerInvoker;
         }
 

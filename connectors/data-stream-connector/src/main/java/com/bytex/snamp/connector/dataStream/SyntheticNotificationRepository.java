@@ -11,7 +11,6 @@ import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotifica
 import javax.annotation.Nonnull;
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -23,7 +22,7 @@ import java.util.function.Consumer;
  */
 public class SyntheticNotificationRepository extends AbstractNotificationRepository<SyntheticNotificationInfo> implements Consumer<Notification> {
     private DataStreamConnectorConfigurationDescriptionProvider configurationParser;
-    private Executor listenerInvoker;
+    private ExecutorService listenerInvoker;
 
     public SyntheticNotificationRepository(final String resourceName) {
         super(resourceName, SyntheticNotificationInfo.class);
@@ -56,8 +55,8 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
      */
     @Nonnull
     @Override
-    protected Executor getListenerExecutor() {
-        final Executor executor = listenerInvoker;
+    protected ExecutorService getListenerExecutor() {
+        final ExecutorService executor = listenerInvoker;
         return executor == null ? super.getListenerExecutor() : executor;
     }
 

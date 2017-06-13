@@ -16,7 +16,6 @@ import javax.management.NotificationListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
@@ -25,7 +24,7 @@ import static com.bytex.snamp.core.SharedObjectType.COUNTER;
  * Represents Groovy-based notification.
  */
 final class GroovyNotificationRepository extends AccurateNotificationRepository<GroovyEvent> implements NotificationListener {
-    private final Executor listenerInvoker;
+    private final ExecutorService listenerInvoker;
     private final SharedCounter sequenceNumberGenerator;
     private final ManagedResourceScriptlet scriptlet;
 
@@ -47,7 +46,7 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
      */
     @Override
     @Nonnull
-    protected Executor getListenerExecutor() {
+    protected ExecutorService getListenerExecutor() {
         return listenerInvoker;
     }
 

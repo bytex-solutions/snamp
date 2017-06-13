@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.*;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -410,7 +409,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
 
     private static final class JmxNotificationRepository extends AbstractNotificationRepository<JmxNotificationInfo> implements NotificationListener, ConnectionEstablishedEventHandler {
         private final JmxConnectionManager connectionManager;
-        private final Executor listenerInvoker;
+        private final ExecutorService listenerInvoker;
         private final ObjectName globalObjectName;
 
         private JmxNotificationRepository(final String resourceName,
@@ -431,7 +430,7 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
          */
         @Override
         @Nonnull
-        protected Executor getListenerExecutor() {
+        protected ExecutorService getListenerExecutor() {
             return listenerInvoker;
         }
 
