@@ -152,6 +152,11 @@ export class REST {
         return REST.RESOURCE_BY_NAME(resourceName) + "/discovery/" + entityType; //attributes|events|operations
     }
 
+    // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
+    public static RESOURCE_ENTITY_BY_NAME(type:string, resourceName: string, entityType:string, entityName:string): string {
+        return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
+    }
+
     public static RGROUP_LIST:string = REST.RGROUP_CONFIG + "/list";
 
     public static RESOURCE_GROUP(name: string): string {

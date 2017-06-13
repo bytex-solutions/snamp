@@ -38400,57 +38400,21 @@ exports.ThreadPoolsComponent = ThreadPoolsComponent;
 
 "use strict";
 "use strict";
-var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var model_attribute_1 = __webpack_require__("./src/app/configuration/model/model.attribute.ts");
-var model_event_1 = __webpack_require__("./src/app/configuration/model/model.event.ts");
-var model_operation_1 = __webpack_require__("./src/app/configuration/model/model.operation.ts");
+var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
 var ResourceGroup = (function (_super) {
     __extends(ResourceGroup, _super);
     function ResourceGroup(http, name, parameters) {
-        _super.call(this, http, name, parameters["type"], parameters["parameters"]);
+        _super.call(this, http, name, parameters);
         this.smartMode = false;
-        this.attributes = [];
-        this.events = [];
-        this.operations = [];
         this.http = http;
-        // set the smart mode
-        if (this.contains("smartMode")) {
-            this.smartMode = this.getParameter("smartMode").value === "true";
-            this.removeParameter("smartMode");
-        }
-        if (this.type && this.type != "") {
-            // filling attributes
-            if (parameters["attributes"] != undefined) {
-                var attrs = parameters["attributes"];
-                for (var key in attrs) {
-                    var rwto = 0;
-                    if (attrs[key]["readWriteTimeout"] != undefined) {
-                        rwto = attrs[key]["readWriteTimeout"];
-                    }
-                    this.attributes.push(new model_attribute_1.Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
-                }
-            }
-            // filling events
-            if (parameters["events"] != undefined) {
-                var events = parameters["events"];
-                for (var key in events) {
-                    this.events.push(new model_event_1.Event(http, this.type, key, events[key]["parameters"]));
-                }
-            }
-            // filling operations
-            if (parameters["operations"] != undefined) {
-                var operations = parameters["operations"];
-                for (var key in operations) {
-                    var rwto = 0;
-                    if (operations[key]["invocationTimeout"] != undefined) {
-                        rwto = operations[key]["invocationTimeout"];
-                    }
-                    this.operations.push(new model_operation_1.Operation(http, this.type, key, rwto, operations[key]["parameters"]));
-                }
-            }
-        }
     }
+    ResourceGroup.prototype.getName = function () {
+        return "resourceGroup";
+    };
+    ResourceGroup.prototype.getDescriptionType = function () {
+        return "connector";
+    };
     ResourceGroup.stringify = function (type, params) {
         var returnValue = {};
         returnValue["type"] = type;
@@ -38458,7 +38422,7 @@ var ResourceGroup = (function (_super) {
         return returnValue;
     };
     return ResourceGroup;
-}(model_typedEntity_1.TypedEntity));
+}(model_entityWithSub_1.EntityWithSub));
 exports.ResourceGroup = ResourceGroup;
 
 

@@ -105961,7 +105961,6 @@ exports.ParametersTable = ParametersTable;
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var model_attribute_1 = __webpack_require__("./src/app/configuration/model/model.attribute.ts");
 var model_event_1 = __webpack_require__("./src/app/configuration/model/model.event.ts");
 var model_operation_1 = __webpack_require__("./src/app/configuration/model/model.operation.ts");
@@ -105973,6 +105972,7 @@ __webpack_require__("./node_modules/select2/dist/js/select2.js");
 var Prism = __webpack_require__("./node_modules/prismjs/prism.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var model_resource_1 = __webpack_require__("./src/app/configuration/model/model.resource.ts");
+var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
 var ResourceEntitiesTable = (function () {
     function ResourceEntitiesTable(http, modal, cd) {
         this.http = http;
@@ -106096,6 +106096,7 @@ var ResourceEntitiesTable = (function () {
     ResourceEntitiesTable.prototype.addNewEntity = function () {
         this.activeEntity = this.makeEmptyEntity();
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        $('#editEntity' + this.entityType).modal("show");
     };
     ResourceEntitiesTable.prototype.cancelAppendingParam = function () {
         var _thisReference = this;
@@ -106241,7 +106242,26 @@ var ResourceEntitiesTable = (function () {
         return _result;
     };
     ResourceEntitiesTable.prototype.addSelectedEntityToResource = function () {
-        alert("Selected entity is: " + this.selectedEntity + " with a name " + this.selectedEntityName);
+        var _this = this;
+        // alert("Selected entity is: " + this.selectedEntity + " with a name " + this.selectedEntityName);
+        this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
+            .map(function (res) { return res.text(); })
+            .subscribe(function (data) {
+            console.log("Has been saved: ", data);
+            switch (_this.entityType) {
+                case "attribute":
+                    _this.resource.attributes.push(_this.activeEntity);
+                    break;
+                case "event":
+                    _this.resource.events.push(_this.activeEntity);
+                    break;
+                case "operation":
+                    _this.resource.operations.push(_this.activeEntity);
+                    break;
+                default:
+                    throw new Error("Could not recognize the entity type: " + _this.entityType);
+            }
+        });
         $('#addExistentEntity' + this.entityType).modal("hide");
     };
     ResourceEntitiesTable.prototype.cancelEntitySelection = function () {
@@ -106251,7 +106271,7 @@ var ResourceEntitiesTable = (function () {
     };
     __decorate([
         core_1.Input(), 
-        __metadata('design:type', (typeof (_a = typeof model_typedEntity_1.TypedEntity !== 'undefined' && model_typedEntity_1.TypedEntity) === 'function' && _a) || Object)
+        __metadata('design:type', (typeof (_a = typeof model_entityWithSub_1.EntityWithSub !== 'undefined' && model_entityWithSub_1.EntityWithSub) === 'function' && _a) || Object)
     ], ResourceEntitiesTable.prototype, "resource", void 0);
     __decorate([
         core_1.Input(), 
@@ -106574,6 +106594,59 @@ var Guid = (function () {
 
 /***/ },
 
+/***/ "./src/app/configuration/model/model.entityWithSub.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
+var model_attribute_1 = __webpack_require__("./src/app/configuration/model/model.attribute.ts");
+var model_event_1 = __webpack_require__("./src/app/configuration/model/model.event.ts");
+var model_operation_1 = __webpack_require__("./src/app/configuration/model/model.operation.ts");
+var EntityWithSub = (function (_super) {
+    __extends(EntityWithSub, _super);
+    function EntityWithSub(http, name, parameters) {
+        _super.call(this, http, name, parameters["type"], parameters["parameters"]);
+        this.attributes = [];
+        this.events = [];
+        this.operations = [];
+        // filling attributes
+        if (parameters["attributes"] != undefined) {
+            var attrs = parameters["attributes"];
+            for (var key in attrs) {
+                var rwto = 0;
+                if (attrs[key]["readWriteTimeout"] != undefined) {
+                    rwto = attrs[key]["readWriteTimeout"];
+                }
+                this.attributes.push(new model_attribute_1.Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
+            }
+        }
+        // filling events
+        if (parameters["events"] != undefined) {
+            var events = parameters["events"];
+            for (var key in events) {
+                this.events.push(new model_event_1.Event(http, this.type, key, events[key]["parameters"]));
+            }
+        }
+        // filling operations
+        if (parameters["operations"] != undefined) {
+            var operations = parameters["operations"];
+            for (var key in operations) {
+                var rwto = 0;
+                if (operations[key]["invocationTimeout"] != undefined) {
+                    rwto = operations[key]["invocationTimeout"];
+                }
+                this.operations.push(new model_operation_1.Operation(http, this.type, key, rwto, operations[key]["parameters"]));
+            }
+        }
+    }
+    return EntityWithSub;
+}(model_typedEntity_1.TypedEntity));
+exports.EntityWithSub = EntityWithSub;
+
+
+/***/ },
+
 /***/ "./src/app/configuration/model/model.event.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -106738,24 +106811,18 @@ exports.ParamDescriptor = ParamDescriptor;
 
 "use strict";
 "use strict";
-var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
-var model_attribute_1 = __webpack_require__("./src/app/configuration/model/model.attribute.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
-var model_event_1 = __webpack_require__("./src/app/configuration/model/model.event.ts");
-var model_operation_1 = __webpack_require__("./src/app/configuration/model/model.operation.ts");
+var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
 var Resource = (function (_super) {
     __extends(Resource, _super);
     function Resource(http, name, parameters) {
-        _super.call(this, http, name, parameters["type"], parameters["parameters"]);
+        _super.call(this, http, name, parameters);
         this.connectionString = "";
         this.smartMode = false;
         this.groupName = "";
         this.threadPool = "";
-        this.attributes = [];
-        this.events = [];
-        this.operations = [];
         this.http = http;
         // set right connection string
         this.connectionString = parameters["connectionString"];
@@ -106777,38 +106844,14 @@ var Resource = (function (_super) {
             this.threadPool = this.getParameter("threadPool").value;
             this.removeParameter("threadPool");
         }
-        // filling attributes
-        if (parameters["attributes"] != undefined) {
-            var attrs = parameters["attributes"];
-            for (var key in attrs) {
-                var rwto = 0;
-                if (attrs[key]["readWriteTimeout"] != undefined) {
-                    rwto = attrs[key]["readWriteTimeout"];
-                }
-                this.attributes.push(new model_attribute_1.Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
-            }
-        }
-        // filling events
-        if (parameters["events"] != undefined) {
-            var events = parameters["events"];
-            for (var key in events) {
-                this.events.push(new model_event_1.Event(http, this.type, key, events[key]["parameters"]));
-            }
-        }
-        // filling operations
-        if (parameters["operations"] != undefined) {
-            var operations = parameters["operations"];
-            for (var key in operations) {
-                var rwto = 0;
-                if (operations[key]["invocationTimeout"] != undefined) {
-                    rwto = operations[key]["invocationTimeout"];
-                }
-                this.operations.push(new model_operation_1.Operation(http, this.type, key, rwto, operations[key]["parameters"]));
-            }
-        }
     }
-    Resource.prototype.getName = function () {
+    // used for receiving parameter descriptors
+    Resource.prototype.getDescriptionType = function () {
         return "connector";
+    };
+    // used elsewhere
+    Resource.prototype.getName = function () {
+        return "resource";
     };
     Resource.toJSON = function (type, cstring, params) {
         var returnValue = {};
@@ -106821,7 +106864,7 @@ var Resource = (function (_super) {
         return this.http.getWithErrors(app_restClient_1.REST.RESOURCE_DISCOVERY(this.name, type));
     };
     return Resource;
-}(model_typedEntity_1.TypedEntity));
+}(model_entityWithSub_1.EntityWithSub));
 exports.Resource = Resource;
 
 
@@ -106895,14 +106938,14 @@ var TypedEntity = (function (_super) {
         this.type = type;
         this.name = name;
         // retrieving parameters description - extract as static to explicit class please @todo
-        this.paramDescriptors = this.http.get(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.getName(), this.type))
+        this.paramDescriptors = this.http.get(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.getDescriptionType(), this.type))
             .map(function (res) {
             var data = res.json();
             var returnValue = [];
             for (var obj in data) {
                 var newDescriptor = new model_paramDescriptor_1.ParamDescriptor(data[obj]);
                 // remove group and smart mode descriptors because they are processed another way
-                if ((_this.getName() == "connectors" || _this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
+                if ((_this.getName() == "resource" || _this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
                     var k = false;
                 }
                 else
@@ -106911,6 +106954,9 @@ var TypedEntity = (function (_super) {
             return returnValue;
         });
     }
+    TypedEntity.prototype.getDescriptionType = function () {
+        return this.getName();
+    };
     TypedEntity.prototype.isParamRequired = function (name) {
         return this.getParamDescriptor(name).map(function (res) { return res != undefined && res.required; });
     };
@@ -108058,6 +108104,10 @@ var REST = (function () {
     };
     REST.RESOURCE_DISCOVERY = function (resourceName, entityType) {
         return REST.RESOURCE_BY_NAME(resourceName) + "/discovery/" + entityType; //attributes|events|operations
+    };
+    // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
+    REST.RESOURCE_ENTITY_BY_NAME = function (type, resourceName, entityType, entityName) {
+        return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
     };
     REST.RESOURCE_GROUP = function (name) {
         return REST.RESOURCE_BY_NAME(name) + "/group";

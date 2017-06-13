@@ -2,7 +2,6 @@ import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 
 import { ApiClient, REST } from '../../services/app.restClient';
 import { KeyValue } from '../model/model.entity';
-import { TypedEntity } from '../model/model.typedEntity';
 import { SubEntity } from '../model/model.subEntity';
 import { Attribute } from '../model/model.attribute';
 import { Event } from '../model/model.event';
@@ -20,6 +19,7 @@ const Prism = require('prismjs');
 
 import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 import { Resource } from "../model/model.resource";
+import { EntityWithSub } from "../model/model.entityWithSub";
 
 @Component({
   moduleId: module.id,
@@ -28,7 +28,7 @@ import { Resource } from "../model/model.resource";
   styleUrls: [ './templates/css/prism.css', './templates/css/main.css' ]
 })
 export class ResourceEntitiesTable implements OnInit {
-    @Input() resource:TypedEntity;
+    @Input() resource:EntityWithSub;
     @Input() entityType:string;
     readyForSave:boolean = false;
     paramDescriptors:ParamDescriptor[] = [];
@@ -160,6 +160,7 @@ export class ResourceEntitiesTable implements OnInit {
     addNewEntity():void {
         this.activeEntity = this.makeEmptyEntity();
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        $('#editEntity' + this.entityType).modal("show");
     }
 
     cancelAppendingParam():void {
@@ -313,8 +314,27 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     addSelectedEntityToResource():void {
-        alert("Selected entity is: " + this.selectedEntity + " with a name " + this.selectedEntityName);
-        $('#addExistentEntity' + this.entityType).modal("hide");
+       // alert("Selected entity is: " + this.selectedEntity + " with a name " + this.selectedEntityName);
+        this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
+            .map((res:Response) => res.text())
+            .subscribe((data) => {
+                console.log("Has been saved: ", data);
+                switch (this.entityType) {
+                    case "attribute":
+                        this.resource.attributes.push(<Attribute>this.activeEntity);
+                        break;
+                    case "event":
+                        this.resource.events.push(<Event>this.activeEntity);
+                        break;
+                    case "operation":
+                        this.resource.operations.push(<Operation>this.activeEntity);
+                        break;
+                    default:
+                        throw new Error("Could not recognize the entity type: " + this.entityType);
+                }
+            });
+        $('#addExistentEntity' + this.entityType).modal("hide")
+
     }
 
     cancelEntitySelection():void {

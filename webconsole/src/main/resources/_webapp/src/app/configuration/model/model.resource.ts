@@ -1,23 +1,17 @@
-import { TypedEntity } from './model.typedEntity';
 import { KeyValue } from './model.entity';
 import { ApiClient, REST } from '../../services/app.restClient';
-import { Attribute } from './model.attribute';
 import { ParamDescriptor } from './model.paramDescriptor';
-import { Event } from './model.event';
-import { Operation } from './model.operation';
 import { Observable } from "rxjs/Observable";
+import { EntityWithSub } from "./model.entityWithSub";
 
-export class Resource extends TypedEntity {
+export class Resource extends EntityWithSub {
     http:ApiClient;
     connectionString:string = "";
     smartMode:boolean = false;
     groupName:string = "";
     threadPool:string = "";
-    attributes:Attribute[] = [];
-    events:Event[] = [];
-    operations:Operation[] = [];
     constructor(http:ApiClient, name:string, parameters: any) {
-        super(http, name, parameters["type"], parameters["parameters"]);
+        super(http, name, parameters);
         this.http = http;
 
         // set right connection string
@@ -41,42 +35,16 @@ export class Resource extends TypedEntity {
             this.threadPool = this.getParameter("threadPool").value;
             this.removeParameter("threadPool");
         }
-
-        // filling attributes
-        if (parameters["attributes"] != undefined) {
-            let attrs = parameters["attributes"];
-            for (let key in attrs) {
-                let rwto:number = 0;
-                if  (attrs[key]["readWriteTimeout"] != undefined) {
-                    rwto = attrs[key]["readWriteTimeout"];
-                }
-                this.attributes.push(new Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
-            }
-        }
-
-        // filling events
-        if (parameters["events"] != undefined) {
-            let events = parameters["events"];
-            for (let key in events) {
-                this.events.push(new Event(http, this.type, key, events[key]["parameters"]));
-            }
-        }
-
-        // filling operations
-        if (parameters["operations"] != undefined) {
-            let operations = parameters["operations"];
-            for (let key in operations) {
-                let rwto:number = 0;
-                if  (operations[key]["invocationTimeout"] != undefined) {
-                    rwto = operations[key]["invocationTimeout"];
-                }
-                this.operations.push(new Operation(http, this.type, key, rwto, operations[key]["parameters"]));
-            }
-        }
     }
 
-    public getName():string {
+    // used for receiving parameter descriptors
+    public getDescriptionType():string {
         return "connector";
+    }
+
+    // used elsewhere
+    public getName():string {
+        return "resource";
     }
 
     public static toJSON(type:string, cstring:string, params: KeyValue[]):any {
