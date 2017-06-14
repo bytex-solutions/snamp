@@ -57,7 +57,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void booleanAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
-        final Serializable result = channel.sendRequest("changeBooleanAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(10));
+        final Serializable result = channel.sendRequest("changeBooleanAttribute", Communicator.MessageEvent::getPayload, Duration.ofSeconds(10));
         assertTrue(result instanceof Boolean);
         assertEquals(Boolean.TRUE, result);
     }
@@ -65,7 +65,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void integerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
-        final Serializable result = channel.sendRequest("changeIntegerAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(10));
+        final Serializable result = channel.sendRequest("changeIntegerAttribute", Communicator.MessageEvent::getPayload, Duration.ofSeconds(10));
         assertTrue(result instanceof Integer);
         assertEquals(1020, result);
     }
@@ -73,7 +73,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     @Test
     public void bigIntegerAttributeTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
-        final Serializable result = channel.sendRequest("changeBigIntegerAttribute", Communicator.IncomingMessage::getPayload, Duration.ofSeconds(2));
+        final Serializable result = channel.sendRequest("changeBigIntegerAttribute", Communicator.MessageEvent::getPayload, Duration.ofSeconds(2));
         assertTrue(result instanceof BigInteger);
         assertEquals(BigInteger.valueOf(1020L), result);
     }
@@ -82,7 +82,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     public void notificationTest() throws ExecutionException, TimeoutException, InterruptedException {
         final Communicator channel = processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
         final String MESSAGE = "changeStringAttributeSilent";
-        final Future<Serializable> awaitor = channel.receiveMessage(Communicator.MessageType.RESPONSE, Communicator.IncomingMessage::getPayload);
+        final Future<Serializable> awaitor = channel.receiveMessage(Communicator.MessageType.RESPONSE, Communicator.MessageEvent::getPayload);
         channel.sendMessage(MESSAGE, Communicator.MessageType.REQUEST);
         final Serializable notification = awaitor.get(3, TimeUnit.SECONDS);
         assertTrue(notification instanceof Notification);

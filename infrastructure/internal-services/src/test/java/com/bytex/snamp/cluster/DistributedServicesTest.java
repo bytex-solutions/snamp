@@ -16,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
 /**
  * Represents tests for distributed services with hazelcast.
@@ -109,8 +108,8 @@ public final class DistributedServicesTest extends Assert {
         assertEquals("Hello", receiver2.get(1, TimeUnit.SECONDS));
         //test dialog
         final String EXPECTED_RESPONSE = "Response";
-        final Consumer<Communicator.IncomingMessage> responseListener = msg -> {
-            assertNotNull(msg.getSender());
+        final Communicator.MessageListener responseListener = msg -> {
+            assertNotNull(msg.getSource());
             //assertTrue(msg.getSender().isActive());
             assertEquals("Request", msg.getPayload());
             communicator1.sendMessage(EXPECTED_RESPONSE, Communicator.MessageType.RESPONSE, msg.getMessageID());

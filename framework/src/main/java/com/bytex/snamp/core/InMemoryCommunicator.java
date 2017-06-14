@@ -25,13 +25,15 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
  * @version 2.0
  */
 final class InMemoryCommunicator extends ThreadSafeObject implements Communicator {
-    private static final class LocalIncomingMessage implements IncomingMessage{
+    private static final class LocalIncomingMessage extends MessageEvent{
+        private static final long serialVersionUID = 1883461227506401471L;
         private final long messageID;
         private final Serializable payload;
         private final long timeStamp;
         private final MessageType messageType;
 
         private LocalIncomingMessage(final Serializable payload, final long messageID, final MessageType type){
+            super(LocalMember.getInstance());
             this.messageID = messageID;
             this.payload = Objects.requireNonNull(payload);
             this.timeStamp = System.currentTimeMillis();
@@ -41,11 +43,6 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         @Override
         public Serializable getPayload() {
             return payload;
-        }
-
-        @Override
-        public ClusterMemberInfo getSender() {
-            return LocalMember.getInstance();
         }
 
         @Override
@@ -69,7 +66,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         }
     }
 
-    interface MessageListenerNode extends Consumer<IncomingMessage>, Predicate<IncomingMessage>, SafeCloseable{
+    private interface MessageListenerNode extends MessageListener, Predicate<MessageEvent>, SafeCloseable{
         MessageListenerNode getPrevious();
         MessageListenerNode getNext();
         void setNext(final MessageListenerNode value);
@@ -79,13 +76,13 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     /**
      * Represents position of the listener node in the listener chain.
      */
-    private static class NodePosition extends AtomicReference<LockManager> implements Predicate<IncomingMessage>{
+    private static class NodePosition extends AtomicReference<LockManager> implements Predicate<MessageEvent>{
         private static final long serialVersionUID = -7984543206192783148L;
-        private final Predicate<? super IncomingMessage> filter;
+        private final Predicate<? super MessageEvent> filter;
         private MessageListenerNode previous;
         private MessageListenerNode next;
 
-        private NodePosition(final LockManager writeLock, final Predicate<? super IncomingMessage> filter){
+        private NodePosition(final LockManager writeLock, final Predicate<? super MessageEvent> filter){
             super(Objects.requireNonNull(writeLock));
             this.filter = Objects.requireNonNull(filter);
         }
@@ -107,7 +104,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         }
 
         @Override
-        public final boolean test(final IncomingMessage message) {
+        public final boolean test(final MessageEvent message) {
             return filter.test(message);
         }
 
@@ -129,12 +126,12 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     private static final class FixedSizeMessageBox<V> extends ArrayBlockingQueue<V> implements MessageBox<V>, MessageListenerNode{
         private static final long serialVersionUID = -2220120261326005511L;
         private final NodePosition position;
-        private final Function<? super IncomingMessage, ? extends V> messageParser;
+        private final Function<? super MessageEvent, ? extends V> messageParser;
 
         private FixedSizeMessageBox(final int capacity,
                                     final LockManager writeLock,
-                                    final Predicate<? super IncomingMessage> filter,
-                                    final Function<? super IncomingMessage, ? extends V> messageParser) {
+                                    final Predicate<? super MessageEvent> filter,
+                                    final Function<? super MessageEvent, ? extends V> messageParser) {
             super(capacity);
             this.position = new NodePosition(writeLock, filter);
             this.messageParser = Objects.requireNonNull(messageParser);
@@ -146,12 +143,12 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         }
 
         @Override
-        public void accept(final IncomingMessage message) {
+        public void accept(final MessageEvent message) {
             add(messageParser.apply(message));
         }
 
         @Override
-        public boolean test(final IncomingMessage message) {
+        public boolean test(final MessageEvent message) {
             return position.test(message);
         }
 
@@ -179,11 +176,11 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     private static final class LinkedMessageBox<V> extends LinkedBlockingQueue<V> implements MessageBox<V>, MessageListenerNode{
         private static final long serialVersionUID = -5258465049815978421L;
         private final NodePosition position;
-        private final Function<? super IncomingMessage, ? extends V> messageParser;
+        private final Function<? super MessageEvent, ? extends V> messageParser;
 
         private LinkedMessageBox(final LockManager writeLock,
-                                 final Predicate<? super IncomingMessage> filter,
-                                 final Function<? super IncomingMessage, ? extends V> messageParser){
+                                 final Predicate<? super MessageEvent> filter,
+                                 final Function<? super MessageEvent, ? extends V> messageParser){
             position = new NodePosition(writeLock, filter);
             this.messageParser = Objects.requireNonNull(messageParser);
         }
@@ -194,12 +191,12 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         }
 
         @Override
-        public void accept(final IncomingMessage message) {
+        public void accept(final MessageEvent message) {
             add(messageParser.apply(message));
         }
 
         @Override
-        public boolean test(final IncomingMessage message) {
+        public boolean test(final MessageEvent message) {
             return position.test(message);
         }
 
@@ -226,17 +223,17 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
 
     private static final class MessageFuture<V> extends CompletableFuture<V> implements MessageListenerNode{
         private final NodePosition position;
-        private final Function<? super IncomingMessage, ? extends V> messageParser;
+        private final Function<? super MessageEvent, ? extends V> messageParser;
 
         private MessageFuture(final LockManager writeLock,
-                              final Predicate<? super IncomingMessage> filter,
-                              final Function<? super IncomingMessage, ? extends V> messageParser){
+                              final Predicate<? super MessageEvent> filter,
+                              final Function<? super MessageEvent, ? extends V> messageParser){
             position = new NodePosition(writeLock, filter);
             this.messageParser = Objects.requireNonNull(messageParser);
         }
 
         @Override
-        public void accept(final IncomingMessage message) {
+        public void accept(final MessageEvent message) {
             complete(messageParser.apply(message));
         }
 
@@ -246,7 +243,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         }
 
         @Override
-        public boolean test(final IncomingMessage message) {
+        public boolean test(final MessageEvent message) {
             return position.test(message);
         }
 
@@ -280,13 +277,13 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
 
         @Override
         @MethodStub
-        public final void accept(final IncomingMessage message) {
+        public final void accept(final MessageEvent message) {
 
         }
 
         @Override
         @MethodStub
-        public final boolean test(final IncomingMessage message) {
+        public final boolean test(final MessageEvent message) {
             return false;
         }
     }
@@ -346,15 +343,15 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
 
     private static final class MessageListenerHolder extends NodePosition implements MessageListenerNode{
         private static final long serialVersionUID = 3125562524096198824L;
-        private final Consumer<? super IncomingMessage> listener;
+        private final Consumer<? super MessageEvent> listener;
 
-        private MessageListenerHolder(final LockManager writeLock, final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter){
+        private MessageListenerHolder(final LockManager writeLock, final MessageListener listener, final Predicate<? super MessageEvent> filter){
             super(writeLock, filter);
             this.listener = Objects.requireNonNull(listener);
         }
 
         @Override
-        public void accept(final IncomingMessage message) {
+        public void accept(final MessageEvent message) {
             listener.accept(message);
         }
 
@@ -410,10 +407,10 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     }
 
     private void sendMessageImpl(final Serializable payload, final long messageID, final MessageType type) {
-        final IncomingMessage message = new LocalIncomingMessage(payload, messageID, type);
+        final MessageEvent message = new LocalIncomingMessage(payload, messageID, type);
         for (MessageListenerNode node = firstNode.getNext(); !(node instanceof TailMessageListenerNode); node = node.getNext())
             if (node.test(message)) {
-                final Consumer<? super IncomingMessage> listener = node;
+                final MessageListener listener = node;
                 getExecutorService().execute(() -> listener.accept(message));
             }
     }
@@ -424,14 +421,14 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     }
 
     @Override
-    public <V> V receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
+    public <V> V receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         try (final MessageFuture<V> future = receiveMessage(filter, messageParser, false)) {
             final Callable<V> callable = timeout == null ? future::get : () -> future.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
             return callUnchecked(callable);
         }
     }
 
-    private <V> MessageFuture<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final boolean closeWhenComplete) {
+    private <V> MessageFuture<V> receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser, final boolean closeWhenComplete) {
         final MessageFuture<V> result = addMessageListener(lock -> new MessageFuture<V>(lock, filter, messageParser));
         if(closeWhenComplete)
             result.thenRun(result::close);
@@ -439,7 +436,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     }
 
     @Override
-    public <V> MessageFuture<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+    public <V> MessageFuture<V> receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
         return receiveMessage(filter, messageParser, true);
     }
 
@@ -460,22 +457,22 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     }
 
     @Override
-    public MessageListenerHolder addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter) {
+    public MessageListenerHolder addMessageListener(final MessageListener listener, final Predicate<? super MessageEvent> filter) {
         return addMessageListener(lock -> new MessageListenerHolder(lock, listener, filter));
     }
 
     @Override
-    public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+    public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
         return addMessageListener(lock -> new FixedSizeMessageBox<V>(capacity, lock, filter, messageParser));
     }
 
     @Override
-    public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+    public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
         return addMessageListener(lock -> new LinkedMessageBox<V>(lock, filter, messageParser));
     }
 
     @Override
-    public <V> V sendRequest(final Serializable message, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
+    public <V> V sendRequest(final Serializable message, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         final long messageID = newMessageID();
         try (final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, false)) {
             sendMessage(message, MessageType.REQUEST, messageID);
@@ -485,7 +482,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     }
 
     @Override
-    public <V> MessageFuture<V> sendRequest(final Serializable message, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException {
+    public <V> MessageFuture<V> sendRequest(final Serializable message, final Function<? super MessageEvent, ? extends V> messageParser) throws InterruptedException {
         final long messageID = newMessageID();
         final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, true);
         sendMessage(message, MessageType.REQUEST, messageID);

@@ -1,19 +1,17 @@
 package com.bytex.snamp.connector.notifications;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
 import org.osgi.framework.BundleContext;
 
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
@@ -28,9 +26,8 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  * @version 2.0
  */
-public abstract class AccurateNotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> implements Consumer<Communicator.IncomingMessage> {
-    private final SafeCloseable subscription;
-    private final Consumer<? super Notification> sender;
+public abstract class AccurateNotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> {
+    private final NotificationExchange exchange;
     private final ClusterMember clusterMember;
     private static final String CHANNEL_NAME = "AccurateNotifications";
 
@@ -43,13 +40,10 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
     protected AccurateNotificationRepository(final String resourceName, final Class<M> notifMetadataType) {
         super(resourceName, notifMetadataType);
         clusterMember = ClusterMember.get(getBundleContext());
-        final Communicator communicator = clusterMember.getService(CHANNEL_NAME, COMMUNICATOR)
-                .orElseThrow(AssertionError::new);
-        subscription = communicator.addMessageListener(this, notificationFilter(resourceName));
-        this.sender = communicator::sendSignal;
+        exchange = NotificationExchange.create(clusterMember, CHANNEL_NAME, resourceName, this::fireListenersNoIntercept);
     }
 
-    private static Predicate<? super Communicator.IncomingMessage> notificationFilter(final String resourceName) {
+    private static Predicate<? super Communicator.MessageEvent> notificationFilter(final String resourceName) {
         return message -> message.isRemote() &&
                 Convert.toType(message.getPayload(), Notification.class)
                         .filter(payload -> Objects.equals(resourceName, payload.getSource()))
@@ -70,22 +64,18 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
     }
 
     @Override
-    public final void accept(final Communicator.IncomingMessage message) {
-        Convert.toType(message.getPayload(), Notification.class).ifPresent(this::fireListenersNoIntercept);
-    }
-
-    @Override
     protected final void interceptFire(final Collection<? extends Notification> notifications) {
         //send all notifications to other nodes across cluster.
         for (final Notification n : notifications) {
             n.setSource(getResourceName());
-            sender.accept(n);
+            exchange.send(n);
         }
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void close() {
         super.close();
-        subscription.close();
+        exchange.close();
     }
 }

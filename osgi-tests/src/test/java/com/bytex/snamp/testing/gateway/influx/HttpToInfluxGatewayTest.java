@@ -106,7 +106,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
         sendMeasurement(measurement);
         //now we expect that the notification will be recorded into InfluxDB
         final Communicator communicator = processLocalMember.getService(InfluxWriteMock.INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
-        final Serializable points = communicator.receiveMessage(Communicator.ANY_MESSAGE, Communicator.IncomingMessage::getPayload, Duration.ofSeconds(2));
+        final Serializable points = communicator.receiveMessage(Communicator.ANY_MESSAGE, Communicator.MessageEvent::getPayload, Duration.ofSeconds(2));
         assertTrue(points instanceof String);
         assertTrue(points.toString().startsWith("usedRAM,connectionString=javaApp-1,connectionType=http,managedResource=test-target value=100500i"));
     }

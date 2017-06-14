@@ -18,6 +18,7 @@ import com.bytex.snamp.instrumentation.measurements.Health;
 import com.bytex.snamp.instrumentation.measurements.jmx.HealthNotification;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
 import java.beans.BeanInfo;
@@ -181,6 +182,14 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         return heartbeat == null ? new OkStatus() : heartbeat.getStatus();
     }
 
+    final void acceptRaw(final Notification notification) {
+        notification.setSource(this);
+        attributes.handleNotification(notification, this::attributeProcessed);
+        notifications.accept(notification);
+        if (heartbeat != null)                 //update heartbeat if it is enabled
+            Convert.toType(notification, HealthNotification.class).ifPresent(heartbeat);
+    }
+
     /**
      * Invoked when a JMX notification occurs.
      * The implementation of this method should return as soon as possible, to avoid
@@ -190,12 +199,8 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
      */
     @Override
     public void accept(final Notification notification) {
-        notification.setSource(this);
         notification.setSequenceNumber(sequenceNumberProvider.getAsLong());
-        attributes.handleNotification(notification, this::attributeProcessed);
-        notifications.accept(notification);
-        if (heartbeat != null)                 //update heartbeat if it is enabled
-            Convert.toType(notification, HealthNotification.class).ifPresent(heartbeat);
+        acceptRaw(notification);
     }
 
     private Logger getLogger(){
@@ -261,6 +266,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
      * @throws Exception Unable to release resource clearly.
      */
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
         attributes.close();
         notifications.close();
