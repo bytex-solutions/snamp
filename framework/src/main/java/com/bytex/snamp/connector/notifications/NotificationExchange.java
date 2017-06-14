@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
+ * Represents exchange of notifications.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0

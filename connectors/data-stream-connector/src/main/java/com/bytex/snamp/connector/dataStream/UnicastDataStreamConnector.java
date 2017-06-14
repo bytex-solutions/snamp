@@ -16,6 +16,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
+ * @see com.bytex.snamp.connector.notifications.AccurateNotificationRepository
  */
 public abstract class UnicastDataStreamConnector extends DataStreamConnector {
     private static final String CHANNEL_NAME = "UnicastDataStream";
