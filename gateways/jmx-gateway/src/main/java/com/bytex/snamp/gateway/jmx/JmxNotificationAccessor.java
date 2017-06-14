@@ -1,5 +1,7 @@
 package com.bytex.snamp.gateway.jmx;
 
+import com.bytex.snamp.Convert;
+import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.google.common.collect.ImmutableSet;
 
@@ -41,9 +43,12 @@ final class JmxNotificationAccessor extends NotificationAccessor implements JmxF
     }
 
     @Override
-    public void handleNotification(final Notification notification, final Object handback) {
+    public void handleNotification(Notification notification, final Object handback) {
         final Consumer<Notification> listener = listenerRef.get();
         if (listener != null) {
+            notification = Convert.toType(notification, NotificationContainer.class)
+                    .map(NotificationContainer::get)
+                    .orElse(notification);
             notification.setSource(resourceName);
             listener.accept(notification);
         }
