@@ -38,7 +38,6 @@ public final class AddRemoveConnectorTest extends AbstractSnampIntegrationTest {
             config.getResources().remove(RESOURCE_NAME);
             return true;
         });
-        Thread.sleep(5_000_000);
     }
 
     /**

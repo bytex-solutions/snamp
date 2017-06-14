@@ -23,17 +23,21 @@ public abstract class AbstractHttpConnectorTest extends AbstractResourceConnecto
     public static final String CONNECTOR_TYPE = "http";
     protected static final String COMPONENT_NAME = "javaApp";
 
-    protected AbstractHttpConnectorTest(final String instanceName){
-        super(CONNECTOR_TYPE, instanceName, ImmutableMap.of("componentName", COMPONENT_NAME));
+    protected AbstractHttpConnectorTest(){
+        super(CONNECTOR_TYPE, "", ImmutableMap.of());
     }
 
-    protected AbstractHttpConnectorTest(final String instanceName, final String scriptPath, final String scriptName){
-        super(CONNECTOR_TYPE, instanceName, ImmutableMap.of(
-                "componentName", COMPONENT_NAME,
+    protected AbstractHttpConnectorTest(final String scriptPath, final String scriptName) {
+        super(CONNECTOR_TYPE, "", ImmutableMap.of(
                 "parserScript", scriptName,
                 "parserScriptPath", scriptPath
                 )
         );
+    }
+
+    @Override
+    protected String getGroupName() {
+        return COMPONENT_NAME;
     }
 
     private static void httpPost(final String data, final String url, final MediaType type) throws IOException {

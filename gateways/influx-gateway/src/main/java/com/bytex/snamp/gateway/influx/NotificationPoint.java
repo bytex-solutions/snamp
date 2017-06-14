@@ -88,10 +88,10 @@ abstract class NotificationPoint extends NotificationAccessor {
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         //only active cluster node is responsible for reporting
-        if(clusterMember.isActive()) {
-            if(notification instanceof NotificationContainer)
+        if (clusterMember.isActive()) {
+            if (notification instanceof NotificationContainer)
                 handleNotification(((NotificationContainer) notification).get(), handback);
-            if (notification instanceof AttributeChangeNotification)
+            else if (notification instanceof AttributeChangeNotification)
                 callUnchecked(() -> handleNotification((AttributeChangeNotification) notification));
             else if (notification instanceof MeasurementNotification<?>)
                 handleNotification((MeasurementNotification<?>) notification);

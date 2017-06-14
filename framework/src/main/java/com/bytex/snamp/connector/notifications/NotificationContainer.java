@@ -111,7 +111,7 @@ public final class NotificationContainer extends Notification implements Supplie
      */
     @Override
     public Object getUserData() {
-        return wrappedNotification.getType();
+        return wrappedNotification.getUserData();
     }
 
     /**
@@ -143,5 +143,20 @@ public final class NotificationContainer extends Notification implements Supplie
     @Override
     public Notification get(){
         return wrappedNotification;
+    }
+
+
+    @Override
+    public int hashCode() {
+        return wrappedNotification.hashCode();
+    }
+
+    private boolean equals(final NotificationContainer other){
+        return other.wrappedNotification.equals(wrappedNotification);
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof NotificationContainer && equals((NotificationContainer) other);
     }
 }

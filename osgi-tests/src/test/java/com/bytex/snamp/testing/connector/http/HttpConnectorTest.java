@@ -21,21 +21,18 @@ import java.io.IOException;
  */
 public final class HttpConnectorTest extends AbstractHttpConnectorTest {
 
-    private static final String INSTANCE_NAME = "testInstance";
-
     public HttpConnectorTest() {
-        super(INSTANCE_NAME,
-                "file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator,
+        super("file:" + getPathToFileInProjectRoot("sample-groovy-scripts") + File.separator,
                 "HttpAcceptorParser.groovy");
     }
 
     @Test
     public void testLastValueExtraction2() throws IOException, JMException, InterruptedException {
         final IntegerMeasurement measurement1 = StandardMeasurements.freeRam(41L);
-        measurement1.setInstanceName(INSTANCE_NAME);
+        measurement1.setInstanceName(TEST_RESOURCE_NAME);
         measurement1.setComponentName(COMPONENT_NAME);
         final IntegerMeasurement measurement2 = StandardMeasurements.freeRam(46L);
-        measurement2.setInstanceName(INSTANCE_NAME);
+        measurement2.setInstanceName(TEST_RESOURCE_NAME);
         measurement2.setComponentName(COMPONENT_NAME);
         sendMeasurements(measurement1, measurement2);
         Thread.sleep(100);
@@ -46,7 +43,7 @@ public final class HttpConnectorTest extends AbstractHttpConnectorTest {
     @Test
     public void testLastValueExtraction() throws IOException, JMException {
         final IntegerMeasurement measurement = StandardMeasurements.freeRam(42L);
-        measurement.setInstanceName(INSTANCE_NAME);
+        measurement.setInstanceName(TEST_RESOURCE_NAME);
         measurement.setComponentName(COMPONENT_NAME);
         sendMeasurement(measurement);
         testAttribute("longValue", TypeToken.of(Long.class), 42L, true);

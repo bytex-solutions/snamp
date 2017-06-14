@@ -36,13 +36,11 @@ import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
  */
 @SnampDependencies(SnampFeature.INFLUX_GATEWAY)
 public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
-    private static final String INSTANCE_NAME = COMPONENT_NAME + "-1";
     private static final String GATEWAY_NAME = "influx";
     private ServiceHolder<HttpService> httpService;
     private ClusterMember processLocalMember;
 
     public HttpToInfluxGatewayTest() {
-        super(INSTANCE_NAME);
     }
 
     private static void ping() throws IOException {
@@ -102,7 +100,7 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
     public void measurementTest() throws IOException, InterruptedException, TimeoutException {
         final IntegerMeasurement measurement = StandardMeasurements.usedRAM(100500L);
         measurement.setComponentName(COMPONENT_NAME);
-        measurement.setInstanceName(INSTANCE_NAME);
+        measurement.setInstanceName(TEST_RESOURCE_NAME);
         sendMeasurement(measurement);
         //now we expect that the notification will be recorded into InfluxDB
         final Communicator communicator = processLocalMember.getService(InfluxWriteMock.INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
