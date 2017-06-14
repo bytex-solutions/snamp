@@ -471,7 +471,8 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
                 "localAddress",
                 "securityContext",
                 "threadPool",
-                "smartMode"
+                "smartMode",
+                "discoveryTimeout"
         ));
     }
 

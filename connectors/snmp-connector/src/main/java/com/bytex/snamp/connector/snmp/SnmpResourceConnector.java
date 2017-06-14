@@ -686,10 +686,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
 
     SnmpResourceConnector(final String resourceName,
-                          final ManagedResourceInfo configuration,
-                          final Duration discoveryTimeout) throws IOException {
+                          final ManagedResourceInfo configuration) throws IOException {
         super(configuration);
-        client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(configuration.getConnectionString()), configuration));
+        final SnmpConnectorDescriptionProvider parser = SnmpConnectorDescriptionProvider.getInstance();
+        final Duration discoveryTimeout = parser.parseDiscoveryTimeout(configuration);
+        client = new ConcurrentResourceAccessor<>(parser.createSnmpClient(GenericAddress.parse(configuration.getConnectionString()), configuration));
         attributes = new SnmpAttributeRepository(resourceName, client, discoveryTimeout);
         notifications = new SnmpNotificationRepository(resourceName,
                 client,
