@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.notifications;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
@@ -49,14 +50,10 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
     }
 
     private static Predicate<? super Communicator.IncomingMessage> notificationFilter(final String resourceName) {
-        return message -> {
-            if (message.isRemote() && message.getPayload() instanceof Notification) {
-                final Notification n = (Notification) message.getPayload();
-                assert n.getSource() instanceof String; //see notificationInterceptor
-                return Objects.equals(resourceName, n.getSource());
-            } else
-                return false;
-        };
+        return message -> message.isRemote() &&
+                Convert.toType(message.getPayload(), Notification.class)
+                        .filter(payload -> Objects.equals(resourceName, payload.getSource()))
+                        .isPresent();
     }
 
     private BundleContext getBundleContext(){
@@ -72,34 +69,23 @@ public abstract class AccurateNotificationRepository<M extends MBeanNotification
         return !clusterMember.isActive();
     }
 
-    private void fireListeners(final Notification n) {
-        n.setSource(this);
-        fireListenersNoIntercept(n);
-    }
-
     @Override
     public final void accept(final Communicator.IncomingMessage message) {
-        if (message.getPayload() instanceof Notification)
-            fireListeners((Notification) message.getPayload());
-    }
-
-    private static Consumer<Notification> notificationInterceptor(final String resourceName,
-                                                                  final Consumer<? super Notification> sender){
-        return (Notification n) -> {
-            n = new NotificationBuilder(n).setSource(resourceName).get();
-            sender.accept(n);
-        };
+        Convert.toType(message.getPayload(), Notification.class).ifPresent(this::fireListenersNoIntercept);
     }
 
     @Override
     protected final void interceptFire(final Collection<? extends Notification> notifications) {
         //send all notifications to other nodes across cluster.
-        notifications.forEach(notificationInterceptor(getResourceName(), sender));
+        for (final Notification n : notifications) {
+            n.setSource(getResourceName());
+            sender.accept(n);
+        }
     }
 
     @Override
     public void close() {
-        subscription.close();
         super.close();
+        subscription.close();
     }
 }

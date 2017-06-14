@@ -549,19 +549,14 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
 
         @Override
         public void handleNotification(final Notification notification, final Object handback) {
-            Object userData = null;
             try {
-                userData = UserDataExtractor.getUserData(notification);
+                notification.setUserData(UserDataExtractor.getUserData(notification));
             } catch (final OpenDataException | IllegalArgumentException e) {
                 getLogger().log(Level.SEVERE, String.format("Unable to process user data %s in notification %s",
                         notification.getUserData(),
                         notification.getType()), e);
             }
-            fire(notification.getType(),
-                    notification.getMessage(),
-                    notification.getSequenceNumber(),
-                    notification.getTimeStamp(),
-                    userData);
+            fire(notification, false);
         }
 
         private void unsubscribeAll() throws Exception {
