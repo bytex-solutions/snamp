@@ -123,6 +123,7 @@ public interface Communicator extends SharedObject {
     /**
      * Sends a one-way message.
      * @param signal A message to send.
+     * @see MessageType#SIGNAL
      */
     void sendSignal(final Serializable signal);
 

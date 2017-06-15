@@ -408,7 +408,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
 
     private void sendMessageImpl(final Serializable payload, final long messageID, final MessageType type) {
         final MessageEvent message = new LocalIncomingMessage(payload, messageID, type);
-        for (MessageListenerNode node = firstNode.getNext(); !(node instanceof TailMessageListenerNode); node = node.getNext())
+        for (MessageListenerNode node = firstNode.getNext(); node != null; node = node.getNext())
             if (node.test(message)) {
                 final MessageListener listener = node;
                 getExecutorService().execute(() -> listener.accept(message));
