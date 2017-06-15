@@ -317,11 +317,9 @@ export class ResourceEntitiesTable implements OnInit {
        // alert("Selected entity is: " + this.selectedEntity + " with a name " + this.selectedEntityName);
         this.selectedEntity.parameters.push(new KeyValue("name", this.selectedEntity.name));
         this.selectedEntity.name = this.selectedEntityName;
-        console.log("New entity to be put on the server ", this.selectedEntity.stringifyFullObject());
         this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
             .map((res:Response) => res.text())
             .subscribe((data) => {
-                console.log("Has been saved: ", data);
                 switch (this.entityType) {
                     case "attribute":
                         this.resource.attributes.push(<Attribute>this.selectedEntity);
