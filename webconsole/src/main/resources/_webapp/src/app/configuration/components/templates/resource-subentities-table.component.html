@@ -280,9 +280,10 @@
                 <button
                         type="button"
                         data-toggle="modal"
+                        [disabled]="((selectedEntity != undefined) && isAttributeSet(selectedEntity.name))"
                         (click)="addSelectedEntityToResource()"
                         class="btn btn-default">
-                    Add new
+                    Add
                 </button>
             </div>
         </div>
