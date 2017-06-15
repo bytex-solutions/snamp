@@ -43,13 +43,12 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
         }
         //let's change type of the connector
         final String COMPONENT_NAME = "javaApp";
-        final String INSTANCE_NAME = "myComponent";
         processConfiguration(config -> {
             ManagedResourceConfiguration connector = config.getResources().getOrAdd(RESOURCE_NAME);
             assertEquals(AbstractGroovyConnectorTest.CONNECTOR_TYPE, connector.getType());
             connector.setType(AbstractHttpConnectorTest.CONNECTOR_TYPE);
-            connector.setConnectionString(INSTANCE_NAME);
-            connector.put("componentName", COMPONENT_NAME);
+            connector.setConnectionString("");
+            connector.setGroupName(COMPONENT_NAME);
             connector.getAttributes().clear();
             connector.getAttributes()
                     .addAndConsume("longValue", attribute -> attribute.put("gauge", "get lastValue from gauge64 attribute1"));
@@ -63,7 +62,7 @@ public final class ChangeConnectorTypeTest extends AbstractSnampIntegrationTest 
         try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getTestBundleContext(), RESOURCE_NAME, Duration.ofSeconds(2))
                 .orElseThrow(AssertionError::new)) {
             final IntegerMeasurement measurement = StandardMeasurements.freeRam(42L);
-            measurement.setInstanceName(INSTANCE_NAME);
+            measurement.setInstanceName(RESOURCE_NAME);
             measurement.setComponentName(COMPONENT_NAME);
             AbstractHttpConnectorTest.sendMeasurement(measurement);
             Thread.sleep(2_000);

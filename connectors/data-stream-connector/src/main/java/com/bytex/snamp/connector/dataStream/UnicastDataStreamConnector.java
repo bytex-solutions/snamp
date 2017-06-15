@@ -33,6 +33,14 @@ public abstract class UnicastDataStreamConnector extends DataStreamConnector {
         return getBundleContextOfObject(this);
     }
 
+    protected final void accept(final Notification notification, final boolean broadcast){
+        super.accept(notification);
+        if (broadcast && clusterMember.isActive()) {
+            notification.setSource(attributes.getResourceName());
+            exchange.send(notification);
+        }
+    }
+
     /**
      * Invoked when a JMX notification occurs.
      * The implementation of this method should return as soon as possible, to avoid
@@ -43,11 +51,7 @@ public abstract class UnicastDataStreamConnector extends DataStreamConnector {
     @Override
     @OverridingMethodsMustInvokeSuper
     public void accept(final Notification notification) {
-        super.accept(notification);
-        if (clusterMember.isActive()) {
-            notification.setSource(attributes.getResourceName());
-            exchange.send(notification);
-        }
+        accept(notification, true);
     }
 
     /**
