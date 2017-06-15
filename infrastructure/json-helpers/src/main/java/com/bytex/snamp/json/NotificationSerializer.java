@@ -5,7 +5,6 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.POJONode;
 
 import javax.management.Notification;
 import java.io.IOException;
@@ -42,11 +41,11 @@ public final class NotificationSerializer extends JsonSerializer<Notification> {
         node.put(NOTIF_TYPE, src.getType());
         node.put(SEQUENCE_NUMBER, src.getSequenceNumber());
         if (timeStampAsString)
-            node.put(TIME_STAMP, new POJONode(new Date(src.getTimeStamp())));
+            node.put(TIME_STAMP, ThreadLocalJsonFactory.toValueNode(new Date(src.getTimeStamp())));
         else
             node.put(TIME_STAMP, src.getTimeStamp());
         node.put(MESSAGE, src.getMessage());
-        node.put(USER_DATA, new POJONode(src.getUserData()));
+        node.put(USER_DATA, ThreadLocalJsonFactory.toValueNode(src.getUserData()));
         node.serialize(jgen, provider);
     }
 }

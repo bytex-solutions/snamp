@@ -8,13 +8,13 @@ import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.json.JsonUtils;
+import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.jmx.AbstractJmxConnectorTest;
 import com.bytex.snamp.testing.connector.jmx.TestOpenMBean;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.BigIntegerNode;
 import org.codehaus.jackson.node.BooleanNode;
 import org.codehaus.jackson.node.IntNode;
 import org.codehaus.jackson.node.TextNode;
@@ -33,7 +33,6 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.SimpleType;
 import javax.management.openmbean.TabularData;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -79,6 +78,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
     public JmxToHttpGatewayTest() throws MalformedObjectNameException {
         super(new TestOpenMBean(), new ObjectName(BEAN_NAME));
         formatter = new ObjectMapper();
+        formatter.registerModule(new JsonUtils());
     }
 
     @Override
@@ -161,7 +161,7 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
 
     @Test
     public void testBigIntAttribute() throws IOException {
-        testAttribute("bigint", BigIntegerNode.valueOf(new BigInteger("100500")));
+        testAttribute("bigint", ThreadLocalJsonFactory.toValueNode(100500));
     }
 
     @Test
@@ -181,8 +181,6 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
                         .addColumn("col3", "desc", SimpleType.STRING, true))
                 .add(false, 2, "pp")
                 .build();
-        final ObjectMapper formatter = new ObjectMapper();
-        formatter.registerModule(new JsonUtils());
         testAttribute("7.1", formatter.valueToTree(data));
     }
 
@@ -194,8 +192,6 @@ public final class JmxToHttpGatewayTest extends AbstractJmxConnectorTest<TestOpe
             .put("col2", "desc", 42)
             .put("col3", "desc", "Hello, world!")
             .build();
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JsonUtils());
         testAttribute("6.1", formatter.valueToTree(data));
     }
 
