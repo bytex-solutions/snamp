@@ -41,6 +41,8 @@ export class ResourceEntitiesTable implements OnInit {
     selectedEntity:SubEntity = undefined;
     selectedEntityName:string = "";
 
+    isNewEntity:boolean = false;
+
     constructor(private http:ApiClient, private modal: Modal, private cd: ChangeDetectorRef,) {}
 
     private makeEmptyEntity():SubEntity {
@@ -98,6 +100,7 @@ export class ResourceEntitiesTable implements OnInit {
 
     setEntity(entity:SubEntity):void {
         this.activeEntity = entity;
+        this.isNewEntity = false;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
     }
@@ -159,6 +162,7 @@ export class ResourceEntitiesTable implements OnInit {
 
     addNewEntity():void {
         this.activeEntity = this.makeEmptyEntity();
+        this.isNewEntity = true;
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
         $('#editEntity' + this.entityType).modal("show");
     }
@@ -243,7 +247,27 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     saveEntity():void {
-      alert("Save button now clicked!");
+        this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
+            .map((res:Response) => res.text())
+            .subscribe((data) => {
+                if (this.isNewEntity) {
+                    switch (this.entityType) {
+                        case "attribute":
+                            this.resource.attributes.push(<Attribute>this.selectedEntity);
+                            break;
+                        case "event":
+                            this.resource.events.push(<Event>this.selectedEntity);
+                            break;
+                        case "operation":
+                            this.resource.operations.push(<Operation>this.selectedEntity);
+                            break;
+                        default:
+                            throw new Error("Could not recognize the entity type: " + this.entityType);
+                    }
+                }
+                this.cd.detectChanges();
+            });
+        $('#addExistentEntity' + this.entityType).modal("hide")
     }
 
     hasAvailableEntities():boolean {
@@ -314,7 +338,6 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     addSelectedEntityToResource():void {
-       // alert("Selected entity is: " + this.selectedEntity + " with a name " + this.selectedEntityName);
         this.selectedEntity.parameters.push(new KeyValue("name", this.selectedEntity.name));
         this.selectedEntity.name = this.selectedEntityName;
         this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
