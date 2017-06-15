@@ -36,7 +36,7 @@ public abstract class AbstractHttpConnectorTest extends AbstractResourceConnecto
     }
 
     @Override
-    protected String getGroupName() {
+    protected final String getGroupName() {
         return COMPONENT_NAME;
     }
 
