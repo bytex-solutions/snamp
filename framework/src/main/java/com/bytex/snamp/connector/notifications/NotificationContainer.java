@@ -19,8 +19,13 @@ public final class NotificationContainer extends Notification implements Supplie
         wrappedNotification = notification;
     }
 
-    static Notification create(final String type, final Notification notification){
-        return notification.getType().equals(type) ? notification : new NotificationContainer(type, notification);
+    static Notification create(final String type, final Notification notification) {
+        if (notification.getType().equals(type))
+            return notification;
+        else if (notification instanceof NotificationContainer)
+            return create(type, ((NotificationContainer) notification).get());
+        else
+            return new NotificationContainer(type, notification);
     }
 
     /**

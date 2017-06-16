@@ -4,6 +4,7 @@ import java.nio.*;
 import java.util.Objects;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.ArrayUtils.emptyByteArray;
 
 /**
  * Represents a set of methods to work with {@link java.nio.Buffer}.
@@ -149,7 +150,8 @@ public final class Buffers {
             buffer.get(result);
             return result;
         }
-        else return emptyArray(byte[].class);
+        else
+            return emptyByteArray();
     }
 
     public static char[] readRemaining(final CharBuffer buffer){
@@ -242,37 +244,32 @@ public final class Buffers {
         else return null;
     }
 
-    private static <B extends Buffer> B rewind(final B buffer){
-        buffer.rewind();
-        return buffer;
-    }
-
     public static ByteBuffer wrap(final byte... items){
-        return rewind(ByteBuffer.wrap(items));
+        return ByteBuffer.wrap(items);
     }
 
     public static CharBuffer wrap(final char... items){
-        return rewind(CharBuffer.wrap(items));
+        return CharBuffer.wrap(items);
     }
 
     public static ShortBuffer wrap(final short... items){
-        return rewind(ShortBuffer.wrap(items));
+        return ShortBuffer.wrap(items);
     }
 
     public static IntBuffer wrap(final int... items){
-        return rewind(IntBuffer.wrap(items));
+        return IntBuffer.wrap(items);
     }
 
     public static LongBuffer wrap(final long... items){
-        return rewind(LongBuffer.wrap(items));
+        return LongBuffer.wrap(items);
     }
 
     public static FloatBuffer wrap(final float... items){
-        return rewind(FloatBuffer.wrap(items));
+        return FloatBuffer.wrap(items);
     }
 
     public static DoubleBuffer wrap(final double... items){
-        return rewind(DoubleBuffer.wrap(items));
+        return DoubleBuffer.wrap(items);
     }
 
     public static ByteBuffer toByteBuffer(final CharBuffer buffer){

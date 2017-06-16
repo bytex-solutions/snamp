@@ -60,6 +60,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     }
 
     SnmpNotification(final OID notificationID,
+                     final String resourceName,
                      final Notification n,
                      final MBeanNotificationInfo options) {
         this(notificationID);
@@ -71,7 +72,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
         putAttachment(notificationID, n.getUserData(), options, this);
         put(eventNameId, OctetStringHelper.toOctetString(n.getType()));
-        put(sourceId, OctetStringHelper.toOctetString(Objects.toString(n.getSource(), "")));
+        put(sourceId, OctetStringHelper.toOctetString(resourceName));
     }
 
     private static void putAttachment(final OID notificationID,
@@ -150,12 +151,10 @@ final class SnmpNotification extends HashMap<OID, Variable> {
      * Returns an array of variable bindings associated with this message.
      * @return An array of variable bindings associated with this message.
      */
-    VariableBinding[] getBindings(){
-        final VariableBinding[] result = new VariableBinding[size()];
-        int i = 0;
-        for(final Map.Entry<OID, Variable> entry: entrySet())
-            result[i++] = new VariableBinding(entry.getKey(), entry.getValue());
-        return result;
+    VariableBinding[] getBindings() {
+        return entrySet().stream()
+                .map(entry -> new VariableBinding(entry.getKey(), entry.getValue()))
+                .toArray(VariableBinding[]::new);
     }
 
     String getMessage(){
