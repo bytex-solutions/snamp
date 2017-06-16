@@ -18,6 +18,7 @@ import org.snmp4j.agent.mo.MOAccessImpl;
 import org.snmp4j.agent.mo.MOScalar;
 import org.snmp4j.agent.mo.snmp.*;
 import org.snmp4j.agent.security.MutableVACM;
+import org.snmp4j.jmx.SnmpNotification;
 import org.snmp4j.mp.MessageProcessingModel;
 import org.snmp4j.security.*;
 import org.snmp4j.smi.*;
@@ -255,7 +256,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     protected void fillEvents(final EntityMap<? extends EventConfiguration> events) {
         EventConfiguration event = events.getOrAdd("snmp-notif");
         event.setAlternativeName("1.7.1");
-        event.put("messageTemplate", "{1.0} - {2.0}");
+        event.put("messageOID", "1.0");
     }
 
     @Override
@@ -326,9 +327,10 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
             assertTrue(addresses[0] instanceof UdpAddress);
             final Notification n = trap.get(6, TimeUnit.SECONDS);
             assertNotNull(n);
-            assertEquals("Hello, world! - 42", n.getMessage());
+            assertEquals("Hello, world!", n.getMessage());
             assertEquals(0L, n.getSequenceNumber());
-            assertNull(n.getUserData());
+            assertNotNull(n.getUserData());
+            assertTrue(n instanceof SnmpNotification);
         } finally {
             releaseManagementConnector();
         }

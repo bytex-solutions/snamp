@@ -81,7 +81,8 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                                       final Map<OID, Variable> output) {
         if (attachment == null) return;
         final SnmpType type = SnmpType.map(WellKnownType.fromValue(attachment));
-        assert type != null;
+        if(type == null)
+            return;
         if (type.isScalar()) {
             final Variable value = type.convert(attachment, options);
             output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1), value != null ? value : new Null());

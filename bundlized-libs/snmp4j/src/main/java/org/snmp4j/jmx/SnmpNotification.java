@@ -7,6 +7,7 @@ import org.snmp4j.smi.VariableBinding;
 import javax.management.Notification;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents SNMP trap.
@@ -14,7 +15,7 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-public abstract class SnmpNotification extends Notification {
+public class SnmpNotification extends Notification {
     private static final long serialVersionUID = 6746575967189120410L;
     private final Map<OID, Variable> variables;
 
@@ -27,6 +28,15 @@ public abstract class SnmpNotification extends Notification {
         variables = new HashMap<>(bindings.length + 3);
         for (final VariableBinding binding : bindings)
             variables.put(binding.getOid(), binding.getVariable());
+    }
+
+    public SnmpNotification(final String type,
+                            final Object source,
+                            final long sequenceNumber,
+                            final String message,
+                            final Map<OID, Variable> bindings) {
+        super(type, source, sequenceNumber, message);
+        variables = Objects.requireNonNull(bindings);
     }
 
     /**

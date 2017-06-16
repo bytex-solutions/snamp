@@ -51,14 +51,13 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     static final String SNMP_CONVERSION_FORMAT_PARAM = "snmpConversionFormat";
     //event related parameters
     private static final String SEVERITY_PARAM = "severity";
-    static final String MESSAGE_TEMPLATE_PARAM = "messageTemplate";
     static final String MESSAGE_OID_PARAM = "messageOID";
 
     private static final class EventConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "EventOptions";
 
         private EventConfigurationDescriptor(){
-            super(RESOURCE_NAME, EventConfiguration.class, SEVERITY_PARAM, MESSAGE_TEMPLATE_PARAM);
+            super(RESOURCE_NAME, EventConfiguration.class, SEVERITY_PARAM, MESSAGE_OID_PARAM);
         }
     }
 

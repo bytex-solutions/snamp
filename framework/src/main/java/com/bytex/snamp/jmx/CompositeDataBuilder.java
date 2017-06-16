@@ -179,6 +179,34 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> {
     }
 
     /**
+     * Puts a new item of type {@link javax.management.openmbean.ArrayType}
+     * into the composite data.
+     * @param itemName The name of the item. Cannot be {@literal null} or empty.
+     * @param itemDescription The description of the item. Cannot be {@literal null} or empty.
+     * @param value The value of the item.
+     * @return This builder.
+     */
+    public final CompositeDataBuilder put(final String itemName,
+                                          final String itemDescription,
+                                          final int[] value){
+        return put(itemName, itemDescription, ArrayType.getPrimitiveArrayType(int[].class), value);
+    }
+
+    /**
+     * Puts a new item of type {@link javax.management.openmbean.ArrayType}
+     * into the composite data.
+     * @param itemName The name of the item. Cannot be {@literal null} or empty.
+     * @param itemDescription The description of the item. Cannot be {@literal null} or empty.
+     * @param value The value of the item.
+     * @return This builder.
+     */
+    public final CompositeDataBuilder put(final String itemName,
+                                          final String itemDescription,
+                                          final byte[] value) {
+        return put(itemName, itemDescription, ArrayType.getPrimitiveArrayType(byte[].class), value);
+    }
+
+    /**
      * Puts a new item of type {@link javax.management.openmbean.SimpleType#INTEGER}
      * into the composite data.
      * @param itemName The name of the item. Cannot be {@literal null} or empty.
