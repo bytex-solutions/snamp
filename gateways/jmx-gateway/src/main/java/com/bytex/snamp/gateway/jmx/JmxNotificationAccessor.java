@@ -1,8 +1,6 @@
 package com.bytex.snamp.gateway.jmx;
 
-import com.bytex.snamp.Convert;
-import com.bytex.snamp.connector.notifications.NotificationContainer;
-import com.bytex.snamp.gateway.NotificationEvent;
+import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.google.common.collect.ImmutableSet;
 
@@ -34,7 +32,7 @@ final class JmxNotificationAccessor extends NotificationAccessor implements JmxF
     @Override
     public MBeanNotificationInfo cloneMetadata() {
         return new MBeanNotificationInfo(getMetadata().getNotifTypes(),
-                getMetadata().getName(),
+                Notification.class.getName(),   //to avoid serialization problems in JMX
                 getMetadata().getDescription(),
                 cloneDescriptor());
     }
@@ -43,19 +41,13 @@ final class JmxNotificationAccessor extends NotificationAccessor implements JmxF
         return JmxFeatureBindingInfo.cloneDescriptor(getDescriptor());
     }
 
-    private static void handleNotification(final NotificationEvent event,
-                                           final Consumer<Notification> listener){
-        listener.accept(event.cloneNotification());
-    }
 
     @Override
-    public void handleNotification(Notification notification, final Object handback) {
+    public void handleNotification(final Notification notification, final Object handback) {
         final Consumer<Notification> listener = listenerRef.get();
         if (listener != null) {
-            notification = Convert.toType(notification, NotificationContainer.class)
-                    .map(NotificationContainer::get)
-                    .orElse(notification);
-            handleNotification(new NotificationEvent(resourceName, getMetadata(), notification), listener);
+            //avoid serialization problems in JMX: just create clone of type Notification
+            listener.accept(new NotificationBuilder(notification).setSource(resourceName).get());
         }
     }
 
@@ -93,5 +85,14 @@ final class JmxNotificationAccessor extends NotificationAccessor implements JmxF
     @Override
     public boolean setProperty(final String propertyName, final Object value) {
         return false;
+    }
+
+    /**
+     * Disconnects notification accessor from the managed resource.
+     */
+    @Override
+    public void close() {
+        listenerRef.clear();
+        super.close();
     }
 }

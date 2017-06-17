@@ -159,7 +159,7 @@ public final class JmxGatewayTest extends AbstractJmxConnectorTest<TestOpenMBean
             }, null, null);
             //force attribute change
             connection.setAttribute(resourceObjectName, attr);
-            assertNotNull(attributeChangedEvent.get(10_000_000, TimeUnit.SECONDS));
+            assertNotNull(attributeChangedEvent.get(10, TimeUnit.SECONDS));
             assertNotNull(testEvent.get(10, TimeUnit.SECONDS));
             final Notification withAttachment = eventWithAttachmentHolder.get(10, TimeUnit.SECONDS);
             assertNotNull(withAttachment);
