@@ -87,7 +87,10 @@
                             com.google.common.collect,
                             javax.management,
                             org.slf4j,
-                            org.osgi.framework</Import-Package>
+                            org.osgi.framework,
+                            org.xml.sax,
+                            org.xml.sax.helpers,
+                            javax.net.ssl</Import-Package>
             <Provide-Capability>com.bytex.snamp.gateway; type=nrdp</Provide-Capability>
           </instructions>
         </configuration>
