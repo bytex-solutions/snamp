@@ -4,6 +4,7 @@ import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.json.JsonUtils;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smackx.jiveproperties.packet.JivePropertiesExtension;
@@ -28,6 +29,7 @@ abstract class XMPPAttributeAccessor extends AttributeAccessor {
     static {
         FORMATTER = new ObjectMapper();
         FORMATTER.registerModule(new JsonUtils());
+        FORMATTER.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
     }
 
     XMPPAttributeAccessor(final MBeanAttributeInfo metadata) {

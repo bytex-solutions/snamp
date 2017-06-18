@@ -19,7 +19,7 @@ import java.util.ServiceLoader;
  */
 public final class CommandExecutionChannels {
     private CommandExecutionChannels(){
-
+        throw new InstantiationError();
     }
 
     private static ServiceLoader<CommandExecutionChannelSpi> getFactories(){

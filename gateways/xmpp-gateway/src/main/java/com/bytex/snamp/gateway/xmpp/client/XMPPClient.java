@@ -9,8 +9,6 @@ import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
-import org.jxmpp.jid.util.JidUtil;
-import org.jxmpp.stringprep.XmppStringprepException;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -42,10 +40,10 @@ public final class XMPPClient implements Closeable {
         domain = XMPPGatewayConfigurationProvider.getDomain(parameters);
     }
 
-    public boolean beginChat(final String userName) throws JidUtil.NotAEntityBareJidStringException, XmppStringprepException {
+    public boolean beginChat(final String userName) {
         if(chat == null) {
             final ChatManager manager = ChatManager.getInstanceFor(connection);
-            chat = manager.createChat(JidUtil.validateEntityBareJid(userName + '@' + domain));
+            chat = manager.createChat(userName + '@' + domain);
             return true;
         }
         else return false;

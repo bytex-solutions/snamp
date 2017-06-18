@@ -13,7 +13,7 @@
   <name>XMPP Gateway</name>
   <description>SNAMP Gateway for XMPP protocol</description>
   <properties>
-    <smack.version>4.2.0</smack.version>
+    <smack.version>4.1.0</smack.version>
   </properties>
   <dependencies>
     <dependency>
@@ -37,25 +37,25 @@
     <dependency>
       <groupId>org.igniterealtime.smack</groupId>
       <artifactId>smack-im</artifactId>
-      <version>4.2.0</version>
+      <version>4.1.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.igniterealtime.smack</groupId>
       <artifactId>smack-java7</artifactId>
-      <version>4.2.0</version>
+      <version>4.1.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.igniterealtime.smack</groupId>
       <artifactId>smack-tcp</artifactId>
-      <version>4.2.0</version>
+      <version>4.1.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.igniterealtime.smack</groupId>
       <artifactId>smack-extensions</artifactId>
-      <version>4.2.0</version>
+      <version>4.1.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -109,10 +109,16 @@
                             com.bytex.snamp.json,
                             com.google.common.base,
                             com.google.common.collect,
-                            com.google.gson,
                             javax.management,
                             javax.management.openmbean,
-                            javax.net.ssl</Import-Package>
+                            javax.net,
+                            javax.net.ssl,
+                            javax.naming,
+                            javax.naming.directory,
+                            javax.security.sasl,
+                            javax.security.auth.callback,
+                            org.codehaus.jackson,
+                            org.codehaus.jackson.map</Import-Package>
             <Provide-Capability>com.bytex.snamp.gateway; type=xmpp</Provide-Capability>
           </instructions>
         </configuration>
