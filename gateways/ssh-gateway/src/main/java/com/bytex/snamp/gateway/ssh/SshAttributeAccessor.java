@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.management.Descriptor;
@@ -23,7 +24,8 @@ abstract class SshAttributeAccessor extends AttributeAccessor implements SshAttr
 
     SshAttributeAccessor(final MBeanAttributeInfo metadata, final ObjectMapper formatter) {
         super(metadata);
-        this.formatter = Objects.requireNonNull(formatter);
+        this.formatter = Objects.requireNonNull(formatter)
+                .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
     }
 
     @Override

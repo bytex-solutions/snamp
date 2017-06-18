@@ -125,6 +125,7 @@
                             com.bytex.snamp.json,
                             com.google.common.base,
                             com.google.common.collect,
+                            org.codehaus.jackson,
                             org.codehaus.jackson.map,
                             javax.management,
                             javax.management.openmbean,
