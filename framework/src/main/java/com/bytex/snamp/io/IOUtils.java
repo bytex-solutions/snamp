@@ -10,7 +10,6 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.BitSet;
 
 /**
@@ -174,21 +173,6 @@ public final class IOUtils {
         } catch (final IOException ignored) {
             return false;
         }
-    }
-
-    public static boolean waitForData(final InputStream is,
-                                      long timeout) throws IOException, InterruptedException {
-        while (timeout >= 0 && (is.available() == 0)) {
-            final long PAUSE = 1L;
-            Thread.sleep(PAUSE);
-            timeout -= PAUSE;
-        }
-        return timeout > 0L;
-    }
-
-    public static boolean waitForData(final InputStream is,
-                                      final Duration timeout) throws IOException, InterruptedException {
-        return waitForData(is, timeout.toMillis());
     }
 
     public static String toString(final Reader reader) throws IOException {

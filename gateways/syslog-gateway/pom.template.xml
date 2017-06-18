@@ -54,6 +54,7 @@
                             com.bytex.snamp.jmx,
                             com.google.common.collect,
                             javax.management,
+                            javax.net,
                             org.osgi.framework
                         </Import-Package>
                         <!--SNAMP specific header-->
