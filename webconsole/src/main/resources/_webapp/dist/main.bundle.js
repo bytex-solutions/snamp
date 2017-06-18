@@ -106037,7 +106037,7 @@ var ResourceEntitiesTable = (function () {
         return "#tableParamsRow" + this.entityType;
     };
     ResourceEntitiesTable.prototype.setEntity = function (entity) {
-        this.activeEntity = entity;
+        this.activeEntity = Object.create(entity);
         this.isNewEntity = false;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
@@ -106182,20 +106182,49 @@ var ResourceEntitiesTable = (function () {
         this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            if (_this.isNewEntity) {
-                switch (_this.entityType) {
-                    case "attribute":
+            console.log("Entity " + _this.activeEntity.name + " has been saved");
+            switch (_this.entityType) {
+                case "attribute":
+                    if (_this.isNewEntity) {
                         _this.resource.attributes.push(_this.selectedEntity);
-                        break;
-                    case "event":
+                    }
+                    else {
+                        for (var i = 0; i < _this.resource.attributes.length; i++) {
+                            if (_this.resource.attributes[i].name == _this.activeEntity.name) {
+                                _this.resource.attributes[i] = _this.activeEntity;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case "event":
+                    if (_this.isNewEntity) {
                         _this.resource.events.push(_this.selectedEntity);
-                        break;
-                    case "operation":
+                    }
+                    else {
+                        for (var i = 0; i < _this.resource.events.length; i++) {
+                            if (_this.resource.events[i].name == _this.activeEntity.name) {
+                                _this.resource.events[i] = _this.activeEntity;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case "operation":
+                    if (_this.isNewEntity) {
                         _this.resource.operations.push(_this.selectedEntity);
-                        break;
-                    default:
-                        throw new Error("Could not recognize the entity type: " + _this.entityType);
-                }
+                    }
+                    else {
+                        for (var i = 0; i < _this.resource.operations.length; i++) {
+                            if (_this.resource.operations[i].name == _this.activeEntity.name) {
+                                _this.resource.operations[i] = _this.activeEntity;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    throw new Error("Could not recognize the entity type: " + _this.entityType);
             }
             _this.cd.detectChanges();
         });
@@ -106474,12 +106503,14 @@ var Attribute = (function (_super) {
         this.rwto = 0; // read/write timeout
         // if we pass there number - we should recognize it as a number (ms)
         // otherwise - we parse it as a duration ISO8601
-        this.rwto = (!isNaN(parseFloat(rwto)) && isFinite(rwto)) ? rwto : moment.duration(rwto).milliseconds();
+        this.rwto = (!isNaN(parseFloat(rwto)) && isFinite(rwto)) ? rwto : moment.duration(rwto).asMilliseconds();
+        console.log("Rwto for attribute " + name + ": " + rwto + " and " + this.rwto, moment.duration(rwto));
     }
     Attribute.prototype.stringifyFullObject = function () {
         var resultValue = {};
         // see https://momentjs.com/docs/#/durations/as-json/
-        resultValue["readWriteTimeout"] = moment.duration(this.rwto).toJSON();
+        console.log("Here! ", this.rwto, moment.duration({ milliseconds: this.rwto }));
+        resultValue["readWriteTimeout"] = moment.duration({ milliseconds: this.rwto }).toISOString();
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     };
@@ -106776,11 +106807,11 @@ var Operation = (function (_super) {
         this.invokto = 0; // invocation timeout
         // if we pass there number - we should recognize it as a number (ms)
         // otherwise - we parse it as a duration ISO8601
-        this.invokto = (!isNaN(parseFloat(invokto)) && isFinite(invokto)) ? invokto : moment.duration(invokto).milliseconds();
+        this.invokto = (!isNaN(parseFloat(invokto)) && isFinite(invokto)) ? invokto : moment.duration(invokto).asMilliseconds();
     }
     Operation.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        resultValue["invocationTimeout"] = moment.duration(this.invokto).toJSON();
+        resultValue["invocationTimeout"] = moment.duration({ milliseconds: this.invokto }).toISOString();
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     };

@@ -8,12 +8,12 @@ export class Operation extends SubEntity {
         super(http, name, resourceType, jsonObject);
         // if we pass there number - we should recognize it as a number (ms)
         // otherwise - we parse it as a duration ISO8601
-        this.invokto = (!isNaN(parseFloat(invokto)) && isFinite(invokto)) ? invokto :  moment.duration(invokto).milliseconds();
+        this.invokto = (!isNaN(parseFloat(invokto)) && isFinite(invokto)) ? invokto :  moment.duration(invokto).asMilliseconds();
     }
 
     public stringifyFullObject():string {
         let resultValue:{ [key:string]:string; } = {};
-        resultValue["invocationTimeout"] =  moment.duration(this.invokto).toJSON();
+        resultValue["invocationTimeout"] =  moment.duration({ milliseconds: this.invokto}).toISOString();
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     }

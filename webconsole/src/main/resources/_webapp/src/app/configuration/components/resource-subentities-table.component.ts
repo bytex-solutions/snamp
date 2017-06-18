@@ -99,7 +99,7 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     setEntity(entity:SubEntity):void {
-        this.activeEntity = entity;
+        this.activeEntity = Object.create(entity);
         this.isNewEntity = false;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
@@ -250,20 +250,47 @@ export class ResourceEntitiesTable implements OnInit {
         this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map((res:Response) => res.text())
             .subscribe((data) => {
-                if (this.isNewEntity) {
-                    switch (this.entityType) {
-                        case "attribute":
+                console.log("Entity " + this.activeEntity.name + " has been saved");
+
+                switch (this.entityType) {
+                    case "attribute":
+                        if (this.isNewEntity) {
                             this.resource.attributes.push(<Attribute>this.selectedEntity);
-                            break;
-                        case "event":
+                        } else {
+                            for (let i = 0; i < this.resource.attributes.length; i++) {
+                                if (this.resource.attributes[i].name == this.activeEntity.name) {
+                                    this.resource.attributes[i] = <Attribute>this.activeEntity;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    case "event":
+                        if (this.isNewEntity) {
                             this.resource.events.push(<Event>this.selectedEntity);
-                            break;
-                        case "operation":
+                        } else {
+                            for (let i = 0; i < this.resource.events.length; i++) {
+                                if (this.resource.events[i].name == this.activeEntity.name) {
+                                    this.resource.events[i] = <Event>this.activeEntity;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    case "operation":
+                        if (this.isNewEntity) {
                             this.resource.operations.push(<Operation>this.selectedEntity);
-                            break;
-                        default:
-                            throw new Error("Could not recognize the entity type: " + this.entityType);
-                    }
+                        } else {
+                            for (let i = 0; i < this.resource.operations.length; i++) {
+                                if (this.resource.operations[i].name == this.activeEntity.name) {
+                                    this.resource.operations[i] = <Operation>this.activeEntity;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        throw new Error("Could not recognize the entity type: " + this.entityType);
                 }
                 this.cd.detectChanges();
             });
