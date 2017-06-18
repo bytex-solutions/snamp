@@ -4,7 +4,9 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import org.snmp4j.SNMP4JSettings;
 import org.snmp4j.log.OSGiLogFactory;
+import org.snmp4j.util.DefaultThreadFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -21,6 +23,8 @@ import static com.bytex.snamp.ArrayUtils.toArray;
 public final class SnmpResourceConnectorActivator extends ManagedResourceActivator<SnmpResourceConnector> {
     static {
         OSGiLogFactory.setup();
+        SNMP4JSettings.setThreadJoinTimeout(4000L);
+        SNMP4JSettings.setThreadFactory(new DefaultThreadFactory());
     }
 
     @SpecialUse(SpecialUse.Case.OSGi)

@@ -10,6 +10,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.agent.DuplicateRegistrationException;
+import org.snmp4j.smi.OID;
+import org.snmp4j.smi.OctetString;
 
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
@@ -20,9 +22,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 import static com.bytex.snamp.gateway.snmp.SnmpGatewayDescriptionProvider.isValidNotification;
+import static com.bytex.snamp.internal.Utils.closeAll;
 
 /**
  * @author Roman Sakno
@@ -56,12 +60,7 @@ final class SnmpGateway extends AbstractGateway {
 
         @Override
         public void close() throws Exception {
-            try {
-                agent.close();
-            }
-            finally {
-                super.close();
-            }
+            closeAll(agent, super::close);
         }
 
         private void registerManagedObject(final SnmpAttributeAccessor accessor) throws DuplicateRegistrationException {
@@ -94,6 +93,19 @@ final class SnmpGateway extends AbstractGateway {
         attributes = HashMultimap.create();
     }
 
+    private static Callable<SnmpAgent> getSnmpAgentFactory(final SnmpGatewayDescriptionProvider parser,
+                                                           final Map<String, String> parameters,
+                                                           final DirContextFactory contextFactory) throws Exception {
+        final OID context = parser.parseContext(parameters);
+        final OctetString engineID = parser.parseEngineID(parameters);
+        final int port = parser.parsePort(parameters);
+        final String address = parser.parseAddress(parameters);
+        final SecurityConfiguration security = parser.parseSecurityConfiguration(parameters, contextFactory);
+        final int socketTimeout = parser.parseSocketTimeout(parameters);
+        final ExecutorService threadPool = parser.parseThreadPool(parameters);
+        return () -> new SnmpAgent(context, engineID, port, address, security, socketTimeout, threadPool);
+    }
+
     /**
      * Starts the gateway.
      * <p>
@@ -106,13 +118,7 @@ final class SnmpGateway extends AbstractGateway {
     @Override
     protected synchronized void start(final Map<String, String> parameters) throws Exception {
         final SnmpGatewayDescriptionProvider parser = SnmpGatewayDescriptionProvider.getInstance();
-        final Callable<SnmpAgent> agentFactory = () -> new SnmpAgent(parser.parseContext(parameters),
-                parser.parseEngineID(parameters),
-                parser.parsePort(parameters),
-                parser.parseAddress(parameters),
-                parser.parseSecurityConfiguration(parameters, contextFactory),
-                parser.parseSocketTimeout(parameters),
-                parser.parseThreadPool(parameters));
+        final Callable<SnmpAgent> agentFactory = getSnmpAgentFactory(parser, parameters, contextFactory);
         //initialize restart manager and start SNMP agent
         updateManager = new SnmpGatewayUpdateManager(instanceName, parser.parseRestartTimeout(parameters), agentFactory);
         updateManager.startAgent(attributes.values(), notifications.values());

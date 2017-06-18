@@ -68,6 +68,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
                 GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(4));
+        Thread.sleep(300);  //sleep required before UDP listening thread starts asynchronously
     }
 
     @Override
@@ -171,7 +172,7 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final String valueToCheck = new String(formatter.convert(cal.getTime()));
         final OID oid = new OID("1.1.10.0");
         client.writeAttribute(oid, valueToCheck, String.class);
-        Thread.sleep(100);
+        Thread.sleep(200);
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET, oid, String.class));
         assertEquals(valueToCheck, client.readAttribute(ReadMethod.GET_BULK, oid, String.class));
     }
@@ -190,7 +191,6 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         final byte[] actual = client.readAttribute(ReadMethod.GET, oid, byte[].class);
         assertArrayEquals(byteString, actual);
         assertArrayEquals(byteString, client.readAttribute(ReadMethod.GET_BULK, oid, byte[].class));
-
     }
 
     @Override
@@ -199,8 +199,8 @@ public final class JmxToSnmpV2Test extends AbstractJmxConnectorTest<TestOpenMBea
         snmpAdapter.setType(GATEWAY_NAME);
         snmpAdapter.put("port", SNMP_PORT);
         snmpAdapter.put("hostName", SNMP_HOST);
-        snmpAdapter.put("socketTimeout", "5000");
         snmpAdapter.put("context", "1.1");
+        snmpAdapter.put("socketTimeout", "2000");
         snmpAdapter.put("restartTimeout", "4000");
     }
 

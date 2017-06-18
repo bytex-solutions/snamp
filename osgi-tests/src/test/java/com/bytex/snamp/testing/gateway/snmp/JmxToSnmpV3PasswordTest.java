@@ -80,6 +80,7 @@ public final class JmxToSnmpV3PasswordTest extends AbstractJmxConnectorTest<Test
                 GatewayActivator.enableGateway(context, GATEWAY_NAME);
                 return null;
         }, Duration.ofSeconds(4));
+        Thread.sleep(300);  //sleep required before UDP listening thread starts asynchronously
     }
 
     @Override
