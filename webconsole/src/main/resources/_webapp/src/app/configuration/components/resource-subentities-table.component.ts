@@ -267,7 +267,7 @@ export class ResourceEntitiesTable implements OnInit {
                 }
                 this.cd.detectChanges();
             });
-        $('#addExistentEntity' + this.entityType).modal("hide")
+        $('#editEntity' + this.entityType).modal("hide");
     }
 
     hasAvailableEntities():boolean {

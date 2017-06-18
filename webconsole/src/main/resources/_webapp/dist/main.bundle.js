@@ -106199,7 +106199,7 @@ var ResourceEntitiesTable = (function () {
             }
             _this.cd.detectChanges();
         });
-        $('#addExistentEntity' + this.entityType).modal("hide");
+        $('#editEntity' + this.entityType).modal("hide");
     };
     ResourceEntitiesTable.prototype.hasAvailableEntities = function () {
         return (this.resource instanceof model_resource_1.Resource);
@@ -106466,16 +106466,20 @@ exports.OptionalParametersFilter = OptionalParametersFilter;
 "use strict";
 "use strict";
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
+var moment = __webpack_require__("./node_modules/moment/moment.js");
 var Attribute = (function (_super) {
     __extends(Attribute, _super);
     function Attribute(http, resourceType, name, rwto, jsonObject) {
         _super.call(this, http, name, resourceType, jsonObject);
         this.rwto = 0; // read/write timeout
-        this.rwto = rwto;
+        // if we pass there number - we should recognize it as a number (ms)
+        // otherwise - we parse it as a duration ISO8601
+        this.rwto = (!isNaN(parseFloat(rwto)) && isFinite(rwto)) ? rwto : moment.duration(rwto).milliseconds();
     }
     Attribute.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        resultValue["readWriteTimeout"] = String(this.rwto);
+        // see https://momentjs.com/docs/#/durations/as-json/
+        resultValue["readWriteTimeout"] = moment.duration(this.rwto).toJSON();
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     };
@@ -106764,16 +106768,19 @@ exports.Gateway = Gateway;
 "use strict";
 "use strict";
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
+var moment = __webpack_require__("./node_modules/moment/moment.js");
 var Operation = (function (_super) {
     __extends(Operation, _super);
     function Operation(http, resourceType, name, invokto, jsonObject) {
         _super.call(this, http, name, resourceType, jsonObject);
         this.invokto = 0; // invocation timeout
-        this.invokto = invokto;
+        // if we pass there number - we should recognize it as a number (ms)
+        // otherwise - we parse it as a duration ISO8601
+        this.invokto = (!isNaN(parseFloat(invokto)) && isFinite(invokto)) ? invokto : moment.duration(invokto).milliseconds();
     }
     Operation.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        resultValue["invocationTimeout"] = String(this.invokto);
+        resultValue["invocationTimeout"] = moment.duration(this.invokto).toJSON();
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     };
