@@ -378,7 +378,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         newAttribute1Params.put("objectName", new TextNode(BEAN_NAME));
         newAttribute1Params.put("oid", new TextNode("1.1.123.0"));
         newAttribute1.put("parameters", newAttribute1Params);
-        newAttribute1.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().nullNode());
+        newAttribute1.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().textNode("PT1S"));
 
         final ObjectNode newAttribute2 = ThreadLocalJsonFactory.getFactory().objectNode();
         final ObjectNode newAttribute2Params = ThreadLocalJsonFactory.getFactory().objectNode();

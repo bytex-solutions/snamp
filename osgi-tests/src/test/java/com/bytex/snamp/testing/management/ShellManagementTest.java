@@ -2,7 +2,6 @@ package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.core.PlatformVersion;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
@@ -10,8 +9,10 @@ import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import org.apache.felix.service.command.CommandProcessor;
 import org.apache.felix.service.command.CommandSession;
+import org.apache.karaf.shell.api.console.SessionFactory;
 import org.junit.Test;
 
+import javax.inject.Inject;
 import java.io.*;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
@@ -25,6 +26,9 @@ import java.util.concurrent.Future;
  */
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_GATEWAY})
 public final class ShellManagementTest extends AbstractSnampIntegrationTest {
+    @Inject
+    private SessionFactory sessionFactory;
+
     private Object runCommand(String command) throws Exception{
         final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class)
                 .orElseThrow(AssertionError::new);
@@ -46,14 +50,6 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
         } finally {
             processorRef.release(getTestBundleContext());
         }
-    }
-
-    @Test
-    public void executeJavaScriptTest() throws Exception{
-        Object result = runCommand("snamp:script \"snamp.version;\"");
-        assertTrue(result instanceof PlatformVersion);
-        result = runCommand("snamp:script \"var config; snamp.configure(function(conf) { config = conf; return false; }); config; \"");
-        assertTrue(result instanceof AgentConfiguration);
     }
 
     @Test
