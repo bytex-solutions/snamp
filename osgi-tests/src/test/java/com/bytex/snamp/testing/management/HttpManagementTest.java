@@ -407,6 +407,21 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         } finally {
             connection.disconnect();
         }
+        query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s/attributes/125.0", TEST_RESOURCE_NAME));
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("charset", "utf-8");
+        connection.setDoOutput(true);
+        newAttribute3.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().textNode("PT2S"));
+        IOUtils.writeString(mapper.writeValueAsString(newAttribute3), connection.getOutputStream(), Charset.defaultCharset());
+        connection.connect();
+        try{
+            assertEquals(HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
         query = new URL("http://localhost:8181/snamp/management/configuration/resource");
         // check if we replaced old attributes with new one
         connection = (HttpURLConnection) query.openConnection();
