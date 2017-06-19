@@ -407,7 +407,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         } finally {
             connection.disconnect();
         }
-
+        query = new URL("http://localhost:8181/snamp/management/configuration/resource");
         // check if we replaced old attributes with new one
         connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -418,6 +418,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             ObjectNode oldResponseJSON = (ObjectNode) mapper.readTree(responseValue);
             JsonNode newResponseJSON = mapper.readTree(newConfiguration);
+            newResponseJSON = newResponseJSON.get(TEST_RESOURCE_NAME);
             oldResponseJSON.put("attributes", attributeMap);
             assertEquals(newResponseJSON, oldResponseJSON);
         } finally {
