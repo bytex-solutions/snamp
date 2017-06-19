@@ -106504,12 +106504,12 @@ var Attribute = (function (_super) {
         // if we pass there number - we should recognize it as a number (ms)
         // otherwise - we parse it as a duration ISO8601
         this.rwto = (!isNaN(parseFloat(rwto)) && isFinite(rwto)) ? rwto : moment.duration(rwto).asMilliseconds();
-        console.log("Rwto for attribute " + name + ": " + rwto + " and " + this.rwto, moment.duration(rwto));
+        //console.log("Rwto for attribute " + name + ": " + rwto + " and " + this.rwto,  moment.duration(rwto));
     }
     Attribute.prototype.stringifyFullObject = function () {
         var resultValue = {};
         // see https://momentjs.com/docs/#/durations/as-json/
-        console.log("Here! ", this.rwto, moment.duration({ milliseconds: this.rwto }));
+        //console.log("Here! ", this.rwto, moment.duration({ milliseconds: this.rwto}));
         resultValue["readWriteTimeout"] = moment.duration({ milliseconds: this.rwto }).toISOString();
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
@@ -106676,6 +106676,9 @@ var EntityWithSub = (function (_super) {
             var attrs = parameters["attributes"];
             for (var key in attrs) {
                 var rwto = 0;
+                if (key == "CPU") {
+                    console.log(JSON.stringify(attrs[key]), attrs[key]["readWriteTimeout"]);
+                }
                 if (attrs[key]["readWriteTimeout"] != undefined) {
                     rwto = attrs[key]["readWriteTimeout"];
                 }

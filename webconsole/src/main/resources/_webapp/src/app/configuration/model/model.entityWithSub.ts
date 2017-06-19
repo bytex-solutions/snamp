@@ -15,8 +15,12 @@ export abstract class EntityWithSub extends TypedEntity {
         // filling attributes
         if (parameters["attributes"] != undefined) {
             let attrs = parameters["attributes"];
+
             for (let key in attrs) {
                 let rwto:number = 0;
+/*                if (key == "CPU") {
+                    console.log(JSON.stringify(attrs[key]), attrs[key]["readWriteTimeout"]);
+                }*/
                 if  (attrs[key]["readWriteTimeout"] != undefined) {
                     rwto = attrs[key]["readWriteTimeout"];
                 }
