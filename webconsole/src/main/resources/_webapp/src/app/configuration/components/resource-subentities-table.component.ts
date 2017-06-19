@@ -1,13 +1,13 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 
 import { ApiClient, REST } from '../../services/app.restClient';
 import { KeyValue } from '../model/model.entity';
-import { TypedEntity } from '../model/model.typedEntity';
 import { SubEntity } from '../model/model.subEntity';
 import { Attribute } from '../model/model.attribute';
 import { Event } from '../model/model.event';
 import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Operation } from '../model/model.operation';
+import { Response } from '@angular/http';
 
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
@@ -18,15 +18,17 @@ import 'select2';
 const Prism = require('prismjs');
 
 import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
+import { Resource } from "../model/model.resource";
+import { EntityWithSub } from "../model/model.entityWithSub";
 
 @Component({
   moduleId: module.id,
   selector: 'resourceEntity',
   templateUrl: './templates/resource-subentities-table.component.html',
-  styleUrls: [ './templates/css/prism.css' ]
+  styleUrls: [ './templates/css/prism.css', './templates/css/main.css' ]
 })
 export class ResourceEntitiesTable implements OnInit {
-    @Input() resource:TypedEntity;
+    @Input() resource:EntityWithSub;
     @Input() entityType:string;
     readyForSave:boolean = false;
     paramDescriptors:ParamDescriptor[] = [];
@@ -35,7 +37,13 @@ export class ResourceEntitiesTable implements OnInit {
     currentNewParam:KeyValue = new KeyValue("", "");
     customKey:string = "";
 
-    constructor(private http:ApiClient, private modal: Modal) {}
+    discoveredEntities:SubEntity[] = undefined;
+    selectedEntity:SubEntity = undefined;
+    selectedEntityName:string = "";
+
+    isNewEntity:boolean = false;
+
+    constructor(private http:ApiClient, private modal: Modal, private cd: ChangeDetectorRef,) {}
 
     private makeEmptyEntity():SubEntity {
         if (this.entityType == "attribute") {
@@ -47,7 +55,7 @@ export class ResourceEntitiesTable implements OnInit {
         }
     }
 
-    ngOnInit() {
+    ngOnInit():void {
         // it might be overkill but let's set the first entity as an active one
         if (this.entities.length > 0) {
             this.activeEntity = this.entities[0];
@@ -61,7 +69,7 @@ export class ResourceEntitiesTable implements OnInit {
       return "#smartwizard" + this.entityType;
     }
 
-    ngAfterViewInit() {
+    ngAfterViewInit():void {
        let _this = this;
        let _hiddenSteps:number[] = [];
        if (this.entityType == "event") {
@@ -90,13 +98,14 @@ export class ResourceEntitiesTable implements OnInit {
         return "#tableParamsRow" + this.entityType;
     }
 
-    setEntity(entity:SubEntity) {
-        this.activeEntity = entity;
+    setEntity(entity:SubEntity):void {
+        this.activeEntity = Object.create(entity);
+        this.isNewEntity = false;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
     }
 
-    addNewParameter() {
+    addNewParameter():void {
          let _thisReference = this;
          $(_thisReference.PARAM_TABLE_DIV()).slideToggle("fast", function(){
              $(_thisReference.PARAM_APPEND_DIV()).slideToggle("fast");
@@ -151,12 +160,14 @@ export class ResourceEntitiesTable implements OnInit {
         return result;
     }
 
-    addNewEntity() {
+    addNewEntity():void {
         this.activeEntity = this.makeEmptyEntity();
+        this.isNewEntity = true;
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        $('#editEntity' + this.entityType).modal("show");
     }
 
-    cancelAppendingParam() {
+    cancelAppendingParam():void {
         let _thisReference = this;
          $(_thisReference.PARAM_TABLE_DIV()).slideToggle("fast", function(){
               $(_thisReference.PARAM_APPEND_DIV()).slideToggle("fast");
@@ -164,7 +175,7 @@ export class ResourceEntitiesTable implements OnInit {
          $(this.PARAM_SELECT_ID()).select2("destroy");
     }
 
-    appendParameter() {
+    appendParameter():void {
         let key:string = "";
         let value:string = this.currentNewParam.value;
         if (this.currentNewParam.key == "custom") {
@@ -181,7 +192,7 @@ export class ResourceEntitiesTable implements OnInit {
         return Prism.highlight(this.activeEntity.stringifyFullObject(), Prism.languages.javascript);
     }
 
-    remove(entity:SubEntity) {
+    remove(entity:SubEntity):void {
          this.modal.confirm()
             .isBlocking(true)
             .className(<VEXBuiltInThemes>'default')
@@ -204,15 +215,15 @@ export class ResourceEntitiesTable implements OnInit {
             });
     }
 
-    saveParameter(parameter:KeyValue) {
+    saveParameter(parameter:KeyValue):void {
        this.activeEntity.setParameter(parameter);
     }
 
-    removeParameter(parameter:KeyValue) {
+    removeParameter(parameter:KeyValue):void {
        this.activeEntity.removeParameter(parameter.key);
     }
 
-    checkAndRemoveParameter(parameter:KeyValue) {
+    checkAndRemoveParameter(parameter:KeyValue):void {
         this.activeEntity.isParamRequired(parameter.key).subscribe((res:boolean) => {
              if (res) {
                 this.modal.confirm()
@@ -235,7 +246,155 @@ export class ResourceEntitiesTable implements OnInit {
         });
     }
 
-    saveEntity() {
-      alert("Save button now clicked!");
+    saveEntity():void {
+        this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
+            .map((res:Response) => res.text())
+            .subscribe((data) => {
+                console.log("Entity " + this.activeEntity.name + " has been saved");
+
+                switch (this.entityType) {
+                    case "attribute":
+                        if (this.isNewEntity) {
+                            this.resource.attributes.push(<Attribute>this.selectedEntity);
+                        } else {
+                            for (let i = 0; i < this.resource.attributes.length; i++) {
+                                if (this.resource.attributes[i].name == this.activeEntity.name) {
+                                    this.resource.attributes[i] = <Attribute>this.activeEntity;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    case "event":
+                        if (this.isNewEntity) {
+                            this.resource.events.push(<Event>this.selectedEntity);
+                        } else {
+                            for (let i = 0; i < this.resource.events.length; i++) {
+                                if (this.resource.events[i].name == this.activeEntity.name) {
+                                    this.resource.events[i] = <Event>this.activeEntity;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    case "operation":
+                        if (this.isNewEntity) {
+                            this.resource.operations.push(<Operation>this.selectedEntity);
+                        } else {
+                            for (let i = 0; i < this.resource.operations.length; i++) {
+                                if (this.resource.operations[i].name == this.activeEntity.name) {
+                                    this.resource.operations[i] = <Operation>this.activeEntity;
+                                    break;
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        throw new Error("Could not recognize the entity type: " + this.entityType);
+                }
+                this.cd.detectChanges();
+            });
+        $('#editEntity' + this.entityType).modal("hide");
+    }
+
+    hasAvailableEntities():boolean {
+        return (this.resource instanceof Resource);
+    }
+
+    addEntityFromList():void {
+        (<Resource>this.resource).discovery(this.entityType + "s")
+            .map((res:Response) => res.json())
+            .subscribe((data:any) => {
+                this.discoveredEntities = [];
+                for (let key in data) {
+                    let _entity:SubEntity;
+                    switch (this.entityType) {
+                        case "attribute":
+                            _entity = new Attribute(this.http, this.resource.type, key, data[key]["readWriteTimeout"], data[key]["parameters"]);
+                            break;
+                        case "event":
+                            _entity = new Event(this.http, this.resource.type, key, data[key]["parameters"]);
+                            break;
+                        case "operation":
+                            _entity = new Operation(this.http, this.resource.type, key, data[key]["invocationTimeout"], data[key]["parameters"]);
+                            break;
+                        default:
+                            throw new Error("Could not recognize the entity type: " + this.entityType);
+                    }
+                    this.discoveredEntities.push(_entity);
+                }
+                this.selectedEntity = undefined;
+                this.selectedEntityName = "";
+                this.cd.detectChanges();
+                $('#addExistentEntity' + this.entityType).modal("show");
+            })
+    }
+
+    formatParams(entity:SubEntity):string {
+        let _result:string = "";
+        if (entity.parameters.length > 0) {
+            _result += "<dl class='row'>";
+            for (let i = 0; i < entity.parameters.length; i++) {
+                _result += '<dt class="col-sm-3">' + entity.parameters[i].key + '</dt>';
+                _result += '<dd class="col-sm-9">' + entity.parameters[i].value + '</dd>';
+            }
+            _result += "</dl>";
+        } else {
+            _result += "No params set";
+        }
+        return _result;
+    }
+
+    setActiveEntity(entity:SubEntity):void {
+        this.selectedEntity = entity;
+        this.selectedEntityName = entity.name + "_new_" + this.entityType;
+        this.cd.detectChanges();
+    }
+
+    isAttributeSet(attributeName:string):boolean {
+        let _result:boolean = false;
+        let _attributes:Attribute[] = (<Resource>this.resource).attributes;
+        for (let i = 0; i < _attributes.length; i++) {
+            if (_attributes[i].getParameter("name") != undefined &&
+                _attributes[i].getParameter("name").value == attributeName) {
+                _result = true;
+                break;
+            }
+        }
+        return _result;
+    }
+
+    addSelectedEntityToResource():void {
+        this.selectedEntity.parameters.push(new KeyValue("name", this.selectedEntity.name));
+        this.selectedEntity.name = this.selectedEntityName;
+        this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
+            .map((res:Response) => res.text())
+            .subscribe((data) => {
+                switch (this.entityType) {
+                    case "attribute":
+                        this.resource.attributes.push(<Attribute>this.selectedEntity);
+                        break;
+                    case "event":
+                        this.resource.events.push(<Event>this.selectedEntity);
+                        break;
+                    case "operation":
+                        this.resource.operations.push(<Operation>this.selectedEntity);
+                        break;
+                    default:
+                        throw new Error("Could not recognize the entity type: " + this.entityType);
+                }
+                this.cancelEntitySelection();
+                this.cd.detectChanges();
+            });
+        $('#addExistentEntity' + this.entityType).modal("hide")
+
+    }
+
+    cancelEntitySelection():void {
+        this.selectedEntity = undefined;
+        this.selectedEntityName = "";
+        $('#addExistentEntity' + this.entityType).modal("hide");
     }
 }
+
+

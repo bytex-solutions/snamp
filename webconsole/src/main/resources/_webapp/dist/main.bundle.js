@@ -16670,6 +16670,21 @@ exports.push([module.i, "/* grid-item\r\n------------------------- */\r\n\r\n.gr
 
 /***/ },
 
+/***/ "./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/main.css":
+/***/ function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
+// imports
+
+
+// module
+exports.push([module.i, ".form-group {\r\n    margin-bottom: 10px;\r\n    display: flex;\r\n}\r\n\r\n.btn-inline {\r\n    display: inline-block;\r\n    margin-left: 15px;\r\n}\r\n\r\n.btn-pull-right {\r\n    margin-top:20px;\r\n    float:right;\r\n    margin-right: 20px;\r\n}\r\n\r\n.row-margin-bottom-sm {\r\n    margin-bottom: 15px;\r\n}\r\n\r\n.activeTr {\r\n    background-color: #b9c7de;\r\n}\r\n\r\n.img-inline {\r\n    display: inline-block;\r\n    margin-right: 10px;\r\n    padding: 3px;\r\n}\r\n\r\n.clickableTr {\r\n    cursor: pointer;\r\n}\r\n\r\n.input-group-addon {\r\n    border: 0 !important;\r\n    background-color: rgba(0,0,0,0) !important;\r\n}\r\n\r\n.discovery-set {\r\n    display: block;\r\n    text-align: center;\r\n}\r\n\r\n.table-wrapper {\r\n    margin-top: 25px;\r\n    padding: 10px;\r\n    overflow-y: scroll;\r\n    max-height: 400px;\r\n}", ""]);
+
+// exports
+
+
+/***/ },
+
 /***/ "./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/prism.css":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -105946,7 +105961,6 @@ exports.ParametersTable = ParametersTable;
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var model_attribute_1 = __webpack_require__("./src/app/configuration/model/model.attribute.ts");
 var model_event_1 = __webpack_require__("./src/app/configuration/model/model.event.ts");
 var model_operation_1 = __webpack_require__("./src/app/configuration/model/model.operation.ts");
@@ -105957,14 +105971,21 @@ __webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
 __webpack_require__("./node_modules/select2/dist/js/select2.js");
 var Prism = __webpack_require__("./node_modules/prismjs/prism.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var model_resource_1 = __webpack_require__("./src/app/configuration/model/model.resource.ts");
+var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
 var ResourceEntitiesTable = (function () {
-    function ResourceEntitiesTable(http, modal) {
+    function ResourceEntitiesTable(http, modal, cd) {
         this.http = http;
         this.modal = modal;
+        this.cd = cd;
         this.readyForSave = false;
         this.paramDescriptors = [];
         this.currentNewParam = new model_entity_1.KeyValue("", "");
         this.customKey = "";
+        this.discoveredEntities = undefined;
+        this.selectedEntity = undefined;
+        this.selectedEntityName = "";
+        this.isNewEntity = false;
     }
     ResourceEntitiesTable.prototype.makeEmptyEntity = function () {
         if (this.entityType == "attribute") {
@@ -106016,7 +106037,8 @@ var ResourceEntitiesTable = (function () {
         return "#tableParamsRow" + this.entityType;
     };
     ResourceEntitiesTable.prototype.setEntity = function (entity) {
-        this.activeEntity = entity;
+        this.activeEntity = Object.create(entity);
+        this.isNewEntity = false;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
     };
@@ -106075,7 +106097,9 @@ var ResourceEntitiesTable = (function () {
     };
     ResourceEntitiesTable.prototype.addNewEntity = function () {
         this.activeEntity = this.makeEmptyEntity();
+        this.isNewEntity = true;
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        $('#editEntity' + this.entityType).modal("show");
     };
     ResourceEntitiesTable.prototype.cancelAppendingParam = function () {
         var _thisReference = this;
@@ -106154,11 +106178,155 @@ var ResourceEntitiesTable = (function () {
         });
     };
     ResourceEntitiesTable.prototype.saveEntity = function () {
-        alert("Save button now clicked!");
+        var _this = this;
+        this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
+            .map(function (res) { return res.text(); })
+            .subscribe(function (data) {
+            console.log("Entity " + _this.activeEntity.name + " has been saved");
+            switch (_this.entityType) {
+                case "attribute":
+                    if (_this.isNewEntity) {
+                        _this.resource.attributes.push(_this.selectedEntity);
+                    }
+                    else {
+                        for (var i = 0; i < _this.resource.attributes.length; i++) {
+                            if (_this.resource.attributes[i].name == _this.activeEntity.name) {
+                                _this.resource.attributes[i] = _this.activeEntity;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case "event":
+                    if (_this.isNewEntity) {
+                        _this.resource.events.push(_this.selectedEntity);
+                    }
+                    else {
+                        for (var i = 0; i < _this.resource.events.length; i++) {
+                            if (_this.resource.events[i].name == _this.activeEntity.name) {
+                                _this.resource.events[i] = _this.activeEntity;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case "operation":
+                    if (_this.isNewEntity) {
+                        _this.resource.operations.push(_this.selectedEntity);
+                    }
+                    else {
+                        for (var i = 0; i < _this.resource.operations.length; i++) {
+                            if (_this.resource.operations[i].name == _this.activeEntity.name) {
+                                _this.resource.operations[i] = _this.activeEntity;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    throw new Error("Could not recognize the entity type: " + _this.entityType);
+            }
+            _this.cd.detectChanges();
+        });
+        $('#editEntity' + this.entityType).modal("hide");
+    };
+    ResourceEntitiesTable.prototype.hasAvailableEntities = function () {
+        return (this.resource instanceof model_resource_1.Resource);
+    };
+    ResourceEntitiesTable.prototype.addEntityFromList = function () {
+        var _this = this;
+        this.resource.discovery(this.entityType + "s")
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            _this.discoveredEntities = [];
+            for (var key in data) {
+                var _entity = void 0;
+                switch (_this.entityType) {
+                    case "attribute":
+                        _entity = new model_attribute_1.Attribute(_this.http, _this.resource.type, key, data[key]["readWriteTimeout"], data[key]["parameters"]);
+                        break;
+                    case "event":
+                        _entity = new model_event_1.Event(_this.http, _this.resource.type, key, data[key]["parameters"]);
+                        break;
+                    case "operation":
+                        _entity = new model_operation_1.Operation(_this.http, _this.resource.type, key, data[key]["invocationTimeout"], data[key]["parameters"]);
+                        break;
+                    default:
+                        throw new Error("Could not recognize the entity type: " + _this.entityType);
+                }
+                _this.discoveredEntities.push(_entity);
+            }
+            _this.selectedEntity = undefined;
+            _this.selectedEntityName = "";
+            _this.cd.detectChanges();
+            $('#addExistentEntity' + _this.entityType).modal("show");
+        });
+    };
+    ResourceEntitiesTable.prototype.formatParams = function (entity) {
+        var _result = "";
+        if (entity.parameters.length > 0) {
+            _result += "<dl class='row'>";
+            for (var i = 0; i < entity.parameters.length; i++) {
+                _result += '<dt class="col-sm-3">' + entity.parameters[i].key + '</dt>';
+                _result += '<dd class="col-sm-9">' + entity.parameters[i].value + '</dd>';
+            }
+            _result += "</dl>";
+        }
+        else {
+            _result += "No params set";
+        }
+        return _result;
+    };
+    ResourceEntitiesTable.prototype.setActiveEntity = function (entity) {
+        this.selectedEntity = entity;
+        this.selectedEntityName = entity.name + "_new_" + this.entityType;
+        this.cd.detectChanges();
+    };
+    ResourceEntitiesTable.prototype.isAttributeSet = function (attributeName) {
+        var _result = false;
+        var _attributes = this.resource.attributes;
+        for (var i = 0; i < _attributes.length; i++) {
+            if (_attributes[i].getParameter("name") != undefined &&
+                _attributes[i].getParameter("name").value == attributeName) {
+                _result = true;
+                break;
+            }
+        }
+        return _result;
+    };
+    ResourceEntitiesTable.prototype.addSelectedEntityToResource = function () {
+        var _this = this;
+        this.selectedEntity.parameters.push(new model_entity_1.KeyValue("name", this.selectedEntity.name));
+        this.selectedEntity.name = this.selectedEntityName;
+        this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
+            .map(function (res) { return res.text(); })
+            .subscribe(function (data) {
+            switch (_this.entityType) {
+                case "attribute":
+                    _this.resource.attributes.push(_this.selectedEntity);
+                    break;
+                case "event":
+                    _this.resource.events.push(_this.selectedEntity);
+                    break;
+                case "operation":
+                    _this.resource.operations.push(_this.selectedEntity);
+                    break;
+                default:
+                    throw new Error("Could not recognize the entity type: " + _this.entityType);
+            }
+            _this.cancelEntitySelection();
+            _this.cd.detectChanges();
+        });
+        $('#addExistentEntity' + this.entityType).modal("hide");
+    };
+    ResourceEntitiesTable.prototype.cancelEntitySelection = function () {
+        this.selectedEntity = undefined;
+        this.selectedEntityName = "";
+        $('#addExistentEntity' + this.entityType).modal("hide");
     };
     __decorate([
         core_1.Input(), 
-        __metadata('design:type', (typeof (_a = typeof model_typedEntity_1.TypedEntity !== 'undefined' && model_typedEntity_1.TypedEntity) === 'function' && _a) || Object)
+        __metadata('design:type', (typeof (_a = typeof model_entityWithSub_1.EntityWithSub !== 'undefined' && model_entityWithSub_1.EntityWithSub) === 'function' && _a) || Object)
     ], ResourceEntitiesTable.prototype, "resource", void 0);
     __decorate([
         core_1.Input(), 
@@ -106173,12 +106341,12 @@ var ResourceEntitiesTable = (function () {
             moduleId: module.i,
             selector: 'resourceEntity',
             template: __webpack_require__("./src/app/configuration/components/templates/resource-subentities-table.component.html"),
-            styles: [__webpack_require__("./src/app/configuration/components/templates/css/prism.css")]
+            styles: [__webpack_require__("./src/app/configuration/components/templates/css/prism.css"), __webpack_require__("./src/app/configuration/components/templates/css/main.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object])
+        __metadata('design:paramtypes', [(typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _d) || Object])
     ], ResourceEntitiesTable);
     return ResourceEntitiesTable;
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
 }());
 exports.ResourceEntitiesTable = ResourceEntitiesTable;
 
@@ -106198,6 +106366,21 @@ module.exports = "<!-- Modal for entity appending -->\n<div class=\"modal fade\"
 
 
         var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/add-entity.component.css");
+
+        if (typeof result === "string") {
+            module.exports = result;
+        } else {
+            module.exports = result.toString();
+        }
+    
+
+/***/ },
+
+/***/ "./src/app/configuration/components/templates/css/main.css":
+/***/ function(module, exports, __webpack_require__) {
+
+
+        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/configuration/components/templates/css/main.css");
 
         if (typeof result === "string") {
             module.exports = result;
@@ -106233,7 +106416,7 @@ module.exports = "<!-- Modal for parameter appending -->\r\n<div class=\"modal f
 /***/ "./src/app/configuration/components/templates/resource-subentities-table.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for entity appending -->\n<div class=\"modal fade\" id=\"editEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"editEntityLabel\">\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title leftAlign\" id=\"editEntityLabel\">Edit {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\n            </div>\n            <br/>\n            <div class=\"modal-body\">\n              <div id=\"smartwizard{{entityType}}\" style=\"height: 95%\">\n                <ul>\n                      <li>\n                        <a [attr.href]=\"'#name'\">\n                          Name<br />\n                          <small>Name of {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#additional'\">\n                          Additional<br />\n                          <small>Additional {{activeEntity.getName()}}-related members</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#parameters'\">\n                          Parameters<br />\n                          <small>Parameters for {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#save'\">\n                          Save<br />\n                          <small>Saving the {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                </ul>\n\n                <div style=\"height:100%\">\n                  <div id=\"name\" class=\"row\" style=\"margin-top: 100px;\">\n                    <div class=\"item form-group\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"nameInput\"\n                        style=\"margin-top: 7px;\">\n                          Name <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"nameInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'At least 4 symbols'\"\n                          placeholder=\"input the name of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.name\">\n                      </div>\n                    </div>\n                  </div>\n                  <div id=\"additional\" class=\"row\" style=\"margin-top: 100px;\">\n                    <!-- input for operation -->\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'operation'\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"invtoInput\"\n                        style=\"margin-top: 7px;\">\n                          Invocation timeout <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"invtoInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'Input number (0 for infinite)'\"\n                          placeholder=\"input the invocation timeout of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.invokto\">\n                      </div>\n                    </div>\n\n                    <!-- input for attribute -->\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'attribute'\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"rwtoInput\"\n                        style=\"margin-top: 7px;\">\n                          Read/write timeout <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"rwtoInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'Input number (0 for infinite)'\"\n                          placeholder=\"input the read/write timeout of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.rwto\">\n                      </div>\n                    </div>\n                  </div>\n\n\n                  <!-- PARAMETERS -->\n                  <div id=\"parameters\" class=\"row\" style=\"margin-top: 10px;\">\n                    <div class=\"col-md-12\" id=\"tableParamsRow{{entityType}}\">\n                       <table class=\"table\">\n                          <thead>\n                          <tr>\n                            <th>#</th>\n                            <th>Key</th>\n                            <th>Value</th>\n                          </tr>\n                          </thead>\n                          <tbody>\n                          <tr *ngFor=\"let param of activeEntity.parameters\">\n                            <td>\n                              <span\n                                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\n                                (click)=\"checkAndRemoveParameter(param)\"\n                                aria-hidden=\"true\">\n                              </span>\n                            </td>\n                            <td>{{param.key}}</td>\n                            <td>\n                              <inline-edit [(ngModel)]=\"param.value\"\n                                           [ngModelOptions]=\"{standalone: true}\"\n                                           (onSave)=\"saveParameter(param)\"\n                                           [uniqueKey]=\"param.key\">\n                              </inline-edit>\n                            </td>\n                          </tr>\n                          <tr>\n                            <td></td>\n                            <td></td>\n                            <td align=\"right\">\n                              <button\n                                type=\"button\"\n                                class=\"btn btn-primary btn-sm\"\n                                (click)=\"addNewParameter()\">\n                                Add new <i class=\"fa fa-caret-down\" aria-hidden=\"true\"></i>\n                              </button>\n                            </td>\n                          </tr>\n                          </tbody>\n                      </table>\n                    </div>\n\n                    <div class=\"col-md-12\" style=\"display: none; margin-top: 15px\" id=\"newParamRow{{entityType}}\">\n                      <div class=\"row\">\n                        <div class=\"col-md-5 col-md-offset-3\" *ngIf=\"currentNewParam\">\n                          <select\n                                  style=\"width: 350px\"\n                                  id=\"newParamSelect{{entityType}}\"\n                                  [(ngModel)]=\"currentNewParam.key\"\n                                  class=\"select2_group form-control\">\n                            <optgroup label=\"Custom parameter\">\n                              <option value=\"custom\">Append your own param</option>\n                            </optgroup>\n                            <optgroup label=\"Suggested parameter\" *ngIf=\"activeEntity.paramDescriptors | async\">\n                              <option\n                                *ngFor=\"let descriptor of activeEntity.paramDescriptors | async\"\n                                [attr.required]=\"descriptor.required\"\n                                [attr.pattern]=\"descriptor.pattern\"\n                                [attr.defaultValue]=\"descriptor.defaultValue\"\n                                [value]=\"descriptor.name\">\n                                {{descriptor.name}}\n                              </option>\n                            </optgroup>\n                          </select>\n                        </div>\n                      </div>\n                      <div class=\"row\" style=\"margin: 10px 0;\">\n                        <div class=\"col-md-4 col-md-offset-4\">\n                          <div class=\"form-group row\" *ngIf=\"currentNewParam.key == 'custom'\">\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Parameter name</label>\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the name\" [(ngModel)]=\"customKey\">\n                            </div>\n                          </div>\n                          <div class=\"form-group row\">\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Value</label>\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the value\" [(ngModel)]=\"currentNewParam.value\">\n                            </div>\n                          </div>\n                        </div>\n                      </div>\n                      <div class=\"row\" style=\"margin-top:15px;\">\n                        <div class=\"col-md-4 col-md-offset-4\">\n                          <button class=\"btn\" (click)=\"cancelAppendingParam()\">\n                             Cancel\n                          </button>\n                          <button class=\"btn btn-primary\"  (click)=\"appendParameter()\" style=\"margin-left:10px\">\n                            Append parameter\n                          </button>\n                        </div>\n                      </div>\n                    </div>\n\n                  </div>\n                  <!-- PARAMETERS -->\n\n\n                  <div id=\"save\" class=\"row\" style=\"margin-top: 20px;\">\n                    <pre class=\"line-numbers\"><code class=\"language-javascript\" [innerHTML]=\"htmlViewForEntity()\"></code></pre>\n                    <button\n                      type=\"button\"\n                      class=\"btn btn-primary\"\n                      [disabled]=\"readyForSave == false\"\n                      (click)=\"saveEntity()\">\n                      Save changes\n                    </button>\n                  </div>\n                </div>\n              </div>\n            </div>\n           <!-- <div class=\"modal-footer\">\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n            </div>-->\n        </div>\n    </div>\n</div>\n\n<table class=\"table\">\n    <thead>\n    <tr>\n        <th>Name</th>\n        <th>Actions</th>\n    </tr>\n    </thead>\n    <tbody>\n    <tr *ngFor=\"let entity of entities\">\n\n        <td>{{entity.name}}</td>\n        <td>\n            <div class=\"btn-group\" role=\"group\">\n                <button\n                        type=\"button\"\n                        data-toggle=\"modal\"\n                        (click)=\"setEntity(entity)\"\n                        [attr.data-target]=\"'#editEntity' + entityType\"\n                        class=\"btn btn-default btn-xs\">\n                    Edit\n                </button>\n                <button type=\"button\" class=\"btn btn-default btn-xs\" (click)=\"remove(entity)\">Remove</button>\n            </div>\n        </td>\n    </tr>\n    <tr>\n      <td></td>\n      <td>\n        <button\n          type=\"button\"\n          data-toggle=\"modal\"\n          (click)=\"addNewEntity()\"\n          [attr.data-target]=\"'#editEntity' + entityType\"\n          class=\"btn btn-default btn-xs\">\n          Add new\n        </button>\n      </td>\n    </tr>\n    </tbody>\n</table>\n"
+module.exports = "<!-- Modal for entity appending -->\n<div class=\"modal fade\" id=\"editEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"editEntityLabel\">\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title leftAlign\" id=\"editEntityLabel\">Edit {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\n            </div>\n            <br/>\n            <div class=\"modal-body\">\n              <div id=\"smartwizard{{entityType}}\" style=\"height: 95%\">\n                <ul>\n                      <li>\n                        <a [attr.href]=\"'#name'\">\n                          Name<br />\n                          <small>Name of {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#additional'\">\n                          Additional<br />\n                          <small>Additional {{activeEntity.getName()}}-related members</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#parameters'\">\n                          Parameters<br />\n                          <small>Parameters for {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#save'\">\n                          Save<br />\n                          <small>Saving the {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                </ul>\n\n                <div style=\"height:100%\">\n                  <div id=\"name\" class=\"row\" style=\"margin-top: 100px;\">\n                    <div class=\"item form-group\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"nameInput\"\n                        style=\"margin-top: 7px;\">\n                          Name <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"nameInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'At least 4 symbols'\"\n                          placeholder=\"input the name of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.name\">\n                      </div>\n                    </div>\n                  </div>\n                  <div id=\"additional\" class=\"row\" style=\"margin-top: 100px;\">\n                    <!-- input for operation -->\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'operation'\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"invtoInput\"\n                        style=\"margin-top: 7px;\">\n                          Invocation timeout <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"invtoInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'Input number (0 for infinite)'\"\n                          placeholder=\"input the invocation timeout of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.invokto\">\n                      </div>\n                    </div>\n\n                    <!-- input for attribute -->\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'attribute'\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"rwtoInput\"\n                        style=\"margin-top: 7px;\">\n                          Read/write timeout <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"rwtoInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'Input number (0 for infinite)'\"\n                          placeholder=\"input the read/write timeout of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.rwto\">\n                      </div>\n                    </div>\n                  </div>\n\n\n                  <!-- PARAMETERS -->\n                  <div id=\"parameters\" class=\"row\" style=\"margin-top: 10px;\">\n                    <div class=\"col-md-12\" id=\"tableParamsRow{{entityType}}\">\n                       <table class=\"table\">\n                          <thead>\n                          <tr>\n                            <th>#</th>\n                            <th>Key</th>\n                            <th>Value</th>\n                          </tr>\n                          </thead>\n                          <tbody>\n                          <tr *ngFor=\"let param of activeEntity.parameters\">\n                            <td>\n                              <span\n                                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\n                                (click)=\"checkAndRemoveParameter(param)\"\n                                aria-hidden=\"true\">\n                              </span>\n                            </td>\n                            <td>{{param.key}}</td>\n                            <td>\n                              <inline-edit [(ngModel)]=\"param.value\"\n                                           [ngModelOptions]=\"{standalone: true}\"\n                                           (onSave)=\"saveParameter(param)\"\n                                           [uniqueKey]=\"param.key\">\n                              </inline-edit>\n                            </td>\n                          </tr>\n                          <tr>\n                            <td></td>\n                            <td></td>\n                            <td align=\"right\">\n                              <button\n                                type=\"button\"\n                                class=\"btn btn-primary btn-sm\"\n                                (click)=\"addNewParameter()\">\n                                Add new <i class=\"fa fa-caret-down\" aria-hidden=\"true\"></i>\n                              </button>\n                            </td>\n                          </tr>\n                          </tbody>\n                      </table>\n                    </div>\n\n                    <div class=\"col-md-12\" style=\"display: none; margin-top: 15px\" id=\"newParamRow{{entityType}}\">\n                      <div class=\"row\">\n                        <div class=\"col-md-5 col-md-offset-3\" *ngIf=\"currentNewParam\">\n                          <select\n                                  style=\"width: 350px\"\n                                  id=\"newParamSelect{{entityType}}\"\n                                  [(ngModel)]=\"currentNewParam.key\"\n                                  class=\"select2_group form-control\">\n                            <optgroup label=\"Custom parameter\">\n                              <option value=\"custom\">Append your own param</option>\n                            </optgroup>\n                            <optgroup label=\"Suggested parameter\" *ngIf=\"activeEntity.paramDescriptors | async\">\n                              <option\n                                *ngFor=\"let descriptor of activeEntity.paramDescriptors | async\"\n                                [attr.required]=\"descriptor.required\"\n                                [attr.pattern]=\"descriptor.pattern\"\n                                [attr.defaultValue]=\"descriptor.defaultValue\"\n                                [value]=\"descriptor.name\">\n                                {{descriptor.name}}\n                              </option>\n                            </optgroup>\n                          </select>\n                        </div>\n                      </div>\n                      <div class=\"row\" style=\"margin: 10px 0;\">\n                        <div class=\"col-md-4 col-md-offset-4\">\n                          <div class=\"form-group row\" *ngIf=\"currentNewParam.key == 'custom'\">\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Parameter name</label>\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the name\" [(ngModel)]=\"customKey\">\n                            </div>\n                          </div>\n                          <div class=\"form-group row\">\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Value</label>\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the value\" [(ngModel)]=\"currentNewParam.value\">\n                            </div>\n                          </div>\n                        </div>\n                      </div>\n                      <div class=\"row\" style=\"margin-top:15px;\">\n                        <div class=\"col-md-4 col-md-offset-4\">\n                          <button class=\"btn\" (click)=\"cancelAppendingParam()\">\n                             Cancel\n                          </button>\n                          <button class=\"btn btn-primary\"  (click)=\"appendParameter()\" style=\"margin-left:10px\">\n                            Append parameter\n                          </button>\n                        </div>\n                      </div>\n                    </div>\n\n                  </div>\n                  <!-- PARAMETERS -->\n\n\n                  <div id=\"save\" class=\"row\" style=\"margin-top: 20px;\">\n                    <pre class=\"line-numbers\"><code class=\"language-javascript\" [innerHTML]=\"htmlViewForEntity()\"></code></pre>\n                    <button\n                      type=\"button\"\n                      class=\"btn btn-primary\"\n                      (click)=\"saveEntity()\">\n                      Save changes\n                    </button>\n                  </div>\n                </div>\n              </div>\n            </div>\n           <!-- <div class=\"modal-footer\">\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n            </div>-->\n        </div>\n    </div>\n</div>\n\n\n<div class=\"modal fade\" id=\"addExistentEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"discoveryLabel\" *ngIf=\"discoveredEntities != undefined && discoveredEntities.length > 0\">\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title leftAlign\" id=\"discoveryLabel\">Automatic discovered {{entityType}}s for  {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\n            </div>\n            <br/>\n            <div class=\"modal-body\">\n\n                <div id=\"discoveredEntityId\" class=\"row\" *ngIf=\"selectedEntity != undefined\">\n                    <div class=\"item form-group\">\n                        <label\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                                for=\"discoveredEntityId\"\n                                style=\"margin-top: 7px;\">\n                            Name <span class=\"required\">*</span>\n                        </label>\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                            <input\n                                    id=\"discoveredEntityIdInput\"\n                                    class=\"form-control col-md-7 col-xs-12\"\n                                    [tooltip]=\"'At least 4 symbols'\"\n                                    placeholder=\"input the name of new entity\"\n                                    [(ngModel)]=\"selectedEntityName\">\n                        </div>\n                    </div>\n                </div>\n                <div class=\"table-wrapper row\">\n                    <table class=\"table table-hover table-bordered\" *ngIf=\"entityType == 'attribute'\">\n                        <thead class=\"thead-inverse\">\n                        <tr>\n                            <th>Attribute name</th>\n                            <th>Already set</th>\n                            <th>Read/write timeout</th>\n                            <th>Parameters</th>\n                        </tr>\n                        </thead>\n                        <tbody>\n                        <tr *ngFor=\"let attribute of discoveredEntities\" class=\"clickableTr\" [class.activeTr]=\"((selectedEntity != undefined) && (selectedEntity.name == attribute.name))\" (click)=\"setActiveEntity(attribute)\">\n                            <th scope=\"row\">{{attribute.name}}</th>\n                            <td>\n                                    <span class=\"discovery-set\"  *ngIf=\"isAttributeSet(attribute.name)\">\n                                          <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\n                                     </span>\n                            </td>\n                            <td>{{attribute.rwto}}</td>\n                            <td [innerHTML]=\"formatParams(attribute)\"></td>\n                        </tr>\n                        </tbody>\n                    </table>\n                </div>\n\n                <button\n                        type=\"button\"\n                        data-toggle=\"modal\"\n                        (click)=\"cancelEntitySelection()\"\n                        [disabled]=\"selectedEntity == undefined\"\n                        class=\"btn btn-primary\">\n                    Cancel\n                </button>\n                <button\n                        type=\"button\"\n                        data-toggle=\"modal\"\n                        [disabled]=\"((selectedEntity != undefined) && isAttributeSet(selectedEntity.name))\"\n                        (click)=\"addSelectedEntityToResource()\"\n                        class=\"btn btn-default\">\n                    Add\n                </button>\n            </div>\n        </div>\n    </div>\n</div>\n\n<table class=\"table\">\n    <thead>\n    <tr>\n        <th>Name</th>\n        <th>Actions</th>\n    </tr>\n    </thead>\n    <tbody>\n    <tr *ngFor=\"let entity of entities\">\n\n        <td>{{entity.name}}</td>\n        <td>\n            <div class=\"btn-group\" role=\"group\">\n                <button\n                        type=\"button\"\n                        data-toggle=\"modal\"\n                        (click)=\"setEntity(entity)\"\n                        [attr.data-target]=\"'#editEntity' + entityType\"\n                        class=\"btn btn-default btn-xs\">\n                    Edit\n                </button>\n                <button type=\"button\" class=\"btn btn-default btn-xs\" (click)=\"remove(entity)\">Remove</button>\n            </div>\n        </td>\n    </tr>\n    <tr>\n      <td></td>\n      <td>\n        <button\n          type=\"button\"\n          data-toggle=\"modal\"\n          (click)=\"addNewEntity()\"\n          class=\"btn btn-default btn-xs\">\n               Add new\n        </button>\n\n        <button\n          *ngIf=\"hasAvailableEntities()\"\n          type=\"button\"\n          data-toggle=\"modal\"\n          (click)=\"addEntityFromList()\"\n          class=\"btn btn-default btn-xs\">\n             Add from the list\n        </button>\n      </td>\n    </tr>\n    </tbody>\n</table>\n"
 
 /***/ },
 
@@ -106312,16 +106495,22 @@ exports.OptionalParametersFilter = OptionalParametersFilter;
 "use strict";
 "use strict";
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
+var moment = __webpack_require__("./node_modules/moment/moment.js");
 var Attribute = (function (_super) {
     __extends(Attribute, _super);
     function Attribute(http, resourceType, name, rwto, jsonObject) {
         _super.call(this, http, name, resourceType, jsonObject);
         this.rwto = 0; // read/write timeout
-        this.rwto = rwto;
+        // if we pass there number - we should recognize it as a number (ms)
+        // otherwise - we parse it as a duration ISO8601
+        this.rwto = (!isNaN(parseFloat(rwto)) && isFinite(rwto)) ? rwto : moment.duration(rwto).asMilliseconds();
+        //console.log("Rwto for attribute " + name + ": " + rwto + " and " + this.rwto,  moment.duration(rwto));
     }
     Attribute.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        resultValue["readWriteTimeout"] = String(this.rwto);
+        // see https://momentjs.com/docs/#/durations/as-json/
+        //console.log("Here! ", this.rwto, moment.duration({ milliseconds: this.rwto}));
+        resultValue["readWriteTimeout"] = moment.duration({ milliseconds: this.rwto }).toISOString();
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     };
@@ -106466,6 +106655,62 @@ var Guid = (function () {
 
 /***/ },
 
+/***/ "./src/app/configuration/model/model.entityWithSub.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
+var model_attribute_1 = __webpack_require__("./src/app/configuration/model/model.attribute.ts");
+var model_event_1 = __webpack_require__("./src/app/configuration/model/model.event.ts");
+var model_operation_1 = __webpack_require__("./src/app/configuration/model/model.operation.ts");
+var EntityWithSub = (function (_super) {
+    __extends(EntityWithSub, _super);
+    function EntityWithSub(http, name, parameters) {
+        _super.call(this, http, name, parameters["type"], parameters["parameters"]);
+        this.attributes = [];
+        this.events = [];
+        this.operations = [];
+        // filling attributes
+        if (parameters["attributes"] != undefined) {
+            var attrs = parameters["attributes"];
+            for (var key in attrs) {
+                var rwto = 0;
+                if (key == "CPU") {
+                    console.log(JSON.stringify(attrs[key]), attrs[key]["readWriteTimeout"]);
+                }
+                if (attrs[key]["readWriteTimeout"] != undefined) {
+                    rwto = attrs[key]["readWriteTimeout"];
+                }
+                this.attributes.push(new model_attribute_1.Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
+            }
+        }
+        // filling events
+        if (parameters["events"] != undefined) {
+            var events = parameters["events"];
+            for (var key in events) {
+                this.events.push(new model_event_1.Event(http, this.type, key, events[key]["parameters"]));
+            }
+        }
+        // filling operations
+        if (parameters["operations"] != undefined) {
+            var operations = parameters["operations"];
+            for (var key in operations) {
+                var rwto = 0;
+                if (operations[key]["invocationTimeout"] != undefined) {
+                    rwto = operations[key]["invocationTimeout"];
+                }
+                this.operations.push(new model_operation_1.Operation(http, this.type, key, rwto, operations[key]["parameters"]));
+            }
+        }
+    }
+    return EntityWithSub;
+}(model_typedEntity_1.TypedEntity));
+exports.EntityWithSub = EntityWithSub;
+
+
+/***/ },
+
 /***/ "./src/app/configuration/model/model.event.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -106557,16 +106802,19 @@ exports.Gateway = Gateway;
 "use strict";
 "use strict";
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
+var moment = __webpack_require__("./node_modules/moment/moment.js");
 var Operation = (function (_super) {
     __extends(Operation, _super);
     function Operation(http, resourceType, name, invokto, jsonObject) {
         _super.call(this, http, name, resourceType, jsonObject);
         this.invokto = 0; // invocation timeout
-        this.invokto = invokto;
+        // if we pass there number - we should recognize it as a number (ms)
+        // otherwise - we parse it as a duration ISO8601
+        this.invokto = (!isNaN(parseFloat(invokto)) && isFinite(invokto)) ? invokto : moment.duration(invokto).asMilliseconds();
     }
     Operation.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        resultValue["invocationTimeout"] = String(this.invokto);
+        resultValue["invocationTimeout"] = moment.duration({ milliseconds: this.invokto }).toISOString();
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     };
@@ -106630,23 +106878,18 @@ exports.ParamDescriptor = ParamDescriptor;
 
 "use strict";
 "use strict";
-var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var model_attribute_1 = __webpack_require__("./src/app/configuration/model/model.attribute.ts");
+var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
-var model_event_1 = __webpack_require__("./src/app/configuration/model/model.event.ts");
-var model_operation_1 = __webpack_require__("./src/app/configuration/model/model.operation.ts");
+var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
 var Resource = (function (_super) {
     __extends(Resource, _super);
     function Resource(http, name, parameters) {
-        _super.call(this, http, name, parameters["type"], parameters["parameters"]);
+        _super.call(this, http, name, parameters);
         this.connectionString = "";
         this.smartMode = false;
         this.groupName = "";
         this.threadPool = "";
-        this.attributes = [];
-        this.events = [];
-        this.operations = [];
         this.http = http;
         // set right connection string
         this.connectionString = parameters["connectionString"];
@@ -106668,38 +106911,14 @@ var Resource = (function (_super) {
             this.threadPool = this.getParameter("threadPool").value;
             this.removeParameter("threadPool");
         }
-        // filling attributes
-        if (parameters["attributes"] != undefined) {
-            var attrs = parameters["attributes"];
-            for (var key in attrs) {
-                var rwto = 0;
-                if (attrs[key]["readWriteTimeout"] != undefined) {
-                    rwto = attrs[key]["readWriteTimeout"];
-                }
-                this.attributes.push(new model_attribute_1.Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
-            }
-        }
-        // filling events
-        if (parameters["events"] != undefined) {
-            var events = parameters["events"];
-            for (var key in events) {
-                this.events.push(new model_event_1.Event(http, this.type, key, events[key]["parameters"]));
-            }
-        }
-        // filling operations
-        if (parameters["operations"] != undefined) {
-            var operations = parameters["operations"];
-            for (var key in operations) {
-                var rwto = 0;
-                if (operations[key]["invocationTimeout"] != undefined) {
-                    rwto = operations[key]["invocationTimeout"];
-                }
-                this.operations.push(new model_operation_1.Operation(http, this.type, key, rwto, operations[key]["parameters"]));
-            }
-        }
     }
-    Resource.prototype.getName = function () {
+    // used for receiving parameter descriptors
+    Resource.prototype.getDescriptionType = function () {
         return "connector";
+    };
+    // used elsewhere
+    Resource.prototype.getName = function () {
+        return "resource";
     };
     Resource.toJSON = function (type, cstring, params) {
         var returnValue = {};
@@ -106708,8 +106927,11 @@ var Resource = (function (_super) {
         returnValue["parameters"] = model_entity_1.KeyValue.stringifyParametersStatic(params);
         return returnValue;
     };
+    Resource.prototype.discovery = function (type) {
+        return this.http.getWithErrors(app_restClient_1.REST.RESOURCE_DISCOVERY(this.name, type));
+    };
     return Resource;
-}(model_typedEntity_1.TypedEntity));
+}(model_entityWithSub_1.EntityWithSub));
 exports.Resource = Resource;
 
 
@@ -106783,14 +107005,14 @@ var TypedEntity = (function (_super) {
         this.type = type;
         this.name = name;
         // retrieving parameters description - extract as static to explicit class please @todo
-        this.paramDescriptors = this.http.get(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.getName(), this.type))
+        this.paramDescriptors = this.http.get(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.getDescriptionType(), this.type))
             .map(function (res) {
             var data = res.json();
             var returnValue = [];
             for (var obj in data) {
                 var newDescriptor = new model_paramDescriptor_1.ParamDescriptor(data[obj]);
                 // remove group and smart mode descriptors because they are processed another way
-                if ((_this.getName() == "connectors" || _this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
+                if ((_this.getName() == "resource" || _this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
                     var k = false;
                 }
                 else
@@ -106799,6 +107021,9 @@ var TypedEntity = (function (_super) {
             return returnValue;
         });
     }
+    TypedEntity.prototype.getDescriptionType = function () {
+        return this.getName();
+    };
     TypedEntity.prototype.isParamRequired = function (name) {
         return this.getParamDescriptor(name).map(function (res) { return res != undefined && res.required; });
     };
@@ -107943,6 +108168,13 @@ var REST = (function () {
     };
     REST.RESOURCE_CONNECTION_STRING = function (entityName) {
         return REST.RESOURCE_BY_NAME(entityName) + "/connectionString";
+    };
+    REST.RESOURCE_DISCOVERY = function (resourceName, entityType) {
+        return REST.RESOURCE_BY_NAME(resourceName) + "/discovery/" + entityType; //attributes|events|operations
+    };
+    // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
+    REST.RESOURCE_ENTITY_BY_NAME = function (type, resourceName, entityType, entityName) {
+        return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
     };
     REST.RESOURCE_GROUP = function (name) {
         return REST.RESOURCE_BY_NAME(name) + "/group";

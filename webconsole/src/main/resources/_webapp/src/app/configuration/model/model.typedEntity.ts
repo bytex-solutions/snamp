@@ -17,20 +17,24 @@ export abstract class TypedEntity extends Entity {
         this.name = name;
 
         // retrieving parameters description - extract as static to explicit class please @todo
-        this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this.getName(), this.type))
+        this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this.getDescriptionType(), this.type))
             .map((res: Response) => {
                 let data = res.json();
                 let returnValue:ParamDescriptor[] = [];
                 for (let obj in data) {
                    let newDescriptor:ParamDescriptor = new ParamDescriptor(data[obj]);
                    // remove group and smart mode descriptors because they are processed another way
-                   if ((this.getName() == "connectors" || this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
+                   if ((this.getName() == "resource" || this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
                       let k:boolean = false;
                    } else
                        returnValue.push(newDescriptor);
                    }
                  return returnValue;
             });
+    }
+
+    public getDescriptionType():string {
+        return this.getName();
     }
 
     public isParamRequired(name:string):Observable<boolean> {
