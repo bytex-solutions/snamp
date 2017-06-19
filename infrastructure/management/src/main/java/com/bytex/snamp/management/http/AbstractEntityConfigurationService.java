@@ -1,9 +1,6 @@
 package com.bytex.snamp.management.http;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.configuration.EntityMapResolver;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.management.http.model.AbstractDataObject;
 import org.osgi.framework.BundleContext;
@@ -274,11 +271,9 @@ public abstract class AbstractEntityConfigurationService<E extends EntityConfigu
     @Consumes(MediaType.APPLICATION_JSON)
     public final Response removeParameterByName(@PathParam("name") final String name,
                                           @PathParam("paramName") final String paramName) {
-        return changingActions(getBundleContext(), config -> {
-            if (entityMapResolver.apply(config).remove(paramName) == null)
-                throw notFound();
-            else
-                return true;
-        });
+        return changingActions(getBundleContext(), config -> entityMapResolver.apply(config)
+                .getIfPresent(name)
+                .orElseThrow(AbstractManagementService::notFound)
+                .remove(paramName) != null);
     }
 }

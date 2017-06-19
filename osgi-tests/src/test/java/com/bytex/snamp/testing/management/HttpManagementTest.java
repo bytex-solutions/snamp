@@ -400,7 +400,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         attributeMap.put("124.0", newAttribute2);
         attributeMap.put("125.0", newAttribute3);
 
-        IOUtils.writeString(attributeMap.toString(), connection.getOutputStream(), Charset.defaultCharset());
+        IOUtils.writeString(mapper.writeValueAsString(attributeMap), connection.getOutputStream(), Charset.defaultCharset());
         connection.connect();
         try {
             assertEquals(HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
@@ -408,7 +408,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
             connection.disconnect();
         }
 
-        // check if we replaced old attributes with new once
+        // check if we replaced old attributes with new one
         connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
@@ -524,7 +524,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         }
 
         // get the configuration
-        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/gateway/%s/configuration",
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/components/gateways/%s/description",
                 ADAPTER_NAME)).openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
@@ -581,7 +581,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         final HttpCookie cookie = authenticator.authenticateTestUser();
 
         // Get all resources
-        URL query = new URL("http://localhost:8181/snamp/management/resource/list");
+        URL query = new URL("http://localhost:8181/snamp/management/components/connectors");
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -602,7 +602,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
             connection.disconnect();
         }
 
-        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/resource/%s/disable",
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/components/connectors/%s/disable",
                 CONNECTOR_NAME)).openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));

@@ -260,7 +260,8 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         public void load(final Map<String, String> parameters) {
             if(parameters instanceof AttributeConfiguration)
                 load((AttributeConfiguration) parameters);
-
+            else
+                loadParameters(parameters);
         }
 
         /**
