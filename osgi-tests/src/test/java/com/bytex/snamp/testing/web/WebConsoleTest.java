@@ -22,7 +22,6 @@ import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.json.JsonUtils;
-import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.bytex.snamp.moa.ReduceOperation;
 import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
@@ -45,12 +44,9 @@ import com.bytex.snamp.web.serviceModel.e2e.ComponentModulesView;
 import com.bytex.snamp.web.serviceModel.e2e.LandscapeView;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
 import org.codehaus.jackson.node.TextNode;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -330,11 +326,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final String prefix = "http://localhost:8181/snamp/management/configuration";
         final String attrValue = "{\"readWriteTimeout\": \"PT2M24.5S\",\"parameters\": {\"name\": \"bigint\", \"description\": \"Used amount of memory, in megabytes\", \"units\": \"MBytes\"}}";
-
-        final ObjectMapper mapper = new ObjectMapper();
-        final JsonFactory factory = mapper.getJsonFactory();
-        final JsonParser parser = factory.createJsonParser(attrValue);
-        final JsonNode actualObj = mapper.readTree(parser);
+        final JsonNode actualObj = FORMATTER.readTree(attrValue);
 
         httpPut(prefix, String.format("/resource/%s/attributes/usedMemory", FIRST_RESOURCE_NAME), authenticationToken, actualObj);
 
