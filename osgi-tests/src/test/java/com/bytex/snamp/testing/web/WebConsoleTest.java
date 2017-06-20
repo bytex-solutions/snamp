@@ -47,6 +47,7 @@ import com.google.common.collect.Range;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.node.TextNode;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -328,10 +329,19 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final String attrValue = "{\"readWriteTimeout\": \"PT2M24.5S\",\"parameters\": {\"name\": \"bigint\", \"description\": \"Used amount of memory, in megabytes\", \"units\": \"MBytes\"}}";
         final JsonNode actualObj = FORMATTER.readTree(attrValue);
 
+        httpPut(prefix, String.format("/resource/%s/attributes/usedMemoryNEW", URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8")), authenticationToken, actualObj);
+        JsonNode node = httpGet(prefix, "/resource", authenticationToken);
+        assertNotNull(node);
+        assertTrue(node.get("node#1").get("attributes").get("usedMemoryNEW").has("readWriteTimeout"));
+        assertFalse(node.get("node#1").get("attributes").get("usedMemoryNEW").get("readWriteTimeout") instanceof NullNode);
+
         httpPut(prefix, String.format("/resource/%s/attributes/usedMemory", URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8")), authenticationToken, actualObj);
 
-        final JsonNode node = httpGet(prefix, "/resource", authenticationToken);
+        node = httpGet(prefix, "/resource", authenticationToken);
         assertNotNull(node);
+        assertTrue(node.get("node#1").get("attributes").get("usedMemory").has("readWriteTimeout"));
+        assertFalse(node.get("node#1").get("attributes").get("usedMemory").get("readWriteTimeout") instanceof NullNode);
+
 
     }
 
