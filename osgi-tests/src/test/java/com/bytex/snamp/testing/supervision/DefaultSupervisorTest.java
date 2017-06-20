@@ -26,6 +26,7 @@ import com.google.common.reflect.TypeToken;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
@@ -59,8 +60,15 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
         testConfigurationDescriptor(description, "checkPeriod");
     }
 
+    @Override
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        super.afterStartTest(context);
+        waitForConnector(Duration.ofSeconds(2), TEST_RESOURCE_NAME, getTestBundleContext());
+    }
+
     @Test
     public void coloredChecker() throws JMException, InterruptedException {
+
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
             assertTrue(supervisor.get().getResources().contains(TEST_RESOURCE_NAME));
