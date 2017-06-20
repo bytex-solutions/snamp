@@ -25,20 +25,14 @@ public class Timeout implements Stateful, Serializable {
     private static final long serialVersionUID = -3419420505943412983L;
     private final AtomicLong timer;
 
-
-    /**
-     * Minimum possible value of timeout controller.
-     */
-    public static final Duration MIN_VALUE = Duration.ofNanos(1L);
-
     /**
      * Time-to-live of the value in this accumulator, in nanos.
      */
     private final long timeoutNanos;
 
     private Timeout(final long timeoutNanos) {
-        if (timeoutNanos < MIN_VALUE.toNanos())
-            throw new IllegalArgumentException(String.format("Timeout cannot be less than %s", MIN_VALUE));
+        if(timeoutNanos < 0L)
+            throw new IllegalArgumentException("Timeout cannot be negative");
         this.timeoutNanos = timeoutNanos;
         setLocalTime(timer = new AtomicLong(0L));
     }
