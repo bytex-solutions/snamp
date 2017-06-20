@@ -22,7 +22,7 @@ import java.util.Optional;
 public final class SnampCoreMBean extends OpenMBean implements LogListener, FrameworkMBean {
 
     public static final String OBJECT_NAME = "com.bytex.snamp.management:type=SnampCore";
-    public static final Duration DEFAULT_RENEWAL_TIME = Duration.ofSeconds(5);
+    private static final Duration DEFAULT_RENEWAL_TIME = Duration.ofSeconds(5);
     private final StatisticCounters counter;
 
     private SnampCoreMBean(final StatisticCounters counter, final AbstractSnampManager manager) throws OpenDataException{

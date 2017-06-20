@@ -4,8 +4,6 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.connector.notifications.Mailbox;
-import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -16,8 +14,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.log.LogService;
 
 import javax.management.*;
 import javax.management.openmbean.CompositeData;
@@ -29,7 +25,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
@@ -41,7 +36,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * @version 2.0
  * @since 1.0
  */
-@SnampDependencies(SnampFeature.SNMP_GATEWAY)
+@SnampDependencies({SnampFeature.SNMP_GATEWAY, SnampFeature.STANDARD_TOOLS})
 public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     private static final String ADAPTER_INSTANCE_NAME = "test-snmp";
     private static final String SNAMP_MBEAN = "com.bytex.snamp.management:type=SnampCore";
@@ -87,43 +82,12 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertEquals(5000L, connection.getAttribute(commonsObj, "StatisticRenewalTime"));
             connection.setAttribute(commonsObj, new Attribute("StatisticRenewalTime", 3000L));
             assertEquals(3000L, connection.getAttribute(commonsObj, "StatisticRenewalTime"));
-            //emits some errors
-            final ServiceReference<LogService> loggerRef = getTestBundleContext().getServiceReference(LogService.class);
-            assertNotNull(loggerRef);
-            final LogService logger = getTestBundleContext().getService(loggerRef);
-            logger.log(LogService.LOG_ERROR, "Some error #1");
-            logger.log(LogService.LOG_ERROR, "Some error #2");
-            logger.log(LogService.LOG_WARNING, "Some warning #1");
-            //expected 2 errors and 1 warning
-            Thread.sleep(500);  //wait for updating counters
-            assertEquals(2L, connection.getAttribute(commonsObj, "FaultsCount"));
-            assertEquals(1L, connection.getAttribute(commonsObj, "WarningMessagesCount"));
-            //wait for refresh counters
-            Thread.sleep(3000);
-            assertEquals(0L, connection.getAttribute(commonsObj, "FaultsCount"));
-            assertEquals(0L, connection.getAttribute(commonsObj, "WarningMessagesCount"));
-            //test notifications
-            assertTrue(connection.getMBeanInfo(commonsObj).getNotifications().length > 0);
-            final Mailbox syncEvent = MailboxFactory.newMailbox();
-            connection.addNotificationListener(commonsObj, syncEvent, null, null);
-            final String eventPayload = "Hello, world!";
-            logger.log(LogService.LOG_ERROR, eventPayload);
-            Notification notif = syncEvent.poll(3, TimeUnit.SECONDS);
-            assertNotNull(notif);
-            assertEquals(eventPayload, notif.getMessage());
-            assertEquals("com.bytex.snamp.monitoring.error", notif.getType());
-            logger.log(LogService.LOG_WARNING, eventPayload, new Exception("WAAGH!"));
-            notif = syncEvent.poll(3, TimeUnit.SECONDS);
-            assertNotNull(notif);
-            //assertEquals(String.format("%s. Reason: %s", eventPayload, new Exception("WAAGH!")), notif.getMessage());
-            assertEquals("com.bytex.snamp.monitoring.warning", notif.getType());
             final TabularData table = (TabularData)connection.getAttribute(commonsObj, "InstalledComponents");
             assertFalse(table.isEmpty());
             final CompositeData jmxConnectorInfo = table.get(new String[]{"JMX Connector"});
             assertEquals("JMX Connector", jmxConnectorInfo.get("Name"));
             assertEquals(Bundle.ACTIVE, jmxConnectorInfo.get("State"));
             assertEquals(true, jmxConnectorInfo.get("IsConfigurationDescriptionAvailable"));
-            getTestBundleContext().ungetService(loggerRef);
         }
     }
 
@@ -152,18 +116,6 @@ public final class SnampManagerTest extends AbstractJmxConnectorTest<TestOpenMBe
             assertNotNull(installedConnectors);
             assertTrue(installedConnectors instanceof String[]);
             assertTrue(new ArrayList<>(Arrays.asList((String[]) installedConnectors)).contains("jmx"));
-
-            // getting the gateway info
-            Object snmpConnectorInfo = connection.invoke(commonsObj,
-                    "getConnectorInfo",
-                    new Object[]{"jmx", ""},
-                    new String[]{String.class.getName(), String.class.getName()});
-            assertNotNull(snmpConnectorInfo);
-            assertTrue(snmpConnectorInfo instanceof CompositeData);
-            assertTrue(((CompositeData) snmpConnectorInfo).containsKey("State"));
-            assertNotNull(((CompositeData) snmpConnectorInfo).get("State"));
-            assertTrue(((CompositeData) snmpConnectorInfo).get("State") instanceof Integer);
-            assertEquals(Bundle.ACTIVE, ((CompositeData) snmpConnectorInfo).get("State"));
         }
     }
 
