@@ -247,6 +247,7 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     saveEntity():void {
+        console.log("Entity to be saved is: ", this.activeEntity.stringifyFullObject());
         this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map((res:Response) => res.text())
             .subscribe((data) => {

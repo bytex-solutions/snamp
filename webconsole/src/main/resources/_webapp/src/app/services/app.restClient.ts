@@ -154,6 +154,7 @@ export class REST {
 
     // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
     public static RESOURCE_ENTITY_BY_NAME(type:string, resourceName: string, entityType:string, entityName:string): string {
+        console.log("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
         return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
     }
 
