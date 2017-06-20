@@ -17,7 +17,7 @@ final class FilteredGraphOfComponents extends GraphOfComponents {
     private static final long serialVersionUID = -2367174795240931165L;
     private final ConcurrentResourceAccessor<Map<String, Long>> allowedGroups;//key - component name, value - number of components with the same name
 
-    FilteredGraphOfComponents(long historySize) {
+    FilteredGraphOfComponents(final long historySize) {
         super(historySize);
         allowedGroups = new ConcurrentResourceAccessor<>(new HashMap<>(20));
     }
