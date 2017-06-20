@@ -328,7 +328,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final String attrValue = "{\"readWriteTimeout\": \"PT2M24.5S\",\"parameters\": {\"name\": \"bigint\", \"description\": \"Used amount of memory, in megabytes\", \"units\": \"MBytes\"}}";
         final JsonNode actualObj = FORMATTER.readTree(attrValue);
 
-        httpPut(prefix, String.format("/resource/%s/attributes/usedMemory", FIRST_RESOURCE_NAME), authenticationToken, actualObj);
+        httpPut(prefix, String.format("/resource/%s/attributes/usedMemory", URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8")), authenticationToken, actualObj);
 
         final JsonNode node = httpGet(prefix, "/resource", authenticationToken);
         assertNotNull(node);
