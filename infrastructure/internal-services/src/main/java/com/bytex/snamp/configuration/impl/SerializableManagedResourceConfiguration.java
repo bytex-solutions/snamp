@@ -6,6 +6,7 @@ import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 
@@ -21,6 +22,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     private static final long serialVersionUID = 5044050385424748355L;
 
     private String connectionString;
+    private final ModifiableStringSet overriddenProperties;
 
     /**
      * Initializes a new empty configuration of the management information source.
@@ -28,6 +30,17 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableManagedResourceConfiguration(){
         connectionString = "";
+        overriddenProperties = new ModifiableStringSet();
+    }
+
+    @Override
+    public ModifiableHashSet<String> getOverriddenProperties() {
+        return overriddenProperties;
+    }
+
+    @Override
+    public boolean isModified() {
+        return super.isModified() || overriddenProperties.isModified();
     }
 
     /**
@@ -47,6 +60,9 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(connectionString);
+        //save overridden properties
+        overriddenProperties.writeExternal(out);
+        //save entire map
         super.writeExternal(out);
     }
 
@@ -65,11 +81,16 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         connectionString = in.readUTF();
+        //restore overridden properties
+        overriddenProperties.readExternal(in);
+        //restore entire map
         super.readExternal(in);
     }
 
     private void load(final ManagedResourceConfiguration configuration){
         connectionString = configuration.getConnectionString();
+        overriddenProperties.clear();
+        overriddenProperties.addAll(configuration.getOverriddenProperties());
         super.load(configuration);
     }
 
@@ -79,6 +100,12 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
             load((ManagedResourceConfiguration) parameters);
         else
             super.load(parameters);
+    }
+
+    @Override
+    public void overrideProperties(final Collection<String> properties) {
+        overriddenProperties.retainAll(properties);
+        overriddenProperties.addAll(properties);
     }
 
     /**
@@ -108,6 +135,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
                 other.getAttributes().equals(getAttributes()) &&
                 other.getEvents().equals(getEvents()) &&
                 other.getOperations().equals(getOperations()) &&
+                other.getOverriddenProperties().equals(getOverriddenProperties()) &&
                 super.equals(other);
     }
 
@@ -119,6 +147,6 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ Objects.hash(connectionString, getType(), getAttributes(), getEvents(), getOperations());
+        return super.hashCode() ^ Objects.hash(connectionString, getType(), getAttributes(), getEvents(), getOperations(), overriddenProperties);
     }
 }

@@ -43,6 +43,7 @@ import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
 import com.bytex.snamp.web.serviceModel.e2e.ComponentModulesView;
 import com.bytex.snamp.web.serviceModel.e2e.LandscapeView;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -126,7 +127,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     private static final String FOURTH_RESOURCE_NAME = "iOS";
     private static final String GROUP1_NAME = "mobileApp";
-    private static final String FIFTH_RESOURCE_NAME = "node2";
+    private static final String FIFTH_RESOURCE_NAME = "node#5";
     private static final String GROUP2_NAME = "dispatcher";
     private static final String SIXTH_RESOURCE_NAME = "paypal";
     private static final String GROUP3_NAME = "paymentSystem";
@@ -326,7 +327,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     public void bigAndTerribleBugTesting() throws IOException {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final String prefix = "http://localhost:8181/snamp/management/configuration";
-        final String attrValue = "{\"readWriteTimeout\": \"PT2M24.5S\",\"parameters\": {\"name\": \"bigint\", \"description\": \"Used amount of memory, in megabytes\", \"units\": \"MBytes\"}}";
+        final String attrValue = "{\"readWriteTimeout\": \"PT2M24.5S\",\"parameters\": {\"name\": \"bigint\", \"description\": \"Used amount of memory, in megabytes\", \"units\": \"MBytes\"}, \"override\": true}";
         final JsonNode actualObj = FORMATTER.readTree(attrValue);
 
         httpPut(prefix, String.format("/resource/%s/attributes/usedMemoryNEW", URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8")), authenticationToken, actualObj);
@@ -800,12 +801,14 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.setGroupName(GROUP_NAME);
 
         resource = resources.getOrAdd(SECOND_RESOURCE_NAME);
+        resource.overrideProperties(ImmutableSet.of("objectName"));
         resource.put("objectName", SECOND_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
         
         resource = resources.getOrAdd(THIRD_RESOURCE_NAME);
         resource.put("objectName", THIRD_BEAN_NAME);
+        resource.overrideProperties(ImmutableSet.of("objectName"));
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
         

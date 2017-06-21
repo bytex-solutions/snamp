@@ -4,6 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -72,8 +73,47 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
     }
 
-    private static abstract class AbstractFeatureConfiguration extends AbstractEntityConfiguration implements FeatureConfiguration {
+    static abstract class AbstractFeatureConfiguration extends AbstractEntityConfiguration implements FeatureConfiguration {
         private static final long serialVersionUID = -1609210097027316240L;
+        private boolean overridden;
+
+        private AbstractFeatureConfiguration(){
+            overridden = false;
+        }
+
+        @Override
+        @OverridingMethodsMustInvokeSuper
+        public void load(final Map<String, String> parameters){
+            clear();
+            putAll(parameters);
+        }
+
+        @Override
+        public final boolean isOverridden() {
+            return overridden;
+        }
+
+        @Override
+        public final void setOverridden(final boolean value) {
+            if(value != overridden){
+                overridden = value;
+                markAsModified();
+            }
+        }
+
+        final boolean equals(final FeatureConfiguration other) {
+            return super.equals(other) && isOverridden() == other.isOverridden();
+        }
+
+        @Override
+        public boolean equals(final Object other) {
+            return other instanceof AbstractFeatureConfiguration && equals((AbstractFeatureConfiguration) other);
+        }
+
+        @Override
+        public int hashCode() {
+            return super.hashCode() ^ (Boolean.hashCode(overridden) << 1);
+        }
     }
 
     /**
@@ -129,14 +169,9 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
             super.readExternal(in);
         }
 
-        private void loadParameters(final Map<String, String> parameters){
-            clear();
-            putAll(parameters);
-        }
-
         private void load(final OperationConfiguration configuration){
             invocationTimeout = configuration.getInvocationTimeout();
-            loadParameters(configuration);
+            super.load(configuration);
         }
 
         @Override
@@ -144,7 +179,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
             if(parameters instanceof OperationConfiguration)
                 load((OperationConfiguration) parameters);
             else
-                loadParameters(parameters);
+                super.load(parameters);
         }
 
         @Override
@@ -154,8 +189,10 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
         @Override
         public void setInvocationTimeout(final Duration value) {
-            markAsModified();
-            this.invocationTimeout = value;
+            if (!Objects.equals(invocationTimeout, value)) {
+                invocationTimeout = value;
+                markAsModified();
+            }
         }
 
         private boolean equals(final OperationConfiguration other){
@@ -184,14 +221,13 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         private static final long serialVersionUID = -6838585011981639479L;
 
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
-        public SerializableEventConfiguration(){
+        public SerializableEventConfiguration() {
 
         }
 
         @Override
-        public void load(final Map<String, String> parameters) {
-            clear();
-            putAll(parameters);
+        public boolean equals(final Object other) {
+            return other instanceof EventConfiguration && equals((EventConfiguration) other);
         }
     }
 
@@ -246,22 +282,17 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
             super.readExternal(in);
         }
 
-        private void loadParameters(final Map<String, String> parameters){
-            clear();
-            putAll(parameters);
-        }
-
         private void load(final AttributeConfiguration configuration){
             readWriteTimeout = configuration.getReadWriteTimeout();
-            loadParameters(configuration);
+            super.load(configuration);
         }
 
         @Override
         public void load(final Map<String, String> parameters) {
-            if(parameters instanceof AttributeConfiguration)
+            if (parameters instanceof AttributeConfiguration)
                 load((AttributeConfiguration) parameters);
             else
-                loadParameters(parameters);
+                super.load(parameters);
         }
 
         /**
@@ -280,8 +311,10 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
          */
         @Override
         public void setReadWriteTimeout(final Duration timeout) {
-            markAsModified();
-            this.readWriteTimeout = timeout;
+            if (!Objects.equals(readWriteTimeout, timeout)) {
+                markAsModified();
+                this.readWriteTimeout = timeout;
+            }
         }
 
         private boolean equals(final AttributeConfiguration other){
@@ -348,11 +381,13 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
      * @return {@literal true}, if this configuration entity is modified; otherwise, {@literal false}.
      */
     @Override
-    public final boolean isModified() {
+    @OverridingMethodsMustInvokeSuper
+    public boolean isModified() {
         return super.isModified() || attributes.isModified() || events.isModified() || operations.isModified();
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(type);
         attributes.writeExternal(out);
@@ -362,6 +397,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         type = in.readUTF();
         attributes.readExternal(in);
@@ -371,7 +407,8 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     }
 
     @Override
-    public final void reset() {
+    @OverridingMethodsMustInvokeSuper
+    public void reset() {
         attributes.reset();
         events.reset();
         operations.reset();

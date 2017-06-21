@@ -6,6 +6,8 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
 import javax.annotation.Nonnull;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * ManagedResourceConfigurationDTO
@@ -18,19 +20,21 @@ import javax.annotation.Nonnull;
 public final class ResourceDataObject extends TemplateDataObject<ManagedResourceConfiguration> {
     private String connectionString;
     private String groupName;
+    private final Set<String> overriddenProperties;
 
     /**
      * Default constructor.
      */
     @SpecialUse(SpecialUse.Case.SERIALIZATION) //used for Jackson deserialization
     public ResourceDataObject() {
-
+        overriddenProperties = new HashSet<>();
     }
 
     public ResourceDataObject(final ManagedResourceConfiguration configuration) {
         super(configuration);
         connectionString = configuration.getConnectionString();
         groupName = configuration.getGroupName();
+        overriddenProperties = new HashSet<>();
     }
 
     @Override
@@ -38,9 +42,20 @@ public final class ResourceDataObject extends TemplateDataObject<ManagedResource
         super.exportTo(entity);
         entity.setConnectionString(connectionString);
         entity.setGroupName(groupName);
+        entity.overrideProperties(overriddenProperties);
     }
 
-    @JsonProperty
+    @JsonProperty("overriddenProperties")
+    public Set<String> getOverriddenProperties(){
+        return overriddenProperties;
+    }
+
+    public void setOverriddenProperties(final Set<String> values){
+        overriddenProperties.clear();
+        overriddenProperties.addAll(values);
+    }
+
+    @JsonProperty("groupName")
     public String getGroupName(){
         return groupName;
     }
@@ -54,7 +69,7 @@ public final class ResourceDataObject extends TemplateDataObject<ManagedResource
      *
      * @return the connection string
      */
-    @JsonProperty
+    @JsonProperty("connectionString")
     public String getConnectionString() {
         return connectionString;
     }

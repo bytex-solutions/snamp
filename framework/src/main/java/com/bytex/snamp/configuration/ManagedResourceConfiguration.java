@@ -1,4 +1,7 @@
 package com.bytex.snamp.configuration;
+import java.util.Collection;
+import java.util.Set;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -8,6 +11,9 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  */
 public interface ManagedResourceConfiguration extends ManagedResourceTemplate, ManagedResourceInfo {
+    /**
+     * Name of the configuration property that contains name of the group.
+     */
     String GROUP_NAME_PROPERTY = "group";
 
     /**
@@ -42,4 +48,15 @@ public interface ManagedResourceConfiguration extends ManagedResourceTemplate, M
      * @param connectionString The connection string that is used to connect to the management server.
      */
     void setConnectionString(final String connectionString);
+
+    /**
+     * Gets a set of overridden configuration properties in this resource.
+     * @return A set of overridden configuration properties in this resource.
+     */
+    Set<String> getOverriddenProperties();
+
+    default void overrideProperties(final Collection<String> properties){
+        getOverriddenProperties().retainAll(properties);
+        getOverriddenProperties().addAll(properties);
+    }
 }

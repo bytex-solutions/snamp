@@ -7,5 +7,4 @@ package com.bytex.snamp.configuration;
  * @since 2.0
  */
 public interface ManagedResourceGroupConfiguration extends ManagedResourceTemplate {
-    void fillResourceConfig(final ManagedResourceConfiguration resourceConfig);
 }

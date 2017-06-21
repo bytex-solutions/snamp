@@ -28,7 +28,7 @@ public interface FeatureConfiguration extends EntityConfiguration {
     }
 
     default boolean isAutomaticallyAdded() {
-        return getValue(this, AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean).orElse(false);
+        return getValue(this, AUTOMATICALLY_ADDED_KEY, Boolean::parseBoolean).orElse(Boolean.FALSE);
     }
 
     default void setAutomaticallyAdded(final boolean value) {
@@ -37,4 +37,12 @@ public interface FeatureConfiguration extends EntityConfiguration {
         else
             remove(AUTOMATICALLY_ADDED_KEY);
     }
+
+    /**
+     * Indicates that feature is overridden.
+     * @return {@literal true}, if feature is overridden; otherwise, {@literal false}.
+     */
+    boolean isOverridden();
+
+    void setOverridden(final boolean value);
 }
