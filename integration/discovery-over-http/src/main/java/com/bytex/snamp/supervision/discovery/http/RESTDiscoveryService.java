@@ -6,7 +6,6 @@ import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.discovery.InvalidResourceGroupException;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
-import com.bytex.snamp.supervision.discovery.ResourceGroupNotFoundException;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.osgi.framework.BundleContext;
 
@@ -103,10 +102,8 @@ public final class RESTDiscoveryService {
                                          final ResourceAnnouncement announcement) throws ResourceDiscoveryException {
         try {
             discoveryService.registerResource(resourceName, announcement.getConnectionString(), announcement.getParameters());
-        } catch (final InvalidResourceGroupException e){
+        } catch (final InvalidResourceGroupException e) {
             throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
-        } catch (final ResourceGroupNotFoundException e){
-            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
         }
     }
 
@@ -130,8 +127,6 @@ public final class RESTDiscoveryService {
                         .build());
         } catch (final InvalidResourceGroupException e) {
             throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
-        } catch (final ResourceGroupNotFoundException e) {
-            throw new WebApplicationException(e, Response.Status.NOT_FOUND);
         }
     }
 
