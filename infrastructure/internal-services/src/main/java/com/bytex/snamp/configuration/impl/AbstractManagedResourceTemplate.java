@@ -101,6 +101,20 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
             }
         }
 
+        @Override
+        @OverridingMethodsMustInvokeSuper
+        public void writeExternal(final ObjectOutput out) throws IOException {
+            out.writeBoolean(overridden);
+            super.writeExternal(out);
+        }
+
+        @Override
+        @OverridingMethodsMustInvokeSuper
+        public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+            overridden = in.readBoolean();
+            super.readExternal(in);
+        }
+
         final boolean equals(final FeatureConfiguration other) {
             return super.equals(other) && isOverridden() == other.isOverridden();
         }
