@@ -47,11 +47,11 @@ export class ResourceEntitiesTable implements OnInit {
 
     private makeEmptyEntity():SubEntity {
         if (this.entityType == "attribute") {
-            return new Attribute(this.http, this.resource.type, "", 0, {});
+            return new Attribute(this.http, this.resource.type, "", 0);
         } else if (this.entityType == "event") {
-            return new Event(this.http, this.resource.type, "", {});
+            return new Event(this.http, this.resource.type, "");
         } else if (this.entityType == "operation") {
-            return new Operation(this.http, this.resource.type, "", 0, {});
+            return new Operation(this.http, this.resource.type, "", 0,);
         }
     }
 
@@ -247,12 +247,10 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     saveEntity():void {
-        console.log("Entity to be saved is: ", this.activeEntity.stringifyFullObject());
         this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map((res:Response) => res.text())
             .subscribe((data) => {
                 console.log("Entity " + this.activeEntity.name + " has been saved");
-
                 switch (this.entityType) {
                     case "attribute":
                         if (this.isNewEntity) {
@@ -311,13 +309,13 @@ export class ResourceEntitiesTable implements OnInit {
                     let _entity:SubEntity;
                     switch (this.entityType) {
                         case "attribute":
-                            _entity = new Attribute(this.http, this.resource.type, key, data[key]["readWriteTimeout"], data[key]["parameters"]);
+                            _entity = new Attribute(this.http, this.resource.type, key, data[key]["readWriteTimeout"], data[key]["override"], data[key]["parameters"]);
                             break;
                         case "event":
-                            _entity = new Event(this.http, this.resource.type, key, data[key]["parameters"]);
+                            _entity = new Event(this.http, this.resource.type, key, data[key]["override"], data[key]["parameters"]);
                             break;
                         case "operation":
-                            _entity = new Operation(this.http, this.resource.type, key, data[key]["invocationTimeout"], data[key]["parameters"]);
+                            _entity = new Operation(this.http, this.resource.type, key, data[key]["invocationTimeout"], data[key]["override"], data[key]["parameters"]);
                             break;
                         default:
                             throw new Error("Could not recognize the entity type: " + this.entityType);

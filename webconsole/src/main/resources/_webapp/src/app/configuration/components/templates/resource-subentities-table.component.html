@@ -74,6 +74,18 @@
                       </div>
                     </div>
 
+                      <div class="item form-group">
+                          <label
+                                  class="control-label col-md-3 col-sm-3 col-xs-12"
+                                  for="overrideCheckbox"
+                                  style="margin-top: 10px; margin-bottom:10px;">
+                              Override value from the group
+                          </label>
+                          <div class="col-md-6 col-sm-6 col-xs-12">
+                              <input [(ngModel)]="activeEntity.override" type="checkbox" id="overrideCheckbox"/>
+                          </div>
+                      </div>
+
                     <!-- input for attribute -->
                     <div class="item form-group" *ngIf="entityType == 'attribute'">
                       <label
