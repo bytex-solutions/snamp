@@ -12,9 +12,9 @@ export class Operation extends SubEntity {
     }
 
     public stringifyFullObject():string {
-        let resultValue:{ [key:string]:string; } = {};
+        let resultValue:{ [key:string]:any; } = {};
         resultValue["invocationTimeout"] =  moment.duration({ milliseconds: this.invokto}).toISOString();
-        resultValue["override"] = this.override.toString();
+        resultValue["override"] = this.override;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     }

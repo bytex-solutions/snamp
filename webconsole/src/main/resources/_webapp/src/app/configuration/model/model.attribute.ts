@@ -13,11 +13,11 @@ export class Attribute extends SubEntity {
     }
 
     public stringifyFullObject():string {
-        let resultValue:{ [key:string]:string; } = {};
+        let resultValue:{ [key:string]:any; } = {};
         // see https://momentjs.com/docs/#/durations/as-json/
         //console.log("Here! ", this.rwto, moment.duration({ milliseconds: this.rwto}));
         resultValue["readWriteTimeout"] = moment.duration({ milliseconds: this.rwto}).toISOString();
-        resultValue["override"] = this.override.toString();
+        resultValue["override"] = this.override;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     }

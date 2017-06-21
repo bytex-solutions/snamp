@@ -62,27 +62,26 @@
                         class="control-label col-md-3 col-sm-3 col-xs-12"
                         for="invtoInput"
                         style="margin-top: 7px;">
-                          Invocation timeout <span class="required">*</span>
+                          Invocation timeout (ms)<span class="required">*</span>
                       </label>
                       <div class="col-md-6 col-sm-6 col-xs-12">
                         <input
                           id="invtoInput"
                           class="form-control col-md-7 col-xs-12"
-                          [tooltip]="'Input number (0 for infinite)'"
                           placeholder="input the invocation timeout of {{activeEntity.getName()}}"
                           [(ngModel)]="activeEntity.invokto">
                       </div>
                     </div>
 
-                      <div class="item form-group">
-                          <label
-                                  class="control-label col-md-3 col-sm-3 col-xs-12"
-                                  for="overrideCheckbox"
-                                  style="margin-top: 10px; margin-bottom:10px;">
-                              Override value from the group
+                      <div class="item form-group" *ngIf="isResourceType()">
+                          <label class="control-label col-md-3 col-sm-3 col-xs-12">
+                              Override group entity
                           </label>
                           <div class="col-md-6 col-sm-6 col-xs-12">
-                              <input [(ngModel)]="activeEntity.override" type="checkbox" id="overrideCheckbox"/>
+                              <ui-switch
+                                      [(ngModel)]="activeEntity.override"
+                                      [size]="'small'">
+                              </ui-switch>
                           </div>
                       </div>
 
@@ -92,13 +91,12 @@
                         class="control-label col-md-3 col-sm-3 col-xs-12"
                         for="rwtoInput"
                         style="margin-top: 7px;">
-                          Read/write timeout <span class="required">*</span>
+                          Read/write timeout (ms) <span class="required">*</span>
                       </label>
                       <div class="col-md-6 col-sm-6 col-xs-12">
                         <input
                           id="rwtoInput"
                           class="form-control col-md-7 col-xs-12"
-                          [tooltip]="'Input number (0 for infinite)'"
                           placeholder="input the read/write timeout of {{activeEntity.getName()}}"
                           [(ngModel)]="activeEntity.rwto">
                       </div>
@@ -316,9 +314,7 @@
             <div class="btn-group" role="group">
                 <button
                         type="button"
-                        data-toggle="modal"
                         (click)="setEntity(entity)"
-                        [attr.data-target]="'#editEntity' + entityType"
                         class="btn btn-default btn-xs">
                     Edit
                 </button>
@@ -338,7 +334,7 @@
         </button>
 
         <button
-          *ngIf="hasAvailableEntities()"
+          *ngIf="isResourceType()"
           type="button"
           data-toggle="modal"
           (click)="addEntityFromList()"

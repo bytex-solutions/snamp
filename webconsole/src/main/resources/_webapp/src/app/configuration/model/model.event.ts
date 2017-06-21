@@ -7,9 +7,9 @@ export class Event extends SubEntity {
     }
 
     public stringifyFullObject():string {
-        let resultValue:{ [key:string]:string; } = {};
+        let resultValue:{ [key:string]:any; } = {};
         resultValue["parameters"] = this.stringifyParameters();
-        resultValue["override"] = this.override.toString();
+        resultValue["override"] = this.override;
         return JSON.stringify(resultValue, null, 4);
     }
 }

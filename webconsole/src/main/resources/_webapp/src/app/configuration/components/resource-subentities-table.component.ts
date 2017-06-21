@@ -99,10 +99,34 @@ export class ResourceEntitiesTable implements OnInit {
     }
 
     setEntity(entity:SubEntity):void {
-        this.activeEntity = Object.create(entity);
-        this.isNewEntity = false;
-        // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
-        $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        if (this.resource instanceof Resource && !entity.override && (<Resource>this.resource).groupName != undefined && (<Resource>this.resource).groupName.length > 0) {
+            let rgname:string = (<Resource>this.resource).groupName;
+            if (rgname != undefined && rgname.length > 0) {
+                this.modal.confirm()
+                    .isBlocking(true)
+                    .className(<VEXBuiltInThemes>'default')
+                    .keyboard(27)
+                    .message("This resource belongs to group " + rgname + ". Group settings have priority. You want to override this entity here?")
+                    .open()
+                    .then((resultPromise) => {
+                        return (<Promise<boolean>>resultPromise.result)
+                            .then(() => {
+                                entity.override = true;
+                                this.activeEntity = Object.create(entity);
+                                this.isNewEntity = false;
+                                // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
+                                $(this.getSmartWizardIdentifier()).smartWizard("reset");
+                                $('#editEntity' + this.entityType).modal("show");
+                            })
+                    }).catch(() => {});
+            }
+        } else {
+            this.activeEntity = Object.create(entity);
+            this.isNewEntity = false;
+            // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
+            $(this.getSmartWizardIdentifier()).smartWizard("reset");
+            $('#editEntity' + this.entityType).modal("show");
+        }
     }
 
     addNewParameter():void {
@@ -203,7 +227,7 @@ export class ResourceEntitiesTable implements OnInit {
                 return (<Promise<boolean>>resultPromise.result)
                   .then((response) => {
                     this.http.delete(REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME(entity.getName() + "s", this.resource.name, entity.name))
-                        .subscribe(data => {
+                        .subscribe(() => {
                             for (let i = 0; i < this.entities.length; i++) {
                                 if (this.entities[i].name == entity.name) {
                                     this.entities.splice(i, 1);
@@ -212,7 +236,7 @@ export class ResourceEntitiesTable implements OnInit {
                             }
                         });
                     })
-            });
+            }).catch(() => {});
     }
 
     saveParameter(parameter:KeyValue):void {
@@ -296,7 +320,7 @@ export class ResourceEntitiesTable implements OnInit {
         $('#editEntity' + this.entityType).modal("hide");
     }
 
-    hasAvailableEntities():boolean {
+    isResourceType():boolean {
         return (this.resource instanceof Resource);
     }
 

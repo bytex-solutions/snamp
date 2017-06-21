@@ -5,6 +5,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Binding } from './model.binding';
 import { ParamDescriptor } from './model.paramDescriptor';
+import {isNullOrUndefined} from "util";
 
 export abstract class SubEntity extends Entity {
     public type:string;
@@ -16,11 +17,8 @@ export abstract class SubEntity extends Entity {
         this.http = http;
         this.type = type;
         this.name = name;
-        if (this.override != null) {
+        if (!isNullOrUndefined(override)) {
             this.override = override;
-        }
-        if (this.parameters != null) {
-            this.parameters = [];
         }
 
         this.paramDescriptors = this.http.get(REST.SUBENTITY_PARAMETERS_DESCRIPTION(this.type, this.getName()))
