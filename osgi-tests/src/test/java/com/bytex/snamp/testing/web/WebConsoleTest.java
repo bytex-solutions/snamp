@@ -342,6 +342,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         assertNotNull(node);
         assertTrue(node.get("node#1").get("attributes").get("usedMemory").has("readWriteTimeout"));
         assertFalse(node.get("node#1").get("attributes").get("usedMemory").get("readWriteTimeout") instanceof NullNode);
+        assertTrue(node.get("node#1").get("attributes").get("usedMemory").get("override").getBooleanValue());
 
 
     }
