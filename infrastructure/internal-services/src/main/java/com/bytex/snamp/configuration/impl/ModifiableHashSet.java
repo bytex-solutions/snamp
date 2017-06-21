@@ -17,7 +17,7 @@ import java.util.function.Predicate;
  * @version 2.0
  * @since 2.0
  */
-abstract class ModifiableHashSet<E> extends HashSet<E> implements Modifiable, Externalizable, Stateful {
+abstract class ModifiableHashSet<E> extends HashSet<E> implements Modifiable, Externalizable, Stateful, SerializableSet<E> {
     private static final long serialVersionUID = -2889573187476879345L;
     private volatile boolean modified;
 
