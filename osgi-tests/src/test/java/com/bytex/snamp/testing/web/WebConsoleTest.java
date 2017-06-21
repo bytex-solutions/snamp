@@ -324,7 +324,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
-    public void bigAndTerribleBugTesting() throws IOException {
+    public void overridingSubEntitiesTest() throws IOException {
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
         final String prefix = "http://localhost:8181/snamp/management/configuration";
         final String attrValue = "{\"readWriteTimeout\": \"PT2M24.5S\",\"parameters\": {\"name\": \"bigint\", \"description\": \"Used amount of memory, in megabytes\", \"units\": \"MBytes\"}, \"override\": true}";
