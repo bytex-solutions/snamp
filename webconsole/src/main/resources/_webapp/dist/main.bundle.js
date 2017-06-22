@@ -106687,22 +106687,21 @@ var ResourceEntitiesTable = (function () {
                     return resultPromise.result
                         .then(function () {
                         entity.override = true;
-                        _this.activeEntity = Object.create(entity);
-                        _this.isNewEntity = false;
-                        // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
-                        $(_this.getSmartWizardIdentifier()).smartWizard("reset");
-                        $('#editEntity' + _this.entityType).modal("show");
+                        _this.prepareEditEntityModal(entity);
                     });
                 }).catch(function () { });
             }
         }
         else {
-            this.activeEntity = Object.create(entity);
-            this.isNewEntity = false;
-            // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
-            $(this.getSmartWizardIdentifier()).smartWizard("reset");
-            $('#editEntity' + this.entityType).modal("show");
+            this.prepareEditEntityModal(entity);
         }
+    };
+    ResourceEntitiesTable.prototype.prepareEditEntityModal = function (entity) {
+        this.activeEntity = Object.create(entity);
+        this.isNewEntity = false;
+        // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
+        $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        $('#editEntity' + this.entityType).modal("show");
     };
     ResourceEntitiesTable.prototype.addNewParameter = function () {
         var _thisReference = this;
@@ -106976,10 +106975,10 @@ var ResourceEntitiesTable = (function () {
                 default:
                     throw new Error("Could not recognize the entity type: " + _this.entityType);
             }
-            _this.cancelEntitySelection();
             _this.cd.detectChanges();
+            $('#addExistentEntity' + _this.entityType).modal("hide");
+            _this.prepareEditEntityModal(_this.selectedEntity);
         });
-        $('#addExistentEntity' + this.entityType).modal("hide");
     };
     ResourceEntitiesTable.prototype.cancelEntitySelection = function () {
         this.selectedEntity = undefined;

@@ -112,21 +112,21 @@ export class ResourceEntitiesTable implements OnInit {
                         return (<Promise<boolean>>resultPromise.result)
                             .then(() => {
                                 entity.override = true;
-                                this.activeEntity = Object.create(entity);
-                                this.isNewEntity = false;
-                                // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
-                                $(this.getSmartWizardIdentifier()).smartWizard("reset");
-                                $('#editEntity' + this.entityType).modal("show");
+                                this.prepareEditEntityModal(entity);
                             })
                     }).catch(() => {});
             }
         } else {
-            this.activeEntity = Object.create(entity);
-            this.isNewEntity = false;
-            // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
-            $(this.getSmartWizardIdentifier()).smartWizard("reset");
-            $('#editEntity' + this.entityType).modal("show");
+            this.prepareEditEntityModal(entity);
         }
+    }
+
+    private prepareEditEntityModal(entity:SubEntity) {
+        this.activeEntity = Object.create(entity);
+        this.isNewEntity = false;
+        // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
+        $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        $('#editEntity' + this.entityType).modal("show");
     }
 
     addNewParameter():void {
@@ -406,10 +406,10 @@ export class ResourceEntitiesTable implements OnInit {
                     default:
                         throw new Error("Could not recognize the entity type: " + this.entityType);
                 }
-                this.cancelEntitySelection();
                 this.cd.detectChanges();
+                $('#addExistentEntity' + this.entityType).modal("hide");
+                this.prepareEditEntityModal(this.selectedEntity);
             });
-        $('#addExistentEntity' + this.entityType).modal("hide")
 
     }
 
