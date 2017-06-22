@@ -88,6 +88,7 @@ export class TopNavBar {
                 this.logs.pop();
             }
             this.cd.detectChanges();
+            $("#togglableAlertIcon").attr("class", this._snampLogService.displayAlerts ? "fa fa-pause" : "fa fa-play");
         });
     }
 

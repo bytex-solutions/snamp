@@ -5,6 +5,7 @@ import { Subject } from 'rxjs/Subject';
 import { AbstractNotification } from "./model/notifications/abstract.notification";
 import { LogNotification } from "./model/notifications/log.notification";
 import { NotificationFactory } from "./model/notifications/factory";
+import {isNullOrUndefined} from "util";
 
 @Injectable()
 export class SnampLogService {
@@ -20,12 +21,19 @@ export class SnampLogService {
     private buffer:AbstractNotification[] = []; // buffer to write logs on before setting it back to the storage
     private KEY:string = "snampLogs";
     private logObs:Subject<AbstractNotification>;
-    private _displayAlerts:boolean = true;
+    private _displayAlerts:boolean;
+    private keyToggleAlerts:string = "snampToggleAlerts";
 
     constructor(private localStorageService: LocalStorageService) {
           let welcomeMessage:AbstractNotification = new LogNotification();
           welcomeMessage.message = "SNAMP WEB UI has started successfully";
-          this.logObs = new Subject<AbstractNotification>();
+          this.logObs = new Subject<AbstractNotification>()
+          let _tmp:any = this.localStorageService.get(this.keyToggleAlerts);
+          if (isNullOrUndefined(_tmp)) {
+              this.displayAlerts = true;
+          } else {
+              this.displayAlerts = (_tmp == 'true');
+          }
     }
 
     get displayAlerts(): boolean {
@@ -103,5 +111,6 @@ export class SnampLogService {
 
     public toggleDisplayAlerts():void {
         this.displayAlerts = !this.displayAlerts;
+        this.localStorageService.set(this.keyToggleAlerts, this.displayAlerts);
     }
 }

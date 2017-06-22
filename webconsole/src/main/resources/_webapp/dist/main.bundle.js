@@ -108386,6 +108386,7 @@ var TopNavBar = (function () {
                 _this.logs.pop();
             }
             _this.cd.detectChanges();
+            $("#togglableAlertIcon").attr("class", _this._snampLogService.displayAlerts ? "fa fa-pause" : "fa fa-play");
         });
     };
     TopNavBar.prototype.toggleAlerts = function () {
@@ -108624,6 +108625,7 @@ var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-lo
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var SnampLogService = (function () {
     function SnampLogService(localStorageService) {
         this.localStorageService = localStorageService;
@@ -108632,10 +108634,17 @@ var SnampLogService = (function () {
         this.RECENT_COUNT = 15; // default count of the recent message
         this.buffer = []; // buffer to write logs on before setting it back to the storage
         this.KEY = "snampLogs";
-        this._displayAlerts = true;
+        this.keyToggleAlerts = "snampToggleAlerts";
         var welcomeMessage = new log_notification_1.LogNotification();
         welcomeMessage.message = "SNAMP WEB UI has started successfully";
         this.logObs = new Subject_1.Subject();
+        var _tmp = this.localStorageService.get(this.keyToggleAlerts);
+        if (util_1.isNullOrUndefined(_tmp)) {
+            this.displayAlerts = true;
+        }
+        else {
+            this.displayAlerts = (_tmp == 'true');
+        }
     }
     // Flush the buffer if the user is closing browser
     SnampLogService.prototype.beforeunloadHandler = function (event) {
@@ -108710,6 +108719,7 @@ var SnampLogService = (function () {
     };
     SnampLogService.prototype.toggleDisplayAlerts = function () {
         this.displayAlerts = !this.displayAlerts;
+        this.localStorageService.set(this.keyToggleAlerts, this.displayAlerts);
     };
     __decorate([
         core_1.HostListener('window:beforeunload', ['$event']), 
