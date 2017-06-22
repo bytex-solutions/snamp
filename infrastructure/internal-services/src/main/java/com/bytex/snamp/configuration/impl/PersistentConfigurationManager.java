@@ -1,23 +1,23 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.concurrent.LockManager;
+import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 /**
@@ -29,17 +29,20 @@ import java.util.function.Function;
  * @since 1.0
  */
 @ThreadSafe
-public final class PersistentConfigurationManager extends AbstractAggregator implements ConfigurationManager {
+public final class PersistentConfigurationManager extends ThreadSafeObject implements ConfigurationManager {
+    private enum ResourceGroup{
+        CONFIGURATION
+    }
+
     private final ConfigurationAdmin admin;
-    private final ReadWriteLock configurationLock;
 
     /**
      * Initializes a new configuration manager.
      * @param configAdmin OSGi configuration admin. Cannot be {@literal null}.
      */
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
+        super(ResourceGroup.class);
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
-        configurationLock = new ReentrantReadWriteLock();
     }
 
     private static void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
@@ -53,7 +56,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         });
     }
 
-    private void save(final SerializableAgentConfiguration config) throws IOException {
+    private static void save(final SerializableAgentConfiguration config, final ConfigurationAdmin admin) throws IOException {
         if (config.hasNoInnerItems()) {
             DefaultSupervisorParser.getInstance().removeAll(admin);
             DefaultManagedResourceParser.getInstance().removeAll(admin);
@@ -72,15 +75,17 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         DefaultAgentParser.saveParameters(admin, config);
     }
 
-    private <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler, final Lock synchronizer) throws E, IOException {
+    private static InterruptedIOException interruptedIOException(final Exception e){
+        final InterruptedIOException result = new InterruptedIOException("Unable to acquire synchronization lock");
+        result.initCause(e);
+        return result;
+    }
+
+    private static  <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler,
+                                                            final ConfigurationAdmin admin,
+                                                            final LockManager synchronizer) throws E, IOException {
         //TODO: Write lock on configuration should be distributed across cluster nodes
-        //obtain lock on configuration
-        Utils.callAndWrapException(() -> {
-            synchronizer.lockInterruptibly();
-            return null;
-        }, IOException::new);   
-        //Process configuration protected by lock.
-        try {
+        try (final SafeCloseable lock = synchronizer.acquireLock(ResourceGroup.CONFIGURATION, null)) {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
             DefaultGatewayParser.getInstance().populateRepository(admin, config);
             DefaultManagedResourceParser.getInstance().populateRepository(admin, config);
@@ -89,11 +94,12 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             DefaultSupervisorParser.getInstance().populateRepository(admin, config);
             DefaultAgentParser.loadParameters(admin, config);
             config.reset();
-            assert !config.isModified();
-            if (handler.process(config))
-                save(config);
-        } finally {
-            synchronizer.unlock();
+            if (handler.process(config) && config.isModified())
+                save(config, admin);
+        } catch (final InterruptedException | TimeoutException e) {
+            final InterruptedIOException ioError = new InterruptedIOException("Unable to acquire synchronization lock");
+            ioError.initCause(e);
+            throw ioError;
         }
     }
 
@@ -108,7 +114,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @Override
     public <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler) throws E, IOException {
         //configuration may be changed by handler so we protect it with exclusive lock.
-        processConfiguration(handler, configurationLock.writeLock());
+        processConfiguration(handler, admin, writeLock);
     }
 
     /**
@@ -122,10 +128,7 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
     @Override
     public <E extends Throwable> void readConfiguration(final Acceptor<? super AgentConfiguration, E> handler) throws E, IOException {
         //reading configuration doesn't require exclusive lock
-        processConfiguration(config -> {
-            handler.accept(config);
-            return false;
-        }, configurationLock.readLock());
+        processConfiguration(ConfigurationProcessor.of(handler), admin, readLock);
     }
 
     /**
@@ -152,23 +155,6 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
         }
     }
 
-    private static <T> Optional<T> queryParser(final Class<T> parserType) {
-        final Optional<?> result;
-        if (parserType.isInstance(DefaultSupervisorParser.getInstance()))
-            result = Optional.of(DefaultSupervisorParser.getInstance());
-        else if (parserType.isInstance(DefaultGatewayParser.getInstance()))
-            result = Optional.of(DefaultGatewayParser.getInstance());
-        else if (parserType.isInstance(DefaultThreadPoolParser.getInstance()))
-            result = Optional.of(DefaultThreadPoolParser.getInstance());
-        else if (parserType.isInstance(DefaultManagedResourceParser.getInstance()))
-            result = Optional.of(DefaultManagedResourceParser.getInstance());
-        else if (parserType.isInstance(DefaultManagedResourceGroupParser.getInstance()))
-            result = Optional.of(DefaultManagedResourceGroupParser.getInstance());
-        else
-            result = Optional.empty();
-        return result.map(parserType::cast);
-    }
-
     /**
      * Retrieves the aggregated object.
      *
@@ -177,6 +163,21 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
      */
     @Override
     public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
-        return queryObject(objectType, PersistentConfigurationManager::queryParser);
+        final Optional<?> result;
+        if (objectType.isInstance(this))
+            result = Optional.of(this);
+        else if (objectType.isAssignableFrom(DefaultSupervisorParser.class))
+            result = Optional.of(DefaultSupervisorParser.getInstance());
+        else if (objectType.isAssignableFrom(DefaultGatewayParser.class))
+            result = Optional.of(DefaultGatewayParser.getInstance());
+        else if (objectType.isAssignableFrom(DefaultThreadPoolParser.class))
+            result = Optional.of(DefaultThreadPoolParser.getInstance());
+        else if (objectType.isAssignableFrom(DefaultManagedResourceParser.class))
+            result = Optional.of(DefaultManagedResourceParser.getInstance());
+        else if (objectType.isAssignableFrom(DefaultManagedResourceGroupParser.class))
+            result = Optional.of(DefaultManagedResourceGroupParser.getInstance());
+        else
+            result = Optional.empty();
+        return result.map(objectType::cast);
     }
 }
