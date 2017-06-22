@@ -277,10 +277,8 @@
                         </tbody>
                     </table>
                 </div>
-
                 <button
                         type="button"
-                        data-toggle="modal"
                         (click)="cancelEntitySelection()"
                         [disabled]="selectedEntity == undefined"
                         class="btn btn-primary">
@@ -288,7 +286,7 @@
                 </button>
                 <button
                         type="button"
-                        data-toggle="modal"
+                        style="float:right;"
                         [disabled]="((selectedEntity != undefined) && isAttributeSet(selectedEntity.name))"
                         (click)="addSelectedEntityToResource()"
                         class="btn btn-default">

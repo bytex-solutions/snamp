@@ -408,6 +408,7 @@ export class ResourceEntitiesTable implements OnInit {
                 }
                 this.cd.detectChanges();
                 $('#addExistentEntity' + this.entityType).modal("hide");
+                this.selectedEntity.override = true;
                 this.prepareEditEntityModal(this.selectedEntity);
             });
 
