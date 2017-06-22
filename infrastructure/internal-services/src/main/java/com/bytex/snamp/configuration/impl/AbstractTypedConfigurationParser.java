@@ -94,6 +94,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
             instance = parse(properties);
         instance.getValue().setType(getType(config));
         instance.getValue().reset();
+        assert !instance.getValue().isModified();
         output.putAll(instance);
     }
 

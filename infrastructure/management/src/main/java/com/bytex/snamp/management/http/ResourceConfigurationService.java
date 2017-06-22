@@ -162,6 +162,9 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setOverriddenProperties(@PathParam("name") final String resourceName, final Set<String> properties) {
-        return setConfigurationByName(resourceName, config -> config.overrideProperties(properties));
+        return setConfigurationByName(resourceName, config -> {
+            config.getOverriddenProperties().clear();
+            config.getOverriddenProperties().addAll(properties);
+        });
     }
 }

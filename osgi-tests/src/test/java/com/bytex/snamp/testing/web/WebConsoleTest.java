@@ -48,7 +48,6 @@ import com.google.common.collect.Range;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.NullNode;
 import org.codehaus.jackson.node.TextNode;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -334,15 +333,15 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         JsonNode node = httpGet(prefix, "/resource", authenticationToken);
         assertNotNull(node);
         assertTrue(node.get("node#1").get("attributes").get("usedMemoryNEW").has("readWriteTimeout"));
-        assertFalse(node.get("node#1").get("attributes").get("usedMemoryNEW").get("readWriteTimeout") instanceof NullNode);
+        assertFalse(node.get("node#1").get("attributes").get("usedMemoryNEW").get("readWriteTimeout").isNull());
 
         httpPut(prefix, String.format("/resource/%s/attributes/usedMemory", URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8")), authenticationToken, actualObj);
 
         node = httpGet(prefix, "/resource", authenticationToken);
         assertNotNull(node);
         assertTrue(node.get("node#1").get("attributes").get("usedMemory").has("readWriteTimeout"));
-        assertFalse(node.get("node#1").get("attributes").get("usedMemory").get("readWriteTimeout") instanceof NullNode);
-        assertTrue(node.get("node#1").get("attributes").get("usedMemory").get("override").getBooleanValue());
+        assertFalse(node.get("node#1").get("attributes").get("usedMemory").get("readWriteTimeout").isNull());
+        assertTrue(node.get("node#1").get("attributes").get("usedMemory").get("override").asBoolean());
 
 
     }

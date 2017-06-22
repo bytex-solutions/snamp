@@ -26,6 +26,7 @@ public abstract class AbstractFeatureDataObject<F extends FeatureConfiguration> 
 
     AbstractFeatureDataObject(final F feature){
         super(feature);
+        overridden = feature.isOverridden();
     }
 
     @JsonProperty("override")

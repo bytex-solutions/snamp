@@ -22,7 +22,7 @@ public final class SingletonMap<K, V> implements Map<K, V>, Map.Entry<K, V> {
     private V value;
 
     public SingletonMap(@Nonnull final K k, @Nonnull final V v){
-        key = k;
+        key = Objects.requireNonNull(k);
         value = v;
     }
 

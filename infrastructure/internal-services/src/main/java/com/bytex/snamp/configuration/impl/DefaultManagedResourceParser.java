@@ -109,7 +109,8 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
         //deserialize operations
         result.setOperations(getOperations(configuration));
         //overridden properties
-        result.overrideProperties(getOverriddenProperties(configuration));
+        result.getOverriddenProperties().clear();
+        result.getOverriddenProperties().addAll(getOverriddenProperties(configuration));
         //deserialize parameters
         return createParserResult(configuration, result, CONNECTION_STRING_PROPERTY, ATTRIBUTES_PROPERTY, EVENTS_PROPERTY, OPERATIONS_PROPERTY, OVERRIDDEN_PROPS_PROPERTY);
     }

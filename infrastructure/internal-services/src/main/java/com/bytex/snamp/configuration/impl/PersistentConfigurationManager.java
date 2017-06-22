@@ -88,6 +88,8 @@ public final class PersistentConfigurationManager extends AbstractAggregator imp
             DefaultManagedResourceGroupParser.getInstance().populateRepository(admin, config);
             DefaultSupervisorParser.getInstance().populateRepository(admin, config);
             DefaultAgentParser.loadParameters(admin, config);
+            config.reset();
+            assert !config.isModified();
             if (handler.process(config))
                 save(config);
         } finally {

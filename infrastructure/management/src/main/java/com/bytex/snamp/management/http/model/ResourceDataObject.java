@@ -34,7 +34,7 @@ public final class ResourceDataObject extends TemplateDataObject<ManagedResource
         super(configuration);
         connectionString = configuration.getConnectionString();
         groupName = configuration.getGroupName();
-        overriddenProperties = new HashSet<>();
+        overriddenProperties = new HashSet<>(configuration.getOverriddenProperties());
     }
 
     @Override
@@ -42,7 +42,8 @@ public final class ResourceDataObject extends TemplateDataObject<ManagedResource
         super.exportTo(entity);
         entity.setConnectionString(connectionString);
         entity.setGroupName(groupName);
-        entity.overrideProperties(overriddenProperties);
+        entity.getOverriddenProperties().clear();
+        entity.getOverriddenProperties().addAll(overriddenProperties);
     }
 
     @JsonProperty("overriddenProperties")

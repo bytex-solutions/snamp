@@ -39,6 +39,12 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     }
 
     @Override
+    public void reset() {
+        super.reset();
+        overriddenProperties.reset();
+    }
+
+    @Override
     public boolean isModified() {
         return super.isModified() || overriddenProperties.isModified();
     }
