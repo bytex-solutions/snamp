@@ -9,9 +9,9 @@ SNAMP can be configured using different ways:
 
 System configuration (JVM and Apache Karaf) can be changed via set of configuration files in `<snamp>/etc` folder or Karaf shell console commands.
 
-See [Configuring Apache Karaf](http://karaf.apache.org/manual/latest/users-guide/configuration.html) for more information about Apache Karaf configuration model.
+See [Configuring Apache Karaf](http://karaf.apache.org/manual/latest/#_configuration) for more information about Apache Karaf configuration model.
 
-See [SNAMP Management Interface](mgmt.md) for more information about SNAMP management via JMX.
+See [SNAMP Management Interface](mgmt.md) for more information about SNAMP management via JMX and REST API.
 
 ## Configuration Model
 SNAMP configuration describes set of resource adapters, resource connectors and its attributes, notifications and operations.
@@ -88,18 +88,18 @@ Let's consider the following example of the configuration logical model:
         * `objectName`: com.sun.glassfish.management:type=Common
         * `fullStackTrace`: true
 
-In this example single managed resource named _partner-gateway_ connected via JMX protocol. The managed resource contains two MBeans (`Memory` and `Common`) with attributes and JMX notifications. This managed resource can be managed via two protocols: `http` and `xmpp` (Jabber). It is possible because configuration model contains three configured resource adapters. Two adapters have the same `http` system name. But these two adapters configured with different set of parameters. Each `http` adapter exposes REST API on its own URL context (`http://localhost/snamp/adapters/http/adapter1` and `http://localhost/snamp/adapters/http/adapter2`). The third resource adapter allows to managed resources via Jabber client (such as Miranda IM).
+In this example single managed resource named _partner-gateway_ connected via JMX protocol. The managed resource contains two MBeans (`Memory` and `Common`) with attributes and JMX notifications. This managed resource can be managed via two protocols: `http` and `xmpp` (Jabber). It is possible because configuration model contains three configured resource adapters. Two adapters have the same `http` system name. But these two adapters configured with different set of parameters. Each `http` adapter exposes REST API on its own URL context (`http://localhost/snamp/gateway/http/gateway1` and `http://localhost/snamp/gateway/http/gateway2`). The third resource adapter allows to managed resources via Jabber client (such as Miranda IM).
 
 Managed Resource `partner-gateway` is connected using `jmx` Resource Connector. This example demonstrates how to expose two JMX attributes with the same in MBean (`freeMemoryMB`) with different settings and instance names. Both attributes are visible from `http` resource adapter using the following URLs:
 
-* `http://localhost/snamp/adapters/http/adapter1/attributes/freeMemoryRaw`
-* `http://localhost/snamp/adapters/http/adapter2/attributes/freeMemoryRaw`
-* `http://localhost/snamp/adapters/http/adapter1/attributes/freeMemory`
-* `http://localhost/snamp/adapters/http/adapter2/attributes/freeMemory`
+* `http://localhost/snamp/gateway/http/adapter1/attributes/freeMemoryRaw`
+* `http://localhost/snamp/gateway/http/adapter2/attributes/freeMemoryRaw`
+* `http://localhost/snamp/gateway/http/adapter1/attributes/freeMemory`
+* `http://localhost/snamp/gateway/http/adapter2/attributes/freeMemory`
 
 XMPP Adapter provides value of the `freeMemoryRaw` and `freeMemory` in two different formats: human-readable and binary. This behavior is defined using `xmppFormat` configuration property associated with each attribute.
 
-As you can see, configuration parameters depends on the Resource Adapter and Resource Connector. See [Configuring Resource Adapters](adapters/introduction.md) and [Configuring Resource Connectors](connectors/introduction.md) for more details about SNAMP configuration.
+As you can see, configuration parameters depends on the Resource Adapter and Resource Connector. See [Configuring Resource Adapters](gateways/introduction.md) and [Configuring Resource Connectors](connectors/introduction.md) for more details about SNAMP configuration.
 
 ### Smart mode
 Some resource connectors can expose attributes, events or operations without its manual configuration. In this case the connector automatically exposes all attributes, events or operations. So, these resource features will be accessible at runtime event if configuration section with attributes and events is empty. To enable smart mode of the connector you should specify `smartMode = true` in the configuration parameters of the resource.

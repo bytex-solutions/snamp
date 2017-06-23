@@ -1,43 +1,109 @@
-# SNAMP 1.2.0
-Upgrade of all SNAMP components and migration to Java 8:
+# SNAMP 2.0.0
+Major update of SNAMP platform and its components. A new functionality includes:
 
-Change list:
+* Group of resources
+* Supervisor used to control group of resources
+* Elasticity Management for automatic scaling of clusters
+* Health checks
+* New gateways and connectors
+* Distributed tracing
+* Service discovery
 
-* SNAMP now requires at least Java 8. Java 7 is not supported anymore.
-* Centralized configuration of parallelism using `snamp:thread-pool-*` shell commands.
-* Configuration script written on JavaScript can be executed using `snamp:script` command.
-* Significant performance improvements.
+## SNAMP Platform 2.0.0
+SNAMP introduces a new shell commands and API for working with resource groups,
+health checks, supervisors and service discovery. Also, SNAMP provides client-side
+library called SNAMP Instrumentation Library for sending metrics, notifications
+and health checks from client applications
+similar to [Dropwizard](http://metrics.dropwizard.io/3.2.2/getting-started.html) and
+[Apache HTrace](http://htrace.incubator.apache.org/).
 
-Updated components:
+### SNMP Resource Connector 2.0.0
+Numerous bug fixes.
 
-* Apache Karaf
-* Apache Decanter
-* Google GSON
-* Groovy
-* Bouncy Castle
-* SNMP4J
-* ActiveMQ Runtime
-* Atmosphere Framework
+### JMX Resource Connector 2.0.0
+Support of management operations using JMX operations.
 
-All SNAMP components are affected so you need to reconfigure SNAMP. It is not possible to restore configuration from backup.
+### RShell Resource Connector 2.0.0
+Support of management operations using execution of shell commands.
 
-## SNAMP Platform 1.2.0
-Centralized configuration of parallelism provided by the following commands:
+### Groovy Resource Connector 2.0.0
+Support of management operations using Groovy methods.
 
-* Thread pool configuration commands using `snamp:thread-pool-add`, `snamp:thread-pool-remove` and `snamp:thread-pool-list` commands
-* `threadPool` configuration property represents a name of thread pool configured with `snamp:thread-pool-add` command and used by resource connector or adapter
+### Composite Resource 2.0.0
+Allows to compose two or more resources as a single managed resource.
+Previous functionality from Resource Aggregator such as aggregation of metrics is included.
 
-The following configuration parameters are no longer supported: `minPoolSize`, `maxPoolSize`, `queueSize`, `keepAliveTime` and `priority`.
+### HTTP Acceptor 2.0.0
+A new type of resource connector introduced since version 2.0. It accepts
+monitoring and tracing information using HTTP transport. This connector should
+be used in conjunction with SNAMP Instrumentation Library.
 
-## SNMP Resource Adapter 1.2.0
-Remove support for nonstandard AES 192 and 256 using 3DES key extend algorithm.
+### Zipkin Connector 2.0.0
+A new type of resource connector introduced since version 2.0. It receives spans
+from Zipkin-instrumented applications using HTTP or Kafka transports.
 
-Support for new authentication protocols: `hmac128-sha224`, `hmac192-sha256`, `hmac256-sha384`, `hmac384-sha512`.
+### Actuator Connector 2.0.0
+A new type of resource connector introduced since version 2.0. It harvests metrics
+and health checks from Spring-based applications using [Spring Actuator](http://www.baeldung.com/spring-boot-actuators).
 
-## SNMP Resource Connector 1.2.0
-Improved compliance with RFC 3412 Â§6.2.
+### Modbus Connector 2.0.0
+Without any changes in comparison with SNAMP 1.2.0.
 
-Support for new authentication protocols: `hmac128-sha224`, `hmac192-sha256`, `hmac256-sha384`, `hmac384-sha512`.
+### Stub Connector 2.0.0
+Useful resource connector for tests and demonstration. It provides synthetic metrics.
 
-## RShell Resource Connector 1.2.0
-Nashorn is a primary JavaScript engine.
+### JMX Resource Adapter 2.0.0
+Fix serialization issues associated with JMX.
+
+### SSH Resource Adapter 2.0.0
+Numerous bug fixes.
+
+### HTTP Resource Adapter 2.0.0
+WebSockets is the only transport for notifications. Long-polling and SSE was removed.
+
+### XMPP Resource Adapter 2.0.0
+Numerous bug fixes.
+
+### Syslog Resource Adapter 2.0.0
+Asynchronous message sending was replaced with synchronous.
+
+### Nagios Resource Adapter 2.0.0
+Numerous bug fixes.
+
+### Nagios Service Check Acceptor (NSCA) Adapter 2.0.0
+Numerous bug fixes.
+
+### Nagios Remote Data Processor (NRDP) Adapter 2.0.0
+Numerous bug fixes.
+
+### SMTP Gateway 2.0.0
+A new type of gateway introduced since version 2.0. This gateway publishes
+information about notifications and health check to one or more e-mail boxes
+using SMTP protocol.
+
+### InfluxDB Gateway 2.0.0
+A new type of gateway introduced since version 2.0. It can be used to store
+all monitoring information and notifications into InfluxDB for further visualization
+through [Grafana](https://grafana.com/).
+
+### OpenStack Supervisor 2.0.0
+Provides automatic scaling of cluster based on OpenStack using OpenStack Senlin.
+Also, it provides health information about cluster.
+
+### SNAMP Web Console
+SNAMP Web Console provides web interface for configuration and displaying
+monitoring and tracing information.
+
+## Dependencies
+
+* Upgrade to Apache Karaf 4.0.9.
+* Upgrade to Apache Cellar 4.0.3
+* Upgrade to Hazelcast 3.7.2
+
+## Removed components
+The following connectors are removed from 2.0.0 release:
+
+* JMS Resource Connector
+* IBM WebSphere MQ Resource Connector
+* Resource Aggregator turned into Composite Resource
+* Monitoring Data Acceptor replaced with HTTP Acceptor and Zipkin Connector

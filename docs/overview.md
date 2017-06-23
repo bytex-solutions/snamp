@@ -1,12 +1,22 @@
 SNAMP Overview
 ====
-SNAMP is a middleware acting as a bridge between **managed resources** and **monitoring & management tools** used in your enterprise and reduce complexity of monitoring & management. Various hardware and software components can be connected to SNAMP using different protocols, such as JMX, SNMP, SSH, HTTP, Modbus etc. You can choose a single unified interface (called Adapter) to gather monitoring information provided by the connected components. This interface can be selected in respect of your existing monitoring & management software such as Nagios and Zabbix. SNAMP has either generic and specialized adapters for various situations.
+SNAMP is a software system for monitoring, distributed tracing and elasticity management of components in IT infrastructure. It is oriented on Operations and DevOps engineers.
+
+* Monitoring functionality includes collecting metrics and notifications from components and displaying them in convenient SNAMP web interface, storing the data for further analysis using tools like Grafana or Kibana or sending it via e-mail.
+* Distributed tracing functionality allows to collect spans from software components and display sensitive data related to communication between these components like average response time, availability and topology.
+* Elasticity management provides automatic scaling of computation resources based on metrics harvested by SNAMP. For example, SNAMP provides automatic scaling for OpenStack-based environments.
 
 ![Architecture Overview](images/snamp.png)
 
-**Resource Adapter** exposes management information to **monitoring & management tool** using a unified management protocol. Therefore, you can manage & monitor different **managed resources** with a single tool.
+**Gateway** exposes management information to **monitoring & management tool** using a unified management protocol. Therefore, you can manage & monitor different **managed resources** with a single tool.
 
-**Resource Connector** allows to connect **managed resource** to SNAMP. Each connected **managed resource** can be accessed via **Resource Adapter**.
+**Resource Connector** allows to obtain sensitive monitoring data from **managed resource** using some of the supported protocols (SNMP, JMX, SSH etc.). **Managed resource** is a unit of monitoring and can be represented by software or hardware component.
+
+**Resource Group** is a group of managed resources. For example, cluster of some application can be represented as a group of resources and each resource represents instance of the application inside of cluster. Resource Group can specify some configuration that can be used as template configuration of resources in the group.
+
+**Supervisor** controls groups of resources and provided summary metrics. Supervisor is responsible for automatic scaling of the group, health status control and automatic resource discovery.
+
+**SNAMP Web Console** is a web interface for SNAMP available through modern web browsers which provides UI for monitoring with charts, topology of components using tracing information, configuration of elasticity management. It also provides configuration of gateways, resource connectors, resource groups and supervisors.
 
 Let's take a look at this example:
 
@@ -14,32 +24,39 @@ Let's take a look at this example:
 
 Example configuration contains following entities:
 
-* Three **managed resources**
-  * Java Application that can be managed via JMX
+* Four **managed resources**
+  * A cluster with two Java Applications that can be managed via JMX
   * Linux Server that can be managed via SSH
   * Network Switch that can be managed via SNMP
 * Two **monitoring & management tools**
-  * Nagios with configured `curl`-based plugin which uses HTTP request to obtain management information from connected **managed resources**
+  * InfluxDB Gateway records all metrics collected from **managed resources** into database. Grafana visualizes information extracted from InfluxDB.
   * Microsoft System Center Operations Manager which uses SNMP protocol to obtain management information from connected **managed resources**
+* **Group of resources** with two JMX connectors. This group represents cluster with Java applications. Two other resources doesn't have groups.
+* Default **supervisor** configured to supervise group of resources (cluster of Java applications). It provides information about cluster health status and service discovery that automatically register new resource connector in SNAMP when cluster will be enlarged.   
 
-In this configuration, Nagios can monitor Java Application, Linux Server, Network Switch via single HTTP protocol. Microsoft SCOM can monitor Java Application, Linux Server, Network Switch via single SNMP protocol.  
+In this configuration, Grafana can monitor Java Applications, Linux Server and router using data stored in unified way in InfluxDB by SNAMP. Microsoft SCOM can monitor Java Applications, Linux Server and router via single SNMP protocol.
 
-Full set of supported management protocols listed [here](adapters/introduction.md) and [here](connectors/introduction.md).
+> Using of third-party monitoring & management tools is just an offered feature of SNAMP. You can use only SNAMP Web Console for visualization of all necessary monitoring information.
+
+Full set of supported management protocols listed [here](gateways/introduction.md) and [here](connectors/introduction.md).
 
 # Concepts
-SNAMP functionality based on the two main components:
+SNAMP functionality based on the four main components:
 
-* Resource Connector
-* Resource Adapter
+* Resource Connector provides conversion from resource-specific management protocol to the unified [Management Information Model](inform_model.md).
+* Gateway provides conversion from unified [Management Information Model](inform_model.md) to the a management protocol supported by **monitoring & management tool**.
+* Supervisor control group of resources and provides information about health checks or automatically scales the group.
+* SNAMP Web Console provides visualization of monitoring data and configuration tools.
 
-Resource Connector provides conversion from resource-specific management protocol to the unified [Management Information Model](inform_model.md).
-
-Resource Adapter provides conversion from unified [Management Information Model](inform_model.md) to the a management protocol supported by **monitoring & management tool**.
-
+The following diagram shows how the monitoring data flows through SNAMP main components:
 ![Information Flow](images/inform-flow.png)
 
+The following diagram shows relationship between SNAMP main components:
+![Relationship](images/relationships.png)
+
+
 ## Managed Resource
-**Managed resource** is a component of the enterprise IT infrastructure you want to manage. The possible (but not limited to) types of managed resources:
+**Managed resource** is an object of monitoring in your IT landscape. The possible (but not limited to) types of managed resources:
 
 * Software component
   * Operating System
@@ -49,25 +66,34 @@ Resource Adapter provides conversion from unified [Management Information Model]
   * Network Switch/Router
   * Sensor
 
-Managed resource is accessible with SNAMP if and only if that is connected via **Managed Connector**.
+Managed resource is accessible with SNAMP if and only if that is connected via **Resource Connector**.
 
 ## Resource Connector
-**Resource Connector** (or **Managed Resource Connector**) is a software component used to connect **managed resource** to SNAMP environment via specific management protocol. Information model of each connected resource consists of the following entities (called **management features**):
+**Resource Connector** is a software component used to connect **managed resource** to SNAMP via specific management protocol. Information model of each connected resource consists of the following entities (called **management features**):
 
 * Attributes
 * Events (or notifications)
 * Operations
+* Health checks
 
 Resource Connector may support all these features or some of them. Supported set of features depends on type of the Resource Connector. For example, SNMP Resource Connector doesn't support operations due to SNMP protocol limitations.
 
 **Resource Connector** has the following characteristics:
 
-* _System name_ (or _type_) - name of the installed resource connector. Typically, system name indicates the management protocol used by resource connector
-* _Connection string_ - string that specifies information about managed resource
+* _Type_ - name of the installed resource connector. Typically, system name indicates the management protocol used by resource connector, for example, `jmx`
+* _Connection string_ - a string that specifies connection details used to access **managed resource** such as port, host, URL etc.
 * _Configuration_ - set of configuration parameters controlling behavior of the resource connector
+* _Group name_ - name of the resource group. It is optional characteristic
+
+Resource connector may be a member of the group. It is allowed to configure resource connector without membership. If it is a member of the group then configuration will be inherited from configuration of the group.
+
+Resource connectors can be divided into two logical categories:
+
+* _Active_ resource connectors collect monitoring information on demand (when initiated by connected monitoring tool through **Gateway** or **SNAMP Web Console**). This category of connectors operates with managed resources using _request-reply_ approach.
+* _Passive_ resource connectors only receive monitoring information. In this case **managed resource** is responsible to send actual information to the resource connector. This category of connectors operates with managed resources using _message-oriented_ approach.
 
 ### Attribute
-Management attribute (or attribute) describes the atomic metric, parameter or characteristic of the connected managed resource. Each connected managed resource may have one or more attributes.
+Attribute describes the atomic metric of the connected managed resource. Each connected managed resource may have one or more attributes.
 
 Attribute has the following characteristics:
 
@@ -79,6 +105,7 @@ Attribute has the following characteristics:
 * _Read/write timeout_ - timeout used to read or write attribute value. By default, SNAMP uses infinite timeout
 * _Type_ - type of the attribute value. See [Management Information Model](inform_model.md) for detailed information about supported attribute types
 * _Configuration_ - set of configuration parameters associated with the attribute
+* _Override_ - indicates that attribute configuration is overridden by resource connector and should not be inherited from group.
 
 The attribute configuration and attribute name might be specified by the SNAMP administrator. Other characteristics depends on the connected managed resource and cannot be changed by administrator.
 
@@ -99,6 +126,7 @@ Event has the following characteristics:
 * _Category_ - identifier of the notification/event in the managed resource. Each managed resource provides a strictly defined set of events
 * _Configuration_ - set of configuration parameters associated with the attribute
 * _Severity_ - severity level of the emitted notifications. That is an optional characteristic
+* _Override_ - indicates that event configuration is overridden by resource connector and should not be inherited from group
 
 The event configuration, category and severity level (optionally) may be specified by the SNAMP administrator. Other characteristics depend on the connected managed resource and cannot be changed by administrator.
 
@@ -107,7 +135,6 @@ See [Management Information Model](inform_model.md) for detailed information abo
 Examples of notifications:
 
 * Fatal or critical error
-* System Heartbeat (availability check)
 * Log Event
 
 ### Operation
@@ -117,7 +144,7 @@ Operation has the following characteristics:
 
 * _Name_ - name of the maintenance action. Each managed resource provides a strictly defined set of operations
 * _Configuration_ - set of configuration parameters associated with the operation
-* _Signature_ - set of formal parameters which should be populated with actual arguments before execution
+* _Override_ - indicates that operation configuration is overridden by resource connector and should not be inherited from group
 
 The operation configuration may be specified by SNAMP administrator. Other characteristics depend on the connected managed resource and cannot be changed by the administrator.
 
@@ -125,19 +152,40 @@ Examples of operations:
 
 * Shutdown software component
 * Restart software component
-* Upload license file
 * Invalidate cache
 
-## Resource Adapter
-**Resource Adapter** is a software component used to expose management information of connected managed resources to **monitoring & management tools** using the specific management protocol.
+### Health check
+Health check provides information about state of the **managed resource**. Implementation of health checks depends on the type of **Resource Connector** and doesn't require any configuration parameters. Health status divides into two category:
 
-Resource Adapter uses resource connector to extract management information and expose one to the outside world. Resource Adapter may expose all configured management features or some of them. That depends on type of the Resource Adapter. For example, you have configured SNMP Adapter and JMX Connector. JMX Connector supports operations, but SNMP Adapter can't provide access to these operations due to SNMP protocol limitations.
+* _OK_ status represents that **managed resource** is fine and operating normally
+* _Malfunction_ status represents that **managed resource** is partially or fully unavailable
 
-Resource Adapter has the following characteristics:
+Health check contains detailed information about malfunction.
 
-* _System Name_ (or _Adapter Name_) - name of the Resource Adapter. Generally, system name represents the provided management protocol
-* _Configuration_ - set of configuration properties controlling behavior and network accessibility of the adapter
+## Resource Group
+Resource Group can be used to unite similar set of resource connectors. There are two possible ways to define resource group:
 
+* _Implicit_ - it is enough to assign the same group name for each resource connector. In this case the group name is just a logical grouping of resources. Implicit specification of groups is not supported by **Supervisors**.
+* _Explicit_ - a group should be configured explicitly using **SNAMP Web Console** with all necessary **management features** and configuration parameters. Each resource connector that is associated with such group through _Group name_ inherits all configuration properties and **management features** from the group.
+
+Resource Group has the following characteristics:
+* _Type_ - name of the installed resource connector. Typically, system name indicates the management protocol used by resource connector, for example, `jmx`. This characteristic will be inherited by all resource connectors in the group
+* _Configuration_ - set of configuration parameters controlling behavior of the resource connectors in the group
+
+## Gateway
+**Gateway** is a software component used to expose management information of connected managed resources to **monitoring & management tools** using the specific management protocol.
+
+Gateway uses resource connector to extract management information and expose one to the outside world. Gateway may expose all configured management features or some of them. That depends on type of the Gateway. For example, you have configured SNMP Gateway and JMX Connector. JMX Connector supports operations, but SNMP Gateway can't provide access to these operations due to SNMP protocol limitations.
+
+Gateway has the following characteristics:
+
+* _Type_ - type of the Gateway. Generally, type represents the provided management protocol, for example, `snmp`
+* _Configuration_ - set of configuration properties controlling behavior and network accessibility of the gateway
+
+Some of gateways are useful even if you have no plans to use third-party monitoring tools. For example, InfluxDB Gateway can store monitoring information collected from all resource connectors into database for further retrospective analysis using BigData tools. Another example is SMTP Gateway that is responsible for sending e-mails to recipients when one of resource connectors reports important notifications or health checks.
+
+## Supervisor
+Supervisor
 
 # Technology Stack
 SNAMP is constructed on top of [Apache Karaf](http://karaf.apache.org/) and requires Java Runtime Environment.
@@ -148,9 +196,5 @@ From the Deployment Viewpoint, SNAMP is a set of OSGi bundles packaged into KAR 
 
 Additional topics:
 
-* [Apache Karaf User's Guide](http://karaf.apache.org/manual/latest/users-guide/index.html)
+* [Apache Karaf User's Guide](http://karaf.apache.org/manual/latest/)
 * [OSGi Architecture](http://www.osgi.org/Technology/WhatIsOSGi)
-
-# Management Console
-SNAMP Management Console is a web console allowing you to configure SNAMP from your browser. It is build on top of [Hawt.IO](http://hawt.io/).
-> SNAMP Management Console is available with purchased support plan only.

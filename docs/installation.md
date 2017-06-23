@@ -259,7 +259,7 @@ Some protocols supported by SNAMP have bi-directional nature of communication. F
 
 > Don't care about sequence number of notifications. Sequence number is synchronized across cluster.
 
-This issue can be produced by JMX Connector, NSCA Adapter, NRDP Adapter, MDA Connector and several other components (read documentation of each [Connector](connectors/introduction.md) or [Adapter](adapters/introduction.md) carefully). Solution is to choose a **leader node** responsible for delivery of notifications and other reverse-way information. Leader node will be selected dynamically using the leader election mechanism. Non-leader nodes will stay fully-functional except notifications delivery. When the leader node crashes, it starts an election and selecting the new leader.
+This issue can be produced by JMX Connector, NSCA Adapter, NRDP Adapter, MDA Connector and several other components (read documentation of each [Connector](connectors/introduction.md) or [Gateway](gateways/introduction.md) carefully). Solution is to choose a **leader node** responsible for delivery of notifications and other reverse-way information. Leader node will be selected dynamically using the leader election mechanism. Non-leader nodes will stay fully-functional except notifications delivery. When the leader node crashes, it starts an election and selecting the new leader.
 
 ## SNAMP Management Console
 SNAMP Web Console is available after purchasing support plan. Console is provided as an optional module for SNAMP - kar archive.

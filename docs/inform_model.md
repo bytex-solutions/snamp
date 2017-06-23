@@ -1,17 +1,18 @@
 SNAMP Management Information Model
 ====
-SNAMP Management Information Model is a special abstraction layer specifying data exchange between **Resource Connector** and **Resource Adapter**. This layer hides the details of the backed management protocol.
+SNAMP Management Information Model is a special abstraction layer specifying data exchange between **Resource Connector** and **Gateway**. This layer hides the details of the backed management protocol.
 
 ![Management Information Flow](images/inform-flow.png)
 
-As far as you can see at the figure above, **Resource Connector** converts protocol-specific data to the entities in **Management Information Model**. 
-**Resource Adapter** uses this unified representation of the management information and transforms it to another management protocol (expected by **monitoring & management tool**).
+As far as you can see at the figure above, **Resource Connector** converts protocol-specific data to the entities in **Management Information Model**.
+**Gateway** uses this unified representation of the management information and transforms it to another management protocol (expected by **monitoring & management tool**).
 
 Management Information Model consists of the following entities:
 
 * Attributes
 * Events
 * Operations
+* Health checks
 
 The attribute has its _data type_ that reflects format (or semantics) of attribute value.
 
