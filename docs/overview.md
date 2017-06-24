@@ -80,6 +80,7 @@ Resource Connector may support all these features or some of them. Supported set
 
 **Resource Connector** has the following characteristics:
 
+* _Resource name_ - descriptive name of the **managed resource** defined by administrator
 * _Type_ - name of the installed resource connector. Typically, system name indicates the management protocol used by resource connector, for example, `jmx`
 * _Connection string_ - a string that specifies connection details used to access **managed resource** such as port, host, URL etc.
 * _Configuration_ - set of configuration parameters controlling behavior of the resource connector
@@ -169,6 +170,7 @@ Resource Group can be used to unite similar set of resource connectors. There ar
 * _Explicit_ - a group should be configured explicitly using **SNAMP Web Console** with all necessary **management features** and configuration parameters. Each resource connector that is associated with such group through _Group name_ inherits all configuration properties and **management features** from the group.
 
 Resource Group has the following characteristics:
+* _Group name_ - descriptive name of the **resource group** defined by administrator. This name can be used by **resource connectors** to specify membership
 * _Type_ - name of the installed resource connector. Typically, system name indicates the management protocol used by resource connector, for example, `jmx`. This characteristic will be inherited by all resource connectors in the group
 * _Configuration_ - set of configuration parameters controlling behavior of the resource connectors in the group
 
@@ -179,13 +181,30 @@ Gateway uses resource connector to extract management information and expose one
 
 Gateway has the following characteristics:
 
+* _Instance name_ - descriptive name of the gateway instance defined by administrator
 * _Type_ - type of the Gateway. Generally, type represents the provided management protocol, for example, `snmp`
 * _Configuration_ - set of configuration properties controlling behavior and network accessibility of the gateway
 
 Some of gateways are useful even if you have no plans to use third-party monitoring tools. For example, InfluxDB Gateway can store monitoring information collected from all resource connectors into database for further retrospective analysis using BigData tools. Another example is SMTP Gateway that is responsible for sending e-mails to recipients when one of resource connectors reports important notifications or health checks.
 
 ## Supervisor
-Supervisor
+**Supervisor** is important SNAMP component responsible for supervision of resource groups. It provides the following capabilities:
+
+* _Group health checks_. Supervisor collects health statuses of each resource in the group and aggregates health information into health status of the group. It is possible to assign customized health checkers based on values of attributes supplied by resources in the group. Aggregated information called _group health status_ and may include information about health of entire cluster.
+* _Elasticity management_ (or _Auto Scaling_) provides automatically scaling of computational resources in the group. For example, OpenStack Supervisor can use information from attributes supplied by each node and make decision about shrinking or enlarging cluster using OpenStack Senlin.
+* _Discovery service_ allows to automatically detects **managed resources** and register appropriate **resource connectors** without manual configuration by SNAMP administrator.
+
+A set of supported capabilities depends on the type of supervisor. For example, `default` supervisor doesn't provide _Discovery service_.
+
+Supervisor has the following characteristics:
+
+* _Type_ - type of the supervisor. For example, `openstack`
+* _Attribute checkers_ - a set of health conditions associated with attributes. Attribute checker used to read values of attribute from all resources in the group and compute health status. Condition can be defined by administrator. It is optional configuration element.
+* _Discovery configuration_ - how the supervisor can discover new **managed resources** and how they can be registered in SNAMP. It optional configuration element.
+* _Auto Scaling configuration_ - defines a set of scaling policies for automatic shrinking or enlarging cluster of **managed resources**
+* _Configuration_ - set of configuration properties controlling behavior and network accessibility of the gateway
+
+Supervisor should be assigned to the group of resources defined implicitly or explicitly. Administrator can choose the necessary type of supervisor to be associated with the group. By default, SNAMP assigns `default` supervisor for each explicitly defined group. Implicitly defined group has no supervisor by default.
 
 # Technology Stack
 SNAMP is constructed on top of [Apache Karaf](http://karaf.apache.org/) and requires Java Runtime Environment.

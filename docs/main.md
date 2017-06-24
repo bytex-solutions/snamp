@@ -6,7 +6,12 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 
 * [Overview](overview.md) - basic terms and concepts. Getting familiar with a platform and modules
 * [Gateways](gateways/introduction.md) - about SNAMP Gateways
-* [Resource Connectors](connectors/introduction.md) - about SNAMP Resource Connectors.
+* [Resource Connectors](connectors/introduction.md) - about SNAMP Resource Connectors
+* [Supervisors](supervisors/introduction.md) - about SNAMP Supervisors
+
+## User's Guide
+
+* [Overview of Web Console](webconsole/overview.md) - monitoring, tracing and elasticity management from browser
 
 ## Administrator's Guide
 
@@ -15,7 +20,6 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Configuration](configuration.md) - how to configure SNAMP
   * [Gateways](gateways/introduction.md) - how to configure SNAMP Gateways
   * [Resource Connectors](connectors/introduction.md) - how to configure SNAMP Resource Connectors
-  * [Web Console](webconsole/overview.md) - how to configure SNAMP using web interface
 * [Management](mgmt.md) - how to manage SNAMP
 * [Updating](updating.md) - how to install new SNAMP components and update old ones
 * [Release Notes](ReleaseNotes.md) - what's new in the current version of SNAMP
