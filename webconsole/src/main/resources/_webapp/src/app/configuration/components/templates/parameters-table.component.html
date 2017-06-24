@@ -156,6 +156,7 @@
         <th>#</th>
         <th>Key</th>
         <th>Value</th>
+        <th *ngIf="isOverriddable()">Override</th>
     </tr>
     </thead>
     <tbody>
@@ -175,10 +176,18 @@
                          [uniqueKey]="param.key">
             </inline-edit>
         </td>
+        <td *ngIf="isOverriddable()">
+            <ui-switch
+                    [checked]="isOverridden(param.key)"
+                    (change)="triggerOverride($event, param.key)"
+                    [size]="'small'">
+            </ui-switch>
+        </td>
     </tr>
     <tr>
         <td></td>
         <td></td>
+        <td *ngIf="isOverriddable()"></td>
         <td align="right">
             <button
                     type="button"

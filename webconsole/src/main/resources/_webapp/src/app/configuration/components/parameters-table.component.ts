@@ -11,6 +11,8 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 
 import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
+import { Resource } from "../model/model.resource";
+import { isNullOrUndefined } from "util";
 
 @Component({
   moduleId: module.id,
@@ -130,5 +132,25 @@ export class ParametersTable implements OnInit {
             this.customParamValue.nativeElement.value = this.stubValue;
         }
         this.newParamElement.nativeElement.value = "";
+    }
+
+    isOverriddable():boolean {
+        return (this.entity instanceof Resource)
+            && (!isNullOrUndefined((<Resource>this.entity).groupName))
+            && ((<Resource>this.entity).groupName.length > 0);
+    }
+
+    triggerOverride(event:any, param:string):void {
+        console.log("They trigger for the entity " + this.entity.name + " and param with name " + param + " is now " + event);
+        (<Resource>this.entity).toggleOverridden(param);
+        this.http.put(REST.OVERRIDES_BY_NAME(this.entity.name), (<Resource>this.entity).overriddenProperties)
+            .map((res:Response) => res.text())
+            .subscribe((data)=> {
+                console.log("Saved overrides")
+            });
+    }
+
+    isOverridden(paramName:string):boolean {
+        return ((<Resource>this.entity).overriddenProperties.indexOf(paramName) >= 0);
     }
 }

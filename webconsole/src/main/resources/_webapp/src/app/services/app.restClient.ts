@@ -120,6 +120,10 @@ export class REST {
         return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
     }
 
+    public static OVERRIDES_BY_NAME(name: string): string {
+        return REST.RESOURCE_BY_NAME(name) + "/overriddenProperties";
+    }
+
     public static GATEWAY_TYPE(name: string): string {
         return REST.GATEWAY_BY_NAME(name) + "/type";
     }

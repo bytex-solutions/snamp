@@ -3,6 +3,7 @@ import { ApiClient, REST } from '../../services/app.restClient';
 import { ParamDescriptor } from './model.paramDescriptor';
 import { Observable } from "rxjs/Observable";
 import { EntityWithSub } from "./model.entityWithSub";
+import {isNullOrUndefined} from "util";
 
 export class Resource extends EntityWithSub {
     http:ApiClient;
@@ -10,9 +11,16 @@ export class Resource extends EntityWithSub {
     smartMode:boolean = false;
     groupName:string = "";
     threadPool:string = "";
+    overriddenProperties:string[] = [];
     constructor(http:ApiClient, name:string, parameters: any) {
         super(http, name, parameters);
         this.http = http;
+
+        console.log("Resource with name " + this.name + " has following parametres: " + JSON.stringify(parameters));
+        if (!isNullOrUndefined(parameters["overriddenProperties"]) && parameters["overriddenProperties"].length > 0) {
+            console.log("overriddenProperties: " + parameters["overriddenProperties"]);
+            this.overriddenProperties = parameters["overriddenProperties"];
+        }
 
         // set right connection string
         this.connectionString = parameters["connectionString"];
@@ -57,5 +65,15 @@ export class Resource extends EntityWithSub {
 
     public discovery(type:string):Observable<any> {
         return this.http.getWithErrors(REST.RESOURCE_DISCOVERY(this.name, type));
+    }
+
+    public toggleOverridden(value:string):void {
+        let index:number = this.overriddenProperties.indexOf(value);
+        if (index >= 0) {
+            this.overriddenProperties.splice(index, 1);
+        } else {
+            this.overriddenProperties.push(value);
+        }
+        console.log("Overriddens for resource " + this.name + " are " + this.overriddenProperties);
     }
 }
