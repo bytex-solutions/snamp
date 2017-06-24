@@ -1,6 +1,9 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.FeatureConfiguration;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 
 import java.util.Map;
@@ -21,14 +24,13 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
     public SerializableManagedResourceGroupConfiguration(){
     }
 
-    private static <F extends AbstractFeatureConfiguration> F mergeFeature(final F featureConfigInResource,
-                                                                           final F featureConfigInGroup){
-        return featureConfigInResource.isOverridden() ? featureConfigInResource : featureConfigInGroup;
-    }
-
-    private static <F extends AbstractFeatureConfiguration> void mergeFeatures(final SerializableEntityMap<F> groupFeatures,
-                                                                       final SerializableEntityMap<F> resourceFeatures) {
-        groupFeatures.forEach((featureNameInGroup, featureConfigInGroup) -> resourceFeatures.merge(featureNameInGroup, featureConfigInGroup, SerializableManagedResourceGroupConfiguration::mergeFeature));
+    private static <F extends FeatureConfiguration> void mergeFeatures(final EntityMap<? extends F> groupFeatures,
+                                                                       final EntityMap<? extends F> resourceFeatures) {
+        groupFeatures.forEach((featureNameInGroup, featureConfigInGroup) -> {
+            final F featureConfigInResource = resourceFeatures.getOrAdd(featureNameInGroup);
+            if (!featureConfigInResource.isOverridden())
+                featureConfigInResource.load(featureConfigInGroup);
+        });
     }
 
     private static void mergeParameters(final Map<String, String> groupParameters,
@@ -40,7 +42,8 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
         });
     }
 
-    void fillResourceConfig(final SerializableManagedResourceConfiguration resource) {
+    @Override
+    public void fillResourceConfig(final ManagedResourceConfiguration resource) {
         //overwrite all properties in resource but hold user-defined properties
         mergeParameters(this, resource, resource.getOverriddenProperties());
         //overwrite all attributes

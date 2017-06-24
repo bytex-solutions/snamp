@@ -1,8 +1,8 @@
-SNAMP Resource Adapters
+SNAMP Gateways
 ====
-**Managed Resource Adapter** (or **Resource Adapter**) is a software component used to expose monitoring and management functionality to **Monitoring & Management Tools** used in your enterprise (such as Nagios, Zabbix or Microsoft System Center Operations Manager). Resource Adapter exposes all information provided by connected managed resources (via Resource Connectors) to the external tools using specified protocol or technology.
+**Gateway** is a software component used to expose monitoring and management functionality to **Monitoring & Management Tools** used in your enterprise (such as Nagios, Zabbix, e-mail or even Jabber). Gateway exposes all information provided by connected managed resources (via Resource Connectors) to the external tools using specified protocol or technology.
 
-Feature list of **Resource Adapter** contains following items:
+Feature list of **Gateway** contains following items:
 
 * Management Protocols - list of management protocols used by **monitoring & management tool** to manage and monitor the connected **managed resource**
 * Attributes - is **Resource Adapter** provide access to the **managed resource** attributes?
