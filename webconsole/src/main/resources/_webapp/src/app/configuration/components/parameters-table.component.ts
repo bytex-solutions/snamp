@@ -127,11 +127,15 @@ export class ParametersTable implements OnInit {
     }
 
     clear():void {
-        this.listParamValue.nativeElement.value = "";
-        if (this.customParamValue != undefined) {
+        if (!isNullOrUndefined(this.listParamValue)) {
+            this.listParamValue.nativeElement.value = "";
+        }
+        if (!isNullOrUndefined(this.customParamValue)) {
             this.customParamValue.nativeElement.value = this.stubValue;
         }
-        this.newParamElement.nativeElement.value = "";
+        if (!isNullOrUndefined(this.newParamElement)) {
+            this.newParamElement.nativeElement.value = "";
+        }
     }
 
     isOverriddable():boolean {

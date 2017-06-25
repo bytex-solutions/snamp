@@ -55,11 +55,11 @@ export class RGroupsComponent implements OnInit {
     }
 
     ngAfterViewInit() {
-       var _this = this;
+       let _thisReference = this;
        $(document).ready(function() {
           $("#resourceSelection").select2();
           $("#resourceSelection").on('change', (e) => {
-            _this.selectCurrentlyActiveResource($(e.target).val());
+              _thisReference.selectCurrentlyActiveResource($(e.target).val());
           });
         });
     }
@@ -94,41 +94,6 @@ export class RGroupsComponent implements OnInit {
                 this.activeResource.type = this.oldTypeValue;
                 return false;
               });
-      });
+      }).catch(() => {});
     }
-
-    triggerSmartMode(event:any) {
-        console.log("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
-        if (!this.oldSmartMode) {
-          this.modal.confirm()
-            .className(<VEXBuiltInThemes>'wireframe')
-            .isBlocking(true)
-            .keyboard(27)
-            .message("If you enable smartMode - all attributes, events and operations will be removed. Proceed?")
-            .open()
-            .then((resultPromise) => {
-                return (<Promise<boolean>>resultPromise.result)
-                  .then((response) => {
-                    this.http.put(REST.ENTITY_PARAMETERS("resourceGroup", this.activeResource.name, "smartMode"), true)
-                        .subscribe(data => {
-                           console.log("setting to true result is ", data);
-                           this.oldSmartMode = true;
-                           this.activeResource.smartMode = true;
-                           location.reload();
-                        });
-                    return response;
-                  })
-                  .catch(() => {
-                    this.activeResource.smartMode = this.oldSmartMode;
-                    return false;
-                  });
-             });
-         } else {
-            this.http.put(REST.ENTITY_PARAMETERS("resourceGroup", this.activeResource.name, "smartMode"), false)
-                .subscribe(data => {
-                   this.oldSmartMode = false;
-                });
-         }
-    }
-
 }

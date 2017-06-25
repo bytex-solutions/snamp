@@ -75,20 +75,7 @@
           <div class="col-md-12">
             <panel [header]="'Entities'" [column]="'12'">
               <div class="row">
-
-                <div class="col-md-4 col-md-offset-8"  [tooltip]="'Enable for auto wiring entities to ' + activeResource.name">
-                  <div class="count" style="display:inline-block; font-size: large;">Smart mode</div>
-                  <div style="display: inline-block;">
-                    <ui-switch
-                      [(ngModel)]="activeResource.smartMode"
-                      (change)="triggerSmartMode($event)"
-                      [size]="'small'">
-                    </ui-switch>
-                  </div>
-                  <p></p>
-                </div>
-
-                <div class="col-md-12" *ngIf="!activeResource.smartMode">
+                <div class="col-md-12">
                   <div
                     class="panel-group group-accordeon"
                     id="accordionBindings"

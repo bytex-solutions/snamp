@@ -106294,7 +106294,7 @@ var AddEntity = (function () {
     AddEntity.prototype.ngOnInit = function () {
         var _this = this;
         if (this.type == "resourceGroup") {
-            this._innerType = "connectors";
+            this._innerType = "connector";
         }
         else {
             this._innerType = this.type;
@@ -106548,11 +106548,15 @@ var ParametersTable = (function () {
         this.selectedParam = undefined;
     };
     ParametersTable.prototype.clear = function () {
-        this.listParamValue.nativeElement.value = "";
-        if (this.customParamValue != undefined) {
+        if (!util_1.isNullOrUndefined(this.listParamValue)) {
+            this.listParamValue.nativeElement.value = "";
+        }
+        if (!util_1.isNullOrUndefined(this.customParamValue)) {
             this.customParamValue.nativeElement.value = this.stubValue;
         }
-        this.newParamElement.nativeElement.value = "";
+        if (!util_1.isNullOrUndefined(this.newParamElement)) {
+            this.newParamElement.nativeElement.value = "";
+        }
     };
     ParametersTable.prototype.isOverriddable = function () {
         return (this.entity instanceof model_resource_1.Resource)
