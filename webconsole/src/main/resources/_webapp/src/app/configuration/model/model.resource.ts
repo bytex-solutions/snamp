@@ -15,10 +15,7 @@ export class Resource extends EntityWithSub {
     constructor(http:ApiClient, name:string, parameters: any) {
         super(http, name, parameters);
         this.http = http;
-
-        console.log("Resource with name " + this.name + " has following parametres: " + JSON.stringify(parameters));
         if (!isNullOrUndefined(parameters["overriddenProperties"]) && parameters["overriddenProperties"].length > 0) {
-            console.log("overriddenProperties: " + parameters["overriddenProperties"]);
             this.overriddenProperties = parameters["overriddenProperties"];
         }
 

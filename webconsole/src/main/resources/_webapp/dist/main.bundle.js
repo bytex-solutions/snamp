@@ -107599,9 +107599,7 @@ var Resource = (function (_super) {
         this.threadPool = "";
         this.overriddenProperties = [];
         this.http = http;
-        console.log("Resource with name " + this.name + " has following parametres: " + JSON.stringify(parameters));
         if (!util_1.isNullOrUndefined(parameters["overriddenProperties"]) && parameters["overriddenProperties"].length > 0) {
-            console.log("overriddenProperties: " + parameters["overriddenProperties"]);
             this.overriddenProperties = parameters["overriddenProperties"];
         }
         // set right connection string
@@ -107768,16 +107766,11 @@ var TypedEntity = (function (_super) {
         // retrieving parameters description - extract as static to explicit class please @todo
         this.paramDescriptors = this.http.get(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.getDescriptionType(), this.type))
             .map(function (res) {
+            console.log(_this.getDescriptionType(), _this.type, res);
             var data = res.json();
             var returnValue = [];
             for (var obj in data) {
-                var newDescriptor = new model_paramDescriptor_1.ParamDescriptor(data[obj]);
-                // remove group and smart mode descriptors because they are processed another way
-                if ((_this.getName() == "resource" || _this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
-                    var k = false;
-                }
-                else
-                    returnValue.push(newDescriptor);
+                returnValue.push(new model_paramDescriptor_1.ParamDescriptor(data[obj]));
             }
             return returnValue;
         });
