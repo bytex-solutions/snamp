@@ -14,12 +14,12 @@
                             <div class="panel panel-default" *ngIf="containsRequired">
                                 <div class="panel-heading" role="tab" id="headingOne">
                                     <h4 class="panel-title">
-                                        <a role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseRequired" aria-expanded="true" aria-controls="collapseRequired">
+                                        <a role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseRequired" [attr.aria-expanded]="containsRequired" aria-controls="collapseRequired">
                                             Required
                                         </a>
                                     </h4>
                                 </div>
-                                <div id="collapseRequired" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                                <div id="collapseRequired" class="panel-collapse collapse" [class.in]="containsRequired" role="tabpanel" aria-labelledby="headingOne">
                                     <div class="panel-body">
                                         <div class="input-group leftAlign" *ngFor="let descr of entity.paramDescriptors | async | required">
                                               <span class="input-group-addon">
@@ -42,12 +42,12 @@
                             <div class="panel panel-default" *ngIf="containsOptional">
                                 <div class="panel-heading" role="tab" id="headingTwo">
                                     <h4 class="panel-title">
-                                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseOptional" aria-expanded="false" aria-controls="collapseOptional">
+                                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseOptional" [attr.aria-expanded]="!containsRequired && containsOptional" aria-controls="collapseOptional">
                                             Optional
                                         </a>
                                     </h4>
                                 </div>
-                                <div id="collapseOptional" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                                <div id="collapseOptional" class="panel-collapse collapse" [class.in]="!containsRequired && containsOptiona" role="tabpanel" aria-labelledby="headingTwo">
                                     <div class="panel-body">
                                         <div class="input-group leftAlign" *ngFor="let descr of entity.paramDescriptors | async | optional">
                                               <span class="input-group-addon">
@@ -75,14 +75,14 @@
                                            data-toggle="collapse"
                                            data-parent="#paramAccordion"
                                            href="#collapseCustom"
-                                           aria-expanded="false"
+                                           [attr.aria-expanded]="!containsRequired && !containsOptional"
                                            aria-controls="collapseCustom"
                                            (click)="flushSelected()">
                                             Custom
                                         </a>
                                     </h4>
                                 </div>
-                                <div id="collapseCustom" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                                <div id="collapseCustom" class="panel-collapse collapse" [class.in]="!containsRequired && !containsOptiona" role="tabpanel" aria-labelledby="headingThree">
                                     <div class="panel-body">
                                         <div class="input-group">
                                             <span class="input-group-addon">Name:</span>
@@ -150,7 +150,7 @@
     </div>
 </div>
 
-<table class="table">
+<table class="table" *ngIf="entity.parameters && entity.parameters.length > 0">
     <thead>
     <tr>
         <th>#</th>
@@ -184,20 +184,15 @@
             </ui-switch>
         </td>
     </tr>
-    <tr>
-        <td></td>
-        <td></td>
-        <td *ngIf="isOverriddable()"></td>
-        <td align="right">
-            <button
-                    type="button"
-                    class="btn btn-primary btn-sm"
-                    data-toggle="modal"
-                    data-target="#addParam"
-                    (click)="clear()">
-                Add new
-            </button>
-        </td>
-    </tr>
     </tbody>
 </table>
+
+<button
+        type="button"
+        style="float: right;"
+        class="btn btn-primary btn-sm"
+        data-toggle="modal"
+        data-target="#addParam"
+        (click)="clear()">
+    Add new
+</button>

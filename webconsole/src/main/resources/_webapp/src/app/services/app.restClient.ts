@@ -120,6 +120,10 @@ export class REST {
         return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
     }
 
+    public static RGROUP_BY_NAME(name: string): string {
+        return REST.RGROUP_CONFIG + "/" + encodeURIComponent(name);
+    }
+
     public static OVERRIDES_BY_NAME(name: string): string {
         return REST.RESOURCE_BY_NAME(name) + "/overriddenProperties";
     }

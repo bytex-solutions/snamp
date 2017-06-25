@@ -13,6 +13,7 @@ import { Resource } from '../model/model.resource';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
+import {ResourceGroup} from "../model/model.resourceGroup";
 
 @Component({
     moduleId: module.id,
@@ -117,6 +118,17 @@ export class AddEntity implements OnInit {
                 Resource.toJSON(this.selectedType.type, connectionString, this.params)
             );
             this.http.put(REST.RESOURCE_BY_NAME(newEntity.name), newEntity.stringify())
+                .subscribe(res => {
+                    this.entities.push(newEntity);
+                    this.onSave.emit(newEntity);
+                });
+        } else if(this.type == "resourceGroup") {
+            newEntity = new ResourceGroup(
+                this.http,
+                this.selectedName,
+                ResourceGroup.stringify(this.selectedType.type, this.params)
+            );
+            this.http.put(REST.RGROUP_BY_NAME(newEntity.name), newEntity.stringify())
                 .subscribe(res => {
                     this.entities.push(newEntity);
                     this.onSave.emit(newEntity);

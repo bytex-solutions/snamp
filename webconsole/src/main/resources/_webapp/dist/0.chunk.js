@@ -38360,39 +38360,6 @@ exports.ThreadPoolsComponent = ThreadPoolsComponent;
 
 /***/ },
 
-/***/ "./src/app/configuration/model/model.resourceGroup.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
-var ResourceGroup = (function (_super) {
-    __extends(ResourceGroup, _super);
-    function ResourceGroup(http, name, parameters) {
-        _super.call(this, http, name, parameters);
-        this.smartMode = false;
-        this.http = http;
-    }
-    ResourceGroup.prototype.getName = function () {
-        return "resourceGroup";
-    };
-    ResourceGroup.prototype.getDescriptionType = function () {
-        return "connector";
-    };
-    ResourceGroup.stringify = function (type, params) {
-        var returnValue = {};
-        returnValue["type"] = type;
-        returnValue["parameters"] = model_entity_1.KeyValue.stringifyParametersStatic(params);
-        return returnValue;
-    };
-    return ResourceGroup;
-}(model_entityWithSub_1.EntityWithSub));
-exports.ResourceGroup = ResourceGroup;
-
-
-/***/ },
-
 /***/ "./src/app/configuration/model/model.thread.pool.ts":
 /***/ function(module, exports, __webpack_require__) {
 
