@@ -21,7 +21,6 @@ export class RGroupsComponent implements OnInit {
    activeResource:ResourceGroup;
    oldTypeValue:string = "";
    availableResources :any[] = [];
-   oldSmartMode = false;
 
    constructor(private http: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
         overlay.defaultViewContainer = vcRef;
@@ -38,7 +37,6 @@ export class RGroupsComponent implements OnInit {
                 if (this.resources.length > 0) {
                   this.activeResource = this.resources[0];
                   this.oldTypeValue = this.activeResource.type;
-                  this.oldSmartMode = this.activeResource.smartMode;
                 }
             });
 
@@ -73,7 +71,6 @@ export class RGroupsComponent implements OnInit {
           }
           this.activeResource = selection;
           this.oldTypeValue = selection.type;
-          this.oldSmartMode = selection.smartMode;
       }
 
     changeType(event:any) {

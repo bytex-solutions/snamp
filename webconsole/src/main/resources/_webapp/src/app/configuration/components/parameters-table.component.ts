@@ -1,4 +1,4 @@
-import { Component, Input ,ViewChild, ElementRef, OnInit, ViewEncapsulation, ViewChildren, QueryList } from '@angular/core';
+import { Component, Input ,ViewChild, ElementRef, OnInit, ViewEncapsulation, ViewChildren, QueryList, ChangeDetectorRef } from '@angular/core';
 import { ApiClient, REST } from '../../services/app.restClient';
 import { KeyValue } from '../model/model.entity';
 import { TypedEntity } from '../model/model.typedEntity';
@@ -34,7 +34,7 @@ export class ParametersTable implements OnInit {
     containsRequired:boolean = false;
     containsOptional:boolean = false;
 
-    constructor(public http:ApiClient, public modal: Modal) {}
+    constructor(public http:ApiClient, public modal: Modal, private cd: ChangeDetectorRef) {}
 
     ngOnInit():void {
         this.entity.paramDescriptors.subscribe((descriptors:ParamDescriptor[]) => {
@@ -136,6 +136,8 @@ export class ParametersTable implements OnInit {
         if (!isNullOrUndefined(this.newParamElement)) {
             this.newParamElement.nativeElement.value = "";
         }
+        this.entity.updateDescriptors();
+        this.cd.detectChanges();
     }
 
     isOverriddable():boolean {

@@ -37962,7 +37962,6 @@ var RGroupsComponent = (function () {
         this.resources = [];
         this.oldTypeValue = "";
         this.availableResources = [];
-        this.oldSmartMode = false;
         overlay.defaultViewContainer = vcRef;
     }
     RGroupsComponent.prototype.ngOnInit = function () {
@@ -37977,7 +37976,6 @@ var RGroupsComponent = (function () {
             if (_this.resources.length > 0) {
                 _this.activeResource = _this.resources[0];
                 _this.oldTypeValue = _this.activeResource.type;
-                _this.oldSmartMode = _this.activeResource.smartMode;
             }
         });
         // Get all the available bundles that belong to Resources
@@ -38007,7 +38005,6 @@ var RGroupsComponent = (function () {
         }
         this.activeResource = selection;
         this.oldTypeValue = selection.type;
-        this.oldSmartMode = selection.smartMode;
     };
     RGroupsComponent.prototype.changeType = function (event) {
         var _this = this;

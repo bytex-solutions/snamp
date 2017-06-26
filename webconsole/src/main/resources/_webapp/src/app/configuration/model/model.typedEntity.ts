@@ -4,7 +4,7 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { ParamDescriptor } from './model.paramDescriptor';
 
-export abstract class TypedEntity extends Entity {
+export abstract class   TypedEntity extends Entity {
     public type:string;
     http:ApiClient;
     private static readonly SMART_MODE = "smartMode";
@@ -15,17 +15,18 @@ export abstract class TypedEntity extends Entity {
         this.http = http;
         this.type = type;
         this.name = name;
+    }
 
-        // retrieving parameters description - extract as static to explicit class please @todo
+    public updateDescriptors():void {
         this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this.getDescriptionType(), this.type))
             .map((res: Response) => {
                 console.log(this.getDescriptionType(), this.type, res);
                 let data = res.json();
                 let returnValue:ParamDescriptor[] = [];
                 for (let obj in data) {
-                   returnValue.push(new ParamDescriptor(data[obj]));
+                    returnValue.push(new ParamDescriptor(data[obj]));
                 }
-                 return returnValue;
+                return returnValue;
             });
     }
 
