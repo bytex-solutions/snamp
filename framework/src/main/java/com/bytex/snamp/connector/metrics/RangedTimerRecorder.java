@@ -162,8 +162,8 @@ public class RangedTimerRecorder extends AbstractRangedRecorder implements Range
     }
 
     @Override
-    public final Duration getLastMeanValue(final MetricsInterval interval) {
-        return timer.getLastMeanValue(interval);
+    public final Duration getMeanValue(final MetricsInterval interval) {
+        return timer.getMeanValue(interval);
     }
 
     @Override

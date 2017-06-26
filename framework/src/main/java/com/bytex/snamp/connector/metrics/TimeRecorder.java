@@ -94,7 +94,7 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     }
 
     @Override
-    public final Duration getLastMeanValue(final MetricsInterval interval) {
+    public final Duration getMeanValue(final MetricsInterval interval) {
         return meanValues.get(interval, avg -> fromDouble(avg.doubleValue()));
     }
 

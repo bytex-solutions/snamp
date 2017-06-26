@@ -14,9 +14,9 @@ import java.util.Map;
  */
 @SnampDependencies(SnampFeature.COMPOSITE_CONNECTOR)
 public abstract class AbstractCompositeConnectorTest extends AbstractResourceConnectorTest {
-    static final String CONNECTOR_NAME = "composite";
+    private static final String CONNECTOR_NAME = "composite";
 
-    protected AbstractCompositeConnectorTest(final String connectionString, final Map<String, String> parameters) {
+    AbstractCompositeConnectorTest(final String connectionString, final Map<String, String> parameters) {
         super(CONNECTOR_NAME, connectionString, parameters);
     }
 

@@ -9,11 +9,6 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Supervisors](supervisors/introduction.md) - about SNAMP Supervisors
 * [Gateways](gateways/introduction.md) - about SNAMP Gateways
 
-## User's Guide
-
-* [Overview of Web Console](webconsole/overview.md) - monitoring, tracing and elasticity management from browser
-* [Configuration](configuration.md) - how to configure SNAMP
-
 ## Administrator's Guide
 
 * [Installation](installation.md) - how to install SNAMP in standalone and clustered configuration
@@ -22,11 +17,24 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Updating](updating.md) - how to install new SNAMP components and update old ones
 * [Release Notes](ReleaseNotes.md) - what's new in the current version of SNAMP
 
+## User's Guide
+
+* [Overview of Web Console](webconsole/overview.md) - monitoring, tracing and elasticity management from browser
+* Configure monitoring, tracing and elasticity management:
+  * [Resource connectors](webconsole/config-connectors.md) - configuration of managed resources using SNAMP Web Console
+  * [Resource groups](webconsole/config-groups.md) - configuration of resource groups
+  * [Supervisors](webconsole/config-supervisors.md) - configuration of supervisors
+  * [Gateways](webconsole/config-gateways.md) - configuration of gateways using SNAMP Web Console
+  * [Global properties](webconsole/global-props.md) - configuration of global SNAMP properties
+* [Dashboard of charts](webconsole/charts.md)
+* [E2E Analysis](webconsole/e2e.md)
+* [Notifications](webconsole/notifications.md)
+
 ## Developer's Guide
 
 * [Connecting resources using Groovy](connectors/groovy-connector.md) - how to connect object of monitoring to SNAMP using Groovy scripts
 * [Monitoring connected resources using Groovy](gateways/groovy-adapter.md) - how to collect and process management information from SNAMP using Groovy scripts
-* **SNAMP Instrumentation Library** - how enable send monitoring and tracing information from your applications to SNAMP
+* SNAMP Instrumentation Library - how enable send monitoring and tracing information from your applications to SNAMP
   * [for Java](instrumentation/java.md) - for Java-based applications
 * [Resource Discovery](resource-discovery.md) - how to automatically register new resources in SNAMP using REST API
 

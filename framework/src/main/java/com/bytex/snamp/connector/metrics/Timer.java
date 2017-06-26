@@ -50,7 +50,7 @@ public interface Timer extends Gauge<Duration> {
      */
     Duration getSummaryValue();
 
-    Duration getLastMeanValue(final MetricsInterval interval);
+    Duration getMeanValue(final MetricsInterval interval);
 
     Duration getMeanValue();
 

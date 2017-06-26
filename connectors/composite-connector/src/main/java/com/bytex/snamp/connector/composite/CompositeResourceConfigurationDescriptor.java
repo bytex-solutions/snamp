@@ -44,7 +44,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
 
     private static final class ResourceConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private ResourceConfigurationDescription(){
-            super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM);
+            super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM, SYNC_PERIOD_PARAM, GROOVY_PATH_PARAM);
         }
     }
 

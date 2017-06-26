@@ -70,7 +70,7 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
 
     @Override
     public double getLastMeanAvailability(final MetricsInterval interval) {
-        return getAvailability(getLastRate(interval), toSeconds(getLastMeanValue(interval)), channels);
+        return getAvailability(getLastRate(interval), toSeconds(getMeanValue(interval)), channels);
     }
 
     @Override

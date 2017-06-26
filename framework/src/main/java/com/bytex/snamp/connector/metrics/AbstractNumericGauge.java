@@ -38,7 +38,7 @@ abstract class AbstractNumericGauge extends AbstractMetric implements NumericGau
     }
 
     @Override
-    public final double getLastMeanValue(final MetricsInterval interval) {
+    public final double getMeanValue(final MetricsInterval interval) {
         return meanValues.getAsDouble(interval, Average::doubleValue);
     }
 

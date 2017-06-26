@@ -106,13 +106,13 @@ public final class MetricsConverter {
     private static final String PERCENTILE_90_FIELD = "percentile90";
     private static final String PERCENTILE_95_FIELD = "percentile95";
     private static final String PERCENTILE_97_FIELD = "percentile97";
-    private static final String MEAN_VALUE_FOR_LAST_SECOND_FIELD = "meanValueLastSecond";
-    private static final String MEAN_VALUE_FOR_LAST_MINUTE_FIELD = "meanValueLastMinute";
-    private static final String MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD = "meanValueLast5Minutes";
-    private static final String MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD = "meanValueLast15Minutes";
-    private static final String MEAN_VALUE_FOR_LAST_HOUR_FIELD = "meanValueLastHour";
-    private static final String MEAN_VALUE_FOR_LAST_12_HOURS_FIELD = "meanValueLast12Hours";
-    private static final String MEAN_VALUE_FOR_LAST_DAY_FIELD = "meanValueLastDay";
+    private static final String MEAN_VALUE_PER_SECOND_FIELD = "meanValuePerSecond";
+    private static final String MEAN_VALUE_PER_MINUTE_FIELD = "meanValuePerMinute";
+    private static final String MEAN_VALUE_PER_5_MINUTES_FIELD = "meanValuePer5Minutes";
+    private static final String MEAN_VALUE_PER_15_MINUTES_FIELD = "meanValuePer15Minutes";
+    private static final String MEAN_VALUE_PER_HOUR_FIELD = "meanValuePerHour";
+    private static final String MEAN_VALUE_PER_12_HOURS_FIELD = "meanValuePer12Hours";
+    private static final String MEAN_VALUE_PER_DAY_FIELD = "meanValuePerDay";
     private static final String MAX_VALUE_FOR_LAST_SECOND_FIELD = "maxValueLastSecond";
     private static final String MAX_VALUE_FOR_LAST_MINUTE_FIELD = "maxValueLastMinute";
     private static final String MAX_VALUE_FOR_LAST_5_MINUTES_FIELD = "maxValueLast5Minutes";
@@ -158,24 +158,24 @@ public final class MetricsConverter {
     private static final String MEAN_DURATION_FIELD = "meanValue";
     private static final String MEAN_TASKS_PER_SECOND_FIELD = "meanTasksPerSecond";
     private static final String MEAN_TASKS_PER_MINUTE_FIELD = "meanTasksPerMinute";
-    private static final String MEAN_TASKS_FOR_5_MINUTES_FIELD = "meanTasksFor5Minutes";
-    private static final String MEAN_TASKS_FOR_15_MINUTES_FIELD = "meanTasksFor15Minutes";
+    private static final String MEAN_TASKS_FOR_5_MINUTES_FIELD = "meanTasksPer5Minutes";
+    private static final String MEAN_TASKS_FOR_15_MINUTES_FIELD = "meanTasksPer15Minutes";
     private static final String MEAN_TASKS_PER_HOUR_FIELD = "meanTasksPerHour";
-    private static final String MEAN_TASKS_FOR_12_HOURS_FIELD = "meanTasksFor12Hours";
+    private static final String MEAN_TASKS_FOR_12_HOURS_FIELD = "meanTasksPer12Hours";
     private static final String MEAN_TASKS_PER_DAY_FIELD = "meanTasksPerDay";
     private static final String MAX_TASKS_PER_SECOND_FIELD = "maxTasksPerSecond";
     private static final String MAX_TASKS_PER_MINUTE_FIELD = "maxTasksPerMinute";
-    private static final String MAX_TASKS_FOR_5_MINUTES_FIELD = "maxTasksFor5Minutes";
-    private static final String MAX_TASKS_FOR_15_MINUTES_FIELD = "maxTasksFor15Minutes";
+    private static final String MAX_TASKS_FOR_5_MINUTES_FIELD = "maxTasksPer5Minutes";
+    private static final String MAX_TASKS_FOR_15_MINUTES_FIELD = "maxTasksPer15Minutes";
     private static final String MAX_TASKS_PER_HOUR_FIELD = "maxTasksPerHour";
-    private static final String MAX_TASKS_FOR_12_HOURS_FIELD = "maxTasksFor12Hours";
+    private static final String MAX_TASKS_FOR_12_HOURS_FIELD = "maxTasksPer12Hours";
     private static final String MAX_TASKS_PER_DAY_FIELD = "maxTasksPerDay";
     private static final String MIN_TASKS_PER_SECOND_FIELD = "minTasksPerSecond";
     private static final String MIN_TASKS_PER_MINUTE_FIELD = "minTasksPerMinute";
-    private static final String MIN_TASKS_FOR_5_MINUTES_FIELD = "minTasksFor5Minutes";
-    private static final String MIN_TASKS_FOR_15_MINUTES_FIELD = "minTasksFor15Minutes";
+    private static final String MIN_TASKS_FOR_5_MINUTES_FIELD = "minTasksPer5Minutes";
+    private static final String MIN_TASKS_FOR_15_MINUTES_FIELD = "minTasksPer15Minutes";
     private static final String MIN_TASKS_PER_HOUR_FIELD = "minTasksPerHour";
-    private static final String MIN_TASKS_FOR_12_HOURS_FIELD = "minTasksFor12Hours";
+    private static final String MIN_TASKS_FOR_12_HOURS_FIELD = "minTasksPer12Hours";
     private static final String MIN_TASKS_PER_DAY_FIELD = "minTasksPerDay";
     //ranged fields
     private static final String LESS_THAN_RANGE_FIELD = "lessThanRange";
@@ -262,13 +262,13 @@ public final class MetricsConverter {
             .addItem(PERCENTILE_95_FIELD, "Percentile 95", SimpleType.DOUBLE)
             .addItem(PERCENTILE_97_FIELD, "Percentile 97", SimpleType.DOUBLE)
             //mean values
-            .addItem(MEAN_VALUE_FOR_LAST_SECOND_FIELD, "Mean duration for the last second", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, "Mean duration for the last minute", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, "Mean duration for the last five minutes", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, "Mean duration for the last fifteen minutes", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_HOUR_FIELD, "Mean duration for the last hour", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, "Mean duration for the last twelve hours", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_DAY_FIELD, "Mean duration for the last day", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_SECOND_FIELD, "Mean duration for the last second", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_MINUTE_FIELD, "Mean duration for the last minute", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_5_MINUTES_FIELD, "Mean duration for the last five minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_15_MINUTES_FIELD, "Mean duration for the last fifteen minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_HOUR_FIELD, "Mean duration for the last hour", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_12_HOURS_FIELD, "Mean duration for the last twelve hours", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_DAY_FIELD, "Mean duration for the last day", SimpleType.DOUBLE)
             //max values
             .addItem(MAX_VALUE_FOR_LAST_SECOND_FIELD, "Maximum duration for the last second", SimpleType.DOUBLE)
             .addItem(MAX_VALUE_FOR_LAST_MINUTE_FIELD, "Maximum duration for the last minute", SimpleType.DOUBLE)
@@ -427,13 +427,13 @@ public final class MetricsConverter {
             .addItem(PERCENTILE_95_FIELD, "Percentile 95", SimpleType.DOUBLE)
             .addItem(PERCENTILE_97_FIELD, "Percentile 97", SimpleType.DOUBLE)
             //mean values
-            .addItem(MEAN_VALUE_FOR_LAST_SECOND_FIELD, "Mean value for the last second", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, "Mean value for the last minute", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, "Mean value for the last five minutes", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, "Mean value for the last fifteen minutes", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_HOUR_FIELD, "Mean value for the last hour", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, "Mean value for the last twelve hours", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_DAY_FIELD, "Mean value for the last day", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_SECOND_FIELD, "Mean value per second", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_MINUTE_FIELD, "Mean value per minute", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_5_MINUTES_FIELD, "Mean value per five minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_15_MINUTES_FIELD, "Mean value per fifteen minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_HOUR_FIELD, "Mean value per hour", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_12_HOURS_FIELD, "Mean value per twelve hours", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_DAY_FIELD, "Mean value per last day", SimpleType.DOUBLE)
             //max values
             .addItem(MAX_VALUE_FOR_LAST_SECOND_FIELD, "Maximum value for the last second", SimpleType.DOUBLE)
             .addItem(MAX_VALUE_FOR_LAST_MINUTE_FIELD, "Maximum value for the last minute", SimpleType.DOUBLE)
@@ -465,13 +465,13 @@ public final class MetricsConverter {
             .addItem(PERCENTILE_95_FIELD, "Percentile 95", SimpleType.DOUBLE)
             .addItem(PERCENTILE_97_FIELD, "Percentile 97", SimpleType.DOUBLE)
             //mean values
-            .addItem(MEAN_VALUE_FOR_LAST_SECOND_FIELD, "Mean value for the last second", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, "Mean value for the last minute", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, "Mean value for the last five minutes", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, "Mean value for the last fifteen minutes", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_HOUR_FIELD, "Mean value for the last hour", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, "Mean value for the last twelve hours", SimpleType.DOUBLE)
-            .addItem(MEAN_VALUE_FOR_LAST_DAY_FIELD, "Mean value for the last day", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_SECOND_FIELD, "Mean value for the last second", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_MINUTE_FIELD, "Mean value for the last minute", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_5_MINUTES_FIELD, "Mean value for the last five minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_15_MINUTES_FIELD, "Mean value for the last fifteen minutes", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_HOUR_FIELD, "Mean value for the last hour", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_12_HOURS_FIELD, "Mean value for the last twelve hours", SimpleType.DOUBLE)
+            .addItem(MEAN_VALUE_PER_DAY_FIELD, "Mean value for the last day", SimpleType.DOUBLE)
             //max values
             .addItem(MAX_VALUE_FOR_LAST_SECOND_FIELD, "Maximum value for the last second", SimpleType.LONG)
             .addItem(MAX_VALUE_FOR_LAST_MINUTE_FIELD, "Maximum value for the last minute", SimpleType.LONG)
@@ -676,13 +676,13 @@ public final class MetricsConverter {
                 .put(PERCENTILE_95_FIELD, gauge.getQuantile(0.95F))
                 .put(PERCENTILE_97_FIELD, gauge.getQuantile(0.97F))
                 //mean values
-                .put(MEAN_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMeanValue(MetricsInterval.SECOND))
-                .put(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMeanValue(MetricsInterval.MINUTE))
-                .put(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, gauge.getLastMeanValue(MetricsInterval.FIVE_MINUTES))
-                .put(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, gauge.getLastMeanValue(MetricsInterval.QUARTER_OF_HOUR))
-                .put(MEAN_VALUE_FOR_LAST_HOUR_FIELD, gauge.getLastMeanValue(MetricsInterval.HOUR))
-                .put(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, gauge.getLastMeanValue(MetricsInterval.HALF_DAY))
-                .put(MEAN_VALUE_FOR_LAST_DAY_FIELD, gauge.getLastMeanValue(MetricsInterval.DAY))
+                .put(MEAN_VALUE_PER_SECOND_FIELD, gauge.getMeanValue(MetricsInterval.SECOND))
+                .put(MEAN_VALUE_PER_MINUTE_FIELD, gauge.getMeanValue(MetricsInterval.MINUTE))
+                .put(MEAN_VALUE_PER_5_MINUTES_FIELD, gauge.getMeanValue(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_VALUE_PER_15_MINUTES_FIELD, gauge.getMeanValue(MetricsInterval.QUARTER_OF_HOUR))
+                .put(MEAN_VALUE_PER_HOUR_FIELD, gauge.getMeanValue(MetricsInterval.HOUR))
+                .put(MEAN_VALUE_PER_12_HOURS_FIELD, gauge.getMeanValue(MetricsInterval.HALF_DAY))
+                .put(MEAN_VALUE_PER_DAY_FIELD, gauge.getMeanValue(MetricsInterval.DAY))
                 //max values
                 .put(MAX_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMaxValue(MetricsInterval.SECOND))
                 .put(MAX_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMaxValue(MetricsInterval.MINUTE))
@@ -769,13 +769,13 @@ public final class MetricsConverter {
                 .put(PERCENTILE_95_FIELD, gauge.getQuantile(0.95F))
                 .put(PERCENTILE_97_FIELD, gauge.getQuantile(0.97F))
                 //mean values
-                .put(MEAN_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMeanValue(MetricsInterval.SECOND))
-                .put(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMeanValue(MetricsInterval.MINUTE))
-                .put(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, gauge.getLastMeanValue(MetricsInterval.FIVE_MINUTES))
-                .put(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, gauge.getLastMeanValue(MetricsInterval.QUARTER_OF_HOUR))
-                .put(MEAN_VALUE_FOR_LAST_HOUR_FIELD, gauge.getLastMeanValue(MetricsInterval.HOUR))
-                .put(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, gauge.getLastMeanValue(MetricsInterval.HALF_DAY))
-                .put(MEAN_VALUE_FOR_LAST_DAY_FIELD, gauge.getLastMeanValue(MetricsInterval.DAY))
+                .put(MEAN_VALUE_PER_SECOND_FIELD, gauge.getMeanValue(MetricsInterval.SECOND))
+                .put(MEAN_VALUE_PER_MINUTE_FIELD, gauge.getMeanValue(MetricsInterval.MINUTE))
+                .put(MEAN_VALUE_PER_5_MINUTES_FIELD, gauge.getMeanValue(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_VALUE_PER_15_MINUTES_FIELD, gauge.getMeanValue(MetricsInterval.QUARTER_OF_HOUR))
+                .put(MEAN_VALUE_PER_HOUR_FIELD, gauge.getMeanValue(MetricsInterval.HOUR))
+                .put(MEAN_VALUE_PER_12_HOURS_FIELD, gauge.getMeanValue(MetricsInterval.HALF_DAY))
+                .put(MEAN_VALUE_PER_DAY_FIELD, gauge.getMeanValue(MetricsInterval.DAY))
                 //max values
                 .put(MAX_VALUE_FOR_LAST_SECOND_FIELD, gauge.getLastMaxValue(MetricsInterval.SECOND))
                 .put(MAX_VALUE_FOR_LAST_MINUTE_FIELD, gauge.getLastMaxValue(MetricsInterval.MINUTE))
@@ -861,13 +861,13 @@ public final class MetricsConverter {
                 .put(PERCENTILE_95_FIELD, timer.getQuantile(0.95F))
                 .put(PERCENTILE_97_FIELD, timer.getQuantile(0.97F))
                 //mean values
-                .put(MEAN_VALUE_FOR_LAST_SECOND_FIELD, timer.getLastMeanValue(MetricsInterval.SECOND))
-                .put(MEAN_VALUE_FOR_LAST_MINUTE_FIELD, timer.getLastMeanValue(MetricsInterval.MINUTE))
-                .put(MEAN_VALUE_FOR_LAST_5_MINUTES_FIELD, timer.getLastMeanValue(MetricsInterval.FIVE_MINUTES))
-                .put(MEAN_VALUE_FOR_LAST_15_MINUTES_FIELD, timer.getLastMeanValue(MetricsInterval.QUARTER_OF_HOUR))
-                .put(MEAN_VALUE_FOR_LAST_HOUR_FIELD, timer.getLastMeanValue(MetricsInterval.HOUR))
-                .put(MEAN_VALUE_FOR_LAST_12_HOURS_FIELD, timer.getLastMeanValue(MetricsInterval.HALF_DAY))
-                .put(MEAN_VALUE_FOR_LAST_DAY_FIELD, timer.getLastMeanValue(MetricsInterval.DAY))
+                .put(MEAN_VALUE_PER_SECOND_FIELD, timer.getMeanValue(MetricsInterval.SECOND))
+                .put(MEAN_VALUE_PER_MINUTE_FIELD, timer.getMeanValue(MetricsInterval.MINUTE))
+                .put(MEAN_VALUE_PER_5_MINUTES_FIELD, timer.getMeanValue(MetricsInterval.FIVE_MINUTES))
+                .put(MEAN_VALUE_PER_15_MINUTES_FIELD, timer.getMeanValue(MetricsInterval.QUARTER_OF_HOUR))
+                .put(MEAN_VALUE_PER_HOUR_FIELD, timer.getMeanValue(MetricsInterval.HOUR))
+                .put(MEAN_VALUE_PER_12_HOURS_FIELD, timer.getMeanValue(MetricsInterval.HALF_DAY))
+                .put(MEAN_VALUE_PER_DAY_FIELD, timer.getMeanValue(MetricsInterval.DAY))
                 //max values
                 .put(MAX_VALUE_FOR_LAST_SECOND_FIELD, timer.getLastMaxValue(MetricsInterval.SECOND))
                 .put(MAX_VALUE_FOR_LAST_MINUTE_FIELD, timer.getLastMaxValue(MetricsInterval.MINUTE))

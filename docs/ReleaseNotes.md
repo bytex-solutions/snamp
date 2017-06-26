@@ -1,4 +1,5 @@
-# SNAMP 2.0.0
+SNAMP 2.0.0
+====
 Major update of SNAMP platform and its components. A new functionality includes:
 
 * Group of resources

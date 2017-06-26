@@ -73,8 +73,8 @@ public class RangedGauge64Recorder extends RangedValue64Recorder implements Rang
     }
 
     @Override
-    public final double getLastMeanValue(final MetricsInterval interval) {
-        return gauge64.getLastMeanValue(interval);
+    public final double getMeanValue(final MetricsInterval interval) {
+        return gauge64.getMeanValue(interval);
     }
 
     /**
