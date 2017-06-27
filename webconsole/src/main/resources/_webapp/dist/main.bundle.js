@@ -106442,7 +106442,7 @@ var EntityDescriptor = (function () {
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
@@ -106464,22 +106464,16 @@ var ParametersTable = (function () {
         this.stubValue = model_paramDescriptor_1.ParamDescriptor.stubValue;
         this.containsRequired = false;
         this.containsOptional = false;
+        this.paramDescriptors = [];
     }
-    ParametersTable.prototype.ngOnInit = function () {
-        var _this = this;
-        this.entity.paramDescriptors.subscribe(function (descriptors) {
-            for (var i in descriptors) {
-                if (descriptors[i].required) {
-                    _this.containsRequired = true;
-                }
-                else {
-                    _this.containsOptional = true;
-                }
+    ParametersTable.prototype.ngOnInit = function () { };
+    ParametersTable.prototype.isParameterRequired = function (key) {
+        for (var i = 0; i < this.paramDescriptors.length; i++) {
+            if (this.paramDescriptors[i].name == key && this.paramDescriptors[i].required) {
+                return true;
             }
-            if (_this.selectedParam == undefined && descriptors.length > 0) {
-                _this.selectedParam = descriptors[0];
-            }
-        });
+        }
+        return false;
     };
     ParametersTable.prototype.getUrlForParameter = function (key) {
         return app_restClient_1.REST.ENTITY_PARAMETERS(this.entity.getName(), this.entity.name, key);
@@ -106498,27 +106492,25 @@ var ParametersTable = (function () {
     };
     ParametersTable.prototype.checkAndRemoveParameter = function (parameter) {
         var _this = this;
-        this.entity.isParamRequired(parameter.key).subscribe(function (res) {
-            if (res) {
-                _this.modal.confirm()
-                    .className('default')
-                    .isBlocking(true)
-                    .keyboard(27)
-                    .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
-                    .open()
-                    .then(function (resultPromise) {
-                    return resultPromise.result
-                        .then(function (response) {
-                        _this.removeParameter(parameter);
-                        return response;
-                    })
-                        .catch(function () { return false; });
-                });
-            }
-            else {
-                _this.removeParameter(parameter);
-            }
-        });
+        if (this.isParameterRequired(parameter.key)) {
+            this.modal.confirm()
+                .className('default')
+                .isBlocking(true)
+                .keyboard(27)
+                .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
+                .open()
+                .then(function (resultPromise) {
+                return resultPromise.result
+                    .then(function (response) {
+                    _this.removeParameter(parameter);
+                    return response;
+                })
+                    .catch(function () { return false; });
+            }).catch(function () { return false; });
+        }
+        else {
+            this.removeParameter(parameter);
+        }
     };
     ParametersTable.prototype.addNewParameter = function () {
         var _this = this;
@@ -106558,17 +106550,41 @@ var ParametersTable = (function () {
         this.selectedParam = undefined;
     };
     ParametersTable.prototype.clear = function () {
-        if (!util_1.isNullOrUndefined(this.listParamValue)) {
-            this.listParamValue.nativeElement.value = "";
-        }
-        if (!util_1.isNullOrUndefined(this.customParamValue)) {
-            this.customParamValue.nativeElement.value = this.stubValue;
-        }
-        if (!util_1.isNullOrUndefined(this.newParamElement)) {
-            this.newParamElement.nativeElement.value = "";
-        }
-        this.entity.updateDescriptors();
-        this.cd.detectChanges();
+        var _this = this;
+        this.http.getWithErrors(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.entity.getDescriptionType(), this.entity.type))
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            if (!util_1.isNullOrUndefined(_this.listParamValue)) {
+                _this.listParamValue.nativeElement.value = "";
+            }
+            if (!util_1.isNullOrUndefined(_this.customParamValue)) {
+                _this.customParamValue.nativeElement.value = _this.stubValue;
+            }
+            if (!util_1.isNullOrUndefined(_this.newParamElement)) {
+                _this.newParamElement.nativeElement.value = "";
+            }
+            _this.containsRequired = false;
+            _this.containsOptional = false;
+            _this.paramDescriptors = [];
+            for (var i = 0; i < data.length; i++) {
+                var _tmp = new model_paramDescriptor_1.ParamDescriptor(data[i]);
+                if (_tmp.name != "smartMode") {
+                    _this.paramDescriptors.push(_tmp);
+                    if (_tmp.required) {
+                        _this.containsRequired = true;
+                    }
+                    else {
+                        _this.containsOptional = true;
+                    }
+                }
+            }
+            if (_this.selectedParam == undefined && _this.paramDescriptors.length > 0) {
+                _this.selectedParam = _this.paramDescriptors[0];
+            }
+            console.log("After all we got: ", _this.paramDescriptors, _this.containsRequired, _this.containsOptional);
+            _this.cd.detectChanges();
+            $("#addParam").modal("show");
+        });
     };
     ParametersTable.prototype.isOverriddable = function () {
         return (this.entity instanceof model_resource_1.Resource)
@@ -106576,11 +106592,10 @@ var ParametersTable = (function () {
             && (this.entity.groupName.length > 0);
     };
     ParametersTable.prototype.triggerOverride = function (event, param) {
-        console.log("They trigger for the entity " + this.entity.name + " and param with name " + param + " is now " + event);
         this.entity.toggleOverridden(param);
         this.http.put(app_restClient_1.REST.OVERRIDES_BY_NAME(this.entity.name), this.entity.overriddenProperties)
             .map(function (res) { return res.text(); })
-            .subscribe(function (data) {
+            .subscribe(function () {
             console.log("Saved overrides");
         });
     };
@@ -106621,6 +106636,7 @@ var ParametersTable = (function () {
 }());
 exports.ParametersTable = ParametersTable;
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -107106,7 +107122,7 @@ module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade
 /***/ "./src/app/configuration/components/templates/parameters-table.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for parameter appending -->\r\n<div class=\"modal fade\" id=\"addParam\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addParamModalLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addParamModalLabel\">Appending new parameter to {{entity.name}} {{entity.getName()}}</h4>\r\n            </div>\r\n            <div class=\"modal-body\">\r\n                <div class=\"row\">\r\n                    <!-- accordeon element -->\r\n                    <div class=\"col-md-5\">\r\n                        <div class=\"panel-group group-accordeon\" id=\"paramAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                            <div class=\"panel panel-default\" *ngIf=\"containsRequired\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseRequired\" [attr.aria-expanded]=\"containsRequired\" aria-controls=\"collapseRequired\">\r\n                                            Required\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseRequired\" class=\"panel-collapse collapse\" [class.in]=\"containsRequired\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group leftAlign\" *ngFor=\"let descr of entity.paramDescriptors | async | required\">\r\n                                              <span class=\"input-group-addon\">\r\n                                                 <input\r\n                                                         type=\"radio\"\r\n                                                         name=\"optionsRadios1\"\r\n                                                         id=\"optionsRadios1\"\r\n                                                         [value]=\"descr\"\r\n                                                         [checked]=\"selectedParam == descr\"\r\n                                                         [(ngModel)]=\"selectedParam\">\r\n                                              </span>\r\n                                             <input type=\"text\" class=\"form-control\" value=\"{{descr.name}}\">\r\n                                             <span class=\"input-group-addon\"  *ngIf=\"entity.contains(descr.name)\">\r\n                                                  <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                             </span>\r\n                                        </div><!-- /input-group -->\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"panel panel-default\" *ngIf=\"containsOptional\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseOptional\" [attr.aria-expanded]=\"!containsRequired && containsOptional\" aria-controls=\"collapseOptional\">\r\n                                            Optional\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseOptional\" class=\"panel-collapse collapse\" [class.in]=\"!containsRequired && containsOptiona\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group leftAlign\" *ngFor=\"let descr of entity.paramDescriptors | async | optional\">\r\n                                              <span class=\"input-group-addon\">\r\n                                                  <input\r\n                                                          type=\"radio\"\r\n                                                          name=\"optionsRadios2\"\r\n                                                          id=\"optionsRadios2\"\r\n                                                          [value]=\"descr\"\r\n                                                          [checked]=\"selectedParam == descr\"\r\n                                                          [(ngModel)]=\"selectedParam\">\r\n                                              </span>\r\n                                             <input type=\"text\" class=\"form-control\" value=\"{{descr.name}}\">\r\n                                             <span class=\"input-group-addon\"  *ngIf=\"entity.contains(descr.name)\">\r\n                                                  <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                             </span>\r\n                                        </div><!-- /input-group -->\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"panel panel-default\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a class=\"collapsed\"\r\n                                           role=\"button\"\r\n                                           data-toggle=\"collapse\"\r\n                                           data-parent=\"#paramAccordion\"\r\n                                           href=\"#collapseCustom\"\r\n                                           [attr.aria-expanded]=\"!containsRequired && !containsOptional\"\r\n                                           aria-controls=\"collapseCustom\"\r\n                                           (click)=\"flushSelected()\">\r\n                                            Custom parameter key\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseCustom\" class=\"panel-collapse collapse\" [class.in]=\"!containsRequired && !containsOptiona\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group\">\r\n                                            <span class=\"input-group-addon\">Name:</span>\r\n                                            <input type=\"text\" class=\"form-control\" #newParam >\r\n                                        </div>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <!-- description window -->\r\n                    <div class=\"col-md-7\">\r\n                        <!-- if we have selected param from required/optional section -->\r\n                        <div class=\"panel panel-default leftAlign\" *ngIf=\"selectedParam != undefined\">\r\n                            <div class=\"panel-heading\">\r\n                                <h3 class=\"panel-title\">Details of parameter {{selectedParam.name}}</h3>\r\n                            </div>\r\n                            <div class=\"panel-body\">\r\n                                <!-- List group -->\r\n                                <ul class=\"list-group\">\r\n                                    <li class=\"list-group-item list-group-item-warning\" *ngIf=\"selectedParam.required != ''\">Required: {{selectedParam.required}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.pattern != ''\">Pattern: {{selectedParam.pattern}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.defaultValue != ''\">Default value: {{selectedParam.defaultValue}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.association != ''\">Associated parameters: {{selectedParam.association}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.exclucion != ''\">Exclucion parameters: {{selectedParam.exclucion}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.extension != ''\">Extension parameters: {{selectedParam.extension}}</li>\r\n                                    <div class=\"input-group\">\r\n                                        <span class=\"input-group-addon\">Value:</span>\r\n                                        <input\r\n                                               type=\"text\"\r\n                                               class=\"form-control\"\r\n                                               #listParamValue\r\n                                               value=\"{{selectedParam.defaultValue != '' ? selectedParam.defaultValue : stabValue}}\">\r\n                                    </div>\r\n                                </ul>\r\n                            </div>\r\n                        </div>\r\n                        <!-- in case user wants to append custom parameter -->\r\n                        <div class=\"panel panel-default leftAlign\" *ngIf=\"selectedParam == undefined\">\r\n                            <div class=\"panel-heading\">\r\n                                <h3 class=\"panel-title\">Custom parameter value</h3>\r\n                            </div>\r\n                            <div class=\"panel-body\">\r\n                                <div class=\"input-group\">\r\n                                    <span class=\"input-group-addon\">Value:</span>\r\n                                    <input\r\n                                            type=\"text\"\r\n                                            class=\"form-control\"\r\n                                            #customParamValue\r\n                                            value=\"{{stabValue}}\">\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n                <div class=\"wall well-sm leftAlign\">\r\n                    *icon <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span> means configuration already contains this parameter\r\n                </div>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"addNewParameter()\">Save changes</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<table class=\"table\" *ngIf=\"entity.parameters && entity.parameters.length > 0\">\r\n    <thead>\r\n    <tr>\r\n        <th>#</th>\r\n        <th>Key</th>\r\n        <th>Value</th>\r\n        <th *ngIf=\"isOverriddable()\">Override</th>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr *ngFor=\"let param of entity.parameters\">\r\n        <td>\r\n            <span\r\n                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                (click)=\"checkAndRemoveParameter(param)\"\r\n                aria-hidden=\"true\">\r\n            </span>\r\n        </td>\r\n        <td>{{param.key}}</td>\r\n        <td>\r\n            <inline-edit [(ngModel)]=\"param.value\"\r\n                         [ngModelOptions]=\"{standalone: true}\"\r\n                         (onSave)=\"saveParameter(param)\"\r\n                         [uniqueKey]=\"param.key\">\r\n            </inline-edit>\r\n        </td>\r\n        <td *ngIf=\"isOverriddable()\">\r\n            <ui-switch\r\n                    [checked]=\"isOverridden(param.key)\"\r\n                    (change)=\"triggerOverride($event, param.key)\"\r\n                    [size]=\"'small'\">\r\n            </ui-switch>\r\n        </td>\r\n    </tr>\r\n    </tbody>\r\n</table>\r\n\r\n<button\r\n        type=\"button\"\r\n        style=\"float: right;\"\r\n        class=\"btn btn-primary btn-sm\"\r\n        data-toggle=\"modal\"\r\n        data-target=\"#addParam\"\r\n        (click)=\"clear()\">\r\n    Add new\r\n</button>"
+module.exports = "<!-- Modal for parameter appending -->\r\n<div class=\"modal fade\" id=\"addParam\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addParamModalLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addParamModalLabel\">Appending new parameter to {{entity.name}} {{entity.getName()}}</h4>\r\n            </div>\r\n            <div class=\"modal-body\">\r\n                <div class=\"row\">\r\n                    <!-- accordeon element -->\r\n                    <div class=\"col-md-5\">\r\n                        <div class=\"panel-group group-accordeon\" id=\"paramAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                            <div class=\"panel panel-default\" *ngIf=\"containsRequired\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseRequired\" [attr.aria-expanded]=\"containsRequired\" aria-controls=\"collapseRequired\">\r\n                                            Required\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseRequired\" class=\"panel-collapse collapse\" [class.in]=\"containsRequired\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group leftAlign\" *ngFor=\"let descr of paramDescriptors | required\">\r\n                                              <span class=\"input-group-addon\">\r\n                                                 <input\r\n                                                         type=\"radio\"\r\n                                                         name=\"optionsRadios1\"\r\n                                                         id=\"optionsRadios1\"\r\n                                                         [value]=\"descr\"\r\n                                                         [checked]=\"selectedParam == descr\"\r\n                                                         [(ngModel)]=\"selectedParam\">\r\n                                              </span>\r\n                                             <input type=\"text\" class=\"form-control\" value=\"{{descr.name}}\">\r\n                                             <span class=\"input-group-addon\"  *ngIf=\"entity.contains(descr.name)\">\r\n                                                  <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                             </span>\r\n                                        </div><!-- /input-group -->\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"panel panel-default\" *ngIf=\"containsOptional\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseOptional\" [attr.aria-expanded]=\"!containsRequired && containsOptional\" aria-controls=\"collapseOptional\">\r\n                                            Optional\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseOptional\" class=\"panel-collapse collapse\" [class.in]=\"!containsRequired && containsOptional\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group leftAlign\" *ngFor=\"let descr of paramDescriptors | optional\">\r\n                                              <span class=\"input-group-addon\">\r\n                                                  <input\r\n                                                          type=\"radio\"\r\n                                                          name=\"optionsRadios2\"\r\n                                                          id=\"optionsRadios2\"\r\n                                                          [value]=\"descr\"\r\n                                                          [checked]=\"selectedParam == descr\"\r\n                                                          [(ngModel)]=\"selectedParam\">\r\n                                              </span>\r\n                                             <input type=\"text\" class=\"form-control\" value=\"{{descr.name}}\">\r\n                                             <span class=\"input-group-addon\"  *ngIf=\"entity.contains(descr.name)\">\r\n                                                  <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                             </span>\r\n                                        </div><!-- /input-group -->\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"panel panel-default\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a class=\"collapsed\"\r\n                                           role=\"button\"\r\n                                           data-toggle=\"collapse\"\r\n                                           data-parent=\"#paramAccordion\"\r\n                                           href=\"#collapseCustom\"\r\n                                           [attr.aria-expanded]=\"!containsRequired && !containsOptional\"\r\n                                           aria-controls=\"collapseCustom\"\r\n                                           (click)=\"flushSelected()\">\r\n                                            Custom parameter key\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseCustom\" class=\"panel-collapse collapse\" [class.in]=\"!containsRequired && !containsOptional\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group\">\r\n                                            <span class=\"input-group-addon\">Name:</span>\r\n                                            <input type=\"text\" class=\"form-control\" #newParam >\r\n                                        </div>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <!-- description window -->\r\n                    <div class=\"col-md-7\">\r\n                        <!-- if we have selected param from required/optional section -->\r\n                        <div class=\"panel panel-default leftAlign\" *ngIf=\"selectedParam != undefined\">\r\n                            <div class=\"panel-heading\">\r\n                                <h3 class=\"panel-title\">Details of parameter {{selectedParam.name}}</h3>\r\n                            </div>\r\n                            <div class=\"panel-body\">\r\n                                <!-- List group -->\r\n                                <ul class=\"list-group\">\r\n                                    <li class=\"list-group-item list-group-item-warning\" *ngIf=\"selectedParam.required != ''\">Required: {{selectedParam.required}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.pattern != ''\">Pattern: {{selectedParam.pattern}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.defaultValue != ''\">Default value: {{selectedParam.defaultValue}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.association != ''\">Associated parameters: {{selectedParam.association}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.exclucion != ''\">Exclucion parameters: {{selectedParam.exclucion}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.extension != ''\">Extension parameters: {{selectedParam.extension}}</li>\r\n                                    <div class=\"input-group\">\r\n                                        <span class=\"input-group-addon\">Value:</span>\r\n                                        <input\r\n                                               type=\"text\"\r\n                                               class=\"form-control\"\r\n                                               #listParamValue\r\n                                               value=\"{{selectedParam.defaultValue != '' ? selectedParam.defaultValue : stabValue}}\">\r\n                                    </div>\r\n                                </ul>\r\n                            </div>\r\n                        </div>\r\n                        <!-- in case user wants to append custom parameter -->\r\n                        <div class=\"panel panel-default leftAlign\" *ngIf=\"selectedParam == undefined\">\r\n                            <div class=\"panel-heading\">\r\n                                <h3 class=\"panel-title\">Custom parameter value</h3>\r\n                            </div>\r\n                            <div class=\"panel-body\">\r\n                                <div class=\"input-group\">\r\n                                    <span class=\"input-group-addon\">Value:</span>\r\n                                    <input\r\n                                            type=\"text\"\r\n                                            class=\"form-control\"\r\n                                            #customParamValue\r\n                                            value=\"{{stabValue}}\">\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n                <div class=\"wall well-sm leftAlign\">\r\n                    *icon <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span> means configuration already contains this parameter\r\n                </div>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"addNewParameter()\">Save changes</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<table class=\"table\" *ngIf=\"entity.parameters && entity.parameters.length > 0\">\r\n    <thead>\r\n    <tr>\r\n        <th>#</th>\r\n        <th>Key</th>\r\n        <th>Value</th>\r\n        <th *ngIf=\"isOverriddable()\">Override</th>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr *ngFor=\"let param of entity.parameters\">\r\n        <td>\r\n            <span\r\n                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                (click)=\"checkAndRemoveParameter(param)\"\r\n                aria-hidden=\"true\">\r\n            </span>\r\n        </td>\r\n        <td>{{param.key}}</td>\r\n        <td>\r\n            <inline-edit [(ngModel)]=\"param.value\"\r\n                         [ngModelOptions]=\"{standalone: true}\"\r\n                         (onSave)=\"saveParameter(param)\"\r\n                         [uniqueKey]=\"param.key\">\r\n            </inline-edit>\r\n        </td>\r\n        <td *ngIf=\"isOverriddable()\">\r\n            <ui-switch\r\n                    [checked]=\"isOverridden(param.key)\"\r\n                    (change)=\"triggerOverride($event, param.key)\"\r\n                    [size]=\"'small'\">\r\n            </ui-switch>\r\n        </td>\r\n    </tr>\r\n    </tbody>\r\n</table>\r\n\r\n<button\r\n        type=\"button\"\r\n        style=\"float: right;\"\r\n        class=\"btn btn-primary btn-sm\"\r\n        (click)=\"clear()\">\r\n    Add new\r\n</button>"
 
 /***/ },
 
@@ -107755,7 +107771,6 @@ exports.SubEntity = SubEntity;
 "use strict";
 "use strict";
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
 var TypedEntity = (function (_super) {
     __extends(TypedEntity, _super);
@@ -107765,28 +107780,8 @@ var TypedEntity = (function (_super) {
         this.type = type;
         this.name = name;
     }
-    TypedEntity.prototype.updateDescriptors = function () {
-        var _this = this;
-        this.paramDescriptors = this.http.get(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.getDescriptionType(), this.type))
-            .map(function (res) {
-            console.log(_this.getDescriptionType(), _this.type, res);
-            var data = res.json();
-            var returnValue = [];
-            for (var obj in data) {
-                returnValue.push(new model_paramDescriptor_1.ParamDescriptor(data[obj]));
-            }
-            return returnValue;
-        });
-    };
     TypedEntity.prototype.getDescriptionType = function () {
         return this.getName();
-    };
-    TypedEntity.prototype.isParamRequired = function (name) {
-        return this.getParamDescriptor(name).map(function (res) { return res != undefined && res.required; });
-    };
-    TypedEntity.prototype.getParamDescriptor = function (name) {
-        return this.paramDescriptors
-            .map(function (descriptors) { return model_paramDescriptor_1.ParamDescriptor.getDescriptorByName(descriptors, name); });
     };
     TypedEntity.checkForRequiredFilled = function (inputValue, res) {
         var result = true;
@@ -107800,20 +107795,12 @@ var TypedEntity = (function (_super) {
         }
         return result;
     };
-    TypedEntity.prototype.isReadyToBeSaved = function () {
-        var _this = this;
-        return this.paramDescriptors.map(function (res) {
-            return TypedEntity.checkForRequiredFilled(_this.parameters, res);
-        });
-    };
     TypedEntity.prototype.stringify = function () {
         var resultValue = {};
         resultValue["type"] = this.type;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue);
     };
-    TypedEntity.SMART_MODE = "smartMode";
-    TypedEntity.GROUP = "group";
     return TypedEntity;
 }(model_entity_1.Entity));
 exports.TypedEntity = TypedEntity;

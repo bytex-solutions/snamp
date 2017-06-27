@@ -4,12 +4,9 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { ParamDescriptor } from './model.paramDescriptor';
 
-export abstract class   TypedEntity extends Entity {
+export abstract class TypedEntity extends Entity {
     public type:string;
     http:ApiClient;
-    private static readonly SMART_MODE = "smartMode";
-    private static readonly GROUP = "group";
-    public paramDescriptors:Observable<ParamDescriptor[]>;
     constructor(http:ApiClient, name:string, type:string, parameters: { [key:string]:string; }) {
         super(name, parameters);
         this.http = http;
@@ -17,30 +14,8 @@ export abstract class   TypedEntity extends Entity {
         this.name = name;
     }
 
-    public updateDescriptors():void {
-        this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this.getDescriptionType(), this.type))
-            .map((res: Response) => {
-                console.log(this.getDescriptionType(), this.type, res);
-                let data = res.json();
-                let returnValue:ParamDescriptor[] = [];
-                for (let obj in data) {
-                    returnValue.push(new ParamDescriptor(data[obj]));
-                }
-                return returnValue;
-            });
-    }
-
     public getDescriptionType():string {
         return this.getName();
-    }
-
-    public isParamRequired(name:string):Observable<boolean> {
-        return this.getParamDescriptor(name).map((res:ParamDescriptor) => res != undefined && res.required);
-    }
-
-    public getParamDescriptor(name:string):Observable<ParamDescriptor> {
-        return this.paramDescriptors
-            .map((descriptors:ParamDescriptor[]) => ParamDescriptor.getDescriptorByName(descriptors, name));
     }
 
     public static checkForRequiredFilled(inputValue:KeyValue[], res:ParamDescriptor[]):boolean {
@@ -54,12 +29,6 @@ export abstract class   TypedEntity extends Entity {
             }
          }
          return result;
-    }
-
-    public isReadyToBeSaved():Observable<boolean> {
-        return this.paramDescriptors.map((res:ParamDescriptor[]) => {
-            return TypedEntity.checkForRequiredFilled(this.parameters, res);
-        })
     }
 
     public stringify():string {

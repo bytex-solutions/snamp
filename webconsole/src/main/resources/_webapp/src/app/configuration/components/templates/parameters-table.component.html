@@ -21,7 +21,7 @@
                                 </div>
                                 <div id="collapseRequired" class="panel-collapse collapse" [class.in]="containsRequired" role="tabpanel" aria-labelledby="headingOne">
                                     <div class="panel-body">
-                                        <div class="input-group leftAlign" *ngFor="let descr of entity.paramDescriptors | async | required">
+                                        <div class="input-group leftAlign" *ngFor="let descr of paramDescriptors | required">
                                               <span class="input-group-addon">
                                                  <input
                                                          type="radio"
@@ -47,9 +47,9 @@
                                         </a>
                                     </h4>
                                 </div>
-                                <div id="collapseOptional" class="panel-collapse collapse" [class.in]="!containsRequired && containsOptiona" role="tabpanel" aria-labelledby="headingTwo">
+                                <div id="collapseOptional" class="panel-collapse collapse" [class.in]="!containsRequired && containsOptional" role="tabpanel" aria-labelledby="headingTwo">
                                     <div class="panel-body">
-                                        <div class="input-group leftAlign" *ngFor="let descr of entity.paramDescriptors | async | optional">
+                                        <div class="input-group leftAlign" *ngFor="let descr of paramDescriptors | optional">
                                               <span class="input-group-addon">
                                                   <input
                                                           type="radio"
@@ -82,7 +82,7 @@
                                         </a>
                                     </h4>
                                 </div>
-                                <div id="collapseCustom" class="panel-collapse collapse" [class.in]="!containsRequired && !containsOptiona" role="tabpanel" aria-labelledby="headingThree">
+                                <div id="collapseCustom" class="panel-collapse collapse" [class.in]="!containsRequired && !containsOptional" role="tabpanel" aria-labelledby="headingThree">
                                     <div class="panel-body">
                                         <div class="input-group">
                                             <span class="input-group-addon">Name:</span>
@@ -191,8 +191,6 @@
         type="button"
         style="float: right;"
         class="btn btn-primary btn-sm"
-        data-toggle="modal"
-        data-target="#addParam"
         (click)="clear()">
     Add new
 </button>

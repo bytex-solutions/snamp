@@ -34,21 +34,19 @@ export class ParametersTable implements OnInit {
     containsRequired:boolean = false;
     containsOptional:boolean = false;
 
+    paramDescriptors:ParamDescriptor[] = [];
+
     constructor(public http:ApiClient, public modal: Modal, private cd: ChangeDetectorRef) {}
 
-    ngOnInit():void {
-        this.entity.paramDescriptors.subscribe((descriptors:ParamDescriptor[]) => {
-            for (let i in descriptors) {
-               if (descriptors[i].required) {
-                   this.containsRequired = true;
-               } else {
-                   this.containsOptional = true;
-               }
+    ngOnInit():void {}
+
+    private isParameterRequired(key:string):boolean {
+        for (let i = 0; i < this.paramDescriptors.length; i++) {
+            if (this.paramDescriptors[i].name == key && this.paramDescriptors[i].required) {
+                return true;
             }
-            if (this.selectedParam == undefined && descriptors.length > 0) {
-                 this.selectedParam = descriptors[0];
-            }
-        });
+        }
+        return false;
     }
 
     getUrlForParameter(key:string):string {
@@ -68,26 +66,24 @@ export class ParametersTable implements OnInit {
     }
 
     checkAndRemoveParameter(parameter:KeyValue):void {
-        this.entity.isParamRequired(parameter.key).subscribe((res:boolean) => {
-             if (res) {
-                this.modal.confirm()
-                    .className(<VEXBuiltInThemes>'default')
-                    .isBlocking(true)
-                    .keyboard(27)
-                    .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
-                    .open()
-                    .then((resultPromise) => {
-                        return (<Promise<boolean>>resultPromise.result)
-                          .then((response) => {
-                            this.removeParameter(parameter);
-                            return response;
-                          })
-                          .catch(() =>  false);
-                      });
-            } else {
-                this.removeParameter(parameter);
-            }
-        });
+         if (this.isParameterRequired(parameter.key)) {
+            this.modal.confirm()
+                .className(<VEXBuiltInThemes>'default')
+                .isBlocking(true)
+                .keyboard(27)
+                .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
+                .open()
+                .then((resultPromise) => {
+                    return (<Promise<boolean>>resultPromise.result)
+                      .then((response) => {
+                        this.removeParameter(parameter);
+                        return response;
+                      })
+                      .catch(() =>  false);
+                  }).catch(() =>  false);
+        } else {
+            this.removeParameter(parameter);
+        }
     }
 
     addNewParameter():void {
@@ -127,17 +123,39 @@ export class ParametersTable implements OnInit {
     }
 
     clear():void {
-        if (!isNullOrUndefined(this.listParamValue)) {
-            this.listParamValue.nativeElement.value = "";
-        }
-        if (!isNullOrUndefined(this.customParamValue)) {
-            this.customParamValue.nativeElement.value = this.stubValue;
-        }
-        if (!isNullOrUndefined(this.newParamElement)) {
-            this.newParamElement.nativeElement.value = "";
-        }
-        this.entity.updateDescriptors();
-        this.cd.detectChanges();
+        this.http.getWithErrors(REST.ENTITY_PARAMETERS_DESCRIPTION(this.entity.getDescriptionType(), this.entity.type))
+            .map((res:Response) => res.json())
+            .subscribe((data:any) => {
+                if (!isNullOrUndefined(this.listParamValue)) {
+                    this.listParamValue.nativeElement.value = "";
+                }
+                if (!isNullOrUndefined(this.customParamValue)) {
+                    this.customParamValue.nativeElement.value = this.stubValue;
+                }
+                if (!isNullOrUndefined(this.newParamElement)) {
+                    this.newParamElement.nativeElement.value = "";
+                }
+                this.containsRequired = false;
+                this.containsOptional = false;
+                this.paramDescriptors = [];
+                for (let i = 0; i < data.length; i++) {
+                    let _tmp:ParamDescriptor = new ParamDescriptor(data[i]);
+                    if (_tmp.name != "smartMode") { // filter smart mode
+                        this.paramDescriptors.push(_tmp);
+                        if (_tmp.required) {
+                            this.containsRequired = true;
+                        } else {
+                            this.containsOptional = true;
+                        }
+                    }
+                }
+                if (this.selectedParam == undefined && this.paramDescriptors.length > 0) {
+                    this.selectedParam = this.paramDescriptors[0];
+                }
+                console.log("After all we got: ", this.paramDescriptors, this.containsRequired, this.containsOptional);
+                this.cd.detectChanges();
+                $("#addParam").modal("show");
+            });
     }
 
     isOverriddable():boolean {
@@ -147,11 +165,10 @@ export class ParametersTable implements OnInit {
     }
 
     triggerOverride(event:any, param:string):void {
-        console.log("They trigger for the entity " + this.entity.name + " and param with name " + param + " is now " + event);
         (<Resource>this.entity).toggleOverridden(param);
         this.http.put(REST.OVERRIDES_BY_NAME(this.entity.name), (<Resource>this.entity).overriddenProperties)
             .map((res:Response) => res.text())
-            .subscribe((data)=> {
+            .subscribe(()=> {
                 console.log("Saved overrides")
             });
     }
