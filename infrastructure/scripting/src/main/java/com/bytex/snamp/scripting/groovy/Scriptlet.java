@@ -36,7 +36,7 @@ import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
  */
 public abstract class Scriptlet extends Script implements ScriptingAPI {
     private static final String BUNDLE_CONTEXT_VAR = "bundleContext";
-    private ClusterMember clusterMember;
+    private ClusterMember clusterMember = ClusterMember.get(null);  //local member
 
     private static abstract class AttributeOperation<E extends JMException> implements Acceptor<ManagedResourceConnector, E> {
         private final String attributeName;

@@ -42,11 +42,12 @@ Composite Connector offers two types of attributes:
 
 ### Proxy attributes
 Configuration schema for proxy attributes:
-* _Name_ - name of attribute provided by composed resource connector/
+* _Name_ - name of attribute provided by composed resource connector.
 * Configuration parameters will be passed as-is into composed resource connector. The following configuration parameters used to describe proxy attributes correctly:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
+name | String | No | Name of the attribute in composed connector
 source | String | Yes | Type of resource connector used as a source for attribute | `jmx`
 
 ### Accumulators
@@ -112,8 +113,25 @@ def getValue() {
 ```
 
 ## Configuring events
+Each event configured in Composite Resource Connector has the following configuration schema:
+* _Category_ - notification category in composed connector. It is possible to use `name` configuration property for this purpose.
+* Configuration parameters:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+name | String | No | Category of notification in composed connector
+source | String | Yes | Type of resource connector used as a source for notification | `jmx`
+
 
 ## Configuring operations
+Each operation configured in Composite Resource Connector has the following configuration schema:
+* _Name_ - name of the operation in composed connector. It is possible to use `name` configuration property for this purpose.
+* Configuration parameters:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+name | String | No | Operation name in composed connector
+source | String | Yes | Type of resource connector used as a source for operation | `jmx`
 
 ## Health checks
 Health check returned by Composite Connector will be computed as a summary health check computed from all composed connectors.

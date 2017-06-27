@@ -6,6 +6,9 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
@@ -17,6 +20,7 @@ import com.bytex.snamp.scripting.groovy.TypeDeclarationDSL;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.Collection;
 import java.util.Set;
@@ -28,7 +32,7 @@ import java.util.stream.Collectors;
  * @version 2.0
  * @since 1.0
  */
-public abstract class ManagedResourceScriptlet extends Scriptlet implements ManagedResourceInfo, TypeDeclarationDSL {
+public abstract class ManagedResourceScriptlet extends Scriptlet implements ManagedResourceInfo, TypeDeclarationDSL, HealthCheckSupport {
     private static final String RESOURCE_NAME_PROPERTY = "resourceName";
     private static final String IS_DISCOVERY_PROPERTY = "discovery";
     private final KeyedObjects<String, GroovyAttributeBuilder> attributes;
@@ -130,6 +134,17 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
         else if(EventConfiguration.class.isAssignableFrom(entityType))
             return (Collection<T>) events.values().stream().map(GroovyEventBuilder::createConfiguration).collect(Collectors.toList());
         else return null;
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @return Status of the remove managed resource.
+     */
+    @Nonnull
+    @Override
+    public HealthStatus getStatus() {
+        return new OkStatus();
     }
 
     final Set<String> getAttributes(){

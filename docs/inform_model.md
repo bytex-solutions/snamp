@@ -71,6 +71,35 @@ Message | string | Human-readable description of the notification
 Sequence Number | int64 | Notification sequence number within the source. That is the serial number identifying particular instance of notification (in the context of the notification source). Notification model does not assume that notifications will be received in the same order that they are sent. Sequence number helps you to sort received notifications
 Payload | _any supported data type_ | Additional payload delivered from **managed resource**. Semantics of this part of the notification depends on the connected **managed reresource** and its management protocol
 
+## Health status
+Health status information can be provided by supervisor or resource connector.
+
+### Resource health status
+Health status provided by resource connector is called **resource health status** and has the following types:
+* **OK** indicates that everything if fine. It has the following characteristics:
+
+Characteristic | Description
+---- | ----
+Timestamp | Contains time stamp of the health check
+
+* **Malfunction** indicates that **managed resource** is fully or partially unavailable. It has the following characteristics:
+
+Characteristic | Description
+---- | ----
+Timestamp | Contains time stamp of the health check
+Malfunction level | Describes level of malfunction
+Data | Optional set of key/value pairs with additional important information about malfunction
+
+Possible malfunction levels:
+* _Low_ - warning messages, not an error, but indication that an error will occur if action is not taken, e.g. file system 85% full - each item must be resolved within given time.
+* _Moderate_ - non-urgent failures, these should be relayed to developers or admins; each item must be resolved within a given time.
+* _Substantial_ - should be corrected immediately, but indicates failure in a secondary system, an example is a loss of a backup ISP connection.
+* _Severe_ - should be corrected immediately, therefore notify staff who can fix the problem, an example would be the loss of a primary ISP connection.
+* _Critical_ - a "panic" condition usually affecting multiple apps/servers/sites. At this level it would usually notify all tech staff on call.
+
+### Group health status
+Group health status is provided by supervisor and consists of summary health status of the group and list of health statuses for each resource in the group. Summary health status may reflection additional information like cluster malfunction. Structure of the summary health status is identical to health status of the resource.
+
 ## Gauges
 Some resource connectors like _composite_ or _zipkin_ connector may expose gauges with statistics information. These gauges divided into the following categories:
 

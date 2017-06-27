@@ -101,9 +101,6 @@ XMPP Adapter provides value of the `freeMemoryRaw` and `freeMemory` in two diffe
 
 As you can see, configuration parameters depends on the Resource Adapter and Resource Connector. See [Configuring Resource Adapters](gateways/introduction.md) and [Configuring Resource Connectors](connectors/introduction.md) for more details about SNAMP configuration.
 
-### Smart mode
-Some resource connectors can expose attributes, events or operations without its manual configuration. In this case the connector automatically exposes all attributes, events or operations. So, these resource features will be accessible at runtime event if configuration section with attributes and events is empty. To enable smart mode of the connector you should specify `smartMode = true` in the configuration parameters of the resource.
-
 ## Using SNAMP Management Console
 SNAMP Management Console allows you to configure and maintain SNAMP via user-friendly Web interface in your browser.
 > SNAMP Management Console available in paid subscription only
@@ -112,87 +109,9 @@ The console supports the following configuration features:
 
 * [Highlight available Resource Adapters, Resource Connectors, configuration properties, attributes, events and operations](webconsole/configuration.md)
 * [Start, stop and restart resource adapters and connectors](webconsole/managing.md)
-* [Configure JAAS settings](webconsole/jaas.md)
-* [License management](webconsole/license.md)
 * [Detailed overview of platform and modules state](webconsole/general.md)
 
 SNAMP Management Console build on top of powerful [hawt.io](http://hawt.io) web console.
-
-## Using command-line interface
-Execute SNAMP using the following command
-
-```bash
-sh ./snamp/bin/karaf
-```
-
-... and you will see the following welcome screen:
-```
-_____ _   _          __  __ _____  
-/ ____| \ | |   /\   |  \/  |  __ \
-| (___ |  \| |  /  \  | \  / | |__) |
-\___ \| . ` | / /\ \ | |\/| |  ___/
-____) | |\  |/ ____ \| |  | | |
-|_____/|_| \_/_/    \_\_|  |_|_|
-
-Bytex SNAMP (1.0.0)
-
-Hit '<tab>' for a list of available commands
-and '[cmd] --help' for help on a specific command.
-Hit '<ctrl-d>' or type 'system:shutdown' or 'logout' to shutdown SNAMP.
-
-snamp.root@karaf>
-```
-
-Now you can use standard Karaf commands described [here](http://karaf.apache.org/manual/latest-3.0.x/users-guide/console.html).
-Also, SNAMP provides additional set of commands (started with **snamp** prefix):
-
-Command | Description
----- | ----
-snamp:adapter | Display configuration of the specified adapter instance
-snamp:configure-adapter | Configure new or existing instance of adapter
-snamp:configure-attribute | Configure new or existing attribute assigned to the managed resource
-snamp:configure-event | Configure new or existing event (notification) assigned to the managed resource
-snamp:configure-operation | Configure new or existing operation (notification) assigned to the managed resource
-snamp:configure-resource | Configure new or existing managed resource using the specified connector and connection string
-snamp:adapter-instances | List of configured adapter instances
-snamp:resources | List of configured managed resources
-snamp:read-attributes | Read attributes
-snamp:listen-events | Wait for events and display each of them
-snamp:suspend-events | Suspend events raised by the specified managed resource. This command is not cluster-wide
-snamp:resume-events | Resume events raised by the specified managed resource. This command is not cluster-wide
-snamp:delete-adapter | Delete adapter instance from configuration
-snamp:delete-adapter-param | Delete configuration parameter from the specified adapter instance
-snamp:delete-attribute | Delete attribute from the specified managed resource
-snamp:delete-attribute-param | Delete configuration parameter from the specified attribute
-snamp:delete-event | Delete event (notificaiton) from the specified managed resource
-snamp:delete-event-param | Delete configuration parameter from the specified event
-snamp:delete-operation | Delete operation from the specified managed resource
-snamp:delete-resource | Delete managed resource from configuration
-snamp:delete-resource-param | Delete configuration parameter from the specified resource
-snamp:dump-jaas | Save JAAS configuration in JSON format into the specified file
-snamp:setup-jaas | Load JAAS configuration from the external file
-snamp:installed-adapters | List of installed adapters
-snamp:installed-components | List of all installed SNAMP components including adapters and connectors
-snamp:installed-connectors | List of installed resource connectors
-snamp:reset-config | Setup empty SNAMP configuration
-snamp:resource | Show configuration of the managed resource including attributes, events and operations
-snamp:restart | Restart all adapters and connectors
-snamp:start-adapter | Start bundle with individual adapter
-snamp:start-connector | Start bundle with individual resource connector
-snamp:stop-adapter | Stop bundle with individual adapter
-snamp:stop-connector | Stop bundle with individual resource connector
-snamp:version | Show version of SNAMP platform
-snamp:cluster-member | Status of the SNAMP cluster member
-snamp:resource-metrics | Collect metrics provided by managed resources
-snamp:thread-pool-add | Register a new thread pool that can be used by resource connector or adapter through `threadPool` configuration property
-snamp:thread-pool-list | List of registered thread pools
-snamp:thread-pool-remove | Remove thread pool
-snamp:script | Execute JavaScript-based script to configure SNAMP
-
-Use `--help` flag to know more information about command and its parameters:
-```bash
-snamp:configure-resource --help
-```
 
 ## Using Management API
 There are several ways to change SNAMP configuration via management API:
@@ -375,47 +294,6 @@ The content of `config.json` file (used in previous command):
   "value": {"ResourceAdapters": { }, "ManagedResources": {} }
 }
 ```
-
-## Predefined configuration parameters
-SNAMP Configuration Model provides set of optional configuration parameters with predefined semantics.
-
-Parameter | Applied to | Meaning
----- | ---- | ----
-name | Event configuration, Attribute configuration, Operation configuration | Resource-specific name of the attribute, event or operation
-group | Anything | Name of the group used for grouping resources, adapters, attributes and etc.
-severity | Event configuration | Overrides severity of notification supplied by managed resource
-threadPool | Managed Resource or Resource Adapter configuration | Name of thread pool used by adapter or connector. If not specified then default thread pool is shared between all components.
-units | Attribute configuration | Unit of measurement (UOM) of the attribute value. For example: `ms`, `m`, `kg`, `MB`
-defaultValue | Attribute configuration | The default value of the attribute if the actual value is not available
-minValue | Attribute configuration | The minimum (exclusive) permitted value for the attribute
-maxValue | Attribute configuration | The maximum (exclusive) permitted value for the attribute
-smartMode | Resource configuration | Enable or disable smart mode of the connector. The possible values are `true` or `false`
-
-### `severity` parameter
-The possible values of `severity` parameter (in descending order):
-
-Value | Description
----- | ----
-panic | A `panic` condition usually affecting multiple apps/servers/sites. At this level it would usually notify all tech staff on call.
-alert | Should be corrected immediately, therefore notify staff who can fix the problem. An example would be the loss of a primary ISP connection.
-critical | Should be corrected immediately, but indicates failure in a secondary system, an example is a loss of a backup ISP connection.
-error | Non-urgent failures, these should be relayed to developers or admins; each item must be resolved within a given time.
-warning | Warning messages, not an error, but indication that an error will occur if action is not taken, e.g. file system 85% full - each item must be resolved within a given time.
-notice | Events that are unusual but not error conditions - might be summarized in an email to developers or admins to spot potential problems - no immediate action required.
-informational | Normal operational messages - may be harvested for reporting, measuring throughput, etc. - no action required.
-debug | Info useful to developers for debugging the application, not useful during operations.
-
-### Thread pool configuration parameters
-Some Resource Connectors and Adapters support use multi-threaded I/O operations. By default, SNAMP provides single thread pool shared across all connectors and adapters.
-The number of dedicated threads available to SNAMP components equal to `availableProcessors * 1.5`.
-
-Additional thread pools can be registered using `snamp:thread-pool-add` command. The name of the thread pool can be specified in `threadPool` configuration property associated with resource adapter or connector.
-
-Generally, SNAMP supports four major configuration of thread pool:
-* Limited capacity of the queue, limited count of threads.
-* Unlimited capacity of the queue, limited count of threads. In this case you should specify _2147483647_ value for `queueSize` parameter.
-* Limited capacity of the queue, unlimited count of threads. In this case you should specify _2147483647_ value for `maxPoolSize`
-* Unlimited capacity of the queue, unlimited count of threads. In this case you should specify _2147483647_ value for `maxPoolSize` and `queueSize`.
 
 ## Configuring OSGi
 All configuration files are located in `<snamp>/etc` folder. These files supply a low-level access to Apache Karaf configuration.
