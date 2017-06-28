@@ -11,13 +11,14 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 ## Administrator's Guide
 * [Installation](installation.md) - how to install SNAMP in standalone and clustered configuration
 * [Performance](performance.md) - how to tune SNAMP to fit performance requirements
+* [Configuration](configuration.md) - how to configure SNAMP installation
 * [Management](mgmt.md) - how to manage SNAMP
 * [Updating](updating.md) - how to install new SNAMP components and update old ones
 * [Release Notes](ReleaseNotes.md) - what's new in the current version of SNAMP
 
 ## User's Guide
 * [Overview of Web Console](webconsole/overview.md) - monitoring, tracing and elasticity management from browser
-* [Overview of SNAMP command-line interface](cli.md) -
+* [Overview of SNAMP command-line interface](cli.md) - configuring SNAMP from command line
 * Configuration using SNAMP Web Console
   * [Resource connectors](webconsole/config-connectors.md) - configuration of managed resources
   * [Resource groups](webconsole/config-groups.md) - configuration of resource groups
@@ -33,7 +34,7 @@ Advanced configuration:
 
 ## Developer's Guide
 * [Connecting resources using Groovy](connectors/groovy-connector.md) - how to connect object of monitoring to SNAMP using Groovy scripts
-* [Monitoring connected resources using Groovy](gateways/groovy-adapter.md) - how to collect and process management information from SNAMP using Groovy scripts
+* [Monitoring connected resources using Groovy](gateways/groovy-gateway.md) - how to collect and process management information from SNAMP using Groovy scripts
 * [SNAMP Instrumentation Library](instrumentation/introduction.md) - how enable send monitoring and tracing information from your applications to SNAMP
 * [Resource Discovery](resource-discovery.md) - how to automatically register new resources in SNAMP using REST API
 

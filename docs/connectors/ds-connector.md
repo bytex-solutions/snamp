@@ -87,3 +87,61 @@ resetMetric | attributeName(string) | _No result_ | Resets gauge provided by att
 
 ## Health check
 **Managed resource** should send health check periodically. Health check is valid during period of time specified in `heartbeat` parameter.
+
+## Notification parser
+The stream of monitoring data may consists of well-known measurements described by **SNAMP Instrumentation Library** or unstructured data. Unstructured data can be converted into well-known measurements using user-defined scripts.
+
+### Groovy-based parsers
+Groovy-based parser is any valid Groovy script with the following declaration:
+```groovy
+def parse(headers, body){
+}
+```
+
+Formal parameters:
+* `headers` parameter contains all protocol-specific headers
+* `body` parameter contains unstructured data
+
+Types of the parameters depend on the Resource Connector. For example, HTTP Acceptor passed HTTP headers into `headers` and request body into `body`.
+Well-known measurement can be constructed using two ways:
+* Using DSL extensions
+* Directly return `javax.management.Notification` from function `parse`
+
+DSL extensions for contructing well-known measurements:
+* `define measurement of <bool|integer|fp|string|time|span>` constructs a new instant measurement of specified type. `define` will add measurement to the result immediately
+* `define notification setType <type> setMessage <message> setSequenceNumber <seqnum>` constructs a new notification. `define` will add measurement to the result immediately
+
+The following example demonstrates usage of DSL extensions for parsing HTTP requests into well-known measurements:
+```groovy
+import groovy.util.slurpersupport.GPathResult
+
+private void sendTextMeasurement(String value){
+    def m = define measurement of string
+    m.name = "customStrings"
+    m.value = value
+    m.timeStamp = System.currentTimeMillis()
+}
+
+private def sendJsonMeasurement(json){
+    def m = define measurement of string
+    m.name = "customStrings"
+    m.value = json.content
+    m.timeStamp = System.currentTimeMillis()
+}
+
+private def sendXmlMeasurement(xml){
+    def m = define measurement of string
+    m.name = "customStrings"
+    m.value = xml.content.text()
+    m.timeStamp = System.currentTimeMillis()
+}
+
+def parse(headers, body){
+    if(body instanceof String)
+        sendTextMeasurement((String) body)
+    else if(body instanceof GPathResult)
+        sendXmlMeasurement(body)
+    else
+        sendJsonMeasurement(body)
+}
+```
