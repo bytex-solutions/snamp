@@ -1,0 +1,38 @@
+<table class="table" *ngIf="entity.parameters && entity.parameters.length > 0">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Key</th>
+        <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let param of entity.parameters">
+        <td>
+            <span
+                class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                (click)="removeParameter(param)"
+                aria-hidden="true">
+            </span>
+        </td>
+        <td>
+            <inline-edit [(ngModel)]="param.key"
+                         [ngModelOptions]="{standalone: true}">
+            </inline-edit>
+        </td>
+        <td>
+            <inline-edit [(ngModel)]="param.value"
+                         [ngModelOptions]="{standalone: true}">
+            </inline-edit>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<button
+        type="button"
+        style="float: right;"
+        class="btn btn-primary btn-sm"
+        (click)="addNewParameter()">
+    Add new
+</button>

@@ -5,15 +5,17 @@ import { IsInRangePredicate } from './range.comparator';
 import { Guid } from './entity';
 
 import { ColoredAttributeChecker } from './colored.checker';
+import {Entity, KeyValue} from "../../configuration/model/model.entity";
 
-export class ScriptletDataObject {
+export class ScriptletDataObject extends Entity {
     public language:string;
     public script:string;
     public isURL:boolean;
     public object:ColoredAttributeChecker;
     public id:string = Guid.newGuid();
 
-    constructor(){
+    constructor(params:any){
+        super("", params);
         this.language = "Groovy";
         this.script = "";
         this.isURL = false;
@@ -26,7 +28,7 @@ export class ScriptletDataObject {
 
     public static fromJSON(json:string):ScriptletDataObject {
         console.log("Json from data object is: ", json);
-        let instance:ScriptletDataObject = new ScriptletDataObject();
+        let instance:ScriptletDataObject = new ScriptletDataObject(json["parameters"]);
         if (json["language"] != undefined) {
             instance.language = json["language"];
         }
@@ -102,6 +104,7 @@ export class ScriptletDataObject {
         _value["language"] = this.language;
         _value["script"] = this.script;
         _value["url"] = this.isURL;
+        _value["parameters"] = this.stringifyParameters();
         if (this.language == "ColoredAttributeChecker") {
             if (this.object == undefined) {
                 throw new Error("Trying to serialize ColoredAttributeChecker instance without the object");

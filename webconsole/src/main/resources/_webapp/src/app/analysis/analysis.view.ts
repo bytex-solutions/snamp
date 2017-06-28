@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewEncapsulation, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
-import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { ActivatedRoute } from '@angular/router';
 
@@ -95,13 +94,16 @@ export class MainView implements OnInit {
                   this.handleCy(this._cyObject);
                   var _thisReference = this;
                   this.timerId = setInterval(function() {
-                     _thisReference._viewService.getDataForView(_view).subscribe(updateData => {
-                         _view.updateData(updateData);
-                         if (_thisReference.currentNodeId != undefined) {
-                            _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
-                         }
-                     });
+                      if (!document.hidden) {
+                             _thisReference._viewService.getDataForView(_view).subscribe(updateData => {
+                                 _view.updateData(updateData);
+                                 if (_thisReference.currentNodeId != undefined) {
+                                    _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
+                                 }
+                             })
+                      }
                    }, 3000);
+
             });
       });
    }

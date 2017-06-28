@@ -34,7 +34,7 @@ export class MainComponent implements OnInit {
     private attributes: AttributeInformation[] = [];
     private selectedAttribute: AttributeInformation = undefined;
 
-    private activeChecker: ScriptletDataObject = new ScriptletDataObject();
+    private activeChecker: ScriptletDataObject = new ScriptletDataObject({});
 
     private checkersType: EntityWithDescription[] = EntityWithDescription.generateCheckersTypes();
 
@@ -106,7 +106,7 @@ export class MainComponent implements OnInit {
         this.selectedComponent = component;
         this.loadAttributesOnComponentSelected();
         this.activeWatcher.name = component;
-        this.activeWatcher.trigger = new ScriptletDataObject();
+        this.activeWatcher.trigger = new ScriptletDataObject({});
         this.activeWatcher.attributeCheckers = {};
     }
 
@@ -127,7 +127,7 @@ export class MainComponent implements OnInit {
 
     public editCheckerForAttribute(attr: AttributeInformation): void {
         if (!this.activeWatcher.checkerExists(attr.name)) {
-            this.activeWatcher.attributeCheckers[attr.name] = new ScriptletDataObject();
+            this.activeWatcher.attributeCheckers[attr.name] = new ScriptletDataObject({});
         }
         this.activeChecker = this.activeWatcher.attributeCheckers[attr.name];
         this.selectedAttribute = attr;

@@ -251,12 +251,14 @@ var MainView = (function () {
                 _this.handleCy(_this._cyObject);
                 var _thisReference = _this;
                 _this.timerId = setInterval(function () {
-                    _thisReference._viewService.getDataForView(_view).subscribe(function (updateData) {
-                        _view.updateData(updateData);
-                        if (_thisReference.currentNodeId != undefined) {
-                            _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
-                        }
-                    });
+                    if (!document.hidden) {
+                        _thisReference._viewService.getDataForView(_view).subscribe(function (updateData) {
+                            _view.updateData(updateData);
+                            if (_thisReference.currentNodeId != undefined) {
+                                _thisReference.metadata = _thisReference._cyObject.$('#' + _thisReference.currentNodeId).data('arrival');
+                            }
+                        });
+                    }
                 }, 3000);
             });
         });

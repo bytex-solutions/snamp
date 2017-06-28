@@ -34,6 +34,12 @@
                       </a>
                     </li>
                     <li>
+                      <a [attr.href]="'#ptable'">
+                        Parameters<br />
+                        <small>Append parameters</small>
+                      </a>
+                    </li>
+                    <li>
                       <a [attr.href]="'#script'">
                         Script<br />
                         <small>Trigger's script</small>
@@ -72,6 +78,12 @@
                                   [size]="'small'">
                           </ui-switch>
                         </div>
+                      </div>
+                    </div>
+
+                    <div id="ptable" class="row" style="margin-top: 70px;">
+                      <div class="item form-group">
+                        <ptable [entity]="activeWatcher.trigger"></ptable>
                       </div>
                     </div>
 
@@ -142,6 +154,12 @@
                       </a>
                     </li>
                     <li>
+                      <a [attr.href]="'#checkerPTable'">
+                        Parameters<br />
+                        <small>Set parameters</small>
+                      </a>
+                    </li>
+                    <li>
                       <a [attr.href]="'#checkerBody'">
                         Checker's logic<br />
                         <small>What action will be performed</small>
@@ -184,6 +202,11 @@
                       </table>
                     </div>
 
+                    <div id="checkerPTable" class="row" style="margin-top: 70px;">
+                      <div class="item form-group">
+                        <ptable [entity]="activeChecker"></ptable>
+                      </div>
+                    </div>
 
                     <div id="checkerType" class="row" style="margin-top: 100px;">
                       <div class="item form-group">
@@ -293,8 +316,6 @@
         </div>
       </div>
 
-      <div class="col-md-6 col-sm-6 col-xs-12"></div>
-
       <panel [header]="getPanelHeader()" [column]="'6'" *ngIf="activeWatcher != undefined">
 
         <div class="row row-margin-bottom-sm">
@@ -346,6 +367,10 @@
         </div>
 
       </panel>
+
+      <panel [header]="'Watcher parameters'" [column]="'3'" *ngIf="activeWatcher != undefined">
+        <ptable [entity]="activeWatcher"></ptable>
+      </panel>
     </div>
 
     <div class="row" style="margin-top: 10px">
@@ -355,6 +380,11 @@
           <tr>
             <th>Actions</th>
             <th>Name</th>
+            <th>Type</th>
+            <th>Autoscaling</th>
+            <th>Scaling size</th>
+            <th>Cooldown time</th>
+            <th>Min/max cluster size</th>
             <th>Checkers</th>
             <th>Trigger</th>
           </tr>
@@ -374,6 +404,11 @@
               </span>
             </td>
             <th scope="row">{{watcher.name}}</th>
+            <th scope="row">{{watcher.type}}</th>
+            <th scope="row">{{watcher.autoScaling}}</th>
+            <th scope="row">{{watcher.scalingSize}}</th>
+            <th scope="row">{{watcher.cooldownTime}}</th>
+            <th scope="row">{{watcher.minClusterSize}}/{{watcher.maxClusterSize}}</th>
             <td>
               <checkers [entity]="watcher.attributeCheckers"></checkers>
             </td>
@@ -382,6 +417,11 @@
             </td>
           </tr>
           <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
