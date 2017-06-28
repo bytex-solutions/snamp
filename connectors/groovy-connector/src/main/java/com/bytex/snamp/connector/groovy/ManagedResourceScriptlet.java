@@ -6,7 +6,6 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
@@ -32,7 +31,7 @@ import java.util.stream.Collectors;
  * @version 2.0
  * @since 1.0
  */
-public abstract class ManagedResourceScriptlet extends Scriptlet implements ManagedResourceInfo, TypeDeclarationDSL, HealthCheckSupport {
+public abstract class ManagedResourceScriptlet extends Scriptlet implements ManagedResourceInfo, TypeDeclarationDSL {
     private static final String RESOURCE_NAME_PROPERTY = "resourceName";
     private static final String IS_DISCOVERY_PROPERTY = "discovery";
     private final KeyedObjects<String, GroovyAttributeBuilder> attributes;
@@ -142,8 +141,8 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
      * @return Status of the remove managed resource.
      */
     @Nonnull
-    @Override
-    public HealthStatus getStatus() {
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
+    protected HealthStatus getStatus() {
         return new OkStatus();
     }
 

@@ -269,6 +269,19 @@ operation {
 }
 ```
 
+### Programming health checks
+Health check can be implemented using the following declaration:
+```groovy
+import com.bytex.snamp.connector.health.HealthStatus
+
+protected HealthStatus getStatus(){
+  new OkStatus()
+}
+
+```
+
+If implementation of this method is not provided then connector always return OK status.
+
 ## Information Model Mapping
 This section describes mapping between Groovy data types and SNAMP Management Information Model
 

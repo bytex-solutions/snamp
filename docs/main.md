@@ -34,13 +34,8 @@ Advanced configuration:
 ## Developer's Guide
 * [Connecting resources using Groovy](connectors/groovy-connector.md) - how to connect object of monitoring to SNAMP using Groovy scripts
 * [Monitoring connected resources using Groovy](gateways/groovy-adapter.md) - how to collect and process management information from SNAMP using Groovy scripts
-* SNAMP Instrumentation Library - how enable send monitoring and tracing information from your applications to SNAMP
-  * [for Java](instrumentation/java.md) - for Java-based applications
+* [SNAMP Instrumentation Library](instrumentation/introduction.md) - how enable send monitoring and tracing information from your applications to SNAMP
 * [Resource Discovery](resource-discovery.md) - how to automatically register new resources in SNAMP using REST API
 
 ## Advanced Topics
 * [Management Information Model](inform_model.md) - how SNAMP represents and interprets management information
-* [Authentication & Authorization](jaas.md) - how to configure Java Authentication & Authorization Service
-
-## Examples
-* [Step-by-step guide](examples/complete-example.md) for SNAMP installation and configuration. Real-life example shows how to setup JMX-to-HTTP, JMX-to-SNMP, cmdline-to-HTTP, cmdline-to-SNMP bridges within a single SNAMP instance.

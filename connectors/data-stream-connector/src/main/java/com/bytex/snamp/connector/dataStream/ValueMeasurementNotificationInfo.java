@@ -8,6 +8,8 @@ import org.osgi.framework.InvalidSyntaxException;
  * Represents descriptor for notification of type {@link ValueMeasurementNotification}.
  */
 final class ValueMeasurementNotificationInfo extends SyntheticNotificationInfo {
+    private static final long serialVersionUID = 128520617064322629L;
+
     ValueMeasurementNotificationInfo(final NotificationDescriptor descriptor) throws InvalidSyntaxException {
         super(ValueMeasurementNotification.TYPE, ValueMeasurementNotification.class, "Occurs when instant measurement will be supplied", descriptor);
     }
