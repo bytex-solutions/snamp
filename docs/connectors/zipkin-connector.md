@@ -1,49 +1,38 @@
 Zipkin Connector
 ====
-HTTP Acceptor is a passive Resource Connector that accepts information with monitoring data from **managed resources** using HTTP transport and JSON format. The **managed resources** are responsible for delivering data asynchronously to this connector. This is a perfect solution for environment with numerous microservices. HTTP Acceptor uses this information to produce advanced metrics and statistics. But **managed resource** should use **SNAMP Instrumentation Library** and modify its code for delivering necessary data.
+Zipkin Connector is a passive Resource Connector that accepts information with monitoring data from Zipkin-enabled application using HTTP transport or Kafka. The **managed resources** are responsible for delivering data asynchronously to this connector. It is perfect solution if you use [Zipkin](http://zipkin.io/) in your enterprise. HTTP endpoint provided by this connector matches to HTTP endpoint provided by Zipkin: `/v1/spans`.
 
-HTTP Acceptor is an implementation on top of [Data Stream Connector](ds-connector.md) and provides the following HTTP endpoints for receiving measurements:
-* GET `/snamp/data/acquisition/ping` - used for testing purposes and returns generic information about connector
-* POST `/snamp/data/acquisition/measurements` - uploads JSON array with measurements
-* POST `/snamp/data/acquisition/measurement` - upload single measurement in JSON format
-* POST `/snamp/data/acquisition/` - upload measurement in custom format (`text/plain`, `application/json` or `application/xml`) and convert it into standard measurement using Groovy-based parser.
+> Host and port for this endpoint can be configured in `/etc` folder inside of SNAMP installation (read **Configuration** section in Administrator's Guide).
 
-> Host and port for these endpoints can be configured in `/etc` folder inside of SNAMP installation (read **Configuration** section in Administrator's Guide).
+The recommended way to process spans received from applications is to use [Apache Kafka](https://kafka.apache.org/).
 
-Many instances of this Resource Connector shares the same endpoints.
+![Communication Scheme](zipkin-connector.png)
+
+Zipkin Connector works well with Apache Kafka 0.8.
 
 ## Connection String
-Connection String is not used by HTTP Acceptor.
+Connection String is not used by Zipkin Connector.
 
 ## Configuration Parameters
-JMX Resource Connector recognizes the following parameters in addition to Data Stream Connector:
+Zipkin Connector recognizes the following parameters in addition to Data Stream Connector:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 parserScriptPath | string | Yes if used in conjunction with `parserScript` | URL to folder with user-defined Groovy-based parsers | `file:/opt/snamp/scripts`
-parserScript | string | Yes if used in conjunction with `parserScriptPath` | User-defined Groovy script used to parse unstructured HTTP requests | `HttpAcceptorParser.groovy`
+parserScript | string | Yes if used in conjunction with `parserScriptPath` | User-defined Groovy script used to parse Zipkin spans | `ZipkinParser.groovy`
+useServiceNameAsInstance | bool | No | Interpret service name supplied by remote component in Zipkin Span as instance name (resource name) instead of component name (group name) | `true`
 
 ### Custom parsers
-Custom parser will be used by Resource Connector if managed resource uses endpoint `/snamp/data/acquisition`. This endpoint may accept any unstructured data in text, XML and JSON formats. The parser used to convert unstructured text into well-known measurement format. Parser script should define the following function:
-```groovy
-def parse(headers, body){
-}
-```
-
-Formal parameters:
-* `headers` parameter contains all HTTP request headers
-* `body` parameter contains plain text, XML DOM or JSON DOM of the request
-
-Read more about parsers [here](ds-connector.md).
+Custom parser can be used to override default converter of Zipkin spans into SNAMP spans. Read more about parsers [here](ds-connector.md).
 
 ## Configuring attributes
-HTTP Acceptor provides the same set of attributes as described in [Data Stream Connector](ds-connector.md).
+Zipkin Connector provides the same set of attributes as described in [Data Stream Connector](ds-connector.md), but some gauges are unused by default. Zipkin Span consists information about timing without instant measurements of metrics. Therefore, Zipkin Connector updates gauges associated with duration only, such as **timer** and **arrivals**. Other gauges can be supported using custom span parser.
 
 ## Configuring events
-HTTP Acceptor provides the same set of events as described in [Data Stream Connector](ds-connector.md).
+Zipkin Connector provides the same set of events as described in [Data Stream Connector](ds-connector.md), but in the default implementation only `com.bytex.snamp.measurement.span` notification can be produced by connector. Other notification types can be supported using custom span parser.
 
 ## Configuring operations
-HTTP Acceptor provides the same set of operations as described in [Data Stream Connector](ds-connector.md).
+Zipkin Connector provides the same set of operations as described in [Data Stream Connector](ds-connector.md).
 
 ## Health checks
-Health checks are based on heartbeat messages received from managed resources through HTTP.
+Zipkin span doesn't contain information about health checks. Therefore, by default health checks are not supported. But it is possible to implement custom parser in Groovy and extract health information from annotations contained in Spans.

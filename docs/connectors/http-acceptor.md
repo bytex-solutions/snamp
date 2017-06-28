@@ -12,13 +12,13 @@ HTTP Acceptor is an implementation on top of [Data Stream Connector](ds-connecto
 
 > Host and port for these endpoints can be configured in `/etc` folder inside of SNAMP installation (read **Configuration** section in Administrator's Guide).
 
-Many instances of this Resource Connector shares the same endpoints.
+Many instances of this Resource Connector shares the same endpoints. But instance of this connector receives measurements only if **InstanceName**/**ComponentName** matches to **resource name**/**group name** respectively. All other measurements will be ignored by instance of the connector.
 
 ## Connection String
 Connection String is not used by HTTP Acceptor.
 
 ## Configuration Parameters
-JMX Resource Connector recognizes the following parameters in addition to Data Stream Connector:
+HTTP Acceptor recognizes the following parameters in addition to Data Stream Connector:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
@@ -26,7 +26,7 @@ parserScriptPath | string | Yes if used in conjunction with `parserScript` | URL
 parserScript | string | Yes if used in conjunction with `parserScriptPath` | User-defined Groovy script used to parse unstructured HTTP requests | `HttpAcceptorParser.groovy`
 
 ### Custom parsers
-Custom parser will be used by Resource Connector if managed resource uses endpoint `/snamp/data/acquisition`. This endpoint may accept any unstructured data in text, XML and JSON formats. The parser used to convert unstructured text into well-known measurement format. Parser script should define the following function:
+Custom parser will be used by HTTP Acceptor if managed resource uses endpoint `/snamp/data/acquisition`. This endpoint may accept any unstructured data in text, XML and JSON formats. The parser used to convert unstructured text into well-known measurement format. Parser script should define the following function:
 ```groovy
 def parse(headers, body){
 }

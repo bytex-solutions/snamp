@@ -21,9 +21,10 @@ Display name | Category | Type | Supported Protocols | Attributes | Notification
 [Composite Resource](aggregator-connector.md) | Active/Passive | aggregator | _Not Applicable_ | Yes | Yes | No | Yes | No
 [Groovy Resource Connector](groovy-connector.md) | _Not applicable_ | groovy | _Any_ | Yes | Yes | Yes | Yes | Yes
 [Modbus Resource Connector](modbus-connector.md) | Active | modbus | Modbus/TCP, Modbus/UDP, Modbus RTU-IP | Yes | No | No | No | No
-[HTTP Acceptor](http-acceptor.md) | Passive | http | HTTP | Yes | Yes | No | No | No
-[Zipkin Connector](zipkin-connector.md) | Passive | kafka | Kafka, HTTP | Yes | Yes | No | No | No
+[HTTP Acceptor](http-acceptor.md) | Passive | http | HTTP | Yes | Yes | Yes (limited set) | Yes | No
+[Zipkin Connector](zipkin-connector.md) | Passive | kafka | Kafka, HTTP | Yes | Yes | Yes (limited set) | No | No
 [Actuator Connector](actuator-connector.md) | Active | actuator | HTTP | Yes | No | No | Yes | Yes
+[Stub Connector](stub-connector.md) | Active | stub | _Not applicable_ | Yes | No | No | Yes | Yes
 
 Read [this page](webconsole/config-connectors.md) about configuration of Resource connectors using SNAMP Web Console.
 
