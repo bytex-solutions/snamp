@@ -1,20 +1,20 @@
-SNMP Resource Adapter
+SNMP Gateway
 ====
-SNMP Resource Adapter exposes management information about connected resources through SNMP protocol. It supports SNMPv2 and SNMPv3 protocol versions. You may use many powerful tools such as `snmpwalk`, Nagios (there is a separate adapter, but can work with SNMP adapter as well), HP OpenView, OpenNMS, Microsoft System Center Operations Manager, Zabbix for monitoring components connected to SNAMP.
+SNMP Gateway exposes management information about connected resources through SNMP protocol. It supports SNMPv2 and SNMPv3 protocol versions. You may use many powerful tools such as `snmpwalk`, Nagios (there is a separate gateway, but can work with SNMP gateway as well), HP OpenView, OpenNMS, Microsoft System Center Operations Manager, Zabbix for monitoring components connected to SNAMP.
 
-![Communication Scheme](snmp-adapter.png)
+![Communication Scheme](snmp-gateway.png)
 
-SNMP Resource Adapter supports following features (if these features are supported by managed resources as well):
+SNMP Gateway supports following features (if these features are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
 Attributes | Each attribute is being exposed as Managed Object with their own unique OID
 Notifications | Each notification is being asynchronously delivered to SNMP Trap Receiver as Traps
 
-Additionally, SNMP Resource Adapter supports integration with LDAP. You can place authentication and authorization parameters into LDAP server for more centralized control. Also, this adapter utilizes **its own internal thread pool that can be configured explicitly**.
+Additionally, SNMP Gateway supports integration with LDAP. You can place authentication and authorization parameters into LDAP server for more centralized control. Also, this gateway utilizes **its own internal thread pool that can be configured explicitly**.
 
 ## Configuration Parameters
-SNMP Resource Adapters recognizes following configuration parameters:
+SNMP Gateway recognizes following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
@@ -22,7 +22,7 @@ context | OID | Yes | Prefix OID used to filter attributes and events during age
 engineID | HEX String | No | Engine ID is used with a hashing function to generate keys for authentication and encryption of SNMP v3 messages. If you do not specify engine ID, one is generated when you enable the standalone SNMP agent. This parameter works with SNMPv3 protocol only | `80:00:13:70:01:7f:00:01:01:be:1e:8b:35`
 snmpv3-groups | Semicolon-separated list of groups | No | List of groups with users that can be authenticated on SNMP Agent. Groups can be configured locally or supplied from LDAP. This parameter works with SNMPv3 protocol only | See **User groups** section for examples
 socketTimeout | Integer | No | Socket timeout (in millis) used for sending outgoing UDP packets. Default value is `5000` | `2000`
-restartTimeout | Integer | No | Timeout value (in millis) used by instance of the adapter to reconfigure internal database of managed objects. This configuration parameter is for experts only. Change it when you want to expose more than 256 attributes in total. Default value is `10000`  | `3000`
+restartTimeout | Integer | No | Timeout value (in millis) used by instance of the gateway to reconfigure internal database of managed objects. This configuration parameter is for experts only. Change it when you want to expose more than 256 attributes in total. Default value is `10000`  | `3000`
 port | Integer | Yes | Port number used to listen incoming UDP packets | `161`
 host | IP Address | Yes | Network interface used to listen incoming UDP packets | `0.0.0.0`
 ldap-uri | URI | No | Address of LDAP server. This parameter work with SNMPv3 protocol only | `ldap://127.0.0.1:389`
@@ -46,7 +46,7 @@ For SNMPv2 setup you need to use the following parameters:
 * `socketTimeout`
 * `restartTimeout`
 
-The adapter uses `public` community for all managed objects.
+The gateway uses `public` community for all managed objects.
 
 ### SNMPv3 setup without LDAP
 For SNMPv3 setup you need to use the following parameters:
@@ -133,7 +133,7 @@ For SNMPv3 setup you need to use the following parameters:
 * `ldap-user-search-filter`
 * `ldap-user-password-attribute-name`
 
-SNMP Resource Adapter uses LDAP for searching information about users, its passwords, SNMPv3 authentication protocol, SNMPv3 privacy protocol and security level. So must configure your LDAP catalog properly:
+SNMP Gateway uses LDAP for searching information about users, its passwords, SNMPv3 authentication protocol, SNMPv3 privacy protocol and security level. So must configure your LDAP catalog properly:
 
 Attribute | Type name | Description
 ---- | ---- | ----
@@ -193,10 +193,10 @@ Value | Description
 none | Use no authentication (anonymous)
 simple | Use weak authentication (clear-text password)
 DIGEST-MD5 | Password will be passed as MD5 checksum
-GSSAPI | The adapter will use Generic Security Services Application Program Interface (GSS-API) defined in [RFC 2853](http://www.ietf.org/rfc/rfc2853.txt). It is useful for Kerberos-based authentication
+GSSAPI | Gateway will use Generic Security Services Application Program Interface (GSS-API) defined in [RFC 2853](http://www.ietf.org/rfc/rfc2853.txt). It is useful for Kerberos-based authentication
 
 ## Configuring attributes
-The following configuration parameters of the attributes have influence on SNMP Resource Adapter behavior:
+The following configuration parameters of the attributes have influence on SNMP Gateway behavior:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
@@ -205,7 +205,7 @@ displayFormat | Enum or String | No | Display format used to convert `datetime` 
 tableCacheTime | Integer | No | Used for attributes with complex data type only. This parameter describes period (in millis) of rebuilding SNMP Table from the source attribute. Default value is 5 seconds | `3000`
 useRowStatus | Boolean | No | Use advanced column in the table which contains status of the row. Default value is `false` | `true`
 
-> Note that attribute with `oid = 1.2.5.6` will not be visible if `context` of the adapter will be equal to `1.1`. All OIDs of attributes must starts with `context` prefix.
+> Note that attribute with `oid = 1.2.5.6` will not be visible if `context` of the gateway will be equal to `1.1`. All OIDs of attributes must starts with `context` prefix.
 
 ### Date/time formats
 `datetime` data structure can be converted into ASN.1-compliant type using one of the rules specified in `displayFormat` configuration parameter:
@@ -218,19 +218,21 @@ rfc1903-human-readable | OCTET_STRING in UTF-8 encoding in the following format:
 _Any other string_ | ... will be interpreted as formatting mask, such `yyyy-MM-dd'T'HH:mm:ss.SSSXXX`
 
 ## Configuring events
-The following configuration parameters of the events influence SNMP Resource Adapter behavior:
+The following configuration parameters of the events influence SNMP Gateway behavior:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-`oid` | OID | Yes | Common OID prefix for managed objects inside of Trap | `1.1`
+oid | OID | Yes | Common OID prefix for managed objects inside of Trap | `1.1`
 displayFormat | Enum or String | No | Display format used to convert `datetime` attributes into OCTET_STRING | `rfc1903`
 receiverAddress | String | Yes | Address of SNMP Trap receiver in format `<ip-address>/<port>` | `127.0.0.1/10538`
 receiverName | String | Yes | Unique name of the receiver | `remote-receiver-1`
 sendingTimeout | Integer | No | Trap sending timeout (in millis). Default value is 2 seconds | `3000`
 retryCount | Integer | No | Number of attempts to send Trap after timeout. Default value is 3 | `5`
 
+If SNMP Gateway used in conjunction with SNMP Connector then SNMP traps received by connector can be re-sended by SNMP Gateway to SNMP agent. This will be happened if event with OID is configured for managed resource connected with SNMP Connector and `oid` parameter is declared for this event. In this case, OIDs of all variables in the original trap will be replaced with prefix specified by `oid` parameter.
+
 ## Data formats
-SNMP Resource Adapter uses ASN.1 as a management information representation. Following table describes mapping between types of **Management Information Model** and JSON:
+SNMP Gateway uses ASN.1 as a management information representation. Following table describes mapping between types of **Management Information Model** and JSON:
 
 Management Information Model | JSON data type
 ---- | ----
@@ -252,14 +254,5 @@ array(bool) | OCTET_STRING (little-endian)
 
 Table, dictionary and arrays (except array of int8) are being converted into SNMP Table. SNMP Table represents set of managed objects. Behavior of these structures can be tuned with `useRowStatus` and `tableCacheTime` configuration parameters.
 
-## System-level configuration parameters
-These parameters can be specified on JVM level and affects all instances of SNMP Resource Adapter:
-
-Parameter | Type | Required | Meaning | Example
----- | ---- | ---- | ---- | ----
-com.bytex.snamp.gateway.snmp.oidPrefix | OID | No | OID prefix applied to attributes and notifications when `oid` configuration of such attributes and notifications are not specified. Default value is `1.1.1`. Postfix will be generated automatically. Therefore, OID of the attribute without `oid` configuration parameter looks like `1.1.1.X`.  | `3000`
-
 ## Compatibility with Smart mode
-In the Smart mode of the connector each attribute or notification is registered automatically - you cannot specify `oid` configuration parameter directly in SNAMP configuration. SNMP Resource Adapter generates OID for each attribute automatically using prefix specified in `com.bytex.snamp.gateway.snmp.oidPrefix` system-level property. By default, each attribute will be registered within `1.1.1.X` context.
-
-Notifications of the connector in Smart mode cannot be exposed via SNMP Resource Adapter.
+Notifications of the connector in Smart mode cannot be exposed via SNMP Gateway.

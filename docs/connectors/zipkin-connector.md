@@ -31,6 +31,8 @@ Zipkin Connector provides the same set of attributes as described in [Data Strea
 ## Configuring events
 Zipkin Connector provides the same set of events as described in [Data Stream Connector](ds-connector.md), but in the default implementation only `com.bytex.snamp.measurement.span` notification can be produced by connector. Other notification types can be supported using custom span parser.
 
+To enable E2E analysis on the underlying **managed resource** please declare event with category `com.bytex.snamp.measurement.span`.
+
 ## Configuring operations
 Zipkin Connector provides the same set of operations as described in [Data Stream Connector](ds-connector.md).
 

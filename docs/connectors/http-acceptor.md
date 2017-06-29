@@ -44,6 +44,8 @@ HTTP Acceptor provides the same set of attributes as described in [Data Stream C
 ## Configuring events
 HTTP Acceptor provides the same set of events as described in [Data Stream Connector](ds-connector.md).
 
+To enable E2E analysis on the underlying **managed resource** please declare event with category `com.bytex.snamp.measurement.span`.
+
 ## Configuring operations
 HTTP Acceptor provides the same set of operations as described in [Data Stream Connector](ds-connector.md).
 
