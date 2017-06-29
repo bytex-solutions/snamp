@@ -8,64 +8,226 @@
 
     <div class="clearfix"></div>
 
-    <div class="row" style="margin-top: 30px">
 
-      <!-- Modal for edit the trigger for activeWatcher -->
-      <div class="modal fade" id="editTriggerModal" role="dialog" aria-labelledby="editTriggerLabel"  *ngIf="activeWatcher != undefined">
-        <div class="modal-dialog modal-xlg modal-lg" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <h4 class="modal-title leftAlign" id="editTriggerLabel">Edit trigger</h4>
-              <br/>
-              <div class="modal-body">
-                <div id="smartwizardForTrigger" style="height: 95%">
-                  <ul>
-                    <li>
-                      <a [attr.href]="'#language'">
-                        Language<br />
-                        <small>Select language for trigger</small>
-                      </a>
-                    </li>
-                    <li>
-                      <a [attr.href]="'#url'">
-                        Use url<br />
-                        <small>Use URL for loading script</small>
-                      </a>
-                    </li>
-                    <li>
-                      <a [attr.href]="'#ptable'">
-                        Parameters<br />
-                        <small>Append parameters</small>
-                      </a>
-                    </li>
-                    <li>
-                      <a [attr.href]="'#script'">
-                        Script<br />
-                        <small>Trigger's script</small>
-                      </a>
-                    </li>
-                  </ul>
+    <!-- Modal for edit the trigger for activeWatcher -->
+    <div class="modal fade" id="editTriggerModal" role="dialog" aria-labelledby="editTriggerLabel"  *ngIf="activeWatcher != undefined">
+      <div class="modal-dialog modal-xlg modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title leftAlign" id="editTriggerLabel">Edit trigger</h4>
+            <br/>
+            <div class="modal-body">
+              <div id="smartwizardForTrigger" style="height: 95%">
+                <ul>
+                  <li>
+                    <a [attr.href]="'#language'">
+                      Language<br />
+                      <small>Select language for trigger</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#url'">
+                      Use url<br />
+                      <small>Use URL for loading script</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#ptable'">
+                      Parameters<br />
+                      <small>Append parameters</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#script'">
+                      Script<br />
+                      <small>Trigger's script</small>
+                    </a>
+                  </li>
+                </ul>
 
-                  <div style="height:100%">
-                    <div id="language" class="row" style="margin-top: 100px;">
+                <div style="height:100%">
+                  <div id="language" class="row" style="margin-top: 100px;">
+                    <div class="item form-group">
+                      <label
+                              class="control-label col-md-3 col-sm-3 col-xs-12"
+                              for="languageSelect"
+                              style="margin-top: 7px;">
+                        Language <span class="required">*</span>
+                      </label>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <select class="form-control" [(ngModel)]="activeWatcher.trigger.language" id="languageSelect">
+                          <option *ngFor="let language of triggerLanguages" [ngValue]="language">{{language}}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="url" class="row" style="margin-top: 100px;">
+                    <div class="item form-group">
+                      <label
+                              class="control-label col-md-3 col-sm-3 col-xs-12"
+                              style="margin-top: 7px;">
+                        Load script from external URL <span class="required">*</span>
+                      </label>
+
+                      <div class="col-md-6 col-sm-6 col-xs-12" >
+                        <ui-switch
+                                [(ngModel)]="activeWatcher.trigger.isURL"
+                                [size]="'small'">
+                        </ui-switch>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="ptable" class="row" style="margin-top: 70px;">
+                    <div class="item form-group">
+                      <ptable [entity]="activeWatcher.trigger"></ptable>
+                    </div>
+                  </div>
+
+                  <div id="script" class="row" style="margin-top: 20px;">
+                    <div *ngIf="activeWatcher.trigger.isURL">
                       <div class="item form-group">
                         <label
                                 class="control-label col-md-3 col-sm-3 col-xs-12"
-                                for="languageSelect"
+                                for="urlForTrigger"
                                 style="margin-top: 7px;">
-                          Language <span class="required">*</span>
+                          Url for script loading <span class="required">*</span>
                         </label>
                         <div class="col-md-6 col-sm-6 col-xs-12">
-                          <select class="form-control" [(ngModel)]="activeWatcher.trigger.language" id="languageSelect">
-                            <option *ngFor="let language of triggerLanguages" [ngValue]="language">{{language}}</option>
-                          </select>
+                          <input type="text" class="form-control" id="urlForTrigger" placeholder="Input url for script to be loaded from" [(ngModel)]="activeWatcher.trigger.script"/>
                         </div>
                       </div>
                     </div>
+                    <div *ngIf="!activeWatcher.trigger.isURL">
+                      <div>
+                        <div class="row">
+                          <label
+                                  class="control-label col-md-3 col-sm-3 col-xs-12"
+                                  for="scriptBodyForTrigger"
+                                  style="margin-top: 7px;">
+                            Script body for the trigger <span class="required">*</span>
+                          </label>
+                        </div>
+                        <div class="row">
+                          <div class="col-md-12 col-sm-12 col-xs-12">
+                            <textarea id="scriptBodyForTrigger" rows="10" class="form-control" [(ngModel)]="activeWatcher.trigger.script"></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-2" style="float:right; margin-top: 30px;">
+                      <button class="btn btn-primary" data-dismiss="modal" (click)="saveCurrentTrigger()">Save trigger</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                    <div id="url" class="row" style="margin-top: 100px;">
-                      <div class="item form-group">
+    <!-- Modal for edit checkers for activeWatcher -->
+    <div class="modal fade" id="editCheckerModal" role="dialog" aria-labelledby="editCheckerLabel" *ngIf="activeWatcher != undefined">
+      <div class="modal-dialog modal-xlg modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title leftAlign" id="editCheckerLabel">Edit attribute checkers</h4>
+            <br/>
+            <div class="modal-body">
+              <div id="smartwizardForCheckers" style="height: 95%">
+                <ul>
+                  <li>
+                    <a [attr.href]="'#checkerTable'">
+                      Select checker<br />
+                      <small>Select type of checker</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#checkerType'">
+                      Type<br />
+                      <small>Select type of checker</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#checkerPTable'">
+                      Parameters<br />
+                      <small>Set parameters</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#checkerBody'">
+                      Checker's logic<br />
+                      <small>What action will be performed</small>
+                    </a>
+                  </li>
+                </ul>
+
+                <div style="height:100%">
+
+                  <div id="checkerTable" class="row" style="margin-top: 5px;">
+                    <table class="table table-hover table-bordered">
+                      <thead class="thead-inverse">
+                      <tr>
+                        <th>Actions</th>
+                        <th>Attribute</th>
+                        <th>Binding</th>
+                        <th>Checker type</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr *ngFor="let attribute of attributes" class="clickableTr" [class.activeTr]="((selectedAttribute != undefined) && (selectedAttribute.name == attribute.name))" (click)="editCheckerForAttribute(attribute)">
+                        <td>
+                                  <span
+                                          class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                                          (click)="removeCheckerForAttribute(attribute)"
+                                          aria-hidden="true">
+                                  </span>
+                        </td>
+                        <th scope="row">{{attribute.name}}</th>
+                        <td>
+                                <span class="input-group-addon"  *ngIf="activeWatcher.checkerExists(attribute.name)">
+                                      <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true"></span>
+                                 </span>
+                        </td>
+                        <td>
+                          {{activeWatcher.checkerTypeForAttributeName(attribute.name)}}
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div id="checkerPTable" class="row" style="margin-top: 70px;">
+                    <div class="item form-group">
+                      <ptable [entity]="activeChecker"></ptable>
+                    </div>
+                  </div>
+
+                  <div id="checkerType" class="row" style="margin-top: 100px;">
+                    <div class="item form-group">
+                      <label
+                              class="control-label col-md-3 col-sm-3 col-xs-12"
+                              for="checkerTypeSelect"
+                              style="margin-top: 7px;">
+                        Set type for attribute checker <span class="required">*</span>
+                      </label>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <select class="form-control" [(ngModel)]="activeChecker.language" id="checkerTypeSelect" (ngModelChange)="selectCheckerType($event)">
+                          <option *ngFor="let type of checkersType" [ngValue]="type.id">{{type.description}}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <div id="checkerBody" class="row" style="margin-top: 5px;">
+                    <div *ngIf="activeChecker?.language != 'ColoredAttributeChecker'" style="margin-top: 20px;">
+
+                      <div class="item form-group" style="margin-bottom: 15px;">
                         <label
                                 class="control-label col-md-3 col-sm-3 col-xs-12"
                                 style="margin-top: 7px;">
@@ -74,239 +236,75 @@
 
                         <div class="col-md-6 col-sm-6 col-xs-12" >
                           <ui-switch
-                                  [(ngModel)]="activeWatcher.trigger.isURL"
+                                  [(ngModel)]="activeChecker.isURL"
                                   [size]="'small'">
                           </ui-switch>
                         </div>
                       </div>
-                    </div>
 
-                    <div id="ptable" class="row" style="margin-top: 70px;">
-                      <div class="item form-group">
-                        <ptable [entity]="activeWatcher.trigger"></ptable>
-                      </div>
-                    </div>
-
-                    <div id="script" class="row" style="margin-top: 20px;">
-                      <div *ngIf="activeWatcher.trigger.isURL">
+                      <div *ngIf="activeChecker?.isURL">
                         <div class="item form-group">
                           <label
                                   class="control-label col-md-3 col-sm-3 col-xs-12"
-                                  for="urlForTrigger"
+                                  for="urlForChecker"
                                   style="margin-top: 7px;">
                             Url for script loading <span class="required">*</span>
                           </label>
                           <div class="col-md-6 col-sm-6 col-xs-12">
-                            <input type="text" class="form-control" id="urlForTrigger" placeholder="Input url for script to be loaded from" [(ngModel)]="activeWatcher.trigger.script"/>
+                            <input type="text" class="form-control" id="urlForChecker" placeholder="Input url for script to be loaded from" [(ngModel)]="activeChecker.script"/>
                           </div>
                         </div>
                       </div>
-                      <div *ngIf="!activeWatcher.trigger.isURL">
-                        <div>
-                          <div class="row">
-                              <label
-                                      class="control-label col-md-3 col-sm-3 col-xs-12"
-                                      for="scriptBodyForTrigger"
-                                      style="margin-top: 7px;">
-                                Script body for the trigger <span class="required">*</span>
-                             </label>
-                          </div>
-                          <div class="row">
-                            <div class="col-md-12 col-sm-12 col-xs-12">
-                              <textarea id="scriptBodyForTrigger" rows="10" class="form-control" [(ngModel)]="activeWatcher.trigger.script"></textarea>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-2" style="float:right; margin-top: 30px;">
-                        <button class="btn btn-primary" data-dismiss="modal" (click)="saveCurrentTrigger()">Save trigger</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modal for edit checkers for activeWatcher -->
-      <div class="modal fade" id="editCheckerModal" role="dialog" aria-labelledby="editCheckerLabel" *ngIf="activeWatcher != undefined">
-        <div class="modal-dialog modal-xlg modal-lg" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <h4 class="modal-title leftAlign" id="editCheckerLabel">Edit attribute checkers</h4>
-              <br/>
-              <div class="modal-body">
-                <div id="smartwizardForCheckers" style="height: 95%">
-                  <ul>
-                    <li>
-                      <a [attr.href]="'#checkerTable'">
-                        Select checker<br />
-                        <small>Select type of checker</small>
-                      </a>
-                    </li>
-                    <li>
-                      <a [attr.href]="'#checkerType'">
-                        Type<br />
-                        <small>Select type of checker</small>
-                      </a>
-                    </li>
-                    <li>
-                      <a [attr.href]="'#checkerPTable'">
-                        Parameters<br />
-                        <small>Set parameters</small>
-                      </a>
-                    </li>
-                    <li>
-                      <a [attr.href]="'#checkerBody'">
-                        Checker's logic<br />
-                        <small>What action will be performed</small>
-                      </a>
-                    </li>
-                  </ul>
-
-                  <div style="height:100%">
-
-                    <div id="checkerTable" class="row" style="margin-top: 5px;">
-                      <table class="table table-hover table-bordered">
-                            <thead class="thead-inverse">
-                            <tr>
-                              <th>Actions</th>
-                              <th>Attribute</th>
-                              <th>Binding</th>
-                              <th>Checker type</th>
-                            </tr>
-                            </thead>
-                        <tbody>
-                            <tr *ngFor="let attribute of attributes" class="clickableTr" [class.activeTr]="((selectedAttribute != undefined) && (selectedAttribute.name == attribute.name))" (click)="editCheckerForAttribute(attribute)">
-                              <td>
-                                  <span
-                                          class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
-                                          (click)="removeCheckerForAttribute(attribute)"
-                                          aria-hidden="true">
-                                  </span>
-                              </td>
-                              <th scope="row">{{attribute.name}}</th>
-                              <td>
-                                <span class="input-group-addon"  *ngIf="activeWatcher.checkerExists(attribute.name)">
-                                      <span class="glyphicon glyphicon-ok glyph-icon-appended" aria-hidden="true"></span>
-                                 </span>
-                              </td>
-                              <td>
-                                {{activeWatcher.checkerTypeForAttributeName(attribute.name)}}
-                              </td>
-                            </tr>
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div id="checkerPTable" class="row" style="margin-top: 70px;">
-                      <div class="item form-group">
-                        <ptable [entity]="activeChecker"></ptable>
-                      </div>
-                    </div>
-
-                    <div id="checkerType" class="row" style="margin-top: 100px;">
-                      <div class="item form-group">
-                        <label
-                                class="control-label col-md-3 col-sm-3 col-xs-12"
-                                for="checkerTypeSelect"
-                                style="margin-top: 7px;">
-                          Set type for attribute checker <span class="required">*</span>
-                        </label>
-                        <div class="col-md-6 col-sm-6 col-xs-12">
-                          <select class="form-control" [(ngModel)]="activeChecker.language" id="checkerTypeSelect" (ngModelChange)="selectCheckerType($event)">
-                            <option *ngFor="let type of checkersType" [ngValue]="type.id">{{type.description}}</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-
-
-                    <div id="checkerBody" class="row" style="margin-top: 5px;">
-                      <div *ngIf="activeChecker?.language != 'ColoredAttributeChecker'" style="margin-top: 20px;">
-
-                        <div class="item form-group" style="margin-bottom: 15px;">
+                      <div *ngIf="!activeChecker?.isURL">
+                        <div class="item form-group">
                           <label
                                   class="control-label col-md-3 col-sm-3 col-xs-12"
+                                  for="scriptBodyForChecker"
                                   style="margin-top: 7px;">
-                            Load script from external URL <span class="required">*</span>
+                            Script body for the checker <span class="required">*</span>
                           </label>
-
-                          <div class="col-md-6 col-sm-6 col-xs-12" >
-                            <ui-switch
-                                    [(ngModel)]="activeChecker.isURL"
-                                    [size]="'small'">
-                            </ui-switch>
+                          <div class="col-md-6 col-sm-6 col-xs-12">
+                            <textarea id="scriptBodyForChecker" rows="5" class="form-control" [(ngModel)]="activeChecker.script"></textarea>
                           </div>
                         </div>
-
-                            <div *ngIf="activeChecker?.isURL">
-                              <div class="item form-group">
-                                <label
-                                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                                        for="urlForChecker"
-                                        style="margin-top: 7px;">
-                                  Url for script loading <span class="required">*</span>
-                                </label>
-                                <div class="col-md-6 col-sm-6 col-xs-12">
-                                  <input type="text" class="form-control" id="urlForChecker" placeholder="Input url for script to be loaded from" [(ngModel)]="activeChecker.script"/>
-                                </div>
-                              </div>
-                            </div>
-                            <div *ngIf="!activeChecker?.isURL">
-                            <div class="item form-group">
-                                <label
-                                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                                        for="scriptBodyForChecker"
-                                        style="margin-top: 7px;">
-                                  Script body for the checker <span class="required">*</span>
-                                </label>
-                                <div class="col-md-6 col-sm-6 col-xs-12">
-                                  <textarea id="scriptBodyForChecker" rows="5" class="form-control" [(ngModel)]="activeChecker.script"></textarea>
-                                </div>
-                              </div>
-                            </div>
                       </div>
+                    </div>
 
-                      <div *ngIf="activeChecker?.language == 'ColoredAttributeChecker'">
-                        <div class="panel-group group-accordeon" id="accordionChecker" role="tablist" aria-multiselectable="true">
-                          <div class="panel panel-default" >
-                            <div class="panel-heading" role="tab" id="headingOne">
-                              <h4 class="panel-title">
-                                <a role="button" data-toggle="collapse" data-parent="#accordionChecker" href="#collapseGreen" aria-expanded="true" aria-controls="collapseGreen">
-                                  <img src="assets/img/green-circle.png" class="img-inline"> Green condition
-                                </a>
-                              </h4>
-                            </div>
-                            <div id="collapseGreen" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-                              <div class="panel-body">
-                                  <coloredCondition [entity]="activeChecker.object.green" (notify)="onGreenNotify($event)"></coloredCondition>
-                              </div>
+                    <div *ngIf="activeChecker?.language == 'ColoredAttributeChecker'">
+                      <div class="panel-group group-accordeon" id="accordionChecker" role="tablist" aria-multiselectable="true">
+                        <div class="panel panel-default" >
+                          <div class="panel-heading" role="tab" id="headingOne">
+                            <h4 class="panel-title">
+                              <a role="button" data-toggle="collapse" data-parent="#accordionChecker" href="#collapseGreen" aria-expanded="true" aria-controls="collapseGreen">
+                                <img src="assets/img/green-circle.png" class="img-inline"> Green condition
+                              </a>
+                            </h4>
+                          </div>
+                          <div id="collapseGreen" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                            <div class="panel-body">
+                              <coloredCondition [entity]="activeChecker.object.green" (notify)="onGreenNotify($event)"></coloredCondition>
                             </div>
                           </div>
-                          <div class="panel panel-default">
-                            <div class="panel-heading" role="tab" id="headingTwo">
-                              <h4 class="panel-title">
-                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionChecker" href="#collapseYellow" aria-expanded="false" aria-controls="collapseYellow">
-                                  <img src="assets/img/yellow-circle.png" class="img-inline"> Yellow condition
-                                </a>
-                              </h4>
-                            </div>
-                            <div id="collapseYellow" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                              <div class="panel-body">
-                                <coloredCondition [entity]="activeChecker.object.yellow" (notify)="onYellowNotify($event)"></coloredCondition>
-                              </div>
+                        </div>
+                        <div class="panel panel-default">
+                          <div class="panel-heading" role="tab" id="headingTwo">
+                            <h4 class="panel-title">
+                              <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionChecker" href="#collapseYellow" aria-expanded="false" aria-controls="collapseYellow">
+                                <img src="assets/img/yellow-circle.png" class="img-inline"> Yellow condition
+                              </a>
+                            </h4>
+                          </div>
+                          <div id="collapseYellow" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                            <div class="panel-body">
+                              <coloredCondition [entity]="activeChecker.object.yellow" (notify)="onYellowNotify($event)"></coloredCondition>
                             </div>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      <div class="col-md-2" style="float:right;">
-                        <button class="btn btn-primary" data-dismiss="modal" (click)="saveCurrentChecker()">Save checker</button>
-                      </div>
+                    <div class="col-md-2" style="float:right;">
+                      <button class="btn btn-primary" data-dismiss="modal" (click)="saveCurrentChecker()">Save checker</button>
                     </div>
                   </div>
                 </div>
@@ -315,8 +313,75 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <panel [header]="getPanelHeader()" [column]="'6'" *ngIf="activeWatcher != undefined">
+    <div class="row" style="margin-top: 30px">
+      <panel [header]="'Watcher settings'" [column]="'7'" *ngIf="activeWatcher != undefined">
+
+        <div class="form-group row">
+          <label for="watcherTypeSelection" class="col-md-2 col-form-label">Type</label>
+          <div class="col-md-10">
+            <select class="form-control" [(ngModel)]="activeWatcher.type" id="watcherTypeSelection">
+              <option  *ngFor="let _type of availableTypes" [ngValue]="_type">{{_type}}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="connectionStringTmpl" class="col-md-2 col-form-label">Connection string template</label>
+          <div class="col-md-10">
+            <input class="form-control" type="text" [(ngModel)]="activeWatcher.connectionStringTemplate" id="connectionStringTmpl">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="scalingSizeInput" class="col-md-2 col-form-label">Scaling size</label>
+          <div class="col-md-10">
+            <input class="form-control" type="number" min="0" [attr.max]="activeWatcher.maxClusterSize" [(ngModel)]="activeWatcher.scalingSize" id="scalingSizeInput">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="minClusterSizeInput" class="col-md-2 col-form-label">Minimum cluster size</label>
+          <div class="col-md-10">
+            <input class="form-control" type="number" min="0" [(ngModel)]="activeWatcher.minClusterSize" id="minClusterSizeInput">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="maxClusterSizeInput" class="col-md-2 col-form-label">Maximum cluster size</label>
+          <div class="col-md-10">
+            <input class="form-control" type="number" [attr.min]="activeWatcher.minClusterSize" [(ngModel)]="activeWatcher.maxClusterSize" id="maxClusterSizeInput">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="cooldownTimeInput" class="col-md-2 col-form-label">Cooldown time (ms)</label>
+          <div class="col-md-10">
+            <input class="form-control" type="number" [(ngModel)]="activeWatcher.cooldownTime" id="cooldownTimeInput">
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label class="col-md-2 col-form-label">Autoscaling</label>
+          <div class="col-md-10">
+            <ui-switch
+                    [(ngModel)]="activeWatcher.autoScaling"
+                    [size]="'small'">
+            </ui-switch>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top: 20px;">
+          <div style="float:right">
+            <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()">Save</button>
+            <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
+          </div>
+        </div>
+
+      </panel>
+
+      <panel [header]="getPanelHeader()" [column]="'5'" *ngIf="activeWatcher != undefined">
 
         <div class="row row-margin-bottom-sm">
           <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection" style="margin-top:10px;">
@@ -368,8 +433,19 @@
 
       </panel>
 
-      <panel [header]="'Watcher parameters'" [column]="'3'" *ngIf="activeWatcher != undefined">
+    </div>
+
+    <div class="row" style="margin-top: 10px">
+      <panel [header]="'Watcher parameters'" [column]="'12'" *ngIf="activeWatcher != undefined">
         <ptable [entity]="activeWatcher"></ptable>
+
+        <hr/>
+        <div class="row" style="margin-top: 20px;">
+          <div style="float:right">
+            <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()">Save</button>
+            <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
+          </div>
+        </div>
       </panel>
     </div>
 
@@ -378,7 +454,7 @@
         <table class="table table-hover table-bordered">
           <thead class="thead-inverse">
           <tr>
-            <th>Actions</th>
+            <th style="width:90px;">Actions</th>
             <th>Name</th>
             <th>Type</th>
             <th>Autoscaling</th>
@@ -390,7 +466,7 @@
           </tr>
           </thead>
           <tbody>
-          <tr *ngFor="let watcher of watchers">
+          <tr *ngFor="let watcher of watchers" [class.active-tr]="isWatcherActive(watcher)">
             <td>
               <span
                   class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"

@@ -259,6 +259,10 @@ export class MainComponent implements OnInit {
             });
     }
 
+    public isWatcherActive(_watcher:Watcher):boolean {
+        return this.activeWatcher != null && this.activeWatcher.name == _watcher.name;
+    }
+
 }
 
 export class EntityWithDescription {
