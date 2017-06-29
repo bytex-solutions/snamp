@@ -282,6 +282,8 @@ final class ManagementShell implements Command, SessionAware {
                 return new SetAttributeCommand(context);
             case NotificationsCommand.COMMAND_NAME:
                 return new NotificationsCommand(context);
+            case HealthStatusCommand.COMMAND_NAME:
+                return new HealthStatusCommand(context);
             default:
                 return new UnknownShellCommand(command);
         }

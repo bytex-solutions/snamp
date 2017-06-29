@@ -1,7 +1,11 @@
 package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationEventBox;
@@ -10,6 +14,8 @@ import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.json.JsonUtils;
+import com.bytex.snamp.supervision.health.HealthStatusProvider;
+import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
@@ -384,9 +390,29 @@ final class SshGateway extends AbstractGateway implements GatewayController {
         }
     }
 
+    private static HealthStatus getHealthStatus(final ManagedResourceConnectorClient client) {
+        try {
+            return client.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
+        } finally {
+            client.close();
+        }
+    }
+
+    @Override
+    public HealthStatus getResourceStatus(final String resourceName) {
+        return ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName).map(SshGateway::getHealthStatus).orElse(null);
+    }
+
+
+    @Override
+    public ResourceGroupHealthStatus getGroupStatus(final String groupName) {
+        final ResourceGroupHealthStatus result = HealthStatusProvider.getHealthStatus(getBundleContext(), groupName);
+        return result.isEmpty() ? null : result;
+    }
+
     @Override
     public Set<String> getConnectedResources() {
-        return attributes.getHostedResources();
+        return trackedServices;
     }
 
     /**

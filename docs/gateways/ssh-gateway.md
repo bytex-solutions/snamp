@@ -1,17 +1,17 @@
-SSH Resource Adapter
+SSH Gateway
 ====
-SSH Resource Adapter provides remote command-line using SSH console. It allows administrators to monitor & manage state of connected resources. You may read or write all attributes and receive notifications that displayed asynchronously in the terminal window. So, you may use _PuTTY_, _WinSCP_, _OpenSSH_ or any other SSH client.
+SSH Gateway provides remote command-line using SSH console. It allows administrators to monitor & manage state of connected resources. You may read or write all attributes and receive notifications that displayed asynchronously in the terminal window. So, you may use _PuTTY_, _WinSCP_, _OpenSSH_ or any other SSH client.
 
-![Communication Scheme](ssh-adapter.png)
+![Communication Scheme](ssh-gateway.png)
 
-SSH Resource Adapter supports following features (if they are supported by managed resources as well):
+SSH Gateway supports following features (if they are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
 Attributes | Each attribute is being displayed in JSON format. Besides, you may rewrite any writable attribute from the console
 Notifications | Each notification is being displayed in JSON format (if that is enabled)
 
-Note that this adapter utilizes **its own internal thread pool that can be configured explicitly**.
+Note that this gateway utilizes **its own internal thread pool that can be configured explicitly**.
 
 There are following supported commands:
 
@@ -33,19 +33,22 @@ There are following supported commands:
   - `-v <value-as-json>`, `--value <value-as-json>` - specifies a new value of the attribute
 1. `notifs [-f <expression>]` - enables listening of incoming notifications. In this mode you are not able to print any commands. Pressing any key causes abortion of notification listening session. Any received notification will be displayed in the console
   - `-f <expression>`, `--filter <expression>` - _RFC 1960_-based expression that describes notification selection candidate. You may use any configuration property in the filtering expression
+1. `hs [-r <resource-name>] | [-g <group-name>]` - displays health status of the groups of resources or individual managed resource. One of the parameters is required.
+    - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
+    - `-g <group-name>`, `--group <group-name>` - specifies group name.
 
-Attribute value and notification object represented in the same JSON format as defined in **HTTP Resource Adapter**.
+Attribute value and notification object represented in the same JSON format as defined in **HTTP Gateway**.
 
-HTTP Resource Adapter provides its own SSH server that fully supports certificate, JAAS and/or password.
+HTTP Gateway provides its own SSH server that fully supports certificate, JAAS and/or password.
 
 ## Configuration Parameters
-SSH Resource Adapters recognizes the following configuration parameters:
+SSH Gateway recognizes the following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 host | IP Address or DNS-name | Yes | Address of network interface used to listen incoming SSH connections | `0.0.0.0`
 port | Integer | No | Inbound port used to listen clients. Default value is `22` | `23`
-hostKeyFile | Filename | Yes | Path to the server certificate (*.ser or *.pem file) that represents serialized public/private key pair | `server.pem`
+hostKeyFile | Filename | Yes | Path to the server certificate (\*.ser or \*.pem file) that represents serialized public/private key pair | `server.pem`
 hostKeyFormat | Enum | No | Type of the server certificate | `PEM`
 jaasDomain | String | No | Name of JAAS realm used to authenticate SSH clients | `karaf`
 userName | String | No | User name of the client that can be authenticated on SSH server | `root`
@@ -55,7 +58,7 @@ publicKeyFileFormat | Filename | No | Type of the public key used by client | `p
 
 Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. Other parameters will be ignored.
 
-SSH Resource Adapter supports the following authentication techniques:
+SSH Gateway supports the following authentication techniques:
 
 1. Using simple _username/password_ pair - specify `userName` and `password` configuration parameters
 1. Using _username/password_ pairs defined in _JAAS_ realm - specify `jaasDomain` configuration parameter
@@ -72,7 +75,7 @@ SER | Serialized pair of public/private keys as Java objects
 It is highly recommended to use `PEM` file format.
 
 ### Client public key
-SSH Resource Adapter supports authentication based on pubic key supplied by client. This key can be specified in `publicKeyFile` configuration parameter. Additionally, you can specify the type of this key in `publicKeyFileFormat` parameter:
+SSH Gateway supports authentication based on pubic key supplied by client. This key can be specified in `publicKeyFile` configuration parameter. Additionally, you can specify the type of this key in `publicKeyFileFormat` parameter:
 
 Value | Description
 ---- | ----
@@ -81,4 +84,4 @@ openssh | Public key generated by `openssh` utility
 putty | Public key generated by `PuTTY` utility
 
 ## Other configuration parameters
-SSH Resource Adapter ignores additional configuration parameters applied to attributes, events and operations.
+SSH Gateway ignores additional configuration parameters applied to attributes, events and operations.

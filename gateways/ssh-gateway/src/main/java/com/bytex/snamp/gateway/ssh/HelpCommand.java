@@ -18,7 +18,7 @@ import java.io.PrintWriter;
 final class HelpCommand extends AbstractManagementShellCommand {
     static final String COMMAND_NAME = "help";
     private static final String COMMAND_DESC = "Display a set of available commands";
-    static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
+    private static final Options COMMAND_OPTIONS = EMPTY_OPTIONS;
 
     private final HelpFormatter formatter;
 
@@ -70,6 +70,8 @@ final class HelpCommand extends AbstractManagementShellCommand {
         output.println();
         printHelp(formatter, output, NotificationsCommand.COMMAND_USAGE, NotificationsCommand.COMMAND_DESC, NotificationsCommand.COMMAND_OPTIONS);
         output.println();
+        printHelp(formatter, output, HealthStatusCommand.COMMAND_NAME, HealthStatusCommand.COMMAND_DESC, HealthStatusCommand.COMMAND_OPTIONS);
+        output.println();
         printHelp(formatter, output, ExitCommand.COMMAND_NAME, ExitCommand.COMMAND_DESC, COMMAND_OPTIONS);
     }
 
@@ -80,6 +82,7 @@ final class HelpCommand extends AbstractManagementShellCommand {
                 ListOfAttributesCommand.COMMAND_NAME,
                 GetAttributeCommand.COMMAND_NAME,
                 SetAttributeCommand.COMMAND_NAME,
-                NotificationsCommand.COMMAND_NAME);
+                NotificationsCommand.COMMAND_NAME,
+                HealthStatusCommand.COMMAND_NAME);
     }
 }
