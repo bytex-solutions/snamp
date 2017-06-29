@@ -1,6 +1,6 @@
 Zipkin Connector
 ====
-Zipkin Connector is a passive Resource Connector that accepts information with monitoring data from Zipkin-enabled application using HTTP transport or Kafka. The **managed resources** are responsible for delivering data asynchronously to this connector. It is perfect solution if you use [Zipkin](http://zipkin.io/) in your enterprise. HTTP endpoint provided by this connector matches to HTTP endpoint provided by Zipkin: `/v1/spans`.
+Zipkin Connector is a passive Resource Connector that accepts information with monitoring data from Zipkin-enabled application using HTTP transport or Kafka. The **managed resources** are responsible for delivering data asynchronously to this connector. It is perfect solution if you use [Zipkin](http://zipkin.io/) in your enterprise. HTTP endpoint provided by this connector matches to HTTP endpoint provided by Zipkin: `/v1/spans`. Zipkin Acceptor is an implementation on top of [Data Stream Connector](ds-connector.md).
 
 > Host and port for this endpoint can be configured in `/etc` folder inside of SNAMP installation (read **Configuration** section in Administrator's Guide).
 

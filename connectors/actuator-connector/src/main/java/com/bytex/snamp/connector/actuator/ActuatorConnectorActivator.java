@@ -30,8 +30,6 @@ public final class ActuatorConnectorActivator extends ManagedResourceActivator<A
     private static ActuatorConnector createConnector(final String resourceName,
                                                      final ManagedResourceInfo configuration,
                                                      final DependencyManager... dependencies) throws URISyntaxException {
-        return new ActuatorConnector(resourceName,
-                new URI(configuration.getConnectionString()),
-                configuration);
+        return new ActuatorConnector(resourceName, configuration);
     }
 }

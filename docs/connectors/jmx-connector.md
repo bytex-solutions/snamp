@@ -44,7 +44,7 @@ The port is a decimal port number. 0 means a default or anonymous port, dependin
 
 The host and port can be omitted. The port cannot be supplied without a host.
 
-The url-path, if any, begins with a slash (/) or a semicolon (;) and continues to the end of the address. It can contain attributes using the semicolon syntax specified in RFC 2609. Those attributes are not parsed by this class and incorrect attribute syntax is not detected.
+The url-path, if any, begins with a slash `/` or a semicolon `;` and continues to the end of the address. It can contain attributes using the semicolon syntax specified in _RFC 2609_. Those attributes are not parsed by this class and incorrect attribute syntax is not detected.
 
 Although it is legal according to _RFC 2609_ to have an url-path that begins with a semicolon, not all implementations of SLP allow it, so it is recommended to avoid that syntax.
 

@@ -15,6 +15,7 @@ import javax.annotation.Nonnull;
 import javax.management.MBeanException;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
@@ -34,16 +35,15 @@ final class ActuatorConnector extends AbstractManagedResourceConnector implement
     @Aggregation(cached = true)
     private final ActuatorAttributeRepository attributes;
 
-    private ActuatorConnector(final String resourceName,
+    ActuatorConnector(final String resourceName,
                               final ActuatorConnectionOptions options) {
         healthResource = options.getHealthResource();
         attributes = new ActuatorAttributeRepository(resourceName, options.getMetricsResource());
     }
 
     ActuatorConnector(final String resourceName,
-                      final URI actuatorUri,
-                      final ManagedResourceInfo configuration) {
-        this(resourceName, new ActuatorConnectionOptions(actuatorUri, configuration));
+                      final ManagedResourceInfo configuration) throws URISyntaxException {
+        this(resourceName, new ActuatorConnectionOptions(new URI(configuration.getConnectionString()), configuration));
         setConfiguration(configuration);
     }
 
