@@ -1,6 +1,6 @@
 Data Stream Connectors
 ====
-This is a family of passive Resource Connectors used for processing stream of input data provided by **managed resources**. The stream is converted into rich set of metrics exposed as attributes to SNAMP Web Console and Gateways. Resource Connectors in this family may use any transport to receive measurements from **managed resources** like HTTP, event queues or stream processing platforms like Apache Kafka. By default, model of input measurements based on **SNAMP Instrumentation Library** that describes protocol and language bindings. This approach is very similar to [Apache HTrace](http://htrace.incubator.apache.org/).
+This is a family of passive Resource Connectors used for processing stream of input data provided by **managed resources**. The stream is converted into rich set of metrics exposed as attributes to SNAMP Web Console and Gateways. Resource Connectors in this family may use any transport to receive measurements from **managed resources** like HTTP, event queues or stream processing platforms like Apache Kafka. This approach is very similar to [Apache HTrace](http://htrace.incubator.apache.org/). Model of input measurements described in **Managed Information Model**.  
 
 Data Stream Connectors allow to process the following information:
 * Instant measurements of numeric, boolean and textual metrics

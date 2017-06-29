@@ -14,6 +14,7 @@ Management Information Model consists of the following entities:
 * Operations
 * Health checks
 * Gauges
+* Measurements
 
 The attribute has its _data type_ that reflects format (or semantics) of attribute value.
 
@@ -59,9 +60,9 @@ You should take into account that the semantics of the protocol-specific data ty
 > Some Gateways provide configuration properties allowing you to specify conversion rules. For example, `int32` value may be converted into ASN.1 `INTEGER_32` or 4-byte `OCTET_STRING`.
 
 ## Notification
-Notification is a message emitted by connected **managed resource** and routed to **Gateway** or **SNAMP Web Console** through **Resource Connector**. SNAMP Management Information Model defines unified way for representing notifications called **Notification Object**.
+Notification is a message emitted by connected **managed resource** and routed to **Gateway** or **SNAMP Web Console** through **Resource Connector**. SNAMP Management Information Model defines unified way for representing notifications called **Notification**.
 
-The structure of **Notification Object**:
+The structure of **Notification**:
 
 Field | Data Type | Description
 ---- | ---- | ----
@@ -369,3 +370,66 @@ meanAvailabilityLastDay | float64 | Measures availability (_1 - denial probabili
 availability | float64 | Measures instant availability
 efficiency | float64 | Measures efficiency of computational resources: summary processing duration of all input requests divided by total uptime
 correlation | float64 | Measures correlation between rate of input requests and response time for each request. Range of value is [0..1]. 1 means bad news for horizontal scaling. Zero means that horizontal scaling will be very effective.
+
+## Measurements
+Measurements are special kind of notifications recognized by SNAMP and used to handle metrics provided by **managed resources** eventually. From perspective of Information Model, measurement inherits all fields from SNAMP **notification** such as _TimeStamp_, _Type_ etc.
+
+Measurements can be divided into following types:
+* Value measurement
+* Time measurement
+* Span
+* Health check
+
+Each measurement has the following fields (except fields from SNAMP **notification** which are described above) inherited by all measurements:
+
+Field | Data Type | Description
+---- | ---- | ----
+Instance name | string | Name of the application instance reporting this measurement
+Component name | string | Name of the application group/cluster/category reporting this measurement
+Name | string | Name of the measurement, e.g. _usedRAM_ or _CPU_
+Message | string | Human-readable description of the measurement
+Annotations | Table(string, string) | Key/value pairs with additional information about measurement
+Time stamp | datetime | Time of measurement creation
+
+For example, we have a cluster with two nodes `dispatcher#1` and `dispatcher#2`. In this case both applications will report measurement with _Component name_ equal to `dispatcher` but with different _Instance names_: `dispatcher#1` and `dispatcher#2`.
+
+## Value measurement
+Instant measurement of some value, e.g. memory or disk space. Possible types of the measurement are `bool`, `float64`, `int64` and `string`. Notification _Type_ is `com.bytex.snamp.measurement.value`.
+
+The structure of value measurement:
+
+Field | Data Type | Description
+---- | ---- | ----
+value | bool, float64, int64 or string | Instant value of the measurement
+
+## Time measurement
+Timing of action which includes start time, end time and duration of the action. Notification _Type_ is `com.bytex.snamp.measurement.stopwatch`.
+
+The structure of time measurement:
+
+Field | Data Type | Description
+---- | ---- | ----
+duration | int64 | Duration of the action
+
+## Span
+Span represents tracing information that describe block of execution such as communication with remote microservices. Notification _Type_ is `com.bytex.snamp.measurement.span`.
+
+Span inherits fields from time measurement and include additional fields:
+
+Field | Data Type | Description
+---- | ---- | ----
+moduleName | string | Name of the subsystem or module inside of application (DAO, Controller, Business Logic Layer etc.)
+correlationID | string | Identifier of transaction. A single transaction (user request) may produce numerous communications between microservices. Each communication can be represented by span but all spans will have the same correlation identifier because relates to the same transaction
+spanID | string | Unique identifier of the span
+parentSpanID | string | Unique identifier of the span which produce this span
+
+SNAMP uses spans to restore communication topology in IT landscape.
+
+## Health check
+Health check represents information about availability of IT service. Notification _Type_ is not specified for this measurement.
+
+The structure of health check:
+
+Field | Data Type | Description
+---- | ---- | ----
+status | string | Health status. Possible values are: **UP**, **DOWN**, **OUT_OF_SERVICE**.

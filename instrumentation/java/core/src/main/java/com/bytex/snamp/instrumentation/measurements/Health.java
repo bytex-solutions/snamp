@@ -9,9 +9,14 @@ import java.io.ObjectOutput;
 
 /**
  * Provides health status.
+ * @author Roman Sakno
+ * @since 1.0
+ * @version 1.0
  */
 @JsonTypeName("healthCheck")
 public final class Health extends Measurement {
+    private static final long serialVersionUID = -5234694817709939668L;
+
     /**
      * Represents health status.
      */
@@ -31,7 +36,7 @@ public final class Health extends Measurement {
         OUT_OF_SERVICE{
             @Override
             public String toString() {
-                return "Сomponent or subsystem has been taken out of service and should not be used";
+                return "Component or subsystem has been taken out of service and should not be used";
             }
         }
     }
