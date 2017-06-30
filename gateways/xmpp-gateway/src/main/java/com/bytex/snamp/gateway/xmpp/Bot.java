@@ -109,6 +109,9 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                 case ManageNotificationsCommand.NAME:
                     cmd = new ManageNotificationsCommand(notificationFilter);
                     break;
+                case HealthStatusCommand.NAME:
+                    cmd = new HealthStatusCommand();
+                    break;
                 default:
                     cmd = new UnknownCommand(arguments[0]);
                     break;

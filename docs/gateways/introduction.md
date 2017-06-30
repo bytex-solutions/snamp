@@ -20,7 +20,7 @@ Display name | Type | Publication Protocols | Data Exchange Format | Attributes 
 [JMX Gateway](jmx-gateway.md) | jmx | JMX | Java Binary Serialization | Yes | Yes | Yes | No
 [SSH Gateway](ssh-gateway.md) | ssh | SSH | Character Stream | Yes | Yes | No | Yes
 [HTTP Gateway](groovy-gateway.md) | http | HTTP, WebSocket | JSON | Yes | Yes | No | No
-[XMPP Gateway](xmpp-gateway.md) | xmpp | XMPP (Jabber) | XML | Yes | Yes | No | No
+[XMPP Gateway](xmpp-gateway.md) | xmpp | XMPP (Jabber) | XML | Yes | Yes | No | Yes
 [Syslog Gateway](syslog-gateway.md) | syslog | RFC-3164, RFC-5424 | Binary | Yes | Yes | No | No
 [Nagios Gateway](nagios-gateway.md) | nagios | HTTP | [Nagios Plugin Format](https://nagios-plugins.org/doc/guidelines.html#PLUGOUTPUT) | Yes | Yes | No | No
 [NSCA Gateway](nsca-gateway.md) | nsca | TCP | Binary (Nagios NSCA format) | Yes | Yes | No | No

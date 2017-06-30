@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" xmlns:presentation="urn:oasis:names:tc:opendocument:xmlns:presentation:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:chart="urn:oasis:names:tc:opendocument:xmlns:chart:1.0" xmlns:dr3d="urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="urn:oasis:names:tc:opendocument:xmlns:form:1.0" xmlns:script="urn:oasis:names:tc:opendocument:xmlns:script:1.0" xmlns:config="urn:oasis:names:tc:opendocument:xmlns:config:1.0" xmlns:ooo="http://openoffice.org/2004/office" xmlns:ooow="http://openoffice.org/2004/writer" xmlns:oooc="http://openoffice.org/2004/calc" xmlns:dom="http://www.w3.org/2001/xml-events" xmlns:xforms="http://www.w3.org/2002/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:smil="urn:oasis:names:tc:opendocument:xmlns:smil-compatible:1.0" xmlns:anim="urn:oasis:names:tc:opendocument:xmlns:animation:1.0" xmlns:rpt="http://openoffice.org/2005/report" xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:grddl="http://www.w3.org/2003/g/data-view#" xmlns:officeooo="http://openoffice.org/2009/office" xmlns:tableooo="http://openoffice.org/2009/table" xmlns:drawooo="http://openoffice.org/2010/draw" xmlns:calcext="urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0" xmlns:loext="urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0" xmlns:field="urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0" xmlns:formx="urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0" xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2" office:mimetype="application/vnd.oasis.opendocument.graphics">
- <office:meta><meta:creation-date>2015-04-29T01:40:25.179447095</meta:creation-date><dc:date>2017-06-29T14:05:44.781919141</dc:date><meta:editing-duration>P2DT1H16M31S</meta:editing-duration><meta:editing-cycles>53</meta:editing-cycles><meta:generator>LibreOffice/5.3.1.2$Linux_X86_64 LibreOffice_project/30m0$Build-2</meta:generator><meta:document-statistic meta:object-count="229"/></office:meta>
+ <office:meta><meta:creation-date>2015-04-29T01:40:25.179447095</meta:creation-date><dc:date>2017-06-30T01:39:36.685463661</dc:date><meta:editing-duration>P2DT5H59M41S</meta:editing-duration><meta:editing-cycles>55</meta:editing-cycles><meta:generator>LibreOffice/5.3.1.2$Linux_X86_64 LibreOffice_project/30m0$Build-2</meta:generator><meta:document-statistic meta:object-count="229"/></office:meta>
  <office:settings>
   <config:config-item-set config:name="ooo:view-settings">
-   <config:config-item config:name="VisibleAreaTop" config:type="int">4909</config:config-item>
-   <config:config-item config:name="VisibleAreaLeft" config:type="int">18668</config:config-item>
+   <config:config-item config:name="VisibleAreaTop" config:type="int">2675</config:config-item>
+   <config:config-item config:name="VisibleAreaLeft" config:type="int">1588</config:config-item>
    <config:config-item config:name="VisibleAreaWidth" config:type="int">33367</config:config-item>
    <config:config-item config:name="VisibleAreaHeight" config:type="int">26400</config:config-item>
    <config:config-item-map-indexed config:name="Views">
@@ -29,14 +29,14 @@
      <config:config-item config:name="NoColors" config:type="boolean">true</config:config-item>
      <config:config-item config:name="RulerIsVisible" config:type="boolean">true</config:config-item>
      <config:config-item config:name="PageKind" config:type="short">0</config:config-item>
-     <config:config-item config:name="SelectedPage" config:type="short">11</config:config-item>
+     <config:config-item config:name="SelectedPage" config:type="short">16</config:config-item>
      <config:config-item config:name="IsLayerMode" config:type="boolean">true</config:config-item>
      <config:config-item config:name="IsDoubleClickTextEdit" config:type="boolean">true</config:config-item>
      <config:config-item config:name="IsClickChangeRotation" config:type="boolean">true</config:config-item>
      <config:config-item config:name="SlidesPerRow" config:type="short">4</config:config-item>
      <config:config-item config:name="EditMode" config:type="int">0</config:config-item>
-     <config:config-item config:name="VisibleAreaTop" config:type="int">4909</config:config-item>
-     <config:config-item config:name="VisibleAreaLeft" config:type="int">18668</config:config-item>
+     <config:config-item config:name="VisibleAreaTop" config:type="int">2675</config:config-item>
+     <config:config-item config:name="VisibleAreaLeft" config:type="int">1588</config:config-item>
      <config:config-item config:name="VisibleAreaWidth" config:type="int">33368</config:config-item>
      <config:config-item config:name="VisibleAreaHeight" config:type="int">26401</config:config-item>
      <config:config-item config:name="GridCoarseWidth" config:type="int">1270</config:config-item>
@@ -1099,7 +1099,7 @@
      </draw:enhanced-geometry>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr35" draw:text-style-name="P6" draw:layer="layout" svg:x1="20.495cm" svg:y1="9.636cm" svg:x2="34.956cm" svg:y2="9.001cm" draw:start-shape="id42" draw:start-glue-point="0" draw:end-shape="id43" svg:d="M20495 9636v-1137h14461v502" svg:viewBox="0 0 14462 1138">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">JMX Request</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">JMX </text:span><text:span text:style-name="T1">Request</text:span></text:p>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr36" draw:text-style-name="P4" xml:id="id42" draw:id="id42" draw:layer="measurelines" svg:width="3.939cm" svg:height="3.683cm" svg:x="18.526cm" svg:y="9.636cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">JMX Connector</text:span></text:p>
@@ -1110,7 +1110,7 @@
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr35" draw:text-style-name="P6" draw:layer="measurelines" svg:x1="34.956cm" svg:y1="14.208cm" svg:x2="20.495cm" svg:y2="13.319cm" draw:start-shape="id43" draw:start-glue-point="2" draw:end-shape="id42" svg:d="M34956 14208v501h-14461v-1390" svg:viewBox="0 0 14462 1391">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">JMX Response</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">JMX </text:span><text:span text:style-name="T1">Respons</text:span><text:span text:style-name="T1">e</text:span></text:p>
     </draw:connector>
     <draw:connector draw:style-name="gr38" draw:text-style-name="P1" draw:layer="measurelines" svg:x1="10.144cm" svg:y1="9.191cm" svg:x2="18.526cm" svg:y2="11.477cm" draw:start-shape="id44" draw:start-glue-point="1" draw:end-shape="id42" draw:end-glue-point="3" svg:d="M10144 9191h4191v2286h4191" svg:viewBox="0 0 8383 2287">
      <text:p/>
@@ -1259,7 +1259,7 @@
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr35" draw:text-style-name="P6" draw:layer="layout" svg:x1="35.163cm" svg:y1="11.477cm" svg:x2="29.167cm" svg:y2="11.509cm" draw:start-shape="id51" draw:start-glue-point="3" draw:end-shape="id52" draw:end-glue-point="1" svg:d="M35163 11477h-2998v32h-2998" svg:viewBox="0 0 5997 33">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">Zipkin Spans</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Zipkin </text:span><text:span text:style-name="T1">Spans</text:span></text:p>
     </draw:connector>
     <draw:connector draw:style-name="gr38" draw:text-style-name="P1" draw:layer="layout" svg:x1="5.699cm" svg:y1="9.191cm" svg:x2="14.081cm" svg:y2="11.477cm" draw:start-shape="id53" draw:start-glue-point="1" draw:end-shape="id54" draw:end-glue-point="3" svg:d="M5699 9191h4191v2286h4191" svg:viewBox="0 0 8383 2287">
      <text:p/>
@@ -1862,7 +1862,7 @@
      </draw:enhanced-geometry>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr35" draw:text-style-name="P6" draw:layer="layout" svg:x1="20.495cm" svg:y1="9.636cm" svg:x2="34.956cm" svg:y2="9.001cm" draw:start-shape="id57" draw:start-glue-point="0" draw:end-shape="id58" svg:d="M20495 9636v-1137h14461v502" svg:viewBox="0 0 14462 1138">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">Modbus/TCP </text:span><text:span text:style-name="T1">or </text:span><text:span text:style-name="T1">Modbus/UDP </text:span><text:span text:style-name="T1">Request</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Modbus/TCP or </text:span><text:span text:style-name="T1">Modbus/UDP </text:span><text:span text:style-name="T1">Request</text:span></text:p>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id57" draw:id="id57" draw:layer="measurelines" svg:width="3.939cm" svg:height="3.683cm" svg:x="18.526cm" svg:y="9.636cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">Modbus Connector</text:span></text:p>
@@ -1873,7 +1873,7 @@
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr35" draw:text-style-name="P6" draw:layer="measurelines" svg:x1="34.956cm" svg:y1="14.208cm" svg:x2="20.495cm" svg:y2="13.319cm" draw:start-shape="id58" draw:start-glue-point="2" draw:end-shape="id57" svg:d="M34956 14208v501h-14461v-1390" svg:viewBox="0 0 14462 1391">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">Modbus </text:span><text:span text:style-name="T1">Response</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Modbus Response</text:span></text:p>
     </draw:connector>
     <draw:connector draw:style-name="gr38" draw:text-style-name="P1" draw:layer="measurelines" svg:x1="10.144cm" svg:y1="9.191cm" svg:x2="18.526cm" svg:y2="11.477cm" draw:start-shape="id59" draw:start-glue-point="1" draw:end-shape="id57" draw:end-glue-point="3" svg:d="M10144 9191h4191v2286h4191" svg:viewBox="0 0 8383 2287">
      <text:p/>
@@ -1911,7 +1911,7 @@
      </draw:enhanced-geometry>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr35" draw:text-style-name="P6" draw:layer="layout" svg:x1="22.465cm" svg:y1="11.477cm" svg:x2="32.083cm" svg:y2="11.604cm" draw:start-shape="id61" draw:start-glue-point="1" draw:end-shape="id62" svg:d="M22465 11477h4808v127h4810" svg:viewBox="0 0 9619 128">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">SNMP v2/v3 </text:span><text:span text:style-name="T1">Request</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">SNMP v2/v3 Request</text:span></text:p>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id61" draw:id="id61" draw:layer="measurelines" svg:width="3.939cm" svg:height="3.683cm" svg:x="18.526cm" svg:y="9.636cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">SNMP Connector</text:span></text:p>
@@ -2063,7 +2063,7 @@
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr35" draw:text-style-name="P6" draw:layer="layout" svg:x1="34.956cm" svg:y1="14.208cm" svg:x2="20.495cm" svg:y2="13.319cm" draw:start-shape="id73" draw:start-glue-point="2" draw:end-shape="id72" svg:d="M34956 14208v501h-14461v-1390" svg:viewBox="0 0 14462 1391">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP </text:span><text:span text:style-name="T1">Response</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP Response</text:span></text:p>
     </draw:connector>
     <draw:connector draw:style-name="gr38" draw:text-style-name="P1" draw:layer="layout" svg:x1="10.144cm" svg:y1="9.191cm" svg:x2="18.526cm" svg:y2="11.477cm" draw:start-shape="id74" draw:start-glue-point="1" draw:end-shape="id72" draw:end-glue-point="3" svg:d="M10144 9191h4191v2286h4191" svg:viewBox="0 0 8383 2287">
      <text:p/>
@@ -2094,7 +2094,7 @@
      </draw:enhanced-geometry>
     </draw:custom-shape>
    </draw:page>
-   <draw:page draw:name="SNMP Adapter" draw:style-name="dp2" draw:master-page-name="Default">
+   <draw:page draw:name="SNMP Gateway" draw:style-name="dp2" draw:master-page-name="Default">
     <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2125,7 +2125,7 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">SNMP v2/v3</text:span></text:p>
     </draw:connector>
    </draw:page>
-   <draw:page draw:name="JMX Adapter" draw:style-name="dp2" draw:master-page-name="Default">
+   <draw:page draw:name="JMX Gateway" draw:style-name="dp2" draw:master-page-name="Default">
     <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
@@ -2157,12 +2157,12 @@
     </draw:connector>
    </draw:page>
    <draw:page draw:name="HTTP Adapter" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr57" draw:text-style-name="P33" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
+    <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr37" draw:text-style-name="P5" xml:id="id84" draw:id="id84" draw:layer="measurelines" svg:width="4.064cm" svg:height="3.683cm" svg:x="15.732cm" svg:y="9.636cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP Adapter</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP Gateway</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id85" draw:id="id85" draw:layer="measurelines" svg:width="3.939cm" svg:height="3.683cm" svg:x="30.464cm" svg:y="6.842cm">
@@ -2226,12 +2226,12 @@
     </draw:connector>
    </draw:page>
    <draw:page draw:name="XMPP Adapter" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr57" draw:text-style-name="P33" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
+    <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr37" draw:text-style-name="P5" xml:id="id93" draw:id="id93" draw:layer="measurelines" svg:width="4.064cm" svg:height="3.683cm" svg:x="15.732cm" svg:y="9.636cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">XMPP Adapter</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">XMPP Gateway</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id94" draw:id="id94" draw:layer="measurelines" svg:width="3.939cm" svg:height="3.683cm" svg:x="30.464cm" svg:y="6.842cm">
@@ -2263,13 +2263,13 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">XMPP</text:span></text:p>
     </draw:connector>
    </draw:page>
-   <draw:page draw:name="SSH Adapter" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr57" draw:text-style-name="P33" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
+   <draw:page draw:name="SSH Gateway" draw:style-name="dp2" draw:master-page-name="Default">
+    <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr37" draw:text-style-name="P5" xml:id="id98" draw:id="id98" draw:layer="measurelines" svg:width="4.064cm" svg:height="3.683cm" svg:x="15.732cm" svg:y="9.636cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">SSH Adapter</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">SSH Gateway</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id99" draw:id="id99" draw:layer="measurelines" svg:width="3.939cm" svg:height="3.683cm" svg:x="30.464cm" svg:y="6.842cm">

@@ -2,7 +2,6 @@ package com.bytex.snamp.supervision.elasticity.policies;
 
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.MalfunctionStatus;
 import com.bytex.snamp.connector.health.OkStatus;
@@ -57,14 +56,6 @@ public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalin
         configureScriptlet(scriptlet, LANGUAGE_NAME);
     }
 
-    private static HealthStatus getHealthStatusAndClose(final ManagedResourceConnectorClient client) {
-        try {
-            return client.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
-        } finally {
-            client.close();
-        }
-    }
-
     private double vote(final MalfunctionStatus status) {
         if (status.getLevel().compareTo(level) >= 0) {
             startIfNotStarted();
@@ -97,7 +88,7 @@ public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalin
         HealthStatus summary = new OkStatus();
         for (final String resourceName : context.getResources()) {
             final HealthStatus status = ManagedResourceConnectorClient
-                    .tryCreate(bc, resourceName).map(HealthStatusBasedScalingPolicy::getHealthStatusAndClose)
+                    .getStatus(bc, resourceName)
                     .orElseGet(OkStatus::new);
             summary = summary.worst(status);
         }

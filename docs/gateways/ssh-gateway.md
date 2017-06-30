@@ -10,6 +10,7 @@ Feature | Description
 ---- | ----
 Attributes | Each attribute is being displayed in JSON format. Besides, you may rewrite any writable attribute from the console
 Notifications | Each notification is being displayed in JSON format (if that is enabled)
+Health check | Displays health status of resource or group in SSH session
 
 Note that this gateway utilizes **its own internal thread pool that can be configured explicitly**.
 

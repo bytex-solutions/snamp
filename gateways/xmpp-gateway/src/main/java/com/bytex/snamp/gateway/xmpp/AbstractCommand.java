@@ -14,16 +14,16 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @since 1.0
  */
 abstract class AbstractCommand extends BasicParser implements Command {
-    protected static final Option RESOURCE_OPTION = new Option("r",
+    static final Option RESOURCE_OPTION = new Option("r",
             "resource",
             true,
             "Name of the managed resource");
 
-    protected AbstractCommand(final Options commandOptions){
+    AbstractCommand(final Options commandOptions){
         setOptions(commandOptions);
     }
 
-    protected AbstractCommand(){
+    AbstractCommand(){
         this(new Options());
     }
 

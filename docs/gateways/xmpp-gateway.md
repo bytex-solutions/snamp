@@ -1,17 +1,18 @@
-XMPP Resource Adapter
+XMPP Gateway
 ====
-XMPP Resource Adapter provides access to the monitoring & management information exposed by connected resources using XMPP protocol. You can use any Jabber client to operate with SNAMP. This connector provides set of commands that can be printed inside of the chat session. Besides, this connector supports M2M communication via XMPP that can be utilized by any third-party software component. M2M mode means that the connector can expose information in the machine-readable XML format (can be handled by the software). Human-readable information is supplied in JSON format.
+XMPP Gateway provides access to the monitoring & management information exposed by connected resources using XMPP protocol. You can use any Jabber client to operate with SNAMP. This connector provides set of commands that can be printed inside of the chat session. Besides, this connector supports M2M communication via XMPP that can be utilized by any third-party software component. M2M mode means that the connector can expose information in the machine-readable XML format (can be handled by the software). Human-readable information is supplied in JSON format.
 
-> Note that XMPP Adapter acting as a chat bot. Therefore, it must be connected to Jabber server.
+> Note that XMPP Gateway acting as a chat bot. Therefore, it must be connected to Jabber server.
 
-![Communication Scheme](xmpp-adapter.png)
+![Communication Scheme](xmpp-gateway.png)
 
-XMPP Resource Adapter supports the following features (in case these features are supported by managed resources too):
+XMPP Gateway supports the following features (in case these features are supported by managed resources too):
 
 Feature | Description
 ---- | ----
 Attributes | Each attribute is being displayed in JSON format. Also, you may rewrite any writable attribute from the console
 Notifications | Each notification is being displayed in JSON format (if that is enabled)
+Health check | Displays health status of resource or group in XMPP session
 
 There are following supported commands:
 
@@ -34,11 +35,14 @@ There are following supported commands:
   - `-s, --silent` - do not produce response message
 1. `notifs [-f <expression>]` - enables listening of incoming notifications. In this mode the notifications will be delivered asynchronously to the chat in JSON and XML format
   - `-f <expression>`, `--filter <expression>` - _RFC 1960_-based expression that describes notification selection candidate. You may use any configuration property in the filtering expression
+1. `hs [-r <resource-name>] | [-g <group-name>]` - displays health status of the groups of resources or individual managed resource. One of the parameters is required.
+  - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
+  - `-g <group-name>`, `--group <group-name>` - specifies group name.
 
-Attribute value and notification object are represented in the same JSON format as defined in **HTTP Resource Adapter**.
+Attribute value and notification object are represented in the same JSON format as defined in **HTTP Gateway**.
 
 ## Configuration Parameters
-XMPP Resource Adapters recognizes the following configuration parameters:
+XMPP Gateway recognizes the following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
@@ -60,16 +64,16 @@ If your Jabber server supports transport-level security (via SSL) and verificati
 * `keystore`
 * `keystoreType`
 
-And, optionally, `allowUnsafeCertificate` parameter. 
+And, optionally, `allowUnsafeCertificate` parameter.
 
 `keystore` file can be generated with `keytool` tool from JDK. For example:
- 
+
 ```bash
 keytool -keystore xmpp_tls.cert -genkey
 ```
 
 ### Machine-to-Machine communication
-XMPP Resource Adapter is primarily oriented to human-to-machine communication (admin-to-SNAMP using Jabber client). But XMPP protocol is pretty useful as a messaging framework between two applications. If `enableM2M` parameter is enabled - adapter will add extra information to XMPP stanza (packet). This information is located in `properties` XML element with `http://www.jivesoftware.com/xmlns/xmpp/properties` namespace. Following properties will be injected:
+XMPP Gateway is primarily oriented to human-to-machine communication (admin-to-SNAMP using Jabber client). But XMPP protocol is pretty useful as a messaging framework between two applications. If `enableM2M` parameter is enabled - gateway will add extra information to XMPP stanza (packet). This information is located in `properties` XML element with `http://www.jivesoftware.com/xmlns/xmpp/properties` namespace. Following properties will be injected:
 
 * For attributes
   * `writable` - boolean value indicating attribute is writable

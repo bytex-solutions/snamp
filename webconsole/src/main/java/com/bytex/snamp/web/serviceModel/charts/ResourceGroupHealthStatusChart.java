@@ -1,7 +1,7 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.connector.health.HealthStatus;
-import com.bytex.snamp.supervision.health.HealthStatusProvider;
+import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.google.common.collect.ImmutableList;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -181,7 +181,7 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
     public Collection<ChartData> collectChartData(final BundleContext context) throws Exception {
         if (isNullOrEmpty(groupName))
             return ImmutableList.of();
-        final ResourceGroupHealthStatus status = HealthStatusProvider.getHealthStatus(context, groupName);
+        final ResourceGroupHealthStatus status = SupervisorClient.getGroupStatus(context, groupName);
         return collectChartData(status, groupName);
     }
 }

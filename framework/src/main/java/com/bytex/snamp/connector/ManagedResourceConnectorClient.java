@@ -6,6 +6,9 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.EntityConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import org.osgi.framework.*;
@@ -26,7 +29,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 1.0
  */
-public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector, SafeCloseable {
+public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector, SafeCloseable, HealthCheckSupport {
     private final BundleContext context;
 
     public ManagedResourceConnectorClient(@Nonnull final BundleContext context,
@@ -385,5 +388,27 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     @Override
     public String toString() {
         return getManagedResourceName();
+    }
+
+    @Override
+    @Nonnull
+    public HealthStatus getStatus(){
+        return queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
+    }
+
+    /**
+     * Gets health status of the managed resource.
+     * @param context Bundle context.
+     * @param resourceName Name of managed resource.
+     * @return Health status of resource; or empty if resource doesn't exist.
+     */
+    public static Optional<HealthStatus> getStatus(final BundleContext context, final String resourceName) {
+        return tryCreate(context, resourceName).map(client -> {
+            try {
+                return client.getStatus();
+            } finally {
+                client.close();
+            }
+        });
     }
 }
