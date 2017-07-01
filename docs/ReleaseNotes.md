@@ -53,28 +53,28 @@ Without any changes in comparison with SNAMP 1.2.0.
 ### Stub Connector 2.0.0
 Useful resource connector for tests and demonstration. It provides synthetic metrics.
 
-### JMX Resource Adapter 2.0.0
+### JMX Gateway 2.0.0
 Fix serialization issues associated with JMX.
 
-### SSH Resource Adapter 2.0.0
-Numerous bug fixes.
+### SSH Gateway 2.0.0
+Health status can be obtained from CLI.
 
-### HTTP Resource Adapter 2.0.0
+### HTTP Gateway 2.0.0
 WebSockets is the only transport for notifications. Long-polling and SSE was removed.
 
-### XMPP Resource Adapter 2.0.0
-Numerous bug fixes.
+### XMPP Gateway 2.0.0
+Health status can be obtained in chat session.
 
-### Syslog Resource Adapter 2.0.0
+### Syslog Gateway 2.0.0
 Asynchronous message sending was replaced with synchronous.
 
-### Nagios Resource Adapter 2.0.0
+### Nagios Gateway 2.0.0
 Numerous bug fixes.
 
-### Nagios Service Check Acceptor (NSCA) Adapter 2.0.0
+### Gateway for Nagios Service Check Acceptor (NSCA) 2.0.0
 Numerous bug fixes.
 
-### Nagios Remote Data Processor (NRDP) Adapter 2.0.0
+### Gateway for Nagios Remote Data Processor (NRDP) 2.0.0
 Numerous bug fixes.
 
 ### SMTP Gateway 2.0.0

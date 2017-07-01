@@ -35,7 +35,7 @@ ldap-user-search-filter | _RFC 1960_-based expression | No | Filter used to sear
 jndi-ldap-factory | String | No | Full name of Java class used for instantiating LDAP client. Default value is `com.sun.jndi.ldap.LdapCtxFactory`. This value is valid for Oracle JDK and OpenJDK only. You must specify this parameter for any other JVM | `com.sun.jndi.ldap.LdapCtxFactory`
 ldap-user-password-attribute-name | String | No | Property name in the LDAP entry which holds password of the SNMPv3 user. Default value is `userPassword` | `userPassword`
 
-Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. All other parameters will be ignored.
+Note that parameters related to thread pool is omitted. See **User's Guide** page for more information about thread pool configuration. All other parameters will be ignored.
 
 ### SNMPv2 setup
 For SNMPv2 setup you need to use the following parameters:
@@ -174,7 +174,7 @@ userpassword=pwd
 sn=Nick
 ```
 
-...and related configuration parameters of adapter:
+...and related configuration parameters of gateway:
 ```
 ldap-uri = ldap://127.0.0.1:10389
 ldap-user = uid=admin,ou=system

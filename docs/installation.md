@@ -186,7 +186,7 @@ START LEVEL 100 , List Threshold: 50
 > Note that version of the SNAMP components may vary and depends on the installed SNAMP version.
 
 ## Root privileges
-SNAMP doesn't require `root` privileges for running. But if you want to use standard ports in the configured resource adapters (161 for `SNMP` protocol and 80, 8080, 443 for `HTTP` protocol) then you should have `root` privileges.
+SNAMP doesn't require `root` privileges for running. But if you want to use standard ports in the configured gateways (161 for `SNMP` protocol and 80, 8080, 443 for `HTTP` protocol) then you should have `root` privileges.
 
 ## Integration in the operating system
 SNAMP may be integrated as an OS System Service:

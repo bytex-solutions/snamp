@@ -177,8 +177,8 @@ communicator = getCommunicator 'test-communicator'
 def listen(message){
     communicator.sendMessage('pong', MessageType.RESPONSE, message.messageID)
 }
-
 communicator.addMessageListener(this.&listen, MessageType.REQUEST)
+
 //script2.groovy
 communicator = getCommunicator 'test-communicator'
 def response = communicator.sendRequest('ping', {msg -> msg.payload}, 2000)  //2 seconds for response timeout

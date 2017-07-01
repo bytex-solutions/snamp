@@ -45,6 +45,7 @@ defaultValue | Attribute | The default value of the attribute if the actual valu
 minValue | Attribute | The minimum (exclusive) permitted value for the attribute
 maxValue | Attribute configuration | The maximum (exclusive) permitted value for the attribute
 smartMode | Resource configuration | Enable or disable smart mode of the connector. The possible values are `true` or `false`
+description | Event, Attribute, Operation | Human-readable description of the attribute, event or operation
 
 ### `severity` parameter
 The possible values of `severity` parameter (in descending order):

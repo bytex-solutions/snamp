@@ -1,6 +1,6 @@
-Groovy Resource Adapter
+Groovy Gateway
 ====
-Groovy Resource Adapter allows to integrate any third-party management software with SNAMP using Groovy script. The script program has access to all management information provided by connected managed resources. It can be useful in the following cases:
+Groovy Gateway allows to integrate any third-party management software with SNAMP using Groovy script. The script program has access to all management information provided by connected managed resources. It can be useful in the following cases:
 * Applying complex analysis on metrics
 * Applying validation rules on attributes
 * Processing notifications
@@ -8,33 +8,29 @@ Groovy Resource Adapter allows to integrate any third-party management software 
 * Storing metrics and notifications into external database
 
 ## Configuration Parameters
-Groovy Resource Adapter recognizes following configuration parameters:
+Groovy Gateway recognizes following configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-scriptFile | string | Yes | Name of the boot script | `Adapter.groovy`
-scriptPath | string | Yes | Collection of the paths with groovy scripts | `/usr/local/snamp/groovy:/usr/local/snamp/scripts`
-
-You may specify more than one path in `scriptPath` parameter using OS-specific path separator symbol:
-* `:` for Linux
-* `;` for Windows
+scriptFile | string | Yes | Name of the boot script | `Gateway.groovy`
+scriptPath | string | Yes | Collection of semicolon-separated URLs with groovy scripts | `file:/usr/local/snamp/groovy;file:/usr/local/snamp/scripts`
 
 Any other user-defined configuration property will be visible inside from Groovy script as a global variable.
 
 ## Scripting
-Groovy Resource Adapter provides following features for Groovy scripting:
+Groovy Gateway provides following features for Groovy scripting:
 * DSL extensions of Groovy language
 * Accessing attributes and notifications of all connected managed resources
 * Full [Grape](http://www.groovy-lang.org/Grape) support so you can use any Groovy module or Java library published in Maven repository
 
-Each instance of the Groovy Resource Adapter has isolated sandbox with its own Java class loader used for Groovy scripts.
+Each instance of the Groovy Gateway has isolated sandbox with its own Java class loader used for Groovy scripts.
 
 ### API
 Special functions that you can declare in your script:
 
 Declaration | Description
 ---- | ----
-void close() | Called by SNAMP automatically when the resources acquired by instance of the adapter should be released
+void close() | Called by SNAMP automatically when the resources acquired by instance of the gateway should be released
 def handleNotification(metadata, notif) | Catches notification emitted by one of the connected managed resources. This function is being called asynchronously
 
 The following example shows how to handle a notification:
@@ -48,7 +44,7 @@ def handleNotification(metadata, notif){
 ```
 
 #### Global variables
-All configuration parameters specified at adapter-level will be visible to all scripts. For example, you have configured `scriptFile` and `customParam` parameters. Value of these parameters can be obtained as follows:
+All configuration parameters specified at gateway-level will be visible to all scripts. For example, you have configured `scriptFile` and `customParam` parameters. Value of these parameters can be obtained as follows:
 ```groovy
 println scriptFile
 println customParam
@@ -59,16 +55,13 @@ Other useful predefined global variables:
 Name | Type | Description
 ---- | ---- | ----
 resources | Groovy object | Root object that exposes access to all connected resources. That is a root of all DSL extensions
+logger | java.util.logging.Logger | Logger object
 
 #### Logging
 
 Function | Description
 ---- | ----
-error(String msg) | Reports about error
-warning(String msg) | Reports about warning
-info(String msg) | Emits informational message
-debug(String msg) | Emits debug message
-fine(String msg) | Emits trace message
+lo
 
 #### Batch processing
 
@@ -124,8 +117,8 @@ Function | Description
 ---- | ----
 Communicator getCommunicator(String name) | Gets or creates communication session. The communicator can be useful for inter-script lightweight communication
 MessageListener asListener(Closure action) | Wraps Groovy closure into communication message listener
-Timer createTimer(Closure action, long period) | Creates a new timer that execute the specified task periodically
-Timer schedule(Closure action, long period) | Executes specified task periodically in the background
+Repeater createTimer(Closure action, long period) | Creates a new timer that execute the specified task periodically
+Repeater schedule(Closure action, long period) | Executes specified task periodically in the background
 
 Working with timers:
 ```groovy
@@ -139,36 +132,24 @@ def timer = schedule({ println 'Tick' }, 300)
 timer.close()
 ```
 
-Simple messaging using communicator:
-```groovy
-def communicator = getCommunicator 'test-communicator'
-communicator.register(asListener { msg -> println msg})
-```
-in other script file
-```groovy
-def communicator = getCommunicator 'test-communicator'
-communicator.post 'Hello, world!'
-```
-
 Synchronous messaging using communicator:
+
 ```groovy
 //script1.groovy
 communicator = getCommunicator 'test-communicator'
 def listen(message){
-    communicator.post('pong')
+    communicator.sendMessage('pong', MessageType.RESPONSE, message.messageID)
 }
+communicator.addMessageListener(this.&listen, MessageType.REQUEST)
 
-communicator.register(asListener(this.&listen))
-```
-```groovy
 //script2.groovy
 communicator = getCommunicator 'test-communicator'
-def response = communicator.post('ping', 2000)  //2 seconds for response timeout
+def response = communicator.sendRequest('ping', {msg -> msg.payload}, 2000)  //2 seconds for response timeout
 println response  //pong
 ```
 
 ### DSL
-Groovy Resource Adapter provides convenient way to work with connected resources and its features. Each resource and its features are available as properties of Groovy objects:
+Groovy Gateway provides convenient way to work with connected resources and its features. Each resource and its features are available as properties of Groovy objects:
 
 * `resources.resName` - gets the access to the connected resource named as `resName` is SNAMP configuration
 * `resources.getResource("resName")` - the same as above

@@ -37,7 +37,7 @@ Any other configuration parameters will be ignored by gateway.
 > Note that security settings used by MBean depends on the MBean Server used for registration. For example, JMX security in Apache Karaf is managed by container itself and should specify JMX login/password pair. **karaf**/**karaf** is the default login/password pair.
 
 ## Configuring events
-Following configuration parameters of the events influence on JMX Resource Adapter behavior:
+Following configuration parameters of the events influence on JMX Gateway behavior:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----

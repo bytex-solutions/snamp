@@ -1,7 +1,7 @@
 HTTP Gateway
 ====
 
-HTTP Gateway allows to manage and monitor connected resources via HTTP protocol. This adapter exposes REST service which uses JSON data exchange format.
+HTTP Gateway allows to manage and monitor connected resources via HTTP protocol. This gateway exposes REST service which uses JSON data exchange format.
 
 ![Communication Scheme](http-gateway.png)
 

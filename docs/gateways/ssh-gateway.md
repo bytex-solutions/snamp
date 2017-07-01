@@ -57,7 +57,7 @@ password | String | No | Password of the user that can be authenticated on SSH s
 publicKeyFile | Filename | No | Path to the public key used by client| `client.ssh`
 publicKeyFileFormat | Filename | No | Type of the public key used by client | `pkcs8`
 
-Note that parameters related to thread pool is omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. Other parameters will be ignored.
+Note that parameters related to thread pool is omitted. See **User's Guide** page for more information about thread pool configuration. Other parameters will be ignored.
 
 SSH Gateway supports the following authentication techniques:
 
@@ -66,7 +66,7 @@ SSH Gateway supports the following authentication techniques:
 1. Using _public key_ - specify _publicKeyFile_ and, optionally, `publicKeyFileFormat` configuration parameters
 
 ### Server certificate
-Server certificate can be generated using `openssl` utility. The adapter supports following types (`hostKeyType` configuration property) of certificate:
+Server certificate can be generated using `openssl` utility. Gateway supports following types (`hostKeyType` configuration property) of certificate:
 
 Value | Description
 ---- | ----

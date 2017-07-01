@@ -1,40 +1,40 @@
-Nagios Resource Adapter
+Nagios Gateway
 ====
-Nagios Resource Adapter allows to collect monitoring and management information from all resources connected to SNAMP using [active check](http://nagios.sourceforge.net/docs/3_0/activechecks.html). Simply, this adapter is just a HTTP endpoint that returns information in [Nagios Plugin Format](http://nagios.sourceforge.net/docs/3_0/pluginapi.html) about managed resource.
+Nagios Gateway allows to collect monitoring and management information from all resources connected to SNAMP using [active check](http://nagios.sourceforge.net/docs/3_0/activechecks.html). Simply, this gateway is just a HTTP endpoint that returns information in [Nagios Plugin Format](http://nagios.sourceforge.net/docs/3_0/pluginapi.html) about managed resource.
 
-![Communication Scheme](nagios-adapter.png)
+![Communication Scheme](nagios-gateway.png)
 
-Nagios Resource Adapter supports following features (if these features are supported by managed resources as well):
+Nagios Gateway supports following features (if these features are supported by managed resources as well):
 
 Feature | Description
 ---- | ----
 Attributes | Attribute and its value will be converted into _Nagios Plugin Format_ and placed into HTTP response
 
-Notifications are not supported by Nagios Resource Adapter.
+Notifications are not supported by Nagios Gateway.
 
 Use following URL for retrieving attributes:
 ```
 HTTP GET
-http://<snamp-host>:<port>/snamp/adapters/nagios/<adapter-instance-name>/attributes/<resource-name>/<attribute-name>
+http://<snamp-host>:<port>/snamp/gateway/nagios/<gateway-instance-name>/attributes/<resource-name>/<attribute-name>
 ```
 
 `3535` is a default port of a SNAMP web server.
 
-This adapter supports following output formats for each attribute:
+This gateway supports following output formats for each attribute:
 
 * Plain scalar value of the attribute
 * Service status with associated descriptive value
 * Extended output with thresholds as it is described in [Nagios Plugin Format](http://nagios.sourceforge.net/docs/3_0/pluginapi.html)
 
-Service status will be detected automatically by resource adapter. But the detection algorithm depends on thresholds (warning/criticial/min/max levels) specified in the configuration parameters.
+Service status will be detected automatically by gateway. But the detection algorithm depends on thresholds (warning/criticial/min/max levels) specified in the configuration parameters.
 
 You may use `curl` or `wget` utilities in the `bash` script when you configure Nagios.
 
 ## Configuration Parameters
-Nagios Resource Adapters doesn't provide any recognizable configuration parameters.
+Nagios Gateway doesn't provide any recognizable configuration parameters.
 
 ## Configuring attributes
-Following configuration parameters of the attributes influence Nagios Resource Adapter behavior:
+Following configuration parameters of the attributes influence Nagios Gateway behavior:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
@@ -76,7 +76,7 @@ memory WARNING: 65MB | aom=65MB;60;80;0;100
 memory CRITICAL: 85MB | aom=85MB;60;80;0;100
 ```
 
-Nagios Resource Adapter automatically resolves service status using threshold/min/max values. If thresholds are not specified then the adapter specifies `CRITICAL` status only when attribute read operation causes exception.
+Nagios Gateway automatically resolves service status using threshold/min/max values. If thresholds are not specified then the gateway specifies `CRITICAL` status only when attribute read operation causes exception.
 
 Now add `label = utilized` configuration parameter. Possible HTTP GET results will be changed:
 ```

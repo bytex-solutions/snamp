@@ -2,6 +2,7 @@ package com.bytex.snamp.gateway.influx;
 
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.modeling.AttributeSet;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.instrumentation.measurements.Measurement;
@@ -9,6 +10,7 @@ import com.bytex.snamp.instrumentation.measurements.Span;
 import com.bytex.snamp.instrumentation.measurements.TimeMeasurement;
 import com.bytex.snamp.instrumentation.measurements.ValueMeasurement;
 import com.bytex.snamp.instrumentation.measurements.jmx.MeasurementNotification;
+import com.google.common.collect.ImmutableMap;
 import org.influxdb.dto.Point;
 
 import javax.management.AttributeChangeNotification;
@@ -18,8 +20,9 @@ import javax.management.Notification;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -38,20 +41,25 @@ abstract class NotificationPoint extends NotificationAccessor {
 
     abstract String getResourceName();
 
-    abstract Reporter getReporter();
+    abstract boolean report(final Point p);
 
     abstract AttributeSet<AttributePoint> getAttributes();
+
+    private Logger getLogger() {
+        return LoggerProvider.getLoggerForObject(this);
+    }
 
     private Map<String, String> extractTags() {
         return Helpers.extractTags(getBundleContextOfObject(this), getResourceName());
     }
 
-    private Void handleNotification(final AttributeChangeNotification notification) throws JMException, InterruptedException {
+    private void handleNotification(final AttributeChangeNotification notification) {
         final Map<String, String> tags = extractTags();
-        final Reporter reporter = getReporter();
-        if (reporter != null)
-            getAttributes().processAttribute(getResourceName(), notification.getAttributeName(), accessor -> reporter.report(accessor.toPoint(tags)));
-        return null;
+        try {
+            getAttributes().processAttribute(getResourceName(), notification.getAttributeName(), accessor -> report(accessor.toPoint(tags)));
+        } catch (final JMException | InterruptedException e) {
+            getLogger().log(Level.SEVERE, String.format("Unable to read attribute %s from resource %s", notification.getAttributeName(), getResourceName()), e);
+        }
     }
 
     private void handleNotification(final MeasurementNotification<?> notification) {
@@ -66,10 +74,16 @@ abstract class NotificationPoint extends NotificationAccessor {
         else if (measurement instanceof Span) {
             fields = new HashMap<>();
             final Span span = (Span) measurement;
-            tags.put("correlationID", span.getCorrelationID().toString());
-            fields.put("correlationID", span.getCorrelationID().toString());
+            if (!span.getCorrelationID().isEmpty()) {
+                final String correlationID = span.getCorrelationID().toString();
+                tags.put("correlationID", correlationID);
+                fields.put("correlationID", correlationID);
+            }
             fields.put("spanID", span.getSpanID().toString());
-            fields.put("parentSpanID", span.getParentSpanID().toString());
+            if (!span.getParentSpanID().isEmpty())
+                fields.put("parentSpanID", span.getParentSpanID().toString());
+            if (!isNullOrEmpty(span.getModuleName()))
+                tags.put("moduleName", span.getModuleName());
             fields.put("duration", span.getDuration(TimeUnit.NANOSECONDS));
         } else if (measurement instanceof TimeMeasurement)
             fields = Helpers.toScalar(((TimeMeasurement) measurement).getDuration(TimeUnit.NANOSECONDS));
@@ -80,9 +94,21 @@ abstract class NotificationPoint extends NotificationAccessor {
                 .time(notification.getTimeStamp(), TimeUnit.MILLISECONDS)
                 .tag(tags)
                 .build();
-        final Reporter reporter = getReporter();
-        if (reporter != null)
-            reporter.report(p);
+        report(p);
+    }
+
+    private void handleNotification(final Notification notification) {
+        final Map<String, String> tags = extractTags();
+        final Map<String, Object> fields = ImmutableMap.of(
+                "sequenceNumber", notification.getSequenceNumber(),
+                "message", notification.getMessage()
+        );
+        final Point p = Point.measurement(notification.getType())
+                .time(notification.getTimeStamp(), TimeUnit.MILLISECONDS)
+                .fields(fields)
+                .tag(tags)
+                .build();
+        report(p);
     }
 
     @Override
@@ -92,9 +118,11 @@ abstract class NotificationPoint extends NotificationAccessor {
             if (notification instanceof NotificationContainer)
                 handleNotification(((NotificationContainer) notification).get(), handback);
             else if (notification instanceof AttributeChangeNotification)
-                callUnchecked(() -> handleNotification((AttributeChangeNotification) notification));
+                handleNotification((AttributeChangeNotification) notification);
             else if (notification instanceof MeasurementNotification<?>)
                 handleNotification((MeasurementNotification<?>) notification);
+            else
+                handleNotification(notification);
         }
     }
 }

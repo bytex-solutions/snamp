@@ -25,8 +25,9 @@ Display name | Type | Publication Protocols | Data Exchange Format | Attributes 
 [Nagios Gateway](nagios-gateway.md) | nagios | HTTP | [Nagios Plugin Format](https://nagios-plugins.org/doc/guidelines.html#PLUGOUTPUT) | Yes | Yes | No | No
 [NSCA Gateway](nsca-gateway.md) | nsca | TCP | Binary (Nagios NSCA format) | Yes | Yes | No | No
 [NRDP Gateway](nrdp-gateway.md) | nrdp | HTTP | XML (Nagios NRDP format) | Yes | Yes | No | No
-[Groovy Gateway](groovy-gateway.md) | groovy | _Any_ | _Any_ | Yes | Yes | No | Yes
+[Groovy Gateway](groovy-gateway.md) | groovy | _Any_ | _Any_ | Yes | Yes | Yes | Yes
 [SMTP Gateway](smtp-gateway.md) | smtp | SMTP, SMTPS | Plain text, JSON | No | Yes | No | Yes
+[InfluxDB Gateway](influx-gateway.md) | influx | Store records into InfluxDB | _Not applicable_ | Yes | Yes | No | No
 
 ## Predefined configuration parameters
 The following table describes optional configuration parameters that are applicable to all gateways:

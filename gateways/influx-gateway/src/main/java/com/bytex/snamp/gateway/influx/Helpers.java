@@ -36,6 +36,14 @@ final class Helpers {
         if (client.isPresent())
             try (final ManagedResourceConnectorClient connector = client.get()) {
                 final Map<String, String> tags = new HashMap<>(connector.getConfiguration());
+                //remove security-sensitive parameters
+                tags.remove("password");
+                tags.remove("userName");
+                tags.remove("login");
+                tags.remove("secret");
+                tags.remove("databaseLogin");
+                tags.remove("databasePassword");
+                //add predefined parameters
                 tags.put("managedResource", connector.getManagedResourceName());
                 tags.put("connectionType", connector.getConnectorType());
                 return tags;

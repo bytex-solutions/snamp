@@ -36,7 +36,7 @@ Formal parameters:
 * `headers` parameter contains all HTTP request headers
 * `body` parameter contains plain text, XML DOM or JSON DOM of the request
 
-Read more about parsers [here](ds-connector.md).
+Read more about parsers [here](ds-connector.md). Example of Groovy-based parser you can see [here](https://bitbucket.org/bytex-solutions/snamp/src/master/sample-groovy-scripts/HttpAcceptorParser.groovy?fileviewer=file-view-default).
 
 ## Configuring attributes
 HTTP Acceptor provides the same set of attributes as described in [Data Stream Connector](ds-connector.md).

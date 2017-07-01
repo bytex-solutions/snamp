@@ -1,11 +1,9 @@
 package com.bytex.snamp;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
-import java.util.Objects;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.*;
+import java.util.function.*;
 
 /**
  * Represents simple container that holds mutable typed value.
@@ -14,6 +12,7 @@ import java.util.function.UnaryOperator;
  * @version 2.0
  * @since 1.0
  */
+@NotThreadSafe
 final class MutableReference<T> implements Box<T>, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder>, Serializable{
     private static final long serialVersionUID = -3932725773035687013L;
     private T value;
@@ -36,6 +35,11 @@ final class MutableReference<T> implements Box<T>, Supplier<T>, Consumer<T>, Acc
         if(value == null)
             value = valueProvider.get();
         return value;
+    }
+
+    @Override
+    public <R> Optional<R> map(final Function<? super T, ? extends R> mapper) {
+        return Optional.ofNullable(value).map(mapper);
     }
 
     /**

@@ -16,7 +16,8 @@ public interface IntBox extends Box<Integer>, IntSupplier, IntConsumer, Comparab
     int accumulateAndGet(final int right, final IntBinaryOperator operator);
     int updateAndGet(final IntUnaryOperator operator);
     int compareTo(final int newValue);
-    <R> R get(final IntFunction<? extends R> fn);
+    long mapToLong(final IntToLongFunction mapper);
+    double mapToDouble(final IntToDoubleFunction mapper);
 
     static IntBox of(final int initialValue){
         return new MutableInteger(initialValue);
