@@ -3,7 +3,7 @@ SNAMP Performance Tips
 This page contains information about SNAMP performance tuning.
 
 ## Memory calculation
-The minimum amount of memory required for single SNAMP process is 512 MB. This amount of memory is enough for launching single resource adapter and one or two resource connectors.
+The minimum amount of memory required for single SNAMP process is 512 MB. This amount of memory is enough for launching single gateway and one or two resource connectors.
 
 > RAM calculation methodology reflects SNAMP requirements only. So, the total RAM space installed in your hardware must be greater than space required by SNAMP because OS and other daemon processes utilize its own memory. Pay your attention: SNAMP should not swap its memory.
 
@@ -49,7 +49,7 @@ All the Java objects created during SNAMP execution can be divided by its lifecy
 
 Short-lived objects are being created for each attribute request or operation execution from monitoring & management tool, and notification delivery to monitoring & management tool. These objects are never being placed into **Old Generation** but require a right tunes size of **Young Generation Heap** (Eden and Survivor spaces). The number of short-lived objects depends on the number of requests per second.
 
-Long-lived objects are being created for each connected managed resource and resource adapter. So, resource adapter instance and resource connector instance are long-lived objects. Changing of SNAMP configuration causes releasing long-lived objects in **Old Generation Heap** (Tenured space). Therefore, if you expect frequent reconfiguring then setup the large OldGen heap (to avoid pauses).
+Long-lived objects are being created for each connected managed resource and gateway. So, gateway instance and resource connector instance are long-lived objects. Changing of SNAMP configuration causes releasing long-lived objects in **Old Generation Heap** (Tenured space). Therefore, if you expect frequent reconfiguring then setup the large OldGen heap (to avoid pauses).
 
 ### Throughput first
 If peak application performance is the first priority and there are no pause time requirements (or pauses of 1 second or longer are acceptable), then select the parallel collector with `-XX:+UseParallelGC`. You might also specify `-XX:+UseParallelOldGC` if you expect frequent SNAMP reconfiguring.
@@ -63,7 +63,7 @@ If response time is more important than overall throughput and garbage collectio
 * G1 collector with `-XX:+UseG1GC`. That requires large heaps - about 6GB or larger, and stable and predictable pause time below 0.5 seconds.
 
 ## Number of cores
-Each resource adapter or resource connector uses its own isolated thread pool.
+Each gateway or resource connector uses its own isolated thread pool.
 So, recommended number of cores (k) is based on the following metrics:
 
 * `λ` - expected workload from single monitoring tool, in RPS (requests per second)?
@@ -111,7 +111,7 @@ Examples:
 > Many modern CPUs support simultaneous multi-threading (SMT) when one physical CPU core may process two (or more) threads in parallel. In this case, `number of cores` means number of logical cores.
 
 ## Thread pool size
-> It is possible to configure internal thread pool of some resource adapters and connectors. See [Configuration](configuration.md) for more information about thread pool configuration parameters.
+> It is possible to configure internal thread pool of some gateways and resource connectors. See [Configuration](configuration.md) for more information about thread pool configuration parameters.
 
 Optimal max thread pool size should be equal to ![](http://latex.codecogs.com/gif.latex?S=1.5\times&space;k). Each thread might be used as a separated channel for handling requests.
 
