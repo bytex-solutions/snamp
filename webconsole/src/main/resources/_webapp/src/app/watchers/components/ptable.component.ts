@@ -35,7 +35,7 @@ export class PTable implements OnInit {
     }
 
     addNewParameter():void {
-        this.entity.setParameter(new KeyValue("newParamKey", "newParamValue"));
+        this.entity.parameters.push(new KeyValue("newParamKey", "newParamValue"));
         this.cd.detectChanges();
     }
 

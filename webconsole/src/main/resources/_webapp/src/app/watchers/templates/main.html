@@ -80,8 +80,8 @@
                     </div>
                   </div>
 
-                  <div id="ptable" class="row" style="margin-top: 70px;">
-                    <div class="item form-group">
+                  <div id="ptable" class="row" style="margin-top: 30px;">
+                    <div>
                       <ptable [entity]="activeWatcher.trigger"></ptable>
                     </div>
                   </div>
@@ -201,8 +201,8 @@
                     </table>
                   </div>
 
-                  <div id="checkerPTable" class="row" style="margin-top: 70px;">
-                    <div class="item form-group">
+                  <div id="checkerPTable" class="row" style="margin-top: 30px;">
+                    <div>
                       <ptable [entity]="activeChecker"></ptable>
                     </div>
                   </div>
@@ -322,7 +322,7 @@
           <label for="watcherTypeSelection" class="col-md-2 col-form-label">Type</label>
           <div class="col-md-10">
             <select class="form-control" [(ngModel)]="activeWatcher.type" id="watcherTypeSelection">
-              <option  *ngFor="let _type of availableTypes" [ngValue]="_type">{{_type}}</option>
+              <option  *ngFor="let supervisor of availableSupervisors" [ngValue]="supervisor.type">{{supervisor.type}}</option>
             </select>
           </div>
         </div>

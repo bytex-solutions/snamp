@@ -11,7 +11,7 @@
         <td>
             <span
                 class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
-                (click)="removeParameter(param)"
+                (click)="checkAndRemoveParameter(param)"
                 aria-hidden="true">
             </span>
         </td>
@@ -31,7 +31,6 @@
 
 <button
         type="button"
-        style="float: right;"
         class="btn btn-primary btn-sm"
         (click)="addNewParameter()">
     Add new

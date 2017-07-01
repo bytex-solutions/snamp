@@ -100,6 +100,8 @@ export class REST {
 
     public static AVAILABLE_RESOURCE_LIST:string = REST.COMPONENTS_MANAGEMENT + "/connectors";
 
+    public static AVAILABLE_SUPERVISORS_LIST:string = REST.COMPONENTS_MANAGEMENT + "/supervisors";
+
     public static AVAILABLE_ENTITIES_BY_TYPE(entityType: string): string {
         return REST.COMPONENTS_MANAGEMENT + "/" + encodeURIComponent(entityType) + "s";
     }

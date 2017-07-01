@@ -40,6 +40,8 @@ export class MainComponent implements OnInit {
 
     private triggerLanguages: string[] = ["Groovy", "JavaScript"];
 
+    private availableSupervisors :any[] = [];
+
     constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef) {
         overlay.defaultViewContainer = vcRef;
     }
@@ -69,10 +71,17 @@ export class MainComponent implements OnInit {
             .subscribe((data) => {
                 this.components = data;
             });
+
+        // fill available supervisors list
+        this.http.get(REST.AVAILABLE_SUPERVISORS_LIST)
+            .map((res: Response) => res.json())
+            .subscribe(data => {
+                console.log("Available supervisors list is: ", data);
+                this.availableSupervisors = data;
+            });
     }
 
-    ngAfterViewInit(): void {
-    }
+    ngAfterViewInit(): void {}
 
     public initTriggerModal(): void {
         // clean the data if the component was already initialized
@@ -256,6 +265,7 @@ export class MainComponent implements OnInit {
             .map((res: Response) => res.text())
             .subscribe(data => {
                 console.log("watcher has been saved: ", data);
+                this.cleanSelection();
             });
     }
 
