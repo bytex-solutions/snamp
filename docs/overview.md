@@ -1,10 +1,11 @@
 SNAMP Overview
 ====
 SNAMP is a software system for monitoring, distributed tracing and elasticity management of components in IT infrastructure. It is oriented on Operations and DevOps engineers.
-
 * Monitoring functionality includes collecting metrics and notifications from components and displaying them in convenient SNAMP web interface, storing the data for further analysis using tools like Grafana or Kibana or sending it via e-mail.
 * Distributed tracing functionality allows to collect spans from software components and display sensitive data related to communication between these components like average response time, availability and topology.
 * Elasticity management provides automatic scaling of computation resources based on metrics harvested by SNAMP. For example, SNAMP provides automatic scaling for OpenStack-based environments.
+
+SNAMP can be interpeted as SCADA for software components in IT landscape.
 
 ![Architecture Overview](images/snamp.png)
 

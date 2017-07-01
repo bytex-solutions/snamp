@@ -301,7 +301,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
     }
 
     @Override
-    public final Set<String> getResources(){
+    public Set<String> getResources(){
         return ManagedResourceConnectorClient.filterBuilder().getResources(getBundleContext());
     }
 
