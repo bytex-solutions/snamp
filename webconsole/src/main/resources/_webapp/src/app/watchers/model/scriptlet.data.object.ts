@@ -6,12 +6,14 @@ import { Guid } from './entity';
 
 import { ColoredAttributeChecker } from './colored.checker';
 import {Entity, KeyValue} from "../../configuration/model/model.entity";
+import {AbstractPolicy} from "./policy/abstract.policy";
 
 export class ScriptletDataObject extends Entity {
     public language:string;
     public script:string;
     public isURL:boolean;
     public object:ColoredAttributeChecker;
+    public policyObject:AbstractPolicy;
     public id:string = Guid.newGuid();
 
     constructor(params:any){
@@ -20,12 +22,14 @@ export class ScriptletDataObject extends Entity {
         this.script = "";
         this.isURL = false;
         this.object = undefined;
+        this.policyObject = undefined;
     }
 
     public shortScript():string {
         return ((this.script.length > 60) ? this.script.substring(0, 60) + '...' : this.script);
     }
 
+    // add "MetricBased"(AttributeBasedScalingPolicy) and
     public static fromJSON(json:string):ScriptletDataObject {
         console.log("Json from data object is: ", json);
         let instance:ScriptletDataObject = new ScriptletDataObject(json["parameters"]);
@@ -110,6 +114,12 @@ export class ScriptletDataObject extends Entity {
                 throw new Error("Trying to serialize ColoredAttributeChecker instance without the object");
             } else {
                 this.script = JSON.stringify(this.object.toJSON());
+            }
+        } else if (this.language == "HealthStatusBased" || this.language == "MetricBased") {
+            if (this.object == undefined) {
+                throw new Error("Trying to serialize " + this.language + " instance without the object");
+            } else {
+                this.script = JSON.stringify(this.policyObject.toJSON());
             }
         }
         console.log("Trying to stringify current scriptlet object: ", _value);

@@ -671,10 +671,12 @@ var ScriptletDataObject = (function (_super) {
         this.script = "";
         this.isURL = false;
         this.object = undefined;
+        this.policyObject = undefined;
     }
     ScriptletDataObject.prototype.shortScript = function () {
         return ((this.script.length > 60) ? this.script.substring(0, 60) + '...' : this.script);
     };
+    // add "MetricBased"(AttributeBasedScalingPolicy) and
     ScriptletDataObject.fromJSON = function (json) {
         console.log("Json from data object is: ", json);
         var instance = new ScriptletDataObject(json["parameters"]);
@@ -758,6 +760,14 @@ var ScriptletDataObject = (function (_super) {
             }
             else {
                 this.script = JSON.stringify(this.object.toJSON());
+            }
+        }
+        else if (this.language == "HealthStatusBased" || this.language == "MetricBased") {
+            if (this.object == undefined) {
+                throw new Error("Trying to serialize " + this.language + " instance without the object");
+            }
+            else {
+                this.script = JSON.stringify(this.policyObject.toJSON());
             }
         }
         console.log("Trying to stringify current scriptlet object: ", _value);
