@@ -26,7 +26,7 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
   - [Gateways](webconsole/config-gateways.md) - configuration of gateways
 * [Dashboard of charts](webconsole/charts.md) - display metrics in the form of charts
 * [E2E Analysis](webconsole/e2e.md) - display end-to-end communication topology using tracing information
-* [Notifications](webconsole/notifications.md) - important notifications about monitoring objects
+* [Notifications](webconsole/notifications.md) - important notifications about managed resources
 
 Advanced configuration:
 * [Global properties](webconsole/global-props.md) - configuration of global SNAMP properties
