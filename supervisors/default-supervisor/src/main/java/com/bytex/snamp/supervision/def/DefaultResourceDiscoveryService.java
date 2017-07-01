@@ -72,6 +72,7 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
         resourceConfig.setGroupName(groupName);
         resourceConfig.setConnectionString(connectionString);
         resourceConfig.putAll(parameters);
+        resourceConfig.overrideProperties(parameters.keySet());
         return processResource(resourceName, resourceConfig);
     }
 

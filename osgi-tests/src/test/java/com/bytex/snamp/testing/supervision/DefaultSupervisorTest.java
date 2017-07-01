@@ -133,7 +133,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     private static void registerResource(final String resourceName) throws IOException {
         final URL query = new URL("http://localhost:8181" + ResourceDiscoveryService.HTTP_ENDPOINT + '/' + GROUP_NAME + '/' + resourceName);
         final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
-        connection.setRequestMethod("POST");
+        connection.setRequestMethod("POST");    
         connection.setDoOutput(true);
         connection.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON);
         final ObjectNode announcement = ThreadLocalJsonFactory.getFactory().objectNode();
