@@ -2,13 +2,13 @@ Upgrading SNAMP components
 ====
 
 There are following updating scenarios available:
-* Install a new version of SNAMP Resource Adapter or Resource Connector
+* Install a new version of SNAMP Gateway or Resource Connector
 * Install a new version of SNAMP Platform
 * Install a new version of SNAMP Management Console
 
 Some of these scenarios support Hot Upgrade (without any availability issues).
 
-## Update Resource Adapter
+## Update Gateway
 Open the shell console and print `feature:list -i`. You will see following output (or similar):
 ```
 Name                         | Version          | Installed | Repository              | Description
@@ -54,7 +54,7 @@ cellar-shell                 | 3.0.3            | x         | karaf-cellar-3.0.3
 cellar                       | 3.0.3            | x         | karaf-cellar-3.0.3      | Karaf clustering
 syslog-adapter-feature       | 1.0.0            | x         | snamp                   | Syslog Adapter Karaf Feature
 ```
-Select SNAMP Resource Adapter which you want to upgrade. Let it be `SNMP Resource Adapter`.
+Select SNAMP Resource  which you want to upgrade. Let it be `SNMP Resource Adapter`.
 
 The first, you should uninstall it:
 

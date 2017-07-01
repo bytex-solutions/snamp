@@ -29,46 +29,54 @@ Also, SNAMP provides additional set of commands (started with **snamp** prefix):
 
 Command | Description
 ---- | ----
-snamp:adapter | Display configuration of the specified adapter instance
-snamp:configure-adapter | Configure new or existing instance of adapter
-snamp:configure-attribute | Configure new or existing attribute assigned to the managed resource
-snamp:configure-event | Configure new or existing event (notification) assigned to the managed resource
+snamp:cluster-member | Status of the SNAMP cluster member                    
+snamp:configure-attribute | Configure new or existing attribute assigned to the managed resource         
+snamp:configure-attribute-checker | Configure health checker based on attribute value
+snamp:configure-auto-scaling | Configure auto-scaling parameters for group of resources (supervisor should be previously configured for the group)
+snamp:configure-discovery-service | Configure resource discovery for group of resources (supervisor should be previously configured for the group)
+snamp:configure-event | Configure new or existing event (notification) assigned to the managed resource                 
+snamp:configure-gateway | Register, modify or delete gateway instance
+snamp:configure-health-check-trigger | Configure trigger for health check associated with resource group (supervisor should be previously configured for the group)
 snamp:configure-operation | Configure new or existing operation (notification) assigned to the managed resource
-snamp:configure-resource | Configure new or existing managed resource using the specified connector and connection string
-snamp:adapter-instances | List of configured adapter instances
-snamp:resources | List of configured managed resources
+snamp:configure-resource | Register, modify or delete managed resource using the specified connector and connection string              
+snamp:configure-resource-group | Register, modify or delete explicit configuration of resource group          
+snamp:configure-scaling-policy | Configure scaling policies for group of resources (supervisor should be previously configured for the group)
+snamp:configure-supervisor | Register, modify or delete configuration of supervisor associated with group of resources
+snamp:configure-thread-pool | Register, modify or delete configuration of thread pool that can be assigned to resource connector or gateway using `threadPool` configuration property
+snamp:gateway-instance | Display configuration of the specified gateway instance
+snamp:gateway-instances | List of configured gateways instances
+snamp:installed-components | List of installed SNAMP components including gateways and resource connectors
+snamp:installed-connectors | List of installed resource connectors              
+snamp:installed-gateways | List of installed gateways
+snamp:installed-supervisors | List of installed supervisors
+snamp:load-configuration | Load configuration of gateways, managed resources, groups and supervisors from external source. Configuration should be stored in JSON format
+snamp:manage-connector | Enable or disable specified type of resource connector
+snamp:manage-gateway | Enable or disable specified type of gateway                    
+snamp:manage-supervisor | Enable or disable specified type of supervisor
 snamp:read-attributes | Read attributes
-snamp:listen-events | Wait for events and display each of them
-snamp:suspend-events | Suspend events raised by the specified managed resource. This command is not cluster-wide
-snamp:resume-events | Resume events raised by the specified managed resource. This command is not cluster-wide
-snamp:delete-adapter | Delete adapter instance from configuration
-snamp:delete-adapter-param | Delete configuration parameter from the specified adapter instance
-snamp:delete-attribute | Delete attribute from the specified managed resource
-snamp:delete-attribute-param | Delete configuration parameter from the specified attribute
-snamp:delete-event | Delete event (notificaiton) from the specified managed resource
-snamp:delete-event-param | Delete configuration parameter from the specified event
-snamp:delete-operation | Delete operation from the specified managed resource
-snamp:delete-resource | Delete managed resource from configuration
-snamp:delete-resource-param | Delete configuration parameter from the specified resource
-snamp:dump-jaas | Save JAAS configuration in JSON format into the specified file
-snamp:setup-jaas | Load JAAS configuration from the external file
-snamp:installed-adapters | List of installed adapters
-snamp:installed-components | List of all installed SNAMP components including adapters and connectors
-snamp:installed-connectors | List of installed resource connectors
-snamp:reset-config | Setup empty SNAMP configuration
+snamp:reset-config | Setup empty SNAMP configuration                   
 snamp:resource | Show configuration of the managed resource including attributes, events and operations
-snamp:restart | Restart all adapters and connectors
-snamp:start-adapter | Start bundle with individual adapter
-snamp:start-connector | Start bundle with individual resource connector
-snamp:stop-adapter | Stop bundle with individual adapter
-snamp:stop-connector | Stop bundle with individual resource connector
-snamp:version | Show version of SNAMP platform
-snamp:cluster-member | Status of the SNAMP cluster member
+snamp:resource-group | Show configuration of resource group including attributes, events and operations
+snamp:resource-groups | List of explicitly configured resource groups
 snamp:resource-metrics | Collect metrics provided by managed resources
-snamp:thread-pool-add | Register a new thread pool that can be used by resource connector or adapter through `threadPool` configuration property
-snamp:thread-pool-list | List of registered thread pools
-snamp:thread-pool-remove | Remove thread pool
-snamp:script | Execute JavaScript-based script to configure SNAMP
+snamp:resources | List of configured managed resources                        
+snamp:restart | Restart all gateways and connectors
+snamp:save-configuration | Create backup configuration of gateways, managed resources, groups and supervisors into external file in JSON format
+snamp:supervisor | Show configuration of supervisor
+snamp:supervisors | List of configured supervisors
+snamp:thread-pools | List of configured thread pools
+snamp:version | Show version of SNAMP platform
+
+Special commands for DevOps specialists:
+
+Command | Description
+---- | ----
+snamp:debug-attribute-checker | Execute health checker based on attribute using real or test data. Useful for debugging
+snamp:debug-health-status-trigger | Execute health check trigger using real or test data. Useful for debugging
+snamp:receive-message | Wait for cluster-wide message transmitted using command `post-message`
+snamp:post-message | Send cluster-wide message. Useful for debugging clustered configuration of SNAMP
+
+
 
 Use `--help` flag to know more information about command and its parameters:
 ```bash
