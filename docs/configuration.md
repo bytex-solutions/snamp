@@ -34,7 +34,10 @@ When you install the _cellar_ feature, a _hazelcast_ feature is being automatica
 * [Cellar and Hazelcast](https://karaf.apache.org/manual/cellar/latest-4/#_core_runtime_and_hazelcast)
 
 ## Security
-SNAMP uses the same list of users when accessing SNAMP shell, REST API and SNAMP Web Console. Configuration of all users can be found in `<snamp>/etc/users.properties`. SNAMP uses roles defined by Apache Karaf:
-* 
+SNAMP uses the same list of users when accessing SNAMP shell, REST API and SNAMP Web Console. Configuration of all users can be found in `<snamp>/etc/users.properties`. SNAMP shares authorization roles with Apache Karaf:
+* Role **admin** can change any configuration element of SNAMP or Apache Karaf
+* Role **viewer** is able to use read-only shell commands and SNAMP Web Console. Relationship between shell commands and roles you can see [here](https://bitbucket.org/bytex-solutions/snamp/src/master/assembly/src/main/resources/etc/org.apache.karaf.command.acl.snamp.cfg). 
 
-If you wish to integrate authentication and authorization with enterprise-level registry of users please use this [Security Guide](https://karaf.apache.org/manual/latest/security).
+> If you wish to integrate authentication and authorization with enterprise-level registry of users please use this [Security Guide](https://karaf.apache.org/manual/latest/security).
+
+By default SNAMP Web Console and shell is available using user `karaf` with password `karaf`.

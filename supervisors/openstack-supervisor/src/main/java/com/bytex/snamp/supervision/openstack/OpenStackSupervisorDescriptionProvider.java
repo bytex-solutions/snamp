@@ -40,7 +40,18 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     private static final class SupervisorDescription extends DefaultSupervisorDescription{
 
         private SupervisorDescription() {
-            super("SupervisorConfiguration", USER_NAME_PARAM, PASSWORD_PARAM);
+            super("SupervisorConfiguration",
+                    USER_NAME_PARAM,
+                    PASSWORD_PARAM,
+                    ENDPOINT_PARAM,
+                    CLOUD_PROVIDER_PARAM,
+                    USER_DOMAIN_PARAM,
+                    PROJECT_PARAM,
+                    PROJECT_DOMAIN_PARAM,
+                    REGION_PARAM,
+                    CLUSTER_ID_PARAM,
+                    AUTO_DISCOVERY_PARAM,
+                    CHECK_NODES_PARAM);
         }
     }
 

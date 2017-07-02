@@ -40,4 +40,4 @@ public void outOfSpace(final Aggregator provisioningContext){
 }
 ```
 
-Full functionality of Groovy language is supported including Groovy Grapes. Example of Groovy script with test implementation of Elasticity Manager you can find [here](https://bitbucket.org/bytex-solutions/snamp/src/develop/sample-groovy-scripts/GroovyElasticityManager.groovy).
+Full functionality of Groovy language is supported including Groovy Grapes. Example of Groovy script with test implementation of Elasticity Manager you can find [here](https://bitbucket.org/bytex-solutions/snamp/src/master/sample-groovy-scripts/GroovyElasticityManager.groovy).

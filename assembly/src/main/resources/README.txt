@@ -8,7 +8,6 @@ Default start process (called Regular Mode):
 4. Print snamp: in the command-line shell. Then press <TAB> and you will see the list of all available SNAMP commands
 
 ** Additional documentation **
-Overview:               http://snamp.bytex.solutions/docs/latest/overview.md.html
-Installation guide:     http://snamp.bytex.solutions/docs/latest/installation.md.html
-Full documentation:     http://snamp.bytex.solutions/docs/latest/main.md.html
-Step-by-step guide:     http://snamp.bytex.solutions/docs/latest/examples/complete-example.md.html
+Overview:               https://snamp.bytex.solutions/docs/latest/overview.md.html
+Installation guide:     https://snamp.bytex.solutions/docs/latest/installation.md.html
+Full documentation:     https://snamp.bytex.solutions/docs/latest/main.md.html

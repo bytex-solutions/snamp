@@ -188,6 +188,8 @@ Assume that three scaling policies are configured in supervisor with predefined 
 
 **Any-of** strategy means that scaling is forced when **any** scaling policy produces non-zero vote. Vote weight should be defined as P1=P2=P3=1.6 (> 1.5). This is equivalent of `P1 OR P2 OR P3`.
 
+**Most of all** strategy means that scaling is forced when majority of scaling policies vote for scaling action. Vote weight for each scaling policy should be defined as P1=P2=P3=1. In this case any two scaling policies may force scaling action: P1+P2=P1+P3=P2+P3=2 (> 1.5). 
+
 In spite of these recommendations, you can choose your most suitable strategy. For example, set greater vote weight for single policy in comparison with other.
 
 ### Recommendation system
