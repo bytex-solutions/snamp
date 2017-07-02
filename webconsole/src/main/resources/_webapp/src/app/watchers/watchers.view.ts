@@ -56,8 +56,14 @@ export class MainComponent implements OnInit {
     private defaultGroovyTriggerScript:string = "";
     private defaultGroovyPolicyScript:string = "";
 
+    private operationalRangeVisible:boolean = false;
+
     constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef, private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
+    }
+
+    toggleOperationalRangeDialog():void {
+        this.operationalRangeVisible = !this.operationalRangeVisible;
     }
 
     saveCurrentTrigger(): void {

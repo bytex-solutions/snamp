@@ -496,6 +496,25 @@
                     <div *ngIf="activePolicy?.language == 'MetricBased'">
 
                       <div class="form-group row">
+                        <label for="operationalRangePolicy" class="col-md-2 col-form-label">Operational range</label>
+                        <div class="col-md-9">
+                          <input class="form-control" disabled type="text" min="0" [attr.value]="activePolicy.policyObject.operationalRange.toString()" id="operationalRangePolicy">
+                        </div>
+                        <div class="col-md-1">
+                          <button class="btn btn-primary" (click)="toggleOperationalRangeDialog()">{{ operationalRangeVisible ? 'Hide' : 'Edit' }}</button>
+                        </div>
+                      </div>
+
+                      <div class="form-group row" *ngIf="operationalRangeVisible">
+                        <label for="operationalRangePolicy" class="col-md-2 col-form-label">Operational settings</label>
+                        <div class="col-md-10">
+
+                        </div>
+                      </div>
+
+                      <hr/>
+
+                      <div class="form-group row">
                         <label for="metricAttributeSelection" class="col-md-2 col-form-label">Attribute</label>
                         <div class="col-md-10">
                           <select class="form-control" [(ngModel)]="activePolicy.policyObject.attributeName" id="metricAttributeSelection">
