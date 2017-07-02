@@ -1,12 +1,19 @@
 import { Watcher } from './watcher';
 import { ScriptletDataObject } from './scriptlet.data.object';
 import * as moment from 'moment/moment';
+import { isNullOrUndefined } from "util";
 
 export class Factory {
 
     public static watcherFromJSON(name:string, json:any):Watcher {
         console.log("Watcher: ", JSON.stringify(json));
+        let _pType:string = "all";
+        if (!isNullOrUndefined(json["parameters"]) && !isNullOrUndefined(json["parameters"]["$strategy$"])) {
+            _pType = json["parameters"]["$strategy$"];
+            json["parameters"]["$strategy$"] = null;
+        }
         let _watcher:Watcher = new Watcher(name, json["parameters"]);
+        _watcher.votingStrategy = _pType;
         if (json["attributeCheckers"] != undefined && !$.isEmptyObject(json["attributeCheckers"])) {
             for (let key in json["attributeCheckers"]) {
                 if (json["attributeCheckers"][key]["language"] != undefined

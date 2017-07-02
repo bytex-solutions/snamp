@@ -327,6 +327,12 @@
               <div id="smartwizardForPolicies" style="height: 95%">
                 <ul>
                   <li>
+                    <a [attr.href]="'#votingStrategy'">
+                      Voting strategy<br />
+                      <small>Select voting strategy</small>
+                    </a>
+                  </li>
+                  <li>
                     <a [attr.href]="'#policyTable'">
                       Policy selection<br />
                       <small>Select or add a policy</small>
@@ -354,6 +360,22 @@
 
                 <div style="height:100%">
 
+                  <div id="votingStrategy" class="row" style="margin-top: 100px;">
+                    <div class="item form-group">
+                      <label
+                              class="control-label col-md-3 col-sm-3 col-xs-12"
+                              for="strategySelect"
+                              style="margin-top: 7px;">
+                        Set strategy <span class="required">*</span>
+                      </label>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <select class="form-control" [(ngModel)]="activeWatcher.votingStrategy" id="strategySelect" (ngModelChange)="selectVotingStrategy($event)">
+                          <option *ngFor="let type of strategyTypes" [ngValue]="type.id">{{type.description}}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
                   <div id="policyTable" class="row" style="margin-top: 5px;">
                     <table class="table table-hover table-bordered">
                       <thead class="thead-inverse">
@@ -361,7 +383,7 @@
                         <th>Actions</th>
                         <th>Name</th>
                         <th>Type</th>
-                        <th>Weight</th>
+                        <th *ngIf="activeWatcher.votingStrategy == 'custom'">Weight</th>
                       </tr>
                       </thead>
                       <tbody>
@@ -377,7 +399,7 @@
                         <td>
                           {{entry.value.getPolicyType()}}
                         </td>
-                        <td>
+                        <td *ngIf="activeWatcher.votingStrategy == 'custom'">
                           {{entry.value.getPolicyWeight()}}
                         </td>
                       </tr>
@@ -467,7 +489,7 @@
                         </div>
                       </div>
 
-                      <div class="form-group row">
+                      <div class="form-group row" *ngIf="activeWatcher.votingStrategy == 'custom'">
                         <label for="voteWeightHSBPolicy" class="col-md-2 col-form-label">Vote weight</label>
                         <div class="col-md-10">
                           <input class="form-control" type="number"  min="0" [(ngModel)]="activePolicy.policyObject.voteWeight" id="voteWeightHSBPolicy">
@@ -589,7 +611,7 @@
                         </div>
                       </div>
 
-                      <div class="form-group row">
+                      <div class="form-group row" *ngIf="activeWatcher.votingStrategy == 'custom'">
                         <label for="voteWeightAttrPolicy" class="col-md-2 col-form-label">Vote weight</label>
                         <div class="col-md-10">
                           <input class="form-control" type="number"  min="0" [(ngModel)]="activePolicy.policyObject.voteWeight" id="voteWeightAttrPolicy">

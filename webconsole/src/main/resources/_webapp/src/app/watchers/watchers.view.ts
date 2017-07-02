@@ -44,6 +44,7 @@ export class MainComponent implements OnInit {
 
     private checkersType: EntityWithDescription[] = EntityWithDescription.generateCheckersTypes();
     private policyTypes: EntityWithDescription[] = EntityWithDescription.generatePoliciesTypes();
+    private strategyTypes:EntityWithDescription[] = EntityWithDescription.generateStrategyTypes();
 
     private triggerLanguages: string[] = ["Groovy"/*, "JavaScript"*/];
 
@@ -422,6 +423,11 @@ export class MainComponent implements OnInit {
         console.log("Policy has been saved");
     }
 
+    public selectVotingStrategy(type:string):void {
+        this.activeWatcher.votingStrategy = type;
+        this.activeWatcher.recalculateVotes();
+    }
+
 }
 
 export class EntityWithDescription {
@@ -447,6 +453,15 @@ export class EntityWithDescription {
         _value.push(new EntityWithDescription("Groovy", "Groovy policy"));
         _value.push(new EntityWithDescription("HealthStatusBased", "Health status based scaling policy"));
         _value.push(new EntityWithDescription("MetricBased", "Attribute based scaling policy"));
+        return _value;
+    }
+
+    public static generateStrategyTypes(): EntityWithDescription[] {
+        let _value: EntityWithDescription[] = [];
+        _value.push(new EntityWithDescription("all", "All policies voted for scaling decision"));
+        _value.push(new EntityWithDescription("any", "At least one policy voted for scaling decision"));
+        _value.push(new EntityWithDescription("most", "Majorities voted for scaling decision"));
+        _value.push(new EntityWithDescription("custom", "User defined vote weights"));
         return _value;
     }
 }
