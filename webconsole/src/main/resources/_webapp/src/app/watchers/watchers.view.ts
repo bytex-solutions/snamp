@@ -76,7 +76,7 @@ export class MainComponent implements OnInit {
     }
 
     getMainHeader():string {
-        return isNullOrUndefined(this.activeWatcher) ? "Setup watchers" : "Setup " + this.activeWatcher.name + " watcher";
+        return isNullOrUndefined(this.activeWatcher) ? "Setup supervisors" : "Setup " + this.activeWatcher.name + " supervisor";
     }
 
     ngOnInit(): void {
@@ -317,6 +317,7 @@ export class MainComponent implements OnInit {
         this.activePolicy = new ScriptletDataObject({});
         this.activePolicyName = "";
         this.activePolicy.script = this.defaultGroovyPolicyScript;
+        this.operationalRangeVisible = false;
         $(this.getPoliciesWizardId()).smartWizard({
             theme: 'arrows',
             useURLhash: false,

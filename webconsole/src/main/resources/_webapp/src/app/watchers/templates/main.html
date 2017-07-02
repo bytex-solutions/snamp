@@ -508,6 +508,56 @@
                       <div class="form-group row" *ngIf="operationalRangeVisible">
                         <label for="operationalRangePolicy" class="col-md-2 col-form-label">Operational settings</label>
                         <div class="col-md-10">
+                          <div class="row">
+                            <br/><br/>
+                          </div>
+                          <div class="row">
+                            <label class="col-md-3">Lower bound infinite</label>
+                            <div class="col-md-9">
+                              <ui-switch
+                                      [(ngModel)]="activePolicy.policyObject.operationalRange.isBeginInfinite"
+                                      [size]="'small'">
+                              </ui-switch>
+                            </div>
+                          </div>
+
+                          <div class="row" *ngIf="!activePolicy.policyObject.operationalRange.isBeginInfinite">
+                            <label class="col-md-3">Lower bound value</label>
+                            <div class="col-md-4">
+                              <input type="number" class="form-control" [(ngModel)]="activePolicy.policyObject.operationalRange.begin"/>
+                            </div>
+                            <label class="col-md-1">including</label>
+                            <div class="col-md-4">
+                              <ui-switch
+                                      [(ngModel)]="activePolicy.policyObject.operationalRange.isBeginIncluding"
+                                      [size]="'small'">
+                              </ui-switch>
+                            </div>
+                          </div>
+
+                          <div class="row">
+                            <label class="col-md-3">Upper bound infinite</label>
+                            <div class="col-md-9">
+                              <ui-switch
+                                      [(ngModel)]="activePolicy.policyObject.operationalRange.isEndInfinite"
+                                      [size]="'small'">
+                              </ui-switch>
+                            </div>
+                          </div>
+
+                          <div class="row" *ngIf="!activePolicy.policyObject.operationalRange.isEndInfinite">
+                            <label class="col-md-3">Upper bound value</label>
+                            <div class="col-md-4">
+                              <input type="number" class="form-control" [(ngModel)]="activePolicy.policyObject.operationalRange.end"/>
+                            </div>
+                            <label class="col-md-1">including</label>
+                            <div class="col-md-4">
+                              <ui-switch
+                                      [(ngModel)]="activePolicy.policyObject.operationalRange.isEndIncluding"
+                                      [size]="'small'">
+                              </ui-switch>
+                            </div>
+                          </div>
 
                         </div>
                       </div>
@@ -578,7 +628,7 @@
     </div>
 
     <div class="row" style="margin-top: 30px">
-      <panel [header]="'Watcher settings'" [column]="'7'" *ngIf="activeWatcher != undefined">
+      <panel [header]="'Supervisor settings'" [column]="'7'" *ngIf="activeWatcher != undefined">
 
         <div class="form-group row">
           <label for="watcherTypeSelection" class="col-md-2 col-form-label">Type</label>
@@ -596,28 +646,28 @@
           </div>
         </div>
 
-        <div class="form-group row">
+        <div class="form-group row" *ngIf="activeWatcher.autoScaling">
           <label for="scalingSizeInput" class="col-md-2 col-form-label">Scaling size</label>
           <div class="col-md-10">
             <input class="form-control" type="number" min="0" [attr.max]="activeWatcher.maxClusterSize" [(ngModel)]="activeWatcher.scalingSize" id="scalingSizeInput">
           </div>
         </div>
 
-        <div class="form-group row">
+        <div class="form-group row" *ngIf="activeWatcher.autoScaling">
           <label for="minClusterSizeInput" class="col-md-2 col-form-label">Minimum cluster size</label>
           <div class="col-md-10">
             <input class="form-control" type="number" min="0" [(ngModel)]="activeWatcher.minClusterSize" id="minClusterSizeInput">
           </div>
         </div>
 
-        <div class="form-group row">
+        <div class="form-group row" *ngIf="activeWatcher.autoScaling">
           <label for="maxClusterSizeInput" class="col-md-2 col-form-label">Maximum cluster size</label>
           <div class="col-md-10">
             <input class="form-control" type="number" [attr.min]="activeWatcher.minClusterSize" [(ngModel)]="activeWatcher.maxClusterSize" id="maxClusterSizeInput">
           </div>
         </div>
 
-        <div class="form-group row">
+        <div class="form-group row" *ngIf="activeWatcher.autoScaling">
           <label for="cooldownTimeInput" class="col-md-2 col-form-label">Cooldown time (ms)</label>
           <div class="col-md-10">
             <input class="form-control" type="number" [(ngModel)]="activeWatcher.cooldownTime" id="cooldownTimeInput">
@@ -693,7 +743,7 @@
     </div>
 
     <div class="row" style="margin-top: 10px">
-      <panel [header]="'Watcher parameters'" [column]="'12'" *ngIf="activeWatcher != undefined">
+      <panel [header]="'Supervisor parameters'" [column]="'12'" *ngIf="activeWatcher != undefined">
         <ptable [entity]="activeWatcher"></ptable>
       </panel>
     </div>
@@ -707,7 +757,7 @@
     </div>
 
     <div class="row" style="margin-top: 10px" *ngIf="activeWatcher == undefined">
-      <panel [header]="'List of watchers'" [column]="'12'">
+      <panel [header]="'List of supervisors'" [column]="'12'">
         <table class="table table-hover table-bordered">
           <thead class="thead-inverse">
           <tr>
