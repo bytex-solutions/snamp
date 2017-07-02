@@ -518,6 +518,14 @@ var Factory = (function () {
                 }
             }
         }
+        if (json["scalingPolicies"] != undefined && !$.isEmptyObject(json["scalingPolicies"])) {
+            for (var key in json["scalingPolicies"]) {
+                if (json["scalingPolicies"][key]["language"] != undefined
+                    && json["scalingPolicies"][key]["language"].length > 0) {
+                    _watcher.scalingPolicies[key] = scriptlet_data_object_1.ScriptletDataObject.fromJSON(json["scalingPolicies"][key]);
+                }
+            }
+        }
         if (json["trigger"] != undefined
             && !$.isEmptyObject(json["trigger"])
             && json["trigger"]["language"] != undefined
@@ -616,6 +624,240 @@ exports.NumberComparatorPredicate = NumberComparatorPredicate;
 
 /***/ },
 
+/***/ "./src/app/watchers/model/policy/abstract.policy.ts":
+/***/ function(module, exports) {
+
+"use strict";
+"use strict";
+var AbstractPolicy = (function () {
+    function AbstractPolicy() {
+    }
+    AbstractPolicy.getReduceOperations = function () {
+        return ["MAX", "MIN", "MEAN", "MEDIAN", "PERCENTILE_90", "PERCENTILE_95", "PERCENTILE_97", "SUM"];
+    };
+    return AbstractPolicy;
+}());
+exports.AbstractPolicy = AbstractPolicy;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/model/policy/abstract.weighted.scaling.policy.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.policy.ts");
+var AbstractWeightedScalingPolicy = (function (_super) {
+    __extends(AbstractWeightedScalingPolicy, _super);
+    function AbstractWeightedScalingPolicy() {
+        _super.call(this);
+        this.voteWeight = 0;
+        this.observationTime = 0;
+        this.incrementalWeight = false;
+    }
+    Object.defineProperty(AbstractWeightedScalingPolicy.prototype, "voteWeight", {
+        get: function () {
+            return this._voteWeight;
+        },
+        set: function (value) {
+            this._voteWeight = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractWeightedScalingPolicy.prototype, "observationTime", {
+        get: function () {
+            return this._observationTime;
+        },
+        set: function (value) {
+            this._observationTime = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AbstractWeightedScalingPolicy.prototype, "incrementalWeight", {
+        get: function () {
+            return this._incrementalWeight;
+        },
+        set: function (value) {
+            this._incrementalWeight = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return AbstractWeightedScalingPolicy;
+}(abstract_policy_1.AbstractPolicy));
+exports.AbstractWeightedScalingPolicy = AbstractWeightedScalingPolicy;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/model/policy/attribute.based.scaling.policy.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_weighted_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.weighted.scaling.policy.ts");
+var moment = __webpack_require__("./node_modules/moment/moment.js");
+var operational_range_1 = __webpack_require__("./src/app/watchers/model/policy/operational.range.ts");
+var AttributeBasedScalingPolicy = (function (_super) {
+    __extends(AttributeBasedScalingPolicy, _super);
+    function AttributeBasedScalingPolicy() {
+        _super.call(this);
+        this.attributeName = "";
+        this.operationalRange = new operational_range_1.OpRange(0, 0);
+        this.analysisDepth = 0;
+    }
+    Object.defineProperty(AttributeBasedScalingPolicy.prototype, "attributeName", {
+        get: function () {
+            return this._attributeName;
+        },
+        set: function (value) {
+            this._attributeName = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AttributeBasedScalingPolicy.prototype, "operationalRange", {
+        get: function () {
+            return this._operationalRange;
+        },
+        set: function (value) {
+            this._operationalRange = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AttributeBasedScalingPolicy.prototype, "aggregation", {
+        get: function () {
+            return this._aggregation;
+        },
+        set: function (value) {
+            this._aggregation = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(AttributeBasedScalingPolicy.prototype, "analysisDepth", {
+        get: function () {
+            return this._analysisDepth;
+        },
+        set: function (value) {
+            this._analysisDepth = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    AttributeBasedScalingPolicy.prototype.toJSON = function () {
+        var _value = {};
+        _value["voteWeight"] = this.voteWeight;
+        _value["incrementalWeight"] = this.incrementalWeight;
+        _value["observationTime"] = moment.duration({ milliseconds: this.observationTime }).toISOString();
+        _value["attributeName"] = this.attributeName;
+        _value["operationalRange"] = this.operationalRange.toString();
+        _value["analysisDepth"] = moment.duration({ milliseconds: this.analysisDepth }).toISOString();
+        return _value;
+    };
+    return AttributeBasedScalingPolicy;
+}(abstract_weighted_scaling_policy_1.AbstractWeightedScalingPolicy));
+exports.AttributeBasedScalingPolicy = AttributeBasedScalingPolicy;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/model/policy/health.status.based.scaling.policy.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_weighted_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.weighted.scaling.policy.ts");
+var moment = __webpack_require__("./node_modules/moment/moment.js");
+var HealthStatusBasedScalingPolicy = (function (_super) {
+    __extends(HealthStatusBasedScalingPolicy, _super);
+    function HealthStatusBasedScalingPolicy() {
+        _super.call(this);
+        this.level = "CRITICAL";
+    }
+    HealthStatusBasedScalingPolicy.getStatuses = function () {
+        return ["LOW", "MODERATE", "SUBSTANTIAL", "SEVERE", "CRITICAL"];
+    };
+    Object.defineProperty(HealthStatusBasedScalingPolicy.prototype, "level", {
+        get: function () {
+            return this._level;
+        },
+        set: function (value) {
+            this._level = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    HealthStatusBasedScalingPolicy.prototype.toJSON = function () {
+        var _value = {};
+        _value["voteWeight"] = this.voteWeight;
+        _value["incrementalWeight"] = this.incrementalWeight;
+        _value["observationTime"] = moment.duration({ milliseconds: this.observationTime }).toISOString();
+        _value["level"] = this.level;
+        return _value;
+    };
+    return HealthStatusBasedScalingPolicy;
+}(abstract_weighted_scaling_policy_1.AbstractWeightedScalingPolicy));
+exports.HealthStatusBasedScalingPolicy = HealthStatusBasedScalingPolicy;
+
+
+/***/ },
+
+/***/ "./src/app/watchers/model/policy/operational.range.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var OpRange = (function () {
+    function OpRange(begin, end) {
+        if (!util_1.isNullOrUndefined(begin)) {
+            this.begin = begin;
+        }
+        if (!util_1.isNullOrUndefined(end)) {
+            this.end = end;
+        }
+    }
+    Object.defineProperty(OpRange.prototype, "begin", {
+        get: function () {
+            return this._begin;
+        },
+        set: function (value) {
+            this._begin = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(OpRange.prototype, "end", {
+        get: function () {
+            return this._end;
+        },
+        set: function (value) {
+            this._end = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    OpRange.prototype.toString = function () {
+        return "[" + this.begin + "‥" + this.end + "]";
+    };
+    OpRange.fromString = function (str) {
+        var splits = str.split("‥");
+        var begin = Number.parseFloat(splits[0].substr(1));
+        var end = Number.parseFloat(splits[1].substr(0, splits[1].indexOf("]") - 1));
+        return new OpRange(begin, end);
+    };
+    return OpRange;
+}());
+exports.OpRange = OpRange;
+
+
+/***/ },
+
 /***/ "./src/app/watchers/model/range.comparator.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -662,6 +904,10 @@ var range_comparator_1 = __webpack_require__("./src/app/watchers/model/range.com
 var entity_1 = __webpack_require__("./src/app/watchers/model/entity.ts");
 var colored_checker_1 = __webpack_require__("./src/app/watchers/model/colored.checker.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
+var health_status_based_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/health.status.based.scaling.policy.ts");
+var attribute_based_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/attribute.based.scaling.policy.ts");
+var moment = __webpack_require__("./node_modules/moment/moment.js");
+var operational_range_1 = __webpack_require__("./src/app/watchers/model/policy/operational.range.ts");
 var ScriptletDataObject = (function (_super) {
     __extends(ScriptletDataObject, _super);
     function ScriptletDataObject(params) {
@@ -693,6 +939,31 @@ var ScriptletDataObject = (function (_super) {
             case "Groovy":
             case "JavaScript":
                 instance.object = undefined;
+                break;
+            case "HealthStatusBased":
+                instance.policyObject = new health_status_based_scaling_policy_1.HealthStatusBasedScalingPolicy();
+                var _jsonHSB = JSON.parse(instance.script);
+                instance.policyObject.level = _jsonHSB["level"];
+                instance.policyObject.observationTime =
+                    (!isNaN(parseFloat(_jsonHSB["observationTime"])) && isFinite(_jsonHSB["observationTime"]))
+                        ? _jsonHSB["observationTime"] : moment.duration(_jsonHSB["observationTime"]).asMilliseconds();
+                instance.policyObject.incrementalWeight = _jsonHSB["incrementalWeight"];
+                instance.policyObject.voteWeight = _jsonHSB["voteWeight"];
+                break;
+            case "MetricBased":
+                var _jsonMB = JSON.parse(instance.script);
+                instance.policyObject = new attribute_based_scaling_policy_1.AttributeBasedScalingPolicy();
+                instance.policyObject.analysisDepth =
+                    (!isNaN(parseFloat(_jsonMB["observationTime"])) && isFinite(_jsonMB["observationTime"]))
+                        ? _jsonMB["observationTime"] : moment.duration(_jsonMB["observationTime"]).asMilliseconds();
+                instance.policyObject.incrementalWeight = _jsonMB["incrementalWeight"];
+                instance.policyObject.voteWeight = _jsonMB["voteWeight"];
+                instance.policyObject.aggregation = _jsonMB["aggregation"];
+                instance.policyObject.attributeName = _jsonMB["attributeName"];
+                instance.policyObject.operationalRange = operational_range_1.OpRange.fromString(_jsonMB["operationalRange"]);
+                instance.policyObject.analysisDepth =
+                    (!isNaN(parseFloat(_jsonMB["analysisDepth"])) && isFinite(_jsonMB["analysisDepth"]))
+                        ? _jsonMB["analysisDepth"] : moment.duration(_jsonMB["analysisDepth"]).asMilliseconds();
                 break;
             case "ColoredAttributeChecker":
                 instance.object = new colored_checker_1.ColoredAttributeChecker();
@@ -794,6 +1065,7 @@ var Watcher = (function (_super) {
         _super.apply(this, arguments);
         this.attributeCheckers = {};
         this.trigger = new scriptlet_data_object_1.ScriptletDataObject({});
+        this.scalingPolicies = {};
         this.connectionStringTemplate = "";
         this.scalingSize = 0;
         this.maxClusterSize = 10;
@@ -808,6 +1080,9 @@ var Watcher = (function (_super) {
         _value["attributeCheckers"] = {};
         for (var key in this.attributeCheckers) {
             _value["attributeCheckers"][key] = this.attributeCheckers[key].toJSON();
+        }
+        for (var key in this.scalingPolicies) {
+            _value["scalingPolicies"][key] = this.scalingPolicies[key].toJSON();
         }
         _value["trigger"] = this.trigger.toJSON();
         _value["parameters"] = this.stringifyParameters();
@@ -1172,6 +1447,7 @@ var MainComponent = (function () {
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             _this.watchers = factory_1.Factory.watchersArrayFromJSON(data);
+            console.log("All the watchers list: ", _this.watchers);
         });
         // find all the components
         this.http.get(app_restClient_1.REST.GROUPS_WEB_API)

@@ -15,6 +15,14 @@ export class Factory {
                 }
             }
         }
+        if (json["scalingPolicies"] != undefined && !$.isEmptyObject(json["scalingPolicies"])) {
+            for (let key in json["scalingPolicies"]) {
+                if (json["scalingPolicies"][key]["language"] != undefined
+                    && json["scalingPolicies"][key]["language"].length > 0) {
+                    _watcher.scalingPolicies[key] = ScriptletDataObject.fromJSON(json["scalingPolicies"][key]);
+                }
+            }
+        }
         if (json["trigger"] != undefined
             && !$.isEmptyObject(json["trigger"])
             && json["trigger"]["language"] != undefined

@@ -31,13 +31,13 @@ export class OpRange {
     }
 
     public toString():string {
-        return "[" + this.begin + ".." + this.end + "]";
+        return "[" + this.begin + "‥" + this.end + "]";
     }
 
-    public fromString(str:string):void {
-        let re1 = /.*\[\s+(.*)\s+\.\..*/;
-        this.begin = Number.parseFloat(str.replace(re1, "$1"));
-        let re2 = /.*\\.\.s+(.*)\s+\].*/;
-        this.end = Number.parseFloat(str.replace(re2, "$1"));
+    public static fromString(str:string):OpRange {
+        let splits:string[] = str.split("‥");
+        let begin = Number.parseFloat(splits[0].substr(1));
+        let end = Number.parseFloat(splits[1].substr(0, splits[1].indexOf("]") - 1));
+        return new OpRange(begin, end);
     }
 }

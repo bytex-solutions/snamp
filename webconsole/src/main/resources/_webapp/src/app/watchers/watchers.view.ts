@@ -61,6 +61,7 @@ export class MainComponent implements OnInit {
             .map((res: Response) => res.json())
             .subscribe((data) => {
                 this.watchers = Factory.watchersArrayFromJSON(data);
+                console.log("All the watchers list: ", this.watchers);
             });
 
         // find all the components

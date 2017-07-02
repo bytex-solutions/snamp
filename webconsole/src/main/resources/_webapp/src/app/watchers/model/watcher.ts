@@ -6,6 +6,7 @@ export class Watcher extends Entity {
 
     public attributeCheckers:{ [key:string]:ScriptletDataObject; } = {};
     public trigger:ScriptletDataObject = new ScriptletDataObject({});
+    public scalingPolicies:{ [key:string]:ScriptletDataObject; } = {};
     public connectionStringTemplate:string = "";
     public scalingSize:number = 0;
     public maxClusterSize:number = 10;
@@ -20,6 +21,9 @@ export class Watcher extends Entity {
         _value["attributeCheckers"] = {};
         for (let key in this.attributeCheckers) {
             _value["attributeCheckers"][key] = this.attributeCheckers[key].toJSON();
+        }
+        for (let key in this.scalingPolicies) {
+            _value["scalingPolicies"][key] = this.scalingPolicies[key].toJSON();
         }
         _value["trigger"] = this.trigger.toJSON();
         _value["parameters"] = this.stringifyParameters();

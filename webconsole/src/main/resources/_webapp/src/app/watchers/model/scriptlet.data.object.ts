@@ -5,8 +5,12 @@ import { IsInRangePredicate } from './range.comparator';
 import { Guid } from './entity';
 
 import { ColoredAttributeChecker } from './colored.checker';
-import {Entity, KeyValue} from "../../configuration/model/model.entity";
-import {AbstractPolicy} from "./policy/abstract.policy";
+import { Entity } from "../../configuration/model/model.entity";
+import { AbstractPolicy } from "./policy/abstract.policy";
+import { HealthStatusBasedScalingPolicy } from "./policy/health.status.based.scaling.policy";
+import { AttributeBasedScalingPolicy } from "./policy/attribute.based.scaling.policy";
+import * as moment from 'moment/moment';
+import { OpRange } from "./policy/operational.range";
 
 export class ScriptletDataObject extends Entity {
     public language:string;
@@ -46,6 +50,33 @@ export class ScriptletDataObject extends Entity {
             case "Groovy":
             case "JavaScript":
                 instance.object = undefined;
+                break;
+            case "HealthStatusBased":
+                instance.policyObject = new HealthStatusBasedScalingPolicy();
+                let _jsonHSB:any = JSON.parse(instance.script);
+                (<HealthStatusBasedScalingPolicy>instance.policyObject).level = _jsonHSB["level"];
+                (<HealthStatusBasedScalingPolicy>instance.policyObject).observationTime =
+                    (!isNaN(parseFloat(_jsonHSB["observationTime"])) && isFinite(_jsonHSB["observationTime"]))
+                        ? _jsonHSB["observationTime"] :  moment.duration(_jsonHSB["observationTime"]).asMilliseconds();
+                (<HealthStatusBasedScalingPolicy>instance.policyObject).incrementalWeight = _jsonHSB["incrementalWeight"];
+                (<HealthStatusBasedScalingPolicy>instance.policyObject).voteWeight = _jsonHSB["voteWeight"];
+                break;
+            case "MetricBased":
+                let _jsonMB:any = JSON.parse(instance.script);
+                instance.policyObject = new AttributeBasedScalingPolicy();
+                (<AttributeBasedScalingPolicy>instance.policyObject).analysisDepth =
+                    (!isNaN(parseFloat(_jsonMB["observationTime"])) && isFinite(_jsonMB["observationTime"]))
+                        ? _jsonMB["observationTime"] :  moment.duration(_jsonMB["observationTime"]).asMilliseconds();
+                (<AttributeBasedScalingPolicy>instance.policyObject).incrementalWeight = _jsonMB["incrementalWeight"];
+                (<AttributeBasedScalingPolicy>instance.policyObject).voteWeight = _jsonMB["voteWeight"];
+
+                (<AttributeBasedScalingPolicy>instance.policyObject).aggregation = _jsonMB["aggregation"];
+                (<AttributeBasedScalingPolicy>instance.policyObject).attributeName = _jsonMB["attributeName"];
+                (<AttributeBasedScalingPolicy>instance.policyObject).operationalRange = OpRange.fromString(_jsonMB["operationalRange"]);
+                (<AttributeBasedScalingPolicy>instance.policyObject).analysisDepth =
+                    (!isNaN(parseFloat(_jsonMB["analysisDepth"])) && isFinite(_jsonMB["analysisDepth"]))
+                        ? _jsonMB["analysisDepth"] :  moment.duration(_jsonMB["analysisDepth"]).asMilliseconds();
+
                 break;
             case "ColoredAttributeChecker":
                 instance.object = new ColoredAttributeChecker();
