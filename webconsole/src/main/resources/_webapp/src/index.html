@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title><%= webpackConfig.metadata.title %></title>
+
+  <meta name="description" content="<%= webpackConfig.metadata.title %>">
+
+  <% if (webpackConfig.htmlElements.headTags) { %>
+  <!-- Configured Head Tags  -->
+  <%= webpackConfig.htmlElements.headTags %>
+  <% } %>
+
+  <!-- base url -->
+  <base href="<%= webpackConfig.metadata.baseUrl %>">
+  <!-- <script src="assets/vendors/tether/tether.min.js"></script>-->
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/css/vex.css" rel="stylesheet">
+  <link href="assets/css/select2.css" rel="stylesheet">
+  <link href="assets/css/smart_wizard.css" rel="stylesheet">
+  <link href="assets/css/smart_wizard_theme_arrows.css" rel="stylesheet">
+  <link href="assets/css/pnotify.css" rel="stylesheet">
+  <link href="assets/css/pnotify.buttons.css" rel="stylesheet">
+  <link href="assets/css/pnotify.brighttheme.css" rel="stylesheet">
+  <link href="assets/css/nv.d3.css" rel="stylesheet">
+  <link href="assets/css/jstree.css" rel="stylesheet">
+  <style>
+    #overlay {
+      background: #1a1a1a;
+      opacity: 1;
+      color: #000000;
+      position: fixed;
+      height: 100%;
+      width: 100%;
+      z-index: 5000;
+      top: 0;
+      left: 0;
+      float: left;
+      text-align: center;
+      padding-top: 17%;
+    }
+
+    #mainBodyContainer {
+      display:none;
+    }
+  </style>
+</head>
+
+<body class="nav-md">
+
+<div id="overlay">
+  <img src="assets/img/giphy.gif" alt="Loading">
+</div>
+
+<div class="container body" id="mainBodyContainer">
+  <div class="main_container">
+    <app></app>
+
+    <% if (webpackConfig.metadata.isDevServer && webpackConfig.metadata.HMR !== true) { %>
+    <!-- Webpack Dev Server reload -->
+    <script src="/webpack-dev-server.js"></script>
+    <% } %>
+
+  </div>
+</div>
+<script>window.__theme = 'bs4';</script>
+<script src="assets/js/prettify.min.js"></script>
+</body>
+</html>

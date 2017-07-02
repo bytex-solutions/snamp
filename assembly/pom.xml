@@ -5,10 +5,10 @@
   <parent>
     <groupId>com.bytex.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>1.2.0</version>
+    <version>2.0.0</version>
   </parent>
   <artifactId>assembly</artifactId>
-  <version>${project.parent.version}</version>
+  <version>2.0.0</version>
   <packaging>karaf-assembly</packaging>
   <name>SNAMP Distribution Package</name>
   <description>Assembly of SNAMP Distribution Package</description>
@@ -21,22 +21,22 @@
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>framework</artifactId>
-      <version>3.0.7</version>
+      <version>4.0.9</version>
       <type>kar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>io.hawt</groupId>
-      <artifactId>hawtio-karaf</artifactId>
-      <version>1.4.55</version>
+      <groupId>org.apache.karaf.features</groupId>
+      <artifactId>framework</artifactId>
+      <version>4.0.9</version>
       <type>xml</type>
       <classifier>features</classifier>
       <scope>runtime</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
-      <artifactId>platform-feature</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.bytex.snamp.features</groupId>
+      <artifactId>core</artifactId>
+      <version>2.0.0</version>
       <type>xml</type>
       <classifier>features</classifier>
       <scope>runtime</scope>
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>org.apache.karaf.cellar</groupId>
       <artifactId>apache-karaf-cellar</artifactId>
-      <version>3.0.3</version>
+      <version>4.0.3</version>
       <type>xml</type>
       <classifier>features</classifier>
       <scope>runtime</scope>
@@ -52,15 +52,14 @@
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>standard</artifactId>
-      <version>3.0.7</version>
+      <version>4.0.9</version>
       <type>xml</type>
       <classifier>features</classifier>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
       <artifactId>enterprise</artifactId>
-      <version>3.0.7</version>
+      <version>4.0.9</version>
       <type>xml</type>
       <classifier>features</classifier>
       <scope>runtime</scope>
@@ -83,22 +82,20 @@
           <ignoreScopeProvided>true</ignoreScopeProvided>
           <bootFeatures>
             <feature>standard</feature>
-            <feature>management</feature>
-            <feature>ssh</feature>
-            <feature>region</feature>
-            <feature>eventadmin</feature>
-            <feature>jndi</feature>
-            <feature>jms</feature>
+            <feature>framework</feature>
           </bootFeatures>
+          <startupFeatures>
+            <feature>eventadmin</feature>
+          </startupFeatures>
           <installedFeatures>
-            <feature>platform-feature</feature>
-            <feature>wrapper</feature>
+            <feature>jndi</feature>
             <feature>http</feature>
             <feature>war</feature>
             <feature>http-whiteboard</feature>
-            <feature>jolokia</feature>
             <feature>cellar</feature>
-            <feature>hawtio-offline</feature>
+            <feature>scr</feature>
+            <feature>wrapper</feature>
+            <feature>snamp-core</feature>
           </installedFeatures>
         </configuration>
       </plugin>
@@ -129,161 +126,33 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>jmx-connector-feature</artifactId>
-                  <version>${snamp.connectors.jmx.version}</version>
+                  <groupId>com.bytex.snamp.features</groupId>
+                  <artifactId>connectors</artifactId>
+                  <version>${snamp.connectors.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>aggregator-connector-feature</artifactId>
-                  <version>${snamp.connectors.aggregator.version}</version>
+                  <groupId>com.bytex.snamp.features</groupId>
+                  <artifactId>gateways</artifactId>
+                  <version>${snamp.gateways.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>groovy-connector-feature</artifactId>
-                  <version>${snamp.connectors.groovy.version}</version>
+                  <groupId>com.bytex.snamp.features</groupId>
+                  <artifactId>standard</artifactId>
+                  <version>${snamp.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>ibmwmq-connector-feature</artifactId>
-                  <version>${snamp.connectors.ibmwmq.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>rshell-connector-feature</artifactId>
-                  <version>${snamp.connectors.rshell.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>snmp-connector-feature</artifactId>
-                  <version>${snamp.connectors.snmp.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>modbus-connector-feature</artifactId>
-                  <version>${snamp.connectors.modbus.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>mda-connector-feature</artifactId>
-                  <version>${snamp.connectors.mda.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>mq-connector-feature</artifactId>
-                  <version>${snamp.connectors.mq.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>decanter-adapter-feature</artifactId>
-                  <version>${snamp.adapters.decanter.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>groovy-adapter-feature</artifactId>
-                  <version>${snamp.adapters.groovy.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>http-adapter-feature</artifactId>
-                  <version>${snamp.adapters.http.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>jmx-adapter-feature</artifactId>
-                  <version>${snamp.adapters.jmx.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>nagios-adapter-feature</artifactId>
-                  <version>${snamp.adapters.nagios.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>nrdp-adapter-feature</artifactId>
-                  <version>${snamp.adapters.nrdp.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>nsca-adapter-feature</artifactId>
-                  <version>${snamp.adapters.nsca.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>snmp-adapter-feature</artifactId>
-                  <version>${snamp.adapters.snmp.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>ssh-adapter-feature</artifactId>
-                  <version>${snamp.adapters.ssh.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>syslog-adapter-feature</artifactId>
-                  <version>${snamp.adapters.syslog.version}</version>
-                  <type>kar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${karaf.folder.deploy}</outputDirectory>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>com.bytex.snamp</groupId>
-                  <artifactId>xmpp-adapter-feature</artifactId>
-                  <version>${snamp.adapters.xmpp.version}</version>
+                  <groupId>com.bytex.snamp.features</groupId>
+                  <artifactId>integration</artifactId>
+                  <version>${snamp.integration.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>

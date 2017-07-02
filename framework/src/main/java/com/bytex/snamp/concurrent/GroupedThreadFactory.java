@@ -2,13 +2,14 @@ package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SafeCloseable;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Represents thread factory which spawns a new threads in the same group.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, SafeCloseable {
@@ -63,7 +64,7 @@ public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, 
      * create a thread is rejected
      */
     @Override
-    public final Thread newThread(@SuppressWarnings("NullableProblems") final Runnable r) {
+    public final Thread newThread(@Nonnull final Runnable r) {
         final Thread t = new Thread(this, r, generateThreadName());
         t.setDaemon(true);
         t.setPriority(newThreadPriority);

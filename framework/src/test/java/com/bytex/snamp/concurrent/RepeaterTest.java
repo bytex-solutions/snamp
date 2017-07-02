@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class RepeaterTest extends Assert {
@@ -40,9 +40,6 @@ public class RepeaterTest extends Assert {
             }
         }
 
-        /**
-         * Provides some periodical action.
-         */
         @Override
         protected void doAction() {
             c.incrementAndGet();
@@ -67,12 +64,9 @@ public class RepeaterTest extends Assert {
             private final AtomicLong counter = new AtomicLong(0);
 
             @Override
-            protected void doAction() {
-                if(counter.incrementAndGet() == 3) try {
+            protected void doAction() throws Exception {
+                if (counter.incrementAndGet() == 3)
                     throw new Exception(exceptionMessage);
-                } catch (final Exception e) {
-                    fault(e);
-                }
             }
         }){
             rep.run();

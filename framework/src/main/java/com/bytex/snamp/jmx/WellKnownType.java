@@ -1,273 +1,527 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.Convert;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
-import com.bytex.snamp.Internal;
 
+import javax.annotation.Nonnull;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.bytex.snamp.internal.Utils.callUnchecked;
+
 /**
  * Describes a well-known type that should be supported by
- * resource connector and understood by resource adapter.
+ * resource connector and understood by gateway.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Class<?>> {
+public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Supplier<Class<?>> {
     /**
      * Represents {@link java.lang.Void} data type.
      */
-    VOID("void", SimpleType.VOID),
+    VOID("void", SimpleType.VOID) {
+        @Override
+        public Void convert(final Object value) throws ClassCastException {
+            throw new ClassCastException(String.format("Unable to convert value '%s' to void", value));
+        }
+    },
 
     /**
      * Represents {@link javax.management.ObjectName} data type.
      */
-    OBJECT_NAME("objectname", SimpleType.OBJECTNAME),
+    OBJECT_NAME("objectname", SimpleType.OBJECTNAME) {
+        @Override
+        public ObjectName convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, ObjectName.class).orElseGet(() -> WellKnownType.parseObjectName(value.toString()));
+        }
+    },
 
     /**
      * Represents {@link java.lang.String} data type.
      */
-    STRING("string", SimpleType.STRING),
+    STRING("string", SimpleType.STRING) {
+        @Override
+        public String convert(final Object value) {
+            return value.toString();
+        }
+    },
 
     /**
      * Represents {@link java.lang.Byte} data type.
      */
-    BYTE("int8", SimpleType.BYTE),
+    BYTE("int8", SimpleType.BYTE) {
+        @Override
+        public Byte convert(final Object value) throws ClassCastException {
+            return Convert.toByte(value, CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Character} data type.
      */
-    CHAR("char", SimpleType.CHARACTER),
+    CHAR("char", SimpleType.CHARACTER) {
+        @Override
+        public Character convert(final Object value) throws ClassCastException {
+            return Convert.toChar(value, CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Short} data type.
      */
-    SHORT("int16", SimpleType.SHORT),
+    SHORT("int16", SimpleType.SHORT) {
+        @Override
+        public Short convert(final Object value) throws ClassCastException {
+            return Convert.toShort(value, CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Integer} data type.
      */
-    INT("int32", SimpleType.INTEGER),
+    INT("int32", SimpleType.INTEGER) {
+        @Override
+        public Integer convert(final Object value) throws ClassCastException {
+            return Convert.toInt(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Long} data type.
      */
-    LONG("int64", SimpleType.LONG),
+    LONG("int64", SimpleType.LONG) {
+        @Override
+        public Long convert(final Object value) throws ClassCastException {
+            return Convert.toLong(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Boolean} data type.
      */
-    BOOL("bool", SimpleType.BOOLEAN),
+    BOOL("bool", SimpleType.BOOLEAN) {
+        @Override
+        public Boolean convert(final Object value) throws ClassCastException {
+            return Convert.toBoolean(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Float} data type.
      */
-    FLOAT("float32", SimpleType.FLOAT),
+    FLOAT("float32", SimpleType.FLOAT) {
+        @Override
+        public Float convert(final Object value) throws ClassCastException {
+            return Convert.toFloat(value, CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Boolean} data type.
      */
-    DOUBLE("float64", SimpleType.DOUBLE),
+    DOUBLE("float64", SimpleType.DOUBLE) {
+        @Override
+        public Double convert(final Object value) throws ClassCastException {
+            return Convert.toDouble(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.util.Date} data type.
      */
-    DATE("datetime", SimpleType.DATE),
+    DATE("datetime", SimpleType.DATE) {
+        @Override
+        public Date convert(final Object value) throws ClassCastException {
+            return Convert.toDate(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.math.BigInteger} data type.
      */
-    BIG_INT("bigint", SimpleType.BIGINTEGER),
+    BIG_INT("bigint", SimpleType.BIGINTEGER) {
+        @Override
+        public BigInteger convert(final Object value) throws ClassCastException {
+            return Convert.toBigInteger(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.math.BigDecimal} data type.
      */
-    BIG_DECIMAL("bigdecimal", SimpleType.BIGDECIMAL),
+    BIG_DECIMAL("bigdecimal", SimpleType.BIGDECIMAL) {
+        @Override
+        public BigDecimal convert(final Object value) throws ClassCastException {
+            return Convert.toBigDecimal(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.nio.ByteBuffer} data type.
      */
-    BYTE_BUFFER("buffer(int8)", ByteBuffer.class),
+    BYTE_BUFFER("buffer(int8)", ByteBuffer.class) {
+        @Override
+        public ByteBuffer convert(final Object value) throws ClassCastException {
+            return Convert.toByteBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.nio.CharBuffer} data type.
      */
-    CHAR_BUFFER("buffer(char)", CharBuffer.class),
+    CHAR_BUFFER("buffer(char)", CharBuffer.class) {
+        @Override
+        public CharBuffer convert(final Object value) throws ClassCastException {
+            return Convert.toCharBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.nio.ShortBuffer} data type.
      */
-    SHORT_BUFFER("buffer(int16)", ShortBuffer.class),
+    SHORT_BUFFER("buffer(int16)", ShortBuffer.class) {
+        @Override
+        public ShortBuffer convert(final Object value) throws ClassCastException {
+            return Convert.toShortBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.nio.IntBuffer} data type.
      */
-    INT_BUFFER("buffer(int32)", IntBuffer.class),
+    INT_BUFFER("buffer(int32)", IntBuffer.class) {
+        @Override
+        public IntBuffer convert(final Object value) throws ClassCastException {
+            return Convert.toIntBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.nio.LongBuffer} data type.
      */
-    LONG_BUFFER("buffer(int64)", LongBuffer.class),
+    LONG_BUFFER("buffer(int64)", LongBuffer.class) {
+        @Override
+        public LongBuffer convert(final Object value) throws ClassCastException {
+            return Convert.toLongBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.nio.FloatBuffer} data type.
      */
-    FLOAT_BUFFER("buffer(float32)", FloatBuffer.class),
+    FLOAT_BUFFER("buffer(float32)", FloatBuffer.class) {
+        @Override
+        public FloatBuffer convert(final Object value) throws ClassCastException {
+            return Convert.toFloatBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.nio.DoubleBuffer} data type.
      */
-    DOUBLE_BUFFER("buffer(float64)", DoubleBuffer.class),
+    DOUBLE_BUFFER("buffer(float64)", DoubleBuffer.class) {
+        @Override
+        public DoubleBuffer convert(final Object value) throws ClassCastException {
+            return Convert.toDoubleBuffer(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@code byte[]} type.
      */
-    BYTE_ARRAY("array(int8)", SimpleType.BYTE, true),
+    BYTE_ARRAY("array(int8)", SimpleType.BYTE, true) {
+        @Override
+        public byte[] convert(final Object value) throws ClassCastException {
+            return Convert.toByteArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Byte}[] type.
      */
-    WRAPPED_BYTE_ARRAY("array(int8)", SimpleType.BYTE, false),
+    WRAPPED_BYTE_ARRAY("array(int8&)", SimpleType.BYTE, false) {
+        @Override
+        public Byte[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, Byte[].class)
+                    .orElseGet(() -> Convert.toByteArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@code char[]} type.
      */
-    CHAR_ARRAY("array(char)", SimpleType.CHARACTER, true),
+    CHAR_ARRAY("array(char)", SimpleType.CHARACTER, true) {
+        @Override
+        public char[] convert(final Object value) throws ClassCastException {
+            return Convert.toCharArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Character}[] type.
      */
-    WRAPPED_CHAR_ARRAY("array(char)", SimpleType.CHARACTER, false),
+    WRAPPED_CHAR_ARRAY("array(char&)", SimpleType.CHARACTER, false) {
+        @Override
+        public Character[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, Character[].class)
+                    .orElseGet(() -> Convert.toCharArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@code short[]} type.
      */
-    SHORT_ARRAY("array(int16)", SimpleType.SHORT, true),
+    SHORT_ARRAY("array(int16)", SimpleType.SHORT, true) {
+        @Override
+        public short[] convert(final Object value) throws ClassCastException {
+            return Convert.toShortArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Short}[] type.
      */
-    WRAPPED_SHORT_ARRAY("array(int16)", SimpleType.SHORT, false),
+    WRAPPED_SHORT_ARRAY("array(int16&)", SimpleType.SHORT, false) {
+        @Override
+        public Short[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, Short[].class)
+                    .orElseGet(() -> Convert.toShortArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@code int[]} type.
      */
-    INT_ARRAY("array(int32)", SimpleType.INTEGER, true),
+    INT_ARRAY("array(int32)", SimpleType.INTEGER, true) {
+        @Override
+        public int[] convert(final Object value) throws ClassCastException {
+            return Convert.toIntArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Integer}[] type.
      */
-    WRAPPED_INT_ARRAY("array(int32)", SimpleType.INTEGER, false),
+    WRAPPED_INT_ARRAY("array(int32&)", SimpleType.INTEGER, false) {
+        @Override
+        public Integer[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, Integer[].class)
+                    .orElseGet(() -> Convert.toIntArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@code long[]} type.
      */
-    LONG_ARRAY("array(int64)", SimpleType.LONG, true),
+    LONG_ARRAY("array(int64)", SimpleType.LONG, true) {
+        @Override
+        public long[] convert(final Object value) throws ClassCastException {
+            return Convert.toLongArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Long}[] type.
      */
-    WRAPPED_LONG_ARRAY("array(int64)", SimpleType.LONG, false),
+    WRAPPED_LONG_ARRAY("array(int64&)", SimpleType.LONG, false) {
+        @Override
+        public Long[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, Long[].class)
+                    .orElseGet(() -> Convert.toLongArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@code boolean[]} type.
      */
-    BOOL_ARRAY("array(bool)", SimpleType.BOOLEAN, true),
+    BOOL_ARRAY("array(bool)", SimpleType.BOOLEAN, true) {
+        @Override
+        public boolean[] convert(final Object value) throws ClassCastException {
+            return Convert.toBooleanArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Boolean}[] type.
      */
-    WRAPPED_BOOL_ARRAY("array(bool)", SimpleType.BOOLEAN, false),
+    WRAPPED_BOOL_ARRAY("array(bool&)", SimpleType.BOOLEAN, false) {
+        @Override
+        public Boolean[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, Boolean[].class)
+                    .orElseGet(() -> Convert.toBooleanArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@code float[]} type.
      */
-    FLOAT_ARRAY("array(float32)", SimpleType.FLOAT, true),
+    FLOAT_ARRAY("array(float32)", SimpleType.FLOAT, true) {
+        @Override
+        public float[] convert(final Object value) throws ClassCastException {
+            return Convert.toFloatArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Float}[] type.
      */
-    WRAPPED_FLOAT_ARRAY("array(float32)", SimpleType.FLOAT, false),
+    WRAPPED_FLOAT_ARRAY("array(float32&)", SimpleType.FLOAT, false) {
+        @Override
+        public Float[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, Float[].class)
+                    .orElseGet(() -> Convert.toFloatArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@code double[]} type.
      */
-    DOUBLE_ARRAY("array(float64)", SimpleType.DOUBLE, true),
+    DOUBLE_ARRAY("array(float64)", SimpleType.DOUBLE, true) {
+        @Override
+        public double[] convert(final Object value) throws ClassCastException {
+            return Convert.toDoubleArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.lang.Double}[] type.
      */
-    WRAPPED_DOUBLE_ARRAY("array(float64)", SimpleType.DOUBLE, false),
+    WRAPPED_DOUBLE_ARRAY("array(float64&)", SimpleType.DOUBLE, false) {
+        @Override
+        public Double[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, Double[].class)
+                    .orElseGet(() -> Convert.toDoubleArray(value).map(ArrayUtils::wrapArray).orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@link java.lang.String}[] type.
      */
-    STRING_ARRAY("array(string)", SimpleType.STRING, false),
+    STRING_ARRAY("array(string)", SimpleType.STRING, false) {
+        @Override
+        public String[] convert(final Object value) throws ClassCastException {
+            return Convert.toStringArray(value).orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.util.Date}[] type.
      */
-    DATE_ARRAY("array(datetime)", SimpleType.DATE, false),
+    DATE_ARRAY("array(datetime)", SimpleType.DATE, false) {
+        @Override
+        public Date[] convert(final Object value) throws ClassCastException {
+            return Convert.toArray(value, Date[].class, Convert::toDate)
+                    .orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.math.BigInteger}[] type.
      */
-    BIG_INT_ARRAY("array(bigint)", SimpleType.BIGINTEGER, false),
+    BIG_INT_ARRAY("array(bigint)", SimpleType.BIGINTEGER, false) {
+        @Override
+        public BigInteger[] convert(final Object value) throws ClassCastException {
+            return Convert.toArray(value, BigInteger[].class, Convert::toBigInteger)
+                    .orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link java.math.BigDecimal}[] type.
      */
-    BIG_DECIMAL_ARRAY("array(bigdecimal)", SimpleType.BIGDECIMAL, false),
+    BIG_DECIMAL_ARRAY("array(bigdecimal)", SimpleType.BIGDECIMAL, false) {
+        @Override
+        public BigDecimal[] convert(final Object value) throws ClassCastException {
+            return Convert.toArray(value, BigDecimal[].class, Convert::toBigDecimal)
+                    .orElseThrow(CONVERSION_EXCEPTION);
+        }
+    },
 
     /**
      * Represents {@link javax.management.ObjectName}[] type.
      */
-    OBJECT_NAME_ARRAY("array(objectname)", SimpleType.OBJECTNAME, false),
+    OBJECT_NAME_ARRAY("array(objectname)", SimpleType.OBJECTNAME, false) {
+        @Override
+        public ObjectName[] convert(final Object value) throws ClassCastException {
+            return Convert.toType(value, ObjectName[].class)
+                    .orElseGet(() -> Convert.toStringArray(value)
+                            .map(strings -> ArrayUtils.transform(strings, ObjectName.class, WellKnownType::parseObjectName))
+                            .orElseThrow(CONVERSION_EXCEPTION));
+        }
+    },
 
     /**
      * Represents {@link javax.management.openmbean.CompositeData} type.
      */
-    DICTIONARY("dictionary", CompositeData.class),
+    DICTIONARY("dictionary", CompositeData.class) {
+        @Override
+        public CompositeData convert(final Object value) throws ClassCastException {
+            return (CompositeData) value;
+        }
+    },
 
     /**
      * Represents {@link javax.management.openmbean.CompositeData}[] type.
      */
-    DICTIONARY_ARRAY("array(dictionary)", CompositeData[].class),
+    DICTIONARY_ARRAY("array(dictionary)", CompositeData[].class) {
+        @Override
+        public CompositeData[] convert(final Object value) throws ClassCastException {
+            return (CompositeData[]) value;
+        }
+    },
 
     /**
      * Represents {@link javax.management.openmbean.TabularData} type.
      */
-    TABLE("table", TabularData.class),
+    TABLE("table", TabularData.class) {
+        @Override
+        public TabularData convert(final Object value) throws ClassCastException {
+            return (TabularData) value;
+        }
+    },
 
     /**
      * Represents {@link javax.management.openmbean.TabularData}[] type.
      */
-    TABLE_ARRAY("array(table)", TabularData[].class)
-    ;
+    TABLE_ARRAY("array(table)", TabularData[].class) {
+        @Override
+        public TabularData[] convert(final Object value) throws ClassCastException {
+            return (TabularData[]) value;
+        }
+    };
 
     private static final class WellKnownTypeCacheLoader extends CacheLoader<Object, WellKnownType>{
         private static InvalidKeyException cacheMissing(final Object key){
             return new InvalidKeyException("Well-known type is not defined for class " + key);
         }
 
-        private static WellKnownType load(@SuppressWarnings("NullableProblems") final String className) throws InvalidKeyException {
+        private static WellKnownType load(final String className) throws InvalidKeyException {
             for (final WellKnownType type : values())
                 if (className.equals(type.getJavaType().getName()))
                     return type;
             throw cacheMissing(className);
         }
 
-        private static WellKnownType load(@SuppressWarnings("NullableProblems") final TypeToken<?> javaType) throws InvalidKeyException {
+        private static WellKnownType load(final TypeToken<?> javaType) throws InvalidKeyException {
             if(javaType.isPrimitive())
                 return load(javaType.wrap());
             else for(final WellKnownType type: values())
@@ -276,7 +530,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
             throw cacheMissing(javaType);
         }
 
-        private static WellKnownType load(@SuppressWarnings("NullableProblems") final OpenType<?> openType) throws InvalidKeyException {
+        private static WellKnownType load(final OpenType<?> openType) throws InvalidKeyException {
             if (openType instanceof CompositeType)
                 return DICTIONARY;
             else if (openType instanceof TabularType)
@@ -288,7 +542,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         }
 
         @Override
-        public WellKnownType load(final Object key) throws InvalidKeyException {
+        public WellKnownType load(@Nonnull final Object key) throws InvalidKeyException {
             if(key instanceof String)
                 return load((String)key);
             else if(key instanceof TypeToken<?>)
@@ -299,32 +553,24 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         }
     }
 
-    private static final LoadingCache<Object, WellKnownType> cache =
+    private static final LoadingCache<Object, WellKnownType> CACHE =
             CacheBuilder.newBuilder().weakKeys().build(new WellKnownTypeCacheLoader());
 
+    private static final Supplier<ClassCastException> CONVERSION_EXCEPTION = () -> new ClassCastException("Unsupported conversion");
     private final OpenType<?> openType;
     private final Class<?> javaType;
     private final String displayName;
 
     <T> WellKnownType(final String name, final SimpleType<T> openType){
         this.openType = Objects.requireNonNull(openType, "openType is null.");
-        try {
-            this.javaType = Class.forName(openType.getClassName());
-        } catch (final ClassNotFoundException e) {
-            throw new ExceptionInInitializerError(e);
-        }
+        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
         this.displayName = name;
     }
 
     <A> WellKnownType(final String name, final SimpleType<?> componentType,
                       final boolean primitive){
-        try {
-            this.openType = new ArrayType<A>(componentType, primitive);
-            this.javaType = Class.forName(openType.getClassName());
-        }
-        catch (final OpenDataException | ClassNotFoundException e) {
-            throw new ExceptionInInitializerError(e);
-        }
+        this.openType = callUnchecked(() -> new ArrayType<A>(componentType, primitive));
+        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
         this.displayName = name;
     }
 
@@ -334,11 +580,21 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         this.displayName = name;
     }
 
+    private static ObjectName parseObjectName(final String value) throws ClassCastException{
+        try {
+            return new ObjectName(value);
+        } catch (final MalformedObjectNameException e) {
+            final ClassCastException error = new ClassCastException(e.getMessage());
+            error.initCause(e);
+            throw error;
+        }
+    }
+
     /**
      * Gets display name of this type.
      * @return The display name of this type.
      */
-    public String getDisplayName(){
+    public final String getDisplayName(){
         return displayName;
     }
 
@@ -459,7 +715,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      * @return {@literal true}, if the specified object is an instance of this type;
      *      otherwise, {@literal false}.
      */
-    public boolean isInstance(final Object value){
+    public final boolean isInstance(final Object value){
         return openType != null ? openType.isValue(value) : javaType.isInstance(value);
     }
 
@@ -470,7 +726,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      *      otherwise, {@literal false}.
      */
     @Override
-    public boolean test(final Object value){
+    public final boolean test(final Object value){
         return isInstance(value);
     }
 
@@ -511,7 +767,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     public static WellKnownType getType(final String className) {
         if(className == null || className.isEmpty()) return null;
         else try {
-            return cache.get(className);
+            return CACHE.get(className);
         } catch (ExecutionException ignored) {
             return null;
         }
@@ -547,7 +803,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
                 return TABLE_ARRAY;
         }
         try {
-            return cache.get(openType);
+            return CACHE.get(openType);
         } catch (final ExecutionException ignored) {
             return null;
         }
@@ -574,7 +830,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
     public static WellKnownType getType(final TypeToken<?> token){
         if(token == null) return null;
         else try {
-            return cache.get(token);
+            return CACHE.get(token);
         } catch (final ExecutionException ignored) {
             return null;
         }
@@ -629,13 +885,26 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
         return getItemType(type.getRowType(), itemName);
     }
 
-    @Internal
-    static long cacheSize(){
-        return cache.size();
+    /**
+     * Casts the specified value to well-known type.
+     * @param value A value to cast.
+     * @return Cast result
+     * @throws ClassCastException Unable to cast value.
+     */
+    public final Object cast(final Object value) throws ClassCastException{
+        return getJavaType().cast(value);
     }
 
+    /**
+     * Converts the specified value into well-known type using conversion rules.
+     * @param value A value to convert.
+     * @return Conversion result.
+     * @throws ClassCastException Unable to convert value.
+     */
+    public abstract Object convert(final Object value) throws ClassCastException;
+
     @Override
-    public String toString() {
+    public final String toString() {
         return javaType.getCanonicalName();
     }
 
@@ -644,7 +913,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate, Supplier<Cl
      * @return The underlying Java type.
      */
     @Override
-    public Class<?> get() {
+    public final Class<?> get() {
         return getJavaType();
     }
 }

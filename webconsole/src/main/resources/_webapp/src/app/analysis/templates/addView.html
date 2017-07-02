@@ -1,0 +1,72 @@
+<div class="right_col" role="main" style="min-height: 949px;">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Add E2E view</h3>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row" style="margin-top: 30px">
+
+      <panel [header]="'Gateway type'" [column]="'8'">
+        <div class="form leftAlign">
+
+          <div class="form-group row">
+            <label class="col-sm-2 col-form-label" for="viewName">
+              1. View name <span class="required">*</span>
+            </label>
+            <div class="col-sm-10">
+              <input type="text" id="viewName" [(ngModel)]="viewName" required="required" class="form-control" placeholder="Input view name"/>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <label class="col-sm-2 col-form-label" for="viewType">
+              2. Type of view <span class="required">*</span>
+            </label>
+            <div class="col-sm-10">
+              <select class="form-control" [(ngModel)]="viewType" id="viewType">
+                <option *ngFor="let type of types" [ngValue]="type">{{type.name}}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group row" *ngIf="viewType && viewType.id != 'landscape'">
+            <label class="col-sm-2 col-form-label" for="viewType">
+              3. Component to analysis <span class="required">*</span>
+            </label>
+            <div class="col-sm-10">
+              <select class="form-control" [(ngModel)]="chosenComponent" id="component">
+                <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ln_solid"></div>
+
+          <div class="row">
+            <div class="col-sm-1 col-sm-offset-11">
+              <div class="btn btn-primary" (click)="saveView()">Save</div>
+            </div>
+          </div>
+
+        </div>
+      </panel>
+
+      <panel [header]="'Description'" [column]="'4'">
+        <div class="row">
+          <div class="col-sm-12 pagination-centered" *ngIf="!viewType">
+              Please select a type to get a description
+          </div>
+          <div class="col-sm-12" *ngIf="viewType">
+            {{viewType.description}}
+          </div>
+        </div>
+      </panel>
+
+    </div>
+  </div>
+</div>
+

@@ -4,18 +4,17 @@
   <parent>
     <groupId>com.bytex.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>1.2.0</version>
+    <version>2.0.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>framework</artifactId>
   <packaging>bundle</packaging>
-  <version>${snamp.framework.version}</version>
+  <version>${snamp.version}</version>
   <name>SNAMP Framework</name>
   <description>Provides a collection of SNAMP-related core interfaces and classes</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
-    <snamp.platform.version>${project.parent.version}</snamp.platform.version>
   </properties>
   <build>
       <resources>
@@ -42,7 +41,7 @@
             <extensions>true</extensions>
             <configuration>
                 <instructions>
-                    <Bundle-SymbolicName>com.bytex.snamp.core</Bundle-SymbolicName>
+                    <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
                     <Export-Package>com.bytex.snamp.*</Export-Package>
                 </instructions>
             </configuration>
@@ -61,6 +60,16 @@
       <dependency>
           <groupId>org.osgi</groupId>
           <artifactId>org.osgi.compendium</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>com.google.code.findbugs</groupId>
+          <artifactId>jsr305</artifactId>
+      </dependency>
+      <dependency>
+          <groupId>io.dropwizard.metrics</groupId>
+          <artifactId>metrics-core</artifactId>
+          <version>3.1.2</version>
+          <scope>test</scope>
       </dependency>
       <dependency>
           <groupId>junit</groupId>

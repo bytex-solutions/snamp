@@ -3,32 +3,34 @@ package com.bytex.snamp;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.BitSet;
-import java.util.Date;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
+import java.util.*;
+import java.util.function.*;
+
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents advanced routines to work with arrays.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
+@ThreadSafe
 public final class ArrayUtils {
     @FunctionalInterface
-    private interface ByteArrayConverter<T>{
+    private interface ToByteArrayConverter<T>{
         byte[] convert(final T array, final int index);
     }
 
@@ -46,7 +48,7 @@ public final class ArrayUtils {
             .softValues()
             .build(new CacheLoader<Class<?>, Object>() {
                 @Override
-                public Object load(final Class<?> componentType) throws IllegalArgumentException, NegativeArraySizeException {
+                public Object load(@Nonnull final Class<?> componentType) throws IllegalArgumentException, NegativeArraySizeException {
                     return Array.newInstance(componentType, 0);
                 }
             });
@@ -56,28 +58,33 @@ public final class ArrayUtils {
                     .maximumSize(20)
                     .softValues()
                     .build(new CacheLoader<OpenType<?>, Class<?>>() {
-                        private final Switch<OpenType<?>, Class<?>> mappings = new Switch<OpenType<?>, Class<?>>()
-                                .equals(SimpleType.BYTE, Byte.class)
-                                .equals(SimpleType.CHARACTER, Character.class)
-                                .equals(SimpleType.SHORT, Short.class)
-                                .equals(SimpleType.INTEGER, Integer.class)
-                                .equals(SimpleType.LONG, Long.class)
-                                .equals(SimpleType.BOOLEAN, Boolean.class)
-                                .equals(SimpleType.FLOAT, Float.class)
-                                .equals(SimpleType.DOUBLE, Double.class)
-                                .equals(SimpleType.VOID, Void.class)
-                                .equals(SimpleType.STRING, String.class)
-                                .equals(SimpleType.BIGDECIMAL, BigDecimal.class)
-                                .equals(SimpleType.BIGINTEGER, BigInteger.class)
-                                .equals(SimpleType.OBJECTNAME, ObjectName.class)
-                                .equals(SimpleType.DATE, Date.class)
-                                .instanceOf(CompositeType.class, CompositeData.class)
-                                .instanceOf(TabularType.class, TabularData.class);
+                        private final Map<OpenType<?>, Class<?>> simpleTypeMapping = ImmutableMap.<OpenType<?>, Class<?>>builder()
+                                .put(SimpleType.BYTE, Byte.class)
+                                .put(SimpleType.CHARACTER, Character.class)
+                                .put(SimpleType.SHORT, Short.class)
+                                .put(SimpleType.INTEGER, Integer.class)
+                                .put(SimpleType.LONG, Long.class)
+                                .put(SimpleType.BOOLEAN, Boolean.class)
+                                .put(SimpleType.FLOAT, Float.class)
+                                .put(SimpleType.DOUBLE, Double.class)
+                                .put(SimpleType.VOID, Void.class)
+                                .put(SimpleType.STRING, String.class)
+                                .put(SimpleType.BIGDECIMAL, BigDecimal.class)
+                                .put(SimpleType.BIGINTEGER, BigInteger.class)
+                                .put(SimpleType.OBJECTNAME, ObjectName.class)
+                                .put(SimpleType.DATE, Date.class)
+                                .build();
 
                         @Override
-                        public Class<?> load(final OpenType<?> elementType) throws ClassNotFoundException {
-                            final Class<?> result = mappings.apply(elementType);
-                            return result == null ? Class.forName(elementType.getClassName()) : result;
+                        public Class<?> load(@Nonnull final OpenType<?> elementType) throws ClassNotFoundException {
+                            if(elementType instanceof CompositeType)
+                                return CompositeData.class;
+                            else if(elementType instanceof TabularType)
+                                return TabularData.class;
+                            else {
+                                final Class<?> result = simpleTypeMapping.get(elementType);
+                                return result == null ? Class.forName(elementType.getClassName()) : result;
+                            }
                         }
                     });
 
@@ -103,9 +110,20 @@ public final class ArrayUtils {
      * @return Empty array.
      */
     public static <T> T emptyArray(final Class<T> arrayType) {
-        if (arrayType.isArray())
-            return arrayType.cast(emptyArrayImpl(arrayType.getComponentType()));
-        else throw new IllegalArgumentException("Invalid array type: " + arrayType);
+        final Class<?> componentType = arrayType.getComponentType();
+        if (componentType == null)
+            throw new IllegalArgumentException("Invalid array type: " + arrayType);
+        else
+            return arrayType.cast(emptyArrayImpl(componentType));
+    }
+
+    /**
+     * Gets cached empty array of bytes.
+     * @return Cached empty array of bytes.
+     * @since 2.0
+     */
+    public static byte[] emptyByteArray(){
+        return emptyArray(byte[].class);
     }
 
     /**
@@ -146,22 +164,8 @@ public final class ArrayUtils {
         return result;
     }
 
-    public static boolean containsAny(final Object[] array, final Object... elements) {
-        if (array != null && elements != null)
-            for (final Object actual : array)
-                for (final Object expected : elements)
-                    if (Objects.equals(expected, actual)) return true;
-        return false;
-    }
-
-    public static boolean containsAll(final Object[] array, final Object... elements) {
-        if (array == null) return false;
-        int counter = 0;
-        for (final Object expected : elements)
-            for (final Object actual : array)
-                if (Objects.equals(expected, actual))
-                    counter += 1;
-        return counter == elements.length;
+    public static boolean contains(final Object[] array, final Object element) {
+        return find(array, element::equals).isPresent();
     }
 
     private static Object[] wrapArrayImpl(final Object primitiveArray) {
@@ -243,14 +247,10 @@ public final class ArrayUtils {
         return (char[]) unwrapArrayImpl(value);
     }
 
-    public static <T> T find(final T[] array, final Predicate<T> filter, final T defval) {
+    public static <T> Optional<T> find(final T[] array, final Predicate<T> filter) {
         for(final T item: array)
-            if(filter.test(item)) return item;
-        return defval;
-    }
-
-    public static <T> T find(final T[] array, final Predicate<T> filter) {
-        return find(array, filter, null);
+            if(filter.test(item)) return Optional.ofNullable(item);
+        return Optional.empty();
     }
 
     private static Object newArray(final OpenType<?> elementType,
@@ -284,7 +284,7 @@ public final class ArrayUtils {
         return equals(array1, array2, true);
     }
 
-    private static boolean equals(final Object array1, final Object array2, boolean strictComponentType) {
+    private static boolean equals(final Object array1, final Object array2, final boolean strictComponentType) {
         if (strictComponentType && !array1.getClass().getComponentType().equals(array2.getClass().getComponentType()))
             return false;
         else if (Array.getLength(array1) == Array.getLength(array2)) {
@@ -314,45 +314,39 @@ public final class ArrayUtils {
      * @throws IllegalArgumentException Incorrect array type.
      */
     @SuppressWarnings("unchecked")
-    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader){
-        if(arrayType.getDimension() > 1)
+    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader) {
+        if (arrayType.getDimension() > 1)
             throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
-        final Class<?> elementType;
-        try{
-            elementType = Class.forName(arrayType.getClassName(), true, loader).getComponentType();
-        } catch (final ClassNotFoundException e) {
-            throw new IllegalArgumentException(e);
-        }
-        return (T)emptyArrayImpl(elementType);
+        final Class<?> elementType = callAndWrapException(
+                () -> Class.forName(arrayType.getClassName(), true, loader).getComponentType(),
+                IllegalArgumentException::new);
+        return (T) emptyArrayImpl(elementType);
+    }
+
+    public static <T> Optional<T> getLast(final T[] array){
+        return array.length > 0 ? Optional.ofNullable(array[array.length - 1]) : Optional.empty();
     }
 
     /**
      * Gets the first element in the array.
      * @param array Array instance. Cannot be {@literal null}.
-     * @param defval Value returned from the method if array is empty.
      * @param <T> Type of array elements.
      * @return The first element in the specified array; or default value.
      */
-    public static <T> T getFirst(final T[] array, final T defval){
-        return array.length > 0 ? array[0] : defval;
+    public static <T> Optional<T> getFirst(final T[] array) {
+        return isNullOrEmpty(array) ? Optional.empty() : Optional.ofNullable(array[0]);
     }
 
-    /**
-     * Gets the first element in the array.
-     * @param array Array instance. Cannot be {@literal null}.
-     * @param <T> Type of array elements.
-     * @return The first element in the specified array; or {@literal null}, if array is empty.
-     */
-    public static <T> T getFirst(final T[] array){
-        return getFirst(array, null);
-    }
-
-    private static boolean isNullOrEmptyArray(final Object array){
+    private static boolean isNullOrEmptyImpl(final Object array){
         return array == null || Array.getLength(array) == 0;
     }
 
     public static boolean isNullOrEmpty(final Object[] array) {
-        return isNullOrEmptyArray(array);
+        return isNullOrEmptyImpl(array);
+    }
+
+    public static boolean isNullOrEmpty(final byte[] array){
+        return isNullOrEmptyImpl(array);
     }
 
     private static <T extends Comparable<T> & Serializable> Object toArray(final byte[] array,
@@ -375,7 +369,7 @@ public final class ArrayUtils {
     }
 
     private static Object toShortArray(final byte[] array, final boolean primitive){
-        return toArray(array, Short.class, Shorts::fromByteArray, Shorts.BYTES, primitive);
+        return toArray(array, Short.class, Shorts::fromByteArray, Short.BYTES, primitive);
     }
 
     public static short[] toShortArray(final byte[] array){
@@ -387,7 +381,7 @@ public final class ArrayUtils {
     }
 
     private static Object toIntArray(final byte[] array, final boolean primitive){
-        return toArray(array, Integer.class, Ints::fromByteArray, Ints.BYTES, primitive);
+        return toArray(array, Integer.class, Ints::fromByteArray, Integer.BYTES, primitive);
     }
 
     public static int[] toIntArray(final byte[] array){
@@ -399,7 +393,7 @@ public final class ArrayUtils {
     }
 
     private static Object toLongArray(final byte[] array, final boolean primitive){
-        return toArray(array, Long.class, Longs::fromByteArray, Longs.BYTES, primitive);
+        return toArray(array, Long.class, Longs::fromByteArray, Long.BYTES, primitive);
     }
 
     public static long[] toLongArray(final byte[] array){
@@ -414,7 +408,7 @@ public final class ArrayUtils {
         return toArray(array, Float.class, input -> {
             final int bits = Ints.fromByteArray(input);
             return Float.intBitsToFloat(bits);
-        }, Floats.BYTES, primitive);
+        }, Float.BYTES, primitive);
     }
 
     public static float[] toFloatArray(final byte[] array){
@@ -429,7 +423,7 @@ public final class ArrayUtils {
         return toArray(array, Double.class, input -> {
             final long bits = Longs.fromByteArray(input);
             return Double.longBitsToDouble(bits);
-        }, Doubles.BYTES, primitive);
+        }, Double.BYTES, primitive);
     }
 
     public static double[] toDoubleArray(final byte[] array){
@@ -441,7 +435,7 @@ public final class ArrayUtils {
     }
 
     private static Object toCharArray(final byte[] array, final boolean primitive){
-        return toArray(array, Character.class, Chars::fromByteArray, Chars.BYTES, primitive);
+        return toArray(array, Character.class, Chars::fromByteArray, Character.BYTES, primitive);
     }
 
     public static char[] toCharArray(final byte[] array){
@@ -469,61 +463,65 @@ public final class ArrayUtils {
     }
 
     private static <T> byte[] toByteArray(final T array,
-                                          final ByteArrayConverter<T> converter,
+                                          final ToByteArrayConverter<T> converter,
                                           final int componentSize) {
-        final byte[] result = new byte[Array.getLength(array) * componentSize];
-        for (int sourcePosition = 0, destPosition = 0; sourcePosition < Array.getLength(array); sourcePosition++)
-            for (final byte element : converter.convert(array, sourcePosition))
-                result[destPosition++] = element;
+        final int arrayLen = Array.getLength(array);
+        final byte[] result = new byte[arrayLen * componentSize];
+        for (int sourcePosition = 0, destPosition = 0; sourcePosition < arrayLen; sourcePosition++) {
+            final byte[] subArray = converter.convert(array, sourcePosition);
+            assert subArray.length == componentSize;
+            System.arraycopy(subArray, 0, result, destPosition, subArray.length);
+            destPosition += subArray.length;
+        }
         return result;
     }
 
     public static byte[] toByteArray(final short[] value) {
-        return toByteArray(value, (value1, index) -> Shorts.toByteArray(value1[index]), Shorts.BYTES);
+        return toByteArray(value, (value1, index) -> Shorts.toByteArray(value1[index]), Short.BYTES);
     }
 
     public static byte[] toByteArray(final Short[] value) {
-        return toByteArray(value, (value1, index) -> Shorts.toByteArray(value1[index]), Shorts.BYTES);
+        return toByteArray(value, (value1, index) -> Shorts.toByteArray(value1[index]), Short.BYTES);
     }
 
     public static byte[] toByteArray(final int[] value) {
-        return toByteArray(value, (value1, index) -> Ints.toByteArray(value1[index]), Ints.BYTES);
+        return toByteArray(value, (value1, index) -> Ints.toByteArray(value1[index]), Integer.BYTES);
     }
 
     public static byte[] toByteArray(final Integer[] value) {
-        return toByteArray(value, (value1, index) -> Ints.toByteArray(value1[index]), Ints.BYTES);
+        return toByteArray(value, (value1, index) -> Ints.toByteArray(value1[index]), Integer.BYTES);
     }
 
     public static byte[] toByteArray(final long[] value) {
-        return toByteArray(value, (value1, index) -> Longs.toByteArray(value1[index]), Longs.BYTES);
+        return toByteArray(value, (value1, index) -> Longs.toByteArray(value1[index]), Long.BYTES);
     }
 
     public static byte[] toByteArray(final Long[] value) {
-        return toByteArray(value, (value1, index) -> Longs.toByteArray(value1[index]), Longs.BYTES);
+        return toByteArray(value, (value1, index) -> Longs.toByteArray(value1[index]), Long.BYTES);
     }
 
     public static byte[] toByteArray(final float[] value) {
-        return toByteArray(value, (value1, index) -> Ints.toByteArray(Float.floatToIntBits(value1[index])), Floats.BYTES);
+        return toByteArray(value, (value1, index) -> Ints.toByteArray(Float.floatToIntBits(value1[index])), Float.BYTES);
     }
 
     public static byte[] toByteArray(final Float[] value) {
-        return toByteArray(value, (value1, index) -> Ints.toByteArray(Float.floatToIntBits(value1[index])), Floats.BYTES);
+        return toByteArray(value, (value1, index) -> Ints.toByteArray(Float.floatToIntBits(value1[index])), Float.BYTES);
     }
 
     public static byte[] toByteArray(final double[] value) {
-        return toByteArray(value, (value1, index) -> Longs.toByteArray(Double.doubleToLongBits(value1[index])), Doubles.BYTES);
+        return toByteArray(value, (value1, index) -> Longs.toByteArray(Double.doubleToLongBits(value1[index])), Double.BYTES);
     }
 
     public static byte[] toByteArray(final Double[] value) {
-        return toByteArray(value, (value1, index) -> Longs.toByteArray(Double.doubleToLongBits(value1[index])), Doubles.BYTES);
+        return toByteArray(value, (value1, index) -> Longs.toByteArray(Double.doubleToLongBits(value1[index])), Double.BYTES);
     }
 
     public static byte[] toByteArray(final char[] value) {
-        return toByteArray(value, (value1, index) -> Chars.toByteArray(value1[index]), Chars.BYTES);
+        return toByteArray(value, (value1, index) -> Chars.toByteArray(value1[index]), Character.BYTES);
     }
 
     public static byte[] toByteArray(final Character[] value) {
-        return toByteArray(value, (value1, index) -> Chars.toByteArray(value1[index]), Chars.BYTES);
+        return toByteArray(value, (value1, index) -> Chars.toByteArray(value1[index]), Character.BYTES);
     }
 
     public static byte[] toByteArray(final boolean[] value) {
@@ -540,7 +538,84 @@ public final class ArrayUtils {
         return result.toByteArray();
     }
 
-    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType){
-        return length -> ObjectArrays.newArray(elementType, length);
+    @SuppressWarnings("unchecked")
+    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType) {
+        return length -> length == 0 ? (T[]) emptyArrayImpl(elementType) : ObjectArrays.newArray(elementType, length);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <I, O> O[] transform(final I[] array, final Class<O> elementType, final Function<? super I, ? extends O> transformer) {
+        switch (array.length) {
+            case 0:
+                return (O[]) emptyArrayImpl(elementType);
+            default:
+                final O[] result = ObjectArrays.newArray(elementType, array.length);
+                for (int index = 0; index < array.length; index++)
+                    result[index] = transformer.apply(array[index]);
+                return result;
+        }
+    }
+
+    public static <T> T[] transformByteArray(final byte[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformShortArray(final short[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformIntArray(final int[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformCharArray(final char[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformLongArray(final long[] array, final Class<T> elementType, final LongFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformFloatArray(final float[] array, final Class<T> elementType, final DoubleFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformDoubleArray(final double[] array, final Class<T> elementType, final DoubleFunction<? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] transformBooleanArray(final boolean[] array, final Class<T> elementType, final Function<? super Boolean, ? extends T> transformer){
+        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        for(int index = 0; index < array.length; index++)
+            result[index] = transformer.apply(array[index]);
+        return result;
+    }
+
+    public static <T> T[] toArray(final T item) {
+        @SuppressWarnings("unchecked")
+        final T[] array = (T[]) Array.newInstance(item.getClass(), 1);
+        array[0] = item;
+        return array;
     }
 }

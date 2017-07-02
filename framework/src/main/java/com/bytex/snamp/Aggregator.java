@@ -1,7 +1,8 @@
 package com.bytex.snamp;
 
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
+import java.util.Optional;
 
 /**
  * Represents an object that aggregates another objects.<br/>
@@ -22,7 +23,7 @@ import java.util.Objects;
  *         }
  *     }</pre>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see AbstractAggregator
  */
@@ -33,12 +34,13 @@ public interface Aggregator {
      */
     Aggregator EMPTY = new Aggregator() {
         @Override
-        public <T> T queryObject(final Class<T> objectType) {
-            return null;
+        public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+            return Optional.empty();
         }
 
         @Override
-        public Aggregator compose(final Aggregator other) {
+        @Nonnull
+        public Aggregator compose(@Nonnull final Aggregator other) {
             return other;
         }
     };
@@ -48,25 +50,20 @@ public interface Aggregator {
      *
      * @param objectType Type of the requested object.
      * @param <T>        Type of the aggregated object.
-     * @return An instance of the aggregated object; or {@literal null} if object is not available.
+     * @return An instance of the aggregated object.
      */
-    <T> T queryObject(final Class<T> objectType);
+    <T> Optional<T> queryObject(@Nonnull final Class<T> objectType);
 
-    default Aggregator compose(final Aggregator other) {
+    @Nonnull
+    default Aggregator compose(@Nonnull final Aggregator other) {
         final class AggregatorComposition implements Aggregator {
-            private final Aggregator other;
-
-            private AggregatorComposition(final Aggregator other) {
-                this.other = Objects.requireNonNull(other);
-            }
-
             @Override
-            public <T> T queryObject(final Class<T> objectType) {
-                final T obj = Aggregator.this.queryObject(objectType);
-                return obj == null ? other.queryObject(objectType) : obj;
+            public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+                final Optional<T> obj = Aggregator.this.queryObject(objectType);
+                return obj.isPresent() ? obj : other.queryObject(objectType);
             }
         }
 
-        return new AggregatorComposition(other);
+        return new AggregatorComposition();
     }
 }

@@ -1,25 +1,19 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Box;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Provides helper methods that allows to create and
  * manipulate of {@link javax.management.openmbean.TabularData} instances.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class TabularDataUtils {
@@ -27,14 +21,14 @@ public final class TabularDataUtils {
         private static final long serialVersionUID = 2584942280684733271L;
         private final TabularType type;
 
-        private RowList(final int size, final TabularType type){
+        RowList(final int size, final TabularType type){
             super(size + 5);
             this.type = Objects.requireNonNull(type);
         }
     }
 
     private TabularDataUtils(){
-
+        throw new InstantiationError();
     }
 
     public static <R extends CompositeDataBean> RowList<R> convert(final Class<R> rowType,
@@ -100,36 +94,5 @@ public final class TabularDataUtils {
                 keyColumn.accept(keyName);
             else
                 valueColumn.accept(keyName);
-    }
-
-    public static TabularData makeKeyValuePairs(final TabularType type, final Map<?, ?> pairs) throws OpenDataException {
-        checkKeyValuePairType(type);
-        //check entry type: one column must be indexed and another not
-        final Box<String> indexName = new Box<>("");
-        final Box<String> valueName = new Box<>("");
-        getKeyValueColumn(type, indexName, valueName);
-        assert !isNullOrEmpty(indexName.get()) : indexName;
-        assert !isNullOrEmpty(valueName.get()) : valueName;
-        final TabularDataSupport result = new TabularDataSupport(type);
-        for (final Map.Entry<?, ?> entry : pairs.entrySet())
-            if (entry.getValue() != null)
-                result.put(new CompositeDataSupport(type.getRowType(), ImmutableMap.of(indexName.get(), entry.getKey(), valueName.get(), entry.getValue())));
-        return result;
-    }
-
-    public static Map<?, ?> makeKeyValuePairs(final TabularData table) throws OpenDataException {
-        checkKeyValuePairType(table.getTabularType());
-        final Box<String> keyColumn = new Box<>("");
-        final Box<String> valueColumn = new Box<>("");
-        getKeyValueColumn(table.getTabularType(), keyColumn, valueColumn);
-        assert !isNullOrEmpty(keyColumn.get()) : keyColumn;
-        assert !isNullOrEmpty(valueColumn.get()) : valueColumn;
-        final Map<Object, Object> result = Maps.newHashMapWithExpectedSize(table.size());
-        forEachRow(table, row -> {
-            final String keyColumnName = keyColumn.get();
-            final String valueColumnName = valueColumn.get();
-            result.put(row.get(keyColumnName), row.get(valueColumnName));
-        });
-        return result;
     }
 }

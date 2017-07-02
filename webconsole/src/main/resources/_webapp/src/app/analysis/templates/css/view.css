@@ -1,0 +1,44 @@
+.cyObject {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#viewMenu {
+  background: #fff;
+  border: 1px solid #E6E9ED;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 500px;
+  color: rgb(115, 135, 156);
+  width: 450px;
+  position: fixed;
+  right: 7px;
+  top: 35%;
+  margin-top: -10em !important;
+  z-index: 3;
+  padding: 9px;
+  border-radius: 5px;
+}
+
+#viewMenu .row {
+    margin-left: 10px !important;
+}
+
+#viewMenu ul.bar_tabs {
+ background-color: inherit !important;
+}
+
+#viewMenu .navbar {
+    min-height: 0 !important;
+}
+
+.tab-pane {
+    margin-left: 20px !important;
+}
+
+.middleVertical {
+    margin-top: 7px;
+}

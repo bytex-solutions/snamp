@@ -1,20 +1,26 @@
 package com.bytex.snamp.management;
 
-import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.core.AbstractServiceLibrary;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.ExposedServiceHandler;
+import com.bytex.snamp.core.SnampManager;
+import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.jmx.FrameworkMBean;
+import com.bytex.snamp.jmx.OpenMBeanServiceProvider;
+import com.bytex.snamp.management.http.ManagementServlet;
 import com.bytex.snamp.management.jmx.SnampClusterNodeMBean;
 import com.bytex.snamp.management.jmx.SnampCoreMBean;
-import com.bytex.snamp.management.jmx.SnampManagerImpl;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
+import javax.annotation.Nonnull;
 import javax.management.JMException;
-import java.util.Collection;
-import java.util.Dictionary;
+import javax.servlet.Servlet;
 import java.util.Map;
 import java.util.Objects;
 
@@ -22,35 +28,27 @@ import java.util.Objects;
  * Represents activator for SNAMP Management Library.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
-    private static final ActivationProperty<Boolean> usePlatformMBeanProperty = defineActivationProperty(Boolean.class, false);
+    private static final ActivationProperty<Boolean> USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY = defineActivationProperty(Boolean.class, false);
 
-
-
-    private static final class SnampManagerProvider extends ProvidedService<SnampManager, SnampManagerImpl>{
+    private static final class SnampManagerProvider extends ProvidedService<SnampManager, DefaultSnampManager>{
 
         private SnampManagerProvider() {
             super(SnampManager.class);
         }
 
-        /**
-         * Creates a new instance of the service.
-         *
-         * @param identity     A dictionary of properties that uniquely identifies service instance.
-         * @param dependencies A collection of dependencies.
-         * @return A new instance of the service.
-         */
         @Override
-        protected SnampManagerImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) {
-            return new SnampManagerImpl();
+        @Nonnull
+        protected DefaultSnampManager activateService(final Map<String, Object> identity) {
+            return new DefaultSnampManager();
         }
     }
 
-    private static final class LogReaderServiceDependency extends RequiredServiceAccessor<LogReaderService>{
+    private static final class LogReaderServiceDependency extends RequiredServiceAccessor<LogReaderService> {
         private final LogListener listener;
 
         private LogReaderServiceDependency(final LogListener listener) {
@@ -59,31 +57,29 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
 
         @Override
-        protected boolean match(final ServiceReference<?> reference) {
+        protected boolean match(final ServiceReference<LogReaderService> reference) {
             return true;
         }
 
         @Override
-        protected void bind(final LogReaderService serviceInstance, final Dictionary<String, ?> properties) {
-            super.bind(serviceInstance, properties);
+        protected void bind(final LogReaderService serviceInstance) {
             serviceInstance.addLogListener(listener);
         }
 
         @Override
-        protected void unbind() {
-            getService().removeLogListener(listener);
-            super.unbind();
+        protected void unbind(final LogReaderService serviceInstance) {
+            serviceInstance.removeLogListener(listener);
         }
     }
 
-    private static final class SnampClusterNodeMBeanProvider extends OpenMBeanProvider<SnampClusterNodeMBean>{
-        private SnampClusterNodeMBeanProvider(){
+    private static final class SnampClusterNodeMBeanServiceProvider extends OpenMBeanServiceProvider<SnampClusterNodeMBean> {
+        private SnampClusterNodeMBeanServiceProvider(){
             super(SnampClusterNodeMBean.OBJECT_NAME);
         }
 
         @Override
         protected boolean usePlatformMBeanServer(){
-            return getActivationPropertyValue(usePlatformMBeanProperty);
+            return getActivationPropertyValue(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY);
         }
 
         /**
@@ -97,19 +93,19 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private static final class SnampCoreMBeanProvider extends OpenMBeanProvider<SnampCoreMBean>{
+    private static final class SnampCoreMBeanServiceProvider extends OpenMBeanServiceProvider<SnampCoreMBean> {
 
         /**
          * Initializes a new holder for the MBean.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        private SnampCoreMBeanProvider() {
+        private SnampCoreMBeanServiceProvider() {
             super(SnampCoreMBean.OBJECT_NAME);
         }
 
         @Override
         protected boolean usePlatformMBeanServer(){
-            return getActivationPropertyValue(usePlatformMBeanProperty);
+            return getActivationPropertyValue(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY);
         }
 
         /**
@@ -123,7 +119,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private static final class LogEntryRouter extends ExposedServiceHandler<FrameworkMBean, LogEntry> implements LogListener{
+    private static final class LogEntryRouter extends ExposedServiceHandler<FrameworkMBean, LogEntry, ExceptionPlaceholder> implements LogListener{
 
         private LogEntryRouter() throws InvalidSyntaxException {
             super(FrameworkMBean.class, String.format("(%s=%s)",
@@ -132,10 +128,9 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
 
         @Override
-        protected void handleService(final FrameworkMBean mbean, final LogEntry entry) {
-            final LogListener listener = mbean.queryObject(LogListener.class);
-            if (listener != null)
-                listener.logged(entry);
+        protected boolean handleService(final FrameworkMBean mbean, final LogEntry entry) {
+            mbean.queryObject(LogListener.class).ifPresent(listener -> listener.logged(entry));
+            return true;
         }
 
         /**
@@ -152,45 +147,49 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
+    private static final class ManagementServletProvider extends ProvidedService<Servlet, ManagementServlet>{
+        private ManagementServletProvider(){
+            super(Servlet.class);
+        }
+
+        @Nonnull
+        @Override
+        protected ManagementServlet activateService(final Map<String, Object> identity) {
+            identity.put("alias", ManagementServlet.CONTEXT);
+            final ClusterMember clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
+            return new ManagementServlet(clusterMember);
+        }
+
+        @Override
+        protected void cleanupService(final ManagementServlet servlet, final boolean stopBundle) {
+            servlet.destroy();
+        }
+    }
+
     private final LogListener listener;
 
     public ManagementServiceLibrary() throws InvalidSyntaxException {
         super(new SnampManagerProvider(),
-                new SnampClusterNodeMBeanProvider(),
-                new SnampCoreMBeanProvider());
+                new SnampClusterNodeMBeanServiceProvider(),
+                new SnampCoreMBeanServiceProvider(),
+                new ManagementServletProvider());
         this.listener = new LogEntryRouter();
     }
 
     /**
-     * Starts the service library.
+     * Starts the bundle and instantiate runtime state of the bundle.
      *
-     * @param bundleLevelDependencies A collection of library-level dependencies to be required for this library.
+     * @param context                 The execution context of the bundle being started.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
      */
     @Override
-    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) {
         bundleLevelDependencies.add(new LogReaderServiceDependency(listener));
     }
 
-    /**
-     * Activates this service library.
-     *
-     * @param activationProperties A collection of library activation properties to fill.
-     * @param dependencies         A collection of resolved library-level dependencies.
-     */
     @Override
-    @MethodStub
-    protected void activate(final ActivationPropertyPublisher activationProperties, final RequiredService<?>... dependencies) {
-        activationProperties.publish(usePlatformMBeanProperty, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
-    }
-
-    /**
-     * Deactivates this library.
-     *
-     * @param activationProperties A collection of library activation properties to read.
-     */
-    @Override
-    @MethodStub
-    protected void deactivate(final ActivationPropertyReader activationProperties) {
-
+    protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
+        activationProperties.publish(USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY, Objects.equals(getFrameworkProperty(USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY), "true"));
+        super.activate(context, activationProperties, dependencies);
     }
 }

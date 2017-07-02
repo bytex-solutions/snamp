@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>gateways</artifactId>
+        <groupId>com.bytex.snamp.gateways</groupId>
+        <version>2.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <version>${snamp.gateway.syslog.version}</version>
+    <name>Syslog Gateway</name>
+    <description>SNAMP Gateway for Syslog protocol</description>
+    <artifactId>syslog</artifactId>
+    <packaging>bundle</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <artifactSet>
+                        <excludes />
+                    </artifactSet>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>snamp-${project.artifactId}-gateway</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.gateway.syslog.SysLogGatewayActivator</Bundle-Activator>
+                        <Export-Package/>
+                        <Import-Package>
+                            com.bytex.snamp,
+                            com.bytex.snamp.concurrent,
+                            com.bytex.snamp.configuration,
+                            com.bytex.snamp.connector.attributes,
+                            com.bytex.snamp.connector.notifications,
+                            com.bytex.snamp.core,
+                            com.bytex.snamp.gateway,
+                            com.bytex.snamp.gateway.modeling,
+                            com.bytex.snamp.internal,
+                            com.bytex.snamp.jmx,
+                            com.google.common.collect,
+                            javax.management,
+                            javax.net,
+                            org.osgi.framework
+                        </Import-Package>
+                        <!--SNAMP specific header-->
+                        <Provide-Capability>com.bytex.snamp.gateway; type=syslog</Provide-Capability>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <scope>provided</scope>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>framework</artifactId>
+            <version>${snamp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.cloudbees</groupId>
+            <artifactId>syslog-java-client</artifactId>
+            <version>1.0.6</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>

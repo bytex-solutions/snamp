@@ -5,21 +5,25 @@
   <parent>
     <groupId>com.bytex.snamp</groupId>
     <artifactId>snamp</artifactId>
-    <version>1.2.0</version>
+    <version>2.0.0</version>
   </parent>
+  <groupId>com.bytex.snamp.connectors</groupId>
   <artifactId>connectors</artifactId>
+  <version>2.0.0</version>
   <packaging>pom</packaging>
   <name>SNAMP Connectors</name>
-  <description>A base classes for building SNAMP management connectors</description>
+  <description>Pack of SNAMP standard connectors</description>
   <modules>
     <module>jmx-connector</module>
     <module>snmp-connector</module>
     <module>rshell-connector</module>
-    <module>aggregator-connector</module>
-    <module>ibmwmq-connector</module>
+    <module>composite-connector</module>
     <module>groovy-connector</module>
     <module>modbus-connector</module>
-    <module>mda-connector</module>
-    <module>mq-connector</module>
+    <module>data-stream-connector</module>
+    <module>http-acceptor</module>
+    <module>zipkin-connector</module>
+    <module>stub-connector</module>
+    <module>actuator-connector</module>
   </modules>
 </project>

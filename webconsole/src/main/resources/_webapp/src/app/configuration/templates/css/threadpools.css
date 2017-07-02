@@ -1,0 +1,7 @@
+.activeTr {
+    border: 1px solid #2f9c0a;
+}
+
+#editThreadPoolModal .row {
+    margin-top: 15px;
+}

@@ -1,10 +1,10 @@
 package com.bytex.snamp.scripting;
 
-import com.bytex.snamp.ThreadSafe;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleWiring;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
@@ -22,10 +22,10 @@ import java.util.stream.StreamSupport;
  * define it as an interface, so we need to extend it to allow polymorphism. However, no calls to super are used.
  * It wraps all available ScriptEngineManagers in the OSGi ServicePlatform into a merged ScriptEngineManager.
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  * @author Apache Foundation, Roman Sakno
  */
-@ThreadSafe(false)
+@NotThreadSafe
 public final class OSGiScriptEngineManager extends ScriptEngineManager {
     private final BundleContext context;
 

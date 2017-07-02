@@ -1,57 +1,36 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.io.PrintWriter;
 import java.util.Map;
-import java.util.Set;
-
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
+import java.util.Optional;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-abstract class ConfigurationCommand extends OsgiCommandSupport implements SnampShellCommand {
-
-    /**
-     * Processes configuration.
-     * @param configuration Configuration to process. Cannot be {@literal null}.
-     * @param output Output writer.
-     * @return {@literal true} to save changes; otherwise, {@literal false}.
-     * @throws Exception Unable to process configuration.
-     */
-    abstract boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) throws Exception;
+abstract class ConfigurationCommand<E extends EntityConfiguration> extends SnampShellCommand implements EntityMapResolver<AgentConfiguration, E> {
+    abstract boolean doExecute(final EntityMap<? extends E> configuration, final PrintWriter output) throws Exception;
 
     @Override
-    protected final CharSequence doExecute() throws Exception {
-        final ServiceHolder<ConfigurationManager> adminRef = ServiceHolder.tryCreate(bundleContext, ConfigurationManager.class);
-        if (adminRef != null)
+    public final void execute(final PrintWriter output) throws Exception {
+        final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (adminRef.isPresent()) {
+            final ServiceHolder<ConfigurationManager> admin = adminRef.get();
             try {
-                final StringBuilder output = new StringBuilder(64);
-                adminRef.get().processConfiguration(config -> doExecute(config, output));
-                return output;
+                admin.get().processConfiguration(config -> doExecute(apply(config), output));
             } finally {
-                adminRef.release(bundleContext);
+                admin.release(getBundleContext());
             }
-        else throw new IOException("Configuration storage is not available");
+        } else
+            throw new IOException("Configuration storage is not available");
     }
 
-    protected static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final ManagedResourceConfiguration resource,
-                                                                                            final Class<T> featureType) {
-        final Map<String, ? extends T> features = resource.getFeatures(featureType);
-        return features != null ? features.entrySet() : Collections.emptySet();
-    }
-
-    protected static <T extends FeatureConfiguration> Set<? extends Map.Entry<String, ? extends T>> getFeatures(final AgentConfiguration config,
-                                                                                             final String resourceName,
-                                                                                            final Class<T> featureType) {
-        return getFeatures(config.getEntities(ManagedResourceConfiguration.class).get(resourceName), featureType);
+    static void printParameters(final Map<String, String> feature, final PrintWriter output) {
+        feature.forEach((key, value) -> output.format("%s=%s", key, value).println());
     }
 }

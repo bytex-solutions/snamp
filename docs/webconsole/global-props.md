@@ -1,0 +1,2 @@
+SNAMP Global Properties
+=====

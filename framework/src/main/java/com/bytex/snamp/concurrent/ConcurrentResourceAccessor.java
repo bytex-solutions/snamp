@@ -1,6 +1,6 @@
 package com.bytex.snamp.concurrent;
 
-import com.bytex.snamp.Wrapper;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provides thread-safe access to the thread-unsafe resource.
@@ -40,9 +40,10 @@ import com.bytex.snamp.Wrapper;
  * @param <R> Type of the thread-unsafe resource to hold.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
-public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> implements Wrapper<R> {
+@ThreadSafe
+public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> {
     private static final long serialVersionUID = -5981763196807390411L;
 
     /**
@@ -84,6 +85,14 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      */
     public final <E extends Throwable> void changeResource(final Action<R, R, E> newResource) throws E {
         if (newResource == null) throw new IllegalArgumentException("newResource is null.");
-        writeAccept(newResource, this::changeResourceImpl);
+        writeLock.accept(SingleResourceGroup.INSTANCE, newResource, this::changeResourceImpl);
+    }
+
+    private void changeResourceImpl(final R newResource){
+        resource = newResource;
+    }
+
+    public final void changeResource(final R newResource) {
+        writeLock.accept(SingleResourceGroup.INSTANCE, this, newResource, ConcurrentResourceAccessor<R>::changeResourceImpl);
     }
 }

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-gateways">
+    <repository>mvn:org.apache.karaf.features/enterprise/${karaf.version}/xml/features</repository>
+    <repository>mvn:com.bytex.snamp.features/core/${snamp.version}/xml/features</repository>
+
+    <feature name="snamp-groovy-gateway" description="SNAMP Groovy Gateway" version="${snamp.gateway.groovy.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-scripting-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/groovy/${snamp.gateway.groovy.version}</bundle>
+    </feature>
+
+    <feature name="snamp-http-gateway" description="SNAMP HTTP Gateway" version="${snamp.gateway.http.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/http/${snamp.gateway.http.version}</bundle>
+    </feature>
+
+    <feature name="snamp-influx-gateway" description="SNAMP Gateway for InfluxDB" version="${snamp.gateway.influx.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="${snamp.instrumentation.version}" >snamp-instrumentation</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/influx/${snamp.gateway.influx.version}</bundle>
+    </feature>
+
+    <feature name="snamp-jmx-gateway" description="SNAMP JMX Gateway" version="${snamp.gateway.jmx.version}" install="auto">
+        <details>Exposes monitoring and management information provided by connectors via JMX</details>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/jmx/${snamp.gateway.jmx.version}</bundle>
+    </feature>
+
+    <feature name="snamp-nagios-gateway" description="SNAMP Gateway for Nagios (active check)" version="${snamp.gateway.nagios.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/nagios/${snamp.gateway.nagios.version}</bundle>
+    </feature>
+
+    <feature name="snamp-nrdp-gateway" description="SNAMP Gateway for Nagios (passive check via NRDP)" version="${snamp.gateway.nrdp.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/nrdp/${snamp.gateway.nrdp.version}</bundle>
+    </feature>
+
+    <feature name="snamp-nsca-gateway" description="SNAMP Gateway for Nagios (passive check via NSCA)" version="${snamp.gateway.nsca.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/nsca/${snamp.gateway.nsca.version}</bundle>
+    </feature>
+
+    <feature name="snamp-snmp-gateway" description="SNAMP SNMPv2/SNMPv3 Gateway" version="${snamp.gateway.snmp.version}" install="auto">
+        <details>Exposes monitoring and management information provided by connectors via SNMPv2/SNMPv3</details>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-snmp-support</feature>
+        <feature version="[${karaf.version}, ${karaf.maxVersion})" >jndi</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/snmp/${snamp.gateway.snmp.version}</bundle>
+    </feature>
+
+    <feature name="snamp-ssh-gateway" description="SNAMP SSH Gateway" version="${snamp.gateway.ssh.version}" install="auto">
+        <details>Exposes monitoring and management information provided by connectors via SSH</details>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-ssh-support</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/ssh/${snamp.gateway.ssh.version}</bundle>
+    </feature>
+
+    <feature name="snamp-syslog-gateway" description="SNAMP SysLog Gateway" version="${snamp.gateway.syslog.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/syslog/${snamp.gateway.syslog.version}</bundle>
+    </feature>
+
+    <feature name="snamp-xmpp-gateway" description="SNAMP XMPP Gateway" version="${snamp.gateway.xmpp.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-security</feature>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/xmpp/${snamp.gateway.xmpp.version}</bundle>
+    </feature>
+
+    <feature name="snamp-smtp-gateway" description="SNAMP SMTP Gateway" version="${snamp.gateway.smtp.version}" install="auto">
+        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-core</feature>
+        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-text-support</feature>
+        <bundle>mvn:javax.mail/mail/1.4.4</bundle>
+        <bundle start="true">mvn:com.bytex.snamp.gateways/smtp/${snamp.gateway.smtp.version}</bundle>
+    </feature>
+</features>

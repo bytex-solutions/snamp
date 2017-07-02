@@ -1,0 +1,33 @@
+<div>
+    <nav class="navbar">
+        <button class="navbar-toggler flatbar" type="button" data-toggle="collapse" [attr.data-target]="'#' + id" [attr.aria-controls]="id" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="fa fa-chevron-down"></span> {{title}}
+        </button>
+    </nav>
+    <div class="collapse" [attr.id]="id">
+        <div class="p-4">
+            <dl class="row" style="margin-left: 10px;">
+                <dt class="col-sm-4">1 second: </dt>
+                <dd class="col-sm-8">{{jsonObject['Second']}}</dd>
+
+                <dt class="col-sm-4">1 minute: </dt>
+                <dd class="col-sm-8">{{jsonObject['Minute']}}</dd>
+
+                <dt class="col-sm-4">5 minutes: </dt>
+                <dd class="col-sm-8">{{jsonObject['5Minutes']}}</dd>
+
+                <dt class="col-sm-4">15 minutes: </dt>
+                <dd class="col-sm-8">{{jsonObject['15Minutes']}}</dd>
+
+                <dt class="col-sm-4">1 hour: </dt>
+                <dd class="col-sm-8">{{jsonObject['Hour']}}</dd>
+
+                <dt class="col-sm-4">12 hours: </dt>
+                <dd class="col-sm-8">{{jsonObject['12Hours']}}</dd>
+
+                <dt class="col-sm-4">1 day: </dt>
+                <dd class="col-sm-8">{{jsonObject['Day']}}</dd>
+            </dl>
+        </div>
+    </div>
+</div>

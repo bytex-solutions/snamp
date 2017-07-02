@@ -5,22 +5,28 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 /**
  * Represents in-memory configuration manager.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 public final class InMemoryConfigurationManager extends AbstractAggregator implements ConfigurationManager {
-    private final Logger logger = Logger.getLogger("InMemoryConfigurationManager");
     private final ConcurrentResourceAccessor<SerializableAgentConfiguration> currentConfiguration =
             new ConcurrentResourceAccessor<>(new SerializableAgentConfiguration());
+
+    @Nonnull
+    @Override
+    public ImmutableMap<String, String> getConfiguration() {
+        return currentConfiguration.read(ImmutableMap::copyOf);
+    }
 
     /**
      * Process SNAMP configuration.
@@ -64,15 +70,5 @@ public final class InMemoryConfigurationManager extends AbstractAggregator imple
     @Override
     public <O> O transformConfiguration(final Function<? super AgentConfiguration, O> handler) throws IOException {
         return currentConfiguration.read(handler::apply);
-    }
-
-    /**
-     * Gets logger associated with this service.
-     *
-     * @return The logger associated with this service.
-     */
-    @Override
-    public Logger getLogger() {
-        return logger;
     }
 }

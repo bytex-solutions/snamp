@@ -1,24 +1,14 @@
 package com.bytex.snamp.configuration;
 
-import com.bytex.snamp.Descriptive;
+import com.bytex.snamp.Localizable;
 
 import java.util.Collection;
 import java.util.Locale;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
-
 /**
  * Represents description of the SNAMP plugin configuration model.
- * <p>
- *     This interface provides description of additional configuration properties that can be obtained
- *     via {@link com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration#getParameters()},
- *     {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration#getParameters()},
- *     {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration#getParameters()}
- *     or {@link com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration#getParameters()}.
- *     Each element of the collection represents parameter name and this collection is read-only.
- * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface ConfigurationEntityDescription<T extends EntityConfiguration> extends Collection<String> {
@@ -47,9 +37,9 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
      * Represents description of the configuration parameter.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
-    interface ParameterDescription extends Descriptive {
+    interface ParameterDescription extends Localizable {
         /**
          * Gets the name of this parameter.
          * @return The name of this parameter.
@@ -96,10 +86,10 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
     /**
      * Returns a type of the configuration entity.
      * @return A type of the configuration entity.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+     * @see GatewayConfiguration
+     * @see ManagedResourceConfiguration
+     * @see EventConfiguration
+     * @see AttributeConfiguration
      */
     Class<T> getEntityType();
 

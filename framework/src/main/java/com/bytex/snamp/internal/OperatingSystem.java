@@ -4,7 +4,7 @@ import com.google.common.base.StandardSystemProperty;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class OperatingSystem {
@@ -13,8 +13,13 @@ public final class OperatingSystem {
         throw new InstantiationError();
     }
 
-    private static String getOS(){
-        return StandardSystemProperty.OS_NAME.value();
+    private static boolean systemNameStartsWith(final String... prefix){
+        final String os = StandardSystemProperty.OS_NAME.value();
+        if(os != null)
+            for(final String p: prefix)
+                if(os.startsWith(p))
+                    return true;
+        return false;
     }
 
     /**
@@ -22,7 +27,7 @@ public final class OperatingSystem {
      * @return {@literal true}, if underlying OS is Linux.
      */
     public static boolean isLinux(){
-        return getOS().startsWith("LINUX") || getOS().startsWith("Linux");
+        return systemNameStartsWith("LINUX", "Linux");
     }
 
     /**
@@ -30,7 +35,7 @@ public final class OperatingSystem {
      * @return {@literal true}, if underlying OS is MS Windows.
      */
     public static boolean isWindows(){
-        return getOS().startsWith("Windows");
+        return systemNameStartsWith("Windows");
     }
 
     /**
@@ -38,6 +43,6 @@ public final class OperatingSystem {
      * @return {@literal true}, if underlying OS is MacOS X.
      */
     public static boolean isMacOSX(){
-        return getOS().startsWith("Mac OS X");
+        return systemNameStartsWith("Mac OS X");
     }
 }

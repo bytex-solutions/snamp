@@ -1,6 +1,5 @@
 package com.bytex.jcommands;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.impl.XmlCommandLineTemplate;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
 import com.bytex.jcommands.impl.XmlParserDefinition;
@@ -8,6 +7,7 @@ import com.bytex.jcommands.impl.XmlParsingResultType;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
 import com.bytex.snamp.jmx.TabularDataUtils;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +29,7 @@ import java.util.Map;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class XmlCommandLineTemplateTest extends Assert {

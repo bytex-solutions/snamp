@@ -1,22 +1,23 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.Convert;
+
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.function.Supplier;
 
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeData} instance.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see javax.management.openmbean.CompositeData
  * @see javax.management.openmbean.CompositeDataSupport
  */
-public class CompositeDataBuilder extends LinkedHashMap<String, Object> implements Supplier<CompositeData> {
+public class CompositeDataBuilder extends LinkedHashMap<String, Object> {
     private static final long serialVersionUID = 4339347653114240740L;
     private final CompositeTypeBuilder typeBuilder;
 
@@ -81,7 +82,7 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      */
     @Override
     public Object remove(final Object itemName) {
-        return itemName instanceof String ? remove((String)itemName) : null;
+        return remove(Convert.toType(itemName, String.class).orElseThrow(ClassCastException::new));
     }
 
     /**
@@ -175,6 +176,34 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
                         final String itemDescription,
                         final short value){
         return put(itemName, itemDescription, SimpleType.SHORT, value);
+    }
+
+    /**
+     * Puts a new item of type {@link javax.management.openmbean.ArrayType}
+     * into the composite data.
+     * @param itemName The name of the item. Cannot be {@literal null} or empty.
+     * @param itemDescription The description of the item. Cannot be {@literal null} or empty.
+     * @param value The value of the item.
+     * @return This builder.
+     */
+    public final CompositeDataBuilder put(final String itemName,
+                                          final String itemDescription,
+                                          final int[] value){
+        return put(itemName, itemDescription, ArrayType.getPrimitiveArrayType(int[].class), value);
+    }
+
+    /**
+     * Puts a new item of type {@link javax.management.openmbean.ArrayType}
+     * into the composite data.
+     * @param itemName The name of the item. Cannot be {@literal null} or empty.
+     * @param itemDescription The description of the item. Cannot be {@literal null} or empty.
+     * @param value The value of the item.
+     * @return This builder.
+     */
+    public final CompositeDataBuilder put(final String itemName,
+                                          final String itemDescription,
+                                          final byte[] value) {
+        return put(itemName, itemDescription, ArrayType.getPrimitiveArrayType(byte[].class), value);
     }
 
     /**
@@ -314,19 +343,5 @@ public class CompositeDataBuilder extends LinkedHashMap<String, Object> implemen
      */
     public final CompositeData build() throws OpenDataException{
         return typeBuilder.build(this);
-    }
-
-    /**
-     * Constructs a new JMX Composite Data.
-     * @return A new JMX Composite Data.
-     * @throws java.lang.IllegalStateException Unable to construct composite data.
-     */
-    @Override
-    public final CompositeData get() throws IllegalStateException{
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

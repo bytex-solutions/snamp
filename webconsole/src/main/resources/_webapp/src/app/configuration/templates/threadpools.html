@@ -1,0 +1,227 @@
+<div class="right_col" role="main" style="min-height: 949px;">
+    <div>
+        <div class="page-title">
+            <div class="title_left">
+                <h3>Setup thread pools</h3>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <!-- Modal for edit the selected (or new) thread pool -->
+        <div class="modal fade" id="editThreadPoolModal" role="dialog" aria-labelledby="editThreadPoolLabel"
+             *ngIf="selectedThreadPool != undefined">
+            <div class="modal-dialog modal-xlg modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title leftAlign" id="editThreadPoolLabel">Edit thread pool {{selectedThreadPool.name}}</h4>
+                        <br/>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="item form-group">
+                                    <label
+                                            class="control-label col-md-5 col-sm-5 col-xs-12"
+                                            for="poolNameInput">
+                                        Thread pool name <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <input
+                                                type="text"
+                                                class="form-control"
+                                                id="poolNameInput"
+                                                placeholder="Input the name for thread pool"
+                                                [(ngModel)]="threadPool.name"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="item form-group">
+                                    <label
+                                            class="control-label col-md-5 col-sm-5 col-xs-12"
+                                            for="threadPrioritiesInput">
+                                        Thread priorities <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <input
+                                                type="number"
+                                                min="1"
+                                                max="10"
+                                                class="form-control"
+                                                id="threadPrioritiesInput"
+                                                placeholder="Input thread priority for thread pool"
+                                                [(ngModel)]="threadPool.threadPriority"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="item form-group">
+                                    <label
+                                            class="control-label col-md-5 col-sm-5 col-xs-12"
+                                            for="minPoolSizeInput">
+                                        Minimum pool size <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <input
+                                                type="number"
+                                                class="form-control"
+                                                id="minPoolSizeInput"
+                                                placeholder="Input minimal pool size"
+                                                [(ngModel)]="threadPool.minPoolSize"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="item form-group">
+                                    <label
+                                            class="control-label col-md-5 col-sm-5 col-xs-12"
+                                            for="maxPoolSizeInput">
+                                        Maximum pool size <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <input
+                                                type="number"
+                                                class="form-control"
+                                                id="maxPoolSizeInput"
+                                                placeholder="Input maximal pool size"
+                                                [(ngModel)]="threadPool.maxPoolSize"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="item form-group">
+                                    <label
+                                            class="control-label col-md-5 col-sm-5 col-xs-12"
+                                            for="keepAliveTimeInput">
+                                        Keep alive time <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <input
+                                                type="number"
+                                                class="form-control"
+                                                id="keepAliveTimeInput"
+                                                placeholder="Input time to keep thread alive"
+                                                [(ngModel)]="threadPool.keepAliveTime"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="item form-group">
+                                    <label class="control-label col-md-5 col-sm-5 col-xs-12">
+                                        Infinite queue size <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <ui-switch
+                                                [(ngModel)]="threadPool.useInfiniteQueue"
+                                                [size]="'small'">
+                                        </ui-switch>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" *ngIf="!threadPool.useInfiniteQueue">
+                                <div class="item form-group">
+                                    <label
+                                            class="control-label col-md-5 col-sm-5 col-xs-12"
+                                            for="queueSizeInput">
+                                        Queue size <span class="required">*</span>
+                                    </label>
+                                    <div class="col-md-6 col-sm-6 col-xs-12">
+                                        <input
+                                                type="number"
+                                                class="form-control"
+                                                id="queueSizeInput"
+                                                placeholder="Input queue size"
+                                                [(ngModel)]="threadPool.queueSize"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 col-sm-4 col-xs-12">
+                                    <button class="btn" (click)="cancelThreadDialog()">
+                                        Cancel
+                                    </button>
+                                </div>
+                                <div class="col-md-4 col-sm-4 col-xs-12">
+                                    <button class="btn btn-primary" (click)="saveThreadDialog()">
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 30px">
+            <panel [header]="'List of available thread pools'" [column]="'12'">
+                <table class="table table-hover table-bordered">
+                    <thead class="thead-inverse">
+                    <tr>
+                        <th>Actions</th>
+                        <th>Name</th>
+                        <th>Thread Priority</th>
+                        <th>Max pool size</th>
+                        <th>Min pool size</th>
+                        <th>Queue size</th>
+                        <th>Keep alive time</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr *ngFor="let pool of threadPools" [class.activeTr]="isActivePool(pool)">
+                        <td>
+                              <span
+                                      class="glyphicon glyphicon-copy btn btn-xs btn-primary"
+                                      (click)="cloneThreadPool(pool)"
+                                      [tooltip]="'Clone thread pool'"
+                                      aria-hidden="true">
+                              </span>
+                              <span
+                                    class="glyphicon glyphicon-pencil btn btn-xs btn-primary"
+                                    (click)="editThreadPool(pool)"
+                                    [tooltip]="'Modify thread pool'"
+                                    aria-hidden="true">
+                              </span>
+                              <span
+                                    class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                                    (click)="removeThreadPool(pool)"
+                                    [tooltip]="'Remove thread pool'"
+                                    aria-hidden="true">
+                              </span>
+                        </td>
+                        <th scope="row">{{pool.name}}</th>
+                        <td>{{pool.threadPriority}}</td>
+                        <td>{{pool.minPoolSize}}</td>
+                        <td>{{pool.maxPoolSize}}</td>
+                        <td>{{pool.queueSizeRepresentation()}}</td>
+                        <td>{{pool.keepAliveTime}}</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <button
+                                    style="float:right;"
+                                    class="btn btn-primary btn-sm"
+                                    (click)="addNewThreadPool()">+ New thread pool
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </panel>
+        </div>
+    </div>
+</div>

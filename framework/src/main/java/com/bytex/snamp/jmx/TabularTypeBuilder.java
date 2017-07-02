@@ -1,17 +1,21 @@
 package com.bytex.snamp.jmx;
 
 import javax.management.openmbean.*;
+import java.io.Serializable;
 import java.util.*;
+
+import static com.bytex.snamp.ArrayUtils.emptyArray;
 
 /**
  * Represents builder of {@link javax.management.openmbean.TabularType} instances.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see javax.management.openmbean.TabularType
  */
-public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, Iterable<String> {
+public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, Iterable<String>, Serializable {
+    private static final long serialVersionUID = -3909990870658711437L;
     private String typeName;
     private String typeDescription;
     private final CompositeTypeBuilder rowBuilder;
@@ -128,7 +132,7 @@ public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, I
         return this;
     }
 
-    CompositeType buildRowType() throws OpenDataException {
+    private CompositeType buildRowType() throws OpenDataException {
         return rowBuilder.build();
     }
 
@@ -155,21 +159,7 @@ public final class TabularTypeBuilder implements OpenTypeBuilder<TabularType>, I
         return new TabularType(typeName,
                 typeDescription,
                 buildRowType(),
-                indexes.stream().toArray(String[]::new));
-    }
-
-    /**
-     * Constructs a new instance of {@link javax.management.openmbean.TabularType}.
-     * @return A new instance of {@link javax.management.openmbean.TabularType}.
-     * @throws java.lang.IllegalStateException Unable to construct type.
-     */
-    @Override
-    public TabularType get() throws IllegalStateException{
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
+                indexes.toArray(emptyArray(String[].class)));
     }
 
     /**

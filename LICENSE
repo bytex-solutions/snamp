@@ -19,20 +19,10 @@ Google Guava
 Apache 2.0 License
 https://github.com/google/guava
 
-Google Gson
-© 2008 Google Inc.
-Apache 2.0 License
-https://github.com/google/gson
-
 Apache Karaf
 © 2008-2011 The Apache Software Foundation
 Apache 2.0 License
 http://karaf.apache.org/
-
-Atmosphere Framework
-© 2015 Async-IO.org
-Apache 2.0 License
-http://async-io.org/
 
 SNMP4J Core Library
 © 2003-2014 SNMP4J.org
@@ -77,16 +67,6 @@ Bouncycastle
 © 2015 Legion of the Bouncy Castle Inc.
 MIT License
 https://www.bouncycastle.org/
-
-Jolokia
-© 2015 Roland Huß
-Apache 2.0 License
-https://jolokia.org/
-
-Apache Thrift
-© 2014 The Apache Software Foundation
-Apache 2.0 License
-http://thrift.apache.org/
 
 Apache Ivy
 © 2014 The Apache Software Foundation

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bytex.snamp</groupId>
+    <artifactId>snamp</artifactId>
+    <version>2.0.0</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <groupId>com.bytex.snamp.instrumentation</groupId>
+  <artifactId>instrumentation-java</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+  <name>SNAMP Instrumentation Libraries</name>
+  <modules>
+    <module>core</module>
+    <module>htrace</module>
+    <module>http-reporter</module>
+  </modules>
+  <properties>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

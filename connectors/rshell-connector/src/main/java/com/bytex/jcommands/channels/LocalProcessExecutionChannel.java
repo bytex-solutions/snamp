@@ -17,11 +17,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.MapUtils.putIntValue;
+
 /**
  * Represents channel that executes commands as processes in
  * the local OS. This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class LocalProcessExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel, SafeCloseable {
@@ -40,12 +43,11 @@ public final class LocalProcessExecutionChannel extends HashMap<String, String> 
     }
 
     int getNormalExitCode() {
-        return containsKey(NORMAL_EXIT_CODE_PARAM) ?
-                Integer.parseInt(get(NORMAL_EXIT_CODE_PARAM)) : 0;
+        return getValueAsInt(this, NORMAL_EXIT_CODE_PARAM, Integer::parseInt).orElse(0);
     }
 
-    void setNormalExitCode(final int value){
-        put(NORMAL_EXIT_CODE_PARAM, Integer.toString(value));
+    void setNormalExitCode(final int value) {
+        putIntValue(this, NORMAL_EXIT_CODE_PARAM, value, Integer::toString);
     }
 
     /**

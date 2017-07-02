@@ -1,0 +1,61 @@
+<div class="col-md-3 left_col">
+  <div class="left_col scroll-view">
+    <div class="navbar nav_title" style="border: 0;">
+      <a href="index.html" class="site_title"><img src="assets/img/snmp.png"/> <span>SNAMP UI</span></a>
+    </div>
+    <div class="clearfix"></div>
+
+    <profile></profile><br />
+
+    <!-- sidebar menu -->
+    <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+      <div class="menu_section">
+        <h3>General</h3>
+        <ul class="nav side-menu">
+          <li><a id="chartli" class="clickableAnchor"><i class="fa fa-newspaper-o"></i> Charts<span id="chartchevron" class="fa fa-chevron-down"></span></a>
+            <ul class="nav child_menu">
+              <li *ngFor="let name of groupNames"
+                  routerLinkActive="activeLi">
+                <a [routerLink]="['charts', name]" routerLinkActive="active">
+                  {{name}}
+                </a>
+              </li>
+              <li><a (click)="newDashboard()">+ New dashboard</a></li>
+            </ul>
+          </li>
+          <li><a id="homeli" class="clickableAnchor"><i class="fa fa-home"></i> Configure<span id="homechevron" class="fa fa-chevron-down"></span></a>
+            <ul class="nav child_menu">
+              <li routerLinkActive="activeLi"><a routerLink="gateways" routerLinkActive="active">Gateways</a></li>
+              <li routerLinkActive="activeLi"><a routerLink="resources" routerLinkActive="active">Resources</a></li>
+              <li routerLinkActive="activeLi"><a routerLink="rgroups" routerLinkActive="active">Resource groups</a></li>
+              <li routerLinkActive="activeLi"><a routerLink="snampcfg" routerLinkActive="active">SNAMP components</a></li>
+              <li routerLinkActive="activeLi"><a routerLink="thread-pools" routerLinkActive="active">Thread pools</a></li>
+              <li routerLinkActive="activeLi"><a routerLink="configuration" routerLinkActive="active">Save/restore</a></li>
+              <li routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Supervisor - Health statuses</a></li>
+            </ul>
+          </li>
+          <li><a id="logsli" class="clickableAnchor"><i class="fa fa-commenting-o"></i> Notifications<span id="logschevron" class="fa fa-chevron-down"></span></a>
+            <ul class="nav child_menu">
+              <li routerLinkActive="activeLi"><a routerLink="logview" routerLinkActive="active">Log view</a></li>
+              <li routerLinkActive="activeLi"><a routerLink="notification-setup" routerLinkActive="active">Settings</a></li>
+            </ul>
+          </li>
+          <li><a id="analysisli" class="clickableAnchor"><i class="fa fa-search "></i> Analysis<span id="analysischevron" class="fa fa-chevron-down"></span></a>
+            <ul class="nav child_menu">
+              <!--<li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Health statuses</a></li>-->
+              <li *ngFor="let _view of views"
+                  routerLinkActive="activeLi">
+                <a [routerLink]="['view', _view]" routerLinkActive="active">
+                  {{_view}}
+                </a>
+              </li>
+              <li routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="view" [routerLinkActiveOptions]="{exact: true}" routerLinkActive="active">+ Add view</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- /sidebar menu -->
+
+  </div>
+</div>

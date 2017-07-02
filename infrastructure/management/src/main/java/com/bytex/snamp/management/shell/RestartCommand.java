@@ -1,24 +1,27 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.management.jmx.SnampManagerImpl;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.management.DefaultSnampManager;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleException;
+
+import java.io.PrintWriter;
 
 /**
  * Restarts SNAMP components.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
     name = "restart",
     description = "Restarts SNAMP components")
-public final class RestartCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class RestartCommand extends SnampShellCommand {
 
     @Override
-    protected Void doExecute() throws BundleException {
-        SnampManagerImpl.restart(bundleContext);
-        return null;
+    public void execute(final PrintWriter output) throws BundleException {
+        DefaultSnampManager.restart(getBundleContext());
     }
 }

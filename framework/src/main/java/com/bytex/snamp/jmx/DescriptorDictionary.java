@@ -1,8 +1,9 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.ResettableIterator;
-import com.bytex.snamp.ThreadSafe;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.management.Descriptor;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -12,17 +13,17 @@ import java.util.Objects;
  * Represents bridge between {@link javax.management.Descriptor} and {@link Dictionary}.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-@ThreadSafe(false)
+@NotThreadSafe
 final class DescriptorDictionary extends Dictionary<String, Object> {
     private final Descriptor descr;
     private String[] fields;    //cached fields for fast access
 
     DescriptorDictionary(final Descriptor descr){
         this.descr = Objects.requireNonNull(descr);
-        this.fields = descr.getFields();
+        this.fields = descr.getFieldNames();
     }
 
     /**
@@ -96,9 +97,7 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
      */
     @Override
     public Object get(final Object key) {
-        return key instanceof String ?
-                get((String)key):
-                null;
+        return get(Convert.toType(key, String.class).orElseThrow(ClassCastException::new));
     }
 
     /**
@@ -155,8 +154,6 @@ final class DescriptorDictionary extends Dictionary<String, Object> {
      */
     @Override
     public Object remove(final Object key) {
-        return key instanceof String ?
-                remove((String)key):
-                null;
+        return remove(Convert.toType(key, String.class).orElseThrow(ClassCastException::new));
     }
 }

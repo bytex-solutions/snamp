@@ -3,18 +3,23 @@ package com.bytex.snamp.jmx;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
-import javax.management.openmbean.*;
-import java.util.*;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularDataSupport;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * Represents {@link javax.management.openmbean.TabularData} instance builder.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-public class TabularDataBuilder extends LinkedList<CompositeData> implements Supplier<TabularData> {
+public class TabularDataBuilder extends LinkedList<CompositeData> {
     private static final long serialVersionUID = 6161683440252406652L;
     private final TabularTypeBuilder columns = new TabularTypeBuilder();
 
@@ -95,19 +100,5 @@ public class TabularDataBuilder extends LinkedList<CompositeData> implements Sup
         final TabularDataSupport result = new TabularDataSupport(this.columns.build());
         forEach(result::put);
         return result;
-    }
-
-    /**
-     * Constructs a new {@link javax.management.openmbean.TabularData} instance.
-     * @return A new {@link javax.management.openmbean.TabularData} instance.
-     * @throws IllegalStateException Unable to construct table.
-     */
-    @Override
-    public final TabularData get() throws IllegalStateException{
-        try {
-            return build();
-        } catch (final OpenDataException e) {
-            throw new IllegalStateException(e);
-        }
     }
 }

@@ -6,13 +6,14 @@ import com.google.common.io.BaseEncoding;
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
-import static com.bytex.snamp.ArrayUtils.emptyArray;
+
+import static com.bytex.snamp.ArrayUtils.emptyByteArray;
 
 /**
  * Represents format of the BLOB fragment.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
 @XmlType(name = "BlobFormat", namespace = XmlConstants.NAMESPACE)
 @XmlEnum
@@ -48,6 +49,6 @@ public enum BLOBFormat implements Converter<byte[]> {
      */
     @Override
     public final byte[] apply(final String input) {
-        return input != null ? encoding.decode(input) : emptyArray(byte[].class);
+        return input != null ? encoding.decode(input) : emptyByteArray();
     }
 }

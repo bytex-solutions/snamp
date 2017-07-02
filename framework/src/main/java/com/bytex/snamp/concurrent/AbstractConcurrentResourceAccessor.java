@@ -1,12 +1,11 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.Wrapper;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
 
 /**
  * Provides a base class for organizing thread-safe access to the thread-unsafe resource.
@@ -16,9 +15,10 @@ import java.util.function.Function;
  * @param <R> Type of the thread-unsafe resource to hold.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.2
+ * @version 2.0
  */
-public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeObject implements Wrapper<R>, Serializable {
+@ThreadSafe
+public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeObject implements Serializable {
     private static final long serialVersionUID = -7263363564614921684L;
 
     /**
@@ -27,7 +27,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      * @param <V> Type of the result of reading operation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public interface Action<R, V, E extends Throwable>{
         /**
@@ -43,20 +43,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      * Initializes a new concurrent access coordinator.
      */
     protected AbstractConcurrentResourceAccessor(){
-    }
-
-    /**
-     * Provides unsafe access to the resource.
-     * @param handler The wrapped object handler.
-     * @param <O> Type of the resource processing result.
-     * @return The resource processing result.
-     */
-    @Override
-    public <O> O apply(final Function<R, O> handler) {
-        if (handler == null) return null;
-        try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
-            return handler.apply(getResource());
-        }
+        super(SingleResourceGroup.class);
     }
 
     /**
@@ -78,7 +65,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader) throws E {
         if (reader == null) return null;
-        try (final SafeCloseable ignored = acquireReadLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
             return reader.apply(getResource());
         }
     }
@@ -98,7 +85,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader, final Duration readTimeout) throws E, TimeoutException, InterruptedException {
         if(reader == null) return null;
-        try(final SafeCloseable ignored = acquireReadLockInterruptibly(SingleResourceGroup.INSTANCE, readTimeout)){
+        try(final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, readTimeout)){
             return reader.apply(getResource());
         }
     }
@@ -116,7 +103,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer) throws E{
         if(writer == null) return null;
-        try(final SafeCloseable ignored = acquireWriteLock(SingleResourceGroup.INSTANCE)){
+        try(final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)){
             return writer.apply(getResource());
         }
     }
@@ -135,7 +122,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> extends ThreadSafeOb
      */
     public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer, final Duration writeTimeout) throws E, TimeoutException, InterruptedException {
         if(writer == null) return null;
-        try(final SafeCloseable ignored = acquireWriteLockInterruptibly(SingleResourceGroup.INSTANCE, writeTimeout)){
+        try(final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE, writeTimeout)){
             return writer.apply(getResource());
         }
     }

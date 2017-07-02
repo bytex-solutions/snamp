@@ -1,21 +1,20 @@
 package com.bytex.snamp.configuration;
 
 import com.bytex.snamp.ResourceReader;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 
+import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.bytex.snamp.configuration.AgentConfiguration.EntityConfiguration;
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents resource-based configuration entity descriptor.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
+    private static final Splitter RELATED_PARAMS_SPLITTER = Splitter.on(',').trimResults();
     private static final String DESCRIPTION_POSTFIX = ".description";
     private static final String REQUIRED_POSTFIX = ".required";
     private static final String PATTERN_POSTFIX = ".pattern";
@@ -62,10 +61,10 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * Returns a type of the configuration entity.
      *
      * @return A type of the configuration entity.
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ResourceAdapterConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.EventConfiguration
-     * @see com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.AttributeConfiguration
+     * @see GatewayConfiguration
+     * @see ManagedResourceConfiguration
+     * @see EventConfiguration
+     * @see AttributeConfiguration
      */
     @Override
     public final Class<T> getEntityType() {
@@ -79,7 +78,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * otherwise, {@literal false}.
      */
     protected boolean isRequiredParameter(final String parameterName) {
-        return getBoolean(parameterName + REQUIRED_POSTFIX, null, false);
+        return getBoolean(parameterName + REQUIRED_POSTFIX, null).orElse(false);
     }
 
     /**
@@ -89,7 +88,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @return The localized description of the configuration parameter.
      */
     protected String getParameterDescription(final String parameterName, final Locale loc) {
-        return getString(parameterName + DESCRIPTION_POSTFIX, loc, "");
+        return getString(parameterName + DESCRIPTION_POSTFIX, loc).orElse("");
     }
 
     /**
@@ -99,14 +98,11 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @return The localized input value pattern.
      */
     protected String getParameterValuePattern(final String parameterName, final Locale loc) {
-        return getString(parameterName + PATTERN_POSTFIX, loc, "");
+        return getString(parameterName + PATTERN_POSTFIX, loc).orElse("");
     }
 
     private Collection<String> getRelatedParameters(final String parameterName, final String relationPostfix){
-        final String params = getString(parameterName + relationPostfix, null, "");
-        if(isNullOrEmpty(params)) return Collections.emptyList();
-        final String[] values = params.split(",");
-        return Arrays.stream(values).map(String::trim).collect(Collectors.toList());
+        return getString(parameterName + relationPostfix, null).map(RELATED_PARAMS_SPLITTER::splitToList).orElseGet(Collections::emptyList);
     }
 
     /**
@@ -131,14 +127,14 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @return The configuration parameter default value.
      */
     protected String getParameterDefaultValue(final String parameterName, final Locale loc) {
-        return getString(parameterName + DEFVAL_POSTIFX, loc, "");
+        return getString(parameterName + DEFVAL_POSTIFX, loc).orElse("");
     }
 
     /**
      * Represents parameter descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected class ParameterDescriptionImpl implements ParameterDescription{
         private final String parameterName;
@@ -157,7 +153,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
         }
 
         @Override
-        public final String getDescription(final Locale loc) {
+        public final String toString(final Locale loc) {
             return getParameterDescription(parameterName, loc);
         }
 
@@ -267,7 +263,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      *
      * @return an <tt>Iterator</tt> over the elements in this collection
      */
-    @SuppressWarnings("NullableProblems")
+    @Nonnull
     @Override
     public final Iterator<String> iterator() {
         return parameters.iterator();
@@ -289,8 +285,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      *
      * @return an array containing all of the elements in this collection
      */
-    @SuppressWarnings("NullableProblems")
     @Override
+    @Nonnull
     public final Object[] toArray() {
         return parameters.toArray();
     }
@@ -337,9 +333,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      *                              this collection
      * @throws NullPointerException if the specified array is null
      */
-    @SuppressWarnings("NullableProblems")
     @Override
-    public final <E> E[] toArray(final E[] a) {
+    public final <E> E[] toArray(@Nonnull final E[] a) {
         return parameters.toArray(a);
     }
 
@@ -424,9 +419,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      *                              or if the specified collection is null.
      * @see #contains(Object)
      */
-    @SuppressWarnings("NullableProblems")
     @Override
-    public final boolean containsAll(final Collection<?> c) {
+    public final boolean containsAll(@Nonnull final Collection<?> c) {
         return parameters.containsAll(c);
     }
 
@@ -455,7 +449,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @see #add(Object)
      */
     @Override
-    public final boolean addAll(@SuppressWarnings("NullableProblems") final Collection<? extends String> c) {
+    public final boolean addAll(@Nonnull final Collection<? extends String> c) {
         throw new UnsupportedOperationException();
     }
 
@@ -483,7 +477,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @see #contains(Object)
      */
     @Override
-    public final boolean removeAll(@SuppressWarnings("NullableProblems") final Collection<?> c) {
+    public final boolean removeAll(@Nonnull final Collection<?> c) {
         throw new UnsupportedOperationException();
     }
 
@@ -509,9 +503,8 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * @see #remove(Object)
      * @see #contains(Object)
      */
-    @SuppressWarnings("NullableProblems")
     @Override
-    public final boolean retainAll(final Collection<?> c) {
+    public final boolean retainAll(@Nonnull final Collection<?> c) {
         throw new UnsupportedOperationException();
     }
 

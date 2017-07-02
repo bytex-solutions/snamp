@@ -1,24 +1,40 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.configuration.AgentConfiguration;
-import static com.bytex.snamp.configuration.AgentConfiguration.*;
-import org.apache.karaf.shell.commands.Command;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.core.ServiceHolder;
+import com.bytex.snamp.internal.Utils;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Optional;
 
 /**
  * Resets SNAMP configuration.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
     name = "reset-config",
     description = "Reset configuration to empty")
-public final class ResetConfigurationCommand extends ConfigurationCommand {
-
+@Service
+public final class ResetConfigurationCommand extends SnampShellCommand  {
     @Override
-    boolean doExecute(final AgentConfiguration configuration, final StringBuilder output) {
-        configuration.getEntities(ManagedResourceConfiguration.class).clear();
-        configuration.getEntities(ResourceAdapterConfiguration.class).clear();
-        return true;
+    public void execute(final PrintWriter output) throws IOException {
+        final Optional<ServiceHolder<ConfigurationManager>> adminRef = ServiceHolder.tryCreate(getBundleContext(), ConfigurationManager.class);
+        if (adminRef.isPresent()) {
+            final ServiceHolder<ConfigurationManager> admin = adminRef.get();
+            try {
+                admin.get().processConfiguration(config -> {
+                    config.clear();
+                    return true;
+                });
+            } finally {
+                admin.release(getBundleContext());
+            }
+        } else
+            throw new IOException("Configuration storage is not available");
     }
 }

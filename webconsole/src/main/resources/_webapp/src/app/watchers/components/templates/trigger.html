@@ -1,0 +1,38 @@
+<div class="modal fade" *ngIf="!hideDetails" [attr.id]="'details_' + entity.id" tabindex="-1" role="dialog" aria-labelledby="addEntityLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title leftAlign" id="addEntityLabel">Entity {{entity.name}} details</h4>
+            </div>
+            <br/>
+            <div class="modal-body">
+                <pre class="normalspaces"><code [innerHTML]="entity.script"></code></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div>
+    <dl class="row" *ngIf="!isEmpty()">
+        <dt class="col-sm-5">Language:</dt>
+        <dd class="col-sm-7">{{entity.language}}</dd>
+
+        <dt class="col-sm-5">Is url:</dt>
+        <dd class="col-sm-7">{{entity.isURL}}</dd>
+
+        <dt class="col-sm-5">Script:</dt>
+        <dd class="col-sm-7">
+            <button *ngIf="!hideDetails"
+                    class="center-block btn btn-inline btn-sm"
+                    data-toggle="modal"
+                    [attr.data-target]="'#details_' + entity.id">
+                <i class="fa fa-search"></i> Details
+            </button>
+        </dd>
+    </dl>
+</div>

@@ -6,7 +6,7 @@ import java.io.ObjectStreamClass;
 /**
  * Represents class resolver using during deserialization.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 @FunctionalInterface
@@ -21,4 +21,8 @@ public interface ClassResolver {
      */
     Class<?> resolveClass(final ObjectStreamClass desc)
             throws IOException, ClassNotFoundException;
+
+    static ClassResolver forClassLoader(final ClassLoader loader) {
+        return desc -> Class.forName(desc.getName(), false, loader);
+    }
 }

@@ -1,0 +1,50 @@
+.form-group {
+    margin-bottom: 10px;
+    display: flex;
+}
+
+.btn-inline {
+    display: inline-block;
+    margin-left: 15px;
+}
+
+.btn-pull-right {
+    margin-top:20px;
+    float:right;
+    margin-right: 20px;
+}
+
+.row-margin-bottom-sm {
+    margin-bottom: 15px;
+}
+
+.activeTr {
+    background-color: #b9c7de;
+}
+
+.img-inline {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 3px;
+}
+
+.clickableTr {
+    cursor: pointer;
+}
+
+.input-group-addon {
+    border: 0 !important;
+    background-color: rgba(0,0,0,0) !important;
+}
+
+.discovery-set {
+    display: block;
+    text-align: center;
+}
+
+.table-wrapper {
+    margin-top: 25px;
+    padding: 10px;
+    overflow-y: scroll;
+    max-height: 400px;
+}

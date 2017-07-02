@@ -1,10 +1,11 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.EntryReader;
 import org.osgi.framework.*;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import javax.annotation.Nonnull;
+import javax.management.InstanceNotFoundException;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -12,15 +13,15 @@ import java.util.stream.Collectors;
  * Represents a permanent reference to the OSGi service. You should release this service manually
  * when you no longer need it.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public class ServiceHolder<S> implements ServiceProvider<S> {
     private final ServiceReference<S> serviceRef;
     private S serviceImpl;
 
-    private ServiceHolder(final LocalServiceReference<S> localRef){
-        serviceRef = Objects.requireNonNull(localRef);
+    private ServiceHolder(@Nonnull final LocalServiceReference<S> localRef){
+        serviceRef = localRef;
         serviceImpl = localRef.get();
     }
 
@@ -28,12 +29,13 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * Initializes a new service reference holder.
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceRef The service reference to wrap. Cannot be {@literal null}.
-     * @throws java.lang.IllegalArgumentException context or serviceRef is {@literal null}.
+     * @throws InstanceNotFoundException Service is no longer available from the specified reference.
      */
-    public ServiceHolder(final BundleContext context, final ServiceReference<S> serviceRef) throws IllegalArgumentException{
-        if(context == null) throw new IllegalArgumentException("context is null.");
-        else if(serviceRef == null) throw new IllegalArgumentException("serviceRef is null.");
-        else serviceImpl = context.getService(this.serviceRef = serviceRef);
+    public ServiceHolder(@Nonnull final BundleContext context, @Nonnull final ServiceReference<S> serviceRef) throws InstanceNotFoundException {
+        this.serviceRef = serviceRef;
+        serviceImpl = context.getService(serviceRef);
+        if (serviceImpl == null)
+            throw new InstanceNotFoundException(String.format("Service reference '%s' is no longer valid", serviceRef));
     }
 
     /**
@@ -41,12 +43,18 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @param context The context of the bundle which holds this reference. Cannot be {@literal null}.
      * @param serviceType The requested service type. Cannot be {@literal null}.
      * @param <S> Type of service interface.
-     * @return A reference to OSGi service; or {@literal null}, if service was not registered.
+     * @return Optional reference to OSGi service.
      * @since 1.2
      */
-    public static <S> ServiceHolder<S> tryCreate(final BundleContext context, final Class<S> serviceType){
-        final ServiceReference<S> serviceRef = context.getServiceReference(serviceType);
-        return serviceRef != null ? new ServiceHolder<>(context, serviceRef) : null;
+    public static <S> Optional<ServiceHolder<S>> tryCreate(@Nonnull final BundleContext context, @Nonnull final Class<S> serviceType) {
+        return Optional.ofNullable(context.getServiceReference(serviceType))
+                .map(ref -> {
+                    try {
+                        return new ServiceHolder<>(context, ref);
+                    } catch (final InstanceNotFoundException e) {
+                        return null;
+                    }
+                });
     }
 
     /**
@@ -55,16 +63,14 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * @param context The class loader which holds this reference. Cannot be {@literal null}.
      * @param serviceType The requested service type. Cannot be {@literal null}.
      * @param <S> Type of service interface.
-     * @return A reference to OSGi or local service; or {@literal null}, if service was not registered.
+     * @return Optional reference to OSGi or local service.
      * @since 1.2
      */
-    public static <S> ServiceHolder<S> tryCreate(final ClassLoader context, final Class<S> serviceType){
-        if(context instanceof BundleReference)
-            return tryCreate(getBundleContext((BundleReference)context), serviceType);
-        else {
-            final LocalServiceReference<S> serviceRef = LocalServiceReference.resolve(context, serviceType);
-            return serviceRef != null ? new ServiceHolder<>(serviceRef) : null;
-        }
+    public static <S> Optional<ServiceHolder<S>> tryCreate(@Nonnull final ClassLoader context, @Nonnull final Class<S> serviceType) {
+        if (context instanceof BundleReference)
+            return tryCreate(getBundleContext((BundleReference) context), serviceType);
+        else
+            return LocalServiceReference.resolve(context, serviceType).map(ServiceHolder::new);
     }
 
     private static BundleContext getBundleContext(final BundleReference bundleRef){
@@ -75,17 +81,18 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      * Gets a strong reference to the service.
      * @return A strong reference to the service; or {@literal null}, if reference is released.
      */
-    public final S getService(){
-        return get();
+    protected final Optional<S> getService(){
+        return Optional.ofNullable(serviceImpl);
     }
 
     /**
      * Gets a strong reference to the service.
      * @return A strong reference to the service; or {@literal null}, if reference is released.
+     * @throws IllegalStateException This reference is released.
      */
     @Override
     public final S get() {
-        return serviceImpl;
+        return getService().orElseThrow(IllegalStateException::new);
     }
 
     /**
@@ -108,9 +115,11 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
      *         otherwise.
      *  @since 1.2
      */
-    public final boolean release(final ClassLoader context){
-        if(context instanceof BundleReference)
-            return release(getBundleContext((BundleReference)context));
+    public final boolean release(final ClassLoader context) {
+        if (context instanceof BundleReference)
+            return release(getBundleContext((BundleReference) context));
+        else if (serviceImpl == null)
+            return false;
         else {
             serviceImpl = null;
             return true;
@@ -171,6 +180,16 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     public final Map<String, ?> getProperties(){
         return Arrays.stream(getPropertyKeys())
                 .collect(Collectors.toMap(Function.identity(), this::getProperty));
+    }
+
+    public final <V, E extends Throwable> Map<String, V> getProperties(final EntryReader<String, Object, E> filter, final Function<Object, ? extends V> converter) throws E {
+        final Map<String, V> result = new HashMap<>();
+        for (final String key : getPropertyKeys()) {
+            final Object value;
+            if (filter.accept(key, value = getProperty(key)))
+                result.put(key, converter.apply(value));
+        }
+        return result;
     }
 
     /**
@@ -271,8 +290,8 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
         return serviceRef.compareTo(reference);
     }
 
-    public final boolean equals(final ServiceHolder<?> refHolder){
-        return refHolder != null && Objects.equals(serviceRef, refHolder.serviceRef);
+    private boolean equals(final ServiceHolder<?> refHolder) {
+        return getClass().equals(refHolder.getClass()) && serviceRef.equals(refHolder.serviceRef);
     }
 
     @Override

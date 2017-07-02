@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.OpenMBean;
 
@@ -8,12 +8,15 @@ import javax.management.openmbean.SimpleType;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class IsActiveNodeAttribute extends OpenMBean.OpenAttribute<Boolean, SimpleType<Boolean>> {
+    private final ClusterMember clusterMember;
+
     IsActiveNodeAttribute(){
         super("isActiveNode", SimpleType.BOOLEAN);
+        clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
     }
 
     @Override
@@ -23,6 +26,6 @@ final class IsActiveNodeAttribute extends OpenMBean.OpenAttribute<Boolean, Simpl
 
     @Override
     public Boolean getValue() {
-        return DistributedServices.isActiveNode(Utils.getBundleContextOfObject(this));
+        return clusterMember.isActive();
     }
 }

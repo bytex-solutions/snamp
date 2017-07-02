@@ -1,20 +1,19 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.MethodStub;
-import com.bytex.snamp.concurrent.LazyValueFactory;
-import com.bytex.snamp.concurrent.LazyValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 
 import javax.management.*;
 import javax.management.openmbean.*;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
-import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents an abstract class for building Open MBeans.
@@ -29,7 +28,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
  *     </ul>
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class OpenMBean extends NotificationBroadcasterSupport implements DynamicMBean {
@@ -39,7 +38,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param <T> Type of the provided MBean feature.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      * @see OpenMBean.OpenNotification
      * @see OpenMBean.OpenOperation
      * @see OpenMBean.OpenAttribute
@@ -79,7 +78,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param <N> Type of the native notification.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public static abstract class OpenNotification<N> extends OpenMBeanElement<MBeanNotificationInfo>{
         private final String[] types;
@@ -162,99 +161,6 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     }
 
     public static abstract class OpenOperation<R, T extends OpenType<R>> extends OpenMBeanElement<MBeanOperationInfo>{
-        private static final class OperationArgumentException extends IllegalArgumentException{
-            private static final long serialVersionUID = 1217237225436599211L;
-
-            private OperationArgumentException(final OpenMBeanParameterInfo nullParameter) {
-                super(String.format("Parameter %s cannot be null", nullParameter.getName()));
-            }
-
-            private OperationArgumentException(final OpenType<?> expectedType, final OpenDataException e){
-                super(String.format("Illegal type of the actual argument. Expected type: %s", expectedType), e);
-            }
-        }
-
-        /**
-         * Describes parameter of the operation.
-         * @param <T> Type of the parameter
-         */
-        public static final class TypedParameterInfo<T> implements Supplier<OpenMBeanParameterInfoSupport>{
-            private final OpenMBeanParameterInfoSupport parameter;
-            private final boolean nullable;
-
-            public TypedParameterInfo(final String name,
-                                      final String description,
-                                      final OpenType<T> openType,
-                                      final boolean nullable,
-                                      final T defValue) {
-                final Map<String, Object> descriptor = new HashMap<>();
-                if(defValue != null)
-                    descriptor.put(DEFAULT_VALUE_FIELD, defValue);
-                this.parameter = new OpenMBeanParameterInfoSupport(name, description, openType, new ImmutableDescriptor(descriptor));
-                this.nullable = nullable;
-            }
-
-            /**
-             * Gets MBean operation parameter.
-             *
-             * @return MBean operation parameter.
-             */
-            @Override
-            public OpenMBeanParameterInfoSupport get() {
-                return parameter;
-            }
-
-            public TypedParameterInfo(final String name,
-                                      final String description,
-                                      final OpenType<T> openType) {
-                this(name, description, openType, true);
-            }
-
-            public TypedParameterInfo(final String name,
-                                      final String description,
-                                      final OpenType<T> openType,
-                                      final boolean nullable) {
-                this(name, description, openType, nullable, null);
-            }
-
-            /**
-             * Determines whether value of this parameter can be {@literal null}.
-             *
-             * @return {@literal true}, if this value of this parameter can be {@literal null}; otherwise, {@literal false}.
-             */
-            public boolean isNullable() {
-                return nullable;
-            }
-
-            @SuppressWarnings("unchecked")
-            public T getDefaultValue() {
-                return (T)parameter.getDefaultValue();
-            }
-
-            @SuppressWarnings("unchecked")
-            public OpenType<T> getOpenType() {
-                return (OpenType<T>) parameter.getOpenType();
-            }
-
-            /**
-             * Extracts actual value of this parameter from the map of arguments.
-             * @param arguments A map of arguments.
-             * @return Actual value of this parameter.
-             * @throws IllegalArgumentException Incorrect actual value of this parameter.
-             */
-            public T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
-                if (arguments.containsKey(parameter.getName())) {
-                    try {
-                        return cast(getOpenType(), arguments.get(parameter.getName()));
-                    } catch (final OpenDataException e) {
-                        throw new OperationArgumentException(getOpenType(), e);
-                    }
-                } else if (isNullable() || getDefaultValue() != null)
-                    return getDefaultValue();
-                else
-                    throw new OperationArgumentException(parameter);
-            }
-        }
 
         /**
          * Represents return type of this operation.
@@ -268,8 +174,8 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             this.parameters = ImmutableList.copyOf(parameters);
         }
 
-        protected OpenOperation(final String operationName, final T returnType, final TypedParameterInfo<?>... parameters) {
-            this(operationName, returnType, Arrays.stream(parameters).map(TypedParameterInfo::get).toArray(OpenMBeanParameterInfo[]::new));
+        protected OpenOperation(final String operationName, final T returnType, final OpenMBeanParameterInfoSupplier<?>... parameters) {
+            this(operationName, returnType, OpenMBeanParameterInfoSupplier.toParameters(parameters));
         }
 
         protected OpenOperation(final String operationName, final T returnType){
@@ -288,7 +194,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             }
             try {
                 return invoke(args);
-            } catch (final OperationArgumentException e) {
+            } catch (final OpenMBeanParameterInfoSupplier.OperationArgumentException e) {
                 throw new MBeanException(e);
             } catch (final MBeanException | ReflectionException e) {
                 throw e;
@@ -337,7 +243,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          * Represents type of the attribute.
          */
         protected final T openType;
-        private final LazyValue<Class<V>> javaType;
+        private final Class<V> javaType;
         private final ThreadLocal<OpenMBean> owner;
 
         /**
@@ -348,7 +254,9 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         protected OpenAttribute(final String attributeName, final T openType){
             super(attributeName);
             this.openType = openType;
-            javaType = LazyValueFactory.THREAD_SAFE.of(() -> null);
+            @SuppressWarnings("unchecked")
+            final Class<V> jt= (Class<V>) callUnchecked(() -> Class.forName(openType.getClassName()));
+            this.javaType = jt;
             owner = new ThreadLocal<>();
         }
 
@@ -417,7 +325,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         private void setValueInternal(final Object value, final OpenMBean owner) throws MBeanException, ReflectionException, InvalidAttributeValueException{
             this.owner.set(owner);
             try{
-                setValue(getJavaType().cast(value));
+                setValue(javaType.cast(value));
             }
             catch (final MBeanException | ReflectionException | InvalidAttributeValueException e){
                 throw e;
@@ -444,17 +352,6 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             return owner.get();
         }
 
-        @SuppressWarnings("unchecked")
-        private Class<V> getJavaType() throws ClassNotFoundException {
-            try {
-                return javaType.get(() -> (Class<V>) Class.forName(openType.getClassName()));
-            } catch (final ClassNotFoundException e) {
-                throw e;
-            } catch (final Exception e) {
-                throw new ClassNotFoundException(String.format("Unable to load class for type '%s'", openType), e);
-            }
-        }
-
         /**
          * Determines whether this attribute is readable.
          * @return {@literal true}, if this method is readable.
@@ -475,7 +372,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
          */
         public final boolean isWritable(){
             try {
-                final Method getter = getClass().getMethod(SET_VALUE_METHOD, getJavaType());
+                final Method getter = getClass().getMethod(SET_VALUE_METHOD, javaType);
                 return getClass().equals(getter.getDeclaringClass());
             }
             catch (final ReflectiveOperationException e) {
@@ -614,13 +511,10 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     @Override
     public final AttributeList getAttributes(final String[] names) {
         final AttributeList result = new AttributeList();
-        for(final String name: names)
-            try{
-                result.add(new Attribute(name, getAttribute(name)));
-            }
-            catch(final Exception ignored){
-
-            }
+        for (final String name : names) {
+            final Object value = callUnchecked(() -> getAttribute(name));
+            result.add(new Attribute(name, value));
+        }
         return result;
     }
 
@@ -635,14 +529,13 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
     @Override
     public final AttributeList setAttributes(final AttributeList attributes) {
         final AttributeList result = new AttributeList();
-        for(final Object attr: attributes)
-            try{
+        for(final Object attr: attributes){
+            callUnchecked(() -> {
                 setAttribute((Attribute)attr);
-                result.add(attr);
-            }
-            catch (final Exception ignored){
-
-            }
+                return null;
+            });
+            result.add(attr);
+        }
         return result;
     }
 
@@ -767,18 +660,4 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
         }
     }
 
-    /**
-     * Casts value to the specified JMX Open Type.
-     * @param type JMX Open Type. Cannot be {@literal null}.
-     * @param value Value to cast.
-     * @param <T> Type of the conversion result.
-     * @return Converter value.
-     * @throws OpenDataException Unable to cast value to the specified JMX Open Type.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T cast(final OpenType<T> type, final Object value) throws OpenDataException{
-        if(type.isValue(value))
-            return (T)value;
-        else throw new OpenDataException(String.format("Unable cast %s to %s", value, type));
-    }
 }

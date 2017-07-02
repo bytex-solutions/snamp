@@ -2,14 +2,18 @@ package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.Convert;
+import com.bytex.snamp.core.SnampManager;
+import com.bytex.snamp.jmx.FrameworkMBean;
 import com.bytex.snamp.jmx.OpenMBean;
-import com.bytex.snamp.management.FrameworkMBean;
+import com.bytex.snamp.management.DefaultSnampManager;
 
-import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import java.util.Optional;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkMBean {
@@ -25,13 +29,8 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
                 new ResignOperation()
         );
         aggregator = AbstractAggregator.builder()
-                .add(Logger.class, this::getLogger)
+                .addValue(SnampManager.class, new DefaultSnampManager())
                 .build();
-    }
-
-    @Override
-    public Logger getLogger() {
-        return MonitoringUtils.getLogger();
     }
 
     /**
@@ -41,7 +40,8 @@ public final class SnampClusterNodeMBean extends OpenMBean implements FrameworkM
      * @return An instance of the aggregated object; or {@literal null} if object is not available.
      */
     @Override
-    public <T> T queryObject(final Class<T> objectType) {
-        return aggregator.queryObject(objectType);
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        final Optional<T> result = Convert.toType(this, objectType);
+        return result.isPresent() ? result : aggregator.queryObject(objectType);
     }
 }

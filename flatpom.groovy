@@ -3,7 +3,9 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer
 
 @Grab(group = "commons-cli", module = "commons-cli", version = "1.3.1")
-import org.apache.commons.cli.*
+import org.apache.commons.cli.Options
+import org.apache.commons.cli.DefaultParser
+import org.apache.commons.cli.HelpFormatter
 
 import java.nio.file.Paths
 
@@ -78,3 +80,4 @@ if(cmd.hasOption(HELP_OPTION)){
     formatter.printHelp "flatpom <input-pom-file> <directory> <output-pom-file", options
 }
 flattenPOMs cmd.getOptionValue(POM_FILE_OPTION), cmd.getOptionValue(DIR_OPTION), cmd.getOptionValue(OUT_FILE_OPTION)
+

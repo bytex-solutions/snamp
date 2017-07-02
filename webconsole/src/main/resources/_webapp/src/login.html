@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>SNAMP Web UI Login Form</title>
+    <link rel="icon" type="image/png" href="assets/icon/favicon.ico" />
+    <link rel="stylesheet" href="assets/css/normalize.css">
+    <script src="assets/js/prefixfree.min.js"></script>
+    <script src="assets/js/jquery.js"></script>
+    <script src="assets/js/jquery.form.js"></script>
+  </head>
+  <body>
+    <div class="login">
+        <h1>SNAMP Web UI</h1>
+        <form method="POST" action="/snamp/security/login" id="loginForm">
+            <input type="text" name="username" placeholder="Username" required="required" />
+            <input type="password" name="password" placeholder="Password" required="required" />
+            <div class="errorBlock">
+                <div class="errorHeader">Unable to login</div>
+                <div class="errorBody"></div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-large">Log in</button>
+        </form>
+    </div>
+    <script src="assets/js/login.js"></script>
+  </body>
+</html>

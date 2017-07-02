@@ -2,20 +2,25 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Internal;
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.SpecialUse;
 import com.google.common.base.Joiner;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
+import javax.annotation.Nonnull;
+import java.io.PrintStream;
 import java.lang.invoke.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Dictionary;
-import java.util.Map;
-import java.util.Properties;
+import java.util.LinkedList;
+import java.util.Spliterator;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
@@ -26,27 +31,55 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  *     You should not use this class directly in your code.
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Internal
 public final class Utils {
+    /**
+     * Namespace of commands.
+     */
+    public static final String SHELL_COMMAND_SCOPE = "snamp";
+
+    @SuppressWarnings("unchecked")
+    private static final Function CALL_SILENT_FN;
+
+    static {
+        final MethodHandles.Lookup lookup = MethodHandles.lookup();
+        final MethodType lambdaSignature = MethodType.methodType(Object.class, Callable.class);
+
+        try {
+            final CallSite site = LambdaMetafactory.metafactory(lookup,
+                    "apply",
+                    MethodType.methodType(Function.class),
+                    MethodType.methodType(Object.class, Object.class),
+                    lookup.findStatic(Utils.class, "callUncheckedImpl", lambdaSignature),
+                    lambdaSignature);
+
+            CALL_SILENT_FN = (Function) site.getTarget().invokeExact();
+        } catch (final Throwable e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     private Utils(){
         throw new InstantiationError();
     }
 
-    public static String getFullyQualifiedResourceName(final Class<?> locator, String name){
-        if(locator.isArray())
-            return getFullyQualifiedResourceName(locator.getComponentType(), name);
-        else if (!name.startsWith("/")) {
-            final String baseName = locator.getName();
-            final int index = baseName.lastIndexOf('.');
-            if (index != -1)
-                name = String.format("%s/%s", baseName.substring(0, index).replace('.', '/'), name);
-        }
-        else name = name.substring(1);
-        return name;
+    private static String getStackTrace(StackTraceElement[] stackTrace) {
+        if (stackTrace.length > 0)
+            stackTrace = ArrayUtils.remove(stackTrace, 0);
+        return Joiner.on(System.lineSeparator()).join(stackTrace);
+    }
+
+    /**
+     * Prints the stack trace. Used for debugging purposes.
+     */
+    public static void printStackTrace(final PrintStream output){
+        final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        for(int i = 2; i < stackTrace.length; i++)
+            output.println(stackTrace[i]);
+
     }
 
     public static BundleContext getBundleContext(final Class<?> classFromBundle){
@@ -66,7 +99,7 @@ public final class Utils {
 
     private static boolean isInstanceOf(final ServiceReference<?> serviceRef, final String serviceType) {
         final Object names = serviceRef.getProperty(OBJECTCLASS);
-        return names instanceof Object[] && ArrayUtils.containsAny((Object[]) names, serviceType);
+        return names instanceof Object[] && ArrayUtils.contains((Object[]) names, serviceType);
     }
 
     /**
@@ -80,162 +113,15 @@ public final class Utils {
     }
 
     /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read. Cannot be {@literal null}.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value obtained from the map.
-     * @throws ClassCastException Unable to cast property value to the specified propertyType.
-     * @throws IndexOutOfBoundsException The specified key doesn't exist.
-     * @throws IllegalArgumentException map is {@literal null}.
+     * Opens lexical scope with overridden context class loader.
+     * @param newClassLoader Context class loader used in the lexical scope. Cannot be {@literal null}.
+     * @return Lexical scope of the overridden context class loader.
      */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType)
-            throws ClassCastException,
-                IndexOutOfBoundsException,
-                IllegalArgumentException{
-        if(map == null) throw new IllegalArgumentException("map is null.");
-        else if(map.containsKey(propertyKey)){
-            final Object value = map.get(propertyKey);
-            if(propertyType.isInstance(value)) return propertyType.cast(value);
-            else throw new ClassCastException(String.format("Unable to cast %s value to %s type.", value, propertyType));
-        }
-        else throw new IndexOutOfBoundsException(String.format("Key %s doesn't exist.", propertyKey));
-    }
-
-    /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the map.
-     */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final V defaultValue){
-        return getProperty(map, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
-    }
-
-    /**
-     * Gets value from the map in type-safe manner.
-     * @param map The map to read.
-     * @param propertyKey The key in the map to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the map key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the map.
-     */
-    public static <K, V> V getProperty(final Map<K, ?> map,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(map, propertyKey, propertyType, (Supplier<V>) () -> null);
-        else if(map == null) return defaultValue.get();
-        else if(map.containsKey(propertyKey)){
-            final Object value = map.get(propertyKey);
-            return propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
-        }
-        else return defaultValue.get();
-    }
-
-    /**
-     * Gets value from the dictionary in type-safe manner.
-     * @param dict The dictionary to read.
-     * @param propertyKey The key in the dictionary to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the dictionary key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the dictionary.
-     */
-    public static <K, V> V getProperty(final Dictionary<K, ?> dict,
-                                       final K propertyKey,
-                                       final Class<V> propertyType,
-                                       final Supplier<V> defaultValue){
-        if(defaultValue == null) return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> null);
-        else if(dict == null) return defaultValue.get();
-        final Object value = dict.get(propertyKey);
-        return value != null && propertyType.isInstance(value) ? propertyType.cast(value) : defaultValue.get();
-    }
-
-    public static <K, V> boolean setProperty(final Dictionary<K, ? super V> dict,
-                                     final K propertyKey,
-                                     final V value) {
-        if (dict == null) return false;
-        dict.put(propertyKey, value);
-        return true;
-    }
-
-    /**
-     * Gets value from the dictionary in type-safe manner.
-     * @param dict The dictionary to read.
-     * @param propertyKey The key in the dictionary to get.
-     * @param propertyType The expected value type.
-     * @param defaultValue Default value returned from the method if key doesn't exist or value
-     *                     has invalid type.
-     * @param <K> Type of the dictionary key.
-     * @param <V> The expected value type.
-     * @return Strongly typed value returned from the dictionary.
-     */
-    public static <K, V> V getProperty(final Dictionary<K, ?> dict,
-                                     final K propertyKey,
-                                     final Class<V> propertyType,
-                                     final V defaultValue){
-        return getProperty(dict, propertyKey, propertyType, (Supplier<V>) () -> defaultValue);
-    }
-
-    public static <V> V withContextClassLoader(final ClassLoader loader, final Supplier<? extends V> action) {
-        try {
-            return withContextClassLoader(loader, (Callable<V>)action::get);
-        } catch (final Exception e) {
-            throw new AssertionError("Should never be happened", e);
-        }
-    }
-
-    public static <V> V withContextClassLoader(final ClassLoader loader, final Callable<? extends V> action) throws Exception {
+    public static SafeCloseable withContextClassLoader(@Nonnull final ClassLoader newClassLoader){
         final Thread currentThread = Thread.currentThread();
         final ClassLoader previous = currentThread.getContextClassLoader();
-        currentThread.setContextClassLoader(loader);
-        try{
-            return action.call();
-        }
-        finally {
-            currentThread.setContextClassLoader(previous);
-        }
-    }
-
-    private static String getStackTrace(StackTraceElement[] stackTrace) {
-        if (stackTrace.length > 0)
-            stackTrace = ArrayUtils.remove(stackTrace, 0);
-        return Joiner.on(System.lineSeparator()).join(stackTrace);
-    }
-
-    /**
-     * Gets the stack trace in the form of the single string.
-     * @return The current stack trace.
-     */
-    public static String getStackTrace(){
-        return getStackTrace(Thread.currentThread().getStackTrace());
-    }
-
-    /**
-     * Gets the stack trace in the form of the single string.
-     * @param e An exception that holds its stack trace.
-     * @return The stack trace associated with exception.
-     */
-    public static String getStackTrace(final Throwable e){
-        return getStackTrace(e.getStackTrace());
+        currentThread.setContextClassLoader(newClassLoader);
+        return () -> currentThread.setContextClassLoader(previous);
     }
 
     /**
@@ -247,26 +133,24 @@ public final class Utils {
      * @return The value returned from initializer.
      * @throws ExceptionInInitializerError the exception in initializer error
      */
-    public static <T> T interfaceStaticInitialize(final Callable<T> initializer){
+    public static <T> T staticInit(final Callable<T> initializer){
+        return callAndWrapException(initializer, ExceptionInInitializerError::new);
+    }
+
+    public static <T, E extends Throwable> T callAndWrapException(final Callable<T> task, final Function<? super Exception, ? extends E> wrapper) throws E{
         try {
-            return initializer.call();
+            return task.call();
         } catch (final Exception e) {
-            throw new ExceptionInInitializerError(e);
+            throw wrapper.apply(e);
         }
     }
 
-    public static Properties toProperties(final Map<String, String> params){
-        final Properties props = new Properties();
-        props.putAll(params);
-        return props;
-    }
-
-    private static java.util.function.Supplier reflectGetter(final MethodHandles.Lookup lookup,
-                                                               final Object owner,
-                                                               final MethodHandle getter) throws ReflectiveOperationException {
+    private static Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
+                                          final Object owner,
+                                          final MethodHandle getter) throws ReflectiveOperationException {
         final MethodType invokedType = owner == null ?
-                MethodType.methodType(java.util.function.Supplier.class) :
-                MethodType.methodType(java.util.function.Supplier.class, owner.getClass());
+                MethodType.methodType(Supplier.class) :
+                MethodType.methodType(Supplier.class, owner.getClass());
 
         try {
             final CallSite site = LambdaMetafactory.metafactory(lookup, "get",
@@ -274,7 +158,7 @@ public final class Utils {
                     MethodType.methodType(Object.class),
                     getter,
                     MethodType.methodType(getter.type().returnType()));
-            return (java.util.function.Supplier<?>) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
+            return (Supplier<?>) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
         } catch (final LambdaConversionException e){
             throw new ReflectiveOperationException(e);
         } catch (final Throwable e){
@@ -282,7 +166,7 @@ public final class Utils {
         }
     }
 
-    public static java.util.function.Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
+    public static Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
                                                             final Object owner,
                                                             final Method getter) throws ReflectiveOperationException {
         return reflectGetter(lookup, owner, lookup.unreflect(getter));
@@ -302,7 +186,8 @@ public final class Utils {
             instantiatedMethodType = MethodType.methodType(void.class, setter.type().parameterType(1));//zero index points to 'this' reference
         }
         try {
-            final CallSite site = LambdaMetafactory.metafactory(lookup, "accept",
+            final CallSite site = LambdaMetafactory.metafactory(lookup,
+                    "accept",
                     invokedType,
                     MethodType.methodType(void.class, Object.class),
                     setter,
@@ -315,9 +200,78 @@ public final class Utils {
         }
     }
 
-    public static java.util.function.Consumer reflectSetter(final MethodHandles.Lookup lookup,
+    public static Consumer reflectSetter(final MethodHandles.Lookup lookup,
                                                                final Object owner,
                                                                final Method setter) throws ReflectiveOperationException {
         return reflectSetter(lookup, owner, lookup.unreflect(setter));
+    }
+
+    public static <T> void parallelForEach(final Spliterator<T> spliterator,
+                                                                       final Consumer<? super T> action,
+                                                                       final ExecutorService threadPool) {
+        final class ParallelForEachTasks extends LinkedList<Callable<Void>> implements Callable<Object> {
+            private static final long serialVersionUID = -2010068532370568252L;
+
+            @Override
+            public Object call() throws InterruptedException {
+                return threadPool.invokeAll(this);
+            }
+
+            private void add(final Spliterator<T> s) {
+                add(() -> {
+                    s.forEachRemaining(action);
+                    return null;
+                });
+            }
+        }
+
+        final ParallelForEachTasks tasks = new ParallelForEachTasks();
+        {
+            Spliterator<T> subset = spliterator.trySplit();
+            for (int i = 0; i < Runtime.getRuntime().availableProcessors() && subset != null; i++, subset = spliterator.trySplit())
+                tasks.add(subset);
+        }
+        tasks.add(spliterator);
+        callUnchecked(tasks);
+    }
+
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    private static Object callUncheckedImpl(final Callable<?> callable) throws Exception{
+        return callable.call();     
+    }
+
+    /**
+     * Calls code with checked exception as a code without checked exception.
+     * <p>
+     *     This method should be used instead of wrapping some code into try-catch block with ignored exception.
+     *     Don't use this method to hide checked exception that can be actually happened at runtime in some conditions.
+     * @param callable Portion of code to execute.
+     * @param <V> Type of result.
+     * @return An object returned by portion of code.
+     */
+    @SuppressWarnings("unchecked")
+    public static <V> V callUnchecked(final Callable<V> callable){
+        return (V) CALL_SILENT_FN.apply(callable);
+    }
+
+    /**
+     * Closes many resources in guaranteed manner.
+     * @param resources A set of resources to close.
+     * @throws Exception One or more resource throw exception when closing.
+     */
+    public static void closeAll(final AutoCloseable... resources) throws Exception {
+        Exception e = null;
+        for (final AutoCloseable closeable : resources)
+            if (closeable != null)
+                try {
+                    closeable.close();
+                } catch (final Exception inner) {
+                    if (e == null)
+                        e = inner;
+                    else
+                        e.addSuppressed(inner);
+                }
+        if (e != null)
+            throw e;
     }
 }

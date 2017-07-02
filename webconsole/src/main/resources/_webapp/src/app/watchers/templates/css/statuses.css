@@ -1,0 +1,80 @@
+/* grid-item
+------------------------- */
+
+.grid-item {
+  position: relative;
+  float: left;
+  width: 123px;
+  height: 123px;
+  margin: 10px;
+  padding: 10px;
+  background: #888;
+  color: #262524;
+}
+
+.componentOk {
+  background: #228B22 !important;
+}
+
+.componentError  {
+  background: #F08080 !important;
+}
+
+.grid-item > * {
+  margin: 0;
+  padding: 0;
+}
+
+.grid-item .name {
+  position: absolute;
+
+  left: 10px;
+  top: 55px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: normal;
+}
+
+.grid-item .symbol {
+  position: absolute;
+  left: 10px;
+  top: 0px;
+  font-weight: bold;
+  color: white;
+}
+
+.grid-item .number {
+  position: absolute;
+  right: 8px;
+  top: 5px;
+}
+
+.grid-item .weight {
+  position: absolute;
+  left: 9px;
+  top: 107px;
+  font-size: 0.8em;
+}
+
+.grid-item .bundleInfo {
+  position: absolute;
+  left: 117px;
+  top: 117px;
+  font-size: medium;
+}
+
+.grid-item-link {
+    display: inline-block;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    -webkit-transition: border 0.2s ease-in-out;
+    -o-transition: border 0.2s ease-in-out;
+    transition: border 0.2s ease-in-out;
+    margin: 5px 5px 20px 5px;
+}
+
+a.grid-item-link:hover,
+a.grid-item-link:focus,
+a.grid-item-link.active {
+  border-color: #337ab7;
+}

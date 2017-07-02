@@ -1,6 +1,7 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.google.common.collect.Maps;
 
 import javax.management.Descriptor;
@@ -11,20 +12,20 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.Supplier;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class DescriptorUtils {
     public static final String DEFAULT_VALUE_FIELD  = JMX.DEFAULT_VALUE_FIELD;
-    public static final String LEGAL_VALUES_FIELD = JMX.LEGAL_VALUES_FIELD;
     public static final String MIN_VALUE_FIELD = JMX.MIN_VALUE_FIELD;
     public static final String MAX_VALUE_FIELD = JMX.MAX_VALUE_FIELD;
-    public static final String UNIT_OF_MEASUREMENT_FIELD = "units";
+    public static final String UNIT_OF_MEASUREMENT_FIELD = AttributeConfiguration.UNIT_OF_MEASUREMENT_KEY;
 
     public static final DescriptorRead EMPTY_DESCRIPTOR = () -> ImmutableDescriptor.EMPTY_DESCRIPTOR;
 
@@ -32,38 +33,56 @@ public final class DescriptorUtils {
         throw new InstantiationError();
     }
 
-    public static <T> T getField(final Descriptor descr,
+    private static <T> Optional<T> getField(final Descriptor descr,
                                  final String fieldName,
-                                 final Class<T> fieldType,
-                                 final Supplier<T> defval) {
-        if(descr == null) return defval.get();
+                                 final Predicate<Object> valueFilter,
+                                 final Function<Object, ? extends T> transform) {
+        if (descr == null)
+            return Optional.empty();
         final Object fieldValue = descr.getFieldValue(fieldName);
-        if (fieldValue == null) return defval.get();
-        else if (fieldType.isInstance(fieldValue))
-            return fieldType.cast(fieldValue);
+        if (fieldValue == null)
+            return Optional.empty();
+        else if (valueFilter.test(fieldValue))
+            return Optional.of(fieldValue).map(transform);
         else if (fieldValue.getClass().isArray())
             if (Array.getLength(fieldValue) > 0) {
                 final Object item = Array.get(fieldValue, 0);
-                if (fieldType.isInstance(item)) return fieldType.cast(item);
-                else return defval.get();
-            } else return defval.get();
-        else return defval.get();
+                if (valueFilter.test(item))
+                    return Optional.of(item).map(transform);
+            }
+        return Optional.empty();
     }
 
-    public static <T> T getField(final Descriptor descr,
+    public static <T> Optional<T> getField(final Descriptor descr,
+                                  final String fieldName,
+                                  final Function<Object, ? extends T> transform) {
+        return getField(descr, fieldName, value -> true, transform);
+    }
+
+    public static <T> Optional<T> parseStringField(final Descriptor descr,
+                                         final String fieldName,
+                                         final Function<String, ? extends T> transform) {
+        return getField(descr, fieldName, value -> value instanceof String, value -> transform.apply((String) value));
+    }
+
+    public static <T, E extends Throwable> T getFieldIfPresent(final Descriptor descr,
                                  final String fieldName,
-                                 final Class<T> fieldType,
-                                 final T defval){
-        return getField(descr, fieldName, fieldType, (Supplier<T>) () -> defval);
+                                 final Function<Object, ? extends T> transform,
+                                 final Function<String, ? extends E> exceptionFactory) throws E {
+        if (descr == null)
+            throw exceptionFactory.apply(fieldName);
+        final Object fieldValue = descr.getFieldValue(fieldName);
+        if (fieldValue == null)
+            throw exceptionFactory.apply(fieldName);
+        else if (fieldValue.getClass().isArray()) {
+            if (Array.getLength(fieldValue) > 0)
+                return transform.apply(Array.get(fieldValue, 0));
+        } else
+            return transform.apply(fieldValue);
+        throw exceptionFactory.apply(fieldName);
     }
 
-    public static <T> T getField(final Descriptor descr,
-                                 final String fieldName,
-                                 final Class<T> fieldType){
-        return getField(descr, fieldName, fieldType, (Supplier<T>) () -> null);
-    }
-
-    public static Properties toProperties(final Descriptor descr) {
+    private static Properties toProperties(final Descriptor descr) {
         final Properties result = new Properties();
         if (descr != null)
             for (final String fieldName : descr.getFieldNames()) {
@@ -94,19 +113,31 @@ public final class DescriptorUtils {
     /**
      * Converts {@link Descriptor} to map of fields.
      * @param descr The descriptor to convert. May be {@literal null}.
+     * @param ignoreNullValues {@literal true} if null values from descriptor should not be copied into output map.
      * @return A map of fields.
      */
-    public static Map<String, ?> toMap(final Descriptor descr, final boolean ignoreNullValues){
-        return toMap(descr, Object.class, ignoreNullValues);
+    public static Map<String, Object> toMap(final Descriptor descr, final boolean ignoreNullValues){
+        return toMap(descr, Function.identity(), ignoreNullValues);
     }
 
-    public static <V> Map<String, V> toMap(final Descriptor descr, final Class<V> valueType, final boolean ignoreNullValues) {
+    /**
+     * Converts {@link Descriptor} to map of fields.
+     * @param descr The descriptor to convert. May be {@literal null}.
+     * @param valueInterceptor Function used to intercept and modify values from descriptor.
+     * @param ignoreNullValues {@literal true} if null values from descriptor should not be copied into output map.
+     * @return A map of fields.
+     */
+    public static Map<String, Object> toMap(final Descriptor descr, final Function<Object, Object> valueInterceptor, final boolean ignoreNullValues) {
         if (descr == null) return Collections.emptyMap();
         final String[] fields = descr.getFieldNames();
-        final Map<String, V> result = Maps.newHashMapWithExpectedSize(fields.length);
+        final Map<String, Object> result = Maps.newHashMapWithExpectedSize(fields.length);
         for (final String fieldName : fields) {
-            final V fieldValue = getField(descr, fieldName, valueType);
-            if (fieldValue == null && ignoreNullValues) continue;
+            Object fieldValue = descr.getFieldValue(fieldName);
+            if (fieldValue == null) {
+                if (ignoreNullValues)
+                    continue;
+            } else
+                fieldValue = valueInterceptor.apply(fieldValue);
             result.put(fieldName, fieldValue);
         }
         return result;
@@ -128,23 +159,7 @@ public final class DescriptorUtils {
      * @return {@literal true}, if {@link Descriptor} instance has the field; otherwise, {@literal false}.
      */
     public static boolean hasField(final Descriptor descr, final String fieldName){
-        return ArrayUtils.containsAny(descr.getFieldNames(), fieldName);
-    }
-
-    public static boolean hasDefaultValue(final Descriptor descr){
-        return hasField(descr, DEFAULT_VALUE_FIELD);
-    }
-
-    public static boolean hasLegalValues(final Descriptor descr){
-        return hasField(descr, LEGAL_VALUES_FIELD);
-    }
-
-    public static boolean hasMaxValue(final Descriptor descr){
-        return hasField(descr, MAX_VALUE_FIELD);
-    }
-
-    public static boolean hasMinValue(final Descriptor descr){
-        return hasField(descr, MIN_VALUE_FIELD);
+        return ArrayUtils.contains(descr.getFieldNames(), fieldName);
     }
 
     public static <T> T getDefaultValue(final Descriptor descr, final Class<T> type){
@@ -152,38 +167,15 @@ public final class DescriptorUtils {
         return type.isInstance(value) ? type.cast(value) : null;
     }
 
-    public static Object getRawLegalValues(final Descriptor descr){
-        return descr.getFieldValue(LEGAL_VALUES_FIELD);
-    }
-
-    public static Set<?> getLegalValues(final Descriptor descr){
-        final Object value = getRawLegalValues(descr);
-        return value instanceof Set<?> ? (Set<?>)value : null;
-    }
-
     public static Object getRawMaxValue(final Descriptor descr){
         return descr.getFieldValue(MAX_VALUE_FIELD);
-    }
-
-    public static Comparable<?> getMaxValue(final Descriptor descr){
-        final Object value = getRawMaxValue(descr);
-        return value instanceof Comparable<?> ? (Comparable<?>)value : null;
     }
 
     public static Object getRawMinValue(final Descriptor descr){
         return descr.getFieldValue(MIN_VALUE_FIELD);
     }
 
-    public static Comparable<?> getMinValue(final Descriptor descr){
-        final Object value = getRawMinValue(descr);
-        return value instanceof Comparable<?> ? (Comparable<?>)value : null;
-    }
-
     public static String getUOM(final Descriptor descr){
-        return getField(descr, UNIT_OF_MEASUREMENT_FIELD, String.class, "");
-    }
-
-    public static ImmutableDescriptor copyOf(final Descriptor descr){
-        return new ImmutableDescriptor(toMap(descr));
+        return getField(descr, UNIT_OF_MEASUREMENT_FIELD, Objects::toString).orElse("");
     }
 }

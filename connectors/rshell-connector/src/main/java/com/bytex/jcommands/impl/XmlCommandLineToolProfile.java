@@ -1,7 +1,7 @@
 package com.bytex.jcommands.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.bytex.jcommands.CommandExecutionChannel;
+import com.google.common.collect.ImmutableMap;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -28,7 +28,7 @@ import java.util.Map;
  *     </ul>
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @XmlRootElement(name = "profile", namespace = XmlConstants.NAMESPACE)

@@ -9,6 +9,8 @@ import org.ops4j.pax.exam.TestProbeBuilder;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
 import org.ops4j.pax.exam.karaf.options.LogLevelOption;
+import org.ops4j.pax.exam.karaf.options.configs.UsersProperties;
+import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
@@ -27,7 +29,7 @@ import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.*;
 /**
  * Represents a base class for all OSGi integration tests.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @RunWith(PaxExam.class)
@@ -59,6 +61,8 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
          * @return A collection of features.
          */
         public abstract Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType);
+
+        public abstract Collection<MavenArtifactProvisionOption> getBundles(final Class<? extends  AbstractIntegrationTest> testType);
 
         /**
          * Returns an array of packages to be imported into test OSGi bundle.
@@ -118,11 +122,11 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
      * debugger will be attached.
      * @return {@literal true} to enable debugging; otherwise, {@literal false}.
      */
-    protected boolean enableRemoteDebugging(){
-        return false;
+    private static boolean enableRemoteDebugging(){
+        return Boolean.getBoolean("com.bytex.snamp.testing.debug");
     }
 
-    private Option[] configureTestingRuntimeImpl(){
+    private Option[] configureTestingRuntimeImpl() {
         final MavenArtifactUrlReference karafUrl = maven()
                 .groupId("org.apache.karaf")
                 .artifactId("apache-karaf")
@@ -133,17 +137,22 @@ public abstract class AbstractIntegrationTest extends AbstractTest {
                 .name("Apache Karaf")
                 .unpackDirectory(new File("exam")));
         result.add(logLevel(LogLevelOption.LogLevel.INFO));
-        if(enableRemoteDebugging())
+        if (enableRemoteDebugging())
             result.add(debugConfiguration("32441", true));
         result.add(systemProperty(TEST_CONTAINER_INDICATOR).value("true"));
         result.addAll(builder.getSystemProperties(getClass()).entrySet().stream().map(sp -> systemProperty(sp.getKey()).value(sp.getValue())).collect(Collectors.toList()));
         result.addAll(builder.getFrameworkProperties(getClass()).entrySet().stream().map(fp -> frameworkProperty(fp.getKey()).value(fp.getValue())).collect(Collectors.toList()));
-        result.add(systemProperty(PROJECT_DIR).value(StandardSystemProperty.USER_DIR.value()));
+        result.add(systemProperty(PROJECT_DIR).value(System.getProperty(PROJECT_DIR)));
         result.add(getPropagatedProperties());
         // https://ops4j1.jira.com/wiki/display/PAXEXAM3/Configuration+Options
         result.add(keepRuntimeFolder());
         result.add(bootDelegationPackage("jdk.nashorn.*"));
+        result.add(bootDelegationPackage("org.bouncycastle*"));
         result.addAll(builder.getFeatures(getClass()));
+        result.addAll(builder.getBundles(getClass()));
+        result.add(cleanCaches(true));
+        result.add(editConfigurationFilePut(UsersProperties.FILE_PATH, "simpleUser", "simplePassword,snamp-user"));
+        result.add(editConfigurationFilePut(UsersProperties.FILE_PATH, "guest", "guest"));
         return result.toArray(new Option[result.size()]);
     }
 

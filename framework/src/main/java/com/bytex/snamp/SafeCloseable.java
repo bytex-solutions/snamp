@@ -5,7 +5,7 @@ package com.bytex.snamp;
  * <p>
  *     Checked exception is suspended.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public interface SafeCloseable extends AutoCloseable {
@@ -15,4 +15,9 @@ public interface SafeCloseable extends AutoCloseable {
      */
     @Override
     void close();
+
+    static void closeAll(final SafeCloseable... closeables){
+        for(final SafeCloseable c: closeables)
+            c.close();
+    }
 }

@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>connectors</artifactId>
-        <groupId>com.bytex.snamp</groupId>
-        <version>1.2.0</version>
+        <groupId>com.bytex.snamp.connectors</groupId>
+        <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>groovy-connector</artifactId>
-    <version>${snamp.connectors.groovy.version}</version>
+    <artifactId>groovy</artifactId>
+    <version>${snamp.connector.groovy.version}</version>
     <packaging>bundle</packaging>
     <name>Groovy Script Resource</name>
     <description>SNAMP resource connector used for Groovy scripts for management information aggregation</description>
@@ -19,32 +19,26 @@
                 <directory>src/main/resources</directory>
             </resource>
         </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <systemPropertyVariables>
-                        <DummyScriptFile>${project.parent.parent.basedir}/</DummyScriptFile>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-SymbolicName>com.bytex.snamp.connectors.groovy</Bundle-SymbolicName>
-                        <Bundle-Activator>com.bytex.snamp.connectors.groovy.impl.GroovyResourceActivator</Bundle-Activator>
+                        <Bundle-SymbolicName>snamp-${project.artifactId}-connector</Bundle-SymbolicName>
+                        <Bundle-Activator>com.bytex.snamp.connector.groovy.GroovyResourceActivator</Bundle-Activator>
                         <Export-Package>
-                            com.bytex.snamp.connectors.groovy
+                            com.bytex.snamp.connector.groovy
                         </Export-Package>
-                        <DynamicImport-Package>
-                            *
-                        </DynamicImport-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
                         <!--SNAMP specific header-->
-                        <Provide-Capability>com.bytex.snamp.connectors; type=groovy</Provide-Capability>
+                        <Provide-Capability>com.bytex.snamp.connector; type=groovy</Provide-Capability>
                     </instructions>
                 </configuration>
             </plugin>
@@ -53,19 +47,13 @@
     <dependencies>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>internal-services</artifactId>
-            <version>${snamp.services.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <scope>provided</scope>
-            <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>${snamp.framework.version}</version>
+            <version>${snamp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>scripting</artifactId>
+            <version>${snamp.scripting.version}</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -79,6 +67,10 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+        </dependency>
         <!-- Groovy Dependencies -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
@@ -86,9 +78,16 @@
             <classifier>indy</classifier>
             <type>jar</type>
         </dependency>
+        <!--Test dependencies-->
         <dependency>
-            <groupId>org.apache.ivy</groupId>
-            <artifactId>ivy</artifactId>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>internal-services</artifactId>
+            <version>${snamp.services.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
         </dependency>
     </dependencies>
 </project>

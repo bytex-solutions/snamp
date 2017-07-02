@@ -1,13 +1,14 @@
 package com.bytex.snamp.testing;
 
-import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.adapters.*;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.gateway.*;
 import org.junit.After;
 import org.junit.Before;
 import org.ops4j.pax.exam.karaf.options.KarafFeaturesOption;
+import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.options.MavenArtifactUrlReference;
+import org.ops4j.pax.exam.util.Filter;
 import org.osgi.framework.BundleContext;
 
 import javax.inject.Inject;
@@ -21,48 +22,53 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static com.bytex.snamp.configuration.AgentConfiguration.ManagedResourceConfiguration.FeatureConfiguration;
 import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationProcessor;
 
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.PLATFORM})
 @PropagateSystemProperties({
-        SnampSystemProperties.JAAS_CONFIG_FILE,
         "java.security.egd",
         "com.sun.management.jmxremote.authenticate",
         "com.sun.management.jmxremote.port",
         "com.sun.management.jmxremote.ssl",
         "pax.exam.osgi.unresolved.fail"
 })
-@ImportPackages("com.bytex.snamp;version=\"[1.0,2)\"")
+@ImportPackages("com.bytex.snamp;version=\"[2.0,3)\"")
 public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTest {
 
-    private static final class AdapterStartedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener {
+    private static final class GatewayStartedSynchronizationEvent extends CompletableFuture<Gateway> implements GatewayEventListener {
 
         @Override
-        public void handle(final ResourceAdapterEvent e) {
-            if(e instanceof ResourceAdapterStartedEvent)
+        public void handle(final GatewayEvent e) {
+            if(e instanceof GatewayStartedEvent)
                 complete(e.getSource());
         }
     }
 
-    private static final class AdapterUpdatedSynchronizationEvent extends CompletableFuture<ResourceAdapter> implements ResourceAdapterEventListener{
+    private static final class GatewayUpdatedSynchronizationEvent extends CompletableFuture<Gateway> implements GatewayEventListener {
 
         @Override
-        public void handle(final ResourceAdapterEvent e) {
-            if(e instanceof ResourceAdapterUpdatedEvent)
+        public void handle(final GatewayEvent e) {
+            if(e instanceof GatewayUpdatedEvent)
                 complete(e.getSource());
         }
     }
     private static final EnvironmentBuilder SNAMP_ENV_BUILDER = new EnvironmentBuilder() {
+        private KarafFeaturesOption feature(final String groupId, final String artifactId, final String version, final String... features) {
+            return new KarafFeaturesOption(
+                    new MavenArtifactUrlReference().groupId(groupId).artifactId(artifactId).version(version).type("xml").classifier("features"),
+                    features);
+        }
+
         @Override
         public Collection<KarafFeaturesOption> getFeatures(final Class<? extends AbstractIntegrationTest> testType) {
             final Collection<KarafFeaturesOption> result = new LinkedList<>();
+            //setup SNAMP features
             for (final SnampDependencies deps : TestUtils.getAnnotations(testType, SnampDependencies.class))
                 for (final SnampFeature feature : deps.value())
                     try {
@@ -70,32 +76,29 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
                     } catch (final MalformedURLException e) {
                         fail(e.getMessage());
                     }
+            //setup extra dependencies
+            for (final MavenDependencies deps : TestUtils.getAnnotations(testType, MavenDependencies.class))
+                for (final MavenFeature feature : deps.features())
+                    result.add(feature(feature.artifact().groupId(), feature.artifact().artifactId(), feature.artifact().version(), feature.value()));
+            return result;
+        }
+
+        @Override
+        public Collection<MavenArtifactProvisionOption> getBundles(final Class<? extends AbstractIntegrationTest> testType) {
+            final Collection<MavenArtifactProvisionOption> result = new LinkedList<>();
             for(final MavenDependencies deps: TestUtils.getAnnotations(testType, MavenDependencies.class))
-                for(final MavenFeature feature: deps.value())
-                    result.add(new KarafFeaturesOption(new MavenArtifactUrlReference().artifactId(feature.artifactId()).groupId(feature.groupId()).version(feature.version()).type("xml").classifier("features"), feature.name()));
+                for(final MavenArtifact bundle: deps.bundles())
+                        result.add(new MavenArtifactProvisionOption(new MavenArtifactUrlReference().artifactId(bundle.artifactId()).groupId(bundle.groupId()).version(bundle.version()).type("jar")));
             return result;
         }
     };
 
     @Inject
-    @SpecialUse
+    @Filter(timeout = 20_000L)
     private ConfigurationManager configAdmin = null;
 
     protected AbstractSnampIntegrationTest(){
         super(SNAMP_ENV_BUILDER);
-        //WORKAROUND for system properties with relative path
-        if(!isInTestContainer()){
-            expandSystemPropertyFileName(SnampSystemProperties.JAAS_CONFIG_FILE);
-        }
-    }
-
-    private static void expandSystemPropertyFileName(final String propertyName) {
-        String fileName = System.getProperty(propertyName);
-        if (fileName != null && fileName.startsWith("./")) {
-            fileName = fileName.substring(2);
-            fileName = getPathToFileInProjectRoot(fileName);
-            System.setProperty(propertyName, fileName);
-        }
     }
 
     /**
@@ -116,10 +119,6 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
 
     }
 
-    /**
-     * Saves SNAMP configuration into the output stream.
-     * @throws IOException
-     */
     @Before
     public final void prepare() throws Exception {
         beforeStartTest(getTestBundleContext());
@@ -149,11 +148,11 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
         afterCleanupTest(getTestBundleContext());
     }
 
-    protected static <V> V syncWithAdapterStartedEvent(final String adapterName,
+    protected static <V> V syncWithGatewayStartedEvent(final String gatewayType,
                                                        final Callable<? extends V> handler,
                                                        final Duration timeout) throws Exception {
-        final AdapterStartedSynchronizationEvent synchronizer = new AdapterStartedSynchronizationEvent();
-        ResourceAdapterClient.addEventListener(adapterName, synchronizer);
+        final GatewayStartedSynchronizationEvent synchronizer = new GatewayStartedSynchronizationEvent();
+        GatewayClient.addEventListener(gatewayType, synchronizer);
         try {
             final V result = handler.call();
             assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
@@ -164,15 +163,15 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             return null;
         }
         finally {
-            ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
+            GatewayClient.removeEventListener(gatewayType, synchronizer);
         }
     }
 
-    protected static <V> V syncWithAdapterUpdatedEvent(final String adapterName,
+    protected static <V> V syncWithGatewayUpdatedEvent(final String gatewayType,
                                                        final Callable<? extends V> handler,
                                                        final Duration timeout) throws Exception {
-        final AdapterUpdatedSynchronizationEvent synchronizer = new AdapterUpdatedSynchronizationEvent();
-        ResourceAdapterClient.addEventListener(adapterName, synchronizer);
+        final GatewayUpdatedSynchronizationEvent synchronizer = new GatewayUpdatedSynchronizationEvent();
+        GatewayClient.addEventListener(gatewayType, synchronizer);
         try {
             final V result = handler.call();
             assertNotNull(synchronizer.get(timeout.toNanos(), TimeUnit.NANOSECONDS));
@@ -182,11 +181,7 @@ public abstract class AbstractSnampIntegrationTest extends AbstractIntegrationTe
             return null;
         }
         finally {
-            ResourceAdapterClient.removeEventListener(adapterName, synchronizer);
+            GatewayClient.removeEventListener(gatewayType, synchronizer);
         }
-    }
-
-    protected static void setFeatureName(final FeatureConfiguration feature, final String name){
-        feature.setAlternativeName(name);
     }
 }

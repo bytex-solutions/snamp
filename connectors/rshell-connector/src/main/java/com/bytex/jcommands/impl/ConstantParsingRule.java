@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.*;
  * Represents a constant that will be returned by the template without other parsing.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @XmlRootElement(name = "const", namespace = XmlConstants.NAMESPACE)

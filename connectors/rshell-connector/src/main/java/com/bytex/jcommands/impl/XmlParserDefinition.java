@@ -1,13 +1,12 @@
 package com.bytex.jcommands.impl;
 
+import com.bytex.snamp.*;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.bytex.snamp.*;
 
 import javax.script.*;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.annotation.*;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.Serializable;
 import java.lang.reflect.Array;
@@ -19,7 +18,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import static com.bytex.snamp.ArrayUtils.emptyArray;
+
+import static com.bytex.snamp.ArrayUtils.emptyByteArray;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents parser for command-line output result.
@@ -29,7 +30,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  *     {@link java.lang.Integer}, {@link java.util.Map} and etc.
  * </p>
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  * @see XmlParsingResultType
  */
@@ -79,17 +80,17 @@ public class XmlParserDefinition {
          */
         @Override
         public Object eval(final Reader reader, final ScriptContext context) throws ScriptException {
-            final StringBuilder script = new StringBuilder();
-            final char[] buffer = new char[256];
-            int count;
-            try {
+            final String result = callAndWrapException(() -> {
+                final StringBuilder script = new StringBuilder();
+                final char[] buffer = new char[256];
+                int count;
                 while ((count = reader.read(buffer)) > 0)
                     script.append(buffer, 0, count);
-            } catch (final IOException e) {
-                throw new ScriptException(e);
-            }
-            return eval(script.toString(), context);
+                return script.toString();
+            }, ScriptException::new);
+            return eval(result, context);
         }
+
         /**
          * Returns a <code>ScriptEngineFactory</code> for the class to which this <code>ScriptEngine</code> belongs.
          *
@@ -173,8 +174,7 @@ public class XmlParserDefinition {
 
         @Override
         public BigInteger parseAsBigInteger(final String input) throws ParseException {
-            final Number n = parse(input);
-            return n instanceof BigInteger ? (BigInteger)n : BigInteger.valueOf(n.longValue());
+            return Convert.toBigInteger(input).orElseThrow(() -> new ParseException(input, 0));
         }
 
         @Override
@@ -344,92 +344,92 @@ public class XmlParserDefinition {
             return parser;
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public byte parseByte(final String value) throws NumberFormatException{
             return Byte.parseByte(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public byte parseByte(final String value, final String format) throws ParseException {
             return getNumberParser(format).parseAsByte(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public short parseShort(final String value) throws NumberFormatException{
             return Short.parseShort(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public short parseShort(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsShort(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public int parseInt(final String value) throws NumberFormatException{
             return Integer.parseInt(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public int parseInt(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsInt(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public long parseLong(final String value) throws NumberFormatException{
             return Long.parseLong(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public long parseLong(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsLong(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public float parseFloat(final String value) throws NumberFormatException{
             return Float.parseFloat(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public float parseFloat(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsFloat(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public double parseDouble(final String value) throws NumberFormatException{
             return Double.parseDouble(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public double parseDouble(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsDouble(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public BigInteger parseBigInteger(final String value) throws NumberFormatException{
             return new BigInteger(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public BigInteger parseBigInteger(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsBigInteger(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public BigDecimal parseBigDecimal(final String value) throws NumberFormatException{
             return new BigDecimal(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public BigDecimal parseBigDecimal(final String value, final String format) throws ParseException{
             return getNumberParser(format).parseAsBigDecimal(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public Date parseDate(final String value) throws ParseException {
             return DEFAULT_DATE_TIME_FORMAT.parse(value);
         }
 
-        @SpecialUse
+        @SpecialUse(SpecialUse.Case.SCRIPTING)
         public Date parseDate(final String value, final String format) throws ParseException{
             return getDateParser(format).parse(value);
         }
@@ -469,6 +469,7 @@ public class XmlParserDefinition {
         numberFormatter = DEFAULT_NUMBER_FORMAT;
         dateFormatter = DEFAULT_DATE_TIME_FORMAT;
         blobFormatter = BLOBFormat.HEX;
+
     }
 
     private static Scanner getScanner(final ScriptEngine engine) {
@@ -478,25 +479,25 @@ public class XmlParserDefinition {
     }
 
     @XmlAttribute(name = "blobFormat", namespace = XmlConstants.NAMESPACE, required = false)
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final void setBlobParsingFormat(final BLOBFormat value){
         blobFormatter = value;
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final BLOBFormat getBlobParsingFormat(){
         return blobFormatter;
     }
 
     @XmlAttribute(name = "dateTimeFormat", namespace = XmlConstants.NAMESPACE, required = false)
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final void setDateTimeParsingFormat(final String value){
         if(value == null || value.isEmpty())
             dateFormatter = DEFAULT_DATE_TIME_FORMAT;
         else dateFormatter = new SimpleDateParser(value);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final String getDateTimeParsingFormat(){
         return dateFormatter.toPattern();
     }
@@ -514,7 +515,7 @@ public class XmlParserDefinition {
         numberFormatter = createNumberParser(value);
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public final String getNumberParsingFormat(){
         return numberFormatter.toPattern();
     }
@@ -630,10 +631,9 @@ public class XmlParserDefinition {
         else if(scriptManager == null)
             throw new NullPointerException("scriptManager is null.");
         else {
-            //setup global scope and bindings
-            final ScriptEngine scriptEngine = createScriptEngine(scriptManager);
-            if(scriptEngine == null) throw new IllegalStateException(String.format("Script engine %s not found", getParsingLanguage()));
-            else return parse(input, scriptEngine);
+            final ScriptEngine localEngine = createScriptEngine(scriptManager);
+            if(localEngine == null) throw new IllegalStateException(String.format("Script engine %s not found", getParsingLanguage()));
+            else return parse(input, localEngine);
         }
     }
 
@@ -835,7 +835,8 @@ public class XmlParserDefinition {
                                     final ScriptEngine engine) throws ScriptException {
         return parseScalar(parsingTemplate,
                 engine,
-                format, emptyArray(byte[].class));
+                format,
+                emptyByteArray());
     }
 
     private static void runPlaceholder(final String fragment, final ScriptEngine engine) throws ScriptException {
@@ -889,7 +890,7 @@ public class XmlParserDefinition {
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
-        assert com.bytex.snamp.TypeTokens.isInstance(result, TypeTokens.DICTIONARY_TYPE_TOKEN);
+        assert Convert.isInstance(result, TypeTokens.DICTIONARY_TYPE_TOKEN);
         return result;
     }
 
@@ -921,7 +922,7 @@ public class XmlParserDefinition {
             else if(templateFragment instanceof SkipTokenParsingRule)
                 runPlaceholder(((SkipTokenParsingRule)templateFragment).getRule(), engine);
         }
-        assert com.bytex.snamp.TypeTokens.isInstance(table, TypeTokens.TABLE_TYPE_TOKEN);
+        assert Convert.isInstance(table, TypeTokens.TABLE_TYPE_TOKEN);
         return table;
     }
 
@@ -978,14 +979,14 @@ public class XmlParserDefinition {
         }
     }
 
-    public final <E extends Exception> void exportTableOrDictionaryType(final EntryReader<String, XmlParsingResultType, E> reader) throws E {
+    public final <E extends Exception> void exportTableOrDictionaryType(final EntryReader<? super String, ? super XmlParsingResultType, E> reader) throws E {
         for (final Object templateFragment : getParsingTemplate())
             if (templateFragment instanceof TableColumnParsingRule) {
                 final TableColumnParsingRule rule = (TableColumnParsingRule) templateFragment;
-                if(!reader.read(rule.getColumnName(), rule.getColumnType())) return;
+                if(!reader.accept(rule.getColumnName(), rule.getColumnType())) return;
             } else if (templateFragment instanceof DictionaryEntryParsingRule) {
                 final DictionaryEntryParsingRule rule = (DictionaryEntryParsingRule) templateFragment;
-                if(!reader.read(rule.getKeyName(), rule.getValueType())) return;
+                if(!reader.accept(rule.getKeyName(), rule.getValueType())) return;
             }
     }
 }

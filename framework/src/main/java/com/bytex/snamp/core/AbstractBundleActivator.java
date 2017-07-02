@@ -1,47 +1,45 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.*;
-import com.google.common.collect.ImmutableMap;
+import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.Convert;
+import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.internal.Utils;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.*;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
-import static com.bytex.snamp.internal.Utils.isInstanceOf;
 
 /**
  * Represents an abstract for all SNAMP-specific bundle activators.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public abstract class AbstractBundleActivator implements BundleActivator, ServiceListener {
 
-    private final static class BundleLogicalOperation extends RichLogicalOperation {
-        static final String BUNDLE_NAME_PROPERTY = "bundleName";
+    private final static class BundleLoggingScope extends LoggingScope {
 
-        private BundleLogicalOperation(final Logger logger,
-                                       final String operationName,
-                                       final BundleContext context) {
-            super(logger,
-                    operationName,
-                    ImmutableMap.of(BUNDLE_NAME_PROPERTY, context.getBundle().getSymbolicName()));
+        private BundleLoggingScope(final AbstractBundleActivator requester,
+                                   final String operationName) {
+            super(requester, operationName);
         }
 
-        private static BundleLogicalOperation startBundle(final Logger logger, final BundleContext context) {
-            return new BundleLogicalOperation(logger, "startBundle", context);
+        private static BundleLoggingScope startBundle(final AbstractBundleActivator requester) {
+            return new BundleLoggingScope(requester, "startBundle");
         }
 
-        private static BundleLogicalOperation stopBundle(final Logger logger, final BundleContext context) {
-            return new BundleLogicalOperation(logger, "stopBundle", context);
+        private static BundleLoggingScope stopBundle(final AbstractBundleActivator requester) {
+            return new BundleLoggingScope(requester, "stopBundle");
         }
 
-        private static BundleLogicalOperation processServiceChanged(final Logger logger, final BundleContext context) {
-            return new BundleLogicalOperation(logger, "bundleServiceChanged", context);
+        private static BundleLoggingScope processServiceChanged(final AbstractBundleActivator requester) {
+            return new BundleLoggingScope(requester, "bundleServiceChanged");
         }
     }
 
@@ -50,37 +48,24 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the activation property.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
-    protected interface ActivationProperty<T> extends Attribute<T>{
+    protected interface ActivationProperty<T> {
         /**
          * Gets type of the activation property.
          * @return The type of the attribute value.
          */
-        @Override
+        @Nonnull
         TypeToken<T> getType();
 
         /**
          * Gets default value of this property.
          * @return Default value of this property.
          */
-        @Override
-        T getDefaultValue();
-    }
-
-    /**
-     * Represents named activation property.
-     * @param <T> Type of the property.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 1.2
-     */
-    protected interface NamedActivationProperty<T> extends ActivationProperty<T>{
-        /**
-         * Gets name of this property.
-         * @return The name of this property.
-         */
-        String getName();
+        @Nullable
+        default T getDefaultValue(){
+            return null;
+        }
     }
 
     /**
@@ -90,7 +75,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     protected interface ActivationPropertyPublisher{
         /**
@@ -101,7 +86,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return {@literal true}, if the property is published successfully and
          * there is no duplications; otherwise, {@literal false}.
          */
-        <T> boolean publish(final ActivationProperty<T> propertyDef, final T value);
+        <T> boolean publish(@Nonnull final ActivationProperty<T> propertyDef, final T value);
     }
 
     /**
@@ -111,31 +96,33 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
-    protected interface ActivationPropertyReader extends AttributeReader{
+    protected interface ActivationPropertyReader{
+        <T> T getProperty(@Nonnull final ActivationProperty<T> propertyDef);
+
         /**
          * Finds the property definition.
-         * @param propertyType The type of the property definition.
-         * @param filter Property definition filter.
+         * @param propertyType Type of requested property. Cannot be {@literal null}.
+         * @param filter Property definition filter. Cannot be {@literal null}.
          * @param <P> The type of the property definition.
          * @return The property definition; or {@literal null}, if porperty not found.
          */
-        <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<P> filter);
+        <P extends ActivationProperty<?>> Optional<P> findProperty(@Nonnull final Class<P> propertyType, @Nonnull final Predicate<? super P> filter);
     }
 
     /**
      * Represents an empty activation property reader.
      */
-    protected static final ActivationPropertyReader emptyActivationPropertyReader = new ActivationPropertyReader() {
+    static final ActivationPropertyReader EMPTY_ACTIVATION_PROPERTY_READER = new ActivationPropertyReader() {
         @Override
-        public <T> T getValue(final Attribute<T> propertyDef) {
+        public <T> T getProperty(@Nonnull final ActivationProperty<T> propertyDef) {
             return null;
         }
 
         @Override
-        public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<P> filter) {
-            return null;
+        public <P extends ActivationProperty<?>> Optional<P> findProperty(@Nonnull final Class<P> propertyType, @Nonnull final Predicate<? super P> filter) {
+            return Optional.empty();
         }
     };
 
@@ -146,58 +133,23 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             super(10);
         }
 
-        /**
-         * Publishes the activation property.
-         *
-         * @param propertyDef The definition of the property. Cannot be {@literal null}.
-         * @param value       The value of the property.
-         * @return {@literal true}, if the property is published successfully and
-         * there is no duplications; otherwise, {@literal false}.
-         * @throws IllegalArgumentException propertyDef is {@literal null}.
-         */
         @Override
-        public <T> boolean publish(final ActivationProperty<T> propertyDef, final T value) {
-            if(propertyDef == null) return false;
-            else if(containsKey(propertyDef)) return false;
-            else {
-                put(propertyDef, value);
-                return true;
-            }
+        public <T> boolean publish(@Nonnull final ActivationProperty<T> propertyDef, final T value) {
+            return putIfAbsent(propertyDef, value) == null;
         }
 
-        /**
-         * Reads value of the activation property.
-         *
-         * @param propertyDef The definition of the activation property.
-         * @return The property value; or {@literal null}, if property doesn't exist.
-         */
         @Override
-        public <T> T getValue(final Attribute<T> propertyDef) {
-            if (propertyDef == null) return null;
-            else if (containsKey(propertyDef)) {
-                final Object value = get(propertyDef);
-                return TypeTokens.isInstance(value, propertyDef.getType()) ?
-                        TypeTokens.cast(value, propertyDef.getType()) :
-                        propertyDef.getDefaultValue();
-            } else return null;
+        public <T> T getProperty(@Nonnull final ActivationProperty<T> propertyDef) {
+            return Convert.toType(get(propertyDef), propertyDef.getType()).orElseGet(propertyDef::getDefaultValue);
         }
 
-        /**
-         * Finds the property definition.
-         *
-         * @param propertyType The type of the property definition.
-         * @param filter       Property definition filter.
-         * @return The property definition; or {@literal null}, if property not found.
-         */
         @Override
-        public <P extends ActivationProperty<?>> P getProperty(final Class<P> propertyType, final Predicate<P> filter) {
-            if(propertyType == null || filter == null) return null;
-            for(final ActivationProperty<?> prop: keySet())
-                if(propertyType.isInstance(prop)){
-                    final P candidate = propertyType.cast(prop);
-                    if(filter.test(candidate)) return candidate;
-                }
-            return null;
+        public <P extends ActivationProperty<?>> Optional<P> findProperty(@Nonnull final Class<P> propertyType, @Nonnull final Predicate<? super P> filter) {
+            return keySet().stream()
+                    .filter(propertyType::isInstance)
+                    .map(propertyType::cast)
+                    .filter(filter)
+                    .findFirst();
         }
     }
 
@@ -206,19 +158,17 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Type of the required service.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
     public static abstract class RequiredService<S> {
-        private final Class<S> dependencyContract;
-        private ServiceReference<?> reference;
+        final Class<S> dependencyContract;
+        ServiceReference<S> reference;
 
         /**
          * Initializes a new dependency descriptor.
          * @param dependencyType Contract of the required service. Cannot be {@literal null}.
-         * @throws IllegalArgumentException dependencyType is {@literal null}.
          */
-        protected RequiredService(final Class<S> dependencyType){
-            if(dependencyType == null) throw new IllegalArgumentException("dependencyType is null.");
+        protected RequiredService(@Nonnull final Class<S> dependencyType) {
             this.dependencyContract = dependencyType;
             this.reference = null;
         }
@@ -230,15 +180,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return {@literal true}, if the specified reference matches to the dependency resolving conditions;
          *          otherwise, {@literal false}.
          */
-        protected abstract boolean match(final ServiceReference<?> reference);
+        protected abstract boolean match(final ServiceReference<S> reference);
 
         /**
          * Informs this dependency about resolving dependency.
-         * @param serviceInstance An instance of the resolved service.
-         * @param properties Service properties.
+         * @param serviceRef A reference to resolved service.
          */
-        protected abstract void bind(final S serviceInstance,
-                                     final Dictionary<String, ?> properties);
+        protected abstract void bind(final ServiceReference<S> serviceRef);
 
         /**
          * Informs this dependency about detaching dependency.
@@ -250,11 +198,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * <p>
          *     In the default implementation this method does nothing.
          * </p>
-         * @param properties A new properties of the service.
+         * @param serviceRef Updated reference to a service.
          */
-        @SuppressWarnings("UnusedParameters")
         @MethodStub
-        protected void update(final Dictionary<String, ?> properties){
+        protected void update(final ServiceReference<S> serviceRef){
 
         }
 
@@ -267,85 +214,50 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             return reference != null;
         }
 
-        private boolean matchExact(final ServiceReference<?> candidate){
-            return isInstanceOf(candidate, dependencyContract) && match(candidate);
-        }
-
-        private boolean bind(final BundleContext context, final ServiceReference<?> reference){
-            if(isResolved()) return false;
-            else if(matchExact(reference))
-                try {
-                    bind(dependencyContract.cast(context.getService(reference)), getProperties(reference));
-                    return true;
-                }
-                finally {
-                    this.reference = reference;
-                }
-            else return false;
-        }
-
-        private boolean unbind(final BundleContext context,
-                               final ServiceReference<?> reference){
-            if(!isResolved()) return false;
-            else if(matchExact(reference))
-                try {
-                    unbind();
-                    return true;
-                }
-                finally {
-                    context.ungetService(reference);
-                    this.reference = null;
-                }
-            else return false;
-        }
-
-        final boolean unbind(final BundleContext context){
-            return unbind(context, this.reference);
-        }
-
-        private boolean update(final ServiceReference<?> reference) {
-            if(isResolved()){
-                update(getProperties(reference));
-                return true;
-            }
-            return false;
-        }
-
-        final synchronized void processServiceEvent(final BundleContext context,
-                                              final ServiceReference<?> reference,
-                                              final int eventType) {
-            switch (eventType){
+        private void processServiceEventImpl(final ServiceReference<S> reference,
+                                         final int eventType) {
+            switch (eventType) {
                 case ServiceEvent.REGISTERED:
-                    bind(context, reference);
+                    if (!isResolved() && match(reference)) {
+                        bind(this.reference = reference);
+                    }
                     return;
                 case ServiceEvent.UNREGISTERING:
                 case ServiceEvent.MODIFIED_ENDMATCH:
-                    unbind(context, reference);
+                    if (isResolved())
+                        try {
+                            unbind();
+                        } finally {
+                            this.reference = null;
+                        }
                     return;
                 case ServiceEvent.MODIFIED:
                     update(reference);
             }
         }
 
+        @SuppressWarnings("unchecked")
+        final synchronized boolean processServiceEvent(final ServiceReference<?> reference,
+                                       final int eventType) {
+            if (Utils.isInstanceOf(reference, dependencyContract))
+                processServiceEventImpl((ServiceReference<S>) reference, eventType);
+            return isResolved();
+        }
 
-        final ServiceReference<?>[] getCandidates(final BundleContext context) {
-            ServiceReference<?>[] refs;
-            try {
-                refs = context.getAllServiceReferences(dependencyContract.getName(), null);
-            }
-            catch (final InvalidSyntaxException e) {
-                refs = null;
-            }
-            return refs != null ? refs : ArrayUtils.emptyArray(ServiceReference[].class);
+        final ServiceReference<S>[] getCandidates(final BundleContext context) {
+            return new SimpleFilterBuilder()
+                    .setServiceType(dependencyContract)
+                    .getServiceReferences(context, dependencyContract);
         }
     }
 
+    @NotThreadSafe
     static final class DependencyListeningFilterBuilder {
         private int appendCalledTimes = 0;
         private final StringBuilder filter = new StringBuilder(64);
 
-        void append(final RequiredService<?> dependency){
-            filter.append(String.format("(%s=%s)", Constants.OBJECTCLASS, dependency.dependencyContract.getName()));
+        void append(final RequiredService<?> dependency) {
+            filter.append('(').append(Constants.OBJECTCLASS).append('=').append(dependency.dependencyContract.getName()).append(')');
             appendCalledTimes += 1;
         }
 
@@ -353,16 +265,19 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             final String filter = toString();
             if(filter.isEmpty())
                 context.addServiceListener(listener);
-            else context.addServiceListener(listener, filter);
+            else
+                context.addServiceListener(listener, filter);
         }
 
         @Override
         public String toString() {
-            switch (appendCalledTimes){
-                case 0: return "";
-                case 1: return filter.toString();
+            switch (appendCalledTimes) {
+                case 0:
+                    return "";
+                case 1:
+                    return filter.toString();
                 default:
-                    return String.format("(|%s)", filter);
+                    return "(|" + filter + ')';
             }
         }
     }
@@ -372,20 +287,26 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Contract of the required service.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
-    public static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
+    protected static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
         private S serviceInstance;
+        private final BundleContext context;
+
+        RequiredServiceAccessor(@Nonnull final Class<S> dependencyType,
+                                @Nonnull final BundleContext context) {
+            super(dependencyType);
+            this.context = context;
+        }
 
         /**
          * Initializes a new dependency descriptor.
          *
          * @param dependencyType Contract of the required service. Cannot be {@literal null}.
-         * @throws IllegalArgumentException
-         *          dependencyType is {@literal null}.
          */
-        protected RequiredServiceAccessor(final Class<S> dependencyType) {
+        protected RequiredServiceAccessor(@Nonnull final Class<S> dependencyType){
             super(dependencyType);
+            this.context = Utils.getBundleContextOfObject(this);
         }
 
         /**
@@ -393,49 +314,61 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return A required service if this dependency is in resolved state.
          * @see #isResolved()
          */
-        public final S getService(){
-            return serviceInstance;
+        public final Optional<S> getService() {
+            return Optional.ofNullable(serviceInstance);
+        }
+
+        protected void bind(final S service){
+
         }
 
         /**
          * Informs this dependency about resolving dependency.
          *
-         * @param serviceInstance An instance of the resolved service.
-         * @param properties      Service properties.
+         * @param serviceRef A reference to resolved service.
          */
         @Override
-        protected void bind(final S serviceInstance,
-                            final Dictionary<String, ?> properties) {
-            this.serviceInstance = serviceInstance;
+        protected final void bind(final ServiceReference<S> serviceRef) {
+            serviceInstance = context.getService(serviceRef);
+            if (serviceInstance == null) //failed to resolve service
+                reference = null;
+        }
+
+        protected void unbind(final S service){
+
         }
 
         /**
          * Informs this dependency about detaching dependency.
          */
         @Override
-        protected void unbind() {
-            serviceInstance = null;
+        protected final void unbind() {
+            if (reference != null && serviceInstance != null)
+                try {
+                    unbind(serviceInstance);
+                } finally {
+                    context.ungetService(reference);
+                    serviceInstance = null;
+                }
         }
     }
 
     /**
      * Represents simple dependency descriptor.
-     * <p>
-     *     This class describes service dependency based on service contract only.
-     *     No additional filters supplied.
-     * </p>
      * @param <S> Type of the required service contract.
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
-    public static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
+    private static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
         /**
          * Initializes a new simple dependency descriptor.
          * @param serviceContract The type of the service contract.
+         * @param context Context of the dependency declarer. Cannot be {@literal null}.
          */
-        public SimpleDependency(final Class<S> serviceContract){
-            super(serviceContract);
+        SimpleDependency(@Nonnull final Class<S> serviceContract,
+                         @Nonnull final BundleContext context){
+            super(serviceContract, context);
         }
 
         /**
@@ -448,7 +381,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * otherwise, {@literal false}.
          */
         @Override
-        protected boolean match(final ServiceReference<?> reference) {
+        protected boolean match(final ServiceReference<S> reference) {
             return true;
         }
     }
@@ -461,7 +394,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 1.2
+     * @version 2.0
      */
      protected enum ActivationState {
         /**
@@ -485,42 +418,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
     }
 
     /**
-     * Finds dependency by its type and required service contract.
-     * @param descriptor The dependency descriptor.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @param <D> Type of the dependency.
-     * @return Search result; or {@literal null} if dependency not found.
-     */
-    public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
-        return findDependency(descriptor, serviceContract, Arrays.asList(dependencies));
-    }
-
-    /**
-     * Finds dependency by its type and required service contract.
-     * @param descriptor The dependency descriptor.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @param <D> Type of the dependency.
-     * @return Search result; or {@literal null} if dependency not found.
-     */
-    public static <S, D extends RequiredService<S>> D findDependency(final Class<D> descriptor, final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
-        for(final RequiredService<?> dependency: dependencies)
-            if(descriptor.isInstance(dependency) && Objects.equals(dependency.dependencyContract, serviceContract))
-                return descriptor.cast(dependency);
-        return null;
-    }
-
-    /**
      * Defines activation property.
      * @param propertyType The type of the property.
      * @param defaultValue The default value of the property.
      * @param <T> Type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final Class<T> propertyType, final T defaultValue) {
+    protected static <T> ActivationProperty<T> defineActivationProperty(@Nonnull final Class<T> propertyType, @Nullable final T defaultValue) {
         return defineActivationProperty(TypeToken.of(propertyType), defaultValue);
     }
 
@@ -531,16 +435,17 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType, final T defaultValue){
+    protected static <T> ActivationProperty<T> defineActivationProperty(@Nonnull final TypeToken<T> propertyType, @Nullable final T defaultValue){
         return new ActivationProperty<T>() {
-            private static final long serialVersionUID = -2754311111835732097L;
 
             @Override
+            @Nonnull
             public TypeToken<T> getType() {
                 return propertyType;
             }
 
             @Override
+            @Nullable
             public T getDefaultValue() {
                 return defaultValue;
             }
@@ -563,124 +468,118 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> The type of the property.
      * @return Activation property definition.
      */
-    protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType){
+    protected static <T> ActivationProperty<T> defineActivationProperty(final TypeToken<T> propertyType) {
         return defineActivationProperty(propertyType, null);
     }
 
     /**
-     * Defines named activation property.
-     * @param propertyName The name of the property.
-     * @param propertyType The type of the property.
-     * @param defaultValue The default value of the property.
-     * @param <T> Type of the property.
-     * @return Named activation property definition.
+     * Represents collection of dependencies.
+     * @author Roman Sakno
+     * @since 2.0
+     * @version 2.0
      */
-    protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType, final T defaultValue){
-        return new NamedActivationProperty<T>() {
-            private static final long serialVersionUID = -5801941853707054641L;
-            private final TypeToken<T> pType = TypeToken.of(propertyType);
+    protected static final class DependencyManager extends LinkedList<RequiredService<?>>{
+        private static final long serialVersionUID = -41349119870370641L;
 
-            @Override
-            public String getName() {
-                return propertyName;
-            }
+        DependencyManager(final RequiredService<?>... dependencies) {
+            super(Arrays.asList(dependencies));
+        }
 
-            @Override
-            public TypeToken<T> getType() {
-                return pType;
-            }
+        /**
+         * Finds dependency by its required service contract.
+         * @param serviceContract The service contract required by dependency.
+         * @param <S> Type of the service contract.
+         * @return Search result; or {@literal null} if dependency not found.
+         */
+        @SuppressWarnings("unchecked")
+        public <S> Optional<RequiredService<S>> getDependency(@Nonnull final Class<S> serviceContract,
+                                                    @Nonnull final Predicate<? super RequiredService<S>> filter) {
+            return stream()
+                    .filter(dependency -> dependency.dependencyContract.equals(serviceContract))
+                    .map(dependency -> (RequiredService<S>) dependency)
+                    .filter(filter)
+                    .findFirst();
+        }
 
-            @Override
-            public T getDefaultValue() {
-                return defaultValue;
-            }
+        public <S, D extends RequiredService<S>> Optional<D> getDependency(@Nonnull final Class<D> dependencyType) {
+            return stream()
+                    .filter(dependencyType::isInstance)
+                    .map(dependencyType::cast)
+                    .findFirst();
+        }
 
-            @Override
-            public int hashCode() {
-                return propertyName.hashCode();
-            }
+        /**
+         * Obtains a service from the collection of dependencies.
+         * @param serviceContract The service contract required by dependency.
+         * @param <S> Type of the service contract.
+         * @return The resolved service; or {@literal null} if it is not available.
+         */
+        public <S> Optional<S> getService(final Class<S> serviceContract) {
+            return getDependency(serviceContract, rs -> rs instanceof RequiredServiceAccessor<?>)
+                    .map(RequiredServiceAccessor.class::cast)
+                    .flatMap(RequiredServiceAccessor::getService);
+        }
 
-            @Override
-            public boolean equals(final Object obj) {
-                if(obj instanceof NamedActivationProperty<?>)
-                    return Objects.equals(propertyName, ((NamedActivationProperty<?>)obj).getName());
-                else return Objects.equals(propertyName, obj);
-            }
-        };
+        public boolean add(@Nonnull final Class<?> serviceType, @Nonnull final BundleContext context) {
+            return add(new SimpleDependency<>(serviceType, context));
+        }
+
+        void unbind(){
+            forEach(RequiredService::unbind);
+        }
+
+
     }
 
     /**
-     * Defines named activation property without default value.
-     * @param propertyName The name of the property.
-     * @param propertyType The type of the property.
-     * @param <T> Type of the property.
-     * @return Named activation property definition.
+     * Represents dependency builder.
      */
-    protected static <T> NamedActivationProperty<T> defineActivationProperty(final String propertyName, final Class<T> propertyType){
-        return defineActivationProperty(propertyName, propertyType, null);
+    @FunctionalInterface
+    public interface SimpleDependencyBuilder{
+        RequiredService<?>[] require(final Class<?>... serviceTypes);
     }
 
     /**
-     * Finds dependency by its required service contract.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @return Search result; or {@literal null} if dependency not found.
+     * Returns empty or array of required services.
+     * @return Empty array of required services.
      */
-    @SuppressWarnings("unchecked")
-    public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final RequiredService<?>... dependencies){
-        return findDependency(serviceContract, Arrays.asList(dependencies));
+    public static RequiredService<?>[] noRequiredServices(){
+        return ArrayUtils.emptyArray(RequiredServiceAccessor[].class);
+    }
+
+    private static RequiredService<?>[] requiredServices(final BundleContext context, final Class<?>... dependencies) {
+        return ArrayUtils.transform(dependencies, RequiredServiceAccessor.class, contract -> new SimpleDependency<>(contract, context));
     }
 
     /**
-     * Finds dependency by its required service contract.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @return Search result; or {@literal null} if dependency not found.
+     * Returns builder for simple set of required services.
+     * @param context Bundle context for each dependency.
+     * @return Builder of required services.
      */
-    @SuppressWarnings("unchecked")
-    public static <S> RequiredService<S> findDependency(final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
-        return findDependency(RequiredService.class, serviceContract, dependencies);
+    public static SimpleDependencyBuilder requiredBy(final BundleContext context){
+        return serviceTypes -> requiredServices(context, serviceTypes);
     }
 
     /**
-     * Obtains a service from the collection of dependencies.
-     * @param descriptor The dependency type that provides direct access to the requested service.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @param <D> Type of the dependency.
-     * @return The resolved service; or {@literal null} if it is not available.
+     * Returns builder for simple set of required services.
+     * @param declaringClass Class in the bundle which declares required services.
+     * @return Builder of required services.
      */
-    public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final RequiredService<?>... dependencies){
-        return getDependency(descriptor, serviceContract, Arrays.asList(dependencies));
+    public static SimpleDependencyBuilder requiredBy(@Nonnull final Class<?> declaringClass){
+        return requiredBy(Utils.getBundleContext(declaringClass));
     }
 
-    /**
-     * Obtains a service from the collection of dependencies.
-     * @param descriptor The dependency type that provides direct access to the requested service.
-     * @param serviceContract The service contract required by dependency.
-     * @param dependencies A collection of dependencies.
-     * @param <S> Type of the service contract.
-     * @param <D> Type of the dependency.
-     * @return The resolved service; or {@literal null} if it is not available.
-     */
-    public static <S, D extends RequiredServiceAccessor<S>> S getDependency(final Class<D> descriptor, final Class<S> serviceContract, final Iterable<RequiredService<?>> dependencies){
-        final D found = findDependency(descriptor, serviceContract, dependencies);
-        return found != null ? found.getService() : null;
-    }
-
-    private final List<RequiredService<?>> bundleLevelDependencies;
+    private final DependencyManager bundleLevelDependencies;
     private final ActivationProperties properties;
-    private ActivationState state;
+    private final AtomicReference<ActivationState> state;
+    private BundleContext context;
 
     /**
      * Initializes a new bundle activator in {@link com.bytex.snamp.core.AbstractBundleActivator.ActivationState#NOT_ACTIVATED} state.
      */
     protected AbstractBundleActivator(){
-        bundleLevelDependencies = new ArrayList<>(5);
-        state = ActivationState.NOT_ACTIVATED;
+        bundleLevelDependencies = new DependencyManager();
+        state = new AtomicReference<>(ActivationState.NOT_ACTIVATED);
         properties = new ActivationProperties();
     }
 
@@ -690,43 +589,40 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @see com.bytex.snamp.core.AbstractBundleActivator.ActivationState
      */
     protected final ActivationState getState(){
-        return state;
+        return state.get();
     }
 
-    private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event){
-        if(state == ActivationState.ACTIVATING) return;
+    private synchronized void serviceChanged(final BundleContext context, final ServiceEvent event) {
+        if (state.get() == ActivationState.ACTIVATING)
+            return;
         int resolvedDependencies = 0;
-        for(final RequiredService<?> dependency: bundleLevelDependencies) {
-            dependency.processServiceEvent(context, event.getServiceReference(), event.getType());
-            if(dependency.isResolved()) resolvedDependencies += 1;
-        }
-        switch (state){
+        for (final RequiredService<?> dependency : bundleLevelDependencies)
+            if(dependency.processServiceEvent(event.getServiceReference(), event.getType()))
+                resolvedDependencies += 1;
+        switch (state.get()) {
             case ACTIVATED: //dependency lost but bundle is activated
-                if(resolvedDependencies != bundleLevelDependencies.size())
+                if (resolvedDependencies != bundleLevelDependencies.size()) {
+                    state.set(ActivationState.DEACTIVATING);
                     try {
-                        state = ActivationState.DEACTIVATING;
                         deactivateInternal(context, properties);
-                    }
-                    catch (final Exception e) {
+                    } catch (final Exception e) {
                         deactivationFailure(e, properties);
+                    } finally {
+                        state.set(ActivationState.NOT_ACTIVATED);
                     }
-                    finally {
-                        state = ActivationState.NOT_ACTIVATED;
-                    }
+                }
                 return;
             case NOT_ACTIVATED:    //dependencies resolved but bundle is not activated
-                if(resolvedDependencies == bundleLevelDependencies.size())
+                if (resolvedDependencies == bundleLevelDependencies.size()) {
+                    state.set(ActivationState.ACTIVATING);
                     try {
-                        state = ActivationState.ACTIVATING;
-                        activate(context,
-                                properties,
-                                bundleLevelDependencies.toArray(new RequiredService<?>[resolvedDependencies]));
-                        state = ActivationState.ACTIVATED;
-                    }
-                    catch (final Exception e) {
+                        activate(context, properties, bundleLevelDependencies);
+                        state.set(ActivationState.ACTIVATED);
+                    } catch (final Exception e) {
                         activationFailure(e, properties);
-                        state = ActivationState.NOT_ACTIVATED;
+                        state.set(ActivationState.NOT_ACTIVATED);
                     }
+                }
         }
     }
 
@@ -737,8 +633,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void serviceChanged(final ServiceEvent event) {
-        final BundleContext context = getBundleContextOfObject(this);
-        try(final LogicalOperation ignored = BundleLogicalOperation.processServiceChanged(getLogger(), context)) {
+        final BundleContext context = this.context;
+        if(context != null)
+        try(final LoggingScope ignored = BundleLoggingScope.processServiceChanged(this)) {
             serviceChanged(context, event);
         }
     }
@@ -750,7 +647,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void start(final BundleContext context) throws Exception {
-        try (final LogicalOperation ignored = BundleLogicalOperation.startBundle(getLogger(), context)) {
+        this.context = context;
+        try (final LoggingScope ignored = BundleLoggingScope.startBundle(this)) {
             start(context, bundleLevelDependencies);
             final DependencyListeningFilterBuilder filter = new DependencyListeningFilterBuilder();
             //try to resolve bundle-level dependencies immediately
@@ -764,21 +662,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
     }
 
-    private static void unregister(final BundleContext context, final Collection<RequiredService<?>> dependencies){
-        dependencies.forEach(dependency -> dependency.unbind(context));
-    }
-
     private void deactivateInternal(final BundleContext context, final ActivationPropertyReader activationProperties) throws Exception {
-        unregister(context, bundleLevelDependencies);
+        bundleLevelDependencies.unbind();
         deactivate(context, activationProperties);
-    }
-
-    /**
-     * Gets logger associated with this activator.
-     * @return The logger associated with this activator.
-     */
-    protected Logger getLogger(){
-        return Logger.getLogger(getClass().getName());
     }
 
     /**
@@ -788,12 +674,10 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     @Override
     public final void stop(final BundleContext context) throws Exception {
-        try (final LogicalOperation ignored = BundleLogicalOperation.stopBundle(getLogger(), context)) {
+        try (final LoggingScope ignored = BundleLoggingScope.stopBundle(this)) {
             context.removeServiceListener(this);
-            if (state == ActivationState.ACTIVATED) {
-                state = ActivationState.DEACTIVATING;
+            if (state.compareAndSet(ActivationState.ACTIVATED, ActivationState.DEACTIVATING))
                 deactivateInternal(context, getActivationProperties());
-            }
             try {
                 shutdown(context);
             } finally {
@@ -801,6 +685,9 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                 bundleLevelDependencies.clear();
                 properties.clear();
             }
+        } finally {
+            state.set(ActivationState.NOT_ACTIVATED);
+            this.context = null;
         }
     }
 
@@ -810,7 +697,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
      * @throws Exception An exception occurred during starting.
      */
-    protected abstract void start(final BundleContext context, final Collection<RequiredService<?>> bundleLevelDependencies) throws Exception;
+    protected abstract void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception;
 
     /**
      * Activates the bundle.
@@ -819,17 +706,18 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @param context The execution context of the bundle being activated.
      * @param activationProperties A collection of bundle's activation properties to fill.
-     * @param dependencies A collection of resolved dependencies.
+     * @param dependencies A set of dependencies resolved by this activator.
      * @throws Exception An exception occurred during activation.
      */
-    protected abstract void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, RequiredService<?>... dependencies) throws Exception;
+    protected abstract void activate(final BundleContext context,
+                                     final ActivationPropertyPublisher activationProperties,
+                                     final DependencyManager dependencies) throws Exception;
 
     /**
-     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, com.bytex.snamp.core.AbstractBundleActivator.ActivationPropertyPublisher, com.bytex.snamp.core.AbstractBundleActivator.RequiredService[])}  method.
+     * Handles an exception thrown by {@link #activate(org.osgi.framework.BundleContext, ActivationPropertyPublisher, DependencyManager)}  method.
      * @param e An exception to handle.
      * @param activationProperties A collection of activation properties to read.
      */
-    @SuppressWarnings("UnusedParameters")
     @MethodStub
     protected void activationFailure(final Exception e, final ActivationPropertyReader activationProperties){
 
@@ -840,7 +728,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param e An exception to handle.
      * @param activationProperties A collection of activation properties to read.
      */
-    @SuppressWarnings("UnusedParameters")
     @MethodStub
     protected void deactivationFailure(final Exception e, final ActivationPropertyReader activationProperties){
 
@@ -881,8 +768,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @return The value of the requested property, or {@code null} if the
      *         property is undefined.
      **/
-    protected final String getFrameworkProperty(final String propertyName){
-        return getBundleContextOfObject(this).getProperty(propertyName);
+    protected final String getFrameworkProperty(final String propertyName) {
+        return Optional.ofNullable(context).map(context -> context.getProperty(propertyName)).orElse(null);
     }
 
     /**
@@ -916,13 +803,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                         .collect(Collectors.toList()));
             }
 
-            public Object get(final String key){
+            private Object get(final String key){
                 return reference.getProperty(key);
             }
 
             @Override
             public Object get(final Object key) {
-                return key instanceof String ? get((String)key) : null;
+                return get(Convert.toType(key, String.class).orElseThrow(ClassCastException::new));
             }
 
             @Override

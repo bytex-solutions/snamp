@@ -45,6 +45,7 @@ securityContext | String | No | Context name of the scoped PDU (for SNMPv3 only)
 socketTimeout | Integer | No | UDP socket timeout, in millis. It is used as a maximum time interval for receiving and sending PDU packets over network. TIt must be specified if your network has high latency | `2000`
 localAddress | `udp://<ip-address>/<port>` | No | UDP outgoing address and port. Usually, you should not specify this parameter. But it is useful for testing purposes when you QA team wants to capture data packet traces between SNAMP and SNMP agent | `udp://127.0.0.1/44495`
 smartMode | Boolean | No | Enables or disables smart mode | `true`
+discoveryTimeout | Integer | No | Timeout value (in millis) used when walking through available OIDs. Walking will be performed while using discovery functionality or smart mode | `5000`
 
 Note that parameters related to thread pool are omitted. See **SNAMP Configuration Guide** page for more information about thread pool configuration. All other parameters will be ignored.
 
@@ -120,31 +121,11 @@ Each event configured in JMX Resource Connector has following configuration sche
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 severity | String | No | Overrides severity level of the emitted notification | `warning`
-messageTemplate | String | No | Message template used to convert SNMP trap into its textual representation (not compatible with `messageOID` parameter) | `Hello from {1.0} object. ID is {2.0}`
 messageOID | OID | No | Message OID postfix which contains the notification message text | `1.1.2.0`
 
-If `messageTemplate` and `messageOID` parameters are not specified then notification message will be constructed using concatenation of all variables in the Trap.
+If `messageOID` parameter are not specified then notification message will be constructed using concatenation of all variables in the Trap.
 
-All variables will be placed into `userData` part of the SNMP Notification. Mapping between ASN.1 and SNAMP Management Information Model will be performed according with table described in **Configuring attributes** section.
-
-### Message template
-SNMP Traps doesn' contain human-readable message implicitly. But it is possible to construct this message using textual pattern.
-
-Each SNMP variable binding in the Trap is identified by its unique OID. This variable can be placed into the textual pattern instead of `{O.I.D}` placeholder. For example, SNMP Trap consits of the following variables:
-```
-OID(1.1) = OCTET_STRING('Hello')
-OID(1.2) = INTEGER32(42)
-```
-
-`messageTemplate` is specified as follows:
-```
-{1.1} associated with {1.2}
-```
-
-Final human-readable message placed into SNAMP Notification:
-```
-Hello associated with 42
-```
+All variables will be placed into `userData` part of the SNMP Notification and can be transmitted by gateway to external monitoring tool or re-transmitted by SNMP Gateway to another receiver.
 
 ### Message OID
 There is an alternative way to extract human-readable message from SNMP Trap using `messageOID` configuration parameter. This parameter must contain OID of the variable in the Trap that will be interpreted as a textual message. For example, SNMP Trap consits of the following variables:
@@ -168,13 +149,3 @@ SNMP Resource Connector provides support of Smart mode. Ot means that the connec
 > Information about SNMP Traps cannot be discovered automatically so you need to configure events manually
 
 It discovers all available managed objects using SNMP walk mechanism. Each object with its OID will be registered in the connector automatically. OID of the managed object will be used as user-defined name of the attribute.
-
-## System-level configuration parameters
-These parameters can be specified at JVM level and affects all instances of SNMP Resource Connector:
-
-Parameter | Type | Required | Meaning | Example
----- | ---- | ---- | ---- | ----
-com.bytex.snamp.connectors.snmp.discoveryTimeout | Integer | No | Timeout value (in millis) used when walking through available OIDs. Walking will be performed while using discovery functionality or smart mode | `3000`
-
-## Clustering
-Only SNAMP active node with SNMP Resource Connector routes SNMP traps to the adapters.

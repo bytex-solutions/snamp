@@ -6,52 +6,30 @@ import org.junit.Test;
 import java.math.BigInteger;
 
 /**
- * Represents tests for {@link LazyValue}.
+ * Represents tests for {@link LazyStrongReference} and {@link LazySoftReference}.
  */
 public final class LazyValueTest extends Assert {
-    @Test(expected = IllegalStateException.class)
-    public void illegalStateTest(){
-        final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_SAFE.of(() -> BigInteger.TEN);
-        assertFalse(lazy.isActivated());
-        lazy.getIfActivated();
-    }
-
     @Test
     public void strongReferenceTest() throws Exception{
-        final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_SAFE.of(() -> BigInteger.TEN);
-        assertFalse(lazy.isActivated());
-        assertEquals(BigInteger.TEN, lazy.get());
-        assertTrue(lazy.isActivated());
-        assertEquals(BigInteger.TEN, lazy.get(() -> BigInteger.ONE));
-        lazy.reset(value -> assertEquals(BigInteger.TEN, value));
-        assertFalse(lazy.isActivated());
-        assertEquals(BigInteger.ZERO, lazy.get(() -> BigInteger.ZERO));
+        final LazyStrongReference<BigInteger> lazy = new LazyStrongReference<>();
+        assertNull(lazy.get());
+        assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.TEN));
+        assertNotNull(lazy.get());
+        assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.ONE));
+        lazy.reset();
+        assertEquals(BigInteger.ZERO, lazy.lazyGet(() -> BigInteger.ZERO));
         assertEquals(BigInteger.ZERO, lazy.get());
     }
 
     @Test
     public void softReferenceTest() throws Exception{
-        final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_SAFE_SOFT_REFERENCED.of(() -> BigInteger.TEN);
-        assertFalse(lazy.isActivated());
-        assertEquals(BigInteger.TEN, lazy.get());
-        assertTrue(lazy.isActivated());
-        assertEquals(BigInteger.TEN, lazy.get(() -> BigInteger.ONE));
-        lazy.reset(value -> assertEquals(BigInteger.TEN, value));
-        assertFalse(lazy.isActivated());
-        assertEquals(BigInteger.ZERO, lazy.get(() -> BigInteger.ZERO));
-        assertEquals(BigInteger.ZERO, lazy.get());
-    }
-
-    @Test
-    public void threadUnsafeTest() throws Exception{
-        final LazyValue<BigInteger> lazy = LazyValueFactory.THREAD_UNSAFE.of(() -> BigInteger.TEN);
-        assertFalse(lazy.isActivated());
-        assertEquals(BigInteger.TEN, lazy.get());
-        assertTrue(lazy.isActivated());
-        assertEquals(BigInteger.TEN, lazy.get(() -> BigInteger.ONE));
-        lazy.reset(value -> assertEquals(BigInteger.TEN, value));
-        assertFalse(lazy.isActivated());
-        assertEquals(BigInteger.ZERO, lazy.get(() -> BigInteger.ZERO));
-        assertEquals(BigInteger.ZERO, lazy.get());
+        final LazySoftReference<BigInteger> lazy = new LazySoftReference<>();
+        assertNull(lazy.get());
+        assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.TEN));
+        assertNotNull(lazy.get());
+        assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.ONE));
+        lazy.reset();
+        assertEquals(BigInteger.ZERO, lazy.lazyGet(() -> BigInteger.ZERO));
+        assertEquals(BigInteger.ZERO, lazy.get().get());
     }
 }

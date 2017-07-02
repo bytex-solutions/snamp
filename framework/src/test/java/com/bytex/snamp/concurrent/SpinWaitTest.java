@@ -7,7 +7,8 @@ import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.bytex.snamp.concurrent.SpinWait.*;
+import static com.bytex.snamp.concurrent.SpinWait.until;
+import static com.bytex.snamp.concurrent.SpinWait.untilNull;
 
 /**
  *
@@ -19,14 +20,14 @@ public final class SpinWaitTest extends Assert {
     @Test
     public void spinUntilTest() throws TimeoutException, InterruptedException {
         final AtomicInteger counter = new AtomicInteger(-100);
-        spinUntil(() -> counter.incrementAndGet() < 0, Duration.ofSeconds(1));
+        until(() -> counter.incrementAndGet() < 0, Duration.ofSeconds(1));
         assertEquals(0, counter.get());
     }
 
     @Test
     public void spinUntilNullTest() throws Exception {
         final AtomicInteger counter = new AtomicInteger(-100);
-        final Object result = spinUntilNull(() -> counter.incrementAndGet() == 0 ? new Object() : null, Duration.ofSeconds(1));
+        final Object result = SpinWait.untilNull(() -> counter.incrementAndGet() == 0 ? new Object() : null, Duration.ofSeconds(1));
         assertNotNull(result);
         assertEquals(0, counter.get());
     }
@@ -34,7 +35,7 @@ public final class SpinWaitTest extends Assert {
     @Test
     public void spinUntilNullTest2() throws Exception {
         final AtomicInteger counter = new AtomicInteger(-100);
-        final Object result = spinUntilNull(counter, c -> c.incrementAndGet() == 0 ? new Object() : null, Duration.ofSeconds(1));
+        final Object result = SpinWait.untilNull(counter, c -> c.incrementAndGet() == 0 ? new Object() : null, Duration.ofSeconds(1));
         assertNotNull(result);
         assertEquals(0, counter.get());
     }
@@ -42,7 +43,7 @@ public final class SpinWaitTest extends Assert {
     @Test
     public void spinUntilNullTest3() throws Exception {
         final AtomicInteger counter = new AtomicInteger(-100);
-        final Object result = spinUntilNull(counter, new Object(), (c, r) -> c.incrementAndGet() == 0 ? r : null, Duration.ofSeconds(1));
+        final Object result = untilNull(counter, new Object(), (c, r) -> c.incrementAndGet() == 0 ? r : null, Duration.ofSeconds(1));
         assertNotNull(result);
         assertEquals(0, counter.get());
     }

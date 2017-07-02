@@ -2,19 +2,31 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.Internal;
-import java.util.logging.Logger;
+import com.google.common.collect.ImmutableMap;
+
+import javax.annotation.Nonnull;
+import java.util.Map;
 
 /**
  * Represents a root interface for all SNAMP framework services.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @Internal
 public interface FrameworkService extends Aggregator {
     /**
-     * Gets logger associated with this service.
-     * @return The logger associated with this service.
+     * Represents category of the service.
      */
-    Logger getLogger();
+    String CATEGORY_PROPERTY = "category";
+
+    /**
+     * Gets runtime configuration of this service.
+     * @return Runtime configuration of this service.
+     * @implSpec Returning map is always immutable.
+     */
+    @Nonnull
+    default Map<String, ?> getConfiguration(){
+        return ImmutableMap.of();
+    }
 }

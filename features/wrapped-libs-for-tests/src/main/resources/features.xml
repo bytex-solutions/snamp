@@ -1,16 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="wrapped-bundles">
-    <feature name="${project.artifactId}" description="Repackaged libraries as Apache Karaf Features" version="1.0.0">
-        <details>Repackaged libraries as Apache Karaf Features</details>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="wrapped-bundles">
+    <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
+    <feature name="${project.artifactId}" description="Repackaged libraries as Apache Karaf Features" version="2.0.0" install="auto">
+        <feature prerequisite="true">wrap</feature>
         <bundle>wrap:mvn:org.apache.directory.server/apacheds-all/2.0.0-M16$Export-Package=org.apache.directory.*;version="2.0.0.16"</bundle>
-        <bundle>mvn:io.netty/netty/3.10.0.Final</bundle>
-        <bundle>mvn:com.ning/async-http-client/1.9.5</bundle>
-        <bundle>wrap:mvn:org.atmosphere/wasync/2.0.0$Export-Package=org.atmosphere.wasync.*;version="2.0.0"</bundle>
+        <bundle>wrap:mvn:org.apache.mina/mina-core/2.0.4</bundle>
         <bundle>wrap:mvn:org.apache.vysper/vysper-core/0.7$Export-Package=org.apache.vysper.*;version="0.7"</bundle>
         <bundle>wrap:mvn:org.apache.vysper.extensions/xep0045-muc/0.7$Export-Package=org.apache.vysper.xmpp.modules.extension.xep0045_muc.*;version="0.7"</bundle>
         <bundle>wrap:mvn:org.apache.vysper/nbxml/0.7$Export-Package=org.apache.vysper.xml.*;version="0.7",org.apache.vysper.charset.*;version="0.7"</bundle>
+        <bundle>mvn:org.eclipse.jetty/jetty-util/${jetty.version}</bundle>
+        <bundle>mvn:org.eclipse.jetty/jetty-io/${jetty.version}</bundle>
+        <bundle>mvn:org.eclipse.jetty.websocket/websocket-client/${jetty.version}</bundle>
         <bundle>wrap:mvn:commons-lang/commons-lang/2.5$Export-Package=org.apache.commons.lang.*;version="2.5"</bundle>
         <bundle>wrap:mvn:commons-codec/commons-codec/1.10$Export-Package=org.apache.commons.codec.*;version="1.10"</bundle>
         <bundle>wrap:mvn:commons-io/commons-io/2.4$Export-Package=org.apache.commons.io.*;version="2.4"</bundle>
+        <bundle>mvn:io.zipkin.java/zipkin/1.16.2</bundle>
+        <bundle>mvn:io.zipkin.reporter/zipkin-reporter/0.6.9</bundle>
+        <bundle>wrap:mvn:org.apache.kafka/kafka-clients/0.8.2.2$Export-Package=org.apache.kafka.*;version="0.8.2.2"</bundle>
+        <bundle>mvn:io.zipkin.reporter/zipkin-sender-urlconnection/0.6.9</bundle>
+        <bundle>mvn:io.zipkin.reporter/zipkin-sender-kafka08/0.6.9</bundle>
+        <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
+        <bundle>mvn:com.bytex.snamp.instrumentation/http-reporter/${snamp.instrumentation.version}</bundle>
+        <bundle>wrap:mvn:com.icegreen/greenmail/1.5.5$Export-Package=com.icegreen.greenmail.util.*;version="1.5.5",com.icegreen.greenmail.smtp.*;version="1.5.5"</bundle>
     </feature>
 </features>

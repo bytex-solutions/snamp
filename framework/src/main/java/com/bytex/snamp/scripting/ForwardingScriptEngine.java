@@ -7,6 +7,7 @@ import java.io.Reader;
 
 abstract class ForwardingScriptEngine extends ForwardingObject implements ScriptEngine{
 
+    @Override
     protected abstract ScriptEngine delegate();
 
     @Override
@@ -60,7 +61,9 @@ abstract class ForwardingScriptEngine extends ForwardingObject implements Script
     }
 
     @Override
-    public abstract ScriptEngineFactory getFactory();
+    public ScriptEngineFactory getFactory(){
+        return delegate().getFactory();
+    }
 
     @Override
     public void put(final String key, final Object value) {

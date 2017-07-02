@@ -1,0 +1,32 @@
+<div class="right_col" role="main" style="min-height: 949px;">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Resource groups statuses</h3>
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row" style="margin-top: 90px">
+
+      <panel [header]="'Statuses of groups'" [column]="'12'" *ngIf="statuses && statuses.length > 0">
+
+        <a *ngFor="let status of statuses"
+           class="grid-item-link pointerElement"
+           (click)="showDetails(status)">
+
+          <div
+                   [class.componentError]="status.code != 0"
+                   [class.componentOk]="status.code == 0"
+                   class="grid-item"
+                   [tooltip]="status.details()">
+            <h5 class="name">{{status.name}}</h5>
+            <p class="symbol">{{status.resourceName}}</p>
+            <p class="weight" *ngIf="status.code != 0">{{status.getShortDescription()}}</p>
+          </div>
+        </a>
+      </panel>
+     </div>
+  </div>
+</div>

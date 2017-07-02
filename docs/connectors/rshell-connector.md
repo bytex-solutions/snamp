@@ -23,13 +23,18 @@ This connector uses one of the supported protocols to execute a process (local o
 
 Also, you can execute any `bash` or `powershell` script and expose its result as an attribute.
 
-> RShell Connector doesn't support notifications
+Short list of supported features:
 
-Details of this connector operating are hidden in the XML-based `Tool Profile` (or Command-line tool profile). Tool Profile (TP) is XML file that describes how to parse output from process and prepare input from SNAMP. You can use following instruments for text parsing:
+Feature | Comments
+---- | ----
+Attributes | Transforming STDOUT into attribute values and STDIN to set attribute values
+Operations | Transforming operation context into STDIN for external process
+
+Details of this connector operating are hidden in the XML-based `Tool Profile` (or Command-line tool profile). Tool Profile (TP) is XML file that describes how to parse STDOUT from process and prepare input from SNAMP. You can use following instruments for text parsing:
 
 * Regular expressions
 * JavaScript
-* [StringTemplate](http://www.stringtemplate.org/) - template for tool STDIN
+* [StringTemplate](http://www.stringtemplate.org/) - template for tool to parse STDIN
 
 ## Connection String
 Connection string specifies protocol and the host name:
@@ -75,20 +80,29 @@ password | String | No | Password of the user on the remote machine | `qwerty`
 fingerprint | String | No | Fingerprint of the key | `e8:0d:af:84:bb:ec:05:03:b9:7c:f3:75:19:5a:2a:63`
 
 ## Configuring attributes
-Behaviour of each configured attribute described in the XML file called Command-Line Tool Profile. So, each reading and writing operation under the attribute executes the external program.
+Behavior of each configured attribute described in the XML file called **Command-Line Tool Profile**. So, each reading and writing operation under the attribute executes the external program.
 
 Use the following attribute configuration scheme:
 
-* `Name` - full path to the Command-Line Tool Profile. You can use `name` configuration parameter to specify path to Profile.
+* _Name_ - full path to the Command-Line Tool Profile. It is possible to use `name` configuration parameter to specify path to Profile.
 * Any configuration parameter will be visible to STDIN template specified in the Command-Line Tool Profile
+
+## Configuring operations
+Behavior of each configured operation described in the XML file called **Command-Line Tool Profile**. So, each invocation of the operation executes the external program.
+
+Use the following operation configuration scheme:
+* _Name_ - full path to he Command-Line Tool Profile. It is possible to use `name` configuration parameter to specify path to Profile.
+* Any configuration parameter will be visible to STDIN template specified in the Command-Line Tool Profile
+
+Operation utilize only `reader` section of the profile. `writer` section will be ignored.
 
 ## Command-line tool profile
 Tool Profile is an XML file that describes following aspects of the textual stream parsing and formatting.
 
-* **Attribute Reader definition** - describes how to execute command-line program when reading the attribute value. If this section is omitted then attribute is write-only
+* **Reader definition** - describes how to execute command-line program when reading the attribute value or operation result. If this section is omitted then attribute is write-only
   * _Input section_ - how to construct command-line (STDIN). Template can be constructed using [StringTemplate](http://www.stringtemplate.org/) syntax
   * _Output section_ - how to parse STDOUT from program. Parser can be described in declarative DSL using XML tags from `http://snamp.bytex.solutions/schemas/command-line-tool-profile/v1.0` namespace. Additionally, you can mix declarative syntax with regular expressions and JavaScript code.
-* **Attribute Writer definition** - describes how to execute command-line program when writing the attribute value. If this section is omitted then attribute is read-only
+* **Writer definition** - describes how to execute command-line program when writing the attribute value. If this section is omitted then attribute is read-only. Operation doesn't use this section.
   * _Input section_ - how to construct command-line (STDIN). Template can be constructed using [StringTemplate](http://www.stringtemplate.org/) syntax
   * _Output section_ can be omitted
 
@@ -235,7 +249,6 @@ Supported values of `language` attribute:
 
 * `regexp` - regular expressions used as a parsing language
 * `JavaScript` - JS used as a parsing language
-* _Any JSR-223_ compliant scripting language installed into JVM globally
 
 There are several special global variables available for parsing script (except `regexp`):
 

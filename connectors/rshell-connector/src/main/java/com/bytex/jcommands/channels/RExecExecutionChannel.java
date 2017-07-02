@@ -14,10 +14,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static com.bytex.snamp.MapUtils.*;
+
 /**
  * Represents execution channel that uses rexec protocol.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class RExecExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel, SafeCloseable {
@@ -35,8 +37,8 @@ public final class RExecExecutionChannel extends HashMap<String, String> impleme
 
     public RExecExecutionChannel(final URI connectionString, final Map<String, String> params) {
         this(params);
-        put(REMOTE_HOST_PROPERTY, connectionString.getHost());
-        put(REMOTE_PORT_PROPERTY, Integer.toString(connectionString.getPort()));
+        putValue(this, REMOTE_HOST_PROPERTY, connectionString, URI::getHost);
+        putIntValue(this, REMOTE_PORT_PROPERTY, connectionString.getPort(), Integer::toString);
     }
 
     /**
@@ -84,8 +86,7 @@ public final class RExecExecutionChannel extends HashMap<String, String> impleme
     @Override
     public <I, O, E extends Exception> O exec(final ChannelProcessor<I, O, E> command, final I input) throws IOException, E {
         final RExecClient client = new RExecClient();
-        client.connect(get(REMOTE_HOST_PROPERTY),
-                containsKey(REMOTE_PORT_PROPERTY) ? Integer.parseInt(get(REMOTE_HOST_PROPERTY)) : DEFAULT_PORT);
+        client.connect(get(REMOTE_HOST_PROPERTY), getValueAsInt(this, REMOTE_PORT_PROPERTY, Integer::parseInt).orElse(DEFAULT_PORT));
         try {
             client.rexec(get(LOCAL_USER_PROPERTY), get(PASSWORD_PROPERTY), command.renderCommand(input, this), true);
             final String result = IOUtils.readFully(client.getInputStream()).toString("UTF-8");

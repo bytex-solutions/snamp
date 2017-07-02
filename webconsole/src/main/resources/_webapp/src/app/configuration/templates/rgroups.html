@@ -1,0 +1,150 @@
+<div class="right_col" role="main" style="min-height: 949px;">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>Resource group configuration</h3>
+      </div>
+
+      <div class="title_right">
+        <div class="col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search">
+          <div class="row">
+            <div class="col-md-3">
+              <h5>Choose group</h5>
+            </div>
+            <div class="col-md-6">
+              <select
+                id="resourceSelection"
+                class="select2_group form-control">
+                <optgroup label="Resources" *ngIf="resources.length > 0">
+                  <option
+                    *ngFor="let resource of resources"
+                    [value]="resource.name">
+                    {{resource.name}}
+                  </option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <newEntity
+                [entities]="resources"
+                (onSave)="initSelectionComponent()"
+                [type]="'resourceGroup'">
+              </newEntity>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="row" style="margin-top: 30px" *ngIf="resources && resources.length > 0 && activeResource != undefined">
+
+      <div class="col-md-8 leftAlign">
+
+        <div class="row">
+          <panel [header]="'Resource type'" [column]="'6'">
+            <select disabled
+                    id="entityType"
+                    [(ngModel)]="activeResource.type"
+                    (change)="changeType($event)"
+                    style="height: auto;"
+                    class="form-control">
+              <option
+                *ngFor="let resource of availableResources"
+                [value]="resource.type">
+                {{resource.name}}
+              </option>
+            </select>
+          </panel>
+
+        </div>
+
+        <div class="row">
+          <panel [header]="'Parameters'" [column]="'12'">
+            <parameters [entity]="activeResource"></parameters>
+          </panel>
+        </div>
+
+      </div>
+
+      <div class="col-md-4">
+        <div class="row">
+
+          <div class="col-md-12">
+            <panel [header]="'Entities'" [column]="'12'">
+              <div class="row">
+                <div class="col-md-12">
+                  <div
+                    class="panel-group group-accordeon"
+                    id="accordionBindings"
+                    role="tablist"
+                    aria-multiselectable="true">
+                    <div class="panel panel-default">
+                      <div class="panel-heading" role="tab" id="headingOne">
+                        <h4 class="panel-title">
+                          <a role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseAttributes" aria-expanded="true" aria-controls="collapseAttributes">
+                            Attributes
+                          </a>
+                        </h4>
+                      </div>
+                      <div id="collapseAttributes" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                        <div class="panel-body">
+                          <resourceEntity
+                            [entities]="activeResource.attributes"
+                            [entityType]="'attribute'"
+                            [resource]="activeResource">
+                          </resourceEntity>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="panel panel-default">
+                      <div class="panel-heading" role="tab" id="headingTwo">
+                        <h4 class="panel-title">
+                          <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents">
+                            Events
+                          </a>
+                        </h4>
+                      </div>
+                      <div id="collapseEvents" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                        <div class="panel-body">
+                          <resourceEntity
+                            [entities]="activeResource.events"
+                            [entityType]="'event'"
+                            [resource]="activeResource">
+                          </resourceEntity>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="panel panel-default">
+                      <div class="panel-heading" role="tab" id="headingThree">
+                        <h4 class="panel-title">
+                          <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionBindings" href="#collapseOperations" aria-expanded="false" aria-controls="collapseOperations">
+                            Operations
+                          </a>
+                        </h4>
+                      </div>
+                      <div id="collapseOperations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                        <div class="panel-body">
+                          <resourceEntity
+                            [entities]="activeResource.operations"
+                            [entityType]="'operation'"
+                            [resource]="activeResource">
+                          </resourceEntity>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </panel>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>

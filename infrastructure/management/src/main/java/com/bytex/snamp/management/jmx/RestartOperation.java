@@ -1,12 +1,13 @@
 package com.bytex.snamp.management.jmx;
 
 import com.bytex.snamp.jmx.OpenMBean;
+import com.bytex.snamp.management.DefaultSnampManager;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
- * The type Restart operation.
+ * Restart all SNAMP components inside of Karaf container.
  * @author Evgeniy Kirichenko
  */
 final class RestartOperation extends OpenMBean.OpenOneWayOperation {
@@ -22,6 +23,6 @@ final class RestartOperation extends OpenMBean.OpenOneWayOperation {
 
     @Override
     public void invoke() throws Exception {
-        SnampManagerImpl.restart(getBundleContextOfObject(this));
+        DefaultSnampManager.restart(getBundleContextOfObject(this));
     }
 }

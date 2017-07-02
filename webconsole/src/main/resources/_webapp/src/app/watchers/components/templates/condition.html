@@ -1,0 +1,53 @@
+<div class="item form-inline" style="margin-bottom: 15px;">
+    <label
+            class="control-label col-md-3 col-sm-3 col-xs-12"
+            style="margin-top: 7px;">
+        Type of condition <span class="required">*</span>
+    </label>
+    <select class="form-control" [(ngModel)]="entityType" (ngModelChange)="onTypeChange($event)">
+        <option *ngFor="let type of conditionsType" [ngValue]="type.id">{{type.description}}</option>
+    </select>
+</div>
+
+<div *ngIf="isConstantType()">
+    <div class="item form-inline">
+        <label
+                class="custom-control col-md-3 col-sm-3 col-xs-8"
+                style="margin-top: 7px;">
+            Value is <span class="required">*</span>
+        </label>
+        <select class="form-control col-md-1 col-sm-1 col-xs-4" [(ngModel)]="entity.value" (ngModelChange)="onAnyChange()">
+            <option *ngFor="let exp of constantExpressions" [ngValue]="exp.id">{{exp.description}}</option>
+        </select>
+    </div>
+</div>
+
+<div *ngIf="isOperatorType()">
+    <div class="item form-inline">
+        <label
+                class="col-md-2 col-sm-2 col-xs-5"
+                style="margin-top: 7px;">
+            Value
+        </label>
+        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.operator" (ngModelChange)="onAnyChange()">
+            <option *ngFor="let operator of operators" [ngValue]="operator.id">{{operator.description}}</option>
+        </select>
+        <input type="number" class="form-control col-md-offset-1 col-md-3 col-sm-3 col-xs-6" [(ngModel)]="entity.value" (ngModelChange)="onAnyChange()"/>
+    </div>
+</div>
+
+<div *ngIf="isRangeType()">
+    <div class="item form-inline">
+        <input type="number" class="form-control col-md-2 col-sm-2 col-xs-2" [(ngModel)]="entity.rangeEnd" (ngModelChange)="onAnyChange()"/>
+        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeEndInclusive" (ngModelChange)="onAnyChange()">
+            <option *ngFor="let operator of rangeOperators" [ngValue]="operator.id">{{operator.description}}</option>
+        </select>
+        <label class="control-label col-md-1 col-sm-1 col-xs-1" style="margin-top: 7px;">
+            value
+        </label>
+        <select class="form-control col-md-1 col-sm-1 col-xs-1" [(ngModel)]="entity.isRangeStartInclusive" (ngModelChange)="onAnyChange()">
+            <option *ngFor="let operator of rangeOperators" [ngValue]="operator.id">{{operator.description}}</option>
+        </select>
+        <input type="number" class="form-control col-md-2 col-sm-2 col-xs-2" [(ngModel)]="entity.rangeStart" (ngModelChange)="onAnyChange()"/>
+    </div>
+</div>

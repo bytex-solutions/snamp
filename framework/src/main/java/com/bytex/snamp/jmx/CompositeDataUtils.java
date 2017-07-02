@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationHandler;
@@ -18,11 +17,14 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static com.bytex.snamp.ArrayUtils.emptyArray;
+import static com.bytex.snamp.internal.Utils.callAndWrapException;
+
 /**
  * Provides helper methods that allows to create and
  * manipulate of {@link javax.management.openmbean.CompositeData} instances.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 public final class CompositeDataUtils {
@@ -99,7 +101,7 @@ public final class CompositeDataUtils {
                                        final Map<String, ?> map,
                                        final Function<? super String, ? extends OpenType<?>> typeProvider,
                                        final Function<String, String> descriptionProvider) throws OpenDataException {
-        final String[] itemNames = map.keySet().stream().toArray(String[]::new);
+        final String[] itemNames = map.keySet().toArray(emptyArray(String[].class));
         final String[] itemDescriptions = map.keySet().stream().map(descriptionProvider).toArray(String[]::new);
         final OpenType<?>[] itemTypes = new OpenType<?>[itemNames.length];
         for (int i = 0; i < itemTypes.length; i++)
@@ -256,12 +258,7 @@ public final class CompositeDataUtils {
         //convert to Java Bean class
         else {
             final B result = beanType.newInstance();
-            final BeanInfo metadata;
-            try {
-                metadata = Introspector.getBeanInfo(beanType, CompositeDataBean.class);
-            } catch (IntrospectionException e) {
-                throw new ReflectiveOperationException(e);
-            }
+            final BeanInfo metadata = callAndWrapException(() -> Introspector.getBeanInfo(beanType, CompositeDataBean.class), ReflectiveOperationException::new);
             for (final PropertyDescriptor descriptor : metadata.getPropertyDescriptors())
                 if (data.containsKey(descriptor.getName()))
                     descriptor.getWriteMethod().invoke(result, data.get(descriptor.getName()));
@@ -290,13 +287,7 @@ public final class CompositeDataUtils {
         }
         else if(type == null) throw new NullPointerException("type is null.");
         else {
-            final BeanInfo metadata;
-            try{
-                metadata = Introspector.getBeanInfo(beanInstance.getClass(), Object.class);
-            }
-            catch (final IntrospectionException e){
-                throw new ReflectiveOperationException(e);
-            }
+            final BeanInfo metadata = callAndWrapException(() -> Introspector.getBeanInfo(beanInstance.getClass(), Object.class), ReflectiveOperationException::new);
             final PropertyDescriptor[] properties = metadata.getPropertyDescriptors();
             final Map<String, Object> entries = Maps.newHashMapWithExpectedSize(properties.length);
             for(final PropertyDescriptor descriptor: properties) {

@@ -1,40 +1,46 @@
 package com.bytex.jcommands.impl;
 
 import com.bytex.jcommands.ChannelProcessor;
-import com.bytex.snamp.ThreadSafe;
+import org.antlr.runtime.tree.Tree;
 import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.adaptors.CompositeDataAdaptor;
+import org.stringtemplate.v4.compiler.CompiledST;
+import org.stringtemplate.v4.compiler.STLexer;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.xml.bind.annotation.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+
+import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.*;
 
 /**
  * Represents XML-serializable template of the command-line tool.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 @XmlRootElement(name = "template", namespace = XmlConstants.NAMESPACE)
 @XmlType(namespace = XmlConstants.NAMESPACE, name = "XmlCommandLineTemplate")
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Map<String, ?>, Object, ScriptException> {
-
     private static final long serialVersionUID = -7260435161943556221L;
-    private String template;
-    private transient ST precompiledTemplate;
+
+    private transient CompiledST precompiledTemplate;
     private XmlParserDefinition outputParser;
     private transient ScriptEngineManager scriptManager;
-    private static final char TEMPLATE_DELIMITER_START_CHAR = '{';
-    private static final char TEMPLATE_DELIMITER_STOP_CHAR = '}';
 
     /**
      * Initializes a new empty command-line tool profile.
      */
     public XmlCommandLineTemplate(){
-        template = "";
         outputParser = new XmlParserDefinition();
         scriptManager = null;
         precompiledTemplate = null;
@@ -63,10 +69,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      */
     @XmlElement(name = "input", namespace = XmlConstants.NAMESPACE)
     public final void setCommandTemplate(final String value) {
-        if (value == null || value.isEmpty()) {
-            template = "";
-            precompiledTemplate = null;
-        } else precompiledTemplate = createCommandTemplate(template = value);
+        precompiledTemplate = isNullOrEmpty(value) ? null : createCommandTemplate(value);
     }
 
     /**
@@ -74,7 +77,7 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return The command-line template.
      */
     public final String getCommandTemplate(){
-        return template;
+        return precompiledTemplate != null ? precompiledTemplate.template : "";
     }
 
     /**
@@ -82,11 +85,39 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @param template The template to compile.
      * @return A new instance of the command template.
      */
-    public static ST createCommandTemplate(final String template) {
-        final ST result = new ST(template, TEMPLATE_DELIMITER_START_CHAR, TEMPLATE_DELIMITER_STOP_CHAR);
-        CommonExtender.register(result.groupThatCreatedThisInstance);
-        CompositeDataExtender.register(result.groupThatCreatedThisInstance);
+    public static CompiledST createCommandTemplate(final String template) {
+        final STGroup templateGroup = new STGroup('{', '}');
+        CommonAdaptors.register(templateGroup);
+        CompositeDataAdaptor.register(templateGroup);
+        return compileTemplate(templateGroup, template, "CommandLineTemplate");
+    }
+
+    private static void findTemplateParameters(final Tree tree, final List<String> output) {
+        switch (tree.getType()) {
+            case STLexer.ID:
+                output.add(tree.getText());
+                return;
+            default:
+                for(int i = 0; i < tree.getChildCount(); i++)
+                    findTemplateParameters(tree.getChild(i), output);
+        }
+    }
+
+    /**
+     * Extracts template parameters.
+     * @return Immutable list of template parameters.
+     */
+    public final List<String> extractTemplateParameters(){
+        if(precompiledTemplate == null)
+            return Collections.emptyList();
+        final List<String> result = new ArrayList<>();
+        findTemplateParameters(precompiledTemplate.ast, result);
         return result;
+    }
+
+    private static ST createCommandTemplate(CompiledST compiledST) {
+        compiledST = callUnchecked(compiledST::clone);
+        return compiledST.nativeGroup.createStringTemplate(compiledST);
     }
 
     /**
@@ -97,21 +128,18 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return The command to apply.
      */
     @Override
-    @ThreadSafe(true)
     public final String renderCommand(final Map<String, ?> channelParameters,
                                                    final Map<String, ?> input) {
-        final ST template = precompiledTemplate != null ?
-                new ST(precompiledTemplate) :
-                createCommandTemplate(this.template);
-        //fill template attributes from channel parameters
-        for (final Map.Entry<String, ?> pair : channelParameters.entrySet())
-            template.add(pair.getKey(), pair.getValue());
+        if (precompiledTemplate == null)
+            throw new IllegalStateException("Template is not configured");
+        final ST template = createRenderer(callUnchecked(precompiledTemplate::clone), channelParameters);
         //fill template attributes from custom input
         if (input != null)
             //attribute name cannot be null or contain '.'
-            input.entrySet().stream()
-                    .filter(pair -> pair.getKey().indexOf('.') < 0)
-                    .forEach(pair -> template.add(pair.getKey(), pair.getValue()));
+            input.forEach((key, value) -> {
+                if (key.indexOf('.') < 0)
+                    template.add(key, value);
+            });
         return template.render();
     }
 
@@ -122,7 +150,6 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @return The command to apply.
      * @throws java.lang.IllegalStateException The command template is not specified.
      */
-    @ThreadSafe(true)
     public final String renderCommand(final Map<String, ?> channelParameters) throws IllegalStateException {
         return renderCommand(channelParameters, Collections.emptyMap());
     }
@@ -141,7 +168,6 @@ public class XmlCommandLineTemplate implements Serializable, ChannelProcessor<Ma
      * @throws javax.script.ScriptException Some non I/O processing exception.
      */
     @Override
-    @ThreadSafe(false)
     public Object process(final String result, final Exception error) throws ScriptException {
         if (error != null) throw new ScriptException(error);
         return getCommandOutputParser().parse(result,

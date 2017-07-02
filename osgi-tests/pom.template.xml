@@ -5,16 +5,17 @@
     <parent>
         <artifactId>snamp</artifactId>
         <groupId>com.bytex.snamp</groupId>
-        <version>1.2.0</version>
+        <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Integration Tests</name>
-    <description>Tests for connectors/adapters</description>
+    <description>Tests for connectors/gateways</description>
     <artifactId>osgi-tests</artifactId>
-    <version>${project.parent.version}</version>
     <properties>
-        <exam.version>4.9.1</exam.version>
+        <exam.version>4.10.0</exam.version>
+        <remote.debugging>false</remote.debugging>
+        <infinite.dummy.test>false</infinite.dummy.test>
     </properties>
     <build>
         <plugins>
@@ -68,9 +69,11 @@
                         <com.sun.management.jmxremote.port>3334</com.sun.management.jmxremote.port>
                         <com.sun.management.jmxremote.authenticate>false</com.sun.management.jmxremote.authenticate>
                         <com.sun.management.jmxremote.ssl>false</com.sun.management.jmxremote.ssl>
-                        <com.bytex.snamp.login.config.boot>./jaas.json</com.bytex.snamp.login.config.boot>
                         <pax.exam.osgi.unresolved.fail>true</pax.exam.osgi.unresolved.fail>
                         <mavenLocalRepository>${settings.localRepository}</mavenLocalRepository>
+                        <com.bytex.snamp.testing.project.dir>${project.parent.basedir}</com.bytex.snamp.testing.project.dir>
+                        <com.bytex.snamp.testing.debug>${remote.debugging}</com.bytex.snamp.testing.debug>
+                        <com.bytex.snamp.testing.webconsole.dummy.test>${infinite.dummy.test}</com.bytex.snamp.testing.webconsole.dummy.test>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
@@ -156,6 +159,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-client</artifactId>
+            <version>${jetty.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.ops4j.pax.exam</groupId>
             <artifactId>pax-exam-container-karaf</artifactId>
             <version>${exam.version}</version>
@@ -198,7 +208,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>${snamp.framework.version}</version>
+            <version>${snamp.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -208,13 +218,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>com.bytex.snamp.osgi</groupId>
             <artifactId>snmp4j</artifactId>
             <version>${snmp4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>com.bytex.snamp.osgi</groupId>
             <artifactId>sshj</artifactId>
             <version>${sshj.version}</version>
             <scope>test</scope>
@@ -263,6 +273,20 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-common</artifactId>
             <version>2.15</version>
@@ -275,21 +299,27 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <scope>test</scope>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-client</artifactId>
-            <version>9.2.7.v20150116</version>
+            <groupId>com.bytex.snamp.instrumentation</groupId>
+            <artifactId>core</artifactId>
+            <version>${snamp.instrumentation.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>rshell-connector</artifactId>
-            <version>${snamp.connectors.rshell.version}</version>
+            <groupId>com.bytex.snamp.instrumentation</groupId>
+            <artifactId>http-reporter</artifactId>
+            <version>${snamp.instrumentation.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp.supervisors</groupId>
+            <artifactId>default</artifactId>
+            <version>${snamp.supervisors.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp.connectors</groupId>
+            <artifactId>rshell</artifactId>
+            <version>${snamp.connector.rshell.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -314,20 +344,26 @@
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>jmx-helpers</artifactId>
-            <version>${snamp.jmxhelper.version}</version>
+            <artifactId>json-helpers</artifactId>
+            <version>${snamp.json.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>xmpp-adapter</artifactId>
-            <version>${snamp.adapters.xmpp.version}</version>
+            <artifactId>security</artifactId>
+            <version>${snamp.security.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
-            <artifactId>modbus-connector</artifactId>
-            <version>${snamp.connectors.modbus.version}</version>
+            <groupId>com.bytex.snamp.gateways</groupId>
+            <artifactId>xmpp</artifactId>
+            <version>${snamp.gateway.xmpp.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp.connectors</groupId>
+            <artifactId>modbus</artifactId>
+            <version>${snamp.connector.modbus.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -337,40 +373,77 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.atmosphere</groupId>
-            <artifactId>wasync</artifactId>
-            <version>2.0.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jolokia</groupId>
-            <artifactId>jolokia-osgi</artifactId>
-            <version>${jolokia.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.thrift</groupId>
-            <artifactId>libthrift</artifactId>
-            <version>${thrift.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.karaf.shell</groupId>
             <artifactId>org.apache.karaf.shell.console</artifactId>
             <scope>test</scope>
             <version>${karaf.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jms_1.1_spec</artifactId>
-            <version>1.1.1</version>
+            <groupId>io.zipkin.reporter</groupId>
+            <artifactId>zipkin-reporter</artifactId>
+            <version>0.6.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.reporter</groupId>
+            <artifactId>zipkin-sender-urlconnection</artifactId>
+            <version>0.6.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.reporter</groupId>
+            <artifactId>zipkin-sender-kafka08</artifactId>
+            <version>0.6.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.zipkin.java</groupId>
+            <artifactId>zipkin</artifactId>
+            <version>1.16.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.icegreen</groupId>
+            <artifactId>greenmail</artifactId>
+            <version>1.5.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp.connectors</groupId>
+            <artifactId>zipkin</artifactId>
+            <version>${snamp.connector.zipkin.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.bytex.snamp</groupId>
-            <artifactId>mq-connector</artifactId>
-            <version>${snamp.connectors.mq.version}</version>
+            <artifactId>webconsole</artifactId>
+            <version>${snamp.webconsole.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- dependency for making groovy work under the firewall - proxy issue-->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>2.4.5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>Remote Debug</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <remote.debugging>true</remote.debugging>
+            </properties>
+        </profile>
+        <profile>
+            <id>Webconsole live test</id>
+            <activation />
+            <properties>
+                <infinite.dummy.test>true</infinite.dummy.test>
+            </properties>
+        </profile>
+    </profiles>
 </project>

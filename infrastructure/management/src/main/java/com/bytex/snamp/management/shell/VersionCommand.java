@@ -1,20 +1,24 @@
 package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.core.PlatformVersion;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import com.bytex.snamp.internal.Utils;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+
+import java.io.PrintWriter;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
     name = "version",
     description = "Show version of SNAMP platform")
-public final class VersionCommand extends OsgiCommandSupport implements SnampShellCommand {
+@Service
+public final class VersionCommand extends SnampShellCommand  {
     @Override
-    protected CharSequence doExecute() {
-        return PlatformVersion.get().toString();
+    public void execute(final PrintWriter output) {
+        output.print(PlatformVersion.get());
     }
 }

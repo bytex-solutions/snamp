@@ -1,12 +1,9 @@
 package com.bytex.snamp;
 
 import com.google.common.base.MoreObjects;
-import com.bytex.snamp.internal.Utils;
 
 import java.io.Closeable;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Represents Java resource reader.
@@ -19,10 +16,31 @@ public class ResourceReader implements Closeable, SafeCloseable {
      * The name of the resource.
      */
     public final String resourceName;
+    private final Class<?> resourceLocator;
 
-    public ResourceReader(final String baseName){
-        resourceName = Utils.getFullyQualifiedResourceName(getClass(), baseName);
+    protected ResourceReader(final String baseName){
+        resourceName = getFullyQualifiedResourceName(getClass(), baseName);
+        resourceLocator = null;
     }
+
+    public ResourceReader(final Class<?> resourceLocator, final String baseName){
+        this.resourceLocator = Objects.requireNonNull(resourceLocator);
+        resourceName = getFullyQualifiedResourceName(resourceLocator, baseName);
+    }
+
+    private static String getFullyQualifiedResourceName(final Class<?> locator, String name){
+        if(locator.isArray())
+            return getFullyQualifiedResourceName(locator.getComponentType(), name);
+        else if (!name.startsWith("/")) {
+            final String baseName = locator.getName();
+            final int index = baseName.lastIndexOf('.');
+            if (index != -1)
+                name = String.format("%s/%s", baseName.substring(0, index).replace('.', '/'), name);
+        }
+        else name = name.substring(1);
+        return name;
+    }
+
 
     /**
      * Gets resource bundle associated with this reader.
@@ -33,52 +51,39 @@ public class ResourceReader implements Closeable, SafeCloseable {
     public final ResourceBundle getBundle(final Locale loc) throws MissingResourceException {
         return ResourceBundle.getBundle(resourceName,
                 MoreObjects.firstNonNull(loc, Locale.getDefault()),
-                getClass().getClassLoader());
+                resourceLocator == null ? getClass().getClassLoader() : resourceLocator.getClassLoader());
+    }
+
+    /**
+     * Gets string from source that differs from the resource bundle.
+     * @param key The name of the string.
+     * @param loc The requested localization of the resource. May be {@literal null}.
+     * @return Optional string loaded from different resource.
+     */
+    protected Optional<String> getStringFallback(final String key, final Locale loc){
+        return Optional.empty();
     }
 
     /**
      * Loads string from the resource.
      * @param key The name of the string.
      * @param loc The requested localization of the resource. May be {@literal null}.
-     * @param defval The default value of the resource string if it is not available.
      * @return The string loaded from the resource.
      */
-    public final String getString(final String key, final Locale loc, final String defval) {
+    public final Optional<String> getString(final String key, final Locale loc) {
         final ResourceBundle bnd = getBundle(loc);
-        try {
-            return bnd != null && bnd.containsKey(key) ? bnd.getString(key) : defval;
-        } catch (final MissingResourceException e) {
-            return defval;
-        }
+        if (bnd != null && bnd.containsKey(key))
+            try {
+                return Optional.of(bnd.getString(key));
+            } catch (final MissingResourceException e) {
+                return getStringFallback(key, loc);
+            }
+        else
+            return getStringFallback(key, loc);
     }
 
-    public final boolean getBoolean(final String key, final Locale loc, final boolean defval) {
-        return Boolean.valueOf(getString(key, loc, Boolean.toString(defval)));
-    }
-
-    public final byte getByte(final String key, final Locale loc, final byte defval){
-        return Byte.parseByte(getString(key, loc, Byte.toString(defval)));
-    }
-
-    public final int getInt(final String key, final Locale loc, final int defval){
-        return Integer.parseInt(getString(key, loc, Integer.toString(defval)));
-    }
-
-    public final long getLong(final String key, final Locale loc, final long defval){
-        return Long.parseLong(getString(key, loc, Long.toString(defval)));
-    }
-
-    public final float getFloat(final String key, final Locale loc, final float defval){
-        return Float.parseFloat(getString(key, loc, Float.toString(defval)));
-    }
-
-    public final double getDouble(final String key, final Locale loc, final double defval){
-        return Double.parseDouble(getString(key, loc, Double.toString(defval)));
-    }
-
-    public final char getChar(final String key, final Locale loc, final char defval) {
-        final String str = getString(key, loc, new String(new char[]{defval}));
-        return str.isEmpty() ? defval : str.charAt(0);
+    public final Optional<Boolean> getBoolean(final String key, final Locale loc) {
+        return getString(key, loc).map(Boolean::valueOf);
     }
 
     /**

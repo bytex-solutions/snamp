@@ -1,9 +1,8 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.connectors.metrics.MetricsReader;
-import com.bytex.snamp.connectors.metrics.SummaryMetrics;
+import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.internal.Utils;
-import static com.google.common.base.Strings.isNullOrEmpty;
+import com.bytex.snamp.jmx.OpenMBeanParameterInfoSupplier;
 import org.osgi.framework.BundleContext;
 
 import javax.management.InstanceNotFoundException;
@@ -16,7 +15,7 @@ import static com.bytex.snamp.jmx.OpenMBean.OpenOperation;
  * Resets metrics.
  */
 final class ResetMetricsOperation extends OpenOperation<Void, SimpleType<Void>> {
-    private static final TypedParameterInfo<String> RESOURCE_NAME_PARAM = new TypedParameterInfo<>("resourceName",
+    private static final OpenMBeanParameterInfoSupplier<String> RESOURCE_NAME_PARAM = new OpenMBeanParameterInfoSupplier<>("resourceName",
             "Name of the resource connector with metrics to reset",
             SimpleType.STRING);
 
@@ -25,10 +24,7 @@ final class ResetMetricsOperation extends OpenOperation<Void, SimpleType<Void>> 
     }
 
     private static void invoke(final String resourceName, final BundleContext context) throws InstanceNotFoundException {
-        final MetricsReader metrics = isNullOrEmpty(resourceName) ?
-                new SummaryMetrics(context) :
-                MetricsAttribute.getMetrics(resourceName, context);
-        metrics.resetAll();
+        MetricsAttribute.getMetrics(resourceName, context).ifPresent(MetricsSupport::reset);
     }
 
     @Override

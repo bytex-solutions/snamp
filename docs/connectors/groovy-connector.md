@@ -1,7 +1,7 @@
 Groovy Resource Connector
 ====
 
-Groovy connector allows to monitor and manage your IT resources using Groovy scripts. It can be useful in following cases:
+Groovy connector allows to monitor and manage external components using Groovy scripts. It can be useful in following cases:
 
 * SNAMP doesn't provide Resource Connector for the specific protocol out-of-the-box. Possible uses cases:
   * Parsing log data and exposing results as an attributes
@@ -14,29 +14,16 @@ Groovy connector allows to monitor and manage your IT resources using Groovy scr
 
 > Groovy connector is based on Groovy 2.4
 
-The connector has following architecture:
-
-* Each attribute must be represented as a separated Groovy script. The attribute name will be interpreter as a script file name. For example, the logic for attribute `Memory` must be placed into `Memory.groovy` file
-* Each event must be represented as a separated Groovy script. The event category will be interpreted as a script file name. For example, the logic for event `Error` must be placed into `Error.groovy` file
-* Optionally, you may write initialization script that is used to initialize instance of the Managed Resource Connector
-* Each instance of the Groovy Connector provides a sandbox for Groovy scripts. So, initialization script will be executed for each instance of the connector. You can't share objects between instances of Groovy Connector
+Each attribute, event, operation and health check should be declared in main script file using DSL extensions
 
 ## Connection String
-Connection string specifies set of paths with Groovy scripts. You may specify more than one path using OS-specific path separator symbol:
-
-* `:` for Linux
-* `;` for Windows
-
-For example, `/usr/local/snamp/groovy:/usr/local/snamp/scripts`
-
-Path is used to find initialization, attribute and event scripts.
+Connection string specifies name of the main script and set of paths in URL format with Groovy scripts separated by symbol `;`. For example: `Main.groovy;file:/usr/local/snamp/groovy;file:/usr/local/snamp/scripts`
 
 ## Configuration parameters
 JMX Resource Connector recognizes the following parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
-initScript | String | No | Name of the initialization script file | `init.groovy`
 groovy.warnings | String | No | Groovy warning level | `likely errors`
 groovy.source.encoding | String | No | Encoding to be used when reading Groovy source files
 groovy.classpath | String | No | Classpath using to find third-party JARs | `/usr/local/jars:/home/user/jars`
@@ -48,23 +35,22 @@ All these parameters (including user-defined) will be visible as global variable
 
 ## Configuring attributes
 Each attribute configured in Groovy Resource Connector has following configuration schema:
-
-* `Name` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string. Also, you can use `name` configuration parameter for this purpose.
-* There is no predefined configuration parameters. But all user-defined configuration parameters will be visible as global variables in the attribute script only.
-
-For more information see **Programming attributes** section.
+* `Name` - name of the attribute declared in the main script file
+* There is no predefined configuration parameters.
 
 ## Configuring events
 Each event configured in Groovy Resource Connector has following configuration schema:
-
-* `Category` - name of script file without `.groovy` file extension. The file must exists in the paths specified by connection string
+* `Category` - name of the notification declared in the main script file
 * Configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 severity | String | No | Overrides severity level of the emitted notification | `warning`
 
-All user-defined configuration parameters will be visible as global variables in event script only.
+## Configuring operations
+Each operation configured in Groovy Resource Connector has following configuration schema:
+* `Name` - name of the operation declared in the main script file
+* There is no predefined configuration parameters.
 
 ## Scripting
 Groovy Resource Connector provides following features for Groovy scripting:
@@ -77,21 +63,41 @@ Each instance of the Groovy Resource Connector has isolated sandbox with its own
 
 All configuration parameters specified at the resource-level will be visible for all scripts. For example, you have configured `initScript` and `customParam` parameters. The value of these parameters can be obtained as follows:
 ```groovy
-println initScript
 println customParam
 ```
 
-Groovy connector provides following DSL extensions accessible from any type of scripts:
+> Read **SNAMP Management Information Model** before you continue
 
+Groovy connector provides following DSL extensions accessible from any type of scripts:
 * Global variables:
-  * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration. This variable is not available in the discovery mode
+  * `resourceName` - contains the name of the managed resource as it specified in the SNAMP configuration
   * `activeClusterNode` - boolean read-only variable indicating that the code is executed in active node of cluster
-* Logging subroutines (these routines written on top of OSGi logging infrastructure)
-  * `void error(String message)` - report about error
-  * `void warning(String message)` - report warning
-  * `void info(String message)` - report information
-  * `void fine(String message)` - report trace
-  * `void debug(String message)` - report debugging information
+  * `logger` - represents standard Java logger
+  * `resources` - a set of all resources registered in SNAMP
+* Global constants
+  * `INT8` - represents `int8` type from SNAMP Management Information Model
+  * `INT16`- represents `int16` type from SNAMP Management Information Model
+  * `INT32`- represents `int32` type from SNAMP Management Information Model
+  * `INT64`- represents `int64` type from SNAMP Management Information Model
+  * `BOOL` - represents `bool` type from SNAMP Management Model
+  * `FLOAT32`- represents `float32` type from SNAMP Management Information Model
+  * `FLOAT64`- represents `float64` type from SNAMP Management Information Model
+  * `BIGINT`- represents `bigint` type from SNAMP Management Information Model
+  * `BIGDECIMAL`- represents `bigdecimal` type from SNAMP Management Information Model
+  * `CHAR`- represents `char` type from SNAMP Management Information Model
+  * `INT16`- represents `int16` type from SNAMP Management Information Model
+  * `STRING`- represents `string` type from SNAMP Management Information Model
+  * `OBJECTNAME`- represents `objectname` type from SNAMP Management Information Model
+  * `DATETIME`- represents `datetime` type from SNAMP Management Information Model
+* Complex type builders:
+  * `ArrayType ARRAY(OpenType elementType)` - construct array type
+  * `CompositeType DICTIONARY(String typeName, String typeDescription, Map items)` - construct dictionary type
+  * `TabularType TABLE(String typeName, String typeDescription, Map[] columns)` - construct table type
+* Data type converters:
+  * `Map asDictionary(CompositeData dict)` - convert JMX composite data (dictionary in SNAMP terminology) to Map (key/value pairs). This method can be used in `setValue` function to convert input value to Map
+  * `CompositeData asDictionary(Map dict)` - convert key/values pairs to JMX composite data (dictionary). This method can be used in `getValue` function to convert input value to CompositeData
+  * `Map[] asTable(TabularData table)` - convert JMX tabular data (table) to a collection of rows. This method can be used in `setValue` function to convert input value to rows
+  * `TabularData asTable(Map[] rows)` - convert a collection of rows into JMX tabular data (table in SNAMP terminology). This method can be used in `getValue` function to convert input value to TabularData
 * Accessing to other connected managed resources:
   * `Object getResourceAttribute(String resourceName, String attributeName)` - read attribute of the connected managed resource
   * `Dictionary getResourceAttributeInfo(String resourceName, String attributeName)` - read configuration parameters of the attribute
@@ -102,8 +108,10 @@ Groovy connector provides following DSL extensions accessible from any type of s
   * `void removeNotificationListener(String resourceName, NotificationListener listener)` - remove subscription to the event of the managed resource
   * `ManagedResourceConfiguration getResourceConfiguration(String resourceName)` - read configuration of the connected managed resource
 * Inter-script communication
-  * `Communicator getCommunicator(String sessionName)` - get or create a new communication session
-  * `MessageListener asListener(Closure listener)` - wraps Groovy closure into communication message listener
+  * `Communicator getCommunicator(String sessionName)` - get or create a new communication session. If SNAMP is installed in clustered configuration then this communicator can send message to other nodes in the cluster
+* Raising events
+  * `emit(String category, String message)` - emits notification from connector
+  * `emit(Notification n)` - emits notifications from connector
 * Other functions
   * `Job createTimer(Closure task, long period)` - creates new timer that periodically executes specified task
   * `Job schedule(Closure task, long period)` - execute the specified task periodically in the background.
@@ -153,12 +161,12 @@ Simple messaging using communicator:
 
 ```groovy
 def communicator = getCommunicator 'test-communicator'
-communicator.register(asListener { msg -> println msg})
+communicator.addMessageListener({ msg -> println msg}, MessageType.SIGNAL)
 ```
 in other script file
 ```groovy
 def communicator = getCommunicator 'test-communicator'
-communicator.post 'Hello, world!'
+communicator.sendSignal 'Hello, world!'
 ```
 
 Synchronous messaging using communicator:
@@ -167,194 +175,112 @@ Synchronous messaging using communicator:
 //script1.groovy
 communicator = getCommunicator 'test-communicator'
 def listen(message){
-    communicator.post('pong')
+    communicator.sendMessage('pong', MessageType.RESPONSE, message.messageID)
 }
+communicator.addMessageListener(this.&listen, MessageType.REQUEST)
 
-communicator.register(asListener(this.&listen))
 //script2.groovy
 communicator = getCommunicator 'test-communicator'
-def response = communicator.post('ping', 2000)  //2 seconds for response timeout
+def response = communicator.sendRequest('ping', {msg -> msg.payload}, 2000)  //2 seconds for response timeout
 println response  //pong
 ```
 
-> Read **SNAMP Management Information Model** before you continue
-
-### Initialization script
-Initialization script used to initialize instance of the connector. Name of the initialization script must be specified in the managed resource configuration explicitly. If it is not specified then Groovy Connector doesn't perform any extra initialization activities.
-
-As the best practice, initialization script can be used for declaring references to third-party modules and libraries:
-
-```groovy
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
-@GrabConfig(initContextClassLoader = true)
-import groovy.json.JsonSlurper
-```
-
-> Note that `@GrabConfig(initContextClassLoader = true)` must be used in conjunction with every `@Grab` annotation
-
-Initialization script supports additional DSL extensions:
-
-* Global variables:
-  * `discovery` - determines whether initialization script is in discovery mode
-* Discovery services
-  * `void attribute(String name, Map parameters)` - declares new attribute with the specified name and default configuration parameters. This declaration will be displayed in the SNAMP Management Console while discovering the available attributes. The functionality of the attribute doesn't depend on this declaration
-  * `void event(String category, Map parameters)` - declares new event with the specified category and default configuration parameters. This declaration will be displayed in the SNAMP Management Console while discovering the available events. The functionality of the event doesn't depend on this declaration
-
-Special functions that can be declared in the script:
-
-* `void close()` - called by SNAMP automatically when the resources acquired by the instance of the connector should be released
-
-Following example demonstrates simple initialization script:
-
-```groovy
-@Grab(group = 'org.codehaus.groovy', module = 'groovy-json', version = '2.4.5')
-@GrabConfig(initContextClassLoader = true)
-import groovy.json.JsonSlurper
-
-attribute 'DummyAttribute', []
-attribute 'MemoryAttrubute', [precision: 'MB']
-```
-
-Example of initialization script with special functions:
-
-```groovy
-connection = createConnection() //createConnection is not a part of DSL. It is just example
-
-void close(){
-  connection.close()
-}
-```
-
 ### Programming attributes
-Attribute script consists of the following parts:
+Attribute declaration consists of the following parts:
 
+* Attribute name
 * Attribute type specification
-* Attribute initialization
 * Attribute reader
-* Attribute writer
+* Attribute writer (optional)
+* Attribute description (optional)
 
-All configuration parameters assigned to the attribute in SNAMP configuration will be visible as global variables in the attribute script.
-
-Attribute script supports additional DSL extensions:
-
-* Global constants
-  * `INT8` - represents `int8` type from SNAMP Management Information Model
-  * `INT16`- represents `int16` type from SNAMP Management Information Model
-  * `INT32`- represents `int32` type from SNAMP Management Information Model
-  * `INT64`- represents `int64` type from SNAMP Management Information Model
-  * `BOOL` - represents `bool` type from SNAMP Management Model
-  * `FLOAT32`- represents `float32` type from SNAMP Management Information Model
-  * `FLOAT64`- represents `float64` type from SNAMP Management Information Model
-  * `BIGINT`- represents `bigint` type from SNAMP Management Information Model
-  * `BIGDECIMAL`- represents `bigdecimal` type from SNAMP Management Information Model
-  * `CHAR`- represents `char` type from SNAMP Management Information Model
-  * `INT16`- represents `int16` type from SNAMP Management Information Model
-  * `STRING`- represents `string` type from SNAMP Management Information Model
-  * `OBJECTNAME`- represents `objectname` type from SNAMP Management Information Model
-  * `DATETIME`- represents `datetime` type from SNAMP Management Information Model
-* Functions:
-  * `void type(OpenType t)` - define attribute type
-  * `ArrayType ARRAY(OpenType elementType)` - construct array type
-  * `CompositeType DICTIONARY(String typeName, String typeDescription, Map items)` - construct dictionary type
-  * `TabularType TABLE(String typeName, String typeDescription, Map[] columns)` - construct table type
-  * `boolean isReadable()` - determines whether the attribute is readable. This method returns `true` if function `getValue` is defined in the script
-  * `boolean isWritable()` - determines whether the attribute is writable. This method returns `true` if function `getValue` is defined in the script
-* Data type converters:
-  * `Map asDictionary(CompositeData dict)` - convert JMX composite data (dictionary in SNAMP terminology) to Map (key/value pairs). This method can be used in `setValue` function to convert input value to Map
-  * `CompositeData asDictionary(Map dict)` - convert key/values pairs to JMX composite data (dictionary). This method can be used in `getValue` function to convert input value to CompositeData
-  * `Map[] asTable(TabularData table)` - convert JMX tabular data (table) to a collection of rows. This method can be used in `setValue` function to convert input value to rows
-  * `TabularData asTable(Map[] rows)` - convert a collection of rows into JMX tabular data (table in SNAMP terminology). This method can be used in `getValue` function to convert input value to TabularData
-
-Special functions that can be declared in the script:
-
-* `Object getValue()` - called by SNAMP automatically to read attribute value. If this function is not specified then the attribute is write-only
-* `Object setValue(Object value)` - called by SNAMP automatically to write attribute value. If this function is not specified then the attribute is read-only
-* `void close()` - called by SNAMP automatically when the resources acquired by instance of the attribute should be released
-
-Following code describes skeleton of the attribute script:
+Skeleton of attribute declaration:
 ```groovy
-type INT64 //attribute type specification
-
-//initialization code
-println 'Initialized'
-
-//attribute value reader. This declaration is optional
-def getValue(){
-    return 42L
+attribute {
+    name "<attribute-name>"
+    description "<human-readable description>"  //optional
+    type <type>
+    get <getter>
+    set <setter>  //optional
 }
-
-//attribute value writer. This declaration is optional
-def setValue(value){
-  println value
-}
-
-//this declaration is optional
-void close(){
-  //cleanup code
-}
-
 ```
 
-Attribute of tabular data type (table):
+Example:
 ```groovy
-type TABLE('GroovyTable', 'desc', [column1: [type: INT32, description: 'descr', indexed: true], column2: [type: BOOL, description: 'descr']])
-
-def getValue(){
-    asTable([[column1: 6, column2: false], [column1: 7, column2: true]])
-}
-
-def setValue(value){
-    println asTable(value)
-}
-
-```
-
-Attribute of dictionary type:
-```groovy
-type DICTIONARY('GroovyType', 'GroovyDescr', [key1: [type: INT64, description: 'descr'], key2: [type: BOOL, description: 'descr']])
-
-def getValue(){
-    asDictionary(key1: 67L, key2: true)
-}
-
-def setValue(value){
-    println asDictionary(value)
+attribute {
+    name "DummyAttribute"
+    type INT32
+    get {return 42}
+    set {value -> println value}
 }
 ```
 
 ### Programming events
-Event script consists of the following parts:
+Event declaration consists of the following parts:
 
-* Event initialization
-* Event emitting
+* Event category
+* Event description (optional)
 
-All configuration parameters assigned to the event in SNAMP configuration will be visible as global variables in the event script.
-
-Event script supports additional DSL extensions:
-
-* Functions:
-  * `void emitNotification(String message)` - emit outgoing notification with the specified human-readable message
-  * `void emitNotification(String message, Object userData)` - emit outgoing notification with the specified human-readable message and additional payload
-
-Special functions that can be declared in the script:
-  * `void close()` - called by SNAMP automatically when the resources acquired by instance of the event should be released
-
-Following example demonstrates reading attribute from another connected resource and send its value as a notification payload in periodic manner:
+Skeleton of event declaration:
 ```groovy
-def emitter = {
-  def value = getResourceAttribute 'app-server', 'freeMemory'
-  emitNotification 'Amount of free memory', value
-}
-
-def timer = createTimer emitter, 1000
-timer.run()
-
-void close(){
-  timer.close()
+event {
+    name <event-category>
+    description "<human-readable description>"  //optional
 }
 ```
 
-Note that notification payload must have the type supported by Management Information Model
+Example:
+```groovy
+event {
+    name "GroovyEvent"
+}
+```
+
+### Programming operations
+Operation declaration consists of the following parts:
+
+* Operation name
+* Return type specification
+* Format parameters
+* Description (optional)
+* Implementation
+
+Skeleton of operation declaration:
+```groovy
+operation {
+    name "<operation-name>"
+    description "<human-readable description>"  //optional
+    parameter "<param-name>", <param-type>  //zero or more parameters
+    ...
+    returns <type>
+    implementation <implementation code>
+}
+```
+
+Example:
+```groovy
+operation {
+    name "CustomOperation"
+    description "Test operation"
+    parameter "x", INT64
+    parameter "y", INT64
+    returns INT64
+    implementation {x, y -> x + y}
+}
+```
+
+### Programming health checks
+Health check can be implemented using the following declaration:
+```groovy
+import com.bytex.snamp.connector.health.HealthStatus
+
+protected HealthStatus getStatus(){
+  new OkStatus()
+}
+
+```
+
+If implementation of this method is not provided then connector always return OK status.
 
 ## Information Model Mapping
 This section describes mapping between Groovy data types and SNAMP Management Information Model

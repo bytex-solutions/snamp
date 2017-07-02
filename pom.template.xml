@@ -11,70 +11,78 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <!--Global dependencies-->
-    <karaf.version>3.0.7</karaf.version>
-    <karaf.maxVersion>4</karaf.maxVersion>
+    <javax.mail.version>1.4.4</javax.mail.version>
+    <karaf.version>4.0.9</karaf.version>
+    <karaf.maxVersion>5</karaf.maxVersion>
     <osgi.version>5.0.0</osgi.version>
     <junit.version>4.12</junit.version>
-    <jetty.version>8.1.17.v20150415</jetty.version>
-    <gson.version>2.7</gson.version>
+    <jetty.version>9.2.19.v20160908</jetty.version>
     <guava.version>19.0</guava.version>
-    <jersey.version>1.18.1</jersey.version>
-    <groovy.version>2.4.7</groovy.version>
+    <jersey.version>1.19.3</jersey.version>
+    <groovy.version>2.4.11</groovy.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
-    <cellar.version>3.0.3</cellar.version>
-    <jline.version>2.13</jline.version>
+    <cellar.version>4.0.3</cellar.version>
+    <jline.version>2.14.1</jline.version>
     <bouncycastle.version>1.54</bouncycastle.version>
-    <aries.proxy.api.version>1.0.1</aries.proxy.api.version>
-    <aries.util.version>1.1.1</aries.util.version>
-    <aries.jndi.version>1.0.0</aries.jndi.version>
-    <aries.jndi.core.version>1.0.2</aries.jndi.core.version>
-    <aries.jndi.url.version>1.1.0</aries.jndi.url.version>
-    <aries.jndi.api.version>1.1.0</aries.jndi.api.version>
-    <aries.jmx.api.version>1.1.1</aries.jmx.api.version>
-    <jolokia.version>1.3.0</jolokia.version>     <!--Jolokia version should be aligned with HawtIO used in SNAMP Management Console-->
-    <hazelcast.version>3.4.2</hazelcast.version>
-    <thrift.version>0.9.3</thrift.version>
-    <atmosphere.version>2.2.9</atmosphere.version>
+    <hazelcast.version>3.7.2</hazelcast.version>
     <sshd.version>0.14.0</sshd.version>
-    <slf4j.api.version>1.7.12</slf4j.api.version>
-    <activemq.version>5.13.3</activemq.version>
-    <qpid.version>0.6.0</qpid.version>
-    <hawtio.version>1.4.55</hawtio.version>
-    <decanter.version>1.1.0</decanter.version>
-    <!--Versioning of SNAMP Components-->
-    <snmp4j.version>2.5.0</snmp4j.version>
-    <snmp4j.agent.version>2.5.1</snmp4j.agent.version>
-    <sshj.version>0.10.0</sshj.version>
-    <snamp.framework.version>1.2.0</snamp.framework.version>
-    <snamp.framework.maxVersion>2</snamp.framework.maxVersion>
+    <slf4j.api.version>1.7.13</slf4j.api.version>
+    <jackson.version>1.9.13</jackson.version>
+    <jettison.version>1.3.8</jettison.version>
+    <eddsa.version>0.1.0</eddsa.version>
+    <snmp4j.version>2.5.3</snmp4j.version>
+    <sshj.version>0.18.0</sshj.version>
+    <netty.version>3.10.6.Final</netty.version>
+    <orientdb.version>2.2.21</orientdb.version>
+    <openstack4j.version>3.0.3</openstack4j.version>
+    <jsr305.version>3.0.1</jsr305.version>
+    <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>
+    <stringtemplate.version>4.0.8</stringtemplate.version>
+      <!--Versioning of SNAMP Components-->
+    <snamp.version>2.0.0</snamp.version>
+    <snamp.maxVersion>3</snamp.maxVersion>
 
-    <snamp.adapters.http.version>1.2.0</snamp.adapters.http.version>
-    <snamp.adapters.jmx.version>1.2.0</snamp.adapters.jmx.version>
-    <snamp.adapters.nagios.version>1.2.0</snamp.adapters.nagios.version>
-    <snamp.adapters.nrdp.version>1.2.0</snamp.adapters.nrdp.version>
-    <snamp.adapters.nsca.version>1.2.0</snamp.adapters.nsca.version>
-    <snamp.adapters.snmp.version>1.2.0</snamp.adapters.snmp.version>
-    <snamp.adapters.ssh.version>1.2.0</snamp.adapters.ssh.version>
-    <snamp.adapters.syslog.version>1.2.0</snamp.adapters.syslog.version>
-    <snamp.adapters.xmpp.version>1.2.0</snamp.adapters.xmpp.version>
-    <snamp.adapters.groovy.version>1.2.0</snamp.adapters.groovy.version>
-    <snamp.adapters.decanter.version>1.2.0</snamp.adapters.decanter.version>
+    <snamp.gateways.version>2.0.0</snamp.gateways.version>
+    <snamp.gateway.smtp.version>2.0.0</snamp.gateway.smtp.version>
+    <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
+    <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
+    <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
+    <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
+    <snamp.gateway.nsca.version>2.0.0</snamp.gateway.nsca.version>
+    <snamp.gateway.snmp.version>2.0.0</snamp.gateway.snmp.version>
+    <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
+    <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
+    <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
+    <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
+    <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
 
-    <snamp.jmxhelper.version>1.2.0</snamp.jmxhelper.version>
-    <snamp.management.version>1.2.0</snamp.management.version>
-    <snamp.services.version>1.2.0</snamp.services.version>
+    <snamp.supervisors.version>2.0.0</snamp.supervisors.version>
+    <snamp.supervisor.openstack.version>2.0.0</snamp.supervisor.openstack.version>
 
-    <snamp.connectors.rshell.version>1.2.0</snamp.connectors.rshell.version>
-    <snamp.connectors.aggregator.version>1.2.0</snamp.connectors.aggregator.version>
-    <snamp.connectors.groovy.version>1.2.0</snamp.connectors.groovy.version>
-    <snamp.connectors.ibmwmq.version>1.2.0</snamp.connectors.ibmwmq.version>
-    <snamp.connectors.jmx.version>1.2.0</snamp.connectors.jmx.version>
-    <snamp.connectors.mda.version>1.2.0</snamp.connectors.mda.version>
-    <snamp.connectors.snmp.version>1.2.0</snamp.connectors.snmp.version>
-    <snamp.connectors.modbus.version>1.2.0</snamp.connectors.modbus.version>
-    <snamp.connectors.mq.version>1.2.0</snamp.connectors.mq.version>
+    <snamp.connectors.version>2.0.0</snamp.connectors.version>
+    <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
+    <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
+    <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
+    <snamp.connector.jmx.version>2.0.0</snamp.connector.jmx.version>
+    <snamp.connector.snmp.version>2.0.0</snamp.connector.snmp.version>
+    <snamp.connector.modbus.version>2.0.0</snamp.connector.modbus.version>
+    <snamp.connector.stream.version>2.0.0</snamp.connector.stream.version>
+    <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
+    <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
+    <snamp.connector.stub.version>2.0.0</snamp.connector.stub.version>
+    <snamp.connector.actuator.version>2.0.0</snamp.connector.actuator.version>
+
+    <snamp.json.version>2.0.0</snamp.json.version>
+    <snamp.management.version>2.0.0</snamp.management.version>
+    <snamp.services.version>2.0.0</snamp.services.version>
+    <snamp.scripting.version>2.0.0</snamp.scripting.version>
+    <snamp.webconsole.version>2.0.0</snamp.webconsole.version>
+    <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
+    <snamp.security.version>2.0.0</snamp.security.version>
+    <snamp.e2e_analyzer.version>2.0.0</snamp.e2e_analyzer.version>
+    <snamp.integration.version>2.0.0</snamp.integration.version>
   </properties>
-  <version>1.2.0</version>
+  <version>${snamp.version}</version>
   <organization>
         <name>Bytex</name>
         <url>http://www.bytex.solutions/</url>
@@ -84,8 +92,13 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.5.1</version>
+                    <version>3.6.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -95,22 +108,22 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
+                    <version>3.0.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>1.10</version>
+                    <version>3.0.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.0.1</version>
+                    <version>3.0.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.servicemix.tooling</groupId>
                     <artifactId>depends-maven-plugin</artifactId>
-                    <version>1.3.1</version>
+                    <version>1.4.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.karaf.tooling</groupId>
@@ -121,7 +134,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>1.5.0</version>
+                    <version>1.6.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -131,7 +144,7 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>3.0.1</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -155,28 +168,26 @@
     <dependencies>
         <!--Common Libraries-->
         <dependency>
+            <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
+            <artifactId>concurrentlinkedhashmap-lru</artifactId>
+            <version>${concurrentlinkedhashmap.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <scope>provided</scope>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-            <version>${jersey.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-servlet</artifactId>
-            <version>${jersey.version}</version>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>${jsr305.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -186,14 +197,40 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-servlet_3.0_spec</artifactId>
-            <version>1.0</version>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+            <version>${jersey.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!--Aligned with Jersey JSON dependencies-->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+            <version>${jackson.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.aggregate</groupId>
-            <artifactId>jetty-all-server</artifactId>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>${jackson.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-jaxrs</artifactId>
+            <version>${jackson.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-server</artifactId>
             <version>${jetty.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -228,12 +265,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>${jline.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
             <version>${groovy.version}</version>
@@ -242,15 +273,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.ivy</groupId>
-            <artifactId>ivy</artifactId>
-            <version>${apache.ivy.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast</artifactId>
-            <version>${hazelcast.version}</version>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+            <version>${groovy.version}</version>
+            <classifier>indy</classifier>
+            <type>jar</type>
             <scope>provided</scope>
         </dependency>
         <!--OSGi Framework-->
@@ -264,12 +291,6 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
             <version>${osgi.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.karaf.jaas</groupId>
-            <artifactId>org.apache.karaf.jaas.config</artifactId>
-            <version>${karaf.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -289,19 +310,25 @@
   </dependencyManagement>
   <modules>
     <module>framework</module>
+    <module>bundlized-libs</module>
+    <module>instrumentation/java</module>
+    <module>examples</module>
+    <module>infrastructure/scripting</module>
+    <module>infrastructure/groovy-xml-bridge</module>
+    <module>infrastructure/json-helpers</module>
+    <module>e2e-analyzer</module>
+
+    <module>supervisors</module>
     <module>connectors</module>
-    <module>adapters</module>
-    <module>third-party-libs/bundlized/snmp4j</module>
-    <module>third-party-libs/bundlized/sshj</module>
-    <module>infrastructure/jmx-helpers</module>
+    <module>gateways</module>
     <module>infrastructure/management</module>
     <module>infrastructure/internal-services</module>
-    <module>features/platform-feature</module>
-    <module>features/adapters-features</module>
-    <module>features/connectors-features</module>
-    <module>features/wrapped-libs-for-tests</module>
+    <module>infrastructure/security</module>
+    <module>infrastructure/devops-tools</module>
+    <module>integration</module>
+    <module>webconsole</module>
+    <module>features</module>
     <module>osgi-tests</module>
-
   </modules>
     <repositories>
         <repository>

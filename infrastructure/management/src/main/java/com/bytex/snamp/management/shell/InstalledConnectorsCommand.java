@@ -1,43 +1,43 @@
 package com.bytex.snamp.management.shell;
 
-import com.bytex.snamp.management.SnampComponentDescriptor;
-import com.bytex.snamp.management.SnampManager;
-import com.bytex.snamp.management.jmx.SnampManagerImpl;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.console.OsgiCommandSupport;
+import com.bytex.snamp.core.SnampComponentDescriptor;
+import com.bytex.snamp.core.SnampManager;
+import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.management.DefaultSnampManager;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
-import static com.bytex.snamp.management.shell.Utils.appendln;
-import static com.bytex.snamp.management.shell.Utils.getStateString;
+import static com.bytex.snamp.management.ManagementUtils.getStateString;
 
 /**
- * Prints a list of installed connectors.
+ * Prints a list of installed connector.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
-@Command(scope = SnampShellCommand.SCOPE,
+@Command(scope = Utils.SHELL_COMMAND_SCOPE,
         name = "installed-connectors",
-        description = "List of installed resource connectors")
-public final class InstalledConnectorsCommand extends OsgiCommandSupport implements SnampShellCommand {
-    private final SnampManager manager = new SnampManagerImpl();
+        description = "List of installed resource connector")
+@Service
+public final class InstalledConnectorsCommand extends SnampShellCommand {
+    private final SnampManager manager = new DefaultSnampManager();
 
-    static void writeConnector(final SnampComponentDescriptor component, final StringBuilder output) {
-        appendln(output, "%s. Type: %s. Description: %s. Version: %s. State: %s",
+    static void writeConnector(final SnampComponentDescriptor component, final PrintWriter output) {
+        output.format("%s. Type: %s. Description: %s. Version: %s. State: %s",
                 component.getName(null),
-                component.get(SnampComponentDescriptor.CONNECTOR_SYSTEM_NAME_PROPERTY),
-                component.getDescription(null),
+                component.get(SnampComponentDescriptor.CONNECTOR_TYPE_PROPERTY),
+                component.toString(null),
                 component.getVersion(),
-                getStateString(component));
+                getStateString(component)).println();
     }
 
     @Override
-    protected CharSequence doExecute() throws IOException {
-        final StringBuilder result = new StringBuilder(42);
+    public void execute(final PrintWriter output) throws IOException {
         for(final SnampComponentDescriptor component: manager.getInstalledResourceConnectors())
-            writeConnector(component, result);
-        return result;
+            writeConnector(component, output);
     }
 }

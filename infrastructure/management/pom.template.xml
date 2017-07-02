@@ -5,7 +5,7 @@
     <parent>
         <artifactId>snamp</artifactId>
         <groupId>com.bytex.snamp</groupId>
-        <version>1.2.0</version>
+        <version>2.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <name>SNAMP Manager</name>
@@ -33,8 +33,9 @@
                 <configuration>
                     <instructions>
                         <Bundle-Activator>com.bytex.snamp.management.ManagementServiceLibrary</Bundle-Activator>
-                        <Bundle-SymbolicName>com.bytex.snamp.management</Bundle-SymbolicName>
+                        <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
                         <Export-Package/>
+                        <Karaf-Commands>com.bytex.snamp.management.shell.*</Karaf-Commands>
                     </instructions>
                 </configuration>
             </plugin>
@@ -45,7 +46,7 @@
         <dependency>
             <groupId>com.bytex.snamp</groupId>
             <artifactId>framework</artifactId>
-            <version>${snamp.framework.version}</version>
+            <version>${snamp.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -55,6 +56,30 @@
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-servlet</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>security</artifactId>
+            <version>${snamp.security.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bytex.snamp</groupId>
+            <artifactId>json-helpers</artifactId>
+            <version>${snamp.json.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -75,8 +100,8 @@
             <artifactId>org.apache.karaf.shell.console</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast</artifactId>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
         </dependency>
     </dependencies>
 </project>

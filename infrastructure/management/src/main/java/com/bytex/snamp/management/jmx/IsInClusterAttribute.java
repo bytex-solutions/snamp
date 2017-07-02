@@ -1,6 +1,6 @@
 package com.bytex.snamp.management.jmx;
 
-import com.bytex.snamp.core.DistributedServices;
+import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.OpenMBean;
 
@@ -8,7 +8,7 @@ import javax.management.openmbean.SimpleType;
 
 /**
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.0
  */
 final class IsInClusterAttribute extends OpenMBean.OpenAttribute<Boolean, SimpleType<Boolean>> {
@@ -23,6 +23,6 @@ final class IsInClusterAttribute extends OpenMBean.OpenAttribute<Boolean, Simple
 
     @Override
     public Boolean getValue() {
-        return DistributedServices.isInCluster(Utils.getBundleContextOfObject(this));
+        return ClusterMember.isInCluster(Utils.getBundleContextOfObject(this));
     }
 }

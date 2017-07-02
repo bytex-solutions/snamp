@@ -1,0 +1,43 @@
+.form-group {
+    margin-bottom: 10px;
+    display: flex;
+}
+
+.btn-inline {
+    display: inline-block;
+    margin-left: 15px;
+}
+
+.btn-pull-right {
+    margin-top:20px;
+    float:right;
+    margin-right: 20px;
+}
+
+.row-margin-bottom-sm {
+    margin-bottom: 15px;
+}
+
+.activeTr {
+    border-left: 2px solid rgb(30, 6, 255) !important;
+    background-color: #b9c7de;
+}
+
+.img-inline {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 3px;
+}
+
+.clickableTr {
+    cursor: pointer;
+}
+
+.input-group-addon {
+    border: 0 !important;
+    background-color: rgba(0,0,0,0) !important;
+}
+
+.active-tr {
+    border-left: 2px solid rgb(30, 6, 255) !important;
+}

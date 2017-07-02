@@ -1,9 +1,11 @@
 package com.bytex.snamp;
 
+import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -12,19 +14,18 @@ import java.util.function.Supplier;
  * @param <L> Type of event listener.
  * @param <E> Type of event state object to be handled by listener.
  * @author Roman Sakno
- * @version 1.2
+ * @version 2.0
  * @since 1.2
  */
 public abstract class WeakEventListener<L extends EventListener, E extends EventObject> extends WeakReference<L> implements Supplier<L>, EventListener {
-    private final int listenerHashCode;
+    private int hashCode;
 
     /**
      * Initializes a new weak reference to the event listener.
      * @param listener A listener to be wrapped into weak reference. Cannot be {@literal null}.
      */
-    protected WeakEventListener(final L listener) {
-        super(Objects.requireNonNull(listener));
-        this.listenerHashCode = listener.hashCode();
+    protected WeakEventListener(@Nonnull final L listener) {
+        super(listener);
     }
 
     /**
@@ -32,7 +33,7 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
      * @param event Event state object to be handled by listener.
      * @return {@literal true}, if reference to listener still alive; {@literal false}, if listener is garbage collected.
      */
-    public final boolean invoke(final E event){
+    public final boolean invoke(@Nonnull final E event){
         final L listener = get();
         if(listener == null)
             return false;
@@ -45,12 +46,12 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
      * @param listener A listener used to handle event. Cannot be {@literal null}.
      * @param event Event state object to be handled by listener.
      */
-    protected abstract void invoke(final L listener, final E event);
+    protected abstract void invoke(@Nonnull final L listener, @Nonnull final E event);
 
     public static <L extends EventListener, E extends EventObject> WeakEventListener<L, E> create(final L listener, final BiConsumer<? super L, ? super E> handler){
         return new WeakEventListener<L, E>(listener) {
             @Override
-            protected void invoke(final L listener, final E event) {
+            protected void invoke(@Nonnull final L listener, @Nonnull final E event) {
                 handler.accept(listener, event);
             }
         };
@@ -62,12 +63,25 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
 
     @Override
     public final int hashCode() {
-        return listenerHashCode ^ super.hashCode();
+        if (hashCode == 0)
+            hashCode = Objects.hashCode(get());
+        return hashCode;
     }
 
     @Override
     public final boolean equals(final Object other) {
         return other instanceof WeakReference<?> && equals((WeakReference<?>) other);
+    }
+
+    final Runnable toRunnable(final E event){
+        return () -> invoke(event);
+    }
+
+    final Callable<Void> toCallable(final E event){
+        return () -> {
+            invoke(event);
+            return null;
+        };
     }
 
     @Override

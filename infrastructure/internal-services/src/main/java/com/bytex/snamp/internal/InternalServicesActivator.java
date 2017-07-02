@@ -8,115 +8,53 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.impl.PersistentConfigurationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.security.LoginConfigurationManager;
-import com.bytex.snamp.security.auth.login.json.spi.JsonConfigurationSpi;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.bytex.snamp.security.web.impl.SecurityServlet;
 import com.hazelcast.core.HazelcastInstance;
-import org.apache.karaf.jaas.config.JaasRealm;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ManagedService;
 
-import java.io.File;
-import java.io.FileReader;
+import javax.annotation.Nonnull;
+import javax.management.JMException;
+import javax.servlet.Servlet;
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.io.Reader;
-import java.util.Collection;
-import java.util.Dictionary;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents activator of internal SNAMP services.
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.2.0
- * @version 1.2.0
+ * @version 2.0.0
  */
 public final class InternalServicesActivator extends AbstractServiceLibrary {
-    private static final String BOOT_CONFIG_PROPERTY = "com.bytex.snamp.login.config.boot";
-    private static final String DEFAULT_CONFIG_FILE = "jaas.json";
-
     private static final class ConfigurationServiceManager extends ProvidedService<ConfigurationManager, PersistentConfigurationManager>{
 
         private ConfigurationServiceManager() {
-            super(ConfigurationManager.class, new SimpleDependency<>(ConfigurationAdmin.class));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        protected PersistentConfigurationManager activateService(final Map<String, Object> identity, final RequiredService<?>... requiredServices) {
-            return new PersistentConfigurationManager(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, requiredServices));
-        }
-    }
-
-    private static final class LoginConfigurationManagerServiceManager extends ProvidedService<LoginConfigurationManager, LoginConfigurationManagerImpl> {
-        private final Gson formatter;
-
-        private LoginConfigurationManagerServiceManager(final Gson formatter) {
-            super(LoginConfigurationManager.class);
-            this.formatter = formatter;
+            super(ConfigurationManager.class, requiredBy(PersistentConfigurationManager.class).require(ConfigurationAdmin.class));
         }
 
         @Override
-        protected LoginConfigurationManagerImpl activateService(final Map<String, Object> identity, final RequiredService<?>... dependencies) throws IOException {
-            final LoginConfigurationManagerImpl result = new LoginConfigurationManagerImpl(formatter);
-            //check for boot configuration
-            final File bootConfig = new File(System.getProperty(BOOT_CONFIG_PROPERTY, DEFAULT_CONFIG_FILE));
-            if (bootConfig.exists())
-                try (final Reader config = new FileReader(bootConfig)) {
-                    result.loadConfiguration(config);
-                }
-            identity.put(LoginConfigurationManager.CONFIGURATION_MIME_TYPE, "application/json");
-            return result;
-        }
-    }
-
-    private static final class RealmsManager extends ServiceSubRegistryManager<JaasRealm, JaasRealmImpl>{
-        private final Gson formatter;
-
-        private RealmsManager(final Gson formatter) {
-            super(JaasRealm.class);
-            this.formatter = Objects.requireNonNull(formatter);
-        }
-
-        @Override
-        protected String getFactoryPID(final RequiredService<?>[] dependencies) {
-            return JaasRealmImpl.FACTORY_PID;
-        }
-
-        private JaasRealmImpl createService(final Dictionary<String, ?> configuration){
-            return new JaasRealmImpl(formatter, configuration);
-        }
-
-        @Override
-        protected JaasRealmImpl update(final JaasRealmImpl service, final Dictionary<String, ?> configuration, final RequiredService<?>... dependencies) {
-            return createService(configuration);
-        }
-
-        @Override
-        protected JaasRealmImpl createService(final Map<String, Object> identity, final Dictionary<String, ?> configuration, final RequiredService<?>... dependencies) {
-            return createService(configuration);
-        }
-
-        @Override
-        protected void cleanupService(final JaasRealmImpl service, final Dictionary<String, ?> identity) {
-
+        @Nonnull
+        protected PersistentConfigurationManager activateService(final Map<String, Object> identity) {
+            return new PersistentConfigurationManager(dependencies.getService(ConfigurationAdmin.class).orElseThrow(AssertionError::new));
         }
     }
 
     private static final class ClusterMemberProvider extends ProvidedService<ClusterMember, GridMember>{
         private ClusterMemberProvider(){
-            super(ClusterMember.class, new SimpleDependency<>(HazelcastInstance.class));
+            super(ClusterMember.class, requiredBy(GridMember.class).require(HazelcastInstance.class));
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        protected GridMember activateService(final Map<String, Object> identity,
-                                             final RequiredService<?>... dependencies) {
-            final HazelcastInstance hazelcast =
-                    getDependency(RequiredServiceAccessor.class, HazelcastInstance.class, dependencies);
-            return new GridMember(hazelcast);
+        @Nonnull
+        protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
+            final HazelcastInstance hazelcast = dependencies.getService(HazelcastInstance.class).orElseThrow(AssertionError::new);
+            final GridMember member = new GridMember(hazelcast);
+            member.start();
+            return member;
         }
 
         @Override
@@ -128,14 +66,14 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepository, ThreadPoolRepositoryImpl> {
 
         private ThreadPoolRepositoryProvider() {
-            super(ThreadPoolRepository.class, new SimpleDependency<>(ConfigurationAdmin.class));
+            super(ThreadPoolRepository.class, noRequiredServices(), ManagedService.class);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity, RequiredService<?>... dependencies) throws Exception {
+        @Nonnull
+        protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity) {
             identity.put(Constants.SERVICE_PID, ThreadPoolRepositoryImpl.PID);
-            return new ThreadPoolRepositoryImpl(getDependency(RequiredServiceAccessor.class, ConfigurationAdmin.class, dependencies));
+            return new ThreadPoolRepositoryImpl();
         }
 
         @Override
@@ -144,31 +82,42 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
     }
 
-    private InternalServicesActivator(final Gson formatter) {
-        super(new LoginConfigurationManagerServiceManager(formatter),
-                new RealmsManager(formatter),
-                new ClusterMemberProvider(),
-                new ThreadPoolRepositoryProvider(),
-                new ConfigurationServiceManager());
+    private static final class SecurityServletProvider extends ProvidedService<Servlet, SecurityServlet>{
+        private SecurityServletProvider(){
+            super(Servlet.class);
+        }
+
+        @Override
+        @Nonnull
+        protected SecurityServlet activateService(final Map<String, Object> identity) {
+            identity.put("alias", SecurityServlet.CONTEXT);
+            final ClusterMember clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
+            return new SecurityServlet(clusterMember);
+        }
+
+        @Override
+        protected void cleanupService(final SecurityServlet servlet, final boolean stopBundle) {
+            servlet.destroy();
+        }
     }
 
-    @SpecialUse
+    @SpecialUse(SpecialUse.Case.OSGi)
     public InternalServicesActivator(){
-        this(JsonConfigurationSpi.init(new GsonBuilder()).create());
+        super(new ClusterMemberProvider(),
+                new ThreadPoolRepositoryProvider(),
+                new ConfigurationServiceManager(),
+                new SecurityServletProvider());
     }
 
+    /**
+     * Starts the bundle and instantiate runtime state of the bundle.
+     *
+     * @param context                 The execution context of the bundle being started.
+     * @param bundleLevelDependencies A collection of bundle-level dependencies to fill.
+     * @throws Exception An exception occurred during starting.
+     */
     @Override
-    protected void start(final Collection<RequiredService<?>> bundleLevelDependencies) {
-
-    }
-
-    @Override
-    protected void activate(final ActivationPropertyPublisher activationProperties, RequiredService<?>... dependencies) {
-
-    }
-
-    @Override
-    protected void deactivate(final ActivationPropertyReader activationProperties) {
+    protected void start(final BundleContext context, final DependencyManager bundleLevelDependencies) throws Exception {
 
     }
 }
