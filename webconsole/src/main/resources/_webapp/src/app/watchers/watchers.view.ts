@@ -16,6 +16,9 @@ import 'smartwizard';
 import { HealthStatusBasedScalingPolicy } from "./model/policy/health.status.based.scaling.policy";
 import { AttributeBasedScalingPolicy } from "./model/policy/attribute.based.scaling.policy";
 import { isNullOrUndefined } from "util";
+import {OpRange} from "./model/policy/operational.range";
+import FontWeight = CanvasGauges.FontWeight;
+import {AbstractWeightedScalingPolicy} from "./model/policy/abstract.weighted.scaling.policy";
 
 @Component({
     moduleId: module.id,
@@ -58,6 +61,8 @@ export class MainComponent implements OnInit {
     private defaultGroovyPolicyScript:string = "";
 
     private operationalRangeVisible:boolean = false;
+
+    private currentRecommendation:OpRange = undefined;
 
     constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef, private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
@@ -302,6 +307,7 @@ export class MainComponent implements OnInit {
 
     private initCheckersWizard(): void {
         this.activeChecker = new ScriptletDataObject({});
+        this.activeChecker.script = this.defaultGroovyCheckerScript;
         $(this.getCheckersWizardId()).smartWizard({
             theme: 'arrows',
             useURLhash: false,
@@ -319,6 +325,7 @@ export class MainComponent implements OnInit {
         this.activePolicyName = "";
         this.activePolicy.script = this.defaultGroovyPolicyScript;
         this.operationalRangeVisible = false;
+        this.currentRecommendation = undefined;
         $(this.getPoliciesWizardId()).smartWizard({
             theme: 'arrows',
             useURLhash: false,
@@ -426,6 +433,21 @@ export class MainComponent implements OnInit {
     public selectVotingStrategy(type:string):void {
         this.activeWatcher.votingStrategy = type;
         this.activeWatcher.recalculateVotes();
+    }
+
+    public updatePolicyRecommendation():void {
+        this.http.get(REST.SUPERVISOR_POLICY_RECOMMENDATION(this.activeWatcher.name, this.activePolicyName))
+            .map((res:Response) => {console.log("Response is: ", res.json()); return res.json();})
+            .subscribe((data:any) => {
+                this.currentRecommendation = OpRange.fromString(data);
+                this.cd.detectChanges();
+            });
+    }
+
+    public applyRecommendation():void {
+        (<AttributeBasedScalingPolicy>this.activePolicy.policyObject).operationalRange = this.currentRecommendation;
+        this.currentRecommendation = undefined;
+        this.cd.detectChanges();
     }
 
 }

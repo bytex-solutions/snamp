@@ -246,6 +246,12 @@ export class REST {
     // all supervisors statuses
     public static SUPERVISORS_STATUS:string = REST.ROOT_WEB_API_PATH + "/resource-group-watcher/groups/status";
 
+    // get recommendation for policy (see OpRange class)
+    public static SUPERVISOR_POLICY_RECOMMENDATION(supervisorName:string, policyName:string):string {
+        return REST.ROOT_WEB_API_PATH + "/resource-group-watcher/" + encodeURIComponent(supervisorName)
+            + "/scaling-policies/attribute-based/" + encodeURIComponent(policyName) + "/recommendation";
+    }
+
     // notification settings
     public static NOTIFICATIONS_SETTINGS:string = REST.ROOT_WEB_API_PATH + "/notifications/settings";
 

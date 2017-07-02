@@ -108968,6 +108968,11 @@ var REST = (function () {
     REST.SUPERVISOR_BY_NAME = function (name) {
         return REST.SUPERVISORS_CONFIG + "/" + encodeURIComponent(name);
     };
+    // get recommendation for policy (see OpRange class)
+    REST.SUPERVISOR_POLICY_RECOMMENDATION = function (supervisorName, policyName) {
+        return REST.ROOT_WEB_API_PATH + "/resource-group-watcher/" + encodeURIComponent(supervisorName)
+            + "/scaling-policies/attribute-based/" + encodeURIComponent(policyName) + "/recommendation";
+    };
     REST.LOGIN_PATH = "/snamp/security/login/username";
     REST.ROOT_PATH = "/snamp/management";
     REST.GROOVY_PATH = "/snamp/assets/groovy";

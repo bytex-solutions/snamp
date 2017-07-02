@@ -519,11 +519,24 @@
 
                       <div class="form-group row">
                         <label for="operationalRangePolicy" class="col-md-2 col-form-label">Operational range</label>
-                        <div class="col-md-9">
+                        <div class="col-md-6">
                           <input class="form-control" disabled type="text" min="0" [attr.value]="activePolicy.policyObject.operationalRange.toString()" id="operationalRangePolicy">
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                           <button class="btn btn-primary" (click)="toggleOperationalRangeDialog()">{{ operationalRangeVisible ? 'Hide' : 'Edit' }}</button>
+                        </div>
+                        <div class="col-md-4">
+                          <button class="btn" (click)="updatePolicyRecommendation()">Recommendation</button>
+                        </div>
+                      </div>
+
+                      <div class="form-group row" *ngIf="currentRecommendation != undefined">
+                        <label for="operationalRangePolicyRec" class="col-md-2 col-form-label">Recommendation for operational range</label>
+                        <div class="col-md-8">
+                          <input class="form-control" disabled type="text" min="0" [attr.value]="currentRecommendation.toString()" id="operationalRangePolicyRec">
+                        </div>
+                        <div class="col-md-2">
+                          <button class="btn btn-primary" (click)="applyRecommendation()">Apply</button>
                         </div>
                       </div>
 
