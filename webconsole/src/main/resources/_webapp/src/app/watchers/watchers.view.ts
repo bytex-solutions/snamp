@@ -49,6 +49,10 @@ export class MainComponent implements OnInit {
 
     private availableSupervisors :any[] = [];
 
+    private defaultGroovyCheckerScript:string = "";
+    private defaultGroovyTriggerScript:string = "";
+    private defaultGroovyPolicyScript:string = "";
+
     constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef, private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
     }
@@ -86,6 +90,26 @@ export class MainComponent implements OnInit {
             .subscribe(data => {
                 console.log("Available supervisors list is: ", data);
                 this.availableSupervisors = data;
+            });
+
+        this.http.get(REST.GROOVY_PATH + "/AttributeChecker.groovy")
+            .map((res:Response) => res.text())
+            .subscribe(data => {
+                this.defaultGroovyCheckerScript = data;
+                this.activeChecker.script = data;
+            });
+
+        this.http.get(REST.GROOVY_PATH + "/HealthTrigger.groovy")
+            .map((res:Response) => res.text())
+            .subscribe(data => {
+                this.defaultGroovyTriggerScript = data;
+            });
+
+        this.http.get(REST.GROOVY_PATH + "/ScalingPolicy.groovy")
+            .map((res:Response) => res.text())
+            .subscribe(data => {
+                this.defaultGroovyPolicyScript = data;
+                this.activePolicy.script = data;
             });
     }
 
@@ -138,6 +162,7 @@ export class MainComponent implements OnInit {
         this.loadAttributesOnComponentSelected();
         this.activeWatcher.name = component;
         this.activeWatcher.trigger = new ScriptletDataObject({});
+        this.activeWatcher.trigger.script = this.defaultGroovyTriggerScript;
         this.activeWatcher.attributeCheckers = {};
         this.activeWatcher.scalingPolicies = {};
     }
@@ -160,6 +185,7 @@ export class MainComponent implements OnInit {
     public editCheckerForAttribute(attr: AttributeInformation): void {
         if (!this.activeWatcher.checkerExists(attr.name)) {
             this.activeWatcher.attributeCheckers[attr.name] = new ScriptletDataObject({});
+            this.activeWatcher.attributeCheckers[attr.name].script = this.defaultGroovyCheckerScript;
         }
         this.activeChecker = this.activeWatcher.attributeCheckers[attr.name];
         this.selectedAttribute = attr;
@@ -187,6 +213,7 @@ export class MainComponent implements OnInit {
             this.activeChecker.object = new ColoredAttributeChecker();
         } else {
             this.activeChecker.object = undefined;
+            this.activeChecker.script = this.defaultGroovyCheckerScript;
         }
     }
 
@@ -275,6 +302,7 @@ export class MainComponent implements OnInit {
     private initPoliciesWizard(): void {
         this.activePolicy = new ScriptletDataObject({});
         this.activePolicyName = "";
+        this.activePolicy.script = this.defaultGroovyPolicyScript;
         $(this.getPoliciesWizardId()).smartWizard({
             theme: 'arrows',
             useURLhash: false,
@@ -289,6 +317,7 @@ export class MainComponent implements OnInit {
 
     public addNewWatcher(): void {
         this.activeWatcher = new Watcher(undefined, {});
+        this.activeWatcher.trigger.script = this.defaultGroovyTriggerScript;
         this.selectedComponent = "";
     }
 
@@ -339,6 +368,7 @@ export class MainComponent implements OnInit {
             .then(dialog => dialog.result)
             .then(result => {
                 this.activeWatcher.scalingPolicies[result] = new ScriptletDataObject({});
+                this.activeWatcher.scalingPolicies[result].script = this.defaultGroovyPolicyScript;
                 let newMap:{ [key:string]:ScriptletDataObject; } = {};
                 for (let key in this.activeWatcher.scalingPolicies) {
                     newMap[key] = this.activeWatcher.scalingPolicies[key];
@@ -351,11 +381,12 @@ export class MainComponent implements OnInit {
 
     public selectPolicyType(type:string):void {
         if (type == "HealthStatusBased") {
-            this.activeChecker.policyObject = new HealthStatusBasedScalingPolicy();
-        } else if (type == "HealthStatusBased") {
-            this.activeChecker.policyObject = new AttributeBasedScalingPolicy();
+            this.activePolicy.policyObject = new HealthStatusBasedScalingPolicy();
+        } else if (type == "MetricBased") {
+            this.activePolicy.policyObject = new AttributeBasedScalingPolicy();
         } else {
             this.activeChecker.policyObject = undefined;
+            this.activePolicy.script = this.defaultGroovyPolicyScript;
         }
     }
 

@@ -84,6 +84,8 @@ export class REST {
 
     public static ROOT_PATH:string = "/snamp/management";
 
+    public static GROOVY_PATH:string = "/snamp/assets/groovy";
+
     public static CFG_PATH:string = REST.ROOT_PATH + "/configuration";
 
     public static GATEWAY_CONFIG:string = REST.CFG_PATH + "/gateway";

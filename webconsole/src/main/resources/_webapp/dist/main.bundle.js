@@ -108970,6 +108970,7 @@ var REST = (function () {
     };
     REST.LOGIN_PATH = "/snamp/security/login/username";
     REST.ROOT_PATH = "/snamp/management";
+    REST.GROOVY_PATH = "/snamp/assets/groovy";
     REST.CFG_PATH = REST.ROOT_PATH + "/configuration";
     REST.GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
     REST.RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
