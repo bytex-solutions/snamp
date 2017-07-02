@@ -33,4 +33,9 @@ export class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolic
         return _value;
     }
 
+    public getPoliticType():string {
+        return "Health status based scaling policy";
+    }
+
+
 }

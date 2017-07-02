@@ -1,0 +1,82 @@
+<div>
+    <dl class="row" *ngFor="let entry of entity | keys">
+
+        <div class="modal fade" *ngIf="!hideDetails" [attr.id]="'details_' + entry.value.id" tabindex="-1" role="dialog" aria-labelledby="detailsLabel">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title leftAlign" id="detailsLabel">Entity {{entry.value.name}} details</h4>
+                    </div>
+                    <br/>
+                    <div class="modal-body" *ngIf="entry.value.policyObject == undefined">
+                        <pre class="normalspaces"><code [innerHTML]="entry.value.script"></code></pre>
+                    </div>
+                    <div *ngIf="entry.value.policyObject != undefined">
+                        <div class="modal-body" *ngIf="isAttrType(entry.value.policyObject)">
+                            <dl class="row">
+                                <dt class="col-sm-3">Attribute name:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.attributeName}}</dd>
+
+                                <dt class="col-sm-3">Operational range:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.operationalRange.toString()}}</dd>
+
+                                <dt class="col-sm-3">Aggregation:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.aggregation}}</dd>
+
+                                <dt class="col-sm-3">Analysis depth:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.formatAnalysisDepth()}}</dd>
+
+                                <dt class="col-sm-3">Vote weight:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.voteWeight}}</dd>
+
+                                <dt class="col-sm-3">Incremental weight:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.incrementalWeight}}</dd>
+
+                                <dt class="col-sm-3">Observation time:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.formatObservationTime()}}</dd>
+                            </dl>
+                        </div>
+                        <div class="modal-body" *ngIf="isHealthStatusType(entry.value.policyObject)">
+                            <dl class="row">
+                                <dt class="col-sm-3">Level:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.level}}</dd>
+
+                                <dt class="col-sm-3">Vote weight:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.voteWeight}}</dd>
+
+                                <dt class="col-sm-3">Incremental weight:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.incrementalWeight}}</dd>
+
+                                <dt class="col-sm-3">Observation time:</dt>
+                                <dd class="col-sm-9">{{entry.value.policyObject.formatObservationTime()}}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <dt class="col-sm-3">Policy type:</dt>
+        <dd class="col-sm-9">{{entry.value.getPolicyType()}}</dd>
+
+        <dt class="col-sm-3">Language:</dt>
+        <dd class="col-sm-9">{{entry.value.language}}</dd>
+
+        <dt class="col-sm-3">Is url:</dt>
+        <dd class="col-sm-9">{{entry.value.isURL}}</dd>
+
+        <dt class="col-sm-3">Script:</dt>
+        <dd class="col-sm-9">
+            <button *ngIf="!hideDetails"
+                    class="center-block btn btn-inline btn-sm"
+                    data-toggle="modal"
+                    [attr.data-target]="'#details_' + entry.value.id">
+                <i class="fa fa-search"></i> Details
+            </button>
+        </dd>
+    </dl>
+</div>

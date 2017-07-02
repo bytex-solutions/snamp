@@ -48,6 +48,10 @@ export class AttributeBasedScalingPolicy extends AbstractWeightedScalingPolicy {
         this._analysisDepth = value;
     }
 
+    formatAnalysisDepth():string {
+        return moment.duration({ milliseconds: this.analysisDepth}).humanize();
+    }
+
     toJSON(): any {
         let _value:any = {};
         _value["voteWeight"] = this.voteWeight;
@@ -58,6 +62,10 @@ export class AttributeBasedScalingPolicy extends AbstractWeightedScalingPolicy {
         _value["operationalRange"] = this.operationalRange.toString();
         _value["analysisDepth"] = moment.duration({ milliseconds: this.analysisDepth}).toISOString();
         return _value;
+    }
+
+    public getPoliticType():string {
+        return "Attribute based scaling policy";
     }
 
 }

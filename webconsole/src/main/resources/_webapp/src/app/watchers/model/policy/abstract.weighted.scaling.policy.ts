@@ -1,4 +1,5 @@
 import { AbstractPolicy } from "./abstract.policy";
+import * as moment from 'moment/moment';
 
 export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
 
@@ -34,5 +35,9 @@ export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
 
     set incrementalWeight(value: boolean) {
         this._incrementalWeight = value;
+    }
+
+    formatObservationTime():string {
+        return moment.duration({ milliseconds: this.observationTime}).humanize();
     }
 }

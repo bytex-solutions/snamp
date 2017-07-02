@@ -156,4 +156,8 @@ export class ScriptletDataObject extends Entity {
         console.log("Trying to stringify current scriptlet object: ", _value);
         return _value;
     }
+
+    public getPolicyType():string {
+        return this.policyObject == undefined ? "Groovy policy" : this.policyObject.getPoliticType();
+    }
 }

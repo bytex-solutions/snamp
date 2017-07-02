@@ -22,7 +22,8 @@ import { ColoredCondition } from './components/condition.block';
 
 import { KeysPipe } from './watchers.pipes';
 import { WatcherProvisioning } from "./watchers.prov";
-import {PTable} from "./components/ptable.component";
+import { PTable } from "./components/ptable.component";
+import { PoliciesComponent } from "./components/policies.component";
 
 const PROVIDERS:any =  [
   ApiClient,
@@ -53,6 +54,7 @@ const PROVIDERS:any =  [
         WatcherProvisioning,
         CheckersComponent,
         TriggerComponent,
+        PoliciesComponent,
         ColoredCondition,
         PTable,
         KeysPipe

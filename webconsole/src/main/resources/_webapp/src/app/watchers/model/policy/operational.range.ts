@@ -1,4 +1,4 @@
-import {isNullOrUndefined} from "util";
+import { isNullOrUndefined } from "util";
 export class OpRange {
 
     private _begin:number;
