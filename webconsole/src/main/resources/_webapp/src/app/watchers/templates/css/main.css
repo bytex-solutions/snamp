@@ -19,7 +19,7 @@
 }
 
 .activeTr {
-    background-color: #b9c7de;
+    border-left: 2px solid rgba(6, 255, 11, 0.44) !important;
 }
 
 .img-inline {
@@ -38,5 +38,5 @@
 }
 
 .active-tr {
-    background-color: khaki;
+    border-left: 2px solid rgba(1, 0, 255, 0.44) !important;
 }

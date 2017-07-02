@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit, ViewContainerRef} from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -13,6 +13,8 @@ import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 
 import 'rxjs/add/operator/publishLast';
 import 'smartwizard';
+import {HealthStatusBasedScalingPolicy} from "./model/policy/health.status.based.scaling.policy";
+import {AttributeBasedScalingPolicy} from "./model/policy/attribute.based.scaling.policy";
 
 @Component({
     moduleId: module.id,
@@ -30,19 +32,24 @@ export class MainComponent implements OnInit {
     private selectedComponent: string = undefined;
     private triggerInitialized: boolean = false;
     private checkersInitialized: boolean = false;
+    private policiesInitialized: boolean = false;
 
     private attributes: AttributeInformation[] = [];
     private selectedAttribute: AttributeInformation = undefined;
 
     private activeChecker: ScriptletDataObject = new ScriptletDataObject({});
 
-    private checkersType: EntityWithDescription[] = EntityWithDescription.generateCheckersTypes();
+    private activePolicy: ScriptletDataObject = new ScriptletDataObject({});
+    private activePolicyName:string = "";
 
-    private triggerLanguages: string[] = ["Groovy", "JavaScript"];
+    private checkersType: EntityWithDescription[] = EntityWithDescription.generateCheckersTypes();
+    private policyTypes: EntityWithDescription[] = EntityWithDescription.generatePoliciesTypes();
+
+    private triggerLanguages: string[] = ["Groovy"/*, "JavaScript"*/];
 
     private availableSupervisors :any[] = [];
 
-    constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef) {
+    constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef, private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
     }
 
@@ -112,12 +119,27 @@ export class MainComponent implements OnInit {
         this.checkersInitialized = true;
     }
 
+    public initPoliciesModal(): void {
+        // clean the data if the component was already initialized
+        if (this.policiesInitialized) {
+            // reset wizard
+            $(this.getPoliciesWizardId()).off("showStep");
+            $(this.getPoliciesWizardId()).smartWizard("reset");
+        }
+        this.initPoliciesWizard();
+        // open the modal
+        $("#editPolicyModal").modal("show");
+        // and next time user adds the chart - we will reinit all the dialog
+        this.policiesInitialized = true;
+    }
+
     private selectCurrentComponent(component: string): void {
         this.selectedComponent = component;
         this.loadAttributesOnComponentSelected();
         this.activeWatcher.name = component;
         this.activeWatcher.trigger = new ScriptletDataObject({});
         this.activeWatcher.attributeCheckers = {};
+        this.activeWatcher.scalingPolicies = {};
     }
 
     isTriggerAvailable(): boolean {
@@ -219,6 +241,10 @@ export class MainComponent implements OnInit {
         return "#smartwizardForCheckers";
     }
 
+    private getPoliciesWizardId(): string {
+        return "#smartwizardForPolicies";
+    }
+
     private initTriggerWizard(): void {
         $(this.getTriggerWizardId()).smartWizard({
             theme: 'arrows',
@@ -233,6 +259,7 @@ export class MainComponent implements OnInit {
     }
 
     private initCheckersWizard(): void {
+        this.activeChecker = new ScriptletDataObject({});
         $(this.getCheckersWizardId()).smartWizard({
             theme: 'arrows',
             useURLhash: false,
@@ -241,6 +268,21 @@ export class MainComponent implements OnInit {
         });
 
         $(this.getCheckersWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
+            console.log(stepNumber);
+        });
+    }
+
+    private initPoliciesWizard(): void {
+        this.activePolicy = new ScriptletDataObject({});
+        this.activePolicyName = "";
+        $(this.getPoliciesWizardId()).smartWizard({
+            theme: 'arrows',
+            useURLhash: false,
+            showStepURLhash: false,
+            transitionEffect: 'fade'
+        });
+
+        $(this.getPoliciesWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
             console.log(stepNumber);
         });
     }
@@ -274,6 +316,54 @@ export class MainComponent implements OnInit {
         return this.activeWatcher != null && this.activeWatcher.name == _watcher.name;
     }
 
+
+    public isPolicyActive(policyKey:string):boolean {
+        return this.activePolicy != undefined && this.activePolicyName != undefined && this.activePolicyName == policyKey;
+    }
+
+    public editPolicy(policyKey:string, policyValue:ScriptletDataObject):void {
+        this.activePolicyName = policyKey;
+        this.activePolicy = policyValue;
+    }
+
+    public removePolicy(policyKey:string):void {
+        delete this.activeWatcher.scalingPolicies[policyKey];
+    }
+
+    public addNewPolicy():void {
+        this.modal.prompt()
+            .className(<VEXBuiltInThemes>'default')
+            .message('New policy')
+            .placeholder('Please set the name for a new policy')
+            .open()
+            .then(dialog => dialog.result)
+            .then(result => {
+                this.activeWatcher.scalingPolicies[result] = new ScriptletDataObject({});
+                let newMap:{ [key:string]:ScriptletDataObject; } = {};
+                for (let key in this.activeWatcher.scalingPolicies) {
+                    newMap[key] = this.activeWatcher.scalingPolicies[key];
+                }
+                this.activeWatcher.scalingPolicies = newMap;
+                this.cd.markForCheck();
+            })
+            .catch(() => {});
+    }
+
+    public selectPolicyType(type:string):void {
+        if (type == "HealthStatusBased") {
+            this.activeChecker.policyObject = new HealthStatusBasedScalingPolicy();
+        } else if (type == "HealthStatusBased") {
+            this.activeChecker.policyObject = new AttributeBasedScalingPolicy();
+        } else {
+            this.activeChecker.policyObject = undefined;
+        }
+    }
+
+    public saveCurrentPolicy():void {
+        this.activeWatcher.scalingPolicies[this.activePolicyName] = this.activePolicy;
+        console.log("Policy has been saved");
+    }
+
 }
 
 export class EntityWithDescription {
@@ -288,8 +378,17 @@ export class EntityWithDescription {
     public static generateCheckersTypes(): EntityWithDescription[] {
         let _value: EntityWithDescription[] = [];
         _value.push(new EntityWithDescription("Groovy", "Groovy checker"));
-        _value.push(new EntityWithDescription("JavaScript", "Javascript checker"));
+        //_value.push(new EntityWithDescription("JavaScript", "Javascript checker"));
         _value.push(new EntityWithDescription("ColoredAttributeChecker", "Green and yellow conditions based checker"));
+        return _value;
+    }
+
+
+    public static generatePoliciesTypes(): EntityWithDescription[] {
+        let _value: EntityWithDescription[] = [];
+        _value.push(new EntityWithDescription("Groovy", "Groovy policy"));
+        _value.push(new EntityWithDescription("HealthStatusBased", "Health status based scaling policy"));
+        _value.push(new EntityWithDescription("MetricBased", "Attribute based scaling policy"));
         return _value;
     }
 }

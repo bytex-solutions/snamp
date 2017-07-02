@@ -52,8 +52,8 @@ export class ScriptletDataObject extends Entity {
                 instance.object = undefined;
                 break;
             case "HealthStatusBased":
-                instance.policyObject = new HealthStatusBasedScalingPolicy();
                 let _jsonHSB:any = JSON.parse(instance.script);
+                instance.policyObject = new HealthStatusBasedScalingPolicy();
                 (<HealthStatusBasedScalingPolicy>instance.policyObject).level = _jsonHSB["level"];
                 (<HealthStatusBasedScalingPolicy>instance.policyObject).observationTime =
                     (!isNaN(parseFloat(_jsonHSB["observationTime"])) && isFinite(_jsonHSB["observationTime"]))
@@ -147,8 +147,8 @@ export class ScriptletDataObject extends Entity {
                 this.script = JSON.stringify(this.object.toJSON());
             }
         } else if (this.language == "HealthStatusBased" || this.language == "MetricBased") {
-            if (this.object == undefined) {
-                throw new Error("Trying to serialize " + this.language + " instance without the object");
+            if (this.policyObject == undefined) {
+                throw new Error("Trying to serialize " + this.language + " instance without the policyObject");
             } else {
                 this.script = JSON.stringify(this.policyObject.toJSON());
             }
@@ -159,5 +159,9 @@ export class ScriptletDataObject extends Entity {
 
     public getPolicyType():string {
         return this.policyObject == undefined ? "Groovy policy" : this.policyObject.getPoliticType();
+    }
+
+    public getPolicyWeight():string {
+        return this.policyObject == undefined ? "N/A" : this.policyObject.getPolicyWeight();
     }
 }

@@ -40,4 +40,8 @@ export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
     formatObservationTime():string {
         return moment.duration({ milliseconds: this.observationTime}).humanize();
     }
+
+    public getPolicyWeight():string {
+        return this.voteWeight.toString();
+    }
 }

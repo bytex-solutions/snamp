@@ -8,4 +8,8 @@ export abstract class AbstractPolicy {
     public getPoliticType():string {
         return "Groovy policy";
     }
+
+    public getPolicyWeight():string {
+        return "N/A";
+    }
 }

@@ -315,6 +315,167 @@
       </div>
     </div>
 
+    <!-- Modal for edit policies for activeWatcher -->
+    <div class="modal fade" id="editPolicyModal" role="dialog" aria-labelledby="editPolicyLabel" *ngIf="activeWatcher != undefined">
+      <div class="modal-dialog modal-xlg modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title leftAlign" id="editPolicyLabel">Edit scaling policies</h4>
+            <br/>
+            <div class="modal-body">
+              <div id="smartwizardForPolicies" style="height: 95%">
+                <ul>
+                  <li>
+                    <a [attr.href]="'#policyTable'">
+                      Policy selection<br />
+                      <small>Select or add a policy</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#policyType'">
+                      Type<br />
+                      <small>Select type of policy</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#policyPTable'">
+                      Parameters<br />
+                      <small>Set parameters</small>
+                    </a>
+                  </li>
+                  <li>
+                    <a [attr.href]="'#policyBody'">
+                      Policy's logic<br />
+                      <small>How the policy works</small>
+                    </a>
+                  </li>
+                </ul>
+
+                <div style="height:100%">
+
+                  <div id="policyTable" class="row" style="margin-top: 5px;">
+                    <table class="table table-hover table-bordered">
+                      <thead class="thead-inverse">
+                      <tr>
+                        <th>Actions</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Weight</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr *ngFor="let entry of activeWatcher.scalingPolicies | keys" class="clickableTr" [class.activeTr]="isPolicyActive(entry.key)" (click)="editPolicy(entry.key, entry.value)">
+                        <td>
+                                  <span
+                                          class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                                          (click)="removePolicy(entry.key)"
+                                          aria-hidden="true">
+                                  </span>
+                        </td>
+                        <th scope="row">{{entry.key}}</th>
+                        <td>
+                          {{entry.value.getPolicyType()}}
+                        </td>
+                        <td>
+                          {{entry.value.getPolicyWeight()}}
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                    <button class="btn btn-primary btn-xs" (click)="addNewPolicy()">
+                      Add new policy
+                    </button>
+                  </div>
+
+                  <div id="policyType" class="row" style="margin-top: 100px;">
+                    <div class="item form-group">
+                      <label
+                              class="control-label col-md-3 col-sm-3 col-xs-12"
+                              for="policyTypeSelect"
+                              style="margin-top: 7px;">
+                        Set type for policy <span class="required">*</span>
+                      </label>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <select class="form-control" [(ngModel)]="activePolicy.language" id="policyTypeSelect" (ngModelChange)="selectPolicyType($event)">
+                          <option *ngFor="let type of policyTypes" [ngValue]="type.id">{{type.description}}</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="policyPTable" class="row" style="margin-top: 30px;">
+                    <div>
+                      <ptable [entity]="activePolicy"></ptable>
+                    </div>
+                  </div>
+
+                  <div id="policyBody" class="row" style="margin-top: 5px;">
+                    <div *ngIf="activePolicy?.language == 'Groovy'" style="margin-top: 20px;">
+
+                      <div class="item form-group" style="margin-bottom: 15px;">
+                        <label
+                                class="control-label col-md-3 col-sm-3 col-xs-12"
+                                style="margin-top: 7px;">
+                          Load script from external URL <span class="required">*</span>
+                        </label>
+
+                        <div class="col-md-6 col-sm-6 col-xs-12" >
+                          <ui-switch
+                                  [(ngModel)]="activePolicy.isURL"
+                                  [size]="'small'">
+                          </ui-switch>
+                        </div>
+                      </div>
+
+                      <div *ngIf="activePolicy?.isURL">
+                        <div class="item form-group">
+                          <label
+                                  class="control-label col-md-3 col-sm-3 col-xs-12"
+                                  for="urlForPolicy"
+                                  style="margin-top: 7px;">
+                            Url for script loading <span class="required">*</span>
+                          </label>
+                          <div class="col-md-6 col-sm-6 col-xs-12">
+                            <input type="text" class="form-control" id="urlForPolicy" placeholder="Input url for script to be loaded from" [(ngModel)]="activePolicy.script"/>
+                          </div>
+                        </div>
+                      </div>
+                      <div *ngIf="!activePolicy?.isURL">
+                        <div class="item form-group">
+                          <label
+                                  class="control-label col-md-3 col-sm-3 col-xs-12"
+                                  for="scriptBodyForPolicy"
+                                  style="margin-top: 7px;">
+                            Script body for the policy <span class="required">*</span>
+                          </label>
+                          <div class="col-md-6 col-sm-6 col-xs-12">
+                            <textarea id="scriptBodyForPolicy" rows="5" class="form-control" [(ngModel)]="activePolicy.script"></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="activePolicy?.language == 'HealthStatusBased'">
+
+                    </div>
+
+                    <div *ngIf="activePolicy?.language == 'MetricBased'">
+
+                    </div>
+
+                    <div class="col-md-2" style="float:right;">
+                      <button class="btn btn-primary" data-dismiss="modal" (click)="saveCurrentPolicy()">Save policy</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row" style="margin-top: 30px">
       <panel [header]="'Watcher settings'" [column]="'7'" *ngIf="activeWatcher != undefined">
 
@@ -399,12 +560,11 @@
         </div>
 
         <div class="row row-margin-bottom-sm">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection" style="margin-top:10px;">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
             Trigger
           </label>
           <div class="col-md-4 col-sm-4 col-xs-12">
             <button class="btn btn-primary"
-                    [disabled]="!(attributes && attributes.length > 0)"
                     (click)="initTriggerModal()"
                     aria-hidden="true"> Edit trigger
             </button>
@@ -412,7 +572,7 @@
         </div>
 
         <div class="row row-margin-bottom-sm">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection" style="margin-top:10px;">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
             Checkers
           </label>
           <div class="col-md-4 col-sm-4 col-xs-12">
@@ -420,6 +580,18 @@
                     [disabled]="!(attributes && attributes.length > 0)"
                     (click)="initCheckersModal()"
                     aria-hidden="true"> Edit checkers
+            </button>
+          </div>
+        </div>
+
+        <div class="row row-margin-bottom-sm">
+          <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
+            Policies
+          </label>
+          <div class="col-md-4 col-sm-4 col-xs-12">
+            <button class="btn btn-primary"
+                    (click)="initPoliciesModal()"
+                    aria-hidden="true"> Edit policies
             </button>
           </div>
         </div>

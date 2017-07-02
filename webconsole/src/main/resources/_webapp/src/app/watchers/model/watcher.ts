@@ -22,6 +22,7 @@ export class Watcher extends Entity {
         for (let key in this.attributeCheckers) {
             _value["attributeCheckers"][key] = this.attributeCheckers[key].toJSON();
         }
+        _value["scalingPolicies"] = {};
         for (let key in this.scalingPolicies) {
             _value["scalingPolicies"][key] = this.scalingPolicies[key].toJSON();
         }
