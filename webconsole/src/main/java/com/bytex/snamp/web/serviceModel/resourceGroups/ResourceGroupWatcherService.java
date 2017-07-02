@@ -5,7 +5,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.InstantSerializer;
-import com.bytex.snamp.json.RangeSerializer;
+import com.bytex.snamp.json.ThreadLocalJsonFactory;
 import com.bytex.snamp.supervision.*;
 import com.bytex.snamp.supervision.elasticity.*;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
@@ -19,6 +19,7 @@ import com.google.common.collect.Range;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.node.TextNode;
 
 import javax.annotation.Nonnull;
 import javax.ws.rs.*;
@@ -284,15 +285,16 @@ public final class ResourceGroupWatcherService extends AbstractWebConsoleService
     @GET
     @Path("/{groupName}/scaling-policies/attribute-based/{policyName}/recommendation")
     @Produces(MediaType.APPLICATION_JSON)
-    @JsonSerialize(using = RangeSerializer.class)
     //501 error code if group supervisor doesn't provide elasticity manager
     //400 error code if specified scaling policy name has invalid type (attribute-based policy is expected)
     //404 if group supervisor or policy doesn't exist
-    public Range<Double> getRecommendation(@PathParam("groupName") final String groupName,
-                                           @PathParam("policyName") final String policyName) {
-        return SupervisorClient.tryCreate(getBundleContext(), groupName)
+    public TextNode getRecommendation(@PathParam("groupName") final String groupName,
+                                      @PathParam("policyName") final String policyName) {
+        final String range = SupervisorClient.tryCreate(getBundleContext(), groupName)
                 .map(client -> getRecommendation(client, policyName))
-                .orElseThrow(() -> new WebApplicationException(notFound()));
+                .orElseThrow(() -> new WebApplicationException(notFound()))
+                .toString();
+        return ThreadLocalJsonFactory.getFactory().textNode(range);
     }
 
     @Override

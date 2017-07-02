@@ -406,6 +406,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     }
 
     @Test
+    public void recommendationTest() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode node = httpGet("/resource-group-watcher/" + URLEncoder.encode(SCALABLE_GROUP_NAME, "UTF-8") + "/scaling-policies/attribute-based/stagPolicy/recommendation", authenticationToken);
+        assertTrue(node.isTextual());
+    }
+
+    @Test
     public void landscapeViewTest() throws URISyntaxException, InterruptedException, IOException {
         final HttpReporter reporter = new HttpReporter("http://localhost:8181/", ImmutableMap.of());
         reporter.setAsynchronous(false);
