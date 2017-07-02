@@ -30,6 +30,11 @@ The change will take effect immediately.
 
 ## Clustering
 When you install the _cellar_ feature, a _hazelcast_ feature is being automatically installed, providing the `<snamp>/etc/hazelcast.xml` configuration file. For most of the users, default configuration should be appropriate. If not, you can tailor this XML file according to your needs by adding/removing/modifying properties. Read more about Hazelcast configuration:
-
 * [Configuring Hazelcast](http://docs.hazelcast.org/docs/3.7.2/manual/html-single/index.html#understanding-configuration)
 * [Cellar and Hazelcast](https://karaf.apache.org/manual/cellar/latest-4/#_core_runtime_and_hazelcast)
+
+## Security
+SNAMP uses the same list of users when accessing SNAMP shell, REST API and SNAMP Web Console. Configuration of all users can be found in `<snamp>/etc/users.properties`. SNAMP uses roles defined by Apache Karaf:
+* 
+
+If you wish to integrate authentication and authorization with enterprise-level registry of users please use this [Security Guide](https://karaf.apache.org/manual/latest/security).

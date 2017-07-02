@@ -15,8 +15,8 @@ Detailed description for each Gateway supported by SNAMP:
 
 Display name | Type | Resource Discovery | Group health status | Elasticity management
 ---- | ---- | ---- | ---- | ----
-Default Supervisor | default | No | Yes | Partially (using Groovy scripts)
-OpenStack Supervisor | openstack | Yes | Yes | Yes
+[Default Supervisor](default-supervisor.md) | default | No | Yes | Partially (using Groovy scripts)
+[OpenStack Supervisor](openstack-supervisor.md) | openstack | Yes | Yes | Yes
 
 ## Resource Discovery
 Resource Discovery should be configured explicitly if supervisor supports this functionality as well as resource group should be configured explicitly. Resource group should have attributes, events and operations. Without explicit configuration of resource group with management features a newly discovered managed resource will not provide monitoring information.
