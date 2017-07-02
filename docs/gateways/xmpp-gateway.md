@@ -20,24 +20,24 @@ There are following supported commands:
 1. `exit` - closes chat session
 1. `resources` - displays list of connected resources
 1. `attr-list [-s] [-d] [-r <resource-name>]` - displays an attributes of the specified resource
-  - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
-  - `-s`, `--names` - displays system name for each attribute
-  - `-d`, `--details` - displays configuration and resource-supplied parameters associated with each attribute
+    - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
+    - `-s`, `--names` - displays system name for each attribute
+    - `-d`, `--details` - displays configuration and resource-supplied parameters associated with each attribute
 1. `get -n <name> -r <resource> [-t|-j]` - displays attribute value of the specified resource
-  - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
-  - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
-  - `-t`, `--text` - specifies textual format for attribute value output. Useful for scalar data types
-  - `-j`, `--json` - specifies JSON format for attribute value output. Useful for dictionaries and tables
+    - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
+    - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
+    - `-t`, `--text` - specifies textual format for attribute value output. Useful for scalar data types
+    - `-j`, `--json` - specifies JSON format for attribute value output. Useful for dictionaries and tables
 1. `set -n <name> -r <resource> -v <value-as-json> [-s|--silent]` - sets value of specified resource attribute
-  - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
-  - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
-  - `-v <value-as-json>`, `--value <value-as-json>` - specifies new value of the attribute
-  - `-s, --silent` - do not produce response message
+    - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
+    - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
+    - `-v <value-as-json>`, `--value <value-as-json>` - specifies new value of the attribute
+    - `-s, --silent` - do not produce response message
 1. `notifs [-f <expression>]` - enables listening of incoming notifications. In this mode the notifications will be delivered asynchronously to the chat in JSON and XML format
-  - `-f <expression>`, `--filter <expression>` - _RFC 1960_-based expression that describes notification selection candidate. You may use any configuration property in the filtering expression
+    - `-f <expression>`, `--filter <expression>` - _RFC 1960_-based expression that describes notification selection candidate. You may use any configuration property in the filtering expression
 1. `hs [-r <resource-name>] | [-g <group-name>]` - displays health status of the groups of resources or individual managed resource. One of the parameters is required.
-  - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
-  - `-g <group-name>`, `--group <group-name>` - specifies group name.
+    - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
+    - `-g <group-name>`, `--group <group-name>` - specifies group name.
 
 Attribute value and notification object are represented in the same JSON format as defined in **HTTP Gateway**.
 

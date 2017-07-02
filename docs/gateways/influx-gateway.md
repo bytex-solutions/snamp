@@ -50,11 +50,11 @@ Additional tags help to sort, find, extract and process data from InfluxDB by ex
 ### Recording notifications
 InfluxDB Gateway provides special processing of different kind of notifications:
 * Measurements (see related section in **SNAMP Management Information Model**):
-  - Value measurement will be recorded in the same manner as attribute value
-  - Span will be recorded with multiple fields: `correlationID`, `spanID`, `parentSpanID`, `duration`, `moduleName`
-  - Time measurement will be recorded in the same manner as attribute value where `value` field will be defined as `duration` supplied by measurement
+    - Value measurement will be recorded in the same manner as attribute value
+    - Span will be recorded with multiple fields: `correlationID`, `spanID`, `parentSpanID`, `duration`, `moduleName`
+    - Time measurement will be recorded in the same manner as attribute value where `value` field will be defined as `duration` supplied by measurement
 * Regular notifications:
-  - Notification will be recored with multiple values: `sequenceNumber` and `message`
-  - Time stamp will be extracted from notification
+    - Notification will be recored with multiple values: `sequenceNumber` and `message`
+    - Time stamp will be extracted from notification
 
 The record produced from notification has the same tags as records produced for attributes.

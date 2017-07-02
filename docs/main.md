@@ -20,10 +20,10 @@ This is a top-level page of SNAMP technical documentation. Here you can found al
 * [Overview of Web Console](webconsole/overview.md) - monitoring, tracing and elasticity management from browser
 * [Overview of SNAMP command-line interface](cli.md) - configuring SNAMP from command line
 * Configuration using SNAMP Web Console
-  - [Resource connectors](webconsole/config-connectors.md) - configuration of managed resources
-  - [Resource groups](webconsole/config-groups.md) - configuration of resource groups
-  - [Supervisors](webconsole/config-supervisors.md) - configuration of supervisors
-  - [Gateways](webconsole/config-gateways.md) - configuration of gateways
+    - [Resource connectors](webconsole/config-connectors.md) - configuration of managed resources
+    - [Resource groups](webconsole/config-groups.md) - configuration of resource groups
+    - [Supervisors](webconsole/config-supervisors.md) - configuration of supervisors
+    - [Gateways](webconsole/config-gateways.md) - configuration of gateways
 * [Dashboard of charts](webconsole/charts.md) - display metrics in the form of charts
 * [E2E Analysis](webconsole/e2e.md) - display end-to-end communication topology using tracing information
 * [Notifications](webconsole/notifications.md) - important notifications about managed resources
@@ -40,4 +40,4 @@ Advanced configuration:
 ## Advanced Topics
 * [Management Information Model](inform_model.md) - how SNAMP represents and interprets management information
 * **SNAMP Integration Tools** allow to integrate SNAMP with other software in your company:
-  - [Resource Discovery](resource-discovery.md) - how to automatically register new resources in SNAMP using REST API
+    - [Resource Discovery](resource-discovery.md) - how to automatically register new resources in SNAMP using REST API

@@ -20,23 +20,23 @@ There are following supported commands:
 1. `exit` - closes SSH session
 1. `resources` - displays list of connected resources
 1. `attr-list [-s] [-d] [-r <resource-name>]` - displays an attributes of the specified resource
-  - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
-  - `-s`, `--names` - displays system name for each attribute
-  - `-d`, `--details` - displays configuration and resource-supplied parameters associated with each attribute
-1. `get -n <name> -r <resource> [-t|-j]` - displays attribute value of the specified resource
-  - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
-  - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
-  - `-t`, `--text` - specifies textual format for attribute value output. Useful for scalar data types
-  - `-j`, `--json` - specifies JSON format for attribute value output. Useful for dictionaries and tables
-1. `set -n <name> -r <resource> -v <value-as-json>` - sets value of attribute of the specified resource
-  - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
-  - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
-  - `-v <value-as-json>`, `--value <value-as-json>` - specifies a new value of the attribute
-1. `notifs [-f <expression>]` - enables listening of incoming notifications. In this mode you are not able to print any commands. Pressing any key causes abortion of notification listening session. Any received notification will be displayed in the console
-  - `-f <expression>`, `--filter <expression>` - _RFC 1960_-based expression that describes notification selection candidate. You may use any configuration property in the filtering expression
-1. `hs [-r <resource-name>] | [-g <group-name>]` - displays health status of the groups of resources or individual managed resource. One of the parameters is required.
     - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
-    - `-g <group-name>`, `--group <group-name>` - specifies group name.
+    - `-s`, `--names` - displays system name for each attribute
+    - `-d`, `--details` - displays configuration and resource-supplied parameters associated with each attribute
+1. `get -n <name> -r <resource> [-t|-j]` - displays attribute value of the specified resource
+    - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
+    - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
+    - `-t`, `--text` - specifies textual format for attribute value output. Useful for scalar data types
+    - `-j`, `--json` - specifies JSON format for attribute value output. Useful for dictionaries and tables
+1. `set -n <name> -r <resource> -v <value-as-json>` - sets value of attribute of the specified resource
+    - `-n <name>`, `--name <name>` - specifies user-defined name of the attribute
+    - `-r <resource>`, `--resource <resource>` - specifies user-defined name of the connected resource
+    - `-v <value-as-json>`, `--value <value-as-json>` - specifies a new value of the attribute
+1. `notifs [-f <expression>]` - enables listening of incoming notifications. In this mode you are not able to print any commands. Pressing any key causes abortion of notification listening session. Any received notification will be displayed in the console
+    - `-f <expression>`, `--filter <expression>` - _RFC 1960_-based expression that describes notification selection candidate. You may use any configuration property in the filtering expression
+1. `hs [-r <resource-name>] | [-g <group-name>]` - displays health status of the groups of resources or individual managed resource. One of the parameters is required.
+      - `-r <resource-name>`, `--resource <resource-name>` - specifies user-defined name of the connected resource
+      - `-g <group-name>`, `--group <group-name>` - specifies group name.
 
 Attribute value and notification object represented in the same JSON format as defined in **HTTP Gateway**.
 

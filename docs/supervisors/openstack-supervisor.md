@@ -18,7 +18,8 @@ Elasticity management | Yes
 Resource Discovery | Yes
 
 Senlin cluster should be configured properly before using OpenStack Supervisor:
-1. Describe cluster node profile as **yaml** file. Example of profile:
+* Describe cluster node profile as **yaml** file. Example of profile:
+
 ```yaml
 type: os.nova.server
 version: 1.0
@@ -35,8 +36,8 @@ properties:
     #!/bin/sh
     echo 'hello, world' > /tmp/test_file
 ```
-1. Upload profile using command-line tool `openstack cluster profile` or Horizon
-1. Create Senlin cluster and specify name of cluster. Note that name of resource group in SNAMP is treated as cluster name. If group name doesn't match to cluster name then use `clusterID` configuration parameter to associate GUID of cluster with group name in SNAMP explicitly.
+* Upload profile using command-line tool `openstack cluster profile` or Horizon
+* Create Senlin cluster and specify name of cluster. Note that name of resource group in SNAMP is treated as cluster name. If group name doesn't match to cluster name then use `clusterID` configuration parameter to associate GUID of cluster with group name in SNAMP explicitly.
 
 ## Configuration properties
 OpenStack Supervisor recognizes the following configuration properties:
