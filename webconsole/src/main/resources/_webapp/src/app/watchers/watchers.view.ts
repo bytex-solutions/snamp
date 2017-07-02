@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit, ViewContainerRef} from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -13,8 +13,8 @@ import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 
 import 'rxjs/add/operator/publishLast';
 import 'smartwizard';
-import {HealthStatusBasedScalingPolicy} from "./model/policy/health.status.based.scaling.policy";
-import {AttributeBasedScalingPolicy} from "./model/policy/attribute.based.scaling.policy";
+import { HealthStatusBasedScalingPolicy } from "./model/policy/health.status.based.scaling.policy";
+import { AttributeBasedScalingPolicy } from "./model/policy/attribute.based.scaling.policy";
 
 @Component({
     moduleId: module.id,
