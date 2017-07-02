@@ -15,6 +15,7 @@ import 'rxjs/add/operator/publishLast';
 import 'smartwizard';
 import { HealthStatusBasedScalingPolicy } from "./model/policy/health.status.based.scaling.policy";
 import { AttributeBasedScalingPolicy } from "./model/policy/attribute.based.scaling.policy";
+import { isNullOrUndefined } from "util";
 
 @Component({
     moduleId: module.id,
@@ -26,7 +27,6 @@ export class MainComponent implements OnInit {
     private components: string[] = [];
     private watchers: Watcher[] = [];
     private activeWatcher: Watcher = undefined;
-    private copyWatcher: Watcher = undefined;
     private isNewEntity: boolean = true;
 
     private selectedComponent: string = undefined;
@@ -49,6 +49,9 @@ export class MainComponent implements OnInit {
 
     private availableSupervisors :any[] = [];
 
+    private healthStatusLevels:string[] = ["LOW", "MODERATE", "SUBSTANTIAL", "SEVERE", "CRITICAL"];
+    private aggregations:string[] = ["MAX", "MIN", "MEAN", "MEDIAN", "PERCENTILE_90", "PERCENTILE_95", "PERCENTILE_97", "SUM"];
+
     private defaultGroovyCheckerScript:string = "";
     private defaultGroovyTriggerScript:string = "";
     private defaultGroovyPolicyScript:string = "";
@@ -64,6 +67,10 @@ export class MainComponent implements OnInit {
     saveCurrentChecker(): void {
         this.activeWatcher.attributeCheckers[this.selectedAttribute.name] = this.activeChecker;
         console.log("Checker has been saved", this.activeWatcher);
+    }
+
+    getMainHeader():string {
+        return isNullOrUndefined(this.activeWatcher) ? "Setup watchers" : "Setup " + this.activeWatcher.name + " watcher";
     }
 
     ngOnInit(): void {
@@ -218,11 +225,6 @@ export class MainComponent implements OnInit {
     }
 
     public cleanSelection(): void {
-        for (let i = 0; i < this.watchers.length; i++) {
-            if (this.watchers[i].guid == this.activeWatcher.guid) {
-                this.watchers[i] = this.copyWatcher;
-            }
-        }
         this.activeWatcher = undefined;
         this.isNewEntity = true;
     }
@@ -239,6 +241,13 @@ export class MainComponent implements OnInit {
                             .map((res: Response) => res.text())
                             .subscribe(data => {
                                 console.log("watcher has been removed: ", data);
+                                for (let i = 0; i < this.watchers.length; i++) {
+                                    if (this.watchers[i].name == watcher.name) {
+                                        this.watchers.splice(i, 1);
+                                        break;
+                                    }
+                                }
+                                this.cd.detectChanges();
                             });
                         return response;
                     })
@@ -249,8 +258,7 @@ export class MainComponent implements OnInit {
     }
 
     public editWatcher(watcher: Watcher): void {
-        this.activeWatcher = watcher;
-        this.copyWatcher = watcher;
+        this.activeWatcher = $.extend(true, {}, watcher);
         this.isNewEntity = false;
         this.selectedComponent = watcher.name;
         this.loadAttributesOnComponentSelected();
@@ -337,6 +345,11 @@ export class MainComponent implements OnInit {
             .map((res: Response) => res.text())
             .subscribe(data => {
                 console.log("watcher has been saved: ", data);
+                for (let i = 0; i < this.watchers.length; i++) {
+                    if (this.watchers[i].name == this.activeWatcher.name) {
+                        this.watchers[i] = this.activeWatcher;
+                    }
+                }
                 this.cleanSelection();
             });
     }
@@ -357,6 +370,11 @@ export class MainComponent implements OnInit {
 
     public removePolicy(policyKey:string):void {
         delete this.activeWatcher.scalingPolicies[policyKey];
+        let newMap:{ [key:string]:ScriptletDataObject; } = {};
+        for (let key in this.activeWatcher.scalingPolicies) {
+            newMap[key] = this.activeWatcher.scalingPolicies[key];
+        }
+        this.activeWatcher.scalingPolicies = newMap;
     }
 
     public addNewPolicy():void {
@@ -374,6 +392,8 @@ export class MainComponent implements OnInit {
                     newMap[key] = this.activeWatcher.scalingPolicies[key];
                 }
                 this.activeWatcher.scalingPolicies = newMap;
+                this.activePolicy = this.activeWatcher.scalingPolicies[result];
+                this.activePolicyName = result;
                 this.cd.markForCheck();
             })
             .catch(() => {});

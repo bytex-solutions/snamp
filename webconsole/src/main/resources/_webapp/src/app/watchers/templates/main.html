@@ -2,7 +2,7 @@
   <div class="">
     <div class="page-title">
       <div class="title_left">
-        <h3>Setup watchers</h3>
+        <h3>{{getMainHeader()}}</h3>
       </div>
     </div>
 
@@ -458,9 +458,91 @@
 
                     <div *ngIf="activePolicy?.language == 'HealthStatusBased'">
 
+                      <div class="form-group row">
+                        <label for="healthStatusTypeSelection" class="col-md-2 col-form-label">Level</label>
+                        <div class="col-md-10">
+                          <select class="form-control" [(ngModel)]="activePolicy.policyObject.level" id="healthStatusTypeSelection">
+                            <option  *ngFor="let level of healthStatusLevels" [ngValue]="level">{{level}}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label for="voteWeightHSBPolicy" class="col-md-2 col-form-label">Vote weight</label>
+                        <div class="col-md-10">
+                          <input class="form-control" type="number"  min="0" [(ngModel)]="activePolicy.policyObject.voteWeight" id="voteWeightHSBPolicy">
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label for="observationTimeHSBPolicy" class="col-md-2 col-form-label">Observation time (ms)</label>
+                        <div class="col-md-10">
+                          <input class="form-control" type="number" min="0" [(ngModel)]="activePolicy.policyObject.observationTime" id="observationTimeHSBPolicy">
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label class="col-md-2 col-form-label">Incremental weight</label>
+                        <div class="col-md-10">
+                          <ui-switch
+                                  [(ngModel)]="activePolicy.policyObject.incrementalWeight"
+                                  [size]="'small'">
+                          </ui-switch>
+                        </div>
+                      </div>
+
                     </div>
 
                     <div *ngIf="activePolicy?.language == 'MetricBased'">
+
+                      <div class="form-group row">
+                        <label for="metricAttributeSelection" class="col-md-2 col-form-label">Attribute</label>
+                        <div class="col-md-10">
+                          <select class="form-control" [(ngModel)]="activePolicy.policyObject.attributeName" id="metricAttributeSelection">
+                              <option  *ngFor="let attribute of attributes" [ngValue]="attribute.name">{{attribute.name}}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label for="metricAggregationSelection" class="col-md-2 col-form-label">Aggregation</label>
+                        <div class="col-md-10">
+                          <select class="form-control" [(ngModel)]="activePolicy.policyObject.aggregation" id="metricAggregationSelection">
+                            <option  *ngFor="let aggregation of aggregations" [ngValue]="aggregation">{{aggregation}}</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label for="analysisDepthPolicy" class="col-md-2 col-form-label">Analysis depth (ms)</label>
+                        <div class="col-md-10">
+                          <input class="form-control" type="number" min="0" [(ngModel)]="activePolicy.policyObject.analysisDepth" id="analysisDepthPolicy">
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label for="voteWeightAttrPolicy" class="col-md-2 col-form-label">Vote weight</label>
+                        <div class="col-md-10">
+                          <input class="form-control" type="number"  min="0" [(ngModel)]="activePolicy.policyObject.voteWeight" id="voteWeightAttrPolicy">
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label for="observationTimeAttrPolicy" class="col-md-2 col-form-label">Observation time (ms)</label>
+                        <div class="col-md-10">
+                          <input class="form-control" type="number" min="0" [(ngModel)]="activePolicy.policyObject.observationTime" id="observationTimeAttrPolicy">
+                        </div>
+                      </div>
+
+                      <div class="form-group row">
+                        <label class="col-md-2 col-form-label">Incremental weight</label>
+                        <div class="col-md-10">
+                          <ui-switch
+                                  [(ngModel)]="activePolicy.policyObject.incrementalWeight"
+                                  [size]="'small'">
+                          </ui-switch>
+                        </div>
+                      </div>
 
                     </div>
 
@@ -532,14 +614,6 @@
             </ui-switch>
           </div>
         </div>
-
-        <div class="row" style="margin-top: 20px;">
-          <div style="float:right">
-            <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()">Save</button>
-            <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
-          </div>
-        </div>
-
       </panel>
 
       <panel [header]="getPanelHeader()" [column]="'5'" *ngIf="activeWatcher != undefined">
@@ -595,14 +669,6 @@
             </button>
           </div>
         </div>
-
-        <div class="row" style="margin-top: 20px;">
-            <div style="float:right">
-              <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()" [disabled]="!(attributes && attributes.length > 0)">Save</button>
-              <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
-            </div>
-        </div>
-
       </panel>
 
     </div>
@@ -610,18 +676,18 @@
     <div class="row" style="margin-top: 10px">
       <panel [header]="'Watcher parameters'" [column]="'12'" *ngIf="activeWatcher != undefined">
         <ptable [entity]="activeWatcher"></ptable>
-
-        <hr/>
-        <div class="row" style="margin-top: 20px;">
-          <div style="float:right">
-            <button class="btn btn-sm btn-primary" (click)="saveActiveWatcher()">Save</button>
-            <button class="btn btn-sm" (click)="cleanSelection()">Cancel/clean</button>
-          </div>
-        </div>
       </panel>
     </div>
 
-    <div class="row" style="margin-top: 10px">
+    <div class="row" style="margin-top: 20px; float:right;" *ngIf="activeWatcher != undefined">
+      <hr/>
+      <div>
+        <button class="btn btn-primary" (click)="saveActiveWatcher()">Save</button>
+        <button class="btn" (click)="cleanSelection()">Cancel/clean</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 10px" *ngIf="activeWatcher == undefined">
       <panel [header]="'List of watchers'" [column]="'12'">
         <table class="table table-hover table-bordered">
           <thead class="thead-inverse">

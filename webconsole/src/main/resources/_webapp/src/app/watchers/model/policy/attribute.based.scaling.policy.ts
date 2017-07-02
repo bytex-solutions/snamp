@@ -14,6 +14,7 @@ export class AttributeBasedScalingPolicy extends AbstractWeightedScalingPolicy {
         this.attributeName = "";
         this.operationalRange = new OpRange(0, 0);
         this.analysisDepth = 0;
+        this.aggregation = "MAX";
     }
 
     get attributeName(): string {
@@ -61,6 +62,7 @@ export class AttributeBasedScalingPolicy extends AbstractWeightedScalingPolicy {
         _value["attributeName"] = this.attributeName;
         _value["operationalRange"] = this.operationalRange.toString();
         _value["analysisDepth"] = moment.duration({ milliseconds: this.analysisDepth}).toISOString();
+        _value["aggregation"] = this.aggregation;
         return _value;
     }
 

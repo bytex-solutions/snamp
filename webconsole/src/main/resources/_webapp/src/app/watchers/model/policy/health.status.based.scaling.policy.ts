@@ -5,10 +5,6 @@ export class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolic
 
     private _level:string;
 
-    public static getStatuses():string[] {
-        return ["LOW", "MODERATE", "SUBSTANTIAL", "SEVERE", "CRITICAL"];
-    }
-
     constructor() {
         super();
         this.level = "CRITICAL";
