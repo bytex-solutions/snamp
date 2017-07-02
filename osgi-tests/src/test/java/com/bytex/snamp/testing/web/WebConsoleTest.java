@@ -135,6 +135,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static final String STUB_RESOURCE_NAME = "stubResource";
     private static final String SCALABLE_GROUP_NAME = "scalableGroup";
 
+    private static final String IMPLICIT_GROUP = "implicitGroup";
+
     private static final class TestApplicationInfo extends ApplicationInfo {
         static void setName(final String componentName, final String instanceName){
             setName(componentName);
@@ -393,6 +395,14 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             assertTrue(name instanceof TextNode);
             assertTrue(type instanceof TextNode);
         }
+    }
+
+    @Test
+    public void listOfGroupAttributes() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode node = httpGet("/groups/" + URLEncoder.encode(IMPLICIT_GROUP, "UTF-8") + "/attributes", authenticationToken);
+        assertTrue(node instanceof ArrayNode);
+        assertEquals(1, node.size());
     }
 
     @Test
@@ -830,6 +840,24 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource = resources.getOrAdd(STUB_RESOURCE_NAME);
         resource.setGroupName(SCALABLE_GROUP_NAME);
         fillStubAttributes(resource.getAttributes());
+
+        resource = resources.getOrAdd("implicit-group-resource1");
+        resource.setGroupName(IMPLICIT_GROUP);
+        resource.setType(STUB_CONNECTOR_TYPE);
+        resource.getAttributes().addAndConsume("a", attribute -> attribute.setAlternativeName("randomBytes"));
+
+        resource = resources.getOrAdd("implicit-group-resource2");
+        resource.setGroupName(IMPLICIT_GROUP);
+        resource.setType(STUB_CONNECTOR_TYPE);
+        resource.getAttributes().addAndConsume("a", attribute -> attribute.setAlternativeName("randomBytes"));
+        resource.getAttributes().addAndConsume("b", attribute -> attribute.setAlternativeName("randomBoolean"));
+
+        resource = resources.getOrAdd("implicit-group-resource3");
+        resource.setGroupName(IMPLICIT_GROUP);
+        resource.setType(STUB_CONNECTOR_TYPE);
+        resource.getAttributes().addAndConsume("a", attribute -> attribute.setAlternativeName("randomBytes"));
+        resource.getAttributes().addAndConsume("b", attribute -> attribute.setAlternativeName("randomBoolean"));
+        resource.getAttributes().addAndConsume("c", attribute -> attribute.setAlternativeName("intValue"));
     }
 
     private static void fillSpanEvents(final EntityMap<? extends EventConfiguration> events) {

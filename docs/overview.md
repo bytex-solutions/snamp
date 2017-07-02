@@ -191,7 +191,7 @@ Some of gateways are useful even if you have no plans to use third-party monitor
 ## Supervisor
 **Supervisor** is important SNAMP component responsible for supervision of resource groups. It provides the following capabilities:
 
-* _Group health checks_. Supervisor collects health statuses of each resource in the group and aggregates health information into health status of the group. It is possible to assign customized health checkers based on values of attributes supplied by resources in the group. Aggregated information called _group health status_ and may include information about health of entire cluster.
+* _Group health status_. Supervisor collects health statuses of each resource in the group and aggregates health information into health status of the group. It is possible to assign customized health checkers based on values of attributes supplied by resources in the group. Aggregated information called _group health status_ and may include information about health of entire cluster.
 * _Elasticity management_ (or _Auto Scaling_) provides automatically scaling of computational resources in the group. For example, OpenStack Supervisor can use information from attributes supplied by each node and make decision about shrinking or enlarging cluster using OpenStack Senlin.
 * _Discovery service_ allows to automatically detects **managed resources** and register appropriate **resource connectors** without manual configuration by SNAMP administrator.
 
