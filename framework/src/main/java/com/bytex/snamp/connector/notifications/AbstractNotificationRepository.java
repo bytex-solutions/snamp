@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -94,7 +94,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final NotificationListenerList listeners;
     private final NotificationMetricRecorder metrics;
     private Aggregator notificationSource;
-    private final LazyStrongReference<Executor> defaultExecutor;
+    private final LazyStrongReference<ExecutorService> defaultExecutor;
 
     /**
      * Initializes a new notification manager.
@@ -129,7 +129,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return Executor service.
      */
     @Nonnull
-    protected Executor getListenerExecutor(){
+    protected ExecutorService getListenerExecutor(){
         return defaultExecutor.lazyGet(MoreExecutors::newDirectExecutorService);
     }
 
@@ -190,12 +190,16 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         return hasNotifications;
     }
 
+    private static Optional<String> getNotificationType(final MBeanNotificationInfo metadata){
+        return ArrayUtils.getFirst(metadata.getNotifTypes());
+    }
+
     protected final boolean fire(final String category,
                               final String message,
                               final long sequenceNumber,
                               final long timeStamp,
                               final Object userData) {
-        return fire(category, holder -> ArrayUtils.getFirst(holder.getNotifTypes()).map(newNotifType -> new NotificationBuilder()
+        return fire(category, holder -> getNotificationType(holder).map(newNotifType -> new NotificationBuilder()
                 .setType(newNotifType)
                 .setTimeStamp(timeStamp)
                 .setSequenceNumber(sequenceNumber)
@@ -203,6 +207,26 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                 .setUserData(userData)
                 .setSource(getSource())
                 .get()).orElse(null));
+    }
+
+    protected static Notification wrapNotification(final MBeanNotificationInfo metadata,
+                                                          final Notification prototype) {
+        return getNotificationType(metadata)
+                .map(newNotifType -> NotificationContainer.create(newNotifType, prototype))
+                .orElse(null);
+    }
+
+    protected final boolean fire(final Notification notification, final boolean adjustNotificationType) {
+        final String category;
+        if (adjustNotificationType) {
+            final Optional<M> metadata = getNotificationInfo(notification.getType());
+            if (metadata.isPresent())
+                category = NotificationDescriptor.getName(metadata.get());
+            else
+                return false;
+        } else
+            category = notification.getType();
+        return fire(category, holder -> wrapNotification(holder, notification));
     }
 
     /**

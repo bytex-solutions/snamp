@@ -6,7 +6,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.osgi.framework.BundleContext;
 
 import java.lang.ref.WeakReference;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -57,13 +57,13 @@ public abstract class AbstractWebConsoleService implements WebConsoleService {
         listeners.forEach(sessionConsumer);
     }
 
-    protected final void forEachSession(final Consumer<? super WebConsoleSession> sessionConsumer, final Executor executor) {
+    protected final void forEachSession(final Consumer<? super WebConsoleSession> sessionConsumer, final ExecutorService executor) {
         listeners.parallelForEach(sessionConsumer, executor);
     }
 
     protected static <S extends AbstractWebConsoleService> void forEachSession(final S service,
                                                                               final BiConsumer<? super S, ? super WebConsoleSession> sessionHandler,
-                                                                              final Executor executor) {
+                                                                              final ExecutorService executor) {
         final class WebConsoleSessionTask extends WeakReference<S> implements Consumer<WebConsoleSession> {
             private WebConsoleSessionTask() {
                 super(service);

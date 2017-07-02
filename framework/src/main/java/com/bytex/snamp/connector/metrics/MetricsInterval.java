@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.metrics;
 import com.bytex.snamp.concurrent.TimeLimitedDouble;
 import com.bytex.snamp.concurrent.TimeLimitedLong;
 import com.bytex.snamp.concurrent.TimeLimitedObject;
-import com.bytex.snamp.moa.EWMA;
+import com.bytex.snamp.moa.Average;
 import com.bytex.snamp.moa.DoubleEWMA;
 import com.google.common.collect.ImmutableSortedSet;
 
@@ -78,16 +78,20 @@ public enum MetricsInterval implements Comparable<MetricsInterval>, Serializable
         this.duration = Duration.of(amount, unit);
     }
 
-    final TimeLimitedLong createdAdder(final long initialValue){
-        return TimeLimitedLong.adder(initialValue, duration);
+    final TimeLimitedLong createdAdder(){
+        return TimeLimitedLong.adder(0L, duration);
     }
 
-    final TimeLimitedLong createLongPeakDetector(final long initialValue){
-        return TimeLimitedLong.peak(initialValue, duration);
+    final TimeLimitedLong createLongPeakDetector(){
+        return TimeLimitedLong.peak(0L, duration);
     }
 
-    final EWMA createEMA(){
-        return new DoubleEWMA(duration);
+    final MeanRate createMeanRate(){
+        return new MeanRate(duration, Duration.ofSeconds(1L));
+    }
+
+    final Average createAverage(){
+        return DoubleEWMA.floatingInterval(duration);
     }
 
     final double divide(final Duration value) {

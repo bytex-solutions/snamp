@@ -21,6 +21,9 @@ import { TriggerComponent } from './components/trigger.component';
 import { ColoredCondition } from './components/condition.block';
 
 import { KeysPipe } from './watchers.pipes';
+import { WatcherProvisioning } from "./watchers.prov";
+import { PTable } from "./components/ptable.component";
+import { PoliciesComponent } from "./components/policies.component";
 
 const PROVIDERS:any =  [
   ApiClient,
@@ -39,7 +42,8 @@ const PROVIDERS:any =  [
       RouterModule.forChild([{
             path: '', component: TemplateComponent, children: [
                 { path: '', component: MainComponent },
-                { path: 'dashboard', component: WatcherDashboard }
+                { path: 'dashboard', component: WatcherDashboard },
+                { path: 'prov', component: WatcherProvisioning }
             ]
       }])
     ],
@@ -47,9 +51,12 @@ const PROVIDERS:any =  [
         TemplateComponent,
         MainComponent,
         WatcherDashboard,
+        WatcherProvisioning,
         CheckersComponent,
         TriggerComponent,
+        PoliciesComponent,
         ColoredCondition,
+        PTable,
         KeysPipe
     ],
     providers:    PROVIDERS

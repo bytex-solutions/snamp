@@ -12,7 +12,7 @@ import java.io.PrintWriter;
  * Prints list of existing thread pools.
  */
 @Command(scope = Utils.SHELL_COMMAND_SCOPE,
-        name = "thread-pool-list",
+        name = "thread-pools",
         description = "List of SNAMP thread pools")
 @Service
 public final class ListOfThreadPoolsCommand extends ThreadPoolCommand {

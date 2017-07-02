@@ -7,13 +7,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Represents an abstract class for building list of weak event listeners.
@@ -60,13 +59,8 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
         }
     }
 
-    public final void parallelForEach(final Consumer<? super L> action, final Executor executor) {
-        final WeakEventListener<L, E>[] snapshot = listeners;
-        for (final WeakEventListener<L, E> listenerRef : snapshot) {
-            final L listener = listenerRef.get();
-            if (listener != null)
-                executor.execute(() -> action.accept(listener));
-        }
+    public final void parallelForEach(final Consumer<? super L> action, final ExecutorService executor) {
+        Utils.parallelForEach(stream(true).spliterator(), action, executor);
     }
 
     /**
@@ -305,13 +299,10 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
         fire(event);
     }
 
-    public final void fire(final Supplier<? extends E> eventSupplier){
+    public final void fire(final Supplier<? extends E> eventSupplier) {
         final WeakEventListener<L, E>[] snapshot = this.listeners;
-        if(snapshot.length > 0) {
-            final E event = eventSupplier.get();
-            for (final WeakEventListener<L, E> listenerRef : snapshot)
-                listenerRef.invoke(event);
-        }
+        if (snapshot.length > 0)
+            fire(eventSupplier.get());
     }
 
     /**
@@ -319,18 +310,14 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
      * @param event An event object.
      * @since 1.2
      */
-    public final void fireAsync(final E event, final Executor executor) {
+    public final void fireAsync(final E event, final ExecutorService executor) {
         final WeakEventListener<L, E>[] snapshot = this.listeners;
         //optimization cases
         switch (snapshot.length) {
+            case 1:
+                snapshot[0].invoke(event);
             case 0:
                 return;
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-                for (final WeakEventListener<?, E> listener : snapshot)
-                    executor.execute(() -> listener.invoke(event));
             default:
                 Utils.parallelForEach(Arrays.spliterator(snapshot), listener -> listener.invoke(event), executor);
         }
@@ -350,15 +337,20 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
 
     private Stream<L> stream(final boolean parallel) {
         final WeakEventListener<L, E>[] snapshot = listeners;
+        final Stream<L> result;
         switch (snapshot.length) {
-            default:
-                return StreamSupport.stream(Arrays.spliterator(snapshot), parallel).map(WeakEventListener::get).filter(Objects::nonNull);
             case 0:
-                return Stream.empty();
+                result = Stream.empty();
+                break;
             case 1:
                 final L listener = snapshot[0].get();
-                return listener == null ? Stream.empty() : Stream.of(listener);
+                result = listener == null ? Stream.empty() : Stream.of(listener);
+                break;
+            default:
+                result = Arrays.stream(snapshot).map(WeakEventListener::get).filter(Objects::nonNull);
+                break;
         }
+        return parallel ? result.parallel() : result;
     }
 
     /**

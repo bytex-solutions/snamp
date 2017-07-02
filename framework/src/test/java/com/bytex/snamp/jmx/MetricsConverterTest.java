@@ -36,8 +36,8 @@ public final class MetricsConverterTest extends Assert {
         final CompositeData data = MetricsConverter.fromRate(rate);
         assertNotNull(data);
         assertEquals(2L, getLong(data, "totalRate", 0L));
-        assertEquals(2D, getDouble(data, "meanRateLastSecond", Double.NaN), 0.1D);
-        assertEquals(2D, getDouble(data, "meanRateLastMinute", Double.NaN), 0.1D);
+        assertEquals(2D, getDouble(data, "meanRatePerSecond", Double.NaN), 0.1D);
+        assertEquals(2D, getDouble(data, "meanRatePerMinute", Double.NaN), 0.1D);
     }
 
     @Test
@@ -49,8 +49,8 @@ public final class MetricsConverterTest extends Assert {
         final CompositeData data = MetricsConverter.fromRatedGaugeFP(recorder);
         assertNotNull(data);
         assertEquals(2L, getLong(data, "totalRate", 0L));
-        assertEquals(2D, getDouble(data, "meanRateLastSecond", Double.NaN), 0.1D);
-        assertEquals(2D, getDouble(data, "meanRateLastMinute", Double.NaN), 0.1D);
+        assertEquals(2D, getDouble(data, "meanRatePerSecond", Double.NaN), 0.1D);
+        assertEquals(2D, getDouble(data, "meanRatePerMinute", Double.NaN), 0.1D);
         assertEquals(64D, getDouble(data, "maxValue", Double.NaN), 0.1D);
         assertEquals(12D, getDouble(data, "minValue", Double.NaN), 0.1D);
     }
@@ -75,8 +75,8 @@ public final class MetricsConverterTest extends Assert {
         final CompositeData data = MetricsConverter.fromRatedGauge64(recorder);
         assertNotNull(data);
         assertEquals(2L, getLong(data, "totalRate", 0L));
-        assertEquals(2D, getDouble(data, "meanRateLastSecond", Double.NaN), 0.1D);
-        assertEquals(2D, getDouble(data, "meanRateLastMinute", Double.NaN), 0.1D);
+        assertEquals(2D, getDouble(data, "meanRatePerSecond", Double.NaN), 0.1D);
+        assertEquals(2D, getDouble(data, "meanRatePerMinute", Double.NaN), 0.1D);
         assertEquals(64L, getLong(data, "maxValue", 0L));
         assertEquals(12L, getLong(data, "minValue", 0L));
     }

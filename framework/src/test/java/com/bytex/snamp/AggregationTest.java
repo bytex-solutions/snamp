@@ -1,16 +1,12 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.connector.metrics.MetricsSupport;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.Spliterator;
 
 import static com.bytex.snamp.ArrayUtils.emptyArray;
 
@@ -67,7 +63,6 @@ public final class AggregationTest extends Assert {
         assertTrue(provider.queryObject(SubInterface.class).isPresent());
         assertTrue(provider.queryObject(BigInteger.class).isPresent());
         assertTrue(provider.queryObject(BigDecimal.class).isPresent());
-        assertTrue(provider.queryObject(MetricsSupport.class).isPresent());
     }
 
     @Test
@@ -119,22 +114,6 @@ public final class AggregationTest extends Assert {
         assertEquals(new Long(56L), aggregator.queryObject(Long.class).orElse(0L));
         assertEquals(Boolean.TRUE, aggregator.queryObject(Boolean.class).orElse(false));
         assertEquals(BigInteger.TEN, aggregator.queryObject(BigInteger.class).orElse(BigInteger.ZERO));
-        //assertEquals(BigDecimal.ONE, aggregator.queryObject(BigDecimal.class));
-    }
-
-    @Test
-    public void splitTest(){
-        final Integer[] array = {10, 30, 50, 90, 110, 0, 9, 8, 2, 10, 45, 32, 86};
-        final List<Integer> list = Arrays.asList(array);
-        final Spliterator<Integer> split = list.spliterator();
-        final Spliterator<Integer> split1 = split.trySplit();
-        System.out.println("Split1");
-        split1.forEachRemaining(System.out::println);
-        final Spliterator<Integer> split2 = split.trySplit();
-        System.out.println("Split2");
-        split2.forEachRemaining(System.out::println);
-        final Spliterator<Integer> split3 = split.trySplit();
-        System.out.println("Split3");
-        split3.forEachRemaining(System.out::println);
+        assertEquals(BigDecimal.ONE, aggregator.queryObject(BigDecimal.class).orElse(BigDecimal.ZERO));
     }
 }

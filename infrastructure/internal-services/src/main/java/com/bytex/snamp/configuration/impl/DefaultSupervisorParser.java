@@ -82,6 +82,6 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
         supervisor.setHealthCheckConfig(deserialize(HEALTH_CHECK_PROPERTY, SerializableSupervisorConfiguration.SerializableHealthCheckConfiguration.class, configuration));
         supervisor.setDiscoveryConfig(deserialize(DISCOVERY_PROPERTY, SerializableSupervisorConfiguration.SerializableDiscoveryConfiguration.class, configuration));
         supervisor.setAutoScalingConfig(deserialize(AUTO_SCALING_PROPERTY, SerializableSupervisorConfiguration.SerializableAutoScalingConfiguration.class, configuration));
-        return createParserResult(configuration, supervisor, HEALTH_CHECK_PROPERTY, DISCOVERY_PROPERTY);
+        return createParserResult(configuration, supervisor, HEALTH_CHECK_PROPERTY, DISCOVERY_PROPERTY, AUTO_SCALING_PROPERTY);
     }
 }

@@ -2,18 +2,16 @@ package com.bytex.snamp.testing.management;
 
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.core.PlatformVersion;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
-import org.apache.felix.service.command.CommandProcessor;
-import org.apache.felix.service.command.CommandSession;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.api.console.SessionFactory;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
 
-import java.io.*;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -23,42 +21,33 @@ import java.util.concurrent.Future;
  * @version 2.0
  * @since 1.0
  */
-@SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_GATEWAY})
+@SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.GROOVY_GATEWAY, SnampFeature.STANDARD_TOOLS})
 public final class ShellManagementTest extends AbstractSnampIntegrationTest {
-    private Object runCommand(String command) throws Exception{
-        final ServiceHolder<CommandProcessor> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), CommandProcessor.class)
+
+    private Object runCommand(String command) throws Exception {
+        final ServiceHolder<SessionFactory> processorRef = ServiceHolder.tryCreate(getTestBundleContext(), SessionFactory.class)
                 .orElseThrow(AssertionError::new);
         // On windows we have path separator that conflicts with escape symbols
         if (OperatingSystem.isWindows()) {
             command = command.replace("\\", "\\\\");
         }
-        final File outFile = File.createTempFile("snamp", "out");
-        final File errFile = File.createTempFile("snamp", "err");
-        try (final PipedInputStream input = new PipedInputStream();
-             final PipedOutputStream inputWriter = new PipedOutputStream(input);
-             final OutputStream out = new FileOutputStream(outFile);
-             final OutputStream err = new FileOutputStream(errFile)) {
-
-            final CommandSession session = processorRef.get().createSession(input, new PrintStream(out), new PrintStream(err));
-            final Object result = session.execute(command);
-            session.close();
-            return result;
+        final Session session = processorRef.get().create(System.in, System.out, System.err);
+        try {
+            return session.execute(command);
         } finally {
+            session.close();
             processorRef.release(getTestBundleContext());
         }
     }
 
-    @Test
-    public void executeJavaScriptTest() throws Exception{
-        Object result = runCommand("snamp:script \"snamp.version;\"");
-        assertTrue(result instanceof PlatformVersion);
-        result = runCommand("snamp:script \"var config; snamp.configure(function(conf) { config = conf; return false; }); config; \"");
-        assertTrue(result instanceof AgentConfiguration);
+    @Override
+    protected void beforeStartTest(final BundleContext context) throws Exception {
+        Thread.sleep(1000);
     }
 
     @Test
     public void threadPoolConfigTest() throws Exception{
-        final Object result = runCommand("snamp:thread-pool-add -m 3 -M 5 -t 2000 tp1");
+        final Object result = runCommand("snamp:configure-thread-pool -m 3 -M 5 -t 2000 tp1");
         assertTrue(result instanceof CharSequence);
         Thread.sleep(1000); //adding thread pool is async operation
         final ServiceHolder<ThreadPoolRepository> threadPoolRepo = ServiceHolder.tryCreate(getTestBundleContext(), ThreadPoolRepository.class)
@@ -112,14 +101,7 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
             assertEquals("v", config.getGateways().get("instance2").get("k"));
             return false;
         });
-        runCommand("snamp:delete-gateway-param instance2 k");
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertTrue(config.getGateways().containsKey("instance2"));
-            assertFalse(config.getGateways().get("instance2").containsKey("k"));
-            return false;
-        });
-        runCommand("snamp:delete-gateway instance2");
+        runCommand("snamp:configure-gateway --delete instance2");
         Thread.sleep(500);
         processConfiguration(config -> {
             assertFalse(config.getGateways().containsKey("instance2"));
@@ -129,14 +111,14 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void startStopGatewayTest() throws Exception {
-        runCommand("snamp:disable-gateway groovy");
-        runCommand("snamp:enable-gateway groovy");
+        runCommand("snamp:manage-gateway --enable=false groovy");
+        runCommand("snamp:manage-gateway --enable=true groovy");
     }
 
     @Test
     public void startStopConnectorTest() throws Exception{
-        runCommand("snamp:disable-connector jmx");
-        runCommand("snamp:enable-connector jmx");
+        runCommand("snamp:manage-connector --enable=false jmx");
+        runCommand("snamp:manage-connector --enable=true jmx");
     }
 
     @Test
@@ -158,109 +140,8 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
             return false;
         });
 
-        //remove configuration parameter
-        runCommand("snamp:delete-resource-param resource2 k");
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource2"));
-            assertFalse(config.getResources().get("resource2").containsKey("k"));
-            return false;
-        });
         //remove resource
-        runCommand("snamp:delete-resource resource2");
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertFalse(config.getResources().containsKey("resource2"));
-            return false;
-        });
-    }
-
-    @Test
-    public void configureAttributeTest() throws Exception {
-        runCommand("snamp:configure-resource -p k=v resource2 dummy http://acme.com");
-        //saving configuration is asynchronous process therefore it is necessary to wait
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource2"));
-            assertEquals("dummy", config.getResources().get("resource2").getType());
-            assertEquals("http://acme.com", config.getResources().get("resource2").getConnectionString());
-            assertEquals("v", config.getResources().get("resource2").get("k"));
-            return false;
-        });
-        //register attribute
-        runCommand("snamp:configure-attribute -p par=val resource2 attr 12000");
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource2"));
-            final AttributeConfiguration attribute = config.getResources()
-                    .get("resource2")
-                    .getAttributes()
-                    .get("attr");
-            assertNotNull(attribute);
-            assertEquals(12, attribute.getReadWriteTimeout().get(ChronoUnit.SECONDS));
-            assertEquals("val", attribute.get("par"));
-            return false;
-        });
-        //remove configuration parameter
-        runCommand("snamp:delete-attribute-param resource2 attr par");
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource2"));
-            final AttributeConfiguration attribute = config.getResources()
-                    .get("resource2")
-                    .getAttributes()
-                    .get("attr");
-            assertNotNull(attribute);
-            assertFalse(attribute.containsKey("par"));
-            return false;
-        });
-        //remove resource
-        runCommand("snamp:delete-resource resource2");
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertFalse(config.getResources().containsKey("resource2"));
-            return false;
-        });
-    }
-
-    @Test
-    public void configureEventTest() throws Exception {
-        runCommand("snamp:configure-resource -p k=v resource2 dummy http://acme.com");
-        //saving configuration is asynchronous process therefore it is necessary to wait
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource2"));
-            assertEquals("dummy", config.getResources().get("resource2").getType());
-            assertEquals("http://acme.com", config.getResources().get("resource2").getConnectionString());
-            assertEquals("v", config.getResources().get("resource2").get("k"));
-            return false;
-        });
-        //register event
-        runCommand("snamp:configure-event -p par=val resource2 ev1");
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource2"));
-            final EventConfiguration attribute = config.getResources()
-                    .get("resource2")
-                    .getEvents()
-                    .get("ev1");
-            assertNotNull(attribute);
-            assertEquals("val", attribute.get("par"));
-            return false;
-        });
-        //remove configuration parameter
-        runCommand("snamp:delete-event-param resource2 ev1 par");
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource2"));
-            final EventConfiguration attribute = config.getResources()
-                    .get("resource2")
-                    .getEvents()
-                    .get("ev1");
-            assertNotNull(attribute);
-            assertFalse(attribute.containsKey("par"));
-            return false;
-        });
-        //remove resource
-        runCommand("snamp:delete-resource resource2");
+        runCommand("snamp:configure-resource --delete resource2");
         Thread.sleep(500);
         processConfiguration(config -> {
             assertFalse(config.getResources().containsKey("resource2"));
@@ -276,43 +157,8 @@ public final class ShellManagementTest extends AbstractSnampIntegrationTest {
 
     @Test
     public void resourceInfoTest() throws Exception {
-        //register event
-        runCommand("snamp:configure-event -p par=val resource1 ev1");
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource1"));
-            final EventConfiguration attribute = config.getResources()
-                    .get("resource1")
-                    .getEvents()
-                    .get("ev1");
-            assertNotNull(attribute);
-            assertEquals("val", attribute.get("par"));
-            return false;
-        });
-        Thread.sleep(500);
-        //register attribute
-        runCommand("snamp:configure-attribute -p par=val resource1 attr 12000");
-        Thread.sleep(500);
-        processConfiguration(config -> {
-            assertTrue(config.getResources().containsKey("resource1"));
-            final AttributeConfiguration attribute = config.getResources()
-                    .get("resource1")
-                    .getAttributes()
-                    .get("attr");
-            assertNotNull(attribute);
-            assertEquals(12, attribute.getReadWriteTimeout().get(ChronoUnit.SECONDS));
-            assertEquals("val", attribute.get("par"));
-            return false;
-        });
-        Thread.sleep(500);
-        //check resource
-        final String resource = runCommand("snamp:resource -a -e resource1").toString();
-        assertTrue(resource.contains("Connection String: http://acme.com"));
-        assertTrue(resource.contains("attr"));
-        assertTrue(resource.contains("ev1"));
-        //cleanup resource
-        runCommand("snamp:delete-attribute resource1 attr");
-        runCommand("snamp:delete-event resource1 ev1");
+        final String result = runCommand("snamp:resource -a -e resource1").toString();
+        assertTrue(result.contains("Connection Type: dummyConnector"));
     }
 
     @Override

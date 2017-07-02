@@ -73,7 +73,7 @@ public abstract class AbstractRangedRecorder extends AbstractMetric implements R
         intervalHits = new EnumMap<>(HitResult.class);
         for(final HitResult hr: HitResult.values()) {
             hits.put(hr, new AtomicLong(0L));
-            intervalHits.put(hr, new MetricsIntervalMap<>(m -> m.createdAdder(0L)));
+            intervalHits.put(hr, new MetricsIntervalMap<>(MetricsInterval::createdAdder));
         }
         this.rate = new RateRecorder(name);
     }

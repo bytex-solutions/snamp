@@ -2,7 +2,9 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.Box;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -41,6 +43,11 @@ final class InMemoryBox extends AtomicReference<Object> implements Box<Object>, 
     public Object getOrDefault(final Supplier<?> defaultProvider) {
         final Object current = get();
         return current == null ? defaultProvider.get() : current;
+    }
+
+    @Override
+    public <R> Optional<R> map(final Function<? super Object, ? extends R> mapper) {
+        return Optional.ofNullable(get()).map(mapper);
     }
 
     @Override

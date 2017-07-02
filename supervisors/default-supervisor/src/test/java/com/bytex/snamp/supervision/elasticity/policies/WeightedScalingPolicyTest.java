@@ -13,7 +13,6 @@ import org.junit.Test;
 import javax.management.Attribute;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Test for {@link AttributeBasedScalingPolicy} and {@link HealthStatusBasedScalingPolicy}.
@@ -111,35 +110,36 @@ public final class WeightedScalingPolicyTest extends Assert {
         final AttributeBasedScalingPolicy voter = new AttributeBasedScalingPolicy("dummy",
                 1D,
                 RangeUtils.parseDoubleRange("[6‥10]"),
-                Duration.ofSeconds(2L));
+                Duration.ofMillis(500));
         voter.setValuesAggregator(ReduceOperation.MAX);
         final DoubleReservoir reservoir = new DoubleReservoir(10);
 
+        Thread.sleep(100);
         reservoir.add(6);
         voter.vote(reservoir);
 
         reservoir.reset();
         reservoir.add(7);
-        Thread.sleep(1001);
+        Thread.sleep(100);
         voter.vote(reservoir);
 
         reservoir.reset();
         reservoir.add(5);
-        Thread.sleep(1001);
+        Thread.sleep(100);
         voter.vote(reservoir);
 
         reservoir.reset();
         reservoir.add(5);
-        Thread.sleep(1001);
+        Thread.sleep(100);
         voter.vote(reservoir);
 
         reservoir.reset();
         reservoir.add(6);
-        Thread.sleep(1001);
+        Thread.sleep(100);
         voter.vote(reservoir);
         final Range<Double> recommendation = voter.getRecommendation();
         assertFalse(recommendation.isEmpty());
-        assertEquals(4.47D, recommendation.lowerEndpoint(), 0.01D);
-        assertEquals(8.47D, recommendation.upperEndpoint(), 0.01D);
+        assertEquals(3.8D, recommendation.lowerEndpoint(), 0.1D);
+        assertEquals(7.8D, recommendation.upperEndpoint(), 0.1D);
     }
 }

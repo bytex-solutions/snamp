@@ -2,6 +2,10 @@ package com.bytex.snamp;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.function.*;
 
 /**
@@ -41,8 +45,39 @@ final class MutableInteger extends Number implements IntBox {
     }
 
     @Override
-    public <R> R get(final IntFunction<? extends R> fn){
-        return fn.apply(value);
+    public long mapToLong(final IntToLongFunction mapper) {
+        return mapper.applyAsLong(value);
+    }
+
+    @Override
+    public double mapToDouble(final IntToDoubleFunction mapper) {
+        return mapper.applyAsDouble(value);
+    }
+
+    @Override
+    public boolean ifPresent(final Consumer<? super Integer> consumer) {
+        consumer.accept(value);
+        return true;
+    }
+
+    @Override
+    public <R> Optional<R> map(final Function<? super Integer, ? extends R> mapper) {
+        return Optional.of(value).map(mapper);
+    }
+
+    @Override
+    public OptionalInt mapToInt(final ToIntFunction<? super Integer> mapper) {
+        return OptionalInt.of(mapper.applyAsInt(value));
+    }
+
+    @Override
+    public OptionalLong mapToLong(final ToLongFunction<? super Integer> mapper) {
+        return OptionalLong.of(mapper.applyAsLong(value));
+    }
+
+    @Override
+    public OptionalDouble mapToDouble(final ToDoubleFunction<? super Integer> mapper) {
+        return OptionalDouble.of(mapper.applyAsDouble(value));
     }
 
     @Override

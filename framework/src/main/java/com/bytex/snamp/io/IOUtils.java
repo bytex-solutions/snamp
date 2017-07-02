@@ -10,7 +10,6 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.BitSet;
 
 /**
@@ -82,17 +81,25 @@ public final class IOUtils {
         else output.write(value.getBytes(encoding));
     }
 
-    public static void serialize(final Serializable obj, final OutputStream output) throws IOException {
-        try (final ObjectOutputStream serializer = new ObjectOutputStream(output)) {
+    public static void serialize(final Serializable obj, final OutputStream output, final SerializationMode mode) throws IOException {
+        try (final ObjectOutputStream serializer = mode.createStream(output)) {
             serializer.writeObject(obj);
         }
     }
 
-    public static byte[] serialize(final Serializable obj) throws IOException {
-        try (final ByteArrayOutputStream os = new ByteArrayOutputStream(1024)) {
-            serialize(obj, os);
+    public static void serialize(final Serializable obj, final OutputStream output) throws IOException {
+        serialize(obj, output, SerializationMode.DEFAULT);
+    }
+
+    public static byte[] serialize(final Serializable obj, final SerializationMode mode) throws IOException {
+        try (final ByteBufferOutputStream os = new ByteBufferOutputStream(5 * 1024)) {
+            serialize(obj, os, mode);
             return os.toByteArray();
         }
+    }
+
+    public static byte[] serialize(final Serializable obj) throws IOException {
+        return serialize(obj, SerializationMode.DEFAULT);
     }
 
     public static <T extends Serializable> T deserialize(final InputStream serializedForm,
@@ -111,7 +118,7 @@ public final class IOUtils {
         if (ArrayUtils.isNullOrEmpty(serializedForm))
             return null;
         else
-            try (final ByteArrayInputStream stream = new ByteArrayInputStream(serializedForm)) {
+            try (final ByteBufferInputStream stream = new ByteBufferInputStream(serializedForm)) {
                 return deserialize(stream, expectedType, resolver);
             }
     }
@@ -151,7 +158,7 @@ public final class IOUtils {
     }
 
     public static byte[] readFully(final InputStream inputStream) throws IOException {
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream(1024)) {
+        try (final ByteBufferOutputStream out = new ByteBufferOutputStream(1024)) {
             final byte[] buffer = new byte[512];
             int count;
             while ((count = inputStream.read(buffer)) > 0)
@@ -166,21 +173,6 @@ public final class IOUtils {
         } catch (final IOException ignored) {
             return false;
         }
-    }
-
-    public static boolean waitForData(final InputStream is,
-                                      long timeout) throws IOException, InterruptedException {
-        while (timeout >= 0 && (is.available() == 0)) {
-            final long PAUSE = 1L;
-            Thread.sleep(PAUSE);
-            timeout -= PAUSE;
-        }
-        return timeout > 0L;
-    }
-
-    public static boolean waitForData(final InputStream is,
-                                      final Duration timeout) throws IOException, InterruptedException {
-        return waitForData(is, timeout.toMillis());
     }
 
     public static String toString(final Reader reader) throws IOException {
@@ -218,5 +210,54 @@ public final class IOUtils {
             return true;
         } else
             return false;
+    }
+
+    /**
+     * Dirty hack used to create a clone of some object based on its serialization capabilities.
+     * @param obj An object to clone using serialization.
+     * @param mode Serialization mode.
+     * @param loader Class loader of calling code.
+     * @param <T> Type of object to clone.
+     * @return Cloned object.
+     * @throws CloneNotSupportedException Unable to clone object using serialization.
+     * @since 2.0
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends Serializable> T clone(final T obj,
+                                                   final SerializationMode mode,
+                                                   final ClassLoader loader) throws CloneNotSupportedException {
+        try (final ByteBufferOutputStream os = new ByteBufferOutputStream(5 * 1024)) {
+            serialize(obj, os);
+            return (T) deserialize(os.getInputStream(), TypeToken.of(obj.getClass()), obj.getClass().getClassLoader());
+        } catch (final IOException e) {
+            final CloneNotSupportedException exception = new CloneNotSupportedException(e.getMessage());
+            exception.initCause(e);
+            throw exception;
+        }
+    }
+
+    /**
+     * Dirty hack used to create a clone of some object based on its serialization capabilities.
+     * @param obj An object to clone using serialization.
+     * @param mode Serialization mode.
+     * @param <T> Type of object to clone.
+     * @return Cloned object.
+     * @throws CloneNotSupportedException Unable to clone object using serialization.
+     * @since 2.0
+     */
+    public static <T extends Serializable> T clone(final T obj, final SerializationMode mode) throws CloneNotSupportedException {
+        return clone(obj, mode, obj.getClass().getClassLoader());
+    }
+
+    /**
+     * Dirty hack used to create a clone of some object based on its serialization capabilities.
+     * @param obj An object to clone using serialization.
+     * @param <T> Type of object to clone.
+     * @return Cloned object.
+     * @throws CloneNotSupportedException Unable to clone object using serialization.
+     * @since 2.0
+     */
+    public static <T extends Serializable> T clone(final T obj) throws CloneNotSupportedException {
+        return clone(obj, SerializationMode.DEFAULT, obj.getClass().getClassLoader());
     }
 }

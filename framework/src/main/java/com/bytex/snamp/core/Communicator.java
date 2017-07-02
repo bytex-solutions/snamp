@@ -4,6 +4,8 @@ import com.bytex.snamp.SafeCloseable;
 
 import java.io.Serializable;
 import java.time.Duration;
+import java.util.EventListener;
+import java.util.EventObject;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
@@ -18,13 +20,13 @@ import java.util.function.Predicate;
  * @version 2.0
  */
 public interface Communicator extends SharedObject {
-    Predicate<? super IncomingMessage> ANY_MESSAGE = msg -> true;
-    Predicate<IncomingMessage> REMOTE_MESSAGE = IncomingMessage::isRemote;
+    Predicate<? super MessageEvent> ANY_MESSAGE = msg -> true;
+    Predicate<MessageEvent> REMOTE_MESSAGE = MessageEvent::isRemote;
 
     /**
      * Represents message type.
      */
-    enum MessageType implements Predicate<IncomingMessage>, Serializable{
+    enum MessageType implements Predicate<MessageEvent>, Serializable {
         /**
          * Represents request message.
          */
@@ -39,7 +41,7 @@ public interface Communicator extends SharedObject {
         SIGNAL;
 
         @Override
-        public final boolean test(final IncomingMessage message) {
+        public final boolean test(final MessageEvent message) {
             return equals(message.getType());
         }
     }
@@ -47,43 +49,63 @@ public interface Communicator extends SharedObject {
     /**
      * Represents incoming message.
      */
-    interface IncomingMessage {
-        /**
-         * Gets payload of the message.
-         * @return Payload of the message.
-         */
-        Serializable getPayload();
+    abstract class MessageEvent extends EventObject {
+        private static final long serialVersionUID = 6709318850279093072L;
+
+        protected MessageEvent(final ClusterMemberInfo sender) {
+            super(sender);
+        }
 
         /**
          * Gets sender of the message.
          * @return Sender of the message; or {@literal null} when communicator is not in cluster.
          */
-        ClusterMemberInfo getSender();
+        @Override
+        public ClusterMemberInfo getSource() {
+            return (ClusterMemberInfo) super.getSource();
+        }
+
+        /**
+         * Gets payload of the message.
+         * @return Payload of the message.
+         */
+        public abstract Serializable getPayload();
 
         /**
          * Gets message identifier.
          * @return Message identifier.
          */
-        long getMessageID();
+        public abstract long getMessageID();
 
         /**
          * Gets publication time of this message in Unix time format.
          * @return Publication time of this message in Unix time format.
          */
-        long getTimeStamp();
+        public abstract long getTimeStamp();
 
         /**
          * Gets type of this message.
          * @return Type of this message.
          */
-        MessageType getType();
+        public abstract MessageType getType();
 
         /**
          * Determines whether this message was sent by remote publisher.
          * @return {@literal true}, if this message was sent by remote peer; {@literal false}, if this message was sent from the current process.
          */
-        boolean isRemote();
+        public abstract boolean isRemote();
     }
+
+    @FunctionalInterface
+    interface MessageListener extends EventListener, Consumer<MessageEvent>{
+        /**
+         * Receives message.
+         * @param message A message to receive.
+         */
+        @Override
+        void accept(final MessageEvent message);
+    }
+
     /**
      * Represents input message box.
      * @param <V> Type of processed messages.
@@ -101,6 +123,7 @@ public interface Communicator extends SharedObject {
     /**
      * Sends a one-way message.
      * @param signal A message to send.
+     * @see MessageType#SIGNAL
      */
     void sendSignal(final Serializable signal);
 
@@ -119,29 +142,29 @@ public interface Communicator extends SharedObject {
      */
     void sendMessage(final Serializable payload, final MessageType type, final long messageID);
 
-    <V> V receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
+    <V> V receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
 
-    <V> CompletableFuture<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser);
+    <V> CompletableFuture<V> receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser);
 
-    SafeCloseable addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter);
+    SafeCloseable addMessageListener(final MessageListener listener, final Predicate<? super MessageEvent> filter);
 
-    <V> MessageBox<V> createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser);
+    <V> MessageBox<V> createMessageBox(final int capacity, final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser);
 
-    <V> MessageBox<V> createMessageBox(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser);
+    <V> MessageBox<V> createMessageBox(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser);
 
-    <V> V sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
+    <V> V sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
 
-    <V> CompletableFuture<V> sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException;
+    <V> CompletableFuture<V> sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser) throws InterruptedException;
 
-    static Predicate<IncomingMessage> responseWithMessageID(final long messageID){
+    static Predicate<MessageEvent> responseWithMessageID(final long messageID){
         return MessageType.RESPONSE.and(msg -> msg.getMessageID() == messageID);
     }
 
-    static String getPayloadAsString(final IncomingMessage message){
+    static String getPayloadAsString(final MessageEvent message){
         return Objects.toString(message.getPayload());
     }
 
-    static Predicate<IncomingMessage> responseWithPayload(final Serializable expected){
+    static Predicate<MessageEvent> responseWithPayload(final Serializable expected){
         return MessageType.RESPONSE.and(msg -> Objects.equals(msg.getPayload(), expected));
     }
 }

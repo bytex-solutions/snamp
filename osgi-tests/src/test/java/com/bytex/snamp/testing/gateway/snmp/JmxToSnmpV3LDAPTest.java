@@ -314,9 +314,10 @@ public final class JmxToSnmpV3LDAPTest extends AbstractJmxConnectorTest<TestOpen
     protected void afterStartTest(final BundleContext context) throws Exception {
         startResourceConnector(context);
         syncWithGatewayStartedEvent(GATEWAY_NAME, () -> {
-                GatewayActivator.enableGateway(context, GATEWAY_NAME);
-                return null;
+            GatewayActivator.enableGateway(context, GATEWAY_NAME);
+            return null;
         }, Duration.ofSeconds(4));
+        Thread.sleep(300);  //sleep required before UDP listening thread starts asynchronously
     }
 
     @Override

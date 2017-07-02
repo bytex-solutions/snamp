@@ -3,8 +3,6 @@ package com.bytex.snamp;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
-
 /**
  * Represents specialized map with key of type {@link Class}.
  * @author Roman Sakno
@@ -23,11 +21,14 @@ public class ClassMap<V> extends ConcurrentHashMap<Class<?>, V> {
      * @param key Key
      * @return Value associated with the key.
      */
-    public final V getOrAdd(final Class<?> key){
-        for (Class<?> lookup = key; lookup != null; lookup = lookup.getSuperclass()){
+    public final V getOrAdd(final Class<?> key) {
+        for (Class<?> lookup = key; lookup != null; lookup = lookup.getSuperclass()) {
             final V value = get(lookup);
-            if(value != null)
-                return firstNonNull(putIfAbsent(key, value), value);    //cache converter for the origin key, not for current inheritance frame
+            if (value != null) {
+                //cache converter for the origin key, not for current inheritance frame
+                putIfAbsent(key, value);
+                return value;
+            }
         }
         return null;
     }

@@ -7,5 +7,9 @@ package com.bytex.snamp.configuration;
  * @since 2.0
  */
 public interface ManagedResourceGroupConfiguration extends ManagedResourceTemplate {
-    void fillResourceConfig(final ManagedResourceConfiguration resourceConfig);
+    /**
+     * Merges configuration of the group into managed resource.
+     * @param resource Resource to be modified.
+     */
+    void fillResourceConfig(final ManagedResourceConfiguration resource);
 }

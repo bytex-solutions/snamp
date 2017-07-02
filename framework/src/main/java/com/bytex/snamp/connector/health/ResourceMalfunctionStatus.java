@@ -2,8 +2,6 @@ package com.bytex.snamp.connector.health;
 
 import java.time.Instant;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 /**
  * Something wrong with managed resource.
  * @author Roman Sakno

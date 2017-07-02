@@ -105,5 +105,6 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
         attributes.close();
         notifications.close();
         operations.close();
+        super.close();
     }
 }

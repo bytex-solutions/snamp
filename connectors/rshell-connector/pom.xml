@@ -139,7 +139,9 @@
                             org.antlr.runtime.tree,
                             org.stringtemplate.v4,
                             org.stringtemplate.v4.misc,
-                            org.stringtemplate.v4.compiler</Import-Package>
+                            org.stringtemplate.v4.compiler,
+                            org.stringtemplate.v4.adaptors,
+                            org.stringtemplate.v4.helpers</Import-Package>
             <Provide-Capability>com.bytex.snamp.connector; type=rshell</Provide-Capability>
           </instructions>
         </configuration>

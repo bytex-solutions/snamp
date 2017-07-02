@@ -35,6 +35,13 @@ public interface ConfigurationManager extends FrameworkService {
          * @throws E An exception thrown by custom processor.
          */
         boolean process(final AgentConfiguration config) throws E;
+
+        static <E extends Throwable> ConfigurationProcessor<E> of(final Acceptor<? super AgentConfiguration, E> acceptor) {
+            return config -> {
+                acceptor.accept(config);
+                return false;
+            };
+        }
     }
 
     /**

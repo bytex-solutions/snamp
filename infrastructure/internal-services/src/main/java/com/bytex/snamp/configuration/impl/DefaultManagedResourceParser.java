@@ -12,10 +12,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.bytex.snamp.MapUtils.getValue;
@@ -31,6 +28,7 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
     private static final TypeToken<SerializableMap<String, SerializableAttributeConfiguration>> ATTRS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableAttributeConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableEventConfiguration>> EVENTS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableEventConfiguration>>() {};
     private static final TypeToken<SerializableMap<String, SerializableOperationConfiguration>> OPS_MAP_TYPE = new TypeToken<SerializableMap<String, SerializableOperationConfiguration>>() {};
+    private static final TypeToken<SerializableSet<String>> OVP_SET_TYPE = new TypeToken<SerializableSet<String>>() {};
 
     private static final String CONNECTOR_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String RESOURCE_NAME_PROPERTY = "$resourceName$";
@@ -38,6 +36,7 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
     private static final String ATTRIBUTES_PROPERTY = "$attributes$";
     private static final String EVENTS_PROPERTY = "$events$";
     private static final String OPERATIONS_PROPERTY = "$operations$";
+    private static final String OVERRIDDEN_PROPS_PROPERTY = "$overridden$";
     private static final Pattern CONNECTOR_PID_REPLACEMENT = Pattern.compile(String.format(CONNECTOR_PID_TEMPLATE, ""), Pattern.LITERAL);
 
     private static final String ALL_CONNECTORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*"));
@@ -83,6 +82,10 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
         return deserialize(EVENTS_PROPERTY, EVENTS_MAP_TYPE, resourceConfig);
     }
 
+    private Set<String> getOverriddenProperties(final Dictionary<String, ?> resourceConfig) throws IOException {
+        return deserialize(OVERRIDDEN_PROPS_PROPERTY, OVP_SET_TYPE, resourceConfig);
+    }
+
     @Override
     void removeAll(final ConfigurationAdmin admin) throws IOException {
         removeAll(admin, ALL_CONNECTORS_QUERY);
@@ -105,8 +108,11 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
         result.setEvents(getEvents(configuration));
         //deserialize operations
         result.setOperations(getOperations(configuration));
+        //overridden properties
+        result.getOverriddenProperties().clear();
+        result.getOverriddenProperties().addAll(getOverriddenProperties(configuration));
         //deserialize parameters
-        return createParserResult(configuration, result, CONNECTION_STRING_PROPERTY, ATTRIBUTES_PROPERTY, EVENTS_PROPERTY, OPERATIONS_PROPERTY);
+        return createParserResult(configuration, result, CONNECTION_STRING_PROPERTY, ATTRIBUTES_PROPERTY, EVENTS_PROPERTY, OPERATIONS_PROPERTY, OVERRIDDEN_PROPS_PROPERTY);
     }
 
     @Override
@@ -117,6 +123,7 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
         result.put(ATTRIBUTES_PROPERTY, IOUtils.serialize(resource.getAttributes()));
         result.put(EVENTS_PROPERTY, IOUtils.serialize(resource.getEvents()));
         result.put(OPERATIONS_PROPERTY, IOUtils.serialize(resource.getOperations()));
+        result.put(OVERRIDDEN_PROPS_PROPERTY, IOUtils.serialize(resource.getOverriddenProperties()));
         return result;
     }
 

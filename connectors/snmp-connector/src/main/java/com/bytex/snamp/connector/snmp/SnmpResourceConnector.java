@@ -21,6 +21,7 @@ import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.Buffers;
+import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -28,31 +29,27 @@ import org.osgi.framework.BundleContext;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
+import org.snmp4j.jmx.SnmpNotification;
 import org.snmp4j.smi.*;
 
 import javax.annotation.Nonnull;
-import javax.management.AttributeList;
-import javax.management.AttributeNotFoundException;
-import javax.management.InvalidAttributeValueException;
-import javax.management.MBeanException;
-import javax.management.openmbean.ArrayType;
-import javax.management.openmbean.OpenDataException;
-import javax.management.openmbean.OpenType;
-import javax.management.openmbean.SimpleType;
+import javax.management.*;
+import javax.management.openmbean.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 
 /**
@@ -86,7 +83,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     private static final class SnmpNotificationRepository extends AccurateNotificationRepository<SnmpNotificationInfo> implements CommandResponder{
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final SharedCounter sequenceNumberGenerator;
-        private final Executor listenerInvoker;
+        private final ExecutorService listenerInvoker;
 
         private SnmpNotificationRepository(final String resourceName,
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
@@ -94,8 +91,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             super(resourceName,
                     SnmpNotificationInfo.class);
             this.client = client;
-            listenerInvoker = client.read(cl -> cl.queryObject(Executor.class)).orElseThrow(AssertionError::new);
-
+            listenerInvoker = client.read(cl -> cl.queryObject(ExecutorService.class)).orElseThrow(AssertionError::new);
             sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
         }
 
@@ -106,7 +102,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
          */
         @Nonnull
         @Override
-        protected Executor getListenerExecutor() {
+        protected ExecutorService getListenerExecutor() {
             return listenerInvoker;
         }
 
@@ -141,84 +137,88 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                 }
         }
 
-        private void processPdu(final PDU event){
-            final List<VariableBinding> bindings = new ArrayList<>(event.getVariableBindings());
-            if(bindings.size() == 0) return;
-            //tries to detect event category
-            final SnmpNotificationInfo notificationInfo = ArrayUtils.find(getNotificationInfo(), input -> {
-                for (final VariableBinding bnd : bindings)
-                    if (bnd.getOid().startsWith(input.getNotificationID()))
-                        return true;
-                return false;
-            }).orElse(null);
-            //unknown notification
-            if(notificationInfo == null) return;
-            String message;
-            if(notificationInfo.getDescriptor().hasField(MESSAGE_TEMPLATE_PARAM)){  //format message, no attachments
-                message = Objects.toString(notificationInfo.getDescriptor().getFieldValue(MESSAGE_TEMPLATE_PARAM));
-                for(final VariableBinding binding: bindings) {
-                    final OID postfix = SnmpConnectorHelpers.getPostfix(notificationInfo.getNotificationID(),
-                            binding.getOid());
-                    if (postfix.size() == 0) continue;
-                    message = message.replaceAll(String.format("\\{%s\\}", postfix),
-                            binding.getVariable().toString());
-                }
-                bindings.clear();
-            }
-            else if(notificationInfo.getDescriptor().hasField(MESSAGE_OID_PARAM)){      //extract message, add attachments
-                final OID messageOID = new OID(message = Objects.toString(notificationInfo.getDescriptor().getFieldValue(MESSAGE_OID_PARAM)));
-                final Iterator<VariableBinding> iterator = bindings.iterator();
-                while (iterator.hasNext()){
-                    final VariableBinding b = iterator.next();
-                    if(Objects.equals(messageOID, SnmpConnectorHelpers.getPostfix(notificationInfo.getNotificationID(), b.getOid()))){
-                        message = b.getVariable().toString();
-                        iterator.remove();
-                        break;
+        private void processPdu(final PDU event) {
+            if (event.getVariableBindings().isEmpty())
+                return;
+            final Map<OID, Variable> bindings = Maps.newHashMapWithExpectedSize(event.getVariableBindings().size());
+            //tries to detect event category and replace prefixes
+            SnmpNotificationInfo notificationInfo = null;
+            for (final SnmpNotificationInfo metadata : getNotificationInfo())
+                if (notificationInfo == null)
+                    for (final VariableBinding binding : event.getVariableBindings()) {
+                        if (binding.getOid().startsWith(metadata.getNotificationID())) {
+                            final OID postfix = SnmpConnectorHelpers.getPostfix(metadata.getNotificationID(), binding.getOid());
+                            if (postfix.size() == 0)
+                                continue;
+                            notificationInfo = metadata;
+                            bindings.put(postfix, binding.getVariable());
+                        }
                     }
-                }
+                else
+                    break;
+            //unknown notification
+            if (bindings.isEmpty() || notificationInfo == null)
+                return;
+            String message;
+            if (notificationInfo.getDescriptor().hasField(MESSAGE_OID_PARAM)) {      //extract message, add attachments
+                final OID messageOID = new OID(Objects.toString(notificationInfo.getDescriptor().getFieldValue(MESSAGE_OID_PARAM)));
+                final Variable messageContent = bindings.get(messageOID);
+                message = messageContent == null ? "" : messageContent.toString();
+            } else {//concatenate bindings
+                message = String.join(System.lineSeparator(), bindings.values().stream().map(Variable::toString).toArray(String[]::new));
             }
-            else {//concatenate bindings, no attachments
-                message = String.join(System.lineSeparator(), (CharSequence[]) bindings.stream().map(VariableBinding::toString).toArray(String[]::new));
-                bindings.clear();
-            }
-            fire(NotificationDescriptor.getName(notificationInfo),
-                    message,
-                    bindings);
+            fire(NotificationDescriptor.getName(notificationInfo), message, bindings);
         }
 
-        private static HashMap<String, ?> toArray(final List<VariableBinding> bindings){
-            if(bindings.isEmpty()) return null;
-            final HashMap<String, Object> result = Maps.newHashMapWithExpectedSize(bindings.size());
-            for(final VariableBinding bnd: bindings)
-                if(bnd.getVariable() instanceof Null)
-                    result.put(bnd.getOid().toDottedString(), null);
-                else if(bnd.getVariable() instanceof AssignableFromInteger)
-                    result.put(bnd.getOid().toDottedString(), bnd.getVariable().toInt());
-                else if(bnd.getVariable() instanceof AssignableFromLong)
-                    result.put(bnd.getOid().toDottedString(), bnd.getVariable().toLong());
-                else if(bnd.getVariable() instanceof OID)
-                    result.put(bnd.getOid().toDottedString(), ((OID)bnd.getVariable()).toDottedString());
-                else if(bnd.getVariable() instanceof OctetString){
-                    final OctetString str = (OctetString)bnd.getVariable();
-                    result.put(bnd.getOid().toDottedString(), str.isPrintable() ? new String(str.toByteArray(), SnmpObjectConverter.SNMP_ENCODING) : str.toByteArray());
+        private static CompositeData createAttachment(final Map<OID, Variable> bindings) {
+            if (bindings.isEmpty()) return null;
+            final CompositeDataBuilder result = new CompositeDataBuilder("SNMPTrap", "SNMP Trap");
+            bindings.forEach((oid, var) -> {
+                if (var instanceof AssignableFromInteger)
+                    result.put(oid.toDottedString(), "Integer value", var.toInt());
+                else if (var instanceof AssignableFromLong)
+                    result.put(oid.toDottedString(), "Long value", var.toLong());
+                else if (var instanceof OID)
+                    result.put(oid.toDottedString(), "Object Identifier", ((OID) var).toDottedString());
+                else if (var instanceof OctetString) {
+                    final OctetString str = (OctetString) var;
+                    if (str.isPrintable())
+                        result.put(oid.toDottedString(), "Octet String", new String(str.toByteArray(), SnmpObjectConverter.SNMP_ENCODING));
+                    else
+                        result.put(oid.toDottedString(), "Octet String", str.toByteArray());
+                } else if (var instanceof Address)
+                    result.put(oid.toDottedString(), "Address", var.toString());
+                else if (var instanceof AssignableFromIntArray)
+                    result.put(oid.toDottedString(), "Array of integers", ((AssignableFromIntArray) var).toIntArray());
+                else if (var instanceof AssignableFromByteArray)
+                    result.put(oid.toDottedString(), "Array of bytes", ((AssignableFromByteArray) var).toByteArray());
+                else
+                    result.put(oid.toDottedString(), "Raw value", var.toString());
+            });
+            return callUnchecked(result::build);
+        }
+
+        private static Function<MBeanNotificationInfo, SnmpNotification> notificationFactory(final String message,
+                                                                                             final Map<OID, Variable> bindings,
+                                                                                             final SharedCounter sequenceNumberGenerator) {
+            return holder -> {
+                for (final String notifType : holder.getNotifTypes()) {
+                    final SnmpNotification notification = new SnmpNotification(notifType,
+                            notifType,   //will be rewritten in repository
+                            sequenceNumberGenerator.getAsLong(),
+                            message,
+                            bindings);
+                    notification.setUserData(createAttachment(bindings));
+                    return notification;
                 }
-                else if(bnd.getVariable() instanceof Address)
-                    result.put(bnd.getOid().toDottedString(), bnd.getVariable().toString());
-                else if(bnd.getVariable() instanceof AssignableFromIntArray)
-                    result.put(bnd.getOid().toDottedString(), ((AssignableFromIntArray)bnd.getVariable()).toIntArray());
-                else if(bnd.getVariable() instanceof AssignableFromByteArray)
-                    result.put(bnd.getOid().toDottedString(), ((AssignableFromByteArray)bnd.getVariable()).toByteArray());
-                else result.put(bnd.getOid().toDottedString(), bnd.getVariable().toString());
-            return result;
+                return null;
+            };
         }
 
         private void fire(final String category,
                           final String message,
-                          final List<VariableBinding> attachment){
-            super.fire(category,
-                    message,
-                    sequenceNumberGenerator,
-                    toArray(attachment));
+                          final Map<OID, Variable> bindings) {
+            fire(category, notificationFactory(message, bindings, sequenceNumberGenerator));
         }
 
         /**
@@ -687,10 +687,11 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
 
     SnmpResourceConnector(final String resourceName,
-                          final ManagedResourceInfo configuration,
-                          final Duration discoveryTimeout) throws IOException {
+                          final ManagedResourceInfo configuration) throws IOException {
         super(configuration);
-        client = new ConcurrentResourceAccessor<>(SnmpConnectorDescriptionProvider.getInstance().createSnmpClient(GenericAddress.parse(configuration.getConnectionString()), configuration));
+        final SnmpConnectorDescriptionProvider parser = SnmpConnectorDescriptionProvider.getInstance();
+        final Duration discoveryTimeout = parser.parseDiscoveryTimeout(configuration);
+        client = new ConcurrentResourceAccessor<>(parser.createSnmpClient(GenericAddress.parse(configuration.getConnectionString()), configuration));
         attributes = new SnmpAttributeRepository(resourceName, client, discoveryTimeout);
         notifications = new SnmpNotificationRepository(resourceName,
                 client,

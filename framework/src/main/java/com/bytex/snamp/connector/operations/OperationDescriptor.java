@@ -12,7 +12,6 @@ import javax.management.ImmutableDescriptor;
 import javax.management.MBeanOperationInfo;
 import javax.management.openmbean.OpenMBeanOperationInfo;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -43,10 +42,13 @@ public class OperationDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     private static Map<String, ?> getFields(final Duration invocationTimeout,
-                                            final Map<String, String> options){
-        final Map<String, Object> fields = new HashMap<>(options);
-        fields.put(INVOCATION_TIMEOUT_FIELD, invocationTimeout);
-        return fields;
+                                            final Map<String, String> options) {
+        return invocationTimeout == null ?
+                options :
+                ImmutableMap.<String, Object>builder()
+                        .putAll(options)
+                        .put(INVOCATION_TIMEOUT_FIELD, invocationTimeout)
+                        .build();
     }
 
     /**

@@ -1958,7 +1958,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "/* grid-item\n------------------------- */\n\n.grid-item {\n  position: relative;\n  float: left;\n  width: 123px;\n  height: 123px;\n  margin: 10px;\n  padding: 10px;\n  background: #888;\n  color: #262524;\n}\n\n.activeBundle {\n  background: #A1D490 !important;\n}\n\n.grid-item > * {\n  margin: 0;\n  padding: 0;\n}\n\n.grid-item .name {\n  position: absolute;\n\n  left: 10px;\n  top: 55px;\n  text-transform: none;\n  letter-spacing: 0;\n  font-weight: normal;\n}\n\n.grid-item .symbol {\n  position: absolute;\n  left: 10px;\n  top: 0px;\n  font-weight: bold;\n  color: white;\n}\n\n.grid-item .number {\n  position: absolute;\n  right: 8px;\n  top: 5px;\n}\n\n.grid-item .weight {\n  position: absolute;\n  left: 90px;\n  top: 107px;\n  font-size: 0.8em;\n}\n\n.grid-item .bundleInfo {\n  position: absolute;\n  left: 117px;\n  top: 117px;\n  font-size: medium;\n}\n\n.grid-item-link {\n    display: inline-block;\n    border: 1px solid #dddddd;\n    border-radius: 4px;\n    -webkit-transition: border 0.2s ease-in-out;\n    -o-transition: border 0.2s ease-in-out;\n    transition: border 0.2s ease-in-out;\n    margin: 5px;\n}\n\na.grid-item-link:hover,\na.grid-item-link:focus,\na.grid-item-link.active {\n  border-color: #337ab7;\n}\n\n.btn-add-entity {\n    float: right;\n    margin-top: 1em;\n}\n", ""]);
+exports.push([module.i, "/* grid-item\r\n------------------------- */\r\n\r\n.grid-item {\r\n  position: relative;\r\n  float: left;\r\n  width: 123px;\r\n  height: 123px;\r\n  margin: 10px;\r\n  padding: 10px;\r\n  background: #888;\r\n  color: #262524;\r\n}\r\n\r\n.activeBundle {\r\n  background: #A1D490 !important;\r\n}\r\n\r\n.grid-item > * {\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\n.grid-item .name {\r\n  position: absolute;\r\n\r\n  left: 10px;\r\n  top: 55px;\r\n  text-transform: none;\r\n  letter-spacing: 0;\r\n  font-weight: normal;\r\n}\r\n\r\n.grid-item .symbol {\r\n  position: absolute;\r\n  left: 10px;\r\n  top: 0px;\r\n  font-weight: bold;\r\n  color: white;\r\n}\r\n\r\n.grid-item .number {\r\n  position: absolute;\r\n  right: 8px;\r\n  top: 5px;\r\n}\r\n\r\n.grid-item .weight {\r\n  position: absolute;\r\n  left: 90px;\r\n  top: 107px;\r\n  font-size: 0.8em;\r\n}\r\n\r\n.grid-item .bundleInfo {\r\n  position: absolute;\r\n  left: 117px;\r\n  top: 117px;\r\n  font-size: medium;\r\n}\r\n\r\n.grid-item-link {\r\n    display: inline-block;\r\n    border: 1px solid #dddddd;\r\n    border-radius: 4px;\r\n    -webkit-transition: border 0.2s ease-in-out;\r\n    -o-transition: border 0.2s ease-in-out;\r\n    transition: border 0.2s ease-in-out;\r\n    margin: 5px;\r\n}\r\n\r\na.grid-item-link:hover,\r\na.grid-item-link:focus,\r\na.grid-item-link.active {\r\n  border-color: #337ab7;\r\n}\r\n\r\n.btn-add-entity {\r\n    float: right;\r\n    margin-top: 1em;\r\n}\r\n", ""]);
 
 // exports
 
@@ -37962,7 +37962,6 @@ var RGroupsComponent = (function () {
         this.resources = [];
         this.oldTypeValue = "";
         this.availableResources = [];
-        this.oldSmartMode = false;
         overlay.defaultViewContainer = vcRef;
     }
     RGroupsComponent.prototype.ngOnInit = function () {
@@ -37977,7 +37976,6 @@ var RGroupsComponent = (function () {
             if (_this.resources.length > 0) {
                 _this.activeResource = _this.resources[0];
                 _this.oldTypeValue = _this.activeResource.type;
-                _this.oldSmartMode = _this.activeResource.smartMode;
             }
         });
         // Get all the available bundles that belong to Resources
@@ -37990,11 +37988,11 @@ var RGroupsComponent = (function () {
         $("#resourceSelection").select2();
     };
     RGroupsComponent.prototype.ngAfterViewInit = function () {
-        var _this = this;
+        var _thisReference = this;
         $(document).ready(function () {
             $("#resourceSelection").select2();
             $("#resourceSelection").on('change', function (e) {
-                _this.selectCurrentlyActiveResource($(e.target).val());
+                _thisReference.selectCurrentlyActiveResource($(e.target).val());
             });
         });
     };
@@ -38007,7 +38005,6 @@ var RGroupsComponent = (function () {
         }
         this.activeResource = selection;
         this.oldTypeValue = selection.type;
-        this.oldSmartMode = selection.smartMode;
     };
     RGroupsComponent.prototype.changeType = function (event) {
         var _this = this;
@@ -38028,42 +38025,7 @@ var RGroupsComponent = (function () {
                 _this.activeResource.type = _this.oldTypeValue;
                 return false;
             });
-        });
-    };
-    RGroupsComponent.prototype.triggerSmartMode = function (event) {
-        var _this = this;
-        console.log("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
-        if (!this.oldSmartMode) {
-            this.modal.confirm()
-                .className('wireframe')
-                .isBlocking(true)
-                .keyboard(27)
-                .message("If you enable smartMode - all attributes, events and operations will be removed. Proceed?")
-                .open()
-                .then(function (resultPromise) {
-                return resultPromise.result
-                    .then(function (response) {
-                    _this.http.put(app_restClient_1.REST.ENTITY_PARAMETERS("resourceGroup", _this.activeResource.name, "smartMode"), true)
-                        .subscribe(function (data) {
-                        console.log("setting to true result is ", data);
-                        _this.oldSmartMode = true;
-                        _this.activeResource.smartMode = true;
-                        location.reload();
-                    });
-                    return response;
-                })
-                    .catch(function () {
-                    _this.activeResource.smartMode = _this.oldSmartMode;
-                    return false;
-                });
-            });
-        }
-        else {
-            this.http.put(app_restClient_1.REST.ENTITY_PARAMETERS("resourceGroup", this.activeResource.name, "smartMode"), false)
-                .subscribe(function (data) {
-                _this.oldSmartMode = false;
-            });
-        }
+        }).catch(function () { });
     };
     RGroupsComponent = __decorate([
         core_1.Component({
@@ -38395,39 +38357,6 @@ exports.ThreadPoolsComponent = ThreadPoolsComponent;
 
 /***/ },
 
-/***/ "./src/app/configuration/model/model.resourceGroup.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
-var ResourceGroup = (function (_super) {
-    __extends(ResourceGroup, _super);
-    function ResourceGroup(http, name, parameters) {
-        _super.call(this, http, name, parameters);
-        this.smartMode = false;
-        this.http = http;
-    }
-    ResourceGroup.prototype.getName = function () {
-        return "resourceGroup";
-    };
-    ResourceGroup.prototype.getDescriptionType = function () {
-        return "connector";
-    };
-    ResourceGroup.stringify = function (type, params) {
-        var returnValue = {};
-        returnValue["type"] = type;
-        returnValue["parameters"] = model_entity_1.KeyValue.stringifyParametersStatic(params);
-        return returnValue;
-    };
-    return ResourceGroup;
-}(model_entityWithSub_1.EntityWithSub));
-exports.ResourceGroup = ResourceGroup;
-
-
-/***/ },
-
 /***/ "./src/app/configuration/model/model.thread.pool.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -38661,7 +38590,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949
 /***/ "./src/app/configuration/templates/rgroups.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\n  <div class=\"\">\n    <div class=\"page-title\">\n      <div class=\"title_left\">\n        <h3>Resource group configuration</h3>\n      </div>\n\n      <div class=\"title_right\">\n        <div class=\"col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search\">\n          <div class=\"row\">\n            <div class=\"col-md-3\">\n              <h5>Choose group</h5>\n            </div>\n            <div class=\"col-md-6\">\n              <select\n                id=\"resourceSelection\"\n                class=\"select2_group form-control\">\n                <optgroup label=\"Resources\" *ngIf=\"resources.length > 0\">\n                  <option\n                    *ngFor=\"let resource of resources\"\n                    [value]=\"resource.name\">\n                    {{resource.name}}\n                  </option>\n                </optgroup>\n              </select>\n            </div>\n            <div class=\"col-md-2\">\n              <newEntity\n                [entities]=\"resources\"\n                (onSave)=\"initSelectionComponent()\"\n                [type]=\"'resourceGroup'\">\n              </newEntity>\n            </div>\n          </div>\n        </div>\n      </div>\n\n    </div>\n\n    <div class=\"clearfix\"></div>\n\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"resources && resources.length > 0 && activeResource != undefined\">\n\n      <div class=\"col-md-8 leftAlign\">\n\n        <div class=\"row\">\n          <panel [header]=\"'Resource type'\" [column]=\"'6'\">\n            <select disabled\n                    id=\"entityType\"\n                    [(ngModel)]=\"activeResource.type\"\n                    (change)=\"changeType($event)\"\n                    style=\"height: auto;\"\n                    class=\"form-control\">\n              <option\n                *ngFor=\"let resource of availableResources\"\n                [value]=\"resource.type\">\n                {{resource.name}}\n              </option>\n            </select>\n          </panel>\n\n        </div>\n\n        <div class=\"row\">\n          <panel [header]=\"'Parameters'\" [column]=\"'12'\">\n            <parameters [entity]=\"activeResource\"></parameters>\n          </panel>\n        </div>\n\n      </div>\n\n      <div class=\"col-md-4\">\n        <div class=\"row\">\n\n          <div class=\"col-md-12\">\n            <panel [header]=\"'Entities'\" [column]=\"'12'\">\n              <div class=\"row\">\n\n                <div class=\"col-md-4 col-md-offset-8\"  [tooltip]=\"'Enable for auto wiring entities to ' + activeResource.name\">\n                  <div class=\"count\" style=\"display:inline-block; font-size: large;\">Smart mode</div>\n                  <div style=\"display: inline-block;\">\n                    <ui-switch\n                      [(ngModel)]=\"activeResource.smartMode\"\n                      (change)=\"triggerSmartMode($event)\"\n                      [size]=\"'small'\">\n                    </ui-switch>\n                  </div>\n                  <p></p>\n                </div>\n\n                <div class=\"col-md-12\" *ngIf=\"!activeResource.smartMode\">\n                  <div\n                    class=\"panel-group group-accordeon\"\n                    id=\"accordionBindings\"\n                    role=\"tablist\"\n                    aria-multiselectable=\"true\">\n                    <div class=\"panel panel-default\">\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\n                        <h4 class=\"panel-title\">\n                          <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\n                            Attributes\n                          </a>\n                        </h4>\n                      </div>\n                      <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\n                        <div class=\"panel-body\">\n                          <resourceEntity\n                            [entities]=\"activeResource.attributes\"\n                            [entityType]=\"'attribute'\"\n                            [resource]=\"activeResource\">\n                          </resourceEntity>\n                        </div>\n                      </div>\n                    </div>\n                    <div class=\"panel panel-default\">\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\n                        <h4 class=\"panel-title\">\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\n                            Events\n                          </a>\n                        </h4>\n                      </div>\n                      <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\n                        <div class=\"panel-body\">\n                          <resourceEntity\n                            [entities]=\"activeResource.events\"\n                            [entityType]=\"'event'\"\n                            [resource]=\"activeResource\">\n                          </resourceEntity>\n                        </div>\n                      </div>\n                    </div>\n                    <div class=\"panel panel-default\">\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\n                        <h4 class=\"panel-title\">\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\n                            Operations\n                          </a>\n                        </h4>\n                      </div>\n                      <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\n                        <div class=\"panel-body\">\n                          <resourceEntity\n                            [entities]=\"activeResource.operations\"\n                            [entityType]=\"'operation'\"\n                            [resource]=\"activeResource\">\n                          </resourceEntity>\n                        </div>\n                      </div>\n                    </div>\n                  </div>\n                </div>\n              </div>\n            </panel>\n          </div>\n        </div>\n\n      </div>\n\n    </div>\n  </div>\n\n</div>\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Resource group configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"title_right\">\r\n        <div class=\"col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search\">\r\n          <div class=\"row\">\r\n            <div class=\"col-md-3\">\r\n              <h5>Choose group</h5>\r\n            </div>\r\n            <div class=\"col-md-6\">\r\n              <select\r\n                id=\"resourceSelection\"\r\n                class=\"select2_group form-control\">\r\n                <optgroup label=\"Resources\" *ngIf=\"resources.length > 0\">\r\n                  <option\r\n                    *ngFor=\"let resource of resources\"\r\n                    [value]=\"resource.name\">\r\n                    {{resource.name}}\r\n                  </option>\r\n                </optgroup>\r\n              </select>\r\n            </div>\r\n            <div class=\"col-md-2\">\r\n              <newEntity\r\n                [entities]=\"resources\"\r\n                (onSave)=\"initSelectionComponent()\"\r\n                [type]=\"'resourceGroup'\">\r\n              </newEntity>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"resources && resources.length > 0 && activeResource != undefined\">\r\n\r\n      <div class=\"col-md-8 leftAlign\">\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Resource type'\" [column]=\"'6'\">\r\n            <select disabled\r\n                    id=\"entityType\"\r\n                    [(ngModel)]=\"activeResource.type\"\r\n                    (change)=\"changeType($event)\"\r\n                    style=\"height: auto;\"\r\n                    class=\"form-control\">\r\n              <option\r\n                *ngFor=\"let resource of availableResources\"\r\n                [value]=\"resource.type\">\r\n                {{resource.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n            <parameters [entity]=\"activeResource\"></parameters>\r\n          </panel>\r\n        </div>\r\n\r\n      </div>\r\n\r\n      <div class=\"col-md-4\">\r\n        <div class=\"row\">\r\n\r\n          <div class=\"col-md-12\">\r\n            <panel [header]=\"'Entities'\" [column]=\"'12'\">\r\n              <div class=\"row\">\r\n                <div class=\"col-md-12\">\r\n                  <div\r\n                    class=\"panel-group group-accordeon\"\r\n                    id=\"accordionBindings\"\r\n                    role=\"tablist\"\r\n                    aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                            Attributes\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.attributes\"\r\n                            [entityType]=\"'attribute'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                            Events\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.events\"\r\n                            [entityType]=\"'event'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                            Operations\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.operations\"\r\n                            [entityType]=\"'operation'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </panel>\r\n          </div>\r\n        </div>\r\n\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n\r\n</div>\r\n"
 
 /***/ },
 

@@ -1,8 +1,9 @@
 package com.bytex.snamp.gateway.ssh;
 
 import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationBuilder;
+import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationEventBox;
@@ -11,6 +12,8 @@ import com.bytex.snamp.jmx.ExpressionBasedDescriptorFilter;
 import com.bytex.snamp.jmx.TabularDataUtils;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.bytex.snamp.json.JsonUtils;
+import com.bytex.snamp.supervision.SupervisorClient;
+import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
@@ -386,8 +389,19 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     }
 
     @Override
+    public HealthStatus getResourceStatus(final String resourceName) {
+        return ManagedResourceConnectorClient.getStatus(getBundleContext(), resourceName).orElse(null);
+    }
+
+    @Override
+    public ResourceGroupHealthStatus getGroupStatus(final String groupName) {
+        final ResourceGroupHealthStatus result = SupervisorClient.getGroupStatus(getBundleContext(), groupName);
+        return result.isEmpty() ? null : result;
+    }
+
+    @Override
     public Set<String> getConnectedResources() {
-        return attributes.getHostedResources();
+        return trackedServices;
     }
 
     /**
@@ -415,10 +429,8 @@ final class SshGateway extends AbstractGateway implements GatewayController {
     @Override
     public Notification poll(final ExpressionBasedDescriptorFilter filter) {
         final NotificationEvent event = notifications.poll(filter);
-        if (event == null)
-            return null;
-        else     //deep clone of the notification to avoid concurrent modification via setSource
-            return new NotificationBuilder(event.getNotification()).setSource(event.getResourceName()).get();
+        //deep clone of the notification to avoid concurrent modification via setSource
+        return event == null ? null : event.cloneNotification();
     }
 
     @SuppressWarnings("unchecked")

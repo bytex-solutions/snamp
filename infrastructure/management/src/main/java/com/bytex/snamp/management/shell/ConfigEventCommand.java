@@ -52,12 +52,17 @@ public final class ConfigEventCommand extends TemplateConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    @Option(name = "-o", aliases = "--override", description = "Override configuration of event declared by group")
+    private boolean override;
+
     private boolean processEvents(final EntityMap<? extends EventConfiguration> events, final PrintWriter output) {
         if (del)
             events.remove(category);
         else {
             final EventConfiguration event = events.getOrAdd(category);
             event.putAll(StringKeyValue.parse(parameters));
+            event.setOverridden(override);
             Arrays.stream(parametersToDelete).forEach(event::remove);
         }
         output.println("Event configured successfully");

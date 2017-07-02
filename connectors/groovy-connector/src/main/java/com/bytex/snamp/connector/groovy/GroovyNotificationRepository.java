@@ -1,8 +1,6 @@
 package com.bytex.snamp.connector.groovy;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.AccurateNotificationRepository;
-import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.SharedCounter;
@@ -16,7 +14,6 @@ import javax.management.NotificationListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
@@ -25,7 +22,7 @@ import static com.bytex.snamp.core.SharedObjectType.COUNTER;
  * Represents Groovy-based notification.
  */
 final class GroovyNotificationRepository extends AccurateNotificationRepository<GroovyEvent> implements NotificationListener {
-    private final Executor listenerInvoker;
+    private final ExecutorService listenerInvoker;
     private final SharedCounter sequenceNumberGenerator;
     private final ManagedResourceScriptlet scriptlet;
 
@@ -47,7 +44,7 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
      */
     @Override
     @Nonnull
-    protected Executor getListenerExecutor() {
+    protected ExecutorService getListenerExecutor() {
         return listenerInvoker;
     }
 
@@ -72,8 +69,7 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        notification.setSource(this);
         notification.setSequenceNumber(sequenceNumberGenerator.getAsLong());
-        fire(notification.getType(), holder -> ArrayUtils.getFirst(holder.getNotifTypes()).map(newNotifType -> new NotificationContainer(newNotifType, notification)).orElse(null));
+        fire(notification, false);
     }
 }

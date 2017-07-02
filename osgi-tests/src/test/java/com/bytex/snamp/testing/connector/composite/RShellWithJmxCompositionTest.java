@@ -222,9 +222,11 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
     }
 
     @Test
-    public void configurationTest(){
+    public void configurationTest() {
         testConfigurationDescriptor(ManagedResourceConfiguration.class, ImmutableSet.of(
-                "separator"
+                "separator",
+                "groovyPath",
+                "synchronizationPeriod"
         ));
         testConfigurationDescriptor(AttributeConfiguration.class, ImmutableSet.of(
                 "source",

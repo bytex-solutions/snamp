@@ -72,8 +72,8 @@ public class RangedGaugeFPRecorder extends RangedValueFPRecorder implements Rang
     }
 
     @Override
-    public final double getLastMeanValue(final MetricsInterval interval) {
-        return gaugeFP.getLastMeanValue(interval);
+    public final double getMeanValue(final MetricsInterval interval) {
+        return gaugeFP.getMeanValue(interval);
     }
 
     /**

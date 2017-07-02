@@ -1,10 +1,14 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.EntityMap;
+import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents serializable version of managed resource group.
@@ -20,16 +24,34 @@ final class SerializableManagedResourceGroupConfiguration extends AbstractManage
     public SerializableManagedResourceGroupConfiguration(){
     }
 
+    private static <F extends FeatureConfiguration> void mergeFeatures(final EntityMap<? extends F> groupFeatures,
+                                                                       final EntityMap<? extends F> resourceFeatures) {
+        groupFeatures.forEach((featureNameInGroup, featureConfigInGroup) -> {
+            final F featureConfigInResource = resourceFeatures.getOrAdd(featureNameInGroup);
+            if (!featureConfigInResource.isOverridden())
+                featureConfigInResource.load(featureConfigInGroup);
+        });
+    }
+
+    private static void mergeParameters(final Map<String, String> groupParameters,
+                                        final Map<String, String> resourceParameters,
+                                        final Set<String> overriddenProperties) {
+        groupParameters.forEach((paramNameInGroup, paramValueInGroup) -> {
+            if (!overriddenProperties.contains(paramNameInGroup))
+                resourceParameters.put(paramNameInGroup, paramValueInGroup);
+        });
+    }
+
     @Override
     public void fillResourceConfig(final ManagedResourceConfiguration resource) {
         //overwrite all properties in resource but hold user-defined properties
-        this.forEach(resource::putIfAbsent);
+        mergeParameters(this, resource, resource.getOverriddenProperties());
         //overwrite all attributes
-        resource.getAttributes().putAll(getAttributes());
+        mergeFeatures(getAttributes(), resource.getAttributes());
         //overwrite all events
-        resource.getEvents().putAll(getEvents());
+        mergeFeatures(getEvents(), resource.getEvents());
         //overwrite all operations
-        resource.getOperations().putAll(getOperations());
+        mergeFeatures(getOperations(), resource.getOperations());
         //overwrite connector type
         resource.setType(getType());
     }

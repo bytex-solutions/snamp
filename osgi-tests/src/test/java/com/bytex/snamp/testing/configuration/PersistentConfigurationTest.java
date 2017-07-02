@@ -3,6 +3,7 @@ package com.bytex.snamp.testing.configuration;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerMethod;
@@ -23,19 +24,22 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
             admin.get().processConfiguration(currentConfig -> {
                 //resource without group
                 ManagedResourceConfiguration resource = currentConfig.getResources().getOrAdd("resource1");
+                resource.overrideProperties(ImmutableSet.of("key1"));
                 resource.put("key1", "value1");
+                resource.setType("jmx");
                 //resource with group
                 resource = currentConfig.getResources().getOrAdd("resource2");
-                resource.put("key1", "value1");
                 resource.setGroupName("group1");
+                resource.put("key2", "value2");
                 //group
                 ManagedResourceGroupConfiguration group = currentConfig.getResourceGroups().getOrAdd("group1");
                 group.put("key1", "valueFromGroup");
-                group.put("key2", "value2");
+                group.setType("http");
                 //attribute in group
                 assertTrue(group.getAttributes().addAndConsume("attribute1", attr -> {
                     attr.setAlternativeName("altName");
                     attr.put("param1", "value1");
+                    attr.setOverridden(true);
                 }));
                 return true;
             });
@@ -46,6 +50,7 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
                 assertNotNull(resource);
                 assertEquals("value1", resource.get("key1"));
                 assertEquals(0, resource.getAttributes().size());
+                assertTrue(resource.getOverriddenProperties().contains("key1"));
                 //verify resource with group
                 resource = currentConfig.getResources().get("resource2");
                 assertNotNull(resource);
@@ -55,6 +60,7 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
                 assertFalse(resource.getAttributes().addAndConsume("attribute1", attr -> {
                     assertEquals("altName", attr.getAlternativeName());
                     assertEquals("value1", attr.get("param1"));
+                    assertTrue(attr.isOverridden());
                 }));
             });
         } finally {

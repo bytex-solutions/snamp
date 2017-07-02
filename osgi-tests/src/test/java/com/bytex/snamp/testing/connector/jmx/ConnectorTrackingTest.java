@@ -4,7 +4,6 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
@@ -14,8 +13,6 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 
 import javax.management.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -116,19 +113,10 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
         super(new TestOpenMBean(), new ObjectName(TestOpenMBean.BEAN_NAME));
     }
 
-    private static boolean tryStart(final AbstractGateway gatewayInstance,
-                                    final Map<String, String> parameters) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        final Method tryStartMethod = AbstractGateway.class.getDeclaredMethod("tryStart", Map.class);
-        tryStartMethod.setAccessible(true);
-        return (Boolean)tryStartMethod.invoke(gatewayInstance, parameters);
-    }
-
     @Test
     public void simpleTrackingTest() throws Exception {
-        final TestGateway gateway = new TestGateway();
-        ManagedResourceConnectorClient.filterBuilder().addServiceListener(getTestBundleContext(), gateway);
-        try {
-            tryStart(gateway, Collections.emptyMap());
+        try (final TestGateway gateway = new TestGateway()) {
+            gateway.update(Collections.emptyMap());
             assertEquals(9, gateway.getAttributes().size());
             assertEquals(2, gateway.getNotifications().size());
             //now deactivate the resource connector. This action causes restarting of gateway instance
@@ -150,15 +138,12 @@ public final class ConnectorTrackingTest extends AbstractJmxConnectorTest<TestOp
                 assertNotNull(testResource.getAttributes().remove("2.0"));
                 assertNotNull(testResource.getAttributes().remove("3.0"));
                 assertNotNull(testResource.getAttributes().remove("4.0"));
-                assertNotNull(testResource.getAttributes().remove("19.1"));
+                assertNotNull(testResource.getAttributes().remove("9.0"));
                 return true;
             });
             Thread.sleep(2000);
-            assertEquals(5, gateway.getAttributes().size());
-            assertEquals(1, gateway.getNotifications().size());
-        } finally {
-            getTestBundleContext().removeServiceListener(gateway);
-            gateway.close();
+            assertEquals(4, gateway.getAttributes().size());
+            assertEquals(2, gateway.getNotifications().size());
         }
     }
 

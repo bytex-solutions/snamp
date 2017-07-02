@@ -15,4 +15,9 @@ public interface SafeCloseable extends AutoCloseable {
      */
     @Override
     void close();
+
+    static void closeAll(final SafeCloseable... closeables){
+        for(final SafeCloseable c: closeables)
+            c.close();
+    }
 }

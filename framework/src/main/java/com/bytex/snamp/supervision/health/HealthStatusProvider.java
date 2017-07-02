@@ -18,4 +18,5 @@ public interface HealthStatusProvider extends SupervisorAggregatedService, State
      */
     @Nonnull
     ResourceGroupHealthStatus getStatus();
+
 }

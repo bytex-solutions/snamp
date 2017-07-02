@@ -9,9 +9,9 @@ import org.apache.commons.cli.Options;
  * @since 1.0
  */
 abstract class AbstractAttributeCommand extends AbstractCommand {
-    protected static final Option NAME_OPTION = new Option("n", "name", true, "Attribute name");
+    static final Option NAME_OPTION = new Option("n", "name", true, "Attribute name");
 
-    protected AbstractAttributeCommand(final Options commandOptions) {
+    AbstractAttributeCommand(final Options commandOptions) {
         super(commandOptions);
     }
 

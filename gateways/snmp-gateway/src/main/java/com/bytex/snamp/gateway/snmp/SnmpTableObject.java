@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.snmp;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.IntBox;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.LoggerProvider;
@@ -352,7 +351,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
     private static void fill(final TabularData data,
                              final MOTable<DefaultMOMutableRow2PC, MONamedColumn, MOTableModel<DefaultMOMutableRow2PC>> table,
                              final DescriptorRead conversionOptions){
-        final IntBox rowIndex = BoxFactory.createForInt(0);
+        final IntBox rowIndex = IntBox.of(1);
         TabularDataUtils.forEachRow(data, row -> {
             final List<Variable> cells = Lists.newArrayListWithExpectedSize(table.getColumnCount());
             for (int columnIndex = 0; columnIndex < table.getColumnCount(); columnIndex++) {

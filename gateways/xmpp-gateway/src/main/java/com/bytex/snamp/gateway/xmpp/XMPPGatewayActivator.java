@@ -1,6 +1,7 @@
 package com.bytex.snamp.gateway.xmpp;
 
 import com.bytex.snamp.gateway.GatewayActivator;
+
 import static com.bytex.snamp.ArrayUtils.toArray;
 
 /**

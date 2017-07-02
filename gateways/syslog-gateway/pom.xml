@@ -81,6 +81,7 @@
                             com.bytex.snamp.jmx,
                             com.google.common.collect,
                             javax.management,
+                            javax.net,
                             org.osgi.framework</Import-Package>
             <Provide-Capability>com.bytex.snamp.gateway; type=syslog</Provide-Capability>
           </instructions>

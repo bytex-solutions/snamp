@@ -78,7 +78,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                     message.setSubject("Empty request");
                     message.setError(XMPPError.from(XMPPError.Condition.bad_request, "Oops! I can't recognize the message"));
                     chat.sendMessage(message);
-                } catch (final SmackException.NotConnectedException | InterruptedException e) {
+                } catch (final SmackException.NotConnectedException e) {
                     loggingScope.unableToSendMessage(e);
                 } finally {
                     loggingScope.close();
@@ -109,6 +109,9 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                 case ManageNotificationsCommand.NAME:
                     cmd = new ManageNotificationsCommand(notificationFilter);
                     break;
+                case HealthStatusCommand.NAME:
+                    cmd = new HealthStatusCommand();
+                    break;
                 default:
                     cmd = new UnknownCommand(arguments[0]);
                     break;
@@ -133,7 +136,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                 loggingScope = new MessageLoggingScope(this, "sendResponse");
                 try {
                     chat.sendMessage(message);
-                } catch (final SmackException.NotConnectedException | InterruptedException e) {
+                } catch (final SmackException.NotConnectedException e) {
                     loggingScope.unableToSendMessage(e);
                 } finally {
                     loggingScope.close();
@@ -173,7 +176,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
                 message.addExtensions(extras);
                 try {
                     chat.sendMessage(message);
-                } catch (final SmackException.NotConnectedException | InterruptedException ignored) {
+                } catch (final SmackException.NotConnectedException ignored) {
                     close();
                 }
             }
@@ -212,7 +215,7 @@ final class Bot implements ChatManagerListener, AutoCloseable {
         final MessageLoggingScope logger = new MessageLoggingScope(this, "sayHello");
         try {
             chat.sendMessage(String.format("Hi, %s!", chat.getParticipant()));
-        } catch (final SmackException.NotConnectedException | InterruptedException e) {
+        } catch (final SmackException.NotConnectedException e) {
             logger.unableToSendMessage(e);
         } finally {
             logger.close();

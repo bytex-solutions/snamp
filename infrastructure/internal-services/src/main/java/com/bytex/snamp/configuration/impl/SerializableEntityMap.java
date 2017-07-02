@@ -35,6 +35,7 @@ abstract class SerializableEntityMap<E extends SerializableEntityConfiguration> 
     protected final E readValue(final ObjectInput in) throws IOException, ClassNotFoundException {
         final E result = createValue();
         result.readExternal(in);
+        result.reset(); //reset modification state after deserialization
         return result;
     }
 

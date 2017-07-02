@@ -16693,7 +16693,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "/* http://prismjs.com/download.html?themes=prism-coy&languages=markup+css+clike+javascript */\n/**\n * prism.js Coy theme for JavaScript, CoffeeScript, CSS and HTML\n * Based on https://github.com/tshedor/workshop-wp-theme (Example: http://workshop.kansan.com/category/sessions/basics or http://workshop.timshedor.com/category/sessions/basics);\n * @author Tim  Shedor\n */\n\ncode[class*=\"language-\"],\npre[class*=\"language-\"] {\n\tcolor: black;\n\tbackground: none;\n\tfont-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;\n\ttext-align: left;\n\twhite-space: pre;\n\tword-spacing: normal;\n\tword-break: normal;\n\tword-wrap: normal;\n\tline-height: 1.5;\n\n\t-moz-tab-size: 4;\n\t-o-tab-size: 4;\n\ttab-size: 4;\n\n\t-webkit-hyphens: none;\n\t-moz-hyphens: none;\n\t-ms-hyphens: none;\n\thyphens: none;\n}\n\n/* Code blocks */\npre[class*=\"language-\"] {\n\tposition: relative;\n\tmargin: .5em 0;\n\tbox-shadow: -1px 0px 0px 0px #358ccb, 0px 0px 0px 1px #dfdfdf;\n\tborder-left: 10px solid #358ccb;\n\tbackground-color: #fdfdfd;\n\tbackground-image: linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);\n\tbackground-size: 3em 3em;\n\tbackground-origin: content-box;\n\toverflow: visible;\n\tpadding: 0;\n}\n\ncode[class*=\"language\"] {\n\tmax-height: inherit;\n\theight: 100%;\n\tpadding: 0 1em;\n\tdisplay: block;\n\toverflow: auto;\n}\n\n/* Margin bottom to accomodate shadow */\n:not(pre) > code[class*=\"language-\"],\npre[class*=\"language-\"] {\n\tbackground-color: #fdfdfd;\n\t-webkit-box-sizing: border-box;\n\t-moz-box-sizing: border-box;\n\tbox-sizing: border-box;\n\tmargin-bottom: 1em;\n}\n\n/* Inline code */\n:not(pre) > code[class*=\"language-\"] {\n\tposition: relative;\n\tpadding: .2em;\n\tborder-radius: 0.3em;\n\tcolor: #c92c2c;\n\tborder: 1px solid rgba(0, 0, 0, 0.1);\n\tdisplay: inline;\n\twhite-space: normal;\n}\n\npre[class*=\"language-\"]:before,\npre[class*=\"language-\"]:after {\n\tcontent: '';\n\tz-index: -2;\n\tdisplay: block;\n\tposition: absolute;\n\tbottom: 0.75em;\n\tleft: 0.18em;\n\twidth: 40%;\n\theight: 20%;\n\tmax-height: 13em;\n\tbox-shadow: 0px 13px 8px #979797;\n\t-webkit-transform: rotate(-2deg);\n\t-moz-transform: rotate(-2deg);\n\t-ms-transform: rotate(-2deg);\n\t-o-transform: rotate(-2deg);\n\ttransform: rotate(-2deg);\n}\n\n:not(pre) > code[class*=\"language-\"]:after,\npre[class*=\"language-\"]:after {\n\tright: 0.75em;\n\tleft: auto;\n\t-webkit-transform: rotate(2deg);\n\t-moz-transform: rotate(2deg);\n\t-ms-transform: rotate(2deg);\n\t-o-transform: rotate(2deg);\n\ttransform: rotate(2deg);\n}\n\n.token.comment,\n.token.block-comment,\n.token.prolog,\n.token.doctype,\n.token.cdata {\n\tcolor: #7D8B99;\n}\n\n.token.punctuation {\n\tcolor: #5F6364;\n}\n\n.token.property,\n.token.tag,\n.token.boolean,\n.token.number,\n.token.function-name,\n.token.constant,\n.token.symbol,\n.token.deleted {\n\tcolor: #c92c2c;\n}\n\n.token.selector,\n.token.attr-name,\n.token.string,\n.token.char,\n.token.function,\n.token.builtin,\n.token.inserted {\n\tcolor: #2f9c0a;\n}\n\n.token.operator,\n.token.entity,\n.token.url,\n.token.variable {\n\tcolor: #a67f59;\n\tbackground: rgba(255, 255, 255, 0.5);\n}\n\n.token.atrule,\n.token.attr-value,\n.token.keyword,\n.token.class-name {\n\tcolor: #1990b8;\n}\n\n.token.regex,\n.token.important {\n\tcolor: #e90;\n}\n\n.language-css .token.string,\n.style .token.string {\n\tcolor: #a67f59;\n\tbackground: rgba(255, 255, 255, 0.5);\n}\n\n.token.important {\n\tfont-weight: normal;\n}\n\n.token.bold {\n\tfont-weight: bold;\n}\n.token.italic {\n\tfont-style: italic;\n}\n\n.token.entity {\n\tcursor: help;\n}\n\n.namespace {\n\topacity: .7;\n}\n\n@media screen and (max-width: 767px) {\n\tpre[class*=\"language-\"]:before,\n\tpre[class*=\"language-\"]:after {\n\t\tbottom: 14px;\n\t\tbox-shadow: none;\n\t}\n\n}\n\n/* Plugin styles */\n.token.tab:not(:empty):before,\n.token.cr:before,\n.token.lf:before {\n\tcolor: #e0d7d1;\n}\n\n/* Plugin styles: Line Numbers */\npre[class*=\"language-\"].line-numbers {\n\tpadding-left: 0;\n}\n\npre[class*=\"language-\"].line-numbers code {\n\tpadding-left: 3.8em;\n}\n\npre[class*=\"language-\"].line-numbers .line-numbers-rows {\n\tleft: 0;\n}\n\n/* Plugin styles: Line Highlight */\npre[class*=\"language-\"][data-line] {\n\tpadding-top: 0;\n\tpadding-bottom: 0;\n\tpadding-left: 0;\n}\npre[data-line] code {\n\tposition: relative;\n\tpadding-left: 4em;\n}\npre .line-highlight {\n\tmargin-top: 0;\n}\n", ""]);
+exports.push([module.i, "/* http://prismjs.com/download.html?themes=prism-coy&languages=markup+css+clike+javascript */\r\n/**\r\n * prism.js Coy theme for JavaScript, CoffeeScript, CSS and HTML\r\n * Based on https://github.com/tshedor/workshop-wp-theme (Example: http://workshop.kansan.com/category/sessions/basics or http://workshop.timshedor.com/category/sessions/basics);\r\n * @author Tim  Shedor\r\n */\r\n\r\ncode[class*=\"language-\"],\r\npre[class*=\"language-\"] {\r\n\tcolor: black;\r\n\tbackground: none;\r\n\tfont-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;\r\n\ttext-align: left;\r\n\twhite-space: pre;\r\n\tword-spacing: normal;\r\n\tword-break: normal;\r\n\tword-wrap: normal;\r\n\tline-height: 1.5;\r\n\r\n\t-moz-tab-size: 4;\r\n\t-o-tab-size: 4;\r\n\ttab-size: 4;\r\n\r\n\t-webkit-hyphens: none;\r\n\t-moz-hyphens: none;\r\n\t-ms-hyphens: none;\r\n\thyphens: none;\r\n}\r\n\r\n/* Code blocks */\r\npre[class*=\"language-\"] {\r\n\tposition: relative;\r\n\tmargin: .5em 0;\r\n\tbox-shadow: -1px 0px 0px 0px #358ccb, 0px 0px 0px 1px #dfdfdf;\r\n\tborder-left: 10px solid #358ccb;\r\n\tbackground-color: #fdfdfd;\r\n\tbackground-image: linear-gradient(transparent 50%, rgba(69, 142, 209, 0.04) 50%);\r\n\tbackground-size: 3em 3em;\r\n\tbackground-origin: content-box;\r\n\toverflow: visible;\r\n\tpadding: 0;\r\n}\r\n\r\ncode[class*=\"language\"] {\r\n\tmax-height: inherit;\r\n\theight: 100%;\r\n\tpadding: 0 1em;\r\n\tdisplay: block;\r\n\toverflow: auto;\r\n}\r\n\r\n/* Margin bottom to accomodate shadow */\r\n:not(pre) > code[class*=\"language-\"],\r\npre[class*=\"language-\"] {\r\n\tbackground-color: #fdfdfd;\r\n\t-webkit-box-sizing: border-box;\r\n\t-moz-box-sizing: border-box;\r\n\tbox-sizing: border-box;\r\n\tmargin-bottom: 1em;\r\n}\r\n\r\n/* Inline code */\r\n:not(pre) > code[class*=\"language-\"] {\r\n\tposition: relative;\r\n\tpadding: .2em;\r\n\tborder-radius: 0.3em;\r\n\tcolor: #c92c2c;\r\n\tborder: 1px solid rgba(0, 0, 0, 0.1);\r\n\tdisplay: inline;\r\n\twhite-space: normal;\r\n}\r\n\r\npre[class*=\"language-\"]:before,\r\npre[class*=\"language-\"]:after {\r\n\tcontent: '';\r\n\tz-index: -2;\r\n\tdisplay: block;\r\n\tposition: absolute;\r\n\tbottom: 0.75em;\r\n\tleft: 0.18em;\r\n\twidth: 40%;\r\n\theight: 20%;\r\n\tmax-height: 13em;\r\n\tbox-shadow: 0px 13px 8px #979797;\r\n\t-webkit-transform: rotate(-2deg);\r\n\t-moz-transform: rotate(-2deg);\r\n\t-ms-transform: rotate(-2deg);\r\n\t-o-transform: rotate(-2deg);\r\n\ttransform: rotate(-2deg);\r\n}\r\n\r\n:not(pre) > code[class*=\"language-\"]:after,\r\npre[class*=\"language-\"]:after {\r\n\tright: 0.75em;\r\n\tleft: auto;\r\n\t-webkit-transform: rotate(2deg);\r\n\t-moz-transform: rotate(2deg);\r\n\t-ms-transform: rotate(2deg);\r\n\t-o-transform: rotate(2deg);\r\n\ttransform: rotate(2deg);\r\n}\r\n\r\n.token.comment,\r\n.token.block-comment,\r\n.token.prolog,\r\n.token.doctype,\r\n.token.cdata {\r\n\tcolor: #7D8B99;\r\n}\r\n\r\n.token.punctuation {\r\n\tcolor: #5F6364;\r\n}\r\n\r\n.token.property,\r\n.token.tag,\r\n.token.boolean,\r\n.token.number,\r\n.token.function-name,\r\n.token.constant,\r\n.token.symbol,\r\n.token.deleted {\r\n\tcolor: #c92c2c;\r\n}\r\n\r\n.token.selector,\r\n.token.attr-name,\r\n.token.string,\r\n.token.char,\r\n.token.function,\r\n.token.builtin,\r\n.token.inserted {\r\n\tcolor: #2f9c0a;\r\n}\r\n\r\n.token.operator,\r\n.token.entity,\r\n.token.url,\r\n.token.variable {\r\n\tcolor: #a67f59;\r\n\tbackground: rgba(255, 255, 255, 0.5);\r\n}\r\n\r\n.token.atrule,\r\n.token.attr-value,\r\n.token.keyword,\r\n.token.class-name {\r\n\tcolor: #1990b8;\r\n}\r\n\r\n.token.regex,\r\n.token.important {\r\n\tcolor: #e90;\r\n}\r\n\r\n.language-css .token.string,\r\n.style .token.string {\r\n\tcolor: #a67f59;\r\n\tbackground: rgba(255, 255, 255, 0.5);\r\n}\r\n\r\n.token.important {\r\n\tfont-weight: normal;\r\n}\r\n\r\n.token.bold {\r\n\tfont-weight: bold;\r\n}\r\n.token.italic {\r\n\tfont-style: italic;\r\n}\r\n\r\n.token.entity {\r\n\tcursor: help;\r\n}\r\n\r\n.namespace {\r\n\topacity: .7;\r\n}\r\n\r\n@media screen and (max-width: 767px) {\r\n\tpre[class*=\"language-\"]:before,\r\n\tpre[class*=\"language-\"]:after {\r\n\t\tbottom: 14px;\r\n\t\tbox-shadow: none;\r\n\t}\r\n\r\n}\r\n\r\n/* Plugin styles */\r\n.token.tab:not(:empty):before,\r\n.token.cr:before,\r\n.token.lf:before {\r\n\tcolor: #e0d7d1;\r\n}\r\n\r\n/* Plugin styles: Line Numbers */\r\npre[class*=\"language-\"].line-numbers {\r\n\tpadding-left: 0;\r\n}\r\n\r\npre[class*=\"language-\"].line-numbers code {\r\n\tpadding-left: 3.8em;\r\n}\r\n\r\npre[class*=\"language-\"].line-numbers .line-numbers-rows {\r\n\tleft: 0;\r\n}\r\n\r\n/* Plugin styles: Line Highlight */\r\npre[class*=\"language-\"][data-line] {\r\n\tpadding-top: 0;\r\n\tpadding-bottom: 0;\r\n\tpadding-left: 0;\r\n}\r\npre[data-line] code {\r\n\tposition: relative;\r\n\tpadding-left: 4em;\r\n}\r\npre .line-highlight {\r\n\tmargin-top: 0;\r\n}\r\n", ""]);
 
 // exports
 
@@ -102646,6 +102646,642 @@ if(false) {
 
 /***/ },
 
+/***/ "./node_modules/util/node_modules/inherits/inherits_browser.js":
+/***/ function(module, exports) {
+
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+
+/***/ },
+
+/***/ "./node_modules/util/support/isBufferBrowser.js":
+/***/ function(module, exports) {
+
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+
+/***/ },
+
+/***/ "./node_modules/util/util.js":
+/***/ function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  // Allow for deprecating things in the process of starting up.
+  if (isUndefined(global.process)) {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  if (process.noDeprecation === true) {
+    return fn;
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = {"ENV":"development","NODE_ENV":"development","HMR":false}.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = __webpack_require__("./node_modules/util/support/isBufferBrowser.js");
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = __webpack_require__("./node_modules/util/node_modules/inherits/inherits_browser.js");
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/webpack/buildin/global.js"), __webpack_require__("./node_modules/process/browser.js")))
+
+/***/ },
+
 /***/ "./src/app/analysis/model/abstract.component.specific.view.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -103196,7 +103832,7 @@ exports.Factory = Factory;
 /***/ "./src/app/app.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<side-bar></side-bar>\n<topnav-bar></topnav-bar>\n<router-outlet></router-outlet>\n<custom-footer></custom-footer>\n"
+module.exports = "<side-bar></side-bar>\r\n<topnav-bar></topnav-bar>\r\n<router-outlet></router-outlet>\r\n<custom-footer></custom-footer>\r\n"
 
 /***/ },
 
@@ -105641,6 +106277,7 @@ var model_resource_1 = __webpack_require__("./src/app/configuration/model/model.
 __webpack_require__("./node_modules/rxjs/add/operator/map.js");
 __webpack_require__("./node_modules/rxjs/add/operator/do.js");
 __webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
+var model_resourceGroup_1 = __webpack_require__("./src/app/configuration/model/model.resourceGroup.ts");
 var AddEntity = (function () {
     function AddEntity(http) {
         this.http = http;
@@ -105658,7 +106295,7 @@ var AddEntity = (function () {
     AddEntity.prototype.ngOnInit = function () {
         var _this = this;
         if (this.type == "resourceGroup") {
-            this._innerType = "connectors";
+            this._innerType = "connector";
         }
         else {
             this._innerType = this.type;
@@ -105732,6 +106369,14 @@ var AddEntity = (function () {
                 _this.onSave.emit(newEntity);
             });
         }
+        else if (this.type == "resourceGroup") {
+            newEntity = new model_resourceGroup_1.ResourceGroup(this.http, this.selectedName, model_resourceGroup_1.ResourceGroup.stringify(this.selectedType.type, this.params));
+            this.http.put(app_restClient_1.REST.RGROUP_BY_NAME(newEntity.name), newEntity.stringify())
+                .subscribe(function (res) {
+                _this.entities.push(newEntity);
+                _this.onSave.emit(newEntity);
+            });
+        }
     };
     AddEntity.prototype.saveParameter = function (param) {
         this.params.forEach(function (obj) {
@@ -105797,7 +106442,7 @@ var EntityDescriptor = (function () {
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
@@ -105808,30 +106453,27 @@ __webpack_require__("./node_modules/rxjs/add/operator/map.js");
 __webpack_require__("./node_modules/rxjs/add/operator/do.js");
 __webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var model_resource_1 = __webpack_require__("./src/app/configuration/model/model.resource.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var ParametersTable = (function () {
-    function ParametersTable(http, modal) {
+    function ParametersTable(http, modal, cd) {
         this.http = http;
         this.modal = modal;
+        this.cd = cd;
         this.selectedParam = undefined;
         this.stubValue = model_paramDescriptor_1.ParamDescriptor.stubValue;
         this.containsRequired = false;
         this.containsOptional = false;
+        this.paramDescriptors = [];
     }
-    ParametersTable.prototype.ngOnInit = function () {
-        var _this = this;
-        this.entity.paramDescriptors.subscribe(function (descriptors) {
-            for (var i in descriptors) {
-                if (descriptors[i].required) {
-                    _this.containsRequired = true;
-                }
-                else {
-                    _this.containsOptional = true;
-                }
+    ParametersTable.prototype.ngOnInit = function () { };
+    ParametersTable.prototype.isParameterRequired = function (key) {
+        for (var i = 0; i < this.paramDescriptors.length; i++) {
+            if (this.paramDescriptors[i].name == key && this.paramDescriptors[i].required) {
+                return true;
             }
-            if (_this.selectedParam == undefined && descriptors.length > 0) {
-                _this.selectedParam = descriptors[0];
-            }
-        });
+        }
+        return false;
     };
     ParametersTable.prototype.getUrlForParameter = function (key) {
         return app_restClient_1.REST.ENTITY_PARAMETERS(this.entity.getName(), this.entity.name, key);
@@ -105850,27 +106492,25 @@ var ParametersTable = (function () {
     };
     ParametersTable.prototype.checkAndRemoveParameter = function (parameter) {
         var _this = this;
-        this.entity.isParamRequired(parameter.key).subscribe(function (res) {
-            if (res) {
-                _this.modal.confirm()
-                    .className('default')
-                    .isBlocking(true)
-                    .keyboard(27)
-                    .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
-                    .open()
-                    .then(function (resultPromise) {
-                    return resultPromise.result
-                        .then(function (response) {
-                        _this.removeParameter(parameter);
-                        return response;
-                    })
-                        .catch(function () { return false; });
-                });
-            }
-            else {
-                _this.removeParameter(parameter);
-            }
-        });
+        if (this.isParameterRequired(parameter.key)) {
+            this.modal.confirm()
+                .className('default')
+                .isBlocking(true)
+                .keyboard(27)
+                .message("You are trying to remove required parameter. Proper work of entity is not garanteed. Proceed?")
+                .open()
+                .then(function (resultPromise) {
+                return resultPromise.result
+                    .then(function (response) {
+                    _this.removeParameter(parameter);
+                    return response;
+                })
+                    .catch(function () { return false; });
+            }).catch(function () { return false; });
+        }
+        else {
+            this.removeParameter(parameter);
+        }
     };
     ParametersTable.prototype.addNewParameter = function () {
         var _this = this;
@@ -105910,11 +106550,57 @@ var ParametersTable = (function () {
         this.selectedParam = undefined;
     };
     ParametersTable.prototype.clear = function () {
-        this.listParamValue.nativeElement.value = "";
-        if (this.customParamValue != undefined) {
-            this.customParamValue.nativeElement.value = this.stubValue;
-        }
-        this.newParamElement.nativeElement.value = "";
+        var _this = this;
+        this.http.getWithErrors(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.entity.getDescriptionType(), this.entity.type))
+            .map(function (res) { return res.json(); })
+            .subscribe(function (data) {
+            if (!util_1.isNullOrUndefined(_this.listParamValue)) {
+                _this.listParamValue.nativeElement.value = "";
+            }
+            if (!util_1.isNullOrUndefined(_this.customParamValue)) {
+                _this.customParamValue.nativeElement.value = _this.stubValue;
+            }
+            if (!util_1.isNullOrUndefined(_this.newParamElement)) {
+                _this.newParamElement.nativeElement.value = "";
+            }
+            _this.containsRequired = false;
+            _this.containsOptional = false;
+            _this.paramDescriptors = [];
+            for (var i = 0; i < data.length; i++) {
+                var _tmp = new model_paramDescriptor_1.ParamDescriptor(data[i]);
+                if (_tmp.name != "smartMode") {
+                    _this.paramDescriptors.push(_tmp);
+                    if (_tmp.required) {
+                        _this.containsRequired = true;
+                    }
+                    else {
+                        _this.containsOptional = true;
+                    }
+                }
+            }
+            if (_this.selectedParam == undefined && _this.paramDescriptors.length > 0) {
+                _this.selectedParam = _this.paramDescriptors[0];
+            }
+            console.log("After all we got: ", _this.paramDescriptors, _this.containsRequired, _this.containsOptional);
+            _this.cd.detectChanges();
+            $("#addParam").modal("show");
+        });
+    };
+    ParametersTable.prototype.isOverriddable = function () {
+        return (this.entity instanceof model_resource_1.Resource)
+            && (!util_1.isNullOrUndefined(this.entity.groupName))
+            && (this.entity.groupName.length > 0);
+    };
+    ParametersTable.prototype.triggerOverride = function (event, param) {
+        this.entity.toggleOverridden(param);
+        this.http.put(app_restClient_1.REST.OVERRIDES_BY_NAME(this.entity.name), this.entity.overriddenProperties)
+            .map(function (res) { return res.text(); })
+            .subscribe(function () {
+            console.log("Saved overrides");
+        });
+    };
+    ParametersTable.prototype.isOverridden = function (paramName) {
+        return (this.entity.overriddenProperties.indexOf(paramName) >= 0);
     };
     __decorate([
         core_1.Input(), 
@@ -105943,13 +106629,14 @@ var ParametersTable = (function () {
             template: __webpack_require__("./src/app/configuration/components/templates/parameters-table.component.html"),
             encapsulation: core_1.ViewEncapsulation.None
         }), 
-        __metadata('design:paramtypes', [(typeof (_f = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _f) || Object, (typeof (_g = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _g) || Object])
+        __metadata('design:paramtypes', [(typeof (_f = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _f) || Object, (typeof (_g = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _g) || Object, (typeof (_h = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _h) || Object])
     ], ParametersTable);
     return ParametersTable;
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
 }());
 exports.ParametersTable = ParametersTable;
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -105989,13 +106676,13 @@ var ResourceEntitiesTable = (function () {
     }
     ResourceEntitiesTable.prototype.makeEmptyEntity = function () {
         if (this.entityType == "attribute") {
-            return new model_attribute_1.Attribute(this.http, this.resource.type, "", 0, {});
+            return new model_attribute_1.Attribute(this.http, this.resource.type, "", 0);
         }
         else if (this.entityType == "event") {
-            return new model_event_1.Event(this.http, this.resource.type, "", {});
+            return new model_event_1.Event(this.http, this.resource.type, "");
         }
         else if (this.entityType == "operation") {
-            return new model_operation_1.Operation(this.http, this.resource.type, "", 0, {});
+            return new model_operation_1.Operation(this.http, this.resource.type, "", 0);
         }
     };
     ResourceEntitiesTable.prototype.ngOnInit = function () {
@@ -106037,10 +106724,35 @@ var ResourceEntitiesTable = (function () {
         return "#tableParamsRow" + this.entityType;
     };
     ResourceEntitiesTable.prototype.setEntity = function (entity) {
+        var _this = this;
+        if (this.resource instanceof model_resource_1.Resource && !entity.override && this.resource.groupName != undefined && this.resource.groupName.length > 0) {
+            var rgname = this.resource.groupName;
+            if (rgname != undefined && rgname.length > 0) {
+                this.modal.confirm()
+                    .isBlocking(true)
+                    .className('default')
+                    .keyboard(27)
+                    .message("This resource belongs to group " + rgname + ". Group settings have priority. You want to override this entity here?")
+                    .open()
+                    .then(function (resultPromise) {
+                    return resultPromise.result
+                        .then(function () {
+                        entity.override = true;
+                        _this.prepareEditEntityModal(entity);
+                    });
+                }).catch(function () { });
+            }
+        }
+        else {
+            this.prepareEditEntityModal(entity);
+        }
+    };
+    ResourceEntitiesTable.prototype.prepareEditEntityModal = function (entity) {
         this.activeEntity = Object.create(entity);
         this.isNewEntity = false;
         // see http://disq.us/p/1es8nau (might be 4.1.2 version incoming)
         $(this.getSmartWizardIdentifier()).smartWizard("reset");
+        $('#editEntity' + this.entityType).modal("show");
     };
     ResourceEntitiesTable.prototype.addNewParameter = function () {
         var _thisReference = this;
@@ -106136,7 +106848,7 @@ var ResourceEntitiesTable = (function () {
             return resultPromise.result
                 .then(function (response) {
                 _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME(entity.getName() + "s", _this.resource.name, entity.name))
-                    .subscribe(function (data) {
+                    .subscribe(function () {
                     for (var i = 0; i < _this.entities.length; i++) {
                         if (_this.entities[i].name == entity.name) {
                             _this.entities.splice(i, 1);
@@ -106145,7 +106857,7 @@ var ResourceEntitiesTable = (function () {
                     }
                 });
             });
-        });
+        }).catch(function () { });
     };
     ResourceEntitiesTable.prototype.saveParameter = function (parameter) {
         this.activeEntity.setParameter(parameter);
@@ -106230,7 +106942,7 @@ var ResourceEntitiesTable = (function () {
         });
         $('#editEntity' + this.entityType).modal("hide");
     };
-    ResourceEntitiesTable.prototype.hasAvailableEntities = function () {
+    ResourceEntitiesTable.prototype.isResourceType = function () {
         return (this.resource instanceof model_resource_1.Resource);
     };
     ResourceEntitiesTable.prototype.addEntityFromList = function () {
@@ -106243,13 +106955,13 @@ var ResourceEntitiesTable = (function () {
                 var _entity = void 0;
                 switch (_this.entityType) {
                     case "attribute":
-                        _entity = new model_attribute_1.Attribute(_this.http, _this.resource.type, key, data[key]["readWriteTimeout"], data[key]["parameters"]);
+                        _entity = new model_attribute_1.Attribute(_this.http, _this.resource.type, key, data[key]["readWriteTimeout"], data[key]["override"], data[key]["parameters"]);
                         break;
                     case "event":
-                        _entity = new model_event_1.Event(_this.http, _this.resource.type, key, data[key]["parameters"]);
+                        _entity = new model_event_1.Event(_this.http, _this.resource.type, key, data[key]["override"], data[key]["parameters"]);
                         break;
                     case "operation":
-                        _entity = new model_operation_1.Operation(_this.http, _this.resource.type, key, data[key]["invocationTimeout"], data[key]["parameters"]);
+                        _entity = new model_operation_1.Operation(_this.http, _this.resource.type, key, data[key]["invocationTimeout"], data[key]["override"], data[key]["parameters"]);
                         break;
                     default:
                         throw new Error("Could not recognize the entity type: " + _this.entityType);
@@ -106314,10 +107026,11 @@ var ResourceEntitiesTable = (function () {
                 default:
                     throw new Error("Could not recognize the entity type: " + _this.entityType);
             }
-            _this.cancelEntitySelection();
             _this.cd.detectChanges();
+            $('#addExistentEntity' + _this.entityType).modal("hide");
+            _this.selectedEntity.override = true;
+            _this.prepareEditEntityModal(_this.selectedEntity);
         });
-        $('#addExistentEntity' + this.entityType).modal("hide");
     };
     ResourceEntitiesTable.prototype.cancelEntitySelection = function () {
         this.selectedEntity = undefined;
@@ -106357,7 +107070,7 @@ exports.ResourceEntitiesTable = ResourceEntitiesTable;
 /***/ "./src/app/configuration/components/templates/add-entity.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for entity appending -->\n<div class=\"modal fade\" id=\"addEntity\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Create new entity</h4>\n            </div>\n            <br/>\n            <div class=\"modal-body\">\n                <div class=\"input-group\" style=\"margin-bottom: 20px;\">\n                    <span class=\"input-group-addon\">Name</span>\n                    <input\n                            type=\"text\"\n                            class=\"form-control\"\n                            [tooltip]=\"'Input at least 4 symbols please'\"\n                            [(ngModel)]=\"selectedName\">\n                </div>\n                <div class=\"input-group\" style=\"margin-bottom: 20px;\" *ngIf=\"type == 'resource'\">\n                    <span class=\"input-group-addon\">Connection string</span>\n                    <input\n                            type=\"text\"\n                            class=\"form-control\"\n                            [tooltip]=\"'Connection string is optional, but in almost all cases should be prefilled'\"\n                            [(ngModel)]=\"selectedConnectionString\">\n                </div>\n                <div class=\"panel-group group-accordeon\" id=\"entityAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"nameSelected()\">\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\n                            <h4 class=\"panel-title\">\n                                <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#entityAccordion\" href=\"#collapseType\" aria-expanded=\"true\" aria-controls=\"collapseRequired\">\n                                    Select type of new entity\n                                </a>\n                            </h4>\n                        </div>\n                        <div id=\"collapseType\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\n                            <div class=\"panel-body\">\n                                    <a *ngFor=\"let entity of availableEntities\"\n                                           class=\"grid-item-link pointerElement\"\n                                           (click)=\"selectType(entity)\"\n                                           [class.active]=\"selectedType == entity\"\n                                           [tooltip]=\"entity.description\">\n                                        <div [class.activeBundle]=\"entity.isActive\" class=\"grid-item\">\n                                                <h5 class=\"name\">{{entity.name}}</h5>\n                                                <p class=\"symbol\">{{entity.type}}</p>\n                                                <p class=\"weight\">v.{{entity.version}}</p>\n                                        </div>\n                                    </a>\n                                </div>\n                        </div>\n                    </div>\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"typeSelected()\">\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\n                            <h4 class=\"panel-title\">\n                                <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseParameters\" aria-expanded=\"true\" aria-controls=\"collapseOptional\">\n                                    Required parameters\n                                </a>\n                            </h4>\n                        </div>\n                        <div id=\"collapseParameters\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\n                            <div class=\"panel-body\">\n                                <table class=\"table\">\n                                    <thead>\n                                    <tr>\n                                        <th>Key</th>\n                                        <th>Value</th>\n                                    </tr>\n                                    </thead>\n                                    <tbody>\n                                    <tr *ngFor=\"let param of params\">\n                                        <td>{{param.key}}</td>\n                                        <td>\n                                            <inline-edit [(ngModel)]=\"param.value\"\n                                                         [ngModelOptions]=\"{standalone: true}\"\n                                                         (onSave)=\"saveParameter(param)\"\n                                                         [uniqueKey]=\"param.key\">\n                                            </inline-edit>\n                                        </td>\n                                    </tr>\n                                    </tbody>\n                                </table>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n            <div class=\"modal-footer\">\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n                <button\n                        type=\"button\"\n                        class=\"btn btn-primary\"\n                        data-dismiss=\"modal\"\n                        [disabled]=\"readyForSave == false\"\n                        (click)=\"addEntity()\">\n                    Save changes\n                </button>\n            </div>\n        </div>\n    </div>\n</div>\n\n<div class=\"row\">\n  <button\n          class=\"center-block btn btn-primary\"\n          data-toggle=\"modal\"\n          (click)=\"clear()\"\n          [attr.data-target]=\"'#addEntity'\">\n    <i class=\"fa fa-plus\"></i> Add new\n  </button>\n</div>\n"
+module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"addEntity\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Create new entity</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n                <div class=\"input-group\" style=\"margin-bottom: 20px;\">\r\n                    <span class=\"input-group-addon\">Name</span>\r\n                    <input\r\n                            type=\"text\"\r\n                            class=\"form-control\"\r\n                            [tooltip]=\"'Input at least 4 symbols please'\"\r\n                            [(ngModel)]=\"selectedName\">\r\n                </div>\r\n                <div class=\"input-group\" style=\"margin-bottom: 20px;\" *ngIf=\"type == 'resource'\">\r\n                    <span class=\"input-group-addon\">Connection string</span>\r\n                    <input\r\n                            type=\"text\"\r\n                            class=\"form-control\"\r\n                            [tooltip]=\"'Connection string is optional, but in almost all cases should be prefilled'\"\r\n                            [(ngModel)]=\"selectedConnectionString\">\r\n                </div>\r\n                <div class=\"panel-group group-accordeon\" id=\"entityAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"nameSelected()\">\r\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                            <h4 class=\"panel-title\">\r\n                                <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#entityAccordion\" href=\"#collapseType\" aria-expanded=\"true\" aria-controls=\"collapseRequired\">\r\n                                    Select type of new entity\r\n                                </a>\r\n                            </h4>\r\n                        </div>\r\n                        <div id=\"collapseType\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                            <div class=\"panel-body\">\r\n                                    <a *ngFor=\"let entity of availableEntities\"\r\n                                           class=\"grid-item-link pointerElement\"\r\n                                           (click)=\"selectType(entity)\"\r\n                                           [class.active]=\"selectedType == entity\"\r\n                                           [tooltip]=\"entity.description\">\r\n                                        <div [class.activeBundle]=\"entity.isActive\" class=\"grid-item\">\r\n                                                <h5 class=\"name\">{{entity.name}}</h5>\r\n                                                <p class=\"symbol\">{{entity.type}}</p>\r\n                                                <p class=\"weight\">v.{{entity.version}}</p>\r\n                                        </div>\r\n                                    </a>\r\n                                </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"typeSelected()\">\r\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                            <h4 class=\"panel-title\">\r\n                                <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseParameters\" aria-expanded=\"true\" aria-controls=\"collapseOptional\">\r\n                                    Required parameters\r\n                                </a>\r\n                            </h4>\r\n                        </div>\r\n                        <div id=\"collapseParameters\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                            <div class=\"panel-body\">\r\n                                <table class=\"table\">\r\n                                    <thead>\r\n                                    <tr>\r\n                                        <th>Key</th>\r\n                                        <th>Value</th>\r\n                                    </tr>\r\n                                    </thead>\r\n                                    <tbody>\r\n                                    <tr *ngFor=\"let param of params\">\r\n                                        <td>{{param.key}}</td>\r\n                                        <td>\r\n                                            <inline-edit [(ngModel)]=\"param.value\"\r\n                                                         [ngModelOptions]=\"{standalone: true}\"\r\n                                                         (onSave)=\"saveParameter(param)\"\r\n                                                         [uniqueKey]=\"param.key\">\r\n                                            </inline-edit>\r\n                                        </td>\r\n                                    </tr>\r\n                                    </tbody>\r\n                                </table>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                <button\r\n                        type=\"button\"\r\n                        class=\"btn btn-primary\"\r\n                        data-dismiss=\"modal\"\r\n                        [disabled]=\"readyForSave == false\"\r\n                        (click)=\"addEntity()\">\r\n                    Save changes\r\n                </button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n  <button\r\n          class=\"center-block btn btn-primary\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"clear()\"\r\n          [attr.data-target]=\"'#addEntity'\">\r\n    <i class=\"fa fa-plus\"></i> Add new\r\n  </button>\r\n</div>\r\n"
 
 /***/ },
 
@@ -106409,14 +107122,14 @@ module.exports = "<!-- Modal for entity appending -->\n<div class=\"modal fade\"
 /***/ "./src/app/configuration/components/templates/parameters-table.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for parameter appending -->\r\n<div class=\"modal fade\" id=\"addParam\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addParamModalLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addParamModalLabel\">Appending new parameter to {{entity.name}} {{entity.getName()}}</h4>\r\n            </div>\r\n            <div class=\"modal-body\">\r\n                <div class=\"row\">\r\n                    <!-- accordeon element -->\r\n                    <div class=\"col-md-5\">\r\n                        <div class=\"panel-group group-accordeon\" id=\"paramAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                            <div class=\"panel panel-default\" *ngIf=\"containsRequired\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseRequired\" aria-expanded=\"true\" aria-controls=\"collapseRequired\">\r\n                                            Required\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseRequired\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group leftAlign\" *ngFor=\"let descr of entity.paramDescriptors | async | required\">\r\n                                              <span class=\"input-group-addon\">\r\n                                                 <input\r\n                                                         type=\"radio\"\r\n                                                         name=\"optionsRadios1\"\r\n                                                         id=\"optionsRadios1\"\r\n                                                         [value]=\"descr\"\r\n                                                         [checked]=\"selectedParam == descr\"\r\n                                                         [(ngModel)]=\"selectedParam\">\r\n                                              </span>\r\n                                             <input type=\"text\" class=\"form-control\" value=\"{{descr.name}}\">\r\n                                             <span class=\"input-group-addon\"  *ngIf=\"entity.contains(descr.name)\">\r\n                                                  <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                             </span>\r\n                                        </div><!-- /input-group -->\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"panel panel-default\" *ngIf=\"containsOptional\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseOptional\" aria-expanded=\"false\" aria-controls=\"collapseOptional\">\r\n                                            Optional\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseOptional\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group leftAlign\" *ngFor=\"let descr of entity.paramDescriptors | async | optional\">\r\n                                              <span class=\"input-group-addon\">\r\n                                                  <input\r\n                                                          type=\"radio\"\r\n                                                          name=\"optionsRadios2\"\r\n                                                          id=\"optionsRadios2\"\r\n                                                          [value]=\"descr\"\r\n                                                          [checked]=\"selectedParam == descr\"\r\n                                                          [(ngModel)]=\"selectedParam\">\r\n                                              </span>\r\n                                             <input type=\"text\" class=\"form-control\" value=\"{{descr.name}}\">\r\n                                             <span class=\"input-group-addon\"  *ngIf=\"entity.contains(descr.name)\">\r\n                                                  <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                             </span>\r\n                                        </div><!-- /input-group -->\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"panel panel-default\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a class=\"collapsed\"\r\n                                           role=\"button\"\r\n                                           data-toggle=\"collapse\"\r\n                                           data-parent=\"#paramAccordion\"\r\n                                           href=\"#collapseCustom\"\r\n                                           aria-expanded=\"false\"\r\n                                           aria-controls=\"collapseCustom\"\r\n                                           (click)=\"flushSelected()\">\r\n                                            Custom\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseCustom\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group\">\r\n                                            <span class=\"input-group-addon\">Name:</span>\r\n                                            <input type=\"text\" class=\"form-control\" #newParam >\r\n                                        </div>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <!-- description window -->\r\n                    <div class=\"col-md-7\">\r\n                        <!-- if we have selected param from required/optional section -->\r\n                        <div class=\"panel panel-default leftAlign\" *ngIf=\"selectedParam != undefined\">\r\n                            <div class=\"panel-heading\">\r\n                                <h3 class=\"panel-title\">Details of parameter {{selectedParam.name}}</h3>\r\n                            </div>\r\n                            <div class=\"panel-body\">\r\n                                <!-- List group -->\r\n                                <ul class=\"list-group\">\r\n                                    <li class=\"list-group-item list-group-item-warning\" *ngIf=\"selectedParam.required != ''\">Required: {{selectedParam.required}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.pattern != ''\">Pattern: {{selectedParam.pattern}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.defaultValue != ''\">Default value: {{selectedParam.defaultValue}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.association != ''\">Associated parameters: {{selectedParam.association}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.exclucion != ''\">Exclucion parameters: {{selectedParam.exclucion}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.extension != ''\">Extension parameters: {{selectedParam.extension}}</li>\r\n                                    <div class=\"input-group\">\r\n                                        <span class=\"input-group-addon\">Value:</span>\r\n                                        <input\r\n                                               type=\"text\"\r\n                                               class=\"form-control\"\r\n                                               #listParamValue\r\n                                               value=\"{{selectedParam.defaultValue != '' ? selectedParam.defaultValue : stabValue}}\">\r\n                                    </div>\r\n                                </ul>\r\n                            </div>\r\n                        </div>\r\n                        <!-- in case user wants to append custom parameter -->\r\n                        <div class=\"panel panel-default leftAlign\" *ngIf=\"selectedParam == undefined\">\r\n                            <div class=\"panel-heading\">\r\n                                <h3 class=\"panel-title\">Custom parameter appending</h3>\r\n                            </div>\r\n                            <div class=\"panel-body\">\r\n                                <div class=\"input-group\">\r\n                                    <span class=\"input-group-addon\">Value:</span>\r\n                                    <input\r\n                                            type=\"text\"\r\n                                            class=\"form-control\"\r\n                                            #customParamValue\r\n                                            value=\"{{stabValue}}\">\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n                <div class=\"wall well-sm leftAlign\">\r\n                    *icon <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span> means configuration already contains this parameter\r\n                </div>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"addNewParameter()\">Save changes</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        <th>#</th>\r\n        <th>Key</th>\r\n        <th>Value</th>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr *ngFor=\"let param of entity.parameters\">\r\n        <td>\r\n            <span\r\n                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                (click)=\"checkAndRemoveParameter(param)\"\r\n                aria-hidden=\"true\">\r\n            </span>\r\n        </td>\r\n        <td>{{param.key}}</td>\r\n        <td>\r\n            <inline-edit [(ngModel)]=\"param.value\"\r\n                         [ngModelOptions]=\"{standalone: true}\"\r\n                         (onSave)=\"saveParameter(param)\"\r\n                         [uniqueKey]=\"param.key\">\r\n            </inline-edit>\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n        <td></td>\r\n        <td></td>\r\n        <td align=\"right\">\r\n            <button\r\n                    type=\"button\"\r\n                    class=\"btn btn-primary btn-sm\"\r\n                    data-toggle=\"modal\"\r\n                    data-target=\"#addParam\"\r\n                    (click)=\"clear()\">\r\n                Add new\r\n            </button>\r\n        </td>\r\n    </tr>\r\n    </tbody>\r\n</table>"
+module.exports = "<!-- Modal for parameter appending -->\r\n<div class=\"modal fade\" id=\"addParam\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addParamModalLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addParamModalLabel\">Appending new parameter to {{entity.name}} {{entity.getName()}}</h4>\r\n            </div>\r\n            <div class=\"modal-body\">\r\n                <div class=\"row\">\r\n                    <!-- accordeon element -->\r\n                    <div class=\"col-md-5\">\r\n                        <div class=\"panel-group group-accordeon\" id=\"paramAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                            <div class=\"panel panel-default\" *ngIf=\"containsRequired\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseRequired\" [attr.aria-expanded]=\"containsRequired\" aria-controls=\"collapseRequired\">\r\n                                            Required\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseRequired\" class=\"panel-collapse collapse\" [class.in]=\"containsRequired\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group leftAlign\" *ngFor=\"let descr of paramDescriptors | required\">\r\n                                              <span class=\"input-group-addon\">\r\n                                                 <input\r\n                                                         type=\"radio\"\r\n                                                         name=\"optionsRadios1\"\r\n                                                         id=\"optionsRadios1\"\r\n                                                         [value]=\"descr\"\r\n                                                         [checked]=\"selectedParam == descr\"\r\n                                                         [(ngModel)]=\"selectedParam\">\r\n                                              </span>\r\n                                             <input type=\"text\" class=\"form-control\" value=\"{{descr.name}}\">\r\n                                             <span class=\"input-group-addon\"  *ngIf=\"entity.contains(descr.name)\">\r\n                                                  <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                             </span>\r\n                                        </div><!-- /input-group -->\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"panel panel-default\" *ngIf=\"containsOptional\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseOptional\" [attr.aria-expanded]=\"!containsRequired && containsOptional\" aria-controls=\"collapseOptional\">\r\n                                            Optional\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseOptional\" class=\"panel-collapse collapse\" [class.in]=\"!containsRequired && containsOptional\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group leftAlign\" *ngFor=\"let descr of paramDescriptors | optional\">\r\n                                              <span class=\"input-group-addon\">\r\n                                                  <input\r\n                                                          type=\"radio\"\r\n                                                          name=\"optionsRadios2\"\r\n                                                          id=\"optionsRadios2\"\r\n                                                          [value]=\"descr\"\r\n                                                          [checked]=\"selectedParam == descr\"\r\n                                                          [(ngModel)]=\"selectedParam\">\r\n                                              </span>\r\n                                             <input type=\"text\" class=\"form-control\" value=\"{{descr.name}}\">\r\n                                             <span class=\"input-group-addon\"  *ngIf=\"entity.contains(descr.name)\">\r\n                                                  <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                             </span>\r\n                                        </div><!-- /input-group -->\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                            <div class=\"panel panel-default\">\r\n                                <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                                    <h4 class=\"panel-title\">\r\n                                        <a class=\"collapsed\"\r\n                                           role=\"button\"\r\n                                           data-toggle=\"collapse\"\r\n                                           data-parent=\"#paramAccordion\"\r\n                                           href=\"#collapseCustom\"\r\n                                           [attr.aria-expanded]=\"!containsRequired && !containsOptional\"\r\n                                           aria-controls=\"collapseCustom\"\r\n                                           (click)=\"flushSelected()\">\r\n                                            Custom parameter key\r\n                                        </a>\r\n                                    </h4>\r\n                                </div>\r\n                                <div id=\"collapseCustom\" class=\"panel-collapse collapse\" [class.in]=\"!containsRequired && !containsOptional\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                                    <div class=\"panel-body\">\r\n                                        <div class=\"input-group\">\r\n                                            <span class=\"input-group-addon\">Name:</span>\r\n                                            <input type=\"text\" class=\"form-control\" #newParam >\r\n                                        </div>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                    <!-- description window -->\r\n                    <div class=\"col-md-7\">\r\n                        <!-- if we have selected param from required/optional section -->\r\n                        <div class=\"panel panel-default leftAlign\" *ngIf=\"selectedParam != undefined\">\r\n                            <div class=\"panel-heading\">\r\n                                <h3 class=\"panel-title\">Details of parameter {{selectedParam.name}}</h3>\r\n                            </div>\r\n                            <div class=\"panel-body\">\r\n                                <!-- List group -->\r\n                                <ul class=\"list-group\">\r\n                                    <li class=\"list-group-item list-group-item-warning\" *ngIf=\"selectedParam.required != ''\">Required: {{selectedParam.required}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.pattern != ''\">Pattern: {{selectedParam.pattern}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.defaultValue != ''\">Default value: {{selectedParam.defaultValue}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.association != ''\">Associated parameters: {{selectedParam.association}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.exclucion != ''\">Exclucion parameters: {{selectedParam.exclucion}}</li>\r\n                                    <li class=\"list-group-item\" *ngIf=\"selectedParam.extension != ''\">Extension parameters: {{selectedParam.extension}}</li>\r\n                                    <div class=\"input-group\">\r\n                                        <span class=\"input-group-addon\">Value:</span>\r\n                                        <input\r\n                                               type=\"text\"\r\n                                               class=\"form-control\"\r\n                                               #listParamValue\r\n                                               value=\"{{selectedParam.defaultValue != '' ? selectedParam.defaultValue : stabValue}}\">\r\n                                    </div>\r\n                                </ul>\r\n                            </div>\r\n                        </div>\r\n                        <!-- in case user wants to append custom parameter -->\r\n                        <div class=\"panel panel-default leftAlign\" *ngIf=\"selectedParam == undefined\">\r\n                            <div class=\"panel-heading\">\r\n                                <h3 class=\"panel-title\">Custom parameter value</h3>\r\n                            </div>\r\n                            <div class=\"panel-body\">\r\n                                <div class=\"input-group\">\r\n                                    <span class=\"input-group-addon\">Value:</span>\r\n                                    <input\r\n                                            type=\"text\"\r\n                                            class=\"form-control\"\r\n                                            #customParamValue\r\n                                            value=\"{{stabValue}}\">\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n                <div class=\"wall well-sm leftAlign\">\r\n                    *icon <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span> means configuration already contains this parameter\r\n                </div>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                <button type=\"button\" class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"addNewParameter()\">Save changes</button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<table class=\"table\" *ngIf=\"entity.parameters && entity.parameters.length > 0\">\r\n    <thead>\r\n    <tr>\r\n        <th>#</th>\r\n        <th>Key</th>\r\n        <th>Value</th>\r\n        <th *ngIf=\"isOverriddable()\">Override</th>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr *ngFor=\"let param of entity.parameters\">\r\n        <td>\r\n            <span\r\n                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                (click)=\"checkAndRemoveParameter(param)\"\r\n                aria-hidden=\"true\">\r\n            </span>\r\n        </td>\r\n        <td>{{param.key}}</td>\r\n        <td>\r\n            <inline-edit [(ngModel)]=\"param.value\"\r\n                         [ngModelOptions]=\"{standalone: true}\"\r\n                         (onSave)=\"saveParameter(param)\"\r\n                         [uniqueKey]=\"param.key\">\r\n            </inline-edit>\r\n        </td>\r\n        <td *ngIf=\"isOverriddable()\">\r\n            <ui-switch\r\n                    [checked]=\"isOverridden(param.key)\"\r\n                    (change)=\"triggerOverride($event, param.key)\"\r\n                    [size]=\"'small'\">\r\n            </ui-switch>\r\n        </td>\r\n    </tr>\r\n    </tbody>\r\n</table>\r\n\r\n<button\r\n        type=\"button\"\r\n        style=\"float: right;\"\r\n        class=\"btn btn-primary btn-sm\"\r\n        (click)=\"clear()\">\r\n    Add new\r\n</button>"
 
 /***/ },
 
 /***/ "./src/app/configuration/components/templates/resource-subentities-table.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for entity appending -->\n<div class=\"modal fade\" id=\"editEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"editEntityLabel\">\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title leftAlign\" id=\"editEntityLabel\">Edit {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\n            </div>\n            <br/>\n            <div class=\"modal-body\">\n              <div id=\"smartwizard{{entityType}}\" style=\"height: 95%\">\n                <ul>\n                      <li>\n                        <a [attr.href]=\"'#name'\">\n                          Name<br />\n                          <small>Name of {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#additional'\">\n                          Additional<br />\n                          <small>Additional {{activeEntity.getName()}}-related members</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#parameters'\">\n                          Parameters<br />\n                          <small>Parameters for {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                      <li>\n                        <a [attr.href]=\"'#save'\">\n                          Save<br />\n                          <small>Saving the {{activeEntity.getName()}}</small>\n                        </a>\n                      </li>\n                </ul>\n\n                <div style=\"height:100%\">\n                  <div id=\"name\" class=\"row\" style=\"margin-top: 100px;\">\n                    <div class=\"item form-group\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"nameInput\"\n                        style=\"margin-top: 7px;\">\n                          Name <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"nameInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'At least 4 symbols'\"\n                          placeholder=\"input the name of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.name\">\n                      </div>\n                    </div>\n                  </div>\n                  <div id=\"additional\" class=\"row\" style=\"margin-top: 100px;\">\n                    <!-- input for operation -->\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'operation'\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"invtoInput\"\n                        style=\"margin-top: 7px;\">\n                          Invocation timeout <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"invtoInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'Input number (0 for infinite)'\"\n                          placeholder=\"input the invocation timeout of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.invokto\">\n                      </div>\n                    </div>\n\n                    <!-- input for attribute -->\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'attribute'\">\n                      <label\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                        for=\"rwtoInput\"\n                        style=\"margin-top: 7px;\">\n                          Read/write timeout <span class=\"required\">*</span>\n                      </label>\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                        <input\n                          id=\"rwtoInput\"\n                          class=\"form-control col-md-7 col-xs-12\"\n                          [tooltip]=\"'Input number (0 for infinite)'\"\n                          placeholder=\"input the read/write timeout of {{activeEntity.getName()}}\"\n                          [(ngModel)]=\"activeEntity.rwto\">\n                      </div>\n                    </div>\n                  </div>\n\n\n                  <!-- PARAMETERS -->\n                  <div id=\"parameters\" class=\"row\" style=\"margin-top: 10px;\">\n                    <div class=\"col-md-12\" id=\"tableParamsRow{{entityType}}\">\n                       <table class=\"table\">\n                          <thead>\n                          <tr>\n                            <th>#</th>\n                            <th>Key</th>\n                            <th>Value</th>\n                          </tr>\n                          </thead>\n                          <tbody>\n                          <tr *ngFor=\"let param of activeEntity.parameters\">\n                            <td>\n                              <span\n                                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\n                                (click)=\"checkAndRemoveParameter(param)\"\n                                aria-hidden=\"true\">\n                              </span>\n                            </td>\n                            <td>{{param.key}}</td>\n                            <td>\n                              <inline-edit [(ngModel)]=\"param.value\"\n                                           [ngModelOptions]=\"{standalone: true}\"\n                                           (onSave)=\"saveParameter(param)\"\n                                           [uniqueKey]=\"param.key\">\n                              </inline-edit>\n                            </td>\n                          </tr>\n                          <tr>\n                            <td></td>\n                            <td></td>\n                            <td align=\"right\">\n                              <button\n                                type=\"button\"\n                                class=\"btn btn-primary btn-sm\"\n                                (click)=\"addNewParameter()\">\n                                Add new <i class=\"fa fa-caret-down\" aria-hidden=\"true\"></i>\n                              </button>\n                            </td>\n                          </tr>\n                          </tbody>\n                      </table>\n                    </div>\n\n                    <div class=\"col-md-12\" style=\"display: none; margin-top: 15px\" id=\"newParamRow{{entityType}}\">\n                      <div class=\"row\">\n                        <div class=\"col-md-5 col-md-offset-3\" *ngIf=\"currentNewParam\">\n                          <select\n                                  style=\"width: 350px\"\n                                  id=\"newParamSelect{{entityType}}\"\n                                  [(ngModel)]=\"currentNewParam.key\"\n                                  class=\"select2_group form-control\">\n                            <optgroup label=\"Custom parameter\">\n                              <option value=\"custom\">Append your own param</option>\n                            </optgroup>\n                            <optgroup label=\"Suggested parameter\" *ngIf=\"activeEntity.paramDescriptors | async\">\n                              <option\n                                *ngFor=\"let descriptor of activeEntity.paramDescriptors | async\"\n                                [attr.required]=\"descriptor.required\"\n                                [attr.pattern]=\"descriptor.pattern\"\n                                [attr.defaultValue]=\"descriptor.defaultValue\"\n                                [value]=\"descriptor.name\">\n                                {{descriptor.name}}\n                              </option>\n                            </optgroup>\n                          </select>\n                        </div>\n                      </div>\n                      <div class=\"row\" style=\"margin: 10px 0;\">\n                        <div class=\"col-md-4 col-md-offset-4\">\n                          <div class=\"form-group row\" *ngIf=\"currentNewParam.key == 'custom'\">\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Parameter name</label>\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the name\" [(ngModel)]=\"customKey\">\n                            </div>\n                          </div>\n                          <div class=\"form-group row\">\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Value</label>\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the value\" [(ngModel)]=\"currentNewParam.value\">\n                            </div>\n                          </div>\n                        </div>\n                      </div>\n                      <div class=\"row\" style=\"margin-top:15px;\">\n                        <div class=\"col-md-4 col-md-offset-4\">\n                          <button class=\"btn\" (click)=\"cancelAppendingParam()\">\n                             Cancel\n                          </button>\n                          <button class=\"btn btn-primary\"  (click)=\"appendParameter()\" style=\"margin-left:10px\">\n                            Append parameter\n                          </button>\n                        </div>\n                      </div>\n                    </div>\n\n                  </div>\n                  <!-- PARAMETERS -->\n\n\n                  <div id=\"save\" class=\"row\" style=\"margin-top: 20px;\">\n                    <pre class=\"line-numbers\"><code class=\"language-javascript\" [innerHTML]=\"htmlViewForEntity()\"></code></pre>\n                    <button\n                      type=\"button\"\n                      class=\"btn btn-primary\"\n                      (click)=\"saveEntity()\">\n                      Save changes\n                    </button>\n                  </div>\n                </div>\n              </div>\n            </div>\n           <!-- <div class=\"modal-footer\">\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\n            </div>-->\n        </div>\n    </div>\n</div>\n\n\n<div class=\"modal fade\" id=\"addExistentEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"discoveryLabel\" *ngIf=\"discoveredEntities != undefined && discoveredEntities.length > 0\">\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\n        <div class=\"modal-content\">\n            <div class=\"modal-header\">\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\n                <h4 class=\"modal-title leftAlign\" id=\"discoveryLabel\">Automatic discovered {{entityType}}s for  {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\n            </div>\n            <br/>\n            <div class=\"modal-body\">\n\n                <div id=\"discoveredEntityId\" class=\"row\" *ngIf=\"selectedEntity != undefined\">\n                    <div class=\"item form-group\">\n                        <label\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\n                                for=\"discoveredEntityId\"\n                                style=\"margin-top: 7px;\">\n                            Name <span class=\"required\">*</span>\n                        </label>\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\n                            <input\n                                    id=\"discoveredEntityIdInput\"\n                                    class=\"form-control col-md-7 col-xs-12\"\n                                    [tooltip]=\"'At least 4 symbols'\"\n                                    placeholder=\"input the name of new entity\"\n                                    [(ngModel)]=\"selectedEntityName\">\n                        </div>\n                    </div>\n                </div>\n                <div class=\"table-wrapper row\">\n                    <table class=\"table table-hover table-bordered\" *ngIf=\"entityType == 'attribute'\">\n                        <thead class=\"thead-inverse\">\n                        <tr>\n                            <th>Attribute name</th>\n                            <th>Already set</th>\n                            <th>Read/write timeout</th>\n                            <th>Parameters</th>\n                        </tr>\n                        </thead>\n                        <tbody>\n                        <tr *ngFor=\"let attribute of discoveredEntities\" class=\"clickableTr\" [class.activeTr]=\"((selectedEntity != undefined) && (selectedEntity.name == attribute.name))\" (click)=\"setActiveEntity(attribute)\">\n                            <th scope=\"row\">{{attribute.name}}</th>\n                            <td>\n                                    <span class=\"discovery-set\"  *ngIf=\"isAttributeSet(attribute.name)\">\n                                          <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\n                                     </span>\n                            </td>\n                            <td>{{attribute.rwto}}</td>\n                            <td [innerHTML]=\"formatParams(attribute)\"></td>\n                        </tr>\n                        </tbody>\n                    </table>\n                </div>\n\n                <button\n                        type=\"button\"\n                        data-toggle=\"modal\"\n                        (click)=\"cancelEntitySelection()\"\n                        [disabled]=\"selectedEntity == undefined\"\n                        class=\"btn btn-primary\">\n                    Cancel\n                </button>\n                <button\n                        type=\"button\"\n                        data-toggle=\"modal\"\n                        [disabled]=\"((selectedEntity != undefined) && isAttributeSet(selectedEntity.name))\"\n                        (click)=\"addSelectedEntityToResource()\"\n                        class=\"btn btn-default\">\n                    Add\n                </button>\n            </div>\n        </div>\n    </div>\n</div>\n\n<table class=\"table\">\n    <thead>\n    <tr>\n        <th>Name</th>\n        <th>Actions</th>\n    </tr>\n    </thead>\n    <tbody>\n    <tr *ngFor=\"let entity of entities\">\n\n        <td>{{entity.name}}</td>\n        <td>\n            <div class=\"btn-group\" role=\"group\">\n                <button\n                        type=\"button\"\n                        data-toggle=\"modal\"\n                        (click)=\"setEntity(entity)\"\n                        [attr.data-target]=\"'#editEntity' + entityType\"\n                        class=\"btn btn-default btn-xs\">\n                    Edit\n                </button>\n                <button type=\"button\" class=\"btn btn-default btn-xs\" (click)=\"remove(entity)\">Remove</button>\n            </div>\n        </td>\n    </tr>\n    <tr>\n      <td></td>\n      <td>\n        <button\n          type=\"button\"\n          data-toggle=\"modal\"\n          (click)=\"addNewEntity()\"\n          class=\"btn btn-default btn-xs\">\n               Add new\n        </button>\n\n        <button\n          *ngIf=\"hasAvailableEntities()\"\n          type=\"button\"\n          data-toggle=\"modal\"\n          (click)=\"addEntityFromList()\"\n          class=\"btn btn-default btn-xs\">\n             Add from the list\n        </button>\n      </td>\n    </tr>\n    </tbody>\n</table>\n"
+module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"editEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"editEntityLabel\">\r\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"editEntityLabel\">Edit {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizard{{entityType}}\" style=\"height: 95%\">\r\n                <ul>\r\n                      <li>\r\n                        <a [attr.href]=\"'#name'\">\r\n                          Name<br />\r\n                          <small>Name of {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#additional'\">\r\n                          Additional<br />\r\n                          <small>Additional {{activeEntity.getName()}}-related members</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#parameters'\">\r\n                          Parameters<br />\r\n                          <small>Parameters for {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#save'\">\r\n                          Save<br />\r\n                          <small>Saving the {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n                  <div id=\"name\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"nameInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Name <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"nameInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          [tooltip]=\"'At least 4 symbols'\"\r\n                          placeholder=\"input the name of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.name\">\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                  <div id=\"additional\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <!-- input for operation -->\r\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'operation'\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"invtoInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Invocation timeout (ms)<span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"invtoInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          placeholder=\"input the invocation timeout of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.invokto\">\r\n                      </div>\r\n                    </div>\r\n\r\n                      <div class=\"item form-group\" *ngIf=\"isResourceType()\">\r\n                          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">\r\n                              Override group entity\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activeEntity.override\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                          </div>\r\n                      </div>\r\n\r\n                    <!-- input for attribute -->\r\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'attribute'\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"rwtoInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Read/write timeout (ms) <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"rwtoInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          placeholder=\"input the read/write timeout of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.rwto\">\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n\r\n                  <!-- PARAMETERS -->\r\n                  <div id=\"parameters\" class=\"row\" style=\"margin-top: 10px;\">\r\n                    <div class=\"col-md-12\" id=\"tableParamsRow{{entityType}}\">\r\n                       <table class=\"table\">\r\n                          <thead>\r\n                          <tr>\r\n                            <th>#</th>\r\n                            <th>Key</th>\r\n                            <th>Value</th>\r\n                          </tr>\r\n                          </thead>\r\n                          <tbody>\r\n                          <tr *ngFor=\"let param of activeEntity.parameters\">\r\n                            <td>\r\n                              <span\r\n                                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                (click)=\"checkAndRemoveParameter(param)\"\r\n                                aria-hidden=\"true\">\r\n                              </span>\r\n                            </td>\r\n                            <td>{{param.key}}</td>\r\n                            <td>\r\n                              <inline-edit [(ngModel)]=\"param.value\"\r\n                                           [ngModelOptions]=\"{standalone: true}\"\r\n                                           (onSave)=\"saveParameter(param)\"\r\n                                           [uniqueKey]=\"param.key\">\r\n                              </inline-edit>\r\n                            </td>\r\n                          </tr>\r\n                          <tr>\r\n                            <td></td>\r\n                            <td></td>\r\n                            <td align=\"right\">\r\n                              <button\r\n                                type=\"button\"\r\n                                class=\"btn btn-primary btn-sm\"\r\n                                (click)=\"addNewParameter()\">\r\n                                Add new <i class=\"fa fa-caret-down\" aria-hidden=\"true\"></i>\r\n                              </button>\r\n                            </td>\r\n                          </tr>\r\n                          </tbody>\r\n                      </table>\r\n                    </div>\r\n\r\n                    <div class=\"col-md-12\" style=\"display: none; margin-top: 15px\" id=\"newParamRow{{entityType}}\">\r\n                      <div class=\"row\">\r\n                        <div class=\"col-md-5 col-md-offset-3\" *ngIf=\"currentNewParam\">\r\n                          <select\r\n                                  style=\"width: 350px\"\r\n                                  id=\"newParamSelect{{entityType}}\"\r\n                                  [(ngModel)]=\"currentNewParam.key\"\r\n                                  class=\"select2_group form-control\">\r\n                            <optgroup label=\"Custom parameter\">\r\n                              <option value=\"custom\">Append your own param</option>\r\n                            </optgroup>\r\n                            <optgroup label=\"Suggested parameter\" *ngIf=\"activeEntity.paramDescriptors | async\">\r\n                              <option\r\n                                *ngFor=\"let descriptor of activeEntity.paramDescriptors | async\"\r\n                                [attr.required]=\"descriptor.required\"\r\n                                [attr.pattern]=\"descriptor.pattern\"\r\n                                [attr.defaultValue]=\"descriptor.defaultValue\"\r\n                                [value]=\"descriptor.name\">\r\n                                {{descriptor.name}}\r\n                              </option>\r\n                            </optgroup>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"row\" style=\"margin: 10px 0;\">\r\n                        <div class=\"col-md-4 col-md-offset-4\">\r\n                          <div class=\"form-group row\" *ngIf=\"currentNewParam.key == 'custom'\">\r\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Parameter name</label>\r\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the name\" [(ngModel)]=\"customKey\">\r\n                            </div>\r\n                          </div>\r\n                          <div class=\"form-group row\">\r\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Value</label>\r\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the value\" [(ngModel)]=\"currentNewParam.value\">\r\n                            </div>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"row\" style=\"margin-top:15px;\">\r\n                        <div class=\"col-md-4 col-md-offset-4\">\r\n                          <button class=\"btn\" (click)=\"cancelAppendingParam()\">\r\n                             Cancel\r\n                          </button>\r\n                          <button class=\"btn btn-primary\"  (click)=\"appendParameter()\" style=\"margin-left:10px\">\r\n                            Append parameter\r\n                          </button>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                  </div>\r\n                  <!-- PARAMETERS -->\r\n\r\n\r\n                  <div id=\"save\" class=\"row\" style=\"margin-top: 20px;\">\r\n                    <pre class=\"line-numbers\"><code class=\"language-javascript\" [innerHTML]=\"htmlViewForEntity()\"></code></pre>\r\n                    <button\r\n                      type=\"button\"\r\n                      class=\"btn btn-primary\"\r\n                      (click)=\"saveEntity()\">\r\n                      Save changes\r\n                    </button>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n           <!-- <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n            </div>-->\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n\r\n<div class=\"modal fade\" id=\"addExistentEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"discoveryLabel\" *ngIf=\"discoveredEntities != undefined && discoveredEntities.length > 0\">\r\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"discoveryLabel\">Automatic discovered {{entityType}}s for  {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n\r\n                <div id=\"discoveredEntityId\" class=\"row\" *ngIf=\"selectedEntity != undefined\">\r\n                    <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                for=\"discoveredEntityId\"\r\n                                style=\"margin-top: 7px;\">\r\n                            Name <span class=\"required\">*</span>\r\n                        </label>\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input\r\n                                    id=\"discoveredEntityIdInput\"\r\n                                    class=\"form-control col-md-7 col-xs-12\"\r\n                                    [tooltip]=\"'At least 4 symbols'\"\r\n                                    placeholder=\"input the name of new entity\"\r\n                                    [(ngModel)]=\"selectedEntityName\">\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n                <div class=\"table-wrapper row\">\r\n                    <table class=\"table table-hover table-bordered\" *ngIf=\"entityType == 'attribute'\">\r\n                        <thead class=\"thead-inverse\">\r\n                        <tr>\r\n                            <th>Attribute name</th>\r\n                            <th>Already set</th>\r\n                            <th>Read/write timeout</th>\r\n                            <th>Parameters</th>\r\n                        </tr>\r\n                        </thead>\r\n                        <tbody>\r\n                        <tr *ngFor=\"let attribute of discoveredEntities\" class=\"clickableTr\" [class.activeTr]=\"((selectedEntity != undefined) && (selectedEntity.name == attribute.name))\" (click)=\"setActiveEntity(attribute)\">\r\n                            <th scope=\"row\">{{attribute.name}}</th>\r\n                            <td>\r\n                                    <span class=\"discovery-set\"  *ngIf=\"isAttributeSet(attribute.name)\">\r\n                                          <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                     </span>\r\n                            </td>\r\n                            <td>{{attribute.rwto}}</td>\r\n                            <td [innerHTML]=\"formatParams(attribute)\"></td>\r\n                        </tr>\r\n                        </tbody>\r\n                    </table>\r\n                </div>\r\n                <button\r\n                        type=\"button\"\r\n                        (click)=\"cancelEntitySelection()\"\r\n                        [disabled]=\"selectedEntity == undefined\"\r\n                        class=\"btn btn-primary\">\r\n                    Cancel\r\n                </button>\r\n                <button\r\n                        type=\"button\"\r\n                        style=\"float:right;\"\r\n                        [disabled]=\"((selectedEntity != undefined) && isAttributeSet(selectedEntity.name))\"\r\n                        (click)=\"addSelectedEntityToResource()\"\r\n                        class=\"btn btn-default\">\r\n                    Add\r\n                </button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        <th>Name</th>\r\n        <th>Actions</th>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr *ngFor=\"let entity of entities\">\r\n\r\n        <td>{{entity.name}}</td>\r\n        <td>\r\n            <div class=\"btn-group\" role=\"group\">\r\n                <button\r\n                        type=\"button\"\r\n                        (click)=\"setEntity(entity)\"\r\n                        class=\"btn btn-default btn-xs\">\r\n                    Edit\r\n                </button>\r\n                <button type=\"button\" class=\"btn btn-default btn-xs\" (click)=\"remove(entity)\">Remove</button>\r\n            </div>\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n      <td></td>\r\n      <td>\r\n        <button\r\n          type=\"button\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"addNewEntity()\"\r\n          class=\"btn btn-default btn-xs\">\r\n               Add new\r\n        </button>\r\n\r\n        <button\r\n          *ngIf=\"isResourceType()\"\r\n          type=\"button\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"addEntityFromList()\"\r\n          class=\"btn btn-default btn-xs\">\r\n             Add from the list\r\n        </button>\r\n      </td>\r\n    </tr>\r\n    </tbody>\r\n</table>\r\n"
 
 /***/ },
 
@@ -106498,8 +107211,8 @@ var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model
 var moment = __webpack_require__("./node_modules/moment/moment.js");
 var Attribute = (function (_super) {
     __extends(Attribute, _super);
-    function Attribute(http, resourceType, name, rwto, jsonObject) {
-        _super.call(this, http, name, resourceType, jsonObject);
+    function Attribute(http, resourceType, name, rwto, override, jsonObject) {
+        _super.call(this, http, name, resourceType, override, jsonObject);
         this.rwto = 0; // read/write timeout
         // if we pass there number - we should recognize it as a number (ms)
         // otherwise - we parse it as a duration ISO8601
@@ -106511,6 +107224,7 @@ var Attribute = (function (_super) {
         // see https://momentjs.com/docs/#/durations/as-json/
         //console.log("Here! ", this.rwto, moment.duration({ milliseconds: this.rwto}));
         resultValue["readWriteTimeout"] = moment.duration({ milliseconds: this.rwto }).toISOString();
+        resultValue["override"] = this.override;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     };
@@ -106676,20 +107390,25 @@ var EntityWithSub = (function (_super) {
             var attrs = parameters["attributes"];
             for (var key in attrs) {
                 var rwto = 0;
-                if (key == "CPU") {
-                    console.log(JSON.stringify(attrs[key]), attrs[key]["readWriteTimeout"]);
-                }
+                var override = false;
                 if (attrs[key]["readWriteTimeout"] != undefined) {
                     rwto = attrs[key]["readWriteTimeout"];
                 }
-                this.attributes.push(new model_attribute_1.Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
+                if (attrs[key]["override"] != undefined) {
+                    override = attrs[key]["override"];
+                }
+                this.attributes.push(new model_attribute_1.Attribute(http, this.type, key, rwto, override, attrs[key]["parameters"]));
             }
         }
         // filling events
         if (parameters["events"] != undefined) {
             var events = parameters["events"];
             for (var key in events) {
-                this.events.push(new model_event_1.Event(http, this.type, key, events[key]["parameters"]));
+                var override = false;
+                if (events[key]["override"] != undefined) {
+                    override = events[key]["override"];
+                }
+                this.events.push(new model_event_1.Event(http, this.type, key, override, events[key]["parameters"]));
             }
         }
         // filling operations
@@ -106697,10 +107416,14 @@ var EntityWithSub = (function (_super) {
             var operations = parameters["operations"];
             for (var key in operations) {
                 var rwto = 0;
+                var override = false;
                 if (operations[key]["invocationTimeout"] != undefined) {
                     rwto = operations[key]["invocationTimeout"];
                 }
-                this.operations.push(new model_operation_1.Operation(http, this.type, key, rwto, operations[key]["parameters"]));
+                if (operations[key]["override"] != undefined) {
+                    override = operations[key]["override"];
+                }
+                this.operations.push(new model_operation_1.Operation(http, this.type, key, rwto, override, operations[key]["parameters"]));
             }
         }
     }
@@ -106719,12 +107442,13 @@ exports.EntityWithSub = EntityWithSub;
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
 var Event = (function (_super) {
     __extends(Event, _super);
-    function Event(http, resourceType, name, jsonObject) {
-        _super.call(this, http, name, resourceType, jsonObject);
+    function Event(http, resourceType, name, override, jsonObject) {
+        _super.call(this, http, name, resourceType, override, jsonObject);
     }
     Event.prototype.stringifyFullObject = function () {
         var resultValue = {};
         resultValue["parameters"] = this.stringifyParameters();
+        resultValue["override"] = this.override;
         return JSON.stringify(resultValue, null, 4);
     };
     return Event;
@@ -106805,8 +107529,8 @@ var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model
 var moment = __webpack_require__("./node_modules/moment/moment.js");
 var Operation = (function (_super) {
     __extends(Operation, _super);
-    function Operation(http, resourceType, name, invokto, jsonObject) {
-        _super.call(this, http, name, resourceType, jsonObject);
+    function Operation(http, resourceType, name, invokto, override, jsonObject) {
+        _super.call(this, http, name, resourceType, override, jsonObject);
         this.invokto = 0; // invocation timeout
         // if we pass there number - we should recognize it as a number (ms)
         // otherwise - we parse it as a duration ISO8601
@@ -106815,6 +107539,7 @@ var Operation = (function (_super) {
     Operation.prototype.stringifyFullObject = function () {
         var resultValue = {};
         resultValue["invocationTimeout"] = moment.duration({ milliseconds: this.invokto }).toISOString();
+        resultValue["override"] = this.override;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
     };
@@ -106882,6 +107607,7 @@ var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.en
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
 var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var Resource = (function (_super) {
     __extends(Resource, _super);
     function Resource(http, name, parameters) {
@@ -106890,7 +107616,11 @@ var Resource = (function (_super) {
         this.smartMode = false;
         this.groupName = "";
         this.threadPool = "";
+        this.overriddenProperties = [];
         this.http = http;
+        if (!util_1.isNullOrUndefined(parameters["overriddenProperties"]) && parameters["overriddenProperties"].length > 0) {
+            this.overriddenProperties = parameters["overriddenProperties"];
+        }
         // set right connection string
         this.connectionString = parameters["connectionString"];
         if (this.connectionString == undefined || this.connectionString.length < 4) {
@@ -106930,9 +107660,51 @@ var Resource = (function (_super) {
     Resource.prototype.discovery = function (type) {
         return this.http.getWithErrors(app_restClient_1.REST.RESOURCE_DISCOVERY(this.name, type));
     };
+    Resource.prototype.toggleOverridden = function (value) {
+        var index = this.overriddenProperties.indexOf(value);
+        if (index >= 0) {
+            this.overriddenProperties.splice(index, 1);
+        }
+        else {
+            this.overriddenProperties.push(value);
+        }
+        console.log("Overriddens for resource " + this.name + " are " + this.overriddenProperties);
+    };
     return Resource;
 }(model_entityWithSub_1.EntityWithSub));
 exports.Resource = Resource;
+
+
+/***/ },
+
+/***/ "./src/app/configuration/model/model.resourceGroup.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
+var model_entityWithSub_1 = __webpack_require__("./src/app/configuration/model/model.entityWithSub.ts");
+var ResourceGroup = (function (_super) {
+    __extends(ResourceGroup, _super);
+    function ResourceGroup(http, name, parameters) {
+        _super.call(this, http, name, parameters);
+        this.http = http;
+    }
+    ResourceGroup.prototype.getName = function () {
+        return "resourceGroup";
+    };
+    ResourceGroup.prototype.getDescriptionType = function () {
+        return "connector";
+    };
+    ResourceGroup.stringify = function (type, params) {
+        var returnValue = {};
+        returnValue["type"] = type;
+        returnValue["parameters"] = model_entity_1.KeyValue.stringifyParametersStatic(params);
+        return returnValue;
+    };
+    return ResourceGroup;
+}(model_entityWithSub_1.EntityWithSub));
+exports.ResourceGroup = ResourceGroup;
 
 
 /***/ },
@@ -106946,13 +107718,18 @@ var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.en
 var model_typedEntity_1 = __webpack_require__("./src/app/configuration/model/model.typedEntity.ts");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var SubEntity = (function (_super) {
     __extends(SubEntity, _super);
-    function SubEntity(http, name, type, parameters) {
+    function SubEntity(http, name, type, override, parameters) {
         _super.call(this, name, parameters);
+        this.override = false;
         this.http = http;
         this.type = type;
         this.name = name;
+        if (!util_1.isNullOrUndefined(override)) {
+            this.override = override;
+        }
         this.paramDescriptors = this.http.get(app_restClient_1.REST.SUBENTITY_PARAMETERS_DESCRIPTION(this.type, this.getName()))
             .map(function (res) {
             var data = res.json();
@@ -106994,42 +107771,17 @@ exports.SubEntity = SubEntity;
 "use strict";
 "use strict";
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
-var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var model_paramDescriptor_1 = __webpack_require__("./src/app/configuration/model/model.paramDescriptor.ts");
 var TypedEntity = (function (_super) {
     __extends(TypedEntity, _super);
     function TypedEntity(http, name, type, parameters) {
-        var _this = this;
         _super.call(this, name, parameters);
         this.http = http;
         this.type = type;
         this.name = name;
-        // retrieving parameters description - extract as static to explicit class please @todo
-        this.paramDescriptors = this.http.get(app_restClient_1.REST.ENTITY_PARAMETERS_DESCRIPTION(this.getDescriptionType(), this.type))
-            .map(function (res) {
-            var data = res.json();
-            var returnValue = [];
-            for (var obj in data) {
-                var newDescriptor = new model_paramDescriptor_1.ParamDescriptor(data[obj]);
-                // remove group and smart mode descriptors because they are processed another way
-                if ((_this.getName() == "resource" || _this.getName() == "resourceGroup") && (newDescriptor.name == TypedEntity.SMART_MODE || newDescriptor.name == TypedEntity.GROUP)) {
-                    var k = false;
-                }
-                else
-                    returnValue.push(newDescriptor);
-            }
-            return returnValue;
-        });
     }
     TypedEntity.prototype.getDescriptionType = function () {
         return this.getName();
-    };
-    TypedEntity.prototype.isParamRequired = function (name) {
-        return this.getParamDescriptor(name).map(function (res) { return res != undefined && res.required; });
-    };
-    TypedEntity.prototype.getParamDescriptor = function (name) {
-        return this.paramDescriptors
-            .map(function (descriptors) { return model_paramDescriptor_1.ParamDescriptor.getDescriptorByName(descriptors, name); });
     };
     TypedEntity.checkForRequiredFilled = function (inputValue, res) {
         var result = true;
@@ -107043,20 +107795,12 @@ var TypedEntity = (function (_super) {
         }
         return result;
     };
-    TypedEntity.prototype.isReadyToBeSaved = function () {
-        var _this = this;
-        return this.paramDescriptors.map(function (res) {
-            return TypedEntity.checkForRequiredFilled(_this.parameters, res);
-        });
-    };
     TypedEntity.prototype.stringify = function () {
         var resultValue = {};
         resultValue["type"] = this.type;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue);
     };
-    TypedEntity.SMART_MODE = "smartMode";
-    TypedEntity.GROUP = "group";
     return TypedEntity;
 }(model_entity_1.Entity));
 exports.TypedEntity = TypedEntity;
@@ -107708,6 +108452,7 @@ var TopNavBar = (function () {
                 _this.logs.pop();
             }
             _this.cd.detectChanges();
+            $("#togglableAlertIcon").attr("class", _this._snampLogService.displayAlerts ? "fa fa-pause" : "fa fa-play");
         });
     };
     TopNavBar.prototype.toggleAlerts = function () {
@@ -107946,6 +108691,7 @@ var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-lo
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var SnampLogService = (function () {
     function SnampLogService(localStorageService) {
         this.localStorageService = localStorageService;
@@ -107954,10 +108700,17 @@ var SnampLogService = (function () {
         this.RECENT_COUNT = 15; // default count of the recent message
         this.buffer = []; // buffer to write logs on before setting it back to the storage
         this.KEY = "snampLogs";
-        this._displayAlerts = true;
+        this.keyToggleAlerts = "snampToggleAlerts";
         var welcomeMessage = new log_notification_1.LogNotification();
         welcomeMessage.message = "SNAMP WEB UI has started successfully";
         this.logObs = new Subject_1.Subject();
+        var _tmp = this.localStorageService.get(this.keyToggleAlerts);
+        if (util_1.isNullOrUndefined(_tmp)) {
+            this.displayAlerts = true;
+        }
+        else {
+            this.displayAlerts = (_tmp == 'true');
+        }
     }
     // Flush the buffer if the user is closing browser
     SnampLogService.prototype.beforeunloadHandler = function (event) {
@@ -108032,6 +108785,7 @@ var SnampLogService = (function () {
     };
     SnampLogService.prototype.toggleDisplayAlerts = function () {
         this.displayAlerts = !this.displayAlerts;
+        this.localStorageService.set(this.keyToggleAlerts, this.displayAlerts);
     };
     __decorate([
         core_1.HostListener('window:beforeunload', ['$event']), 
@@ -108148,6 +108902,12 @@ var REST = (function () {
     REST.RESOURCE_BY_NAME = function (name) {
         return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
     };
+    REST.RGROUP_BY_NAME = function (name) {
+        return REST.RGROUP_CONFIG + "/" + encodeURIComponent(name);
+    };
+    REST.OVERRIDES_BY_NAME = function (name) {
+        return REST.RESOURCE_BY_NAME(name) + "/overriddenProperties";
+    };
     REST.GATEWAY_TYPE = function (name) {
         return REST.GATEWAY_BY_NAME(name) + "/type";
     };
@@ -108174,6 +108934,7 @@ var REST = (function () {
     };
     // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
     REST.RESOURCE_ENTITY_BY_NAME = function (type, resourceName, entityType, entityName) {
+        console.log("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
         return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
     };
     REST.RESOURCE_GROUP = function (name) {
@@ -108207,8 +108968,14 @@ var REST = (function () {
     REST.SUPERVISOR_BY_NAME = function (name) {
         return REST.SUPERVISORS_CONFIG + "/" + encodeURIComponent(name);
     };
+    // get recommendation for policy (see OpRange class)
+    REST.SUPERVISOR_POLICY_RECOMMENDATION = function (supervisorName, policyName) {
+        return REST.ROOT_WEB_API_PATH + "/resource-group-watcher/" + encodeURIComponent(supervisorName)
+            + "/scaling-policies/attribute-based/" + encodeURIComponent(policyName) + "/recommendation";
+    };
     REST.LOGIN_PATH = "/snamp/security/login/username";
     REST.ROOT_PATH = "/snamp/management";
+    REST.GROOVY_PATH = "/snamp/assets/groovy";
     REST.CFG_PATH = REST.ROOT_PATH + "/configuration";
     REST.GATEWAY_CONFIG = REST.CFG_PATH + "/gateway";
     REST.RESOURCE_CONFIG = REST.CFG_PATH + "/resource";
@@ -108217,6 +108984,7 @@ var REST = (function () {
     REST.COMPONENTS_MANAGEMENT = REST.ROOT_PATH + "/components";
     REST.AVAILABLE_GATEWAY_LIST = REST.COMPONENTS_MANAGEMENT + "/gateways";
     REST.AVAILABLE_RESOURCE_LIST = REST.COMPONENTS_MANAGEMENT + "/connectors";
+    REST.AVAILABLE_SUPERVISORS_LIST = REST.COMPONENTS_MANAGEMENT + "/supervisors";
     REST.RGROUP_LIST = REST.RGROUP_CONFIG + "/list";
     // SNAMP WEB API SECTION (belongs to webconsole module)
     REST.ROOT_WEB_API_PATH = "/snamp/web/api";

@@ -6,17 +6,11 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.ObjectCodec;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
-import org.codehaus.jackson.node.POJONode;
 
-import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Represents converter from {@link javax.management.openmbean.CompositeData} to JSON Object
@@ -77,39 +71,7 @@ final class ComplexTypeFormatter {
     }
 
     private static Class<?> getJavaType(final OpenType<?> openType) throws ClassNotFoundException {
-        if(openType instanceof CompositeType)
-            return CompositeData.class;
-        else if(openType instanceof TabularType)
-            return TabularData.class;
-        else if(Objects.equals(openType, SimpleType.BIGDECIMAL))
-            return BigDecimal.class;
-        else if(Objects.equals(openType, SimpleType.BIGINTEGER))
-            return BigInteger.class;
-        else if(Objects.equals(openType, SimpleType.DATE))
-            return Date.class;
-        else if(Objects.equals(openType, SimpleType.BOOLEAN))
-            return Boolean.class;
-        else if(Objects.equals(openType, SimpleType.BYTE))
-            return Byte.class;
-        else if(Objects.equals(openType, SimpleType.SHORT))
-            return Short.class;
-        else if(Objects.equals(openType, SimpleType.INTEGER))
-            return Integer.class;
-        else if(Objects.equals(openType, SimpleType.LONG))
-            return Long.class;
-        else if(Objects.equals(openType, SimpleType.OBJECTNAME))
-            return ObjectName.class;
-        else if(Objects.equals(openType, SimpleType.VOID))
-            return Void.class;
-        else if(Objects.equals(openType, SimpleType.CHARACTER))
-            return Character.class;
-        else if(Objects.equals(openType, SimpleType.STRING))
-            return String.class;
-        else if(Objects.equals(openType, SimpleType.FLOAT))
-            return Float.class;
-        else if(Objects.equals(openType, SimpleType.DOUBLE))
-            return Double.class;
-        else return Class.forName(openType.getClassName());
+        return Class.forName(openType.getClassName());
     }
 
     static CompositeData deserializeCompositeData(final JsonParser parser) throws IOException {
@@ -132,20 +94,17 @@ final class ComplexTypeFormatter {
         return rows;
     }
 
-    private static ObjectNode serializeFields(final CompositeData src){
+    private static ObjectNode serializeFields(final CompositeData src) {
         final ObjectNode result = ThreadLocalJsonFactory.getFactory().objectNode();
-        for(final String itemName: src.getCompositeType().keySet()){
+        for (final String itemName : src.getCompositeType().keySet()) {
             final Object itemValue = src.get(itemName);
-            if(itemValue instanceof CompositeData)
+            if (itemValue instanceof CompositeData)
                 result.put(itemName, serializeFields((CompositeData) itemValue));
-            else if(itemValue instanceof TabularData)
-                result.put(itemName, serializeRows((TabularData)itemValue));
-            else if(itemValue == null)
-                result.put(itemName, ThreadLocalJsonFactory.getFactory().nullNode());
+            else if (itemValue instanceof TabularData)
+                result.put(itemName, serializeRows((TabularData) itemValue));
             else
-                result.put(itemName, new POJONode(itemValue));
+                result.put(itemName, ThreadLocalJsonFactory.toValueNode(itemValue));
         }
-
         return result;
     }
 

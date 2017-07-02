@@ -141,10 +141,9 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
-        forEach(attribute -> {
-            if (attribute instanceof NotificationListener)
-                ((NotificationListener) attribute).handleNotification(notification, handback);
-        });
+        forEach(attribute -> Convert
+                .toType(attribute, NotificationListener.class)
+                .ifPresent(listener -> listener.handleNotification(notification, handback)));
     }
 
     @Override

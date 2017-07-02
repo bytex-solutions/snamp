@@ -5,6 +5,7 @@ import java.lang.ref.WeakReference;
 import java.util.EventListener;
 import java.util.EventObject;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -70,6 +71,17 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
     @Override
     public final boolean equals(final Object other) {
         return other instanceof WeakReference<?> && equals((WeakReference<?>) other);
+    }
+
+    final Runnable toRunnable(final E event){
+        return () -> invoke(event);
+    }
+
+    final Callable<Void> toCallable(final E event){
+        return () -> {
+            invoke(event);
+            return null;
+        };
     }
 
     @Override

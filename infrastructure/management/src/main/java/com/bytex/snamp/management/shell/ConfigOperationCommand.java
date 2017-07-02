@@ -57,12 +57,17 @@ public final class ConfigOperationCommand extends TemplateConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    @Option(name = "-o", aliases = "--override", description = "Override configuration of operation declared by group")
+    private boolean override;
+
     private boolean processOperations(final EntityMap<? extends OperationConfiguration> operations, final PrintWriter output) {
         if (del)
             operations.remove(operationName);
         else {
             final OperationConfiguration operation = operations.getOrAdd(operationName);
             operation.putAll(StringKeyValue.parse(parameters));
+            operation.setOverridden(override);
             Arrays.stream(parametersToDelete).forEach(operation::remove);
         }
         output.println("Operation configured successfully");

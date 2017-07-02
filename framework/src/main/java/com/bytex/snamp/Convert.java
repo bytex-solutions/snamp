@@ -31,27 +31,25 @@ public final class Convert {
     private static abstract class TypeConverter<C> extends ClassMap<C> {
         private static final long serialVersionUID = -2745877310143387409L;
 
-        Optional<C> getConverter(final Object value) {
-            return Optional.ofNullable(getOrAdd(value.getClass()));
+        final C getConverter(final Object value) {
+            return value == null ? null : getOrAdd(value.getClass());
         }
     }
 
-    private static final class ToIntConverter extends TypeConverter<ToIntFunction>{
+    private static final class ToIntConverter extends TypeConverter<ToIntFunction> {
         private static final long serialVersionUID = -7571891959758237238L;
 
-        private <T> ToIntConverter addConverter(final Class<T> type, final ToIntFunction<? super T> converter){
+        private <T> ToIntConverter addConverter(final Class<T> type, final ToIntFunction<? super T> converter) {
             put(type, converter);
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         OptionalInt convert(final Object value) {
-            final Optional<ToIntFunction> converter = getConverter(value);
-            OptionalInt result = OptionalInt.empty();
-            if(converter.isPresent()) {
-                @SuppressWarnings("unchecked") final int i = converter.get().applyAsInt(value);
-                result = OptionalInt.of(i);
-            }
-            return result;
+            final ToIntFunction converter = getConverter(value);
+            return converter == null ?
+                    OptionalInt.empty() :
+                    OptionalInt.of(converter.applyAsInt(value));
         }
     }
 
@@ -63,14 +61,12 @@ public final class Convert {
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         OptionalLong convert(final Object value) {
-            final Optional<ToLongFunction> converter = getConverter(value);
-            OptionalLong result = OptionalLong.empty();
-            if(converter.isPresent()) {
-                @SuppressWarnings("unchecked") final long i = converter.get().applyAsLong(value);
-                result = OptionalLong.of(i);
-            }
-            return result;
+            final ToLongFunction converter = getConverter(value);
+            return converter == null ?
+                    OptionalLong.empty() :
+                    OptionalLong.of(converter.applyAsLong(value));
         }
     }
 
@@ -82,14 +78,12 @@ public final class Convert {
             return this;
         }
 
+        @SuppressWarnings("unchecked")
         OptionalDouble convert(final Object value) {
-            final Optional<ToDoubleFunction> converter = getConverter(value);
-            OptionalDouble result = OptionalDouble.empty();
-            if (converter.isPresent()) {
-                @SuppressWarnings("unchecked") final double f = converter.get().applyAsDouble(value);
-                result = OptionalDouble.of(f);
-            }
-            return result;
+            final ToDoubleFunction converter = getConverter(value);
+            return converter == null ?
+                    OptionalDouble.empty() :
+                    OptionalDouble.of(converter.applyAsDouble(value));
         }
     }
 
@@ -108,7 +102,10 @@ public final class Convert {
 
         @SuppressWarnings("unchecked")
         Optional<O> convert(final Object value) {
-            return getConverter(value).flatMap(c -> toType(value, outputType));
+            final Function converter = getConverter(value);
+            return converter == null ?
+                    Optional.empty() :
+                    toType(converter.apply(value), outputType);
         }
 
         Optional<O> convert(final Object value,
@@ -247,7 +244,8 @@ public final class Convert {
                 .addConverter(BigDecimal.class, BigDecimal::toBigInteger)
                 .addConverter(Date.class, v -> BigInteger.valueOf(v.getTime()))
                 .addConverter(Instant.class, v -> BigInteger.valueOf(v.toEpochMilli()))
-                .addConverter(Duration.class, v -> BigInteger.valueOf(v.toMillis()));
+                .addConverter(Duration.class, v -> BigInteger.valueOf(v.toMillis()))
+                .addConverter(Number.class, v -> BigInteger.valueOf(v.longValue()));
 
         TO_BIG_DECIMAL = new ToTypeConverter<>(BigDecimal.class)
                 .addConverter(BigDecimal.class, Function.identity())
@@ -262,7 +260,8 @@ public final class Convert {
                 .addConverter(BigInteger.class, BigDecimal::new)
                 .addConverter(Date.class, v -> BigDecimal.valueOf(v.getTime()))
                 .addConverter(Instant.class, v -> BigDecimal.valueOf(v.toEpochMilli()))
-                .addConverter(Duration.class, v -> BigDecimal.valueOf(v.toMillis()));
+                .addConverter(Duration.class, v -> BigDecimal.valueOf(v.toMillis()))
+                .addConverter(Number.class, v -> BigDecimal.valueOf(v.doubleValue()));
 
         TO_BOOLEAN = new ToTypeConverter<>(Boolean.class)
                 .addConverter(Boolean.class, Function.identity())

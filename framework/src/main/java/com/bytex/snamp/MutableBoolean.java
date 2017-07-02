@@ -2,10 +2,11 @@ package com.bytex.snamp;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.function.BinaryOperator;
-import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.function.*;
 
 /**
  * Represents mutable container for {@code boolean} data type.
@@ -31,6 +32,32 @@ final class MutableBoolean implements BooleanBox {
     @Override
     public void reset() {
         value = false;
+    }
+
+    @Override
+    public boolean ifPresent(final Consumer<? super Boolean> consumer) {
+        consumer.accept(value);
+        return true;
+    }
+
+    @Override
+    public <R> Optional<R> map(final Function<? super Boolean, ? extends R> mapper) {
+        return Optional.of(value).map(mapper);
+    }
+
+    @Override
+    public OptionalInt mapToInt(final ToIntFunction<? super Boolean> mapper) {
+        return OptionalInt.of(mapper.applyAsInt(value));
+    }
+
+    @Override
+    public OptionalLong mapToLong(final ToLongFunction<? super Boolean> mapper) {
+        return OptionalLong.of(mapper.applyAsLong(value));
+    }
+
+    @Override
+    public OptionalDouble mapToDouble(final ToDoubleFunction<? super Boolean> mapper) {
+        return OptionalDouble.of(mapper.applyAsDouble(value));
     }
 
     /**

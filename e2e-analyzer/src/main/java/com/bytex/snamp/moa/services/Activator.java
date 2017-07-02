@@ -21,7 +21,7 @@ import static com.bytex.snamp.MapUtils.getValue;
  */
 public final class Activator extends AbstractServiceLibrary {
     private static final String HISTORY_SIZE_PARAM = "topologyAnalyzerHistorySize";
-    private static final long DEFAULT_HISTORY_SIZE = 5_000L;
+    private static final long DEFAULT_HISTORY_SIZE = 10_000L;
 
     private static abstract class AnalyticalServiceProvider<S extends DataAnalyzer, T extends S> extends ProvidedService<S, T>{
         AnalyticalServiceProvider(final Class<S> serviceType, final RequiredService<?>... dependencies){

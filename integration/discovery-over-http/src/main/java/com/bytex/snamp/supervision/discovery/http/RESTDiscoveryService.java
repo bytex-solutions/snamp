@@ -103,7 +103,7 @@ public final class RESTDiscoveryService {
                                          final ResourceAnnouncement announcement) throws ResourceDiscoveryException {
         try {
             discoveryService.registerResource(resourceName, announcement.getConnectionString(), announcement.getParameters());
-        } catch (final InvalidResourceGroupException e){
+        } catch (final InvalidResourceGroupException e) {
             throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
         } catch (final ResourceGroupNotFoundException e){
             throw new WebApplicationException(e, Response.Status.NOT_FOUND);
@@ -130,7 +130,7 @@ public final class RESTDiscoveryService {
                         .build());
         } catch (final InvalidResourceGroupException e) {
             throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
-        } catch (final ResourceGroupNotFoundException e) {
+        } catch (final ResourceGroupNotFoundException e){
             throw new WebApplicationException(e, Response.Status.NOT_FOUND);
         }
     }

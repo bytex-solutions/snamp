@@ -29,7 +29,7 @@ public final class SimpleMetricsTest extends Assert {
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.DAY));
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.HOUR));
         assertEquals(1, writer.reads().getLastRate(MetricsInterval.MINUTE));
-        assertEquals(0, writer.reads().getMaxRate(MetricsInterval.SECOND));
+        assertEquals(1, writer.reads().getMaxRate(MetricsInterval.SECOND));
     }
 
     @Test
@@ -46,7 +46,7 @@ public final class SimpleMetricsTest extends Assert {
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.DAY));
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.HOUR));
         assertEquals(1, writer.writes().getLastRate(MetricsInterval.MINUTE));
-        assertEquals(0, writer.writes().getMaxRate(MetricsInterval.SECOND));
+        assertEquals(1, writer.writes().getMaxRate(MetricsInterval.SECOND));
     }
 
     @Test

@@ -5,16 +5,21 @@ import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
 import { Binding } from './model.binding';
 import { ParamDescriptor } from './model.paramDescriptor';
+import {isNullOrUndefined} from "util";
 
 export abstract class SubEntity extends Entity {
     public type:string;
     http:ApiClient;
     public paramDescriptors:Observable<ParamDescriptor[]>;
-    constructor(http:ApiClient, name:string, type:string, parameters: { [key:string]:string; }) {
+    public override:boolean = false;
+    constructor(http:ApiClient, name:string, type:string, override?:boolean, parameters?: { [key:string]:string; }) {
         super(name, parameters);
         this.http = http;
         this.type = type;
         this.name = name;
+        if (!isNullOrUndefined(override)) {
+            this.override = override;
+        }
 
         this.paramDescriptors = this.http.get(REST.SUBENTITY_PARAMETERS_DESCRIPTION(this.type, this.getName()))
             .map((res: Response) => {

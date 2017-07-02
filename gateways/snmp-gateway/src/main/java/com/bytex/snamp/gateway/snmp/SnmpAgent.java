@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway.snmp;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayUpdatedCallback;
 import org.snmp4j.TransportMapping;
@@ -15,8 +16,7 @@ import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.security.SecurityModel;
 import org.snmp4j.security.USM;
 import org.snmp4j.smi.*;
-import org.snmp4j.transport.DefaultUdpTransportMapping;
-import org.snmp4j.transport.TransportMappings;
+import org.snmp4j.transport.*;
 import org.snmp4j.util.ConcurrentMessageDispatcher;
 
 import java.io.Closeable;
@@ -219,24 +219,24 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Gat
                 StorageType.permanent);
     }
 
-
+    private static TransportMapping<?> createTransportMapping(final Address address, final int socketTimeout) throws IOException {
+        if (address instanceof UdpAddress) {
+            final UdpTransportMapping udp = new UdpTransportMapping((UdpAddress) address);
+            udp.setSocketTimeout(socketTimeout);
+            return udp;
+        } else
+            return TransportMappings
+                    .getInstance()
+                    .createTransportMapping(address);
+    }
 
     /**
 	 * Initializes SNMP transport.
 	 */
 	protected void initTransportMappings() throws IOException {
-        try{
-            final TransportMapping<?> tm = TransportMappings
-                    .getInstance()
-                    .createTransportMapping(GenericAddress.parse(String.format("%s/%s", hostName, port)));
-            if(tm instanceof DefaultUdpTransportMapping)
-                ((DefaultUdpTransportMapping)tm).setSocketTimeout(socketTimeout);
-            transportMappings = new TransportMapping<?>[]{tm};
-        }
-        catch (final Exception e){
-            throw new IOException(String.format("Unable to create SNMP transport for %s/%s address.", hostName, port), e);
-        }
-	}
+        final TransportMapping<?> tm = createTransportMapping(GenericAddress.parse(String.format("%s/%s", hostName, port)), socketTimeout);
+        transportMappings = ArrayUtils.toArray(tm);
+    }
 
     private boolean isDestroyed(){
         return agent == null;
@@ -306,8 +306,9 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Gat
         }
     }
 
-    synchronized void suspend(){
-        super.stop();
+    synchronized void suspend() {
+        if (session != null)
+            super.stop();
     }
 
     /**

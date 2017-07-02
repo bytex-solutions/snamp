@@ -36,12 +36,10 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Override
     protected void fillAttributes(final EntityMap<? extends AttributeConfiguration> attributes) {
-        AttributeConfiguration attribute = attributes.getOrAdd("1");
-        attribute.setAlternativeName("ObjectPendingFinalizationCount");
+        AttributeConfiguration attribute = attributes.getOrAdd("ObjectPendingFinalizationCount");
         attribute.put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
 
-        attribute = attributes.getOrAdd("2");
-        attribute.setAlternativeName("HeapMemoryUsage");
+        attribute = attributes.getOrAdd("HeapMemoryUsage");
         attribute.put("objectName", ManagementFactory.MEMORY_MXBEAN_NAME);
     }
 
@@ -53,10 +51,10 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void testForAttributes() throws Exception {
-        testAttribute("1", TypeToken.of(Integer.class), 0,
+        testAttribute("ObjectPendingFinalizationCount", TypeToken.of(Integer.class), 0,
                 Objects::equals,
                 true);
-        testAttribute("2", TypeToken.of(CompositeData.class),
+        testAttribute("HeapMemoryUsage", TypeToken.of(CompositeData.class),
                 null,
                 (l, r) -> true,
                 true);

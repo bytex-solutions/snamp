@@ -6,12 +6,7 @@ import { HealthStatus } from '../services/model/healthstatus/health.status';
 import 'rxjs/add/operator/publishLast';
 
 import { Overlay } from "angular2-modal";
-import {
-  Modal,
-  OneButtonPresetBuilder,
-  TwoButtonPresetBuilder,
-  PromptPresetBuilder
-} from 'angular2-modal/plugins/bootstrap/index';
+import { Modal } from 'angular2-modal/plugins/bootstrap/index';
 import {StatusFactory} from "../services/model/healthstatus/factory";
 
 
@@ -50,7 +45,6 @@ export class WatcherDashboard implements OnInit {
     }
 
     showDetails(status:HealthStatus):void {
-        console.log("details for status: ", status);
         this.modal.alert()
            .size('lg')
            .title("Details for health status")

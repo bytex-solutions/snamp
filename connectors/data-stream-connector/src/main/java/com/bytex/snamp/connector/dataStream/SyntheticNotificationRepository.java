@@ -1,8 +1,6 @@
 package com.bytex.snamp.connector.dataStream;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
-import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.instrumentation.measurements.jmx.TimeMeasurementNotification;
@@ -11,7 +9,6 @@ import com.bytex.snamp.instrumentation.measurements.jmx.ValueMeasurementNotifica
 import javax.annotation.Nonnull;
 import javax.management.AttributeChangeNotification;
 import javax.management.Notification;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -23,7 +20,7 @@ import java.util.function.Consumer;
  */
 public class SyntheticNotificationRepository extends AbstractNotificationRepository<SyntheticNotificationInfo> implements Consumer<Notification> {
     private DataStreamConnectorConfigurationDescriptionProvider configurationParser;
-    private Executor listenerInvoker;
+    private ExecutorService listenerInvoker;
 
     public SyntheticNotificationRepository(final String resourceName) {
         super(resourceName, SyntheticNotificationInfo.class);
@@ -35,13 +32,9 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
     }
 
     private static Notification prepareNotification(final SyntheticNotificationInfo metadata, final Notification notification) {
-        if (metadata.isNotificationEnabled(notification)) {
-            final String newNotifType = ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new);
-            return newNotifType.equals(notification.getType()) ?
-                    notification :
-                    new NotificationContainer(newNotifType, notification);
-        } else
-            return null;
+        return metadata.isNotificationEnabled(notification) ?
+                wrapNotification(metadata, notification) :
+                null;
     }
 
     @Override
@@ -56,8 +49,8 @@ public class SyntheticNotificationRepository extends AbstractNotificationReposit
      */
     @Nonnull
     @Override
-    protected Executor getListenerExecutor() {
-        final Executor executor = listenerInvoker;
+    protected ExecutorService getListenerExecutor() {
+        final ExecutorService executor = listenerInvoker;
         return executor == null ? super.getListenerExecutor() : executor;
     }
 

@@ -2,7 +2,6 @@ package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.BooleanBox;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.TypedEntityConfiguration;
@@ -42,7 +41,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
         return isNullOrEmpty(entity.getType()) ? null : getFactoryPersistentID(entity.getType());
     }
 
-    final String getIdentityName(final Dictionary<String, ?> config) {
+    private String getIdentityName(final Dictionary<String, ?> config) {
         return getValue(config, identityHolderName, Objects::toString).orElse("");
     }
 
@@ -61,13 +60,13 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
         output.update(configuration);
     }
 
-    String createIdentityFilter(final String identityName){
+    private String createIdentityFilter(final String identityName){
         return String.format("(%s=%s)", identityHolderName, identityName);
     }
 
     private void serialize(final String identityName, final E entity, final ConfigurationAdmin admin) throws IOException {
         //find existing configuration of gateway
-        final BooleanBox updated = BoxFactory.createForBoolean(false);
+        final BooleanBox updated = BooleanBox.of(false);
         forEachConfiguration(admin, createIdentityFilter(identityName), config -> {
             serialize(identityName, entity, config);
             updated.set(true);
@@ -75,9 +74,9 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
         //no existing configuration, creates a new configuration
         if (!updated.get()) {
             final String persistentID = getFactoryPersistentID(entity);
-            if (isNullOrEmpty(persistentID)) {
-                getLogger().severe(String.format("Configuration entity %s could not be saved because its type is not specified", identityName));
-            } else
+            if (isNullOrEmpty(persistentID))
+                throw new IOException(String.format("Configuration entity %s could not be saved because its type is not specified", identityName));
+            else
                 serialize(identityName,
                         entity,
                         admin.createFactoryConfiguration(persistentID, null));
@@ -95,6 +94,7 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
             instance = parse(properties);
         instance.getValue().setType(getType(config));
         instance.getValue().reset();
+        assert !instance.getValue().isModified();
         output.putAll(instance);
     }
 

@@ -40,13 +40,14 @@ final class SerializableScriptlets extends SerializableFactoryMap<String, Serial
     protected SerializableScriptletConfiguration readValue(final ObjectInput in) throws IOException, ClassNotFoundException {
         final SerializableScriptletConfiguration result = createValue();
         result.readExternal(in);
+        result.reset(); //reset modification state after deserialization
         return result;
     }
 
     @Override
     @Nonnull
     SerializableScriptletConfiguration createValue() {
-        return new SerializableScriptletConfiguration();
+        return new SerializableScriptletConfiguration(true);
     }
 
     void load(final Map<String, ? extends ScriptletConfiguration> checkers) {

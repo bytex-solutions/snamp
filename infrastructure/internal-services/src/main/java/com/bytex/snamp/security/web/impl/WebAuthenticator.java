@@ -2,8 +2,8 @@ package com.bytex.snamp.security.web.impl;
 
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
-import com.bytex.snamp.security.web.JWTAuthenticator;
 import com.bytex.snamp.security.web.JWTAuthFilter;
+import com.bytex.snamp.security.web.JWTAuthenticator;
 
 import javax.security.auth.login.*;
 import javax.ws.rs.*;

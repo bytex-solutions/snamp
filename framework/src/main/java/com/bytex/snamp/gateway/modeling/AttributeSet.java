@@ -2,7 +2,6 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.BooleanBox;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.EntryReader;
 
 import java.util.function.Predicate;
@@ -32,14 +31,13 @@ public interface AttributeSet<TAccessor extends AttributeAccessor> {
     default <E extends Throwable> boolean processAttribute(final String resourceName,
                                                                  final Predicate<? super TAccessor> filter,
                                                                  final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
-        final BooleanBox result = BoxFactory.createForBoolean(false);
+        final BooleanBox result = BooleanBox.of(false);
         forEachAttribute((resource, accessor) -> {
-            if(resource.equals(resourceName) && filter.test(accessor)){
+            if (resource.equals(resourceName) && filter.test(accessor)) {
                 processor.accept(accessor);
                 result.set(true);
                 return false;
-            }
-            else
+            } else
                 return true;
         });
         return result.getAsBoolean();

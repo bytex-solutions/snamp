@@ -5,6 +5,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.internal.Utils;
+import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -50,6 +51,10 @@ public final class ConfigResourceCommand extends ManagedResourceConfigurationCom
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    @Option(name = "-o", aliases = "--override", multiValued = true, description = "Override configuration properties declared by group")
+    private String[] overriddenProperties;
+
     @Override
     boolean doExecute(final EntityMap<? extends ManagedResourceConfiguration> resources, final PrintWriter output) {
         if (del)
@@ -65,6 +70,9 @@ public final class ConfigResourceCommand extends ManagedResourceConfigurationCom
             //setup parameters
             resource.putAll(StringKeyValue.parse(parameters));
             Arrays.stream(parametersToDelete).forEach(resource::remove);
+            //override properties
+            if(overriddenProperties != null)
+                resource.overrideProperties(ImmutableSet.copyOf(overriddenProperties));
         }
         output.println("Resource configured successfully");
         return true;

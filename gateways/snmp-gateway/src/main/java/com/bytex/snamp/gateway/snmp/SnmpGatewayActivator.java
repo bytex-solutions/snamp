@@ -5,6 +5,7 @@ import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.log.OSGiLogFactory;
+
 import static com.bytex.snamp.ArrayUtils.toArray;
 
 /**

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -13,6 +13,12 @@ import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 
 import 'rxjs/add/operator/publishLast';
 import 'smartwizard';
+import { HealthStatusBasedScalingPolicy } from "./model/policy/health.status.based.scaling.policy";
+import { AttributeBasedScalingPolicy } from "./model/policy/attribute.based.scaling.policy";
+import { isNullOrUndefined } from "util";
+import {OpRange} from "./model/policy/operational.range";
+import FontWeight = CanvasGauges.FontWeight;
+import {AbstractWeightedScalingPolicy} from "./model/policy/abstract.weighted.scaling.policy";
 
 @Component({
     moduleId: module.id,
@@ -24,24 +30,46 @@ export class MainComponent implements OnInit {
     private components: string[] = [];
     private watchers: Watcher[] = [];
     private activeWatcher: Watcher = undefined;
-    private copyWatcher: Watcher = undefined;
     private isNewEntity: boolean = true;
 
     private selectedComponent: string = undefined;
     private triggerInitialized: boolean = false;
     private checkersInitialized: boolean = false;
+    private policiesInitialized: boolean = false;
 
     private attributes: AttributeInformation[] = [];
     private selectedAttribute: AttributeInformation = undefined;
 
-    private activeChecker: ScriptletDataObject = new ScriptletDataObject();
+    private activeChecker: ScriptletDataObject = new ScriptletDataObject({});
+
+    private activePolicy: ScriptletDataObject = new ScriptletDataObject({});
+    private activePolicyName:string = "";
 
     private checkersType: EntityWithDescription[] = EntityWithDescription.generateCheckersTypes();
+    private policyTypes: EntityWithDescription[] = EntityWithDescription.generatePoliciesTypes();
+    private strategyTypes:EntityWithDescription[] = EntityWithDescription.generateStrategyTypes();
 
-    private triggerLanguages: string[] = ["Groovy", "JavaScript"];
+    private triggerLanguages: string[] = ["Groovy"/*, "JavaScript"*/];
 
-    constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef) {
+    private availableSupervisors :any[] = [];
+
+    private healthStatusLevels:string[] = ["LOW", "MODERATE", "SUBSTANTIAL", "SEVERE", "CRITICAL"];
+    private aggregations:string[] = ["MAX", "MIN", "MEAN", "MEDIAN", "PERCENTILE_90", "PERCENTILE_95", "PERCENTILE_97", "SUM"];
+
+    private defaultGroovyCheckerScript:string = "";
+    private defaultGroovyTriggerScript:string = "";
+    private defaultGroovyPolicyScript:string = "";
+
+    private operationalRangeVisible:boolean = false;
+
+    private currentRecommendation:OpRange = undefined;
+
+    constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef, private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
+    }
+
+    toggleOperationalRangeDialog():void {
+        this.operationalRangeVisible = !this.operationalRangeVisible;
     }
 
     saveCurrentTrigger(): void {
@@ -53,12 +81,17 @@ export class MainComponent implements OnInit {
         console.log("Checker has been saved", this.activeWatcher);
     }
 
+    getMainHeader():string {
+        return isNullOrUndefined(this.activeWatcher) ? "Setup supervisors" : "Setup " + this.activeWatcher.name + " supervisor";
+    }
+
     ngOnInit(): void {
         // load the list of watchers
         this.http.get(REST.SUPERVISORS_CONFIG)
             .map((res: Response) => res.json())
             .subscribe((data) => {
                 this.watchers = Factory.watchersArrayFromJSON(data);
+                console.log("All the watchers list: ", this.watchers);
             });
 
         // find all the components
@@ -69,10 +102,37 @@ export class MainComponent implements OnInit {
             .subscribe((data) => {
                 this.components = data;
             });
+
+        // fill available supervisors list
+        this.http.get(REST.AVAILABLE_SUPERVISORS_LIST)
+            .map((res: Response) => res.json())
+            .subscribe(data => {
+                console.log("Available supervisors list is: ", data);
+                this.availableSupervisors = data;
+            });
+
+        this.http.get(REST.GROOVY_PATH + "/AttributeChecker.groovy")
+            .map((res:Response) => res.text())
+            .subscribe(data => {
+                this.defaultGroovyCheckerScript = data;
+                this.activeChecker.script = data;
+            });
+
+        this.http.get(REST.GROOVY_PATH + "/HealthTrigger.groovy")
+            .map((res:Response) => res.text())
+            .subscribe(data => {
+                this.defaultGroovyTriggerScript = data;
+            });
+
+        this.http.get(REST.GROOVY_PATH + "/ScalingPolicy.groovy")
+            .map((res:Response) => res.text())
+            .subscribe(data => {
+                this.defaultGroovyPolicyScript = data;
+                this.activePolicy.script = data;
+            });
     }
 
-    ngAfterViewInit(): void {
-    }
+    ngAfterViewInit(): void {}
 
     public initTriggerModal(): void {
         // clean the data if the component was already initialized
@@ -102,12 +162,28 @@ export class MainComponent implements OnInit {
         this.checkersInitialized = true;
     }
 
+    public initPoliciesModal(): void {
+        // clean the data if the component was already initialized
+        if (this.policiesInitialized) {
+            // reset wizard
+            $(this.getPoliciesWizardId()).off("showStep");
+            $(this.getPoliciesWizardId()).smartWizard("reset");
+        }
+        this.initPoliciesWizard();
+        // open the modal
+        $("#editPolicyModal").modal("show");
+        // and next time user adds the chart - we will reinit all the dialog
+        this.policiesInitialized = true;
+    }
+
     private selectCurrentComponent(component: string): void {
         this.selectedComponent = component;
         this.loadAttributesOnComponentSelected();
         this.activeWatcher.name = component;
-        this.activeWatcher.trigger = new ScriptletDataObject();
+        this.activeWatcher.trigger = new ScriptletDataObject({});
+        this.activeWatcher.trigger.script = this.defaultGroovyTriggerScript;
         this.activeWatcher.attributeCheckers = {};
+        this.activeWatcher.scalingPolicies = {};
     }
 
     isTriggerAvailable(): boolean {
@@ -127,7 +203,8 @@ export class MainComponent implements OnInit {
 
     public editCheckerForAttribute(attr: AttributeInformation): void {
         if (!this.activeWatcher.checkerExists(attr.name)) {
-            this.activeWatcher.attributeCheckers[attr.name] = new ScriptletDataObject();
+            this.activeWatcher.attributeCheckers[attr.name] = new ScriptletDataObject({});
+            this.activeWatcher.attributeCheckers[attr.name].script = this.defaultGroovyCheckerScript;
         }
         this.activeChecker = this.activeWatcher.attributeCheckers[attr.name];
         this.selectedAttribute = attr;
@@ -155,15 +232,11 @@ export class MainComponent implements OnInit {
             this.activeChecker.object = new ColoredAttributeChecker();
         } else {
             this.activeChecker.object = undefined;
+            this.activeChecker.script = this.defaultGroovyCheckerScript;
         }
     }
 
     public cleanSelection(): void {
-        for (let i = 0; i < this.watchers.length; i++) {
-            if (this.watchers[i].guid == this.activeWatcher.guid) {
-                this.watchers[i] = this.copyWatcher;
-            }
-        }
         this.activeWatcher = undefined;
         this.isNewEntity = true;
     }
@@ -180,6 +253,13 @@ export class MainComponent implements OnInit {
                             .map((res: Response) => res.text())
                             .subscribe(data => {
                                 console.log("watcher has been removed: ", data);
+                                for (let i = 0; i < this.watchers.length; i++) {
+                                    if (this.watchers[i].name == watcher.name) {
+                                        this.watchers.splice(i, 1);
+                                        break;
+                                    }
+                                }
+                                this.cd.detectChanges();
                             });
                         return response;
                     })
@@ -190,8 +270,7 @@ export class MainComponent implements OnInit {
     }
 
     public editWatcher(watcher: Watcher): void {
-        this.activeWatcher = watcher;
-        this.copyWatcher = watcher;
+        this.activeWatcher = $.extend(true, {}, watcher);
         this.isNewEntity = false;
         this.selectedComponent = watcher.name;
         this.loadAttributesOnComponentSelected();
@@ -209,6 +288,10 @@ export class MainComponent implements OnInit {
         return "#smartwizardForCheckers";
     }
 
+    private getPoliciesWizardId(): string {
+        return "#smartwizardForPolicies";
+    }
+
     private initTriggerWizard(): void {
         $(this.getTriggerWizardId()).smartWizard({
             theme: 'arrows',
@@ -223,6 +306,8 @@ export class MainComponent implements OnInit {
     }
 
     private initCheckersWizard(): void {
+        this.activeChecker = new ScriptletDataObject({});
+        this.activeChecker.script = this.defaultGroovyCheckerScript;
         $(this.getCheckersWizardId()).smartWizard({
             theme: 'arrows',
             useURLhash: false,
@@ -235,8 +320,27 @@ export class MainComponent implements OnInit {
         });
     }
 
+    private initPoliciesWizard(): void {
+        this.activePolicy = new ScriptletDataObject({});
+        this.activePolicyName = "";
+        this.activePolicy.script = this.defaultGroovyPolicyScript;
+        this.operationalRangeVisible = false;
+        this.currentRecommendation = undefined;
+        $(this.getPoliciesWizardId()).smartWizard({
+            theme: 'arrows',
+            useURLhash: false,
+            showStepURLhash: false,
+            transitionEffect: 'fade'
+        });
+
+        $(this.getPoliciesWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
+            console.log(stepNumber);
+        });
+    }
+
     public addNewWatcher(): void {
         this.activeWatcher = new Watcher(undefined, {});
+        this.activeWatcher.trigger.script = this.defaultGroovyTriggerScript;
         this.selectedComponent = "";
     }
 
@@ -256,7 +360,94 @@ export class MainComponent implements OnInit {
             .map((res: Response) => res.text())
             .subscribe(data => {
                 console.log("watcher has been saved: ", data);
+                for (let i = 0; i < this.watchers.length; i++) {
+                    if (this.watchers[i].name == this.activeWatcher.name) {
+                        this.watchers[i] = this.activeWatcher;
+                    }
+                }
+                this.cleanSelection();
             });
+    }
+
+    public isWatcherActive(_watcher:Watcher):boolean {
+        return this.activeWatcher != null && this.activeWatcher.name == _watcher.name;
+    }
+
+
+    public isPolicyActive(policyKey:string):boolean {
+        return this.activePolicy != undefined && this.activePolicyName != undefined && this.activePolicyName == policyKey;
+    }
+
+    public editPolicy(policyKey:string, policyValue:ScriptletDataObject):void {
+        this.activePolicyName = policyKey;
+        this.activePolicy = policyValue;
+    }
+
+    public removePolicy(policyKey:string):void {
+        delete this.activeWatcher.scalingPolicies[policyKey];
+        let newMap:{ [key:string]:ScriptletDataObject; } = {};
+        for (let key in this.activeWatcher.scalingPolicies) {
+            newMap[key] = this.activeWatcher.scalingPolicies[key];
+        }
+        this.activeWatcher.scalingPolicies = newMap;
+    }
+
+    public addNewPolicy():void {
+        this.modal.prompt()
+            .className(<VEXBuiltInThemes>'default')
+            .message('New policy')
+            .placeholder('Please set the name for a new policy')
+            .open()
+            .then(dialog => dialog.result)
+            .then(result => {
+                this.activeWatcher.scalingPolicies[result] = new ScriptletDataObject({});
+                this.activeWatcher.scalingPolicies[result].script = this.defaultGroovyPolicyScript;
+                let newMap:{ [key:string]:ScriptletDataObject; } = {};
+                for (let key in this.activeWatcher.scalingPolicies) {
+                    newMap[key] = this.activeWatcher.scalingPolicies[key];
+                }
+                this.activeWatcher.scalingPolicies = newMap;
+                this.activePolicy = this.activeWatcher.scalingPolicies[result];
+                this.activePolicyName = result;
+                this.cd.markForCheck();
+            })
+            .catch(() => {});
+    }
+
+    public selectPolicyType(type:string):void {
+        if (type == "HealthStatusBased") {
+            this.activePolicy.policyObject = new HealthStatusBasedScalingPolicy();
+        } else if (type == "MetricBased") {
+            this.activePolicy.policyObject = new AttributeBasedScalingPolicy();
+        } else {
+            this.activeChecker.policyObject = undefined;
+            this.activePolicy.script = this.defaultGroovyPolicyScript;
+        }
+    }
+
+    public saveCurrentPolicy():void {
+        this.activeWatcher.scalingPolicies[this.activePolicyName] = this.activePolicy;
+        console.log("Policy has been saved");
+    }
+
+    public selectVotingStrategy(type:string):void {
+        this.activeWatcher.votingStrategy = type;
+        this.activeWatcher.recalculateVotes();
+    }
+
+    public updatePolicyRecommendation():void {
+        this.http.get(REST.SUPERVISOR_POLICY_RECOMMENDATION(this.activeWatcher.name, this.activePolicyName))
+            .map((res:Response) => {console.log("Response is: ", res.json()); return res.json();})
+            .subscribe((data:any) => {
+                this.currentRecommendation = OpRange.fromString(data);
+                this.cd.detectChanges();
+            });
+    }
+
+    public applyRecommendation():void {
+        (<AttributeBasedScalingPolicy>this.activePolicy.policyObject).operationalRange = this.currentRecommendation;
+        this.currentRecommendation = undefined;
+        this.cd.detectChanges();
     }
 
 }
@@ -273,8 +464,26 @@ export class EntityWithDescription {
     public static generateCheckersTypes(): EntityWithDescription[] {
         let _value: EntityWithDescription[] = [];
         _value.push(new EntityWithDescription("Groovy", "Groovy checker"));
-        _value.push(new EntityWithDescription("JavaScript", "Javascript checker"));
+        //_value.push(new EntityWithDescription("JavaScript", "Javascript checker"));
         _value.push(new EntityWithDescription("ColoredAttributeChecker", "Green and yellow conditions based checker"));
+        return _value;
+    }
+
+
+    public static generatePoliciesTypes(): EntityWithDescription[] {
+        let _value: EntityWithDescription[] = [];
+        _value.push(new EntityWithDescription("Groovy", "Groovy policy"));
+        _value.push(new EntityWithDescription("HealthStatusBased", "Health status based scaling policy"));
+        _value.push(new EntityWithDescription("MetricBased", "Attribute based scaling policy"));
+        return _value;
+    }
+
+    public static generateStrategyTypes(): EntityWithDescription[] {
+        let _value: EntityWithDescription[] = [];
+        _value.push(new EntityWithDescription("all", "All policies voted for scaling decision"));
+        _value.push(new EntityWithDescription("any", "At least one policy voted for scaling decision"));
+        _value.push(new EntityWithDescription("most", "Majorities voted for scaling decision"));
+        _value.push(new EntityWithDescription("custom", "User defined vote weights"));
         return _value;
     }
 }

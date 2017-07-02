@@ -2,6 +2,7 @@ package com.bytex.snamp.moa.topology;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Stateful;
+import com.bytex.snamp.configuration.ThreadPoolConfiguration;
 import com.bytex.snamp.instrumentation.Identifier;
 import com.bytex.snamp.instrumentation.measurements.Span;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
@@ -37,8 +38,8 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity
     */
     private final ConcurrentLinkedHashMap<Identifier, SpanQueue> spanBuffer; //key is a parentSpanId
 
-    public GraphOfComponents(final long historySize) {
-        final int concurrencyLevel = Runtime.getRuntime().availableProcessors() * 2;
+    public GraphOfComponents(final long historySize,
+                             final int concurrencyLevel){
         idToVertexCache = new ConcurrentLinkedHashMap.Builder<Identifier, ComponentVertex>()
                 .concurrencyLevel(concurrencyLevel)
                 .maximumWeightedCapacity(historySize)  //this setting helps to remove eldest spans from the cache
@@ -47,6 +48,10 @@ public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity
                 .concurrencyLevel(concurrencyLevel)
                 .maximumWeightedCapacity(historySize)
                 .build();
+    }
+
+    public GraphOfComponents(final long historySize) {
+        this(historySize, ThreadPoolConfiguration.DEFAULT_MAX_POOL_SIZE);
     }
 
     protected boolean filterSpan(final Span span){

@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway.jmx;
 
+import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.google.common.collect.ImmutableSet;
 
@@ -31,7 +32,7 @@ final class JmxNotificationAccessor extends NotificationAccessor implements JmxF
     @Override
     public MBeanNotificationInfo cloneMetadata() {
         return new MBeanNotificationInfo(getMetadata().getNotifTypes(),
-                getMetadata().getName(),
+                Notification.class.getName(),   //to avoid serialization problems in JMX
                 getMetadata().getDescription(),
                 cloneDescriptor());
     }
@@ -40,12 +41,13 @@ final class JmxNotificationAccessor extends NotificationAccessor implements JmxF
         return JmxFeatureBindingInfo.cloneDescriptor(getDescriptor());
     }
 
+
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         final Consumer<Notification> listener = listenerRef.get();
         if (listener != null) {
-            notification.setSource(resourceName);
-            listener.accept(notification);
+            //avoid serialization problems in JMX: just create clone of type Notification
+            listener.accept(new NotificationBuilder(notification).setSource(resourceName).get());
         }
     }
 
@@ -83,5 +85,14 @@ final class JmxNotificationAccessor extends NotificationAccessor implements JmxF
     @Override
     public boolean setProperty(final String propertyName, final Object value) {
         return false;
+    }
+
+    /**
+     * Disconnects notification accessor from the managed resource.
+     */
+    @Override
+    public void close() {
+        listenerRef.clear();
+        super.close();
     }
 }

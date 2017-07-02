@@ -4,7 +4,6 @@ import { EntityWithSub } from "./model.entityWithSub";
 
 export class ResourceGroup extends EntityWithSub {
     http:ApiClient;
-    smartMode:boolean = false;
     constructor(http:ApiClient, name:string, parameters: any) {
         super(http, name, parameters);
         this.http = http;

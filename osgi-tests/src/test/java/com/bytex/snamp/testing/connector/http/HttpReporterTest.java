@@ -23,7 +23,6 @@ import java.net.URISyntaxException;
         @MavenArtifact(groupId = "com.bytex.snamp.instrumentation", artifactId = "http-reporter", version = "1.0.0")
 })
 public class HttpReporterTest extends AbstractHttpConnectorTest {
-    private static final String INSTANCE_NAME = "testApplication";
     private MetricRegistry registry;
 
     private static final class TestApplication extends ApplicationInfo{
@@ -32,13 +31,12 @@ public class HttpReporterTest extends AbstractHttpConnectorTest {
         }
 
         private static void init(){
-            setInstance(INSTANCE_NAME);
+            setInstance(TEST_RESOURCE_NAME);
             setName(COMPONENT_NAME);
         }
     }
 
     public HttpReporterTest() throws URISyntaxException {
-        super(INSTANCE_NAME);
         TestApplication.init();
     }
 

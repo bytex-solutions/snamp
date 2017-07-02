@@ -1,17 +1,17 @@
 import com.bytex.snamp.core.Communicator.MessageType
 
+def changeStringAttributeSilent(){
+    def res = resources.getResource resourceName
+    res./string/.value = 'Frank Underwood'
+}
+
 def changeStringAttribute(messageId, communicator){
-    resources.setAttributeValue resourceName, 'string', 'Frank Underwood'
+    changeStringAttributeSilent()
     communicator.sendMessage(resources.getAttributeValue(resourceName, 'string'), MessageType.RESPONSE, messageId)
 }
 
-def changeStringAttributeSilent(){
-    def res = resources.getResource resourceName
-    res./string/.value = 'Barry Burton'
-}
-
 def changeBooleanAttribute(messageId, communicator){
-    def res = resources.getResource(resourceName)
+    def res = resources.getResource resourceName
     res.getAttribute('boolean').value = true
     assert res./boolean/.metadata.objectName instanceof String
     assert res./boolean/.metadata.readable
@@ -49,13 +49,17 @@ void listen(message, communicator){
     }
 }
 
-def handleNotification(metadata, notif){
-    communicator.sendSignal(notif)
-}
+
 
 //register incoming message listener
 def communicator = getCommunicator communicationChannel
 communicator.addMessageListener({msg -> listen(msg, communicator)}, MessageType.REQUEST)
+
+this.comm = communicator
+
+def handleNotification(metadata, notif){
+    comm.sendSignal(notif)
+}
 
 void close(){
 }

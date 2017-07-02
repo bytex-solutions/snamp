@@ -107,50 +107,86 @@ You can connect to the shell console using SSH.
 ### Verifying installation
 Start SNAMP and open the shell console, then print `bundle:list` and press ENTER. You will see the following output:
 ```
-START LEVEL 30 , List Threshold: 50
- ID | State     | Lvl | Version                    | Name
-------------------------------------------------------------------------------------------
- 62 | Installed |  80 | 3.0.5                      | Apache Karaf :: JNDI :: Command
- 73 | Installed |  80 | 2.3.1                      | Gson
- 74 | Installed |  80 | 18.0.0                     | Guava: Google Core Libraries for Java
- 75 | Installed |  80 | 1.0.0                      | SNAMP Framework
- 76 | Installed |  80 | 1.0.0                      | SNAMP Manager
- 77 | Installed |  80 | 1.0.0                      | JAAS Configuration Manager
- 78 | Installed |  80 | 1.0.0                      | JMX Support Library
- 79 | Resolved  |  80 | 1.50                       | bcpkix
- 80 | Resolved  |  80 | 1.50                       | bcprov
- 81 | Installed |  80 | 0.10.0                     | SSHJ
- 82 | Installed |  80 | 1.0.0                      | RShell Connector
- 83 | Installed |  80 | 1.0.0                      | Nagios NRDP Adapter
- 84 | Installed |  80 | 1.0.0                      | Syslog Adapter
- 85 | Installed |  80 | 1.0.0                      | Apache Aries JNDI Bundle
- 86 | Installed |  80 | 1.0.0                      | Apache Aries Util
- 87 | Installed |  80 | 1.0.0                      | Apache Aries Proxy API
- 88 | Installed |  80 | 2.3.4                      | SNMP4J
- 89 | Installed |  80 | 1.0.0                      | SNMP Resource Adapter
- 90 | Installed |  80 | 2.4.5                      | Groovy Runtime
- 91 | Installed |  80 | 2.4.0.final_20141213170938 | Ivy
- 92 | Installed |  80 | 1.0.0                      | Groovy Resource Adapter
- 93 | Installed |  80 | 1.0.0                      | SNMP Connector
-127 | Installed |  80 | 1.18.1                     | jersey-core
-128 | Installed |  80 | 1.18.1                     | jersey-server
-129 | Installed |  80 | 1.18.1                     | jersey-servlet
-130 | Installed |  80 | 1.0.0                      | HTTP Adapter
-131 | Installed |  80 | 1.0.0                      | Groovy Script Resource
-132 | Installed |  80 | 1.0.0                      | JMX Adapter
-133 | Installed |  80 | 1.0.0                      | JMX Connector
-134 | Installed |  80 | 1.0.0                      | IBM MQ Connector
-135 | Installed |  80 | 1.0.0                      | XMPP Adapter
-136 | Installed |  80 | 1.0.0                      | Nagios ActiveCheck Adapter
-137 | Installed |  80 | 1.50                       | bcpg
-138 | Installed |  80 | 1.0.0                      | SSH Adapter
-139 | Installed |  80 | 1.0.0                      | Managed Resource Aggregator
-140 | Installed |  80 | 1.0.0                      | Nagios NSCA Adapter
+START LEVEL 100 , List Threshold: 50
+ ID | State  | Lvl | Version                    | Name
+-------------------------------------------------------------------------------------------------------------------
+ 52 | Active |  80 | 19.0.0                     | Guava: Google Core Libraries for Java
+ 53 | Active |  80 | 1.4.2                      | ConcurrentLinkedHashMap
+ 54 | Active |  80 | 3.7.2                      | hazelcast
+ 55 | Active |  80 | 2.2.21                     | OrientDB Client
+ 56 | Active |  80 | 2.2.21                     | OrientDB Core
+ 57 | Active |  80 | 2.2.21                     | OrientDB Distributed Server
+ 58 | Active |  80 | 2.2.21                     | OrientDB Server
+ 59 | Active |  80 | 2.2.21                     | OrientDB Tools
+ 60 | Active |  80 | 1.19.3                     | jersey-client
+ 61 | Active |  80 | 1.19.3                     | jersey-core
+ 62 | Active |  80 | 1.19.3                     | jersey-server
+ 63 | Active |  80 | 1.19.3                     | jersey-json
+ 64 | Active |  80 | 1.19.3                     | jersey-servlet
+ 65 | Active |  80 | 1.9.13                     | Jackson JSON processor
+ 66 | Active |  80 | 1.9.13                     | JAX-RS provider for JSON content type, using Jackson data binding
+ 67 | Active |  80 | 1.9.13                     | Data mapper for Jackson JSON processor
+ 68 | Active |  80 | 1.9.13                     | XML Compatibility extensions for Jackson data binding
+ 70 | Active |  80 | 1.4.4                      | JavaMail API (compat)
+ 73 | Active |  80 | 1.1.1                      | jsr311-api
+ 80 | Active |  80 | 1.3.8                      | jettison
+107 | Active |  80 | 3.10.6.Final               | Netty
+108 | Active |  80 | 3.0.1                      | FindBugs-jsr305
+115 | Active |  80 | 2.0.0                      | Discovery API over HTTP
+116 | Active |  80 | 2.0.0                      | SNAMP Framework
+117 | Active |  80 | 2.0.0                      | SNAMP Internal Services
+118 | Active |  80 | 2.0.0                      | JSON Support Library
+119 | Active |  80 | 2.0.0                      | SNAMP Security Layer
+120 | Active |  80 | 2.4.11                     | Groovy Runtime
+121 | Active |  80 | 2.4.11                     | groovy-json
+122 | Active |  80 | 2.4.11                     | groovy-xml
+123 | Active |  80 | 2.4.0.final_20141213170938 | Ivy
+124 | Active |  80 | 2.0.0                      | Default Supervisor
+125 | Active |  80 | 2.0.0                      | OSGi bridge for groovy-xml
+126 | Active |  80 | 2.0.0                      | SNAMP Scripting Framework
+127 | Active |  80 | 3.0.3                      | OpenStack4j
+128 | Active |  80 | 2.0.0                      | OpenStack Supervisor
+129 | Active |  80 | 4.0.8                      | StringTemplate
+130 | Active |  80 | 2.0.0                      | Sprint Actuator Connector
+131 | Active |  80 | 2.0.0                      | Stub Connector
+132 | Active |  80 | 1.0.0                      | SNAMP Instrumentation Library
+133 | Active |  80 | 2.0.0                      | Message Processing Framework
+134 | Active |  80 | 2.0.0                      | Composite Resource Connector
+135 | Active |  80 | 2.0.0                      | Groovy Script Resource
+136 | Active |  80 | 2.0.0                      | HTTP Acceptor
+137 | Active |  80 | 2.0.0                      | JMX Connector
+138 | Active |  80 | 2.0.0                      | Modbus Connector
+139 | Active |  80 | 1.54                       | bcpg
+140 | Active |  80 | 1.54                       | bcpkix
+141 | Active |  80 | 1.54                       | bcprov
+142 | Active |  80 | 0.1.0                      | ed25519-java
+143 | Active |  80 | 2.0.0                      | RShell Connector
+144 | Active |  80 | 0.18.0                     | SSHJ
+145 | Active |  80 | 2.0.0                      | SNMP Connector
+146 | Active |  80 | 2.5.3                      | SNMP4J
+147 | Active |  80 | 1.16.2                     | Zipkin
+148 | Active |  80 | 2.0.0                      | Zipkin Connector
+149 | Active |  80 | 2.0.0                      | DevOps Tools
+150 | Active |  80 | 2.0.0                      | SNAMP Manager
+151 | Active |  80 | 2.0.0                      | E2E Analyzer
+156 | Active |  80 | 2.0.0                      | Web console
+157 | Active |  80 | 2.0.0                      | Groovy Gateway
+158 | Active |  80 | 2.0.0                      | HTTP Gateway
+159 | Active |  80 | 2.0.0                      | InfluxDB Gateway
+160 | Active |  80 | 2.0.0                      | JMX Gateway
+161 | Active |  80 | 2.0.0                      | Nagios ActiveCheck Gateway
+162 | Active |  80 | 2.0.0                      | Nagios NRDP Gateway
+163 | Active |  80 | 2.0.0                      | Nagios NSCA Gateway
+171 | Active |  80 | 2.0.0                      | SNMP Gateway
+172 | Active |  80 | 2.0.0                      | SSH Gateway
+173 | Active |  80 | 2.0.0                      | Syslog Gateway
+174 | Active |  80 | 2.0.0                      | XMPP Gateway
+175 | Active |  80 | 2.0.0                      | SMTP Gateway
 ```
 > Note that version of the SNAMP components may vary and depends on the installed SNAMP version.
 
 ## Root privileges
-SNAMP doesn't require `root` privileges for running. But if you want to use standard ports in the configured resource adapters (161 for `SNMP` protocol and 80, 8080, 443 for `HTTP` protocol) then you should have `root` privileges.
+SNAMP doesn't require `root` privileges for running. But if you want to use standard ports in the configured gateways (161 for `SNMP` protocol and 80, 8080, 443 for `HTTP` protocol) then you should have `root` privileges.
 
 ## Integration in the operating system
 SNAMP may be integrated as an OS System Service:
@@ -158,10 +194,10 @@ SNAMP may be integrated as an OS System Service:
 * like a native Windows Service
 * like a Unix daemon process
 
-Because of SNAMP is developed on top of Apache Karaf you can use exising [Apache Karaf Integration Guide](https://karaf.apache.org/manual/latest/users-guide/wrapper.html).
+Because of SNAMP is developed on top of Apache Karaf you can use exising [Apache Karaf Integration Guide](https://karaf.apache.org/manual/latest/wrapper).
 
 ## Clustering
-SNAMP clustering solution is based on [Apache Karaf Cellar](https://karaf.apache.org/index/subprojects/cellar.html) implementation. By default, clustering is disabled. Execute
+SNAMP clustering solution is based on [Apache Karaf Cellar](https://karaf.apache.org/projects.html#cellar) implementation. By default, clustering is disabled. Execute
 
 ```
 feature:install cellar
@@ -175,23 +211,20 @@ cluster:<TAB>
 
 If you want to manage SNAMP cluster located in the cloud then install _cellar-cloud_ feature using `feature:install cellar-cloud` shell command.
 
-> You may use official Cellar documentation about deployment and maintenace of the cluster. See [Apache Karaf Deployment](http://karaf.apache.org/manual/cellar/latest/user-guide/index.html) for more information.
+> You may use official Cellar documentation about deployment and maintenace of the cluster. See [Apache Karaf Deployment](https://karaf.apache.org/manual/cellar/latest-4/) for more information.
 
 To verify Cellar installation print `feature:list |grep -i cellar` and you will see the following output:
 ```
-cellar-core                   | 3.0.3   |           | karaf-cellar-3.0.3 | Karaf clustering core
-hazelcast                     | 3.2.3   |           | karaf-cellar-3.0.3 | In memory data grid
-cellar-hazelcast              | 3.0.3   |           | karaf-cellar-3.0.3 | Cellar implementation based on Hazelcast
-cellar-config                 | 3.0.3   |           | karaf-cellar-3.0.3 | ConfigAdmin cluster support
-cellar-features               | 3.0.3   |           | karaf-cellar-3.0.3 | Karaf features cluster support
-cellar-bundle                 | 3.0.3   |           | karaf-cellar-3.0.3 | Bundle cluster support
-cellar-shell                  | 3.0.3   |           | karaf-cellar-3.0.3 | Cellar shell support
-cellar                        | 3.0.3   |           | karaf-cellar-3.0.3 | Karaf clustering
-cellar-dosgi                  | 3.0.3   |           | karaf-cellar-3.0.3 | DOSGi support
-cellar-obr                    | 3.0.3   |           | karaf-cellar-3.0.3 | OBR cluster support
-cellar-eventadmin             | 3.0.3   |           | karaf-cellar-3.0.3 | OSGi events broadcasting in clusters
-cellar-cloud                  | 3.0.3   |           | karaf-cellar-3.0.3 | Cloud blobstore support in clusters
-cellar-webconsole             | 3.0.3   |           | karaf-cellar-3.0.3 | Cellar plugin for Karaf WebConsole
+cellar-core                             | 4.0.3            |          | Started     | karaf-cellar-4.0.3       | Karaf clustering core
+hazelcast                               | 3.7.2            |          | Started     | karaf-cellar-4.0.3       | In memory data grid
+cellar-hazelcast                        | 4.0.3            |          | Started     | karaf-cellar-4.0.3       | Cellar implementation based on Hazelcast
+cellar-config                           | 4.0.3            |          | Started     | karaf-cellar-4.0.3       | ConfigAdmin cluster support
+cellar-features                         | 4.0.3            |          | Started     | karaf-cellar-4.0.3       | Karaf features cluster support
+cellar-kar                              | 4.0.3            |          | Started     | karaf-cellar-4.0.3       | Karaf kar cluster support
+cellar-bundle                           | 4.0.3            |          | Started     | karaf-cellar-4.0.3       | Bundle cluster support
+cellar-shell                            | 4.0.3            |          | Started     | karaf-cellar-4.0.3       | Cellar shell support
+cellar                                  | 4.0.3            | x        | Started     | karaf-cellar-4.0.3       | Karaf clustering
+
 ```
 
 Apache Karaf Cellar supports two kind of topologies:
@@ -206,10 +239,10 @@ _cellar_ feature should be installed on each node (virtual or physical machine) 
 Print `cluster:node-list` to verify cluster installation. The expected output should look like the following output:
 
 ```
-| Id             | Host Name | Port
--------------------------------------
-x | node2:5702     | node2 | 5702
-  | node1:5701     | node1 | 5701
+| Id                 | Alias | Host Name     | Port
+-----------------------------------------------------
+x | 192.168.100.6:5701 |       | 192.168.100.6 | 5701
+  | 192.168.100.7:5701 |       | 192.168.100.7 | 5701
 ```
 
 `x` indicates that it's the Karaf instance on which you are logged on (the local node). If you don't see the other nodes there (whereas they should be there), it's probably due to a network issue. By default, Cellar uses multicast to discover the nodes. If your network or network interface doesn't support multicast(UDP), you have to switch to TCP/IP instead of multicast.
@@ -239,11 +272,6 @@ Synchronizing cluster group default
 
 Cellar uses [Hazelcast](http://hazelcast.org/) as a cluster engine.
 
-When you install the _cellar_ feature, a _hazelcast_ feature is being automatically installed, providing the `<snamp>/etc/hazelcast.xml` configuration file. For most of the users, default configuration should be appropriate. If not, you can tailor this XML file according to your needs by adding/removing/modifying properties. Read more about Hazelcast configuration:
-
-* [Configuring Hazelcast](http://docs.hazelcast.org/docs/3.3/manual/html/configuringhazelcast.html)
-* [Cellar and Hazelcast](http://karaf.apache.org/manual/cellar/latest/user-guide/hazelcast.html)
-
 Advanced learning materials:
 
 * "Learning Karaf Cellar" by Jean-Baptiste Onofré, ISBN-10: 1783984600, ISBN-13: 978-1783984602
@@ -259,14 +287,4 @@ Some protocols supported by SNAMP have bi-directional nature of communication. F
 
 > Don't care about sequence number of notifications. Sequence number is synchronized across cluster.
 
-This issue can be produced by JMX Connector, NSCA Adapter, NRDP Adapter, MDA Connector and several other components (read documentation of each [Connector](connectors/introduction.md) or [Adapter](adapters/introduction.md) carefully). Solution is to choose a **leader node** responsible for delivery of notifications and other reverse-way information. Leader node will be selected dynamically using the leader election mechanism. Non-leader nodes will stay fully-functional except notifications delivery. When the leader node crashes, it starts an election and selecting the new leader.
-
-## SNAMP Management Console
-SNAMP Web Console is available after purchasing support plan. Console is provided as an optional module for SNAMP - kar archive.
-
-1. Get `web-console-feature-X.Y.Z.kar` archive.
-1. Copy downloaded artifact into `<snamp>/deploy` folder
-
-Verify your installation using `feature:list -i`, `bundle:list` and `log:exception-display` shell commands.
-If web-console has been installed open the [link](http://YOUR_HOST:3535/hawtio/login).
-3535 is a default port for web-console. In case of local installation you can check [this](http://localhost:3535/hawtio/login) link.
+This issue can be produced by JMX Connector, NSCA Gateway, NRDP Gateway and several other components (read documentation of each [Connector](connectors/introduction.md) or [Gateway](gateways/introduction.md) carefully). Solution is to choose a **leader node** responsible for delivery of notifications and other reverse-way information. Leader node will be selected dynamically using the leader election mechanism. The notifications from managed resources will be ignored by non-leader nodes but leader node duplicates notifications to all non-leader nodes using distributed messaging so listener will receive correct notification even on non-leader nodes.

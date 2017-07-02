@@ -16,7 +16,6 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,10 +57,13 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     private static Map<String, ?> getFields(final Duration readWriteTimeout,
-                                            final Map<String, String> options){
-        final Map<String, Object> fields = new HashMap<>(options);
-        fields.put(READ_WRITE_TIMEOUT_FIELD, readWriteTimeout);
-        return fields;
+                                            final Map<String, String> options) {
+        return readWriteTimeout == null ?
+                options :
+                ImmutableMap.<String, Object>builder()
+                        .putAll(options)
+                        .put(READ_WRITE_TIMEOUT_FIELD, readWriteTimeout)
+                        .build();
     }
 
     /**

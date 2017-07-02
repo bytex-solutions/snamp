@@ -1,21 +1,19 @@
 package com.bytex.snamp.web.serviceModel.charts;
 
-import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
-import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.supervision.SupervisorClient;
-import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.google.common.collect.ImmutableList;
-import org.codehaus.jackson.annotate.*;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonTypeName;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -172,42 +170,6 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
         return result;
     }
 
-    //health status collector when supervisor is not available
-    private static Collection<ChartData> collectChartData(final BundleContext context, final String groupName) {
-        final class FakeResourceGroupHealthStatus extends HashMap<String, HealthStatus> implements ResourceGroupHealthStatus, Consumer<ManagedResourceConnectorClient> {
-            private static final long serialVersionUID = 420503389377659109L;
-
-            private void putStatus(final String resourceName, final ManagedResourceConnector connector) {
-                put(resourceName,
-                        connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new));
-            }
-
-            @Override
-            public void accept(final ManagedResourceConnectorClient client) {
-                try {
-                    putStatus(client.getManagedResourceName(), client);
-                } finally {
-                    client.close();
-                }
-            }
-        }
-        final FakeResourceGroupHealthStatus status = new FakeResourceGroupHealthStatus();
-        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(context))
-            ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(status);
-        return collectChartData(status, groupName);
-    }
-
-    private static Collection<ChartData> collectChartData(final HealthStatusProvider provider, final String groupName) {
-        return collectChartData(provider.getStatus(), groupName);
-    }
-
-    private static Collection<ChartData> collectChartData(final BundleContext context, final SupervisorClient supervisor) {
-        final String groupName = supervisor.getGroupName();
-        return supervisor.queryObject(HealthStatusProvider.class)
-                .map(provider -> collectChartData(provider, groupName))
-                .orElseGet(() -> collectChartData(context, groupName));
-    }
-
     /**
      * Collects chart data.
      *
@@ -217,9 +179,9 @@ public final class ResourceGroupHealthStatusChart extends AbstractChart implemen
      */
     @Override
     public Collection<ChartData> collectChartData(final BundleContext context) throws Exception {
-        if(isNullOrEmpty(groupName))
+        if (isNullOrEmpty(groupName))
             return ImmutableList.of();
-        final Optional<SupervisorClient> supervisor = SupervisorClient.tryCreate(context, groupName);
-        return supervisor.isPresent() ? collectChartData(context, supervisor.get()) : collectChartData(context, groupName);
+        final ResourceGroupHealthStatus status = SupervisorClient.getGroupStatus(context, groupName);
+        return collectChartData(status, groupName);
     }
 }

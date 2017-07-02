@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.util.concurrent.Callable;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.compileTemplate;
+import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.createRenderer;
 
 /**
  * Represents a set of default templates.
@@ -25,8 +27,6 @@ enum DefaultMailTemplate implements Callable<CompiledST> {
     SCALE_OUT("ScaleOutTemplate.txt"),
     SCALE_IN("ScaleInTemplate.txt"),
     MAX_CLUSTER_SIZE_REACHED("MaxClusterSizeReachedTemplate.txt");
-
-    private static final STGroup TEMPLATE_GROUP = new STGroup('{', '}');
     
     private final String templateName;
 
@@ -44,12 +44,11 @@ enum DefaultMailTemplate implements Callable<CompiledST> {
     }
 
     static CompiledST compile(final String template, final String templateName){
-        final CompiledST result = TEMPLATE_GROUP.compile(TEMPLATE_GROUP.getFileName(), templateName, null, template, null);
-        result.hasFormalArgs = false;
-        return result;
+        final STGroup templateGroup = new STGroup('{', '}');
+        return compileTemplate(templateGroup, template, templateName);
     }
 
-    static ST createTemplateRenderer(final CompiledST compiledTemplate){
-        return TEMPLATE_GROUP.createStringTemplate(callUnchecked(compiledTemplate::clone));
+    static ST createTemplateRenderer(final CompiledST compiledTemplate) {
+        return createRenderer(callUnchecked(compiledTemplate::clone));
     }
 }

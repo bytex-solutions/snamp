@@ -53,9 +53,7 @@ final class HttpModelOfNotifications extends ModelOfNotifications<HttpNotificati
 
         @Override
         public final void handleNotification(final NotificationEvent event) {
-            final Notification notification = event.getNotification();
-            notification.setSource(event.getResourceName());
-            handleNotification(notification);
+            handleNotification(event.cloneNotification()); //TODO: Fix serialization/deserialization/serialization chain!
         }
 
         @Override

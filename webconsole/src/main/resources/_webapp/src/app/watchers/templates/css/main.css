@@ -19,6 +19,7 @@
 }
 
 .activeTr {
+    border-left: 2px solid rgb(30, 6, 255) !important;
     background-color: #b9c7de;
 }
 
@@ -35,4 +36,8 @@
 .input-group-addon {
     border: 0 !important;
     background-color: rgba(0,0,0,0) !important;
+}
+
+.active-tr {
+    border-left: 2px solid rgb(30, 6, 255) !important;
 }

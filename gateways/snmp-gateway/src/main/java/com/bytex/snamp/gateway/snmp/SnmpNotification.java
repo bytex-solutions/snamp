@@ -2,7 +2,6 @@ package com.bytex.snamp.gateway.snmp;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.IntBox;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.notifications.Severity;
@@ -61,6 +60,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     }
 
     SnmpNotification(final OID notificationID,
+                     final String resourceName,
                      final Notification n,
                      final MBeanNotificationInfo options) {
         this(notificationID);
@@ -72,7 +72,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         put(timeStampId, new OctetString(formatter.convert(new Date(n.getTimeStamp()))));
         putAttachment(notificationID, n.getUserData(), options, this);
         put(eventNameId, OctetStringHelper.toOctetString(n.getType()));
-        put(sourceId, OctetStringHelper.toOctetString(Objects.toString(n.getSource(), "")));
+        put(sourceId, OctetStringHelper.toOctetString(resourceName));
     }
 
     private static void putAttachment(final OID notificationID,
@@ -81,7 +81,8 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                                       final Map<OID, Variable> output) {
         if (attachment == null) return;
         final SnmpType type = SnmpType.map(WellKnownType.fromValue(attachment));
-        assert type != null;
+        if(type == null)
+            return;
         if (type.isScalar()) {
             final Variable value = type.convert(attachment, options);
             output.put(new OID(notificationID).append(MAX_RESERVED_POSTFIX + 1), value != null ? value : new Null());
@@ -119,7 +120,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
     private static <E extends Exception> void forEachVariable(final TabularData attachment,
                                                               final DescriptorRead options,
                                                               final Acceptor<VariableBinding, E> handler) throws E{
-        final IntBox rowIndex = BoxFactory.createForInt(0);
+        final IntBox rowIndex = IntBox.of(0);
         TabularDataUtils.forEachRow(attachment, value -> {
             int columnIndex = 0;
             for(final String columnName: value.getCompositeType().keySet()){
@@ -151,12 +152,10 @@ final class SnmpNotification extends HashMap<OID, Variable> {
      * Returns an array of variable bindings associated with this message.
      * @return An array of variable bindings associated with this message.
      */
-    VariableBinding[] getBindings(){
-        final VariableBinding[] result = new VariableBinding[size()];
-        int i = 0;
-        for(final Map.Entry<OID, Variable> entry: entrySet())
-            result[i++] = new VariableBinding(entry.getKey(), entry.getValue());
-        return result;
+    VariableBinding[] getBindings() {
+        return entrySet().stream()
+                .map(entry -> new VariableBinding(entry.getKey(), entry.getValue()))
+                .toArray(VariableBinding[]::new);
     }
 
     String getMessage(){

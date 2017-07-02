@@ -26,8 +26,13 @@ final class SerializableScriptletConfiguration implements ScriptletConfiguration
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableScriptletConfiguration() {
+        this(false);
+    }
+
+    SerializableScriptletConfiguration(final boolean modified){
         language = script = "";
         parameters = new ParametersMap();
+        this.modified = modified;
     }
 
     @Override

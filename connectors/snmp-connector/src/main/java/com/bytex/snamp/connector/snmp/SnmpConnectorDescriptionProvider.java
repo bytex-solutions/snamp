@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 
 import static com.bytex.snamp.MapUtils.getValue;
 import static com.bytex.snamp.MapUtils.getValueAsInt;
+import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.SMART_MODE_KEY;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
@@ -44,18 +45,19 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     private static final int DEFAULT_SOCKET_TIMEOUT = 3000;
     private static final String RESPONSE_TIMEOUT_PARAM = "responseTimeout";
     private static final long DEFAULT_RESPONSE_TIMEOUT = 6000;
+    private static final String DISCOVERY_TIMEOUT_PROPERTY = "discoveryTimeout";
+    private static final long DEFAULT_DISCOVERY_TIMEOUT = 5000;
     //attribute related parameters
     static final String SNMP_CONVERSION_FORMAT_PARAM = "snmpConversionFormat";
     //event related parameters
     private static final String SEVERITY_PARAM = "severity";
-    static final String MESSAGE_TEMPLATE_PARAM = "messageTemplate";
     static final String MESSAGE_OID_PARAM = "messageOID";
 
     private static final class EventConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<EventConfiguration>{
         private static final String RESOURCE_NAME = "EventOptions";
 
         private EventConfigurationDescriptor(){
-            super(RESOURCE_NAME, EventConfiguration.class, SEVERITY_PARAM, MESSAGE_TEMPLATE_PARAM);
+            super(RESOURCE_NAME, EventConfiguration.class, SEVERITY_PARAM, MESSAGE_OID_PARAM);
         }
     }
 
@@ -86,7 +88,8 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
                     LOCAL_ADDRESS_PARAM,
                     SECURITY_CONTEXT_PARAM,
                     THREAD_POOL_KEY,
-                    SMART_MODE_KEY);
+                    SMART_MODE_KEY,
+                    DISCOVERY_TIMEOUT_PROPERTY);
         }
     }
 
@@ -161,5 +164,10 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
         return userName == null ?
                 SnmpClient.create(connectionAddress, community, localAddress, socketTimeout, threadPool):
                 SnmpClient.create(connectionAddress, engineID, userName, authProtocol, password, encryptionProtocol, encryptionKey, securityContext, localAddress, socketTimeout, threadPool);
+    }
+
+    Duration parseDiscoveryTimeout(final Map<String, String> configuration) {
+        final long timeoutMillis = getValueAsLong(configuration, DISCOVERY_TIMEOUT_PROPERTY, Long::parseLong).orElse(DEFAULT_DISCOVERY_TIMEOUT);
+        return Duration.ofMillis(timeoutMillis);
     }
 }

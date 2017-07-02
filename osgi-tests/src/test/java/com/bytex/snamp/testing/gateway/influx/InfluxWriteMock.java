@@ -17,10 +17,14 @@ import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
 @Path("/")
 public class InfluxWriteMock extends InfluxMethodMock {
     private final Communicator communicator;
-    static final String INFLUX_CHANNEL = "InfluxDB-channel";
+    private static final String INFLUX_CHANNEL = "InfluxDB-channel";
 
-    public InfluxWriteMock(){
-        communicator = ClusterMember.get(null).getService(INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+    InfluxWriteMock(){
+        communicator = getCommunicator(ClusterMember.get(null));
+    }
+
+    static Communicator getCommunicator(final ClusterMember member){
+        return member.getService(INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
     }
 
     @POST

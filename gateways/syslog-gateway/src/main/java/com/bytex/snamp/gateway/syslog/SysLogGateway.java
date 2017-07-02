@@ -1,11 +1,13 @@
 package com.bytex.snamp.gateway.syslog;
 
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.AbstractGateway;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.FeatureAccessor;
 import com.bytex.snamp.gateway.modeling.ModelOfAttributes;
 import com.bytex.snamp.gateway.modeling.ModelOfNotifications;
+import com.bytex.snamp.internal.Utils;
 import com.cloudbees.syslog.Facility;
 import com.cloudbees.syslog.Severity;
 import com.cloudbees.syslog.SyslogMessage;
@@ -16,9 +18,11 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.CharArrayWriter;
-import java.time.Duration;
+import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
+import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 /**
@@ -36,15 +40,19 @@ final class SysLogGateway extends AbstractGateway {
     }
 
     private static final class SysLogModelOfNotifications extends ModelOfNotifications<SysLogNotificationAccessor> implements NotificationListener {
-        private ConcurrentSyslogMessageSender checkSender;
+        private SyslogMessageSender checkSender;
 
         @Override
         protected SysLogNotificationAccessor createAccessor(final String resourceName, final MBeanNotificationInfo metadata) {
             return new SysLogNotificationAccessor(resourceName, metadata, this);
         }
 
-        private void setCheckSender(final ConcurrentSyslogMessageSender value){
-            this.checkSender = value;
+        private void setCheckSender(final SyslogMessageSender value){
+            this.checkSender = Objects.requireNonNull(value);
+        }
+
+        private Logger getLogger(){
+            return LoggerProvider.getLoggerForObject(this);
         }
 
         @Override
@@ -52,25 +60,26 @@ final class SysLogGateway extends AbstractGateway {
             final Severity severity = SysLogNotificationAccessor.getSeverity(event.getMetadata());
             final Facility facility = SysLogNotificationAccessor.getFacility(event.getMetadata());
             final String applicationName = SysLogNotificationAccessor.getApplicationName(event.getMetadata(), event.getResourceName());
-            final ConcurrentSyslogMessageSender checkSender = this.checkSender;
-            if (checkSender != null){
+            final SyslogMessageSender checkSender = this.checkSender;
+            if (checkSender != null) {
                 final SyslogMessage message = new SyslogMessage()
-                    .withSeverity(severity)
-                    .withFacility(facility)
-                    .withMsgId(event.getNotification().getType())
-                    .withAppName(applicationName)
-                    .withTimestamp(event.getNotification().getTimeStamp())
-                    .withMsg(new CharArrayWriter().append(event.getNotification().getMessage()))
-                    .withProcId(SysLogUtils.getProcessId(applicationName));
-                checkSender.sendMessage(message);
+                        .withSeverity(severity)
+                        .withFacility(facility)
+                        .withMsgId(event.getNotification().getType())
+                        .withAppName(applicationName)
+                        .withTimestamp(event.getNotification().getTimeStamp())
+                        .withMsg(new CharArrayWriter().append(event.getNotification().getMessage()))
+                        .withProcId(SysLogUtils.getProcessId(applicationName));
+                try {
+                    checkSender.sendMessage(message);
+                } catch (final IOException e) {
+                    getLogger().log(Level.SEVERE, String.format("Failed to wrap notification %s of resource %s into syslog message", event.getType(), event.getResourceName()), e);
+                }
             }
         }
 
         @Override
         protected void cleared() {
-            final ConcurrentSyslogMessageSender sender = checkSender;
-            if (sender != null)
-                sender.close();
             checkSender = null;
         }
     }
@@ -114,35 +123,20 @@ final class SysLogGateway extends AbstractGateway {
         else return null;
     }
 
-    private void start(final SyslogMessageSender sender,
-                       final Duration passiveCheckSendPeriod,
-                       final ExecutorService threadPool){
-        final ConcurrentSyslogMessageSender parallelSender =
-                new ConcurrentSyslogMessageSender(sender, threadPool);
-        attributeSender = new SysLogAttributeSender(passiveCheckSendPeriod,
-                parallelSender,
+    @Override
+    protected void start(final Map<String, String> parameters) throws Exception {
+        final SysLogConfigurationDescriptor parser = SysLogConfigurationDescriptor.getInstance();
+        final SyslogMessageSender sender = parser.createSender(parameters);
+        attributeSender = new SysLogAttributeSender(parser.getPassiveCheckSendPeriod(parameters),
+                sender,
                 attributes);
-        notifications.setCheckSender(parallelSender);
+        notifications.setCheckSender(sender);
         attributeSender.run();
     }
 
     @Override
-    protected void start(final Map<String, String> parameters) throws Exception {
-        final SysLogConfigurationDescriptor parser = SysLogConfigurationDescriptor.getInstance();
-        start(parser.createSender(parameters),
-                parser.getPassiveCheckSendPeriod(parameters),
-                parser.parseThreadPool(parameters));
-    }
-
-    @Override
     protected void stop() throws Exception {
-        try {
-            attributeSender.close();
-        } finally {
-            attributeSender = null;
-            attributes.clear();
-            notifications.clear();
-        }
+        Utils.closeAll(attributeSender, attributes::clear, notifications::clear);
     }
 
     @SuppressWarnings("unchecked")

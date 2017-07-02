@@ -9,6 +9,7 @@ import com.bytex.snamp.connector.metrics.Metric;
 import com.google.common.collect.Sets;
 
 import javax.annotation.Nonnull;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.management.MBeanFeatureInfo;
 import java.util.Collection;
@@ -147,6 +148,7 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
      * @implNote This method calls {@link #clear()}.
      */
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void close() {
         clear();
         resourceEventListeners.clear();

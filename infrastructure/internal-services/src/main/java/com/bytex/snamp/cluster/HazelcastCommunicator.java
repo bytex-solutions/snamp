@@ -5,7 +5,6 @@ import com.bytex.snamp.core.Communicator;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -24,14 +23,14 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 2.0
  */
 final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferObject>> implements Communicator {
-    private static final class TransferObjectListener implements MessageListener<TransferObject>, SafeCloseable{
+    private static final class TransferObjectListener implements com.hazelcast.core.MessageListener<TransferObject>, SafeCloseable{
         private final String localMemberID;
         private final Predicate<? super HazelcastIncomingMessage> filter;
         private final Consumer<? super HazelcastIncomingMessage> listener;
         private final ITopic<TransferObject> topic;
         private final String subscription;
 
-        private TransferObjectListener(final ITopic<TransferObject> topic, final String localMember, final Predicate<? super HazelcastIncomingMessage> filter, final Consumer<? super HazelcastIncomingMessage> listener){
+        private TransferObjectListener(final ITopic<TransferObject> topic, final String localMember, final Predicate<? super HazelcastIncomingMessage> filter, final MessageListener listener){
             this.localMemberID = localMember;
             this.filter = Objects.requireNonNull(filter);
             this.listener = Objects.requireNonNull(listener);
@@ -57,17 +56,17 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
         }
     }
 
-    private static class MessageReceiver<V> extends CompletableFuture<V> implements MessageListener<TransferObject>, SafeCloseable{
+    private static class MessageReceiver<V> extends CompletableFuture<V> implements com.hazelcast.core.MessageListener<TransferObject>, SafeCloseable{
         private final Predicate<? super HazelcastIncomingMessage> filter;
         private final String subscription;
         private final ITopic<TransferObject> topic;
         private final String localMemberID;
-        private final Function<? super IncomingMessage, ? extends V> messageParser;
+        private final Function<? super MessageEvent, ? extends V> messageParser;
 
         private MessageReceiver(final ITopic<TransferObject> topic,
                                 final String localMember,
                                 final Predicate<? super HazelcastIncomingMessage> filter,
-                                final Function<? super IncomingMessage, ? extends V> messageParser){
+                                final Function<? super MessageEvent, ? extends V> messageParser){
             this.filter = Objects.requireNonNull(filter);
             this.topic = Objects.requireNonNull(topic);
             this.localMemberID = localMember;
@@ -93,18 +92,18 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
         }
     }
 
-    private static final class LinkedMessageBox<V> extends LinkedBlockingQueue<V> implements MessageBox<V>, MessageListener<TransferObject>{
+    private static final class LinkedMessageBox<V> extends LinkedBlockingQueue<V> implements MessageBox<V>, com.hazelcast.core.MessageListener<TransferObject>{
         private static final long serialVersionUID = 5833889571236077744L;
-        private final Predicate<? super IncomingMessage> filter;
+        private final Predicate<? super MessageEvent> filter;
         private final String subscription;
         private final ITopic<TransferObject> topic;
         private final String localMemberID;
-        private final Function<? super IncomingMessage, ? extends V> messageParser;
+        private final Function<? super MessageEvent, ? extends V> messageParser;
 
         private LinkedMessageBox(final ITopic<TransferObject> topic,
                                  final String localMember,
-                                 final Predicate<? super IncomingMessage> filter,
-                                 final Function<? super IncomingMessage, ? extends V> messageParser) {
+                                 final Predicate<? super MessageEvent> filter,
+                                 final Function<? super MessageEvent, ? extends V> messageParser) {
             this.filter = Objects.requireNonNull(filter);
             this.topic = Objects.requireNonNull(topic);
             this.subscription = topic.addMessageListener(this);
@@ -130,19 +129,19 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
         }
     }
 
-    private static final class FixedSizeMessageBox<V> extends ArrayBlockingQueue<V> implements MessageBox<V>, MessageListener<TransferObject>, SafeCloseable{
+    private static final class FixedSizeMessageBox<V> extends ArrayBlockingQueue<V> implements MessageBox<V>, com.hazelcast.core.MessageListener<TransferObject>, SafeCloseable{
         private static final long serialVersionUID = 2173687138535015363L;
-        private final Predicate<? super IncomingMessage> filter;
+        private final Predicate<? super MessageEvent> filter;
         private final String subscription;
         private final transient ITopic<TransferObject> topic;
         private final String localMemberID;
-        private final Function<? super IncomingMessage, ? extends V> messageParser;
+        private final Function<? super MessageEvent, ? extends V> messageParser;
 
         private FixedSizeMessageBox(final int capacity,
                                     final ITopic<TransferObject> topic,
                                     final String localMember,
-                                    final Predicate<? super IncomingMessage> filter,
-                                    final Function<? super IncomingMessage, ? extends V> messageParser){
+                                    final Predicate<? super MessageEvent> filter,
+                                    final Function<? super MessageEvent, ? extends V> messageParser){
             super(capacity);
             this.filter = Objects.requireNonNull(filter);
             this.topic = Objects.requireNonNull(topic);
@@ -200,7 +199,7 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
     }
 
     @Override
-    public <V> V receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
+    public <V> V receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         try(final MessageReceiver<V> receiver = receiveMessage(filter, messageParser)) {
             final Callable<V> callable = timeout == null ? receiver::get : () -> receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
             return callUnchecked(callable);
@@ -208,27 +207,27 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
     }
 
     @Override
-    public <V> MessageReceiver<V> receiveMessage(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+    public <V> MessageReceiver<V> receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
         return new MessageReceiver<>(getDistributedObject(), localMember, filter, messageParser);
     }
 
     @Override
-    public TransferObjectListener addMessageListener(final Consumer<? super IncomingMessage> listener, final Predicate<? super IncomingMessage> filter) {
+    public TransferObjectListener addMessageListener(final MessageListener listener, final Predicate<? super MessageEvent> filter) {
         return new TransferObjectListener(getDistributedObject(), localMember, filter, listener);
     }
 
     @Override
-    public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+    public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
         return new FixedSizeMessageBox<>(capacity, getDistributedObject(), localMember, filter, messageParser);
     }
 
     @Override
-    public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super IncomingMessage> filter, final Function<? super IncomingMessage, ? extends V> messageParser) {
+    public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
         return new LinkedMessageBox<>(getDistributedObject(), localMember, filter, messageParser);
     }
 
     @Override
-    public <V> V sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
+    public <V> V sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         final long messageID = newMessageID();
         try (final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser)) {
             sendMessage(request, MessageType.REQUEST, messageID);
@@ -238,7 +237,7 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
     }
 
     @Override
-    public <V> MessageReceiver<V> sendRequest(final Serializable request, final Function<? super IncomingMessage, ? extends V> messageParser) throws InterruptedException {
+    public <V> MessageReceiver<V> sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser) throws InterruptedException {
         final long messageID = newMessageID();
         final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser);
         sendMessage(request, MessageType.REQUEST, messageID);

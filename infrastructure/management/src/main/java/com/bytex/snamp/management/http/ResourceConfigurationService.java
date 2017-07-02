@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -147,5 +148,23 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setGroupName(@PathParam("name") final String resourceName, final String value){
         return setConfigurationByName(resourceName, config -> config.setGroupName(value));
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/{name}/overriddenProperties")
+    public Set<String> getOverriddenProperties(@PathParam("name") final String resourceName) {
+        return getConfigurationByName(resourceName, ManagedResourceConfiguration::getOverriddenProperties);
+    }
+
+    @PUT
+    @Path("/{name}/overriddenProperties")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setOverriddenProperties(@PathParam("name") final String resourceName, final Set<String> properties) {
+        return setConfigurationByName(resourceName, config -> {
+            config.getOverriddenProperties().clear();
+            config.getOverriddenProperties().addAll(properties);
+        });
     }
 }

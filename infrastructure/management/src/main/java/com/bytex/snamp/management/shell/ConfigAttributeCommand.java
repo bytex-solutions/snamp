@@ -58,6 +58,10 @@ public final class ConfigAttributeCommand extends TemplateConfigurationCommand {
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private String[] parametersToDelete = parameters;
 
+    @SpecialUse(SpecialUse.Case.REFLECTION)
+    @Option(name = "-o", aliases = "--override", description = "Override configuration of attribute declared by group")
+    private boolean override;
+
     private boolean processAttributes(final EntityMap<? extends AttributeConfiguration> attributes, final PrintWriter output){
         if(del)
             attributes.remove(attributeName);
@@ -66,6 +70,7 @@ public final class ConfigAttributeCommand extends TemplateConfigurationCommand {
             if (readWriteTimeout > INFINITE_TIMEOUT)
                 attribute.setReadWriteTimeout(Duration.ofMillis(readWriteTimeout));
             attribute.putAll(StringKeyValue.parse(parameters));
+            attribute.setOverridden(override);
             Arrays.stream(parametersToDelete).forEach(attribute::remove);
         }
         output.println("Attribute configured successfully");

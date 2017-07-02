@@ -1,20 +1,13 @@
 package com.bytex.snamp.jmx;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import javax.management.openmbean.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Provides helper methods that allows to create and
@@ -101,36 +94,5 @@ public final class TabularDataUtils {
                 keyColumn.accept(keyName);
             else
                 valueColumn.accept(keyName);
-    }
-
-    public static TabularData makeKeyValuePairs(final TabularType type, final Map<?, ?> pairs) throws OpenDataException {
-        checkKeyValuePairType(type);
-        //check entry type: one column must be indexed and another not
-        final Box<String> indexName = BoxFactory.create("");
-        final Box<String> valueName = BoxFactory.create("");
-        getKeyValueColumn(type, indexName, valueName);
-        assert !isNullOrEmpty(indexName.get()) : indexName;
-        assert !isNullOrEmpty(valueName.get()) : valueName;
-        final TabularDataSupport result = new TabularDataSupport(type);
-        for (final Map.Entry<?, ?> entry : pairs.entrySet())
-            if (entry.getValue() != null)
-                result.put(new CompositeDataSupport(type.getRowType(), ImmutableMap.of(indexName.get(), entry.getKey(), valueName.get(), entry.getValue())));
-        return result;
-    }
-
-    public static Map<?, ?> makeKeyValuePairs(final TabularData table) throws OpenDataException {
-        checkKeyValuePairType(table.getTabularType());
-        final Box<String> keyColumn = BoxFactory.create("");
-        final Box<String> valueColumn = BoxFactory.create("");
-        getKeyValueColumn(table.getTabularType(), keyColumn, valueColumn);
-        assert !isNullOrEmpty(keyColumn.get()) : keyColumn;
-        assert !isNullOrEmpty(valueColumn.get()) : valueColumn;
-        final Map<Object, Object> result = Maps.newHashMapWithExpectedSize(table.size());
-        forEachRow(table, row -> {
-            final String keyColumnName = keyColumn.get();
-            final String valueColumnName = valueColumn.get();
-            result.put(row.get(keyColumnName), row.get(valueColumnName));
-        });
-        return result;
     }
 }

@@ -2,9 +2,7 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.SpinWait;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,9 +13,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.util.Arrays;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,8 +67,8 @@ public final class UtilsTest extends Assert {
     @SuppressWarnings("unchecked")
     @Test
     public void reflectSetterTest() throws ReflectiveOperationException{
-        final Box<String> box = BoxFactory.create("");
-        final Consumer<String> setter = reflectSetter(MethodHandles.lookup(), box, box.getClass().getDeclaredMethod("set", Object.class));
+        final Box<String> box = Box.of("");
+        final Consumer<String> setter = reflectSetter(MethodHandles.lookup(), box, Box.class.getDeclaredMethod("set", Object.class));
         setter.accept("Frank Underwood");
         assertEquals("Frank Underwood", box.get());
     }
@@ -94,10 +91,9 @@ public final class UtilsTest extends Assert {
         final SecureRandom random = new SecureRandom(new byte[]{10, 90, 67, 33, 91, 29});
         final byte[] bytes = new byte[100];
         random.nextBytes(bytes);
-        final Executor executor = Executors.newFixedThreadPool(3);
+        final ExecutorService executor = Executors.newFixedThreadPool(3);
         final AtomicInteger index = new AtomicInteger(0);
         Utils.parallelForEach(Arrays.spliterator(ArrayUtils.wrapArray(bytes)), b -> index.incrementAndGet(), executor);
-        SpinWait.until(() -> index.get() < 100, Duration.ofSeconds(2));
         assertEquals(100, index.get());
     }
 

@@ -65,6 +65,10 @@ public final class AcceptorService {
         return MapUtils.readOnlyMap(requestHeaders::get, requestHeaders.keySet());
     }
 
+    private static Response noContent(){
+        return Response.noContent().build();
+    }
+
     @GET
     @Path("/ping")
     @Produces(MediaType.TEXT_PLAIN)
@@ -90,14 +94,33 @@ public final class AcceptorService {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response acceptMeasurements(@Context final HttpHeaders headers, final Measurement[] measurements){
-        for(final Measurement measurement: measurements)
-            acceptMeasurement(headers, measurement);
-        return Response.noContent().build();
+    public Response acceptMeasurements(@Context final HttpHeaders headers, final Measurement[] measurements) {
+        return Arrays.stream(measurements)
+                .map(measurement -> acceptMeasurement(headers, measurement))
+                .reduce(noContent(), (result, response) -> response.getStatus() > result.getStatus() ? response : result);
     }
 
     private BundleContext getBundleContext(){
         return getBundleContextOfObject(this);
+    }
+
+    private static Response acceptMeasurement(final ManagedResourceConnectorClient client,
+                                              final HttpHeaders headers,
+                                              final Measurement measurement) {
+        try {
+            return client.queryObject(DataStreamConnector.class)
+                    .map(acceptor -> {
+                        try {
+                            acceptor.dispatch(wrapHeaders(headers), measurement);
+                        } catch (final Exception e) {
+                            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString()).build();
+                        }
+                        return noContent();
+                    })
+                    .orElseGet(() -> Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build());
+        } finally {
+            client.close();
+        }
     }
 
     /**
@@ -111,24 +134,9 @@ public final class AcceptorService {
     public Response acceptMeasurement(@Context final HttpHeaders headers, final Measurement measurement) {
         //find the appropriate connector and redirect
         final BundleContext context = getBundleContext();
-        final Optional<ManagedResourceConnectorClient> client = ManagedResourceConnectorClient.tryCreate(context, measurement.getInstanceName());
-        Response response;
-        if (client.isPresent())
-            try (final ManagedResourceConnectorClient connector = client.get()) {
-                response = connector.queryObject(DataStreamConnector.class)
-                        .map(acceptor -> {
-                            try {
-                                acceptor.dispatch(wrapHeaders(headers), measurement);
-                            } catch (final Exception e) {
-                                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.toString()).build();
-                            }
-                            return Response.noContent().build();
-                        })
-                        .orElseGet(() -> Response.status(Response.Status.BAD_REQUEST).entity("Resource %s is not data stream processor").build());
-            }
-        else
-            response = Response.status(Response.Status.NOT_FOUND).build();
-        return response;
+        return ManagedResourceConnectorClient.tryCreate(context, measurement.getInstanceName())
+                .map(client -> acceptMeasurement(client, headers, measurement))
+                .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).build());
     }
 
     private void acceptCustomPayload(final Map<String, ?> headers, final Object body) throws Exception {

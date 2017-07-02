@@ -8,7 +8,6 @@ import org.osgi.service.cm.ConfigurationAdmin;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -36,7 +35,18 @@ final class Helpers {
         final Optional<ManagedResourceConnectorClient> client = ManagedResourceConnectorClient.tryCreate(context, resourceName);
         if (client.isPresent())
             try (final ManagedResourceConnectorClient connector = client.get()) {
-                return connector.getProperties(Helpers::propertyFilter, Objects::toString);
+                final Map<String, String> tags = new HashMap<>(connector.getConfiguration());
+                //remove security-sensitive parameters
+                tags.remove("password");
+                tags.remove("userName");
+                tags.remove("login");
+                tags.remove("secret");
+                tags.remove("databaseLogin");
+                tags.remove("databasePassword");
+                //add predefined parameters
+                tags.put("managedResource", connector.getManagedResourceName());
+                tags.put("connectionType", connector.getConnectorType());
+                return tags;
             }
         else
             return new HashMap<>();

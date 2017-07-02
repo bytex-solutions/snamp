@@ -1,6 +1,7 @@
 JMX Resource Connector
 ====
 JMX Resource Connector allows you to manage and monitor Java components via JMX protocol, such as
+
 * Java Application Servers
 * Java components
 * Java standalone application
@@ -12,7 +13,9 @@ Short list of supported features:
 Feature | Comments
 ---- | ----
 Attributes | Transforming JMX attributes into SNAMP attributes
-Events | Routing JMX notifications to resource adapters
+Events | Routing JMX notifications to Web Console and gateways
+Operations | Invocation of JMX operations
+Health checks | Health status based on checking JMX connection
 
 ## Connection String
 JMX Resource Connector uses JMX service URL for connecting to JMX Mbean Server.
@@ -41,7 +44,7 @@ The port is a decimal port number. 0 means a default or anonymous port, dependin
 
 The host and port can be omitted. The port cannot be supplied without a host.
 
-The url-path, if any, begins with a slash (/) or a semicolon (;) and continues to the end of the address. It can contain attributes using the semicolon syntax specified in RFC 2609. Those attributes are not parsed by this class and incorrect attribute syntax is not detected.
+The url-path, if any, begins with a slash `/` or a semicolon `;` and continues to the end of the address. It can contain attributes using the semicolon syntax specified in _RFC 2609_. Those attributes are not parsed by this class and incorrect attribute syntax is not detected.
 
 Although it is legal according to _RFC 2609_ to have an url-path that begins with a semicolon, not all implementations of SLP allow it, so it is recommended to avoid that syntax.
 
@@ -70,28 +73,38 @@ JMX connection watchdog is a background process controlling consistency of JMX c
 
 ## Configuring attributes
 Each attribute configured in JMX Resource Connector has the following configuration schema:
-* `Name` - name of attribute in the remote MBean. Also, you can use `name` configuration parameter to specify MBean attribute.
+* _Name_ - name of attribute in the remote MBean. Configuration property `name` is also can be used to define name of the attribute.
 * Configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 objectName | String | Yes | Name of the MBean on remote JMX server. This MBean provides access to the JMX attribute so the `Name` of the SNAMP Attribute must be configured properly | `java.lang:type=OperatingSystem`
-useRegexp | Boolean (`true`/`false`) | No | Indicating that the `objectName` parameter defines regular expression used to find the appropriate MBean. Default value is `false` | `true`
+useRegexp | Boolean (`true` or `false`) | No | Indicating that the `objectName` parameter defines regular expression used to find the appropriate MBean. Default value is `false` | `true`
 
 ## Configuring events
 Each event configured in JMX Resource Connector has the following configuration schema:
-* `Category` - notification type of the target JMX notification. For example, `jmx.attribute.change`
+* _Category_ - notification type of the target JMX notification. For example, `jmx.attribute.change`. Configuration property `name` is also can be used to define the category.
 * Configuration parameters:
 
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 severity | String | No | Overrides severity level of the emitted notification | `warning`
-objectName | String | Yes | Name of the MBean on remote JMX server. This MBean emits JMX notifications to be routed to the resource adapter | `java.lang:type=OperatingSystem`
+objectName | String | Yes | Name of the MBean on remote JMX server. This MBean emits JMX notifications to be routed to the SNAMP Web Console and gateways | `java.lang:type=OperatingSystem`
 useRegexp | Boolean (`true`/`false`) | No | Indicating that the `objectName` parameter defines regular expression used to find the appropriate MBean. Default value is `false` | `true`
 
 You may set `severity` parameter in the following cases:
 1. Severity level supplied by JMX is not valid
 1. JMX doesn't supply severity level of the particular notification
+
+## Configuring operations
+Each attribute configured in JMX Resource Connector has the following configuration schema:
+* _Name_ - name of operation in the remote MBean. Configuration property `name` is also can be used to define name of the operation.
+* Configuration parameters:
+
+Parameter | Type | Required | Meaning | Example
+---- | ---- | ---- | ---- | ----
+objectName | String | Yes | Name of the MBean on remote JMX server. This MBean provides access to the JMX operation so the `Name` of the SNAMP Operation must be configured properly | `java.lang:type=OperatingSystem`
+useRegexp | Boolean (`true` or `false`) | No | Indicating that the `objectName` parameter defines regular expression used to find the appropriate MBean. Default value is `false` | `true`
 
 ## Information Model Mapping
 This section describes mapping between JMX data types and SNAMP Management Information Model
@@ -114,22 +127,8 @@ OBJECTNAME | objectname
 CompositeData | Dictionary
 TabularData | Table
 
-Notification Mapping:
-
-JMX Notification | SNAMP Notification Object
----- | ----
-Message | Message
-SequenceNumber | Sequence Number
-Source | _None_
-TimeStamp | TimeStamp
-Type | _None_
-UserData | Payload
-
 See [JMX Notification](https://docs.oracle.com/javase/tutorial/jmx/notifs/) for more information about JMX notifications.
-JMX Resource Connector set `Source` of the SNAMP Notification Object to the configured name of the managed resource, `Type` of the SNAMP Notification Object to the configured name of the event
+JMX Resource Connector set `Source` of the SNAMP Notification Object to the configured name of the managed resource, `Type` of the SNAMP Notification Object to the configured name of the event.
 
 ## Smart mode
 JMX Resource Connector provides support of Smart mode. That means connector can automatically expose attributes and notifications without manual configuration. It discovers all available attributes and notifications of the remote Managed Bean using JMX protocol. It is recommended to specify `objectName` configuration parameter in the resource configuration to avoid hundreds of attributes and notifications.
-
-## Clustering
-Only SNAMP active node with JMX Resource Connector routes JMX notifications to the adapters.

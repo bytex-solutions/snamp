@@ -1,13 +1,10 @@
 package com.bytex.snamp.connector.metrics;
 
 import com.bytex.snamp.concurrent.TimeLimitedLong;
-import com.bytex.snamp.moa.EWMA;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 
@@ -21,7 +18,7 @@ import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 public class RateRecorder extends AbstractMetric implements Rate {
     private static final long serialVersionUID = -6735931494509416689L;
     private final MetricsIntervalMap<TimeLimitedLong> lastRate;
-    private final MetricsIntervalMap<EWMA> meanRate;
+    private final MetricsIntervalMap<MeanRate> meanRate;
     private final MetricsIntervalMap<AtomicLong> maxRate;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerSecond;
     private final MetricsIntervalMap<TimeLimitedLong> lastMaxRatePerMinute;
@@ -30,13 +27,13 @@ public class RateRecorder extends AbstractMetric implements Rate {
 
     public RateRecorder(final String name){
         super(name);
-        meanRate = new MetricsIntervalMap<>(MetricsInterval::createEMA);
+        meanRate = new MetricsIntervalMap<>(MetricsInterval::createMeanRate);
         totalRate = new AtomicLong(0L);
-        lastRate = new MetricsIntervalMap<>(interval -> interval.createdAdder(0L));
+        lastRate = new MetricsIntervalMap<>(MetricsInterval::createdAdder);
         maxRate = new MetricsIntervalMap<>(interval -> new AtomicLong(0L));
-        lastMaxRatePerSecond = new MetricsIntervalMap<>(MetricsInterval.SECOND.greater(), interval -> interval.createLongPeakDetector(0L));
-        lastMaxRatePerMinute = new MetricsIntervalMap<>(MetricsInterval.MINUTE.greater(), interval -> interval.createLongPeakDetector(0L));
-        lastMaxRatePer12Hours = new MetricsIntervalMap<>(MetricsInterval.HALF_DAY.greater(), interval -> interval.createLongPeakDetector(0L));
+        lastMaxRatePerSecond = new MetricsIntervalMap<>(MetricsInterval.SECOND.greater(), MetricsInterval::createLongPeakDetector);
+        lastMaxRatePerMinute = new MetricsIntervalMap<>(MetricsInterval.MINUTE.greater(), MetricsInterval::createLongPeakDetector);
+        lastMaxRatePer12Hours = new MetricsIntervalMap<>(MetricsInterval.HALF_DAY.greater(), MetricsInterval::createLongPeakDetector);
     }
 
     protected RateRecorder(final RateRecorder source) {
@@ -47,7 +44,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
         lastMaxRatePerSecond = new MetricsIntervalMap<>(source.lastMaxRatePerSecond, TimeLimitedLong::clone);
         lastMaxRatePerMinute = new MetricsIntervalMap<>(source.lastMaxRatePerMinute, TimeLimitedLong::clone);
         lastMaxRatePer12Hours = new MetricsIntervalMap<>(source.lastMaxRatePer12Hours, TimeLimitedLong::clone);
-        meanRate = new MetricsIntervalMap<EWMA>(source.meanRate, EWMA::clone);
+        meanRate = new MetricsIntervalMap<>(source.meanRate, MeanRate::clone);
     }
 
     @Override
@@ -58,7 +55,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
     public void mark() {
         totalRate.incrementAndGet();
         for (final MetricsInterval interval : ALL_INTERVALS) {
-            meanRate.get(interval).append(1);
+            meanRate.get(interval).mark();
             final long lastRate = this.lastRate.getAsLong(interval, TimeLimitedLong::updateByOne);
             maxRate.acceptAsLong(interval, lastRate, (counter, lr) -> counter.accumulateAndGet(lr, Math::max));
             switch (interval){
@@ -106,7 +103,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
      */
     @Override
     public final double getMeanRate(final MetricsInterval scale) {
-        return meanRate.get(scale).doubleValue();
+        return meanRate.get(scale).getAsDouble();
     }
 
     @Override
@@ -161,6 +158,7 @@ public class RateRecorder extends AbstractMetric implements Rate {
         totalRate.set(0L);
         lastRate.values().forEach(TimeLimitedLong::reset);
         maxRate.values().forEach(rate -> rate.set(0L));
+        meanRate.values().forEach(MeanRate::reset);
         lastMaxRatePerSecond.values().forEach(TimeLimitedLong::reset);
         lastMaxRatePerMinute.values().forEach(TimeLimitedLong::reset);
         lastMaxRatePer12Hours.values().forEach(TimeLimitedLong::reset);

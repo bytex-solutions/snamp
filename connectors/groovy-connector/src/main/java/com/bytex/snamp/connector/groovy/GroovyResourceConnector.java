@@ -3,10 +3,13 @@ package com.bytex.snamp.connector.groovy;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
@@ -17,7 +20,7 @@ import static com.bytex.snamp.MapUtils.toProperties;
  * @version 2.0
  * @since 1.0
  */
-final class GroovyResourceConnector extends AbstractManagedResourceConnector {
+final class GroovyResourceConnector extends AbstractManagedResourceConnector implements HealthCheckSupport {
 
     @Aggregation(cached = true)
     private final GroovyAttributeRepository attributes;
@@ -43,6 +46,17 @@ final class GroovyResourceConnector extends AbstractManagedResourceConnector {
         events = new GroovyNotificationRepository(resourceName, scriptlet, threadPool);
         events.setSource(this);
         operations = new GroovyOperationRepository(resourceName, scriptlet);
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @return Status of the remove managed resource.
+     */
+    @Nonnull
+    @Override
+    public HealthStatus getStatus() {
+        return scriptlet.getStatus();
     }
 
     @Aggregation

@@ -74,7 +74,7 @@ public final class WeakEventListenerListTest extends Assert {
     @Test
     public void fireTest(){
         final WeakEventListenerList<DummyListener, EventObject> listeners = new WeakEventListenerList<>(DummyListener::invoke);
-        final BooleanBox fired = BoxFactory.createForBoolean(false);
+        final BooleanBox fired = BooleanBox.of(false);
         final DummyListener listener = e -> fired.set(true);
         listeners.add(listener);
         assertTrue(listeners.containsAll(ImmutableList.of(listener)));

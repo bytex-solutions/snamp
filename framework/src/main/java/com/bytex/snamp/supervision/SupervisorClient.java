@@ -5,22 +5,27 @@ import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.connector.ManagedResourceConnector;
+import com.bytex.snamp.connector.ManagedResourceConnectorClient;
+import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
+import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
+import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
 import javax.management.InstanceNotFoundException;
 import java.time.Duration;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import static com.bytex.snamp.concurrent.SpinWait.untilNull;
 
@@ -212,6 +217,49 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     @Override
     public void update(@Nonnull final SupervisorInfo configuration) throws Exception {
         get().update(configuration);
+    }
+
+    private static ResourceGroupHealthStatus getStatus(final BundleContext context, final ManagedResourceFilterBuilder filter) {
+        final class FakeResourceGroupHealthStatus extends HashMap<String, HealthStatus> implements ResourceGroupHealthStatus, Consumer<ManagedResourceConnectorClient> {
+            private static final long serialVersionUID = 420503389377659109L;
+
+            private void putStatus(final String resourceName, final ManagedResourceConnector connector) {
+                put(resourceName,
+                        connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new));
+            }
+
+            @Override
+            public void accept(final ManagedResourceConnectorClient client) {
+                try {
+                    putStatus(client.getManagedResourceName(), client);
+                } finally {
+                    client.close();
+                }
+            }
+        }
+
+        final FakeResourceGroupHealthStatus status = new FakeResourceGroupHealthStatus();
+        for (final String resourceName : filter.getResources(context))
+            ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(status);
+        return status;
+    }
+
+    public ResourceGroupHealthStatus getStatus(){
+        return queryObject(HealthStatusProvider.class)
+                .map(HealthStatusProvider::getStatus)
+                .orElseGet(() -> getStatus(context, ManagedResourceConnectorClient.filterBuilder().setGroupName(getGroupName())));
+    }
+
+    public static ResourceGroupHealthStatus getGroupStatus(final BundleContext context, final String groupName) {
+        return tryCreate(context, groupName)
+                .map(client -> {
+                    try {
+                        return client.getStatus();
+                    } finally {
+                        client.close();
+                    }
+                })
+                .orElseGet(() -> getStatus(context, ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName)));
     }
 
     /**

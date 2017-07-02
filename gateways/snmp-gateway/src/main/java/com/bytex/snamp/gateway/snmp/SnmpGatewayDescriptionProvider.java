@@ -162,7 +162,7 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     }
 
     int parseSocketTimeout(final Map<String, String> parameters) {
-        return getValueAsInt(parameters, SOCKET_TIMEOUT_PARAM, Integer::parseInt).orElse(5000);
+        return getValueAsInt(parameters, SOCKET_TIMEOUT_PARAM, Integer::parseInt).orElse(0);
     }
 
     SecurityConfiguration parseSecurityConfiguration(final Map<String, String> parameters,

@@ -84,6 +84,8 @@ export class REST {
 
     public static ROOT_PATH:string = "/snamp/management";
 
+    public static GROOVY_PATH:string = "/snamp/assets/groovy";
+
     public static CFG_PATH:string = REST.ROOT_PATH + "/configuration";
 
     public static GATEWAY_CONFIG:string = REST.CFG_PATH + "/gateway";
@@ -99,6 +101,8 @@ export class REST {
     public static AVAILABLE_GATEWAY_LIST:string = REST.COMPONENTS_MANAGEMENT + "/gateways";
 
     public static AVAILABLE_RESOURCE_LIST:string = REST.COMPONENTS_MANAGEMENT + "/connectors";
+
+    public static AVAILABLE_SUPERVISORS_LIST:string = REST.COMPONENTS_MANAGEMENT + "/supervisors";
 
     public static AVAILABLE_ENTITIES_BY_TYPE(entityType: string): string {
         return REST.COMPONENTS_MANAGEMENT + "/" + encodeURIComponent(entityType) + "s";
@@ -118,6 +122,14 @@ export class REST {
 
     public static RESOURCE_BY_NAME(name: string): string {
         return REST.RESOURCE_CONFIG + "/" + encodeURIComponent(name);
+    }
+
+    public static RGROUP_BY_NAME(name: string): string {
+        return REST.RGROUP_CONFIG + "/" + encodeURIComponent(name);
+    }
+
+    public static OVERRIDES_BY_NAME(name: string): string {
+        return REST.RESOURCE_BY_NAME(name) + "/overriddenProperties";
     }
 
     public static GATEWAY_TYPE(name: string): string {
@@ -154,6 +166,7 @@ export class REST {
 
     // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
     public static RESOURCE_ENTITY_BY_NAME(type:string, resourceName: string, entityType:string, entityName:string): string {
+        console.log("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
         return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
     }
 
@@ -232,6 +245,12 @@ export class REST {
 
     // all supervisors statuses
     public static SUPERVISORS_STATUS:string = REST.ROOT_WEB_API_PATH + "/resource-group-watcher/groups/status";
+
+    // get recommendation for policy (see OpRange class)
+    public static SUPERVISOR_POLICY_RECOMMENDATION(supervisorName:string, policyName:string):string {
+        return REST.ROOT_WEB_API_PATH + "/resource-group-watcher/" + encodeURIComponent(supervisorName)
+            + "/scaling-policies/attribute-based/" + encodeURIComponent(policyName) + "/recommendation";
+    }
 
     // notification settings
     public static NOTIFICATIONS_SETTINGS:string = REST.ROOT_WEB_API_PATH + "/notifications/settings";

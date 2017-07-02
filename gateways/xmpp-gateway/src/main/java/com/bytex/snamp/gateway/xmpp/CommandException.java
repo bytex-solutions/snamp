@@ -13,6 +13,10 @@ class CommandException extends Exception {
         super(message);
     }
 
+    protected CommandException(final String message, final Object... args){
+        this(String.format(message, args));
+    }
+
     protected CommandException(final Throwable cause) {
         super(cause);
     }

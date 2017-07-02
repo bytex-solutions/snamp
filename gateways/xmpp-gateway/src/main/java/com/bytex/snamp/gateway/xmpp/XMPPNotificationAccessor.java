@@ -4,6 +4,7 @@ import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationRouter;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.json.JsonUtils;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.jivesoftware.smack.packet.ExtensionElement;
@@ -29,6 +30,7 @@ final class XMPPNotificationAccessor extends NotificationRouter {
 
     static {
         final ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         mapper.registerModule(new JsonUtils());
         FORMATTER = mapper.writer();
     }

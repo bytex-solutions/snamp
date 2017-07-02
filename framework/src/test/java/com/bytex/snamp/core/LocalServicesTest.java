@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 
 /**
  * @author Roman Sakno
@@ -70,7 +69,7 @@ public final class LocalServicesTest extends Assert {
         assertEquals("Hello", receiver2.get(1, TimeUnit.SECONDS));
         //test dialog
         final String EXPECTED_RESPONSE = "Response";
-        final Consumer<Communicator.IncomingMessage> responseListener = msg -> {
+        final Communicator.MessageListener responseListener = msg -> {
             //avoid cyclic message
             assertEquals("Request", msg.getPayload());
             com.sendMessage(EXPECTED_RESPONSE, Communicator.MessageType.RESPONSE, msg.getMessageID());

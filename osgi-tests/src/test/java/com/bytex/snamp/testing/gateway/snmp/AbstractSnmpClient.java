@@ -197,7 +197,7 @@ abstract class AbstractSnmpClient implements SnmpClient {
                     System.out.println("Set Status is: " + result);
                 }
                 else
-                    System.out.println("SNMP error occurred while sending SET request on OID: " + oid.toDottedString());
+                    System.err.println("SNMP error occurred while sending SET request on OID: " + oid.toDottedString());
             }};
 
         this.set(pdu, listener);

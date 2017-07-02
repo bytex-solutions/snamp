@@ -1,8 +1,10 @@
 package com.bytex.snamp.connector.metrics;
 
 
+import com.bytex.snamp.concurrent.TimeLimitedObject;
+import com.bytex.snamp.io.SerializableBinaryOperator;
 import com.bytex.snamp.io.SerializedState;
-import com.bytex.snamp.moa.EWMA;
+import com.bytex.snamp.moa.Average;
 import com.bytex.snamp.moa.DoubleReservoir;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -20,19 +22,21 @@ import java.util.function.Supplier;
 @ThreadSafe
 public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     private static final long serialVersionUID = 7250210436685797077L;
-    private final MetricsIntervalMap<EWMA> meanValues;
+    private final MetricsIntervalMap<Average> meanValues;
     private final AtomicLong count;
     private final DoubleReservoir reservoir;
     private final AtomicReference<Duration> summary;
     private final double timeScaleFactor;
+    private final MetricsIntervalMap<TimeLimitedObject<Duration>> lastDurations;
 
-    TimeRecorder(final String name, final int samplingSize, final double scaleFactor){
+    TimeRecorder(final String name, final int samplingSize, final double scaleFactor) {
         super(name, Duration.ZERO);
-        meanValues = new MetricsIntervalMap<>(MetricsInterval::createEMA);
+        meanValues = new MetricsIntervalMap<>(MetricsInterval::createAverage);
         reservoir = new DoubleReservoir(samplingSize);
         summary = new AtomicReference<>(Duration.ZERO);
         timeScaleFactor = scaleFactor;
         count = new AtomicLong(0L);
+        lastDurations = new MetricsIntervalMap<>(MetricsInterval.ALL_INTERVALS, interval -> interval.createTemporaryBox(Duration.ZERO, (SerializableBinaryOperator<Duration>) Duration::plus));
     }
 
     public TimeRecorder(final String name, final int samplingSize) {
@@ -43,13 +47,14 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
         this(name, AbstractNumericGauge.DEFAULT_SAMPLING_SIZE);
     }
 
-    protected TimeRecorder(final TimeRecorder source){
+    protected TimeRecorder(final TimeRecorder source) {
         super(source);
-        meanValues = new MetricsIntervalMap<>(source.meanValues, EWMA::clone);
+        meanValues = new MetricsIntervalMap<>(source.meanValues, Average::clone);
         count = new AtomicLong(source.count.get());
-        reservoir = ((SerializedState<DoubleReservoir>)source.reservoir.takeSnapshot()).get();
+        reservoir = ((SerializedState<DoubleReservoir>) source.reservoir.takeSnapshot()).get();
         summary = new AtomicReference<>(source.summary.get());
         timeScaleFactor = source.timeScaleFactor;
+        lastDurations = new MetricsIntervalMap<>(source.lastDurations, TimeLimitedObject::clone);
     }
 
     @Override
@@ -63,10 +68,16 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     @Override
     public void reset() {
         super.reset();
-        meanValues.values().forEach(EWMA::reset);
+        meanValues.values().forEach(Average::reset);
         reservoir.reset();
         summary.set(Duration.ZERO);
         count.set(0L);
+        lastDurations.values().forEach(TimeLimitedObject::reset);
+    }
+
+    @Override
+    public Duration getSummaryValue(final MetricsInterval interval) {
+        return lastDurations.get(interval, TimeLimitedObject::get);
     }
 
     private double toDouble(final Duration value){
@@ -83,17 +94,19 @@ public class TimeRecorder extends GaugeImpl<Duration> implements Timer {
     }
 
     @Override
-    public final Duration getLastMeanValue(final MetricsInterval interval) {
+    public final Duration getMeanValue(final MetricsInterval interval) {
         return meanValues.get(interval, avg -> fromDouble(avg.doubleValue()));
     }
 
     @Override
     protected void writeValue(final Duration value) {
         super.writeValue(value);
-        meanValues.forEachAcceptDouble(toDouble(value), EWMA::accept);
+        meanValues.forEachAcceptDouble(toDouble(value), Average::accept);
         reservoir.accept(toDouble(value));
         summary.accumulateAndGet(value, Duration::plus);
         count.incrementAndGet();
+        for (final MetricsInterval interval : MetricsInterval.ALL_INTERVALS)
+            lastDurations.get(interval).accept(value);
     }
 
     /**

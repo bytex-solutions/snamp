@@ -47,7 +47,8 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
     private final String attributeName;
     private ReduceOperation aggregator;
     private int previousObservation;
-    private final EWMA attributeValueAverage;
+    private final Average attributeValueAverage;
+    private final Duration analysisDepth;
 
     @JsonCreator
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
@@ -64,7 +65,8 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
         setIncrementalVoteWeight(incrementalWeight);
         this.attributeName = attributeName;
         this.aggregator = Objects.requireNonNull(aggregator);
-        attributeValueAverage = analysisDepth.isZero() ? null : new BigDecimalEWMA(analysisDepth, MathContext.DECIMAL32);
+        this.analysisDepth = analysisDepth;
+        attributeValueAverage = analysisDepth.isZero() ? null : BigDecimalEWMA.floatingInterval(analysisDepth, MathContext.DECIMAL32);
     }
 
     public AttributeBasedScalingPolicy(final String attributeName,
@@ -83,7 +85,7 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
     @JsonProperty(ANALYSIS_DEPTH)
     @JsonSerialize(using = DurationSerializer.class)
     public Duration getAnalysisDepth(){
-        return attributeValueAverage.getMeanLifetime();
+        return analysisDepth;
     }
 
     /**
@@ -136,7 +138,8 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
 
     synchronized double vote(final DoubleReservoir values) {
         final double value = values.applyAsDouble(aggregator);
-        attributeValueAverage.accept(value);
+        if (attributeValueAverage != null)
+            attributeValueAverage.accept(value);
         final int freshObservation = RangeUtils.getLocation(value, operationalRange);
         if (freshObservation == 0) {
             reset();

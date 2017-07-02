@@ -1,7 +1,6 @@
 package com.bytex.snamp.supervision.def;
 
 import com.bytex.snamp.BooleanBox;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
@@ -58,7 +57,7 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
     }
 
     private boolean registerResource(final EntityMap<? extends ManagedResourceConfiguration> resources,
-                                        final ManagedResourceGroupConfiguration groupConfig,
+                                        final ManagedResourceGroupConfiguration group,
                                         final String resourceName,
                                         final String connectionString,
                                         final Map<String, String> parameters) throws ResourceDiscoveryException {
@@ -66,12 +65,14 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
         if (resources.containsKey(resourceName)) {
             resourceConfig = resources.get(resourceName);
             checkGroupName(resourceName, resourceConfig);
-        } else
+        } else {
             resourceConfig = resources.getOrAdd(resourceName);
-        groupConfig.fillResourceConfig(resourceConfig);
+            group.fillResourceConfig(resourceConfig);
+        }
         resourceConfig.setGroupName(groupName);
         resourceConfig.setConnectionString(connectionString);
         resourceConfig.putAll(parameters);
+        resourceConfig.overrideProperties(parameters.keySet());
         return processResource(resourceName, resourceConfig);
     }
 
@@ -115,12 +116,11 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
         //we assume than modification of SNAMP configuration causes instantiation of a new resource connector
         //and this fact will raise resourceRegistered event through supervisor
         processConfiguration(config -> {
-            final Optional<? extends ManagedResourceGroupConfiguration> groupConfiguration =
-                    config.getResourceGroups().getIfPresent(groupName);
-            if (groupConfiguration.isPresent())
-                return registerResource(config.getResources(), groupConfiguration.get(), resourceName, connectionString, parameters);
-            else
+            final ManagedResourceGroupConfiguration group = config.getResourceGroups().get(groupName);
+            if (group == null)
                 throw new ResourceGroupNotFoundException(groupName);
+            else
+                return registerResource(config.getResources(), group, resourceName, connectionString, parameters);
         });
     }
 
@@ -135,7 +135,7 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
      * @throws ResourceDiscoveryException Unable to remove resource.
      */
     public final boolean removeResource(@Nonnull final String resourceName) throws ResourceDiscoveryException {
-        final BooleanBox result = BoxFactory.createForBoolean(false);
+        final BooleanBox result = BooleanBox.of(false);
         processConfiguration(config -> {
             final ManagedResourceConfiguration resourceConfig = config.getResources().get(resourceName);
             final boolean saveChanges;

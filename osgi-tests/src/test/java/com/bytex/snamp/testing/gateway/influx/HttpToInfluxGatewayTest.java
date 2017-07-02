@@ -25,9 +25,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Hashtable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
 
 /**
  * @author Roman Sakno
@@ -36,13 +37,11 @@ import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
  */
 @SnampDependencies(SnampFeature.INFLUX_GATEWAY)
 public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
-    private static final String INSTANCE_NAME = COMPONENT_NAME + "-1";
     private static final String GATEWAY_NAME = "influx";
     private ServiceHolder<HttpService> httpService;
     private ClusterMember processLocalMember;
 
     public HttpToInfluxGatewayTest() {
-        super(INSTANCE_NAME);
     }
 
     private static void ping() throws IOException {
@@ -99,16 +98,17 @@ public class HttpToInfluxGatewayTest extends AbstractHttpConnectorTest {
     }
 
     @Test
-    public void measurementTest() throws IOException, InterruptedException, TimeoutException {
+    public void measurementTest() throws IOException, InterruptedException, TimeoutException, ExecutionException {
         final IntegerMeasurement measurement = StandardMeasurements.usedRAM(100500L);
         measurement.setComponentName(COMPONENT_NAME);
-        measurement.setInstanceName(INSTANCE_NAME);
-        sendMeasurement(measurement);
+        measurement.setInstanceName(TEST_RESOURCE_NAME);
         //now we expect that the notification will be recorded into InfluxDB
-        final Communicator communicator = processLocalMember.getService(InfluxWriteMock.INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
-        final Serializable points = communicator.receiveMessage(Communicator.ANY_MESSAGE, Communicator.IncomingMessage::getPayload, Duration.ofSeconds(2));
-        assertTrue(points instanceof String);
-        assertTrue(points.toString().startsWith("usedRAM,connectionString=javaApp-1,connectionType=http,managedResource=test-target value=100500i"));
+        final Communicator communicator = InfluxWriteMock.getCommunicator(processLocalMember);
+        final Future<? extends Serializable> points = communicator.receiveMessage(Communicator.ANY_MESSAGE, Communicator.MessageEvent::getPayload);
+        sendMeasurement(measurement);
+        final Serializable value;
+        assertTrue((value = points.get(5, TimeUnit.SECONDS)) instanceof String);
+        assertTrue(value.toString().startsWith("usedRAM,connectionType=http,group=javaApp,managedResource=test-target value=100500i"));
     }
 
 //    @Test

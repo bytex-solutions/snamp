@@ -18,13 +18,14 @@ export abstract class EntityWithSub extends TypedEntity {
 
             for (let key in attrs) {
                 let rwto:number = 0;
-/*                if (key == "CPU") {
-                    console.log(JSON.stringify(attrs[key]), attrs[key]["readWriteTimeout"]);
-                }*/
+                let override:boolean = false;
                 if  (attrs[key]["readWriteTimeout"] != undefined) {
                     rwto = attrs[key]["readWriteTimeout"];
                 }
-                this.attributes.push(new Attribute(http, this.type, key, rwto, attrs[key]["parameters"]));
+                if  (attrs[key]["override"] != undefined) {
+                    override = attrs[key]["override"];
+                }
+                this.attributes.push(new Attribute(http, this.type, key, rwto, override, attrs[key]["parameters"]));
             }
         }
 
@@ -32,7 +33,11 @@ export abstract class EntityWithSub extends TypedEntity {
         if (parameters["events"] != undefined) {
             let events = parameters["events"];
             for (let key in events) {
-                this.events.push(new Event(http, this.type, key, events[key]["parameters"]));
+                let override:boolean = false;
+                if  (events[key]["override"] != undefined) {
+                    override = events[key]["override"];
+                }
+                this.events.push(new Event(http, this.type, key, override, events[key]["parameters"]));
             }
         }
 
@@ -41,10 +46,14 @@ export abstract class EntityWithSub extends TypedEntity {
             let operations = parameters["operations"];
             for (let key in operations) {
                 let rwto:number = 0;
+                let override:boolean = false;
                 if  (operations[key]["invocationTimeout"] != undefined) {
                     rwto = operations[key]["invocationTimeout"];
                 }
-                this.operations.push(new Operation(http, this.type, key, rwto, operations[key]["parameters"]));
+                if  (operations[key]["override"] != undefined) {
+                    override = operations[key]["override"];
+                }
+                this.operations.push(new Operation(http, this.type, key, rwto, override, operations[key]["parameters"]));
             }
         }
     }

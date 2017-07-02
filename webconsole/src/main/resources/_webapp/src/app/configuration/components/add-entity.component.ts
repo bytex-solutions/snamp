@@ -13,6 +13,7 @@ import { Resource } from '../model/model.resource';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
+import {ResourceGroup} from "../model/model.resourceGroup";
 
 @Component({
     moduleId: module.id,
@@ -36,9 +37,9 @@ export class AddEntity implements OnInit {
 
     constructor(private http:ApiClient){};
 
-    ngOnInit() {
+    ngOnInit():void {
         if (this.type == "resourceGroup") {
-            this._innerType = "connectors";
+            this._innerType = "connector";
         } else {
             this._innerType = this.type;
         }
@@ -54,7 +55,7 @@ export class AddEntity implements OnInit {
         return this.selectedName != undefined && this.selectedName.length > 3;
     }
 
-    selectType(selected:EntityDescriptor) {
+    selectType(selected:EntityDescriptor):void {
         this.selectedType = selected;
         this.paramDescriptors = this.http.get(REST.ENTITY_PARAMETERS_DESCRIPTION(this._innerType, selected.type))
             .map((res: Response) => {
@@ -92,7 +93,7 @@ export class AddEntity implements OnInit {
         return this.nameSelected() && this.selectedType != undefined && this.containsRequiredParam;
     }
 
-    addEntity() {
+    addEntity():void {
         let newEntity:TypedEntity;
         if (this.type == "gateway") {
             newEntity = new Gateway(
@@ -121,10 +122,21 @@ export class AddEntity implements OnInit {
                     this.entities.push(newEntity);
                     this.onSave.emit(newEntity);
                 });
+        } else if(this.type == "resourceGroup") {
+            newEntity = new ResourceGroup(
+                this.http,
+                this.selectedName,
+                ResourceGroup.stringify(this.selectedType.type, this.params)
+            );
+            this.http.put(REST.RGROUP_BY_NAME(newEntity.name), newEntity.stringify())
+                .subscribe(res => {
+                    this.entities.push(newEntity);
+                    this.onSave.emit(newEntity);
+                });
         }
     }
 
-    saveParameter(param:KeyValue) {
+    saveParameter(param:KeyValue):void {
         this.params.forEach(function(obj:KeyValue) {
             if (obj.key === param.key) {
                 obj.value = param.value;
@@ -132,7 +144,7 @@ export class AddEntity implements OnInit {
         });
     }
 
-    clear() {
+    clear():void {
         this.selectedType = undefined;
         this.selectedName = undefined;
         this.selectedConnectionString = "";

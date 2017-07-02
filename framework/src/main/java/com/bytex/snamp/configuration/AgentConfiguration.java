@@ -29,11 +29,6 @@ import javax.annotation.Nonnull;
  */
 public interface AgentConfiguration extends Cloneable, EntityConfiguration {
     /**
-     * Global configuration parameter used to setup timeout for features discovery.
-     */
-    String DISCOVERY_TIMEOUT_PROPERTY = "discoveryTimeout";
-
-    /**
      * Creates clone of this configuration.
      * @return The cloned instance of this configuration.
      * @throws CloneNotSupportedException This configuration cannot be cloned.

@@ -4,7 +4,6 @@ import com.bytex.snamp.connector.health.MalfunctionStatus;
 
 import javax.annotation.Nonnull;
 import java.time.Instant;
-import java.util.Objects;
 
 /**
  * Indicates that the cluster with resources is in malfunction state.

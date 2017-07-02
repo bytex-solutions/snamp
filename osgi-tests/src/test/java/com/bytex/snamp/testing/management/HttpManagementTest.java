@@ -378,7 +378,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         newAttribute1Params.put("objectName", new TextNode(BEAN_NAME));
         newAttribute1Params.put("oid", new TextNode("1.1.123.0"));
         newAttribute1.put("parameters", newAttribute1Params);
-        newAttribute1.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().nullNode());
+        newAttribute1.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().textNode("PT1S"));
 
         final ObjectNode newAttribute2 = ThreadLocalJsonFactory.getFactory().objectNode();
         final ObjectNode newAttribute2Params = ThreadLocalJsonFactory.getFactory().objectNode();
@@ -400,15 +400,30 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         attributeMap.put("124.0", newAttribute2);
         attributeMap.put("125.0", newAttribute3);
 
-        IOUtils.writeString(attributeMap.toString(), connection.getOutputStream(), Charset.defaultCharset());
+        IOUtils.writeString(mapper.writeValueAsString(attributeMap), connection.getOutputStream(), Charset.defaultCharset());
         connection.connect();
         try {
             assertEquals(HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
         } finally {
             connection.disconnect();
         }
-
-        // check if we replaced old attributes with new once
+        query = new URL(String.format("http://localhost:8181/snamp/management/configuration/resource/%s/attributes/125.0", TEST_RESOURCE_NAME));
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("charset", "utf-8");
+        connection.setDoOutput(true);
+        newAttribute3.put("readWriteTimeout", ThreadLocalJsonFactory.getFactory().textNode("PT2S"));
+        IOUtils.writeString(mapper.writeValueAsString(newAttribute3), connection.getOutputStream(), Charset.defaultCharset());
+        connection.connect();
+        try{
+            assertEquals(HttpURLConnection.HTTP_NO_CONTENT, connection.getResponseCode());
+        } finally {
+            connection.disconnect();
+        }
+        query = new URL("http://localhost:8181/snamp/management/configuration/resource");
+        // check if we replaced old attributes with new one
         connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
@@ -418,6 +433,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
             final String newConfiguration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             ObjectNode oldResponseJSON = (ObjectNode) mapper.readTree(responseValue);
             JsonNode newResponseJSON = mapper.readTree(newConfiguration);
+            newResponseJSON = newResponseJSON.get(TEST_RESOURCE_NAME);
             oldResponseJSON.put("attributes", attributeMap);
             assertEquals(newResponseJSON, oldResponseJSON);
         } finally {
@@ -524,7 +540,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         }
 
         // get the configuration
-        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/gateway/%s/configuration",
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/components/gateways/%s/description",
                 ADAPTER_NAME)).openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
@@ -581,7 +597,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
         final HttpCookie cookie = authenticator.authenticateTestUser();
 
         // Get all resources
-        URL query = new URL("http://localhost:8181/snamp/management/resource/list");
+        URL query = new URL("http://localhost:8181/snamp/management/components/connectors");
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
@@ -602,7 +618,7 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
             connection.disconnect();
         }
 
-        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/resource/%s/disable",
+        connection = (HttpURLConnection) new URL(String.format("http://localhost:8181/snamp/management/components/connectors/%s/disable",
                 CONNECTOR_NAME)).openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));

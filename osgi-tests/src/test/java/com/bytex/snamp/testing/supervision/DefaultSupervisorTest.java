@@ -1,7 +1,6 @@
 package com.bytex.snamp.testing.supervision;
 
 import com.bytex.snamp.Box;
-import com.bytex.snamp.BoxFactory;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
@@ -27,6 +26,7 @@ import com.google.common.reflect.TypeToken;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.junit.Test;
+import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
 import javax.management.MalformedObjectNameException;
@@ -60,8 +60,15 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
         testConfigurationDescriptor(description, "checkPeriod");
     }
 
+    @Override
+    protected void afterStartTest(final BundleContext context) throws Exception {
+        super.afterStartTest(context);
+        waitForConnector(Duration.ofSeconds(2), TEST_RESOURCE_NAME, getTestBundleContext());
+    }
+
     @Test
     public void coloredChecker() throws JMException, InterruptedException {
+
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
             assertTrue(supervisor.get().getResources().contains(TEST_RESOURCE_NAME));
@@ -105,7 +112,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     public void serviceDiscovery() throws ResourceDiscoveryException, TimeoutException, InterruptedException {
         try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                 .orElseThrow(AssertionError::new)) {
-            final Box<String> addedResource = BoxFactory.create("");
+            final Box<String> addedResource = Box.of("");
             final SupervisionEventListener listener = (event, handback) ->
                 Convert.toType(event, GroupCompositionChangedEvent.class).ifPresent(changed -> {
                     addedResource.set(changed.getResourceName());
@@ -126,7 +133,7 @@ public final class DefaultSupervisorTest extends AbstractJmxConnectorTest<TestOp
     private static void registerResource(final String resourceName) throws IOException {
         final URL query = new URL("http://localhost:8181" + ResourceDiscoveryService.HTTP_ENDPOINT + '/' + GROUP_NAME + '/' + resourceName);
         final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
-        connection.setRequestMethod("POST");
+        connection.setRequestMethod("POST");    
         connection.setDoOutput(true);
         connection.setRequestProperty("Content-Type", MediaType.APPLICATION_JSON);
         final ObjectNode announcement = ThreadLocalJsonFactory.getFactory().objectNode();

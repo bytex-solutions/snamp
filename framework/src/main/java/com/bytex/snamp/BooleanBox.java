@@ -19,4 +19,8 @@ public interface BooleanBox extends Box<Boolean>, BooleanSupplier, Comparable<Bo
     boolean updateAndGet(final BooleanUnaryOperator operator);
 
     int compareTo(final boolean value);
+
+    static BooleanBox of(final boolean initialValue){
+        return new MutableBoolean(initialValue);
+    }
 }

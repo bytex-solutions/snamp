@@ -27,8 +27,8 @@ import com.bytex.snamp.supervision.SupervisorClient;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
 import com.bytex.snamp.supervision.elasticity.policies.AbstractWeightedScalingPolicy;
-import com.bytex.snamp.supervision.elasticity.policies.HealthStatusBasedScalingPolicy;
 import com.bytex.snamp.supervision.elasticity.policies.AttributeBasedScalingPolicy;
+import com.bytex.snamp.supervision.elasticity.policies.HealthStatusBasedScalingPolicy;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.PropagateSystemProperties;
 import com.bytex.snamp.testing.SnampDependencies;
@@ -43,6 +43,7 @@ import com.bytex.snamp.web.serviceModel.e2e.ChildComponentsView;
 import com.bytex.snamp.web.serviceModel.e2e.ComponentModulesView;
 import com.bytex.snamp.web.serviceModel.e2e.LandscapeView;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -125,7 +126,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
     private static final String FOURTH_RESOURCE_NAME = "iOS";
     private static final String GROUP1_NAME = "mobileApp";
-    private static final String FIFTH_RESOURCE_NAME = "node2";
+    private static final String FIFTH_RESOURCE_NAME = "node#5";
     private static final String GROUP2_NAME = "dispatcher";
     private static final String SIXTH_RESOURCE_NAME = "paypal";
     private static final String GROUP3_NAME = "paymentSystem";
@@ -133,6 +134,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     private static final String STUB_CONNECTOR_TYPE = "stub";
     private static final String STUB_RESOURCE_NAME = "stubResource";
     private static final String SCALABLE_GROUP_NAME = "scalableGroup";
+
+    private static final String IMPLICIT_GROUP = "implicitGroup";
 
     private static final class TestApplicationInfo extends ApplicationInfo {
         static void setName(final String componentName, final String instanceName){
@@ -280,8 +283,8 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         }
     }
 
-    private static void httpPut(final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
-        final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
+    private static void httpPut(final String servicePrefix, final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
+        final URL attributeQuery = new URL(servicePrefix + servicePostfix);
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
         connection.setRequestMethod("PUT");
@@ -297,8 +300,16 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         }
     }
 
-    private static JsonNode httpGet(final String servicePostfix, final String authenticationToken) throws IOException{
-        final URL attributeQuery = new URL("http://localhost:8181/snamp/web/api" + servicePostfix);
+    private static void httpPut(final String servicePostfix, final String authenticationToken, final JsonNode data) throws IOException {
+       httpPut("http://localhost:8181/snamp/web/api", servicePostfix, authenticationToken, data);
+    }
+
+    private static JsonNode httpGet(final String servicePostfix, final String authenticationToken) throws IOException {
+        return httpGet("http://localhost:8181/snamp/web/api", servicePostfix, authenticationToken);
+    }
+
+    private static JsonNode httpGet(final String servicePrefix, final String servicePostfix, final String authenticationToken) throws IOException{
+        final URL attributeQuery = new URL(servicePrefix + servicePostfix);
         //write attribute
         HttpURLConnection connection = (HttpURLConnection) attributeQuery.openConnection();
         connection.setRequestMethod("GET");
@@ -311,6 +322,30 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         } finally {
             connection.disconnect();
         }
+    }
+
+    @Test
+    public void overridingSubEntitiesTest() throws IOException {
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final String prefix = "http://localhost:8181/snamp/management/configuration";
+        final String attrValue = "{\"readWriteTimeout\": \"PT2M24.5S\",\"parameters\": {\"name\": \"bigint\", \"description\": \"Used amount of memory, in megabytes\", \"units\": \"MBytes\"}, \"override\": true}";
+        final JsonNode actualObj = FORMATTER.readTree(attrValue);
+
+        httpPut(prefix, String.format("/resource/%s/attributes/usedMemoryNEW", URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8")), authenticationToken, actualObj);
+        JsonNode node = httpGet(prefix, "/resource", authenticationToken);
+        assertNotNull(node);
+        assertTrue(node.get("node#1").get("attributes").get("usedMemoryNEW").has("readWriteTimeout"));
+        assertFalse(node.get("node#1").get("attributes").get("usedMemoryNEW").get("readWriteTimeout").isNull());
+
+        httpPut(prefix, String.format("/resource/%s/attributes/usedMemory", URLEncoder.encode(FIRST_RESOURCE_NAME, "UTF-8")), authenticationToken, actualObj);
+
+        node = httpGet(prefix, "/resource", authenticationToken);
+        assertNotNull(node);
+        assertTrue(node.get("node#1").get("attributes").get("usedMemory").has("readWriteTimeout"));
+        assertFalse(node.get("node#1").get("attributes").get("usedMemory").get("readWriteTimeout").isNull());
+        assertTrue(node.get("node#1").get("attributes").get("usedMemory").get("override").asBoolean());
+
+
     }
 
     @Test
@@ -360,6 +395,21 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
             assertTrue(name instanceof TextNode);
             assertTrue(type instanceof TextNode);
         }
+    }
+
+    @Test
+    public void listOfGroupAttributes() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode node = httpGet("/groups/" + URLEncoder.encode(IMPLICIT_GROUP, "UTF-8") + "/attributes", authenticationToken);
+        assertTrue(node instanceof ArrayNode);
+        assertEquals(1, node.size());
+    }
+
+    @Test
+    public void recommendationTest() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode node = httpGet("/resource-group-watcher/" + URLEncoder.encode(SCALABLE_GROUP_NAME, "UTF-8") + "/scaling-policies/attribute-based/stagPolicy/recommendation", authenticationToken);
+        assertTrue(node.isTextual());
     }
 
     @Test
@@ -768,12 +818,14 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource.setGroupName(GROUP_NAME);
 
         resource = resources.getOrAdd(SECOND_RESOURCE_NAME);
+        resource.overrideProperties(ImmutableSet.of("objectName"));
         resource.put("objectName", SECOND_BEAN_NAME);
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
         
         resource = resources.getOrAdd(THIRD_RESOURCE_NAME);
         resource.put("objectName", THIRD_BEAN_NAME);
+        resource.overrideProperties(ImmutableSet.of("objectName"));
         resource.setConnectionString(AbstractJmxConnectorTest.getConnectionString());
         resource.setGroupName(GROUP_NAME);
         
@@ -795,6 +847,24 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         resource = resources.getOrAdd(STUB_RESOURCE_NAME);
         resource.setGroupName(SCALABLE_GROUP_NAME);
         fillStubAttributes(resource.getAttributes());
+
+        resource = resources.getOrAdd("implicit-group-resource1");
+        resource.setGroupName(IMPLICIT_GROUP);
+        resource.setType(STUB_CONNECTOR_TYPE);
+        resource.getAttributes().addAndConsume("a", attribute -> attribute.setAlternativeName("randomBytes"));
+
+        resource = resources.getOrAdd("implicit-group-resource2");
+        resource.setGroupName(IMPLICIT_GROUP);
+        resource.setType(STUB_CONNECTOR_TYPE);
+        resource.getAttributes().addAndConsume("a", attribute -> attribute.setAlternativeName("randomBytes"));
+        resource.getAttributes().addAndConsume("b", attribute -> attribute.setAlternativeName("randomBoolean"));
+
+        resource = resources.getOrAdd("implicit-group-resource3");
+        resource.setGroupName(IMPLICIT_GROUP);
+        resource.setType(STUB_CONNECTOR_TYPE);
+        resource.getAttributes().addAndConsume("a", attribute -> attribute.setAlternativeName("randomBytes"));
+        resource.getAttributes().addAndConsume("b", attribute -> attribute.setAlternativeName("randomBoolean"));
+        resource.getAttributes().addAndConsume("c", attribute -> attribute.setAlternativeName("intValue"));
     }
 
     private static void fillSpanEvents(final EntityMap<? extends EventConfiguration> events) {

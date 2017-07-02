@@ -4,7 +4,9 @@ import com.bytex.snamp.Box;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicReference;
 
+import java.util.Optional;
 import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -73,8 +75,13 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
 
     @Override
     public Object getOrDefault(final Supplier<?> defaultProvider) {
-        final Object current = getDistributedObject().get();
-        return current == null ? defaultProvider.get() : getDistributedObject().get();
+        final Object current = get();
+        return current == null ? defaultProvider.get() : get();
+    }
+
+    @Override
+    public <R> Optional<R> map(final Function<? super Object, ? extends R> mapper) {
+        return Optional.ofNullable(get()).map(mapper);
     }
 
     /**

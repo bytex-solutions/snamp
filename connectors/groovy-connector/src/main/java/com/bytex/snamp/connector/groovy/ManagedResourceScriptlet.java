@@ -6,6 +6,8 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
@@ -17,6 +19,7 @@ import com.bytex.snamp.scripting.groovy.TypeDeclarationDSL;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 
+import javax.annotation.Nonnull;
 import javax.management.*;
 import java.util.Collection;
 import java.util.Set;
@@ -109,8 +112,7 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void emit(@DelegatesTo(NotificationBuilder.class) final Closure<?> statement) {
         final NotificationBuilder builder = invokeDslStatement(statement, NotificationBuilder::new);
-        builder.setSource(this);
-        emit(builder.get());
+        emit(builder.setSource(this).get());
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
@@ -131,6 +133,17 @@ public abstract class ManagedResourceScriptlet extends Scriptlet implements Mana
         else if(EventConfiguration.class.isAssignableFrom(entityType))
             return (Collection<T>) events.values().stream().map(GroovyEventBuilder::createConfiguration).collect(Collectors.toList());
         else return null;
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     *
+     * @return Status of the remove managed resource.
+     */
+    @Nonnull
+    @SpecialUse(SpecialUse.Case.SCRIPTING)
+    protected HealthStatus getStatus() {
+        return new OkStatus();
     }
 
     final Set<String> getAttributes(){

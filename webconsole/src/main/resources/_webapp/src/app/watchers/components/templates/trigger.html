@@ -18,15 +18,15 @@
 
 
 <div>
-    <dl class="row">
-        <dt class="col-sm-3">Language:</dt>
-        <dd class="col-sm-9">{{entity.language}}</dd>
+    <dl class="row" *ngIf="!isEmpty()">
+        <dt class="col-sm-5">Language:</dt>
+        <dd class="col-sm-7">{{entity.language}}</dd>
 
-        <dt class="col-sm-3">Is url:</dt>
-        <dd class="col-sm-9">{{entity.isURL}}</dd>
+        <dt class="col-sm-5">Is url:</dt>
+        <dd class="col-sm-7">{{entity.isURL}}</dd>
 
-        <dt class="col-sm-3">Script:</dt>
-        <dd class="col-sm-9">{{entity.shortScript()}}
+        <dt class="col-sm-5">Script:</dt>
+        <dd class="col-sm-7">
             <button *ngIf="!hideDetails"
                     class="center-block btn btn-inline btn-sm"
                     data-toggle="modal"

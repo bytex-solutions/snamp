@@ -135,7 +135,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
 
     private void syntaxController(){     //this method is declared just for compile time control of DSL expressions
         define(measurement).of(bool);
-        define(notification).setType("test").setSource(this);
+        define(notification).setType("test").setSource(this).setMessage("Hello, world").setSequenceNumber(0L);
     }
 
     @Override
@@ -149,22 +149,22 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final BooleanMeasurement measurement){
-        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+        getNotifications().add(() -> new ValueMeasurementNotification<>(this, measurement));
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final IntegerMeasurement measurement){
-        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+        getNotifications().add(() -> new ValueMeasurementNotification<>(this, measurement));
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final StringMeasurement measurement){
-        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+        getNotifications().add(() -> new ValueMeasurementNotification<>(this, measurement));
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     protected final void addMeasurement(final FloatingPointMeasurement measurement){
-        getNotifications().add(() -> new ValueMeasurementNotification(this, measurement));
+        getNotifications().add(() -> new ValueMeasurementNotification<>(this, measurement));
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
@@ -190,7 +190,7 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     @SuppressWarnings("unchecked")
     @Override
     public final Stream<Notification> parse(final Map<String, ?> headers, final Object body) throws Exception {
-        final Object result;
+        final Object result;            
         final Collection<NotificationFactory> submittedNotifs = getNotifications();
         try {
             result = parse((Object) headers, body);

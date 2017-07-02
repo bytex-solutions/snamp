@@ -1,15 +1,13 @@
 package com.bytex.snamp.gateway.snmp;
 
+import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.gateway.modeling.NotificationAccessor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.WellKnownType;
 import org.snmp4j.agent.NotificationOriginator;
 import org.snmp4j.agent.mo.snmp.TransportDomains;
-import org.snmp4j.smi.OID;
-import org.snmp4j.smi.OctetString;
-import org.snmp4j.smi.TransportIpAddress;
-import org.snmp4j.smi.UdpAddress;
+import org.snmp4j.smi.*;
 
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
@@ -95,6 +93,28 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
         return attachmentType == null ? null : SnmpType.map(attachmentType);
     }
 
+    private VariableBinding[] handleNotification(final org.snmp4j.jmx.SnmpNotification notification) {
+        final VariableBinding[] source = notification.getBindings();
+        final VariableBinding[] result = new VariableBinding[source.length];
+        for (int i = 0; i < source.length; i++) {
+            final VariableBinding sourceBinding = source[i];
+            result[i] = new VariableBinding(new OID(notificationID).append(sourceBinding.getOid()), sourceBinding.getVariable());
+        }
+        return result;
+    }
+
+    private VariableBinding[] handleNotification(final Notification notification) {
+        if (notification instanceof NotificationContainer)
+            return handleNotification(((NotificationContainer) notification).get());
+        else if (notification instanceof org.snmp4j.jmx.SnmpNotification)
+            return handleNotification((org.snmp4j.jmx.SnmpNotification) notification);
+        else
+            return new SnmpNotification(notificationID,
+                    resourceName,
+                    notification,
+                    get()).getBindings();
+    }
+
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         final WeakReference<NotificationOriginator> originatorRef = this.notificationOriginator;
@@ -102,12 +122,9 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
                 originatorRef.get() :
                 null;
         if (originator != null) {
-            notification.setSource(resourceName);
-            final SnmpNotification snmpTrap = new SnmpNotification(notificationID,
-                    notification,
-                    get());
-            originator.notify(new OctetString(), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv3 sending
-            originator.notify(OctetStringHelper.toOctetString("public"), snmpTrap.notificationID, snmpTrap.getBindings()); //for SNMPv2 sending
+            final VariableBinding[] snmpTrap = handleNotification(notification);
+            originator.notify(new OctetString(), notificationID, snmpTrap); //for SNMPv3 sending
+            originator.notify(OctetStringHelper.toOctetString("public"), notificationID, snmpTrap); //for SNMPv2 sending
         }
     }
 
