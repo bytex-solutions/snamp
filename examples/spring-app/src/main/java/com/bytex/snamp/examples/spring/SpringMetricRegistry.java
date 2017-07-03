@@ -16,15 +16,15 @@ public final class SpringMetricRegistry extends MetricRegistry {
         super(PrintStreamReporter.toStandardOutput());
     }
 
-    public SpanReporter orderTripTracer(){
+    SpanReporter orderTripTracer(){
         return tracer("orderTrip");
     }
 
-    public SpanReporter requestDriverTracer(){
+    SpanReporter requestDriverTracer(){
         return tracer("requestDriver");
     }
 
-    public SpanReporter notifyPassengerTracer(){
+    SpanReporter notifyPassengerTracer(){
         return tracer("notifyPassenger");
     }
 }

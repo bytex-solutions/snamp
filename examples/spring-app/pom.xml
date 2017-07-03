@@ -50,6 +50,18 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>1.9.13</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.13</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>com.bytex.snamp.instrumentation</groupId>
       <artifactId>http-reporter</artifactId>
       <version>1.0.0</version>
