@@ -55,10 +55,29 @@ public class SpanReporter extends MeasurementReporter<Span> {
     /**
      * Creates a new trace scope.
      * @param correlationID Correlation identifier.
+     * @param parentSpanID Identifier of the parent span.
+     * @return Trace scope.
+     */
+    public final TraceScope beginTrace(final String correlationID, final String parentSpanID){
+        return beginTrace(Identifier.ofString(correlationID), Identifier.ofString(parentSpanID));
+    }
+
+    /**
+     * Creates a new trace scope.
+     * @param correlationID Correlation identifier.
      * @return Trace scope.
      */
     public final TraceScope beginTrace(final Identifier correlationID){
         return beginTrace(correlationID, Identifier.EMPTY);
+    }
+
+    /**
+     * Creates a new trace scope.
+     * @param correlationID Correlation identifier.
+     * @return Trace scope.
+     */
+    public final TraceScope beginTrace(final String correlationID){
+        return beginTrace(Identifier.ofString(correlationID));
     }
 
     /**

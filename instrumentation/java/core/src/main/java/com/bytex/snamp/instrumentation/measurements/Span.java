@@ -16,6 +16,9 @@ import java.io.ObjectOutput;
  */
 @JsonTypeName("span")
 public final class Span extends TimeMeasurement implements ModuleScoped {
+    public static final String CORRELATION_HTTP_HEADER = "X-Correlation-ID";
+    public static final String SPAN_HTTP_HEADER = "X-Request-ID";
+
     private static final long serialVersionUID = -1873210335013467017L;
     private Identifier correlationID = Identifier.EMPTY;
     private Identifier spanID = Identifier.EMPTY;

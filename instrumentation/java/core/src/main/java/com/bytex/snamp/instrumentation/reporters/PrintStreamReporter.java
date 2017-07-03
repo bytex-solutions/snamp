@@ -4,21 +4,25 @@ import com.bytex.snamp.instrumentation.measurements.Measurement;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Objects;
 
 /**
- * Represents reporter that writes all incoming measurements into STDOUT.
+ * Represents reporter that writes all incoming measurements into print stream.
  * @author Roman Sakno
  * @version 1.0
  * @since 1.0
  */
-public final class ConsoleReporter implements Reporter {
+public final class PrintStreamReporter implements Reporter {
     private final PrintStream output;
+    private final boolean autoClose;
 
-    /**
-     * Initializes a new text reporter that writes all incoming measurements into STDOUT.
-     */
-    public ConsoleReporter(){
-        output = System.out;
+    public PrintStreamReporter(final PrintStream output, final boolean autoClose){
+        this.output = Objects.requireNonNull(output);
+        this.autoClose = autoClose;
+    }
+
+    public static PrintStreamReporter toStandardOutput(){
+        return new PrintStreamReporter(System.out, false);
     }
 
     @Override
@@ -61,6 +65,7 @@ public final class ConsoleReporter implements Reporter {
      */
     @Override
     public void close() {
-
+        if(autoClose)
+            output.close();
     }
 }
