@@ -11,6 +11,7 @@ import { Overlay } from 'angular2-modal';
 import { Modal } from 'angular2-modal/plugins/vex';
 
 import 'select2';
+import { isNullOrUndefined } from "util";
 
 @Component({
   moduleId: module.id,
@@ -19,13 +20,14 @@ import 'select2';
 export class GatewaysComponent implements OnInit {
 
    gateways:Gateway[] = [];
-   activeGateway:Gateway;
+   activeGateway:Gateway = undefined;
    oldTypeValue:string = "";
-   http:ApiClient;
    availableGateways :any[] = [];
 
-   constructor(apiClient: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
-        this.http = apiClient;
+   private static select2Id:string = "#gatewaySelection";
+   private static selectionId:string = "#select2-gatewaySelection-container";
+
+   constructor(private http: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
         overlay.defaultViewContainer = vcRef;
    }
 
@@ -38,11 +40,18 @@ export class GatewaysComponent implements OnInit {
                     this.gateways.push(new Gateway(this.http, key, data[key]['type'], data[key]['parameters']))
                 }
                 if (this.gateways.length > 0) {
-                  this.activeGateway = this.gateways[0];
-                  // dirty hack to make select element work
-                  $("#select2-gatewaySelection-container").html(this.activeGateway.name);
+                    this.activeGateway = this.gateways[0];
+                    // dirty hack to make select element work
+                    let _thisReference = this;
+                    $(document).ready(function () {
+                        $(GatewaysComponent.select2Id).select2();
+                        $(GatewaysComponent.select2Id).on('change', (e) => {
+                            _thisReference.selectCurrentlyActiveGateway($(e.target).val());
+                        });
+                    });
+                    $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+                    this.oldTypeValue = this.activeGateway.type;
                 }
-                this.oldTypeValue = this.activeGateway.type;
             });
 
         // Get all the available bundles that belong to Gateways
@@ -51,22 +60,29 @@ export class GatewaysComponent implements OnInit {
             .subscribe(data => this.availableGateways = data);
     }
 
-    initSelectionComponent() {
-      $("#gatewaySelection").select2('destroy');
-      $("#gatewaySelection").select2();
-    }
-
-    ngAfterViewInit() {
-       var _this = this;
-       $(document).ready(function() {
-          $("#gatewaySelection").select2();
-          $("#gatewaySelection").on('change', (e) => {
-            _this.selectCurrentlyActiveGateway($(e.target).val());
-          });
+    dispatchNewGateway(newGateway:Gateway):void {
+        let _thisReference = this;
+        if ($(GatewaysComponent.select2Id).data('select2')) {
+            $(GatewaysComponent.select2Id).select2('destroy');
+        }
+        $(GatewaysComponent.select2Id).select2({
+            placeholder: "Select gateway",
+            width: '100%',
+            allowClear: true
         });
+        $(GatewaysComponent.select2Id).on('change', (e) => {
+            _thisReference.selectCurrentlyActiveGateway($(e.target).val());
+        });
+
+        if (this.gateways.length > 0) {
+            this.activeGateway = newGateway;
+            $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+        }
     }
 
-    selectCurrentlyActiveGateway(gatewayName:string) {
+    ngAfterViewInit() {}
+
+    selectCurrentlyActiveGateway(gatewayName:string):void {
         let selection:Gateway;
         for (let i = 0; i < this.gateways.length; i++) {
           if (this.gateways[i].name == gatewayName) {
@@ -74,7 +90,9 @@ export class GatewaysComponent implements OnInit {
           }
         }
         this.activeGateway = selection;
-        this.oldTypeValue = selection.type;
+        if (!isNullOrUndefined(selection)) {
+            this.oldTypeValue = selection.type;
+        }
     }
 
     changeType(event:any) {

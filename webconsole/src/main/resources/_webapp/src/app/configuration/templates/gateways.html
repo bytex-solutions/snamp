@@ -5,17 +5,17 @@
         <h3>Gateways configuration</h3>
       </div>
 
-      <div class="title_right">
-        <div class="col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search">
+      <div class="title_right" *ngIf="gateways && gateways.length > 0">
+        <div class="col-md-8 col-sm-8 col-xs-12 form-group pull-right">
             <div class="row">
               <div class="col-md-3">
                 <h5>Choose gateway</h5>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-6" >
                 <select
                   id="gatewaySelection"
                   class="select2_group form-control">
-                  <optgroup label="Gateways" *ngIf="gateways.length > 0">
+                  <optgroup label="Gateways">
                     <option
                       *ngFor="let gateway of gateways"
                       [value]="gateway.name">
@@ -27,7 +27,7 @@
               <div class="col-md-2">
                 <newEntity
                   [entities]="gateways"
-                  (onSave)="initSelectionComponent()"
+                  (onSave)="dispatchNewGateway($event)"
                   [type]="'gateway'">
                 </newEntity>
               </div>
@@ -38,6 +38,16 @@
     </div>
 
     <div class="clearfix"></div>
+
+      <div class="row" style="float: left !important;" *ngIf="!gateways || gateways.length == 0">
+          <div class="col-md-2">
+              <newEntity
+                      [entities]="gateways"
+                      (onSave)="dispatchNewGateway($event)"
+                      [type]="'gateway'">
+              </newEntity>
+          </div>
+      </div>
 
     <div class="row" style="margin-top: 30px" *ngIf="gateways && gateways.length > 0">
 

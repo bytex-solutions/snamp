@@ -22,6 +22,9 @@ export class RGroupsComponent implements OnInit {
    oldTypeValue:string = "";
    availableResources :any[] = [];
 
+    private static select2ElementId:string = "#resourceSelection";
+    private static selectionId:string = "#select2-resourceSelection-container";
+
    constructor(private http: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
         overlay.defaultViewContainer = vcRef;
    }
@@ -35,8 +38,15 @@ export class RGroupsComponent implements OnInit {
                     this.resources.push(new ResourceGroup(this.http, key, data[key]))
                 }
                 if (this.resources.length > 0) {
-                  this.activeResource = this.resources[0];
-                  this.oldTypeValue = this.activeResource.type;
+                    this.activeResource = this.resources[0];
+                    this.oldTypeValue = this.activeResource.type;
+                    let _thisReference = this;
+                    $(document).ready(function() {
+                        $(RGroupsComponent.select2ElementId).select2();
+                        $(RGroupsComponent.select2ElementId).on('change', (e) => {
+                            _thisReference.selectCurrentlyActiveResource($(e.target).val());
+                        });
+                    });
                 }
             });
 
@@ -47,30 +57,35 @@ export class RGroupsComponent implements OnInit {
 
     }
 
-    initSelectionComponent() {
-      $("#resourceSelection").select2('destroy');
-      $("#resourceSelection").select2();
-    }
-
-    ngAfterViewInit() {
-       let _thisReference = this;
-       $(document).ready(function() {
-          $("#resourceSelection").select2();
-          $("#resourceSelection").on('change', (e) => {
-              _thisReference.selectCurrentlyActiveResource($(e.target).val());
-          });
+    dispatchNewResourceGroup(newResource:ResourceGroup):void {
+        let _thisReference = this;
+        if ($(RGroupsComponent.select2ElementId).data('select2')) {
+            $(RGroupsComponent.select2ElementId).select2('destroy');
+        }
+        $(RGroupsComponent.select2ElementId).select2({
+            placeholder: "Select gateway",
+            width: '100%',
+            allowClear: true
         });
+        $(RGroupsComponent.select2ElementId).on('change', (e) => {
+            _thisReference.selectCurrentlyActiveResource($(e.target).val());
+        });
+
+        if (this.resources.length > 0) {
+            this.activeResource = newResource;
+            this.oldTypeValue = newResource.type;
+            $(RGroupsComponent.selectionId).html(this.activeResource.name);
+        }
     }
 
     selectCurrentlyActiveResource(resourceName:string) {
-          let selection:ResourceGroup;
           for (let i = 0; i < this.resources.length; i++) {
             if (this.resources[i].name == resourceName) {
-              selection = this.resources[i];
+                this.activeResource = this.resources[i];
+                this.oldTypeValue = this.resources[i].type;
+                break;
             }
           }
-          this.activeResource = selection;
-          this.oldTypeValue = selection.type;
       }
 
     changeType(event:any) {

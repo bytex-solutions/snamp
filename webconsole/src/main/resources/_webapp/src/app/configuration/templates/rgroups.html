@@ -5,8 +5,8 @@
         <h3>Resource group configuration</h3>
       </div>
 
-      <div class="title_right">
-        <div class="col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search">
+      <div class="title_right" *ngIf="resources && resources.length > 0">
+        <div class="col-md-8 col-sm-8 col-xs-12 form-group pull-right">
           <div class="row">
             <div class="col-md-3">
               <h5>Choose group</h5>
@@ -15,7 +15,7 @@
               <select
                 id="resourceSelection"
                 class="select2_group form-control">
-                <optgroup label="Resources" *ngIf="resources.length > 0">
+                <optgroup label="Resources" >
                   <option
                     *ngFor="let resource of resources"
                     [value]="resource.name">
@@ -27,7 +27,7 @@
             <div class="col-md-2">
               <newEntity
                 [entities]="resources"
-                (onSave)="initSelectionComponent()"
+                (onSave)="dispatchNewResourceGroup(event)"
                 [type]="'resourceGroup'">
               </newEntity>
             </div>
@@ -38,6 +38,16 @@
     </div>
 
     <div class="clearfix"></div>
+
+    <div class="row" style="float: left !important;" *ngIf="!resources || resources.length == 0">
+      <div class="col-md-2">
+        <newEntity
+                [entities]="resources"
+                (onSave)="dispatchNewResourceGroup($event)"
+                [type]="'resourceGroup'">
+        </newEntity>
+      </div>
+    </div>
 
     <div class="row" style="margin-top: 30px" *ngIf="resources && resources.length > 0 && activeResource != undefined">
 

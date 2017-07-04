@@ -23,6 +23,7 @@ export class ResourcesComponent implements OnInit {
     private oldSmartMode = false;
 
     private static select2ElementId:string = "#resourceSelection";
+    private static selectionId:string = "#select2-resourceSelection-container";
 
     constructor(private http: ApiClient,
                 private overlay: Overlay,
@@ -39,10 +40,20 @@ export class ResourcesComponent implements OnInit {
                 for (let key in data) {
                     this.resources.push(new Resource(this.http, key, data[key]))
                 }
-                this.activeResource = (this.resources.length > 0) ? this.resources[0] : this.activeResource;
-                this.oldTypeValue = this.activeResource.type;
-                this.oldGroupValue = this.activeResource.groupName;
-                this.oldSmartMode = this.activeResource.smartMode;
+                if (this.resources.length > 0) {
+                    this.activeResource = this.resources[0];
+                    this.oldTypeValue = this.activeResource.type;
+                    this.oldGroupValue = this.activeResource.groupName;
+                    this.oldSmartMode = this.activeResource.smartMode;
+
+                    let _thisReference = this;
+                    $(document).ready(function() {
+                        $(ResourcesComponent.select2ElementId).select2();
+                        $(ResourcesComponent.select2ElementId).on('change', (e) => {
+                            _thisReference.selectCurrentlyActiveResource($(e.target).val());
+                        });
+                    });
+                }
             });
 
         // Get all the available bundles that belong to Resources
@@ -61,32 +72,39 @@ export class ResourcesComponent implements OnInit {
             .subscribe(data => this.availableThreadPools = ThreadPool.makeBunchFromJson(data));
     }
 
-    initSelectionComponent():void {
-        $(ResourcesComponent.select2ElementId).select2('destroy');
-        $(ResourcesComponent.select2ElementId).select2();
-    }
-
-    ngAfterViewInit():void {
+    dispatchNewResource(newResource:Resource):void {
         let _thisReference = this;
-        $(document).ready(function() {
-            $(ResourcesComponent.select2ElementId).select2();
-            $(ResourcesComponent.select2ElementId).on('change', (e) => {
-                _thisReference.selectCurrentlyActiveResource($(e.target).val());
-            });
+        if ($(ResourcesComponent.select2ElementId).data('select2')) {
+            $(ResourcesComponent.select2ElementId).select2('destroy');
+        }
+        $(ResourcesComponent.select2ElementId).select2({
+            placeholder: "Select gateway",
+            width: '100%',
+            allowClear: true
         });
+        $(ResourcesComponent.select2ElementId).on('change', (e) => {
+            _thisReference.selectCurrentlyActiveResource($(e.target).val());
+        });
+
+        if (this.resources.length > 0) {
+            this.activeResource = newResource;
+            this.oldTypeValue = newResource.type;
+            this.oldGroupValue = newResource.groupName;
+            this.oldSmartMode = newResource.smartMode;
+            $(ResourcesComponent.selectionId).html(this.activeResource.name);
+        }
     }
 
     selectCurrentlyActiveResource(resourceName:string):void {
-        let selection:Resource;
         for (let i = 0; i < this.resources.length; i++) {
             if (this.resources[i].name == resourceName) {
-                selection = this.resources[i];
+                this.activeResource = this.resources[i];
+                this.oldTypeValue = this.resources[i].type;
+                this.oldGroupValue = this.resources[i].groupName;
+                this.oldSmartMode = this.resources[i].smartMode;
+                break;
             }
         }
-        this.activeResource = selection;
-        this.oldTypeValue = selection.type;
-        this.oldGroupValue = selection.groupName;
-        this.oldSmartMode = selection.smartMode;
     }
 
     changeType(event:any):void {
