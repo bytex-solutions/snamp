@@ -27,11 +27,11 @@
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
-      <artifactId>framework</artifactId>
+      <artifactId>standard</artifactId>
       <version>4.0.9</version>
       <type>xml</type>
       <classifier>features</classifier>
-      <scope>runtime</scope>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp.features</groupId>
@@ -48,13 +48,6 @@
       <type>xml</type>
       <classifier>features</classifier>
       <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.karaf.features</groupId>
-      <artifactId>standard</artifactId>
-      <version>4.0.9</version>
-      <type>xml</type>
-      <classifier>features</classifier>
     </dependency>
     <dependency>
       <groupId>org.apache.karaf.features</groupId>
@@ -95,7 +88,14 @@
             <feature>cellar</feature>
             <feature>scr</feature>
             <feature>wrapper</feature>
-            <feature>snamp-platform</feature>
+            <feature>snamp-core</feature>
+            <feature>snamp-security</feature>
+            <feature>snamp-web-support</feature>
+            <feature>snamp-scripting-support</feature>
+            <feature>snamp-ssh-support</feature>
+            <feature>snamp-snmp-support</feature>
+            <feature>snamp-instrumentation</feature>
+            <feature>snamp-text-support</feature>
           </installedFeatures>
         </configuration>
       </plugin>

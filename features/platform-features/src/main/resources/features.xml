@@ -32,7 +32,7 @@
 
     <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
         <!-- Required features -->
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">http-whiteboard</feature>
+        <feature>http-whiteboard</feature>
         <feature>jersey-server</feature>
         <feature>orientdb-server</feature>
         <feature>snamp-json-support</feature>
@@ -87,16 +87,5 @@
 
     <feature name="snamp-text-support" description="SNAMP support bundles for working with text templates" version="${project.version}">
         <bundle>mvn:com.bytex.snamp.osgi/stringtemplate4/${stringtemplate.version}</bundle>
-    </feature>
-
-    <feature name="snamp-platform" description="${project.description}" version="${project.version}">
-        <feature>snamp-core</feature>
-        <feature>snamp-security</feature>
-        <feature>snamp-web-support</feature>
-        <feature>snamp-scripting-support</feature>
-        <feature>snamp-ssh-support</feature>
-        <feature>snamp-snmp-support</feature>
-        <feature>snamp-instrumentation</feature>
-        <feature>snamp-text-support</feature>
     </feature>
 </features>
