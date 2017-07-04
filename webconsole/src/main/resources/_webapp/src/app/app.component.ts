@@ -37,8 +37,20 @@ export class App {
     public notificationCount:number = 0;
     private stack_bottomright:any = {"dir1": "up", "dir2": "left", "firstpos1": 25, "firstpos2": 25};
 
+    private getWsAddress():string {
+        let loc = window.location, new_uri;
+        if (loc.protocol === "https:") {
+            new_uri = "wss:";
+        } else {
+            new_uri = "ws:";
+        }
+        new_uri += "//" + loc.host;
+        new_uri += loc.pathname + "console/events";
+        return new_uri;
+    }
+
     ngAfterViewInit() {
-        this.ws = new $WebSocket("ws://localhost:8181/snamp/console/events", [],
+        this.ws = new $WebSocket(this.getWsAddress(), [],
             {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true});
 
         this.ws.getDataStream()

@@ -103864,9 +103864,21 @@ var App = (function () {
         title.setTitle("SNAMP web console");
         overlay.defaultViewContainer = vcRef;
     }
+    App.prototype.getWsAddress = function () {
+        var loc = window.location, new_uri;
+        if (loc.protocol === "https:") {
+            new_uri = "wss:";
+        }
+        else {
+            new_uri = "ws:";
+        }
+        new_uri += "//" + loc.host;
+        new_uri += loc.pathname + "console/events";
+        return new_uri;
+    };
     App.prototype.ngAfterViewInit = function () {
         var _this = this;
-        this.ws = new angular2_websocket_1.$WebSocket("ws://localhost:8181/snamp/console/events", [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
+        this.ws = new angular2_websocket_1.$WebSocket(this.getWsAddress(), [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
         this.ws.getDataStream()
             .map(function (msg) { return JSON.parse(msg.data); })
             .subscribe(function (msg) {
