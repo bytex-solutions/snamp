@@ -8,7 +8,6 @@
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <version>${snamp.integration.version}</version>
     <groupId>com.bytex.snamp.integration</groupId>
     <artifactId>integration</artifactId>
     <name>Integration Components</name>

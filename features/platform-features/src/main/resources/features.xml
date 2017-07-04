@@ -9,7 +9,7 @@
         <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
     </feature>
 
-    <feature name="snamp-json-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${project.version}">
+    <feature name="snamp-json-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${snamp.json.version}">
         <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${jackson.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${jackson.version}</bundle>
         <bundle>mvn:com.bytex.snamp/json-helpers/${snamp.json.version}</bundle>
@@ -27,17 +27,16 @@
     <feature name="snamp-framework" description="SNAMP framework" version="${project.version}">
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle>mvn:com.google.code.findbugs/jsr305/${jsr305.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/framework/${snamp.version}</bundle>
+        <bundle>mvn:com.bytex.snamp/framework/${project.version}</bundle>
     </feature>
 
     <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
-        <details>${project.description}</details>
         <!-- Required features -->
         <feature version="[${karaf.version}, ${karaf.maxVersion})">http-whiteboard</feature>
-        <feature version="${jersey.version}">jersey-server</feature>
-        <feature version="${orientdb.version}">orientdb-server</feature>
-        <feature version="${project.version}">snamp-json-support</feature>
-        <feature version="${project.version}">snamp-framework</feature>
+        <feature>jersey-server</feature>
+        <feature>orientdb-server</feature>
+        <feature>snamp-json-support</feature>
+        <feature>snamp-framework</feature>
         <!--Required bundles-->
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
         <bundle start="true">mvn:com.bytex.snamp/security/${snamp.security.version}</bundle>
@@ -52,8 +51,8 @@
 
     <feature name="snamp-web-support" description="SNAMP support bundles for Web" version="${project.version}">
         <details>SNAMP support bundles for Web</details>
-        <feature version="${project.version}">snamp-json-support</feature>
-        <feature version="${jersey.version}">jersey-server</feature>
+        <feature>snamp-json-support</feature>
+        <feature>jersey-server</feature>
         <bundle>mvn:io.netty/netty/${netty.version}</bundle>
         <bundle>mvn:org.codehaus.jettison/jettison/${jettison.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-jaxrs/${jackson.version}</bundle>
@@ -63,7 +62,7 @@
     </feature>
 
     <feature name="snamp-scripting-support" description="SNAMP support bundles for scripting" version="${project.version}">
-        <feature version="${project.version}" >snamp-framework</feature>
+        <feature>snamp-framework</feature>
         <bundle>mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.codehaus.groovy/groovy-xml/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.codehaus.groovy/groovy-json/${groovy.version}/jar/indy</bundle>
@@ -73,12 +72,12 @@
     </feature>
 
     <feature name="snamp-ssh-support" description="Set of Java libraries for SSH" version="${project.version}">
-        <feature version="${project.version}" >snamp-security</feature>
+        <feature>snamp-security</feature>
         <bundle>mvn:net.i2p.crypto/eddsa/${eddsa.version}</bundle>
         <bundle>mvn:com.bytex.snamp.osgi/sshj/${sshj.version}</bundle>
     </feature>
 
-    <feature name="snamp-snmp-support" description="Set of Java libraries for SNMPv2/SNMPv3" version="${project.version}">
+    <feature name="snamp-snmp-support" description="Set of Java libraries for SNMPv2/SNMPv3" version="${snmp4j.version}">
         <bundle>mvn:com.bytex.snamp.osgi/snmp4j/${snmp4j.version}</bundle>
     </feature>
 
@@ -88,5 +87,16 @@
 
     <feature name="snamp-text-support" description="SNAMP support bundles for working with text templates" version="${project.version}">
         <bundle>mvn:com.bytex.snamp.osgi/stringtemplate4/${stringtemplate.version}</bundle>
+    </feature>
+
+    <feature name="snamp-platform" description="${project.description}" version="${project.version}">
+        <feature>snamp-core</feature>
+        <feature>snamp-security</feature>
+        <feature>snamp-web-support</feature>
+        <feature>snamp-scripting-support</feature>
+        <feature>snamp-ssh-support</feature>
+        <feature>snamp-snmp-support</feature>
+        <feature>snamp-instrumentation</feature>
+        <feature>snamp-text-support</feature>
     </feature>
 </features>

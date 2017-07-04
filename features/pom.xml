@@ -13,7 +13,7 @@
   <name>SNAMP Features</name>
   <description>Set of SNAMP features for Karaf</description>
   <modules>
-    <module>core-features</module>
+    <module>platform-features</module>
     <module>standard-features</module>
     <module>wrapped-libs-for-tests</module>
     <module>connectors-pack</module>

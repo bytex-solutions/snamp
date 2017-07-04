@@ -9,10 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>SNAMP Platform</name>
-    <description>Basic set of features required to support SNAMP platform</description>
-    <artifactId>core</artifactId>
+    <description>Full set of features required by SNAMP platform</description>
+    <artifactId>platform</artifactId>
     <packaging>kar</packaging>
-    <version>${snamp.version}</version>
     <build>
         <resources>
             <resource>

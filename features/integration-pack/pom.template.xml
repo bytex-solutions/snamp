@@ -9,7 +9,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>integration</artifactId>
-    <version>${snamp.integration.version}</version>
     <name>Integration Components Pack</name>
     <description>Pack with SNAMP integration components</description>
     <packaging>kar</packaging>

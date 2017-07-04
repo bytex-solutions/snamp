@@ -9,7 +9,7 @@
     </parent>
     <artifactId>devops-tools</artifactId>
     <packaging>bundle</packaging>
-    <version>${snamp.version}</version>
+    <version>${snamp.devops.tools.version}</version>
     <name>DevOps Tools</name>
     <description>Provides shell commands for debugging various SNAMP scriptlets</description>
     <properties>
@@ -76,7 +76,7 @@
         <dependency>
             <groupId>com.bytex.snamp.supervisors</groupId>
             <artifactId>default</artifactId>
-            <version>${snamp.supervisors.version}</version>
+            <version>${snamp.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

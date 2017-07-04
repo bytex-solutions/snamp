@@ -38,11 +38,9 @@
     <jsr305.version>3.0.1</jsr305.version>
     <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>
     <stringtemplate.version>4.0.8</stringtemplate.version>
-      <!--Versioning of SNAMP Components-->
+    <!--Versioning of SNAMP Components-->
     <snamp.version>2.0.0</snamp.version>
-    <snamp.maxVersion>3</snamp.maxVersion>
-
-    <snamp.gateways.version>2.0.0</snamp.gateways.version>
+    <!--Gateways-->
     <snamp.gateway.smtp.version>2.0.0</snamp.gateway.smtp.version>
     <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
     <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
@@ -55,11 +53,10 @@
     <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
     <snamp.gateway.groovy.version>2.0.0</snamp.gateway.groovy.version>
     <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
-
-    <snamp.supervisors.version>2.0.0</snamp.supervisors.version>
+    <!--Supervisors-->
+    <snamp.supervisor.default.version>2.0.0</snamp.supervisor.default.version>
     <snamp.supervisor.openstack.version>2.0.0</snamp.supervisor.openstack.version>
-
-    <snamp.connectors.version>2.0.0</snamp.connectors.version>
+    <!--Connectors-->
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
     <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
     <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
@@ -71,7 +68,7 @@
     <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
     <snamp.connector.stub.version>2.0.0</snamp.connector.stub.version>
     <snamp.connector.actuator.version>2.0.0</snamp.connector.actuator.version>
-
+    <!--Other components-->
     <snamp.json.version>2.0.0</snamp.json.version>
     <snamp.management.version>2.0.0</snamp.management.version>
     <snamp.services.version>2.0.0</snamp.services.version>
@@ -80,7 +77,8 @@
     <snamp.instrumentation.version>1.0.0</snamp.instrumentation.version>
     <snamp.security.version>2.0.0</snamp.security.version>
     <snamp.e2e_analyzer.version>2.0.0</snamp.e2e_analyzer.version>
-    <snamp.integration.version>2.0.0</snamp.integration.version>
+    <snamp.discovery.http.version>2.0.0</snamp.discovery.http.version>
+    <snamp.devops.tools.version>2.0.0</snamp.devops.tools.version>
   </properties>
   <version>${snamp.version}</version>
   <organization>

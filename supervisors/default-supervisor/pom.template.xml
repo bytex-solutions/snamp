@@ -11,7 +11,7 @@
     <name>Default Supervisor</name>
     <description>A framework for building custom supervisors</description>
     <artifactId>default</artifactId>
-    <version>${snamp.supervisors.version}</version>
+    <version>${snamp.supervisor.default.version}</version>
     <packaging>bundle</packaging>
     <build>
         <resources>

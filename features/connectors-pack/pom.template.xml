@@ -10,7 +10,6 @@
     <artifactId>connectors</artifactId>
     <packaging>kar</packaging>
     <name>SNAMP Connectors Pack</name>
-    <version>${snamp.connectors.version}</version>
     <description>Pack of SNAMP standard connectors</description>
     <build>
         <resources>

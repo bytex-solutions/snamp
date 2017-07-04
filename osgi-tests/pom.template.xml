@@ -313,7 +313,7 @@
         <dependency>
             <groupId>com.bytex.snamp.supervisors</groupId>
             <artifactId>default</artifactId>
-            <version>${snamp.supervisors.version}</version>
+            <version>${snamp.supervisor.default.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

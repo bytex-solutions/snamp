@@ -35,7 +35,7 @@
     </dependency>
     <dependency>
       <groupId>com.bytex.snamp.features</groupId>
-      <artifactId>core</artifactId>
+      <artifactId>platform</artifactId>
       <version>2.0.0</version>
       <type>xml</type>
       <classifier>features</classifier>
@@ -95,7 +95,7 @@
             <feature>cellar</feature>
             <feature>scr</feature>
             <feature>wrapper</feature>
-            <feature>snamp-core</feature>
+            <feature>snamp-platform</feature>
           </installedFeatures>
         </configuration>
       </plugin>
@@ -128,7 +128,7 @@
                 <artifactItem>
                   <groupId>com.bytex.snamp.features</groupId>
                   <artifactId>connectors</artifactId>
-                  <version>${snamp.connectors.version}</version>
+                  <version>${snamp.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
@@ -136,7 +136,7 @@
                 <artifactItem>
                   <groupId>com.bytex.snamp.features</groupId>
                   <artifactId>gateways</artifactId>
-                  <version>${snamp.gateways.version}</version>
+                  <version>${snamp.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
@@ -152,7 +152,7 @@
                 <artifactItem>
                   <groupId>com.bytex.snamp.features</groupId>
                   <artifactId>integration</artifactId>
-                  <version>${snamp.integration.version}</version>
+                  <version>${snamp.version}</version>
                   <type>kar</type>
                   <overWrite>true</overWrite>
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>

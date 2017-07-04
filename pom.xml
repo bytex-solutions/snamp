@@ -47,20 +47,20 @@
     <snamp.connector.stream.version>2.0.0</snamp.connector.stream.version>
     <snamp.connector.zipkin.version>2.0.0</snamp.connector.zipkin.version>
     <snamp.connector.rshell.version>2.0.0</snamp.connector.rshell.version>
-    <snamp.gateways.version>2.0.0</snamp.gateways.version>
     <snamp.gateway.xmpp.version>2.0.0</snamp.gateway.xmpp.version>
     <snamp.scripting.version>2.0.0</snamp.scripting.version>
     <snamp.connector.groovy.version>2.0.0</snamp.connector.groovy.version>
     <jackson.version>1.9.13</jackson.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <snamp.security.version>2.0.0</snamp.security.version>
+    <snamp.supervisor.default.version>2.0.0</snamp.supervisor.default.version>
     <netty.version>3.10.6.Final</netty.version>
     <snamp.gateway.snmp.version>2.0.0</snamp.gateway.snmp.version>
     <snamp.gateway.nsca.version>2.0.0</snamp.gateway.nsca.version>
     <snamp.connector.composite.version>2.0.0</snamp.connector.composite.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
+    <snamp.discovery.http.version>2.0.0</snamp.discovery.http.version>
     <snamp.gateway.smtp.version>2.0.0</snamp.gateway.smtp.version>
-    <snamp.supervisors.version>2.0.0</snamp.supervisors.version>
     <snamp.gateway.nagios.version>2.0.0</snamp.gateway.nagios.version>
     <sshj.version>0.18.0</sshj.version>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -69,13 +69,11 @@
     <jetty.version>9.2.19.v20160908</jetty.version>
     <snamp.gateway.http.version>2.0.0</snamp.gateway.http.version>
     <snamp.gateway.syslog.version>2.0.0</snamp.gateway.syslog.version>
-    <snamp.maxVersion>3</snamp.maxVersion>
     <snamp.gateway.nrdp.version>2.0.0</snamp.gateway.nrdp.version>
-    <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <cellar.version>4.0.3</cellar.version>
+    <snamp.gateway.jmx.version>2.0.0</snamp.gateway.jmx.version>
     <snamp.e2e_analyzer.version>2.0.0</snamp.e2e_analyzer.version>
     <snamp.json.version>2.0.0</snamp.json.version>
-    <snamp.integration.version>2.0.0</snamp.integration.version>
     <snamp.connector.http.version>2.0.0</snamp.connector.http.version>
     <osgi.version>5.0.0</osgi.version>
     <hazelcast.version>3.7.2</hazelcast.version>
@@ -86,6 +84,7 @@
     <jline.version>2.14.1</jline.version>
     <orientdb.version>2.2.21</orientdb.version>
     <jettison.version>1.3.8</jettison.version>
+    <snamp.devops.tools.version>2.0.0</snamp.devops.tools.version>
     <javax.mail.version>1.4.4</javax.mail.version>
     <jersey.version>1.19.3</jersey.version>
     <snamp.connector.stub.version>2.0.0</snamp.connector.stub.version>
@@ -98,7 +97,6 @@
     <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>
     <guava.version>19.0</guava.version>
     <snamp.gateway.ssh.version>2.0.0</snamp.gateway.ssh.version>
-    <snamp.connectors.version>2.0.0</snamp.connectors.version>
     <stringtemplate.version>4.0.8</stringtemplate.version>
     <bouncycastle.version>1.54</bouncycastle.version>
   </properties>

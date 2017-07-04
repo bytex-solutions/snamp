@@ -9,14 +9,14 @@ import org.apache.commons.cli.HelpFormatter
 
 import java.nio.file.Paths
 
-String normalizeProperty(String key){
+static String normalizeProperty(String key){
     if(key == null) return null;
     else if(key.startsWith("\${") && key.endsWith("}"))
         return key.substring(2, key.length() - 1)
-    else return key;
+    else return key
 }
 
-Properties createProperties(final Properties p1, final Properties p2){
+static Properties createProperties(final Properties p1, final Properties p2){
     final result = new Properties()
     result.putAll p1
     result.putAll p2

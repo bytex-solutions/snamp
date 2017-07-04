@@ -10,7 +10,6 @@
     <artifactId>gateways</artifactId>
     <packaging>kar</packaging>
     <name>SNAMP Gateways Pack</name>
-    <version>${snamp.gateways.version}</version>
     <description>Pack of SNAMP standard gateways</description>
     <build>
         <resources>

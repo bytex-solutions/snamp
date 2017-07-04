@@ -12,6 +12,7 @@
     <artifactId>discovery-over-http</artifactId>
     <description>Exposes SNAMP Resource Discovery functionality through HTTP</description>
     <packaging>bundle</packaging>
+    <version>${snamp.discovery.http.version}</version>
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
