@@ -5,7 +5,7 @@
         <groupId>com.bytex.snamp</groupId>
         <artifactId>snamp</artifactId>
         <version>2.0.0</version>
-        <relativePath>../pom.xml</relativePath>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     <artifactId>devops-tools</artifactId>
     <packaging>bundle</packaging>
