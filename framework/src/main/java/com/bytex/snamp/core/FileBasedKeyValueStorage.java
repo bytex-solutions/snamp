@@ -50,17 +50,16 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
     }
 
     @ThreadSafe
-    private static final class FileRecord extends ThreadSafeObject implements Record, SerializableRecordView, JsonRecordView, TextRecordView, LongRecordView, DoubleRecordView, MapRecordView{
+    private static final class FileRecord implements Record, SerializableRecordView, JsonRecordView, TextRecordView, LongRecordView, DoubleRecordView, MapRecordView{
         private static final TypeToken<Serializable> CONTENT_TYPE = TypeToken.of(Serializable.class);
-        private Serializable content;
-        private File contentHolder;
+        private volatile Serializable content;
+        private volatile File contentHolder;
 
         private FileRecord(final File databasePath, final String name){
             this(new File(databasePath, name));
         }
 
         private FileRecord(final File contentHolder){
-            super(SingleResourceGroup.class);
             this.contentHolder = Objects.requireNonNull(contentHolder);
         }
 
@@ -68,8 +67,9 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
             return ensureActive().getName();
         }
 
-        private File ensureActive(){
-            if(contentHolder == null)
+        private File ensureActive() {
+            final File contentHolder = this.contentHolder;
+            if (contentHolder == null)
                 throw new IllegalStateException("This record is detached");
             else
                 return contentHolder;
@@ -83,19 +83,9 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
             }
         }
 
-        private void writeContent(final Serializable content){
-            try(final OutputStream output = new FileOutputStream(ensureActive())){
-                IOUtils.serialize(content, output);
-            } catch (final IOException e){
-                throw new UncheckedIOException(e);
-            }
-        }
-
         @Override
-        public void refresh() {
-            try(final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)){
-                content = readContent();
-            }
+        public synchronized void refresh() {
+            content = readContent();
         }
 
         @Override
@@ -105,31 +95,34 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
 
         @Override
         public boolean isDetached() {
-            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
-                return contentHolder == null;
-            }
+            return contentHolder == null;
         }
 
-        private void delete() {
-            try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
-                if (contentHolder != null)
-                    contentHolder.delete();
-            } finally {
-                contentHolder = null;
-            }
+        synchronized void delete() {
+            if(contentHolder != null)
+                contentHolder.delete();
+            contentHolder = null;
         }
 
         @Override
         public Serializable getValue() {
-            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
-                return content;
-            }
+            Serializable content = this.content;
+            if (content == null)
+                synchronized (this) {
+                    content = this.content;
+                    if (content == null)
+                        content = this.content = readContent();
+                }
+            return content;
         }
 
         @Override
-        public void setValue(final Serializable value) {
-            try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
-                writeContent(content = value);
+        public synchronized void setValue(final Serializable value) {
+            content = Objects.requireNonNull(value);
+            try (final OutputStream output = new FileOutputStream(ensureActive())) {
+                IOUtils.serialize(value, output);
+            } catch (final IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
 

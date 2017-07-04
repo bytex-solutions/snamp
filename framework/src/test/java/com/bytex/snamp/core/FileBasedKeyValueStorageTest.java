@@ -1,8 +1,11 @@
 package com.bytex.snamp.core;
 
+import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.*;
 
 /**
  * Represents tests for {@link FileBasedKeyValueStorage}.
@@ -11,8 +14,16 @@ import org.junit.Test;
  * @since 2.0
  */
 public final class FileBasedKeyValueStorageTest extends Assert {
+    private static void setRecordValue(final KeyValueStorage.JsonRecordView record, final String value){
+        try(final Writer writer = record.createJsonWriter()){
+            writer.append(value);
+        } catch (final IOException e){
+            throw new UncheckedIOException(e);
+        }
+    }
+
     @Test
-    public void readWriteTest(){
+    public void readWriteTest() throws IOException {
         final KeyValueStorage storage = ClusterMember.get(null).getService("storage1", SharedObjectType.PERSISTENT_KV_STORAGE).orElseThrow(AssertionError::new);
         assertTrue(storage instanceof FileBasedKeyValueStorage);
         KeyValueStorage.MapRecordView mapRecord = storage.getOrCreateRecord(42L, KeyValueStorage.MapRecordView.class, KeyValueStorage.MapRecordView.INITIALIZER);
@@ -21,5 +32,18 @@ public final class FileBasedKeyValueStorageTest extends Assert {
         assertNotNull(mapRecord);
         assertTrue(storage.delete(42L));
         assertFalse(storage.getRecord(42L, KeyValueStorage.MapRecordView.class).isPresent());
+        KeyValueStorage.JsonRecordView jsonRecord = storage.getOrCreateRecord(100500, KeyValueStorage.JsonRecordView.class, record -> setRecordValue(record, "Frank Underwood"));
+        try(final Reader reader = jsonRecord.getAsJson()){
+            final String json = IOUtils.toString(reader);
+            assertNotNull(json);
+            assertFalse(json.isEmpty());
+        }
+        setRecordValue(jsonRecord, "Other value");
+        jsonRecord = storage.getOrCreateRecord(100500, KeyValueStorage.JsonRecordView.class, record -> setRecordValue(record, "{}"));
+        try(final Reader reader = jsonRecord.getAsJson()){
+            final String json = IOUtils.toString(reader);
+            assertNotNull(json);
+            assertFalse(json.isEmpty());
+        }
     }
 }
