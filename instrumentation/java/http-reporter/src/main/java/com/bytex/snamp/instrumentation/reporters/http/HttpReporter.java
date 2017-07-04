@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -115,6 +116,10 @@ public final class HttpReporter implements Reporter {
 
     public HttpReporter(final String snampLocation, final Map<String, ?> properties) throws URISyntaxException {
         this(new URI(snampLocation), properties);
+    }
+
+    public HttpReporter(final String snampLocation) throws URISyntaxException {
+        this(snampLocation, Collections.<String, Object>emptyMap());
     }
 
     /**

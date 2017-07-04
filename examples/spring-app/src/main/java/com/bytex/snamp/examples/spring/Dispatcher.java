@@ -27,7 +27,7 @@ public final class Dispatcher {
     public Dispatcher(@Value("${com.bytex.snamp.dispatcher:false}") final boolean dispatcher,
                       @Autowired final SpringMetricRegistry registry){
         isDispatcher = dispatcher;
-        spanReporter = registry.notifyPassengerTracer();
+        spanReporter = registry.orderTripTracer();
         restClient = new RestTemplate();
     }
 

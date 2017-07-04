@@ -2,8 +2,11 @@ package com.bytex.snamp.examples.spring;
 
 import com.bytex.snamp.instrumentation.MetricRegistry;
 import com.bytex.snamp.instrumentation.SpanReporter;
-import com.bytex.snamp.instrumentation.reporters.PrintStreamReporter;
+import com.bytex.snamp.instrumentation.reporters.http.HttpReporter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.net.URISyntaxException;
 
 /**
  * @author Roman Sakno
@@ -12,8 +15,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public final class SpringMetricRegistry extends MetricRegistry {
-    public SpringMetricRegistry(){
-        super(PrintStreamReporter.toStandardOutput());
+    public SpringMetricRegistry(@Value("${com.bytex.snamp.http.acceptor}") final String snampEndpoint) throws URISyntaxException {
+        super(new HttpReporter(snampEndpoint));
     }
 
     SpanReporter orderTripTracer(){
