@@ -18,8 +18,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
-import static com.bytex.snamp.concurrent.LockManager.lockAndAccept;
-import static com.bytex.snamp.concurrent.LockManager.lockAndApply;
+import static com.bytex.snamp.concurrent.LockDecorator.lockAndAccept;
+import static com.bytex.snamp.concurrent.LockDecorator.lockAndApply;
 
 /**
  * @author Roman Sakno

@@ -85,7 +85,7 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
      */
     public final <E extends Throwable> void changeResource(final Action<R, R, E> newResource) throws E {
         if (newResource == null) throw new IllegalArgumentException("newResource is null.");
-        writeLock.accept(SingleResourceGroup.INSTANCE, newResource, this::changeResourceImpl);
+        writeLock.accept(newResource, this::changeResourceImpl);
     }
 
     private void changeResourceImpl(final R newResource){
@@ -93,6 +93,6 @@ public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAcc
     }
 
     public final void changeResource(final R newResource) {
-        writeLock.accept(SingleResourceGroup.INSTANCE, this, newResource, ConcurrentResourceAccessor<R>::changeResourceImpl);
+        writeLock.accept(this, newResource, ConcurrentResourceAccessor<R>::changeResourceImpl);
     }
 }

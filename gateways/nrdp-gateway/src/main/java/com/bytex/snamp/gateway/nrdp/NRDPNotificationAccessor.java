@@ -1,7 +1,6 @@
 package com.bytex.snamp.gateway.nrdp;
 
 import ch.shamu.jsendnrdp.domain.State;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationRouter;
@@ -16,9 +15,9 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * Provides transformation between notification of the connected resource and NRDP protocol.
  */
 final class NRDPNotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {
-    <L extends ThreadSafeObject & NotificationListener> NRDPNotificationAccessor(final String resourceName,
+    NRDPNotificationAccessor(final String resourceName,
                                                                                  final MBeanNotificationInfo metadata,
-                                                                                 final L listener) {
+                                                                                 final NotificationListener listener) {
         super(resourceName, metadata, listener);
     }
 

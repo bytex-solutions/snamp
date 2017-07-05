@@ -5,6 +5,7 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetric;
@@ -21,6 +22,8 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -95,6 +98,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final NotificationMetricRecorder metrics;
     private Aggregator notificationSource;
     private final LazyStrongReference<ExecutorService> defaultExecutor;
+    private final LockDecorator readLock, writeLock;
 
     /**
      * Initializes a new notification manager.
@@ -108,6 +112,9 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         listeners = new NotificationListenerList();
         metrics = new NotificationMetricRecorder();
         defaultExecutor = new LazyStrongReference<>();
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     private static String extractNotificationType(final MBeanNotificationInfo metadata) {
@@ -135,7 +142,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     protected final void fire(final BiConsumer<? super M, ? super NotificationCollector> sender){
         final NotificationCollector collector = new NotificationCollector();
-        readLock.accept(SingleResourceGroup.INSTANCE, notifications.values(), collector, (notifications, collector1) -> notifications.forEach(n -> sender.accept(n, collector1)));
+        readLock.accept(notifications.values(), collector, (notifications, collector1) -> notifications.forEach(n -> sender.accept(n, collector1)));
         fireListeners(collector.notifications);
         collector.notifications.clear();    //help GC
     }
@@ -176,7 +183,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         if (isSuspended())
             return false;
         final Collection<Notification> notifs = new LinkedList<>();
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             notifications.values().stream()
                     .filter(holder -> Objects.equals(NotificationDescriptor.getName(holder), category))
                     .map(notificationFactory)
@@ -306,7 +313,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     public final Optional<M> enableNotifications(final String category, final NotificationDescriptor descriptor) {
         M result;
         try {
-            result = writeLock.call(SingleResourceGroup.INSTANCE, () -> enableNotificationsImpl(category, descriptor), null);
+            result = writeLock.call(() -> enableNotificationsImpl(category, descriptor), null);
         } catch (final Exception e) {
             getLogger().log(Level.WARNING, String.format("Failed to enable notifications '%s'", category), e);
             result = null;
@@ -329,7 +336,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final Optional<M> remove(final String category) {
-        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, category, AbstractNotificationRepository<M>::removeImpl);
+        final M metadata = writeLock.apply(this, category, AbstractNotificationRepository<M>::removeImpl);
         if (metadata == null)
             return Optional.empty();
         else {
@@ -367,7 +374,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, notifications, notifs -> ImmutableSet.copyOf(notifs.keySet()));
+        return readLock.apply(notifications, notifs -> ImmutableSet.copyOf(notifs.keySet()));
     }
 
     /**
@@ -375,7 +382,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return {@literal true}, if all notifications disabled; otherwise, {@literal false}.
      */
     protected final boolean hasNoNotifications() {
-        return readLock.supplyBool(SingleResourceGroup.INSTANCE, notifications::isEmpty);
+        return readLock.supplyBool(notifications::isEmpty);
     }
 
     @MethodStub
@@ -433,12 +440,12 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final M[] getNotificationInfo() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, notifications.values(), this::toArray);
+        return readLock.apply(this, notifications.values(), AbstractNotificationRepository<M>::toArray);
     }
 
     @Override
     public final Optional<M> getNotificationInfo(final String category) {
-        return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, notifications, category, Map::get));
+        return Optional.ofNullable(readLock.apply(notifications, category, Map::get));
     }
 
     private Logger getLogger(){
@@ -460,7 +467,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public final void clear() {
-        writeLock.run(SingleResourceGroup.INSTANCE, this::clearImpl);
+        writeLock.run(this::clearImpl);
     }
 
     @Override
@@ -470,18 +477,18 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     @Override
     public final int size() {
-        return readLock.supplyInt(SingleResourceGroup.INSTANCE, notifications::size);
+        return readLock.supplyInt(notifications::size);
     }
 
     @Override
     @Nonnull
     public final Iterator<M> iterator() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, notifications.values(), Collection::iterator);
+        return readLock.apply(notifications.values(), Collection::iterator);
     }
 
     @Override
     public final void forEach(final Consumer<? super M> action) {
-        readLock.accept(SingleResourceGroup.INSTANCE, notifications.values(), action, Iterable::forEach);
+        readLock.accept(notifications.values(), action, Iterable::forEach);
     }
 
     protected final void failedToExpand(final Level level, final Exception e){

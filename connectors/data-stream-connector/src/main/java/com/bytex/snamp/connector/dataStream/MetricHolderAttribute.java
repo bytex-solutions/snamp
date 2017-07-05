@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.concurrent.LockManager;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
 import com.bytex.snamp.instrumentation.measurements.Measurement;
@@ -18,8 +18,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.bytex.snamp.concurrent.LockManager.lockAndAccept;
-import static com.bytex.snamp.concurrent.LockManager.lockAndApply;
+import static com.bytex.snamp.concurrent.LockDecorator.lockAndAccept;
+import static com.bytex.snamp.concurrent.LockDecorator.lockAndApply;
 
 /**
  * Represents a holder for metric.
@@ -104,7 +104,7 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
 
     @Override
     protected final CompositeData changeAttributeValue(final N notification) throws InterruptedException {
-        return LockManager.lockAndApply(lockManager.readLock(), this, notification, MetricHolderAttribute<M, N>::handleNotificationImpl, Function.identity());
+        return LockDecorator.lockAndApply(lockManager.readLock(), this, notification, MetricHolderAttribute<M, N>::handleNotificationImpl, Function.identity());
     }
 
     private void closeImpl() {

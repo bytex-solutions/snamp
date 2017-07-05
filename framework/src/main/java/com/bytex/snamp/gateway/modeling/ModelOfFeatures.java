@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -12,6 +12,8 @@ import com.google.common.util.concurrent.UncheckedTimeoutException;
 import javax.management.MBeanFeatureInfo;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -21,16 +23,18 @@ import java.util.stream.Collectors;
  * @version 2.0
  * @since 2.0
  */
-abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends FeatureAccessor<M>, L extends ResourceFeatureList<M, TAccessor>> extends ThreadSafeObject {
-    private final Enum<?> listGroup;
+abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends FeatureAccessor<M>, L extends ResourceFeatureList<M, TAccessor>> {
     private final Map<String, L> features;
     private final Supplier<? extends L> featureListFactory;
+    final LockDecorator readLock;
+    private final LockDecorator writeLock;
 
-    <G extends Enum<G>> ModelOfFeatures(final Supplier<? extends L> featureList, final Class<G> resourceGroupDef, final Enum<G> listGroup) {
-        super(resourceGroupDef);
-        this.listGroup = Objects.requireNonNull(listGroup);
+    ModelOfFeatures(final Supplier<? extends L> featureList) {
         featureListFactory = Objects.requireNonNull(featureList);
         features = new HashMap<>(10);
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     private TAccessor addFeatureImpl(final String resourceName,
@@ -52,7 +56,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
 
     final TAccessor addFeature(final String resourceName,
                                         final M metadata) throws Exception{
-        return writeLock.call(listGroup, () -> addFeatureImpl(resourceName, metadata), null);
+        return writeLock.call(() -> addFeatureImpl(resourceName, metadata), null);
     }
 
     private TAccessor removeFeatureImpl(final String resourceName,
@@ -72,7 +76,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
 
     final TAccessor removeFeature(final String resourceName,
                                            final M metadata){
-        return writeLock.apply(listGroup, resourceName, metadata, this::removeFeatureImpl);
+        return writeLock.apply(resourceName, metadata, this::removeFeatureImpl);
     }
 
     final TAccessor getAccessor(final String resourceName, final String featureName) {
@@ -83,7 +87,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
     final <E extends Throwable> boolean processFeature(final String resourceName,
                                                                 final String featureName,
                                                                 final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
-        try (final SafeCloseable ignored = readLock.acquireLock(listGroup, null)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(null)) {
             final TAccessor accessor = getAccessor(resourceName, featureName);
             if (accessor != null) {
                 processor.accept(accessor);
@@ -98,7 +102,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
     final <E extends Throwable> boolean processFeature(final String resourceName,
                                                        final Predicate<? super TAccessor> filter,
                                                        final Acceptor<? super TAccessor, E> processor) throws E, InterruptedException {
-        try (final SafeCloseable ignored = readLock.acquireLock(listGroup, null)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(null)) {
             final L f = features.get(resourceName);
             final Optional<TAccessor> accessor = f != null ? f.find(filter) : Optional.empty();
             if (accessor.isPresent()) {
@@ -116,7 +120,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
      * @return The read-only set of connected managed resources.
      */
     public final Set<String> getHostedResources(){
-        return readLock.apply(listGroup, features, attrs -> ImmutableSet.copyOf(attrs.keySet()));
+        return readLock.apply(features, attrs -> ImmutableSet.copyOf(attrs.keySet()));
     }
 
     private static Set<String> getFeaturesImpl(final String resourceName,
@@ -127,7 +131,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
     }
 
     final Set<String> getResourceFeatures(final String resourceName) {
-        return readLock.apply(listGroup, resourceName, features, ModelOfFeatures::getFeaturesImpl);
+        return readLock.apply(resourceName, features, ModelOfFeatures::getFeaturesImpl);
     }
 
     private static <M extends MBeanFeatureInfo, TAccessor extends FeatureAccessor<M>> Collection<M> getFeatures(final String resourceName,
@@ -142,7 +146,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
     }
 
     final Collection<M> getResourceFeaturesMetadata(final String resourceName){
-        return readLock.apply(listGroup, resourceName, features, ModelOfFeatures::getFeatures);
+        return readLock.apply(resourceName, features, ModelOfFeatures::getFeatures);
     }
 
     protected void cleared(final String resourceName, final Collection<TAccessor> accessors){
@@ -163,11 +167,11 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
      * @return The read-only collection of removed attributes.
      */
     public final Collection<TAccessor> clear(final String resourceName) {
-        return writeLock.apply(listGroup, this, resourceName, ModelOfFeatures::clearImpl);
+        return writeLock.apply(this, resourceName, ModelOfFeatures::clearImpl);
     }
 
     final <E extends Throwable> boolean forEachFeature(final EntryReader<String, ? super TAccessor, E> featureReader) throws E {
-        try(final SafeCloseable ignored = readLock.acquireLock(listGroup)){
+        try(final SafeCloseable ignored = readLock.acquireLock()){
             for (final Map.Entry<String, L> entry : features.entrySet())
                 for (final TAccessor accessor : entry.getValue().values())
                     if (!featureReader.accept(entry.getKey(), accessor)) return false;
@@ -189,7 +193,7 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
      * Removes all attributes from this model.
      */
     public final void clear() {
-        writeLock.accept(listGroup, this, ModelOfFeatures::clearImpl);
+        writeLock.accept(this, ModelOfFeatures::clearImpl);
     }
 
     protected abstract TAccessor createAccessor(final String resourceName, final M metadata) throws Exception;

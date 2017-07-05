@@ -1,7 +1,7 @@
 package com.bytex.snamp.moa;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.io.SerializableSnapshotSupport;
 import com.bytex.snamp.io.SerializedState;
 
@@ -9,6 +9,8 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.OptionalInt;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.DoubleConsumer;
 import java.util.function.ToDoubleFunction;
 
@@ -18,7 +20,7 @@ import java.util.function.ToDoubleFunction;
  * @version 2.0
  * @since 2.0
  */
-public final class DoubleReservoir extends ThreadSafeObject implements DoubleConsumer, Reservoir, SerializableSnapshotSupport<DoubleReservoir>, ToDoubleFunction<ReduceOperation> {
+public final class DoubleReservoir  implements DoubleConsumer, Reservoir, SerializableSnapshotSupport<DoubleReservoir>, ToDoubleFunction<ReduceOperation> {
     private static final class DoubleReservoirSnapshot extends SerializedState<DoubleReservoir>{
         private static final long serialVersionUID = -6080572664395210068L;
         private final double[] values;
@@ -38,11 +40,14 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
     private static final long serialVersionUID = -2597353518482200745L;
     private final double[] values;
     private int actualSize;
+    private final LockDecorator readLock, writeLock;
 
     private DoubleReservoir(final DoubleReservoirSnapshot snapshot){
-        super(SingleResourceGroup.class);
         values = snapshot.values;
         actualSize = snapshot.actualSize;
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     /**
@@ -50,11 +55,13 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @param samplingSize A size of this reservoir.
      */
     public DoubleReservoir(final int samplingSize){
-        super(SingleResourceGroup.class);
         if(samplingSize < 1)
             throw new IllegalArgumentException("Sampling size cannot be less than 2");
         this.values = new double[samplingSize];
         this.actualSize = 0;
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     @Override
@@ -77,7 +84,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
     }
 
     public double getMin() {
-        return readLock.applyAsDouble(SingleResourceGroup.INSTANCE, this, DoubleReservoir::getMinImpl);
+        return readLock.applyAsDouble(this, DoubleReservoir::getMinImpl);
     }
 
     private double getMaxImpl(){
@@ -90,7 +97,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
     }
 
     public double getMax() {
-        return readLock.applyAsDouble(SingleResourceGroup.INSTANCE, this, DoubleReservoir::getMaxImpl);
+        return readLock.applyAsDouble(this, DoubleReservoir::getMaxImpl);
     }
 
     private void resetImpl(){
@@ -103,7 +110,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      */
     @Override
     public void reset() {
-        writeLock.accept(SingleResourceGroup.INSTANCE, this, DoubleReservoir::resetImpl);
+        writeLock.accept(this, DoubleReservoir::resetImpl);
     }
 
     /**
@@ -147,7 +154,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      */
     @Override
     public double getDeviation() {
-        return readLock.applyAsDouble(SingleResourceGroup.INSTANCE, this, DoubleReservoir::getDeviationImpl);
+        return readLock.applyAsDouble(this, DoubleReservoir::getDeviationImpl);
     }
 
     //we use binarySearch-derived algorithm for value insertion
@@ -177,7 +184,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @param value A value to add.
      */
     public void add(final double value) {
-        try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = writeLock.acquireLock()) {
             int index = computeIndex(value);
             if (actualSize < values.length) {  //buffer is not fully occupied
                 if (index < actualSize) //shift array to right and utilize more buffer space
@@ -207,7 +214,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @throws IndexOutOfBoundsException Incorrect index.
      */
     public double getAsDouble(final int index) {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             if (index < actualSize)
                 return values[index];
             else
@@ -288,7 +295,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @return Sum of all elements in this reservoir.
      */
     public double getSum() {
-        return readLock.applyAsDouble(SingleResourceGroup.INSTANCE, this, DoubleReservoir::sumImpl);
+        return readLock.applyAsDouble(this, DoubleReservoir::sumImpl);
     }
 
     private double getMeanImpl(){
@@ -297,7 +304,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
 
     @Override
     public double getMean(){
-        return readLock.applyAsDouble(SingleResourceGroup.INSTANCE, this, DoubleReservoir::getMeanImpl);
+        return readLock.applyAsDouble(this, DoubleReservoir::getMeanImpl);
     }
 
     private static float getIndexForQuantile(final float q, final int length) {
@@ -325,7 +332,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
 
     @Override
     public double getQuantile(final float quantile) {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             return getQuantileImpl(quantile);
         }
     }
@@ -350,7 +357,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      */
     public OptionalInt find(final double value){
         final int index;
-        try(final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)){
+        try(final SafeCloseable ignored = readLock.acquireLock()){
             index = Arrays.binarySearch(values, value);   //array is always sorted
         }
         return index < 0 ? OptionalInt.empty() : OptionalInt.of(index);
@@ -374,7 +381,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @return A percent of values that are greater that or equal to the specified value.
      */
     public double greaterThanOrEqualValues(final double value) {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             final int index = computeIndex(value);
             return index >= actualSize ? 0D : ((actualSize - (double) index) / actualSize);
         }
@@ -398,7 +405,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
      * @return A percent of values that are less that or equal to the specified value.
      */
     public double lessThanOrEqualValues(final double value) {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             final int index = computeIndex(value);
             return index >= actualSize ? 1D : (double) index / actualSize;
         }
@@ -406,7 +413,7 @@ public final class DoubleReservoir extends ThreadSafeObject implements DoubleCon
 
     @Override
     public Serializable toArray() {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             return values.clone();
         }
     }

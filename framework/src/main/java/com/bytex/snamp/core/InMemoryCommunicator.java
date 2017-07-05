@@ -10,6 +10,8 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -24,7 +26,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
  * @since 2.0
  * @version 2.0
  */
-final class InMemoryCommunicator extends ThreadSafeObject implements Communicator {
+final class InMemoryCommunicator implements Communicator {
     private static final class LocalIncomingMessage extends MessageEvent{
         private static final long serialVersionUID = 1883461227506401471L;
         private final long messageID;
@@ -76,13 +78,13 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     /**
      * Represents position of the listener node in the listener chain.
      */
-    private static class NodePosition extends AtomicReference<LockManager> implements Predicate<MessageEvent>{
+    private static class NodePosition extends AtomicReference<LockDecorator> implements Predicate<MessageEvent>{
         private static final long serialVersionUID = -7984543206192783148L;
         private final Predicate<? super MessageEvent> filter;
         private MessageListenerNode previous;
         private MessageListenerNode next;
 
-        private NodePosition(final LockManager writeLock, final Predicate<? super MessageEvent> filter){
+        private NodePosition(final LockDecorator writeLock, final Predicate<? super MessageEvent> filter){
             super(Objects.requireNonNull(writeLock));
             this.filter = Objects.requireNonNull(filter);
         }
@@ -109,9 +111,9 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         }
 
         final void removeNode() {
-            final LockManager writeLock = getAndSet(null);
+            final LockDecorator writeLock = getAndSet(null);
             if (writeLock != null)
-                try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+                try (final SafeCloseable ignored = writeLock.acquireLock()) {
                     //remove this node from the chain
                     if (next != null)
                         next.setPrevious(previous);
@@ -129,7 +131,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         private final Function<? super MessageEvent, ? extends V> messageParser;
 
         private FixedSizeMessageBox(final int capacity,
-                                    final LockManager writeLock,
+                                    final LockDecorator writeLock,
                                     final Predicate<? super MessageEvent> filter,
                                     final Function<? super MessageEvent, ? extends V> messageParser) {
             super(capacity);
@@ -178,7 +180,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         private final NodePosition position;
         private final Function<? super MessageEvent, ? extends V> messageParser;
 
-        private LinkedMessageBox(final LockManager writeLock,
+        private LinkedMessageBox(final LockDecorator writeLock,
                                  final Predicate<? super MessageEvent> filter,
                                  final Function<? super MessageEvent, ? extends V> messageParser){
             position = new NodePosition(writeLock, filter);
@@ -225,7 +227,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         private final NodePosition position;
         private final Function<? super MessageEvent, ? extends V> messageParser;
 
-        private MessageFuture(final LockManager writeLock,
+        private MessageFuture(final LockDecorator writeLock,
                               final Predicate<? super MessageEvent> filter,
                               final Function<? super MessageEvent, ? extends V> messageParser){
             position = new NodePosition(writeLock, filter);
@@ -345,7 +347,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         private static final long serialVersionUID = 3125562524096198824L;
         private final Consumer<? super MessageEvent> listener;
 
-        private MessageListenerHolder(final LockManager writeLock, final MessageListener listener, final Predicate<? super MessageEvent> filter){
+        private MessageListenerHolder(final LockDecorator writeLock, final MessageListener listener, final Predicate<? super MessageEvent> filter){
             super(writeLock, filter);
             this.listener = Objects.requireNonNull(listener);
         }
@@ -370,14 +372,18 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
     private final SharedCounter idGenerator;
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;
+    private final LockDecorator writeLock;
+    private final LockDecorator readLock;
 
     InMemoryCommunicator(final String name) {
-        super(SingleResourceGroup.class);
         idGenerator = new InMemoryCounter(name);
         firstNode = new HeadMessageListenerNode();
         lastNode = new TailMessageListenerNode();   //tail empty node
         firstNode.setNext(lastNode);
         lastNode.setPrevious(firstNode);
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        writeLock = LockDecorator.writeLock(rwLock);
+        readLock = LockDecorator.readLock(rwLock);
     }
 
     private ExecutorService getExecutorService() {
@@ -417,7 +423,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
 
     @Override
     public void sendMessage(final Serializable payload, final MessageType type, final long messageID) {
-        readLock.accept(SingleResourceGroup.INSTANCE, this, communicator -> communicator.sendMessageImpl(payload, messageID, type));
+        readLock.accept(this, communicator -> communicator.sendMessageImpl(payload, messageID, type));
     }
 
     @Override
@@ -440,7 +446,7 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         return receiveMessage(filter, messageParser, true);
     }
 
-    private <N extends MessageListenerNode> N addMessageListenerImpl(final Function<? super LockManager, ? extends N> nodeFactory){
+    private <N extends MessageListenerNode> N addMessageListenerImpl(final Function<? super LockDecorator, ? extends N> nodeFactory){
         final N node = nodeFactory.apply(writeLock);
         final MessageListenerNode oldPrevious = lastNode.getPrevious();
         //link last node
@@ -452,8 +458,8 @@ final class InMemoryCommunicator extends ThreadSafeObject implements Communicato
         return node;
     }
 
-    private <N extends MessageListenerNode> N addMessageListener(final Function<? super LockManager, ? extends N> nodeFactory) {
-        return writeLock.apply(SingleResourceGroup.INSTANCE, this, nodeFactory, InMemoryCommunicator::addMessageListenerImpl);
+    private <N extends MessageListenerNode> N addMessageListener(final Function<? super LockDecorator, ? extends N> nodeFactory) {
+        return writeLock.apply(this, nodeFactory, InMemoryCommunicator::addMessageListenerImpl);
     }
 
     @Override

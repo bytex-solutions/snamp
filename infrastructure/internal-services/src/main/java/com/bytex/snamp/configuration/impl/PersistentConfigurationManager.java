@@ -3,8 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.LockManager;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.google.common.collect.ImmutableMap;
@@ -18,6 +17,8 @@ import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
 /**
@@ -29,20 +30,19 @@ import java.util.function.Function;
  * @since 1.0
  */
 @ThreadSafe
-public final class PersistentConfigurationManager extends ThreadSafeObject implements ConfigurationManager {
-    private enum ResourceGroup{
-        CONFIGURATION
-    }
-
+public final class PersistentConfigurationManager implements ConfigurationManager {
     private final ConfigurationAdmin admin;
+    private final LockDecorator readLock, writeLock;
 
     /**
      * Initializes a new configuration manager.
      * @param configAdmin OSGi configuration admin. Cannot be {@literal null}.
      */
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
-        super(ResourceGroup.class);
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     private static void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
@@ -83,9 +83,9 @@ public final class PersistentConfigurationManager extends ThreadSafeObject imple
 
     private static  <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler,
                                                             final ConfigurationAdmin admin,
-                                                            final LockManager synchronizer) throws E, IOException {
+                                                            final LockDecorator synchronizer) throws E, IOException {
         //TODO: Write lock on configuration should be distributed across cluster nodes
-        try (final SafeCloseable lock = synchronizer.acquireLock(ResourceGroup.CONFIGURATION, null)) {
+        try (final SafeCloseable lock = synchronizer.acquireLock(null)) {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
             DefaultGatewayParser.getInstance().populateRepository(admin, config);
             DefaultManagedResourceParser.getInstance().populateRepository(admin, config);

@@ -14,19 +14,9 @@ import java.util.Collection;
 public abstract class ModelOfOperations<TAccessor extends OperationAccessor> extends ModelOfFeatures<MBeanOperationInfo, TAccessor, ResourceOperationList<TAccessor>> implements OperationSet<TAccessor> {
     /**
      * Initializes a new thread-safe object.
-     *
-     * @param resourceGroupDef The type of the enum which represents a set of field groups.
-     * @param <G> Enum definition.
-     */
-    protected <G extends Enum<G>> ModelOfOperations(final Class<G> resourceGroupDef, final Enum<G> listGroup) {
-        super(ResourceOperationList::new, resourceGroupDef, listGroup);
-    }
-
-    /**
-     * Initializes a new thread-safe object in which all fields represents the single resource.
      */
     protected ModelOfOperations() {
-        this(SingleResourceGroup.class, SingleResourceGroup.INSTANCE);
+        super(ResourceOperationList::new);
     }
 
     @Override

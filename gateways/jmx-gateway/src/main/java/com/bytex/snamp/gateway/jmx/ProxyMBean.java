@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway.jmx;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.notifications.NotificationListenerList;
 import com.bytex.snamp.core.LoggerProvider;
@@ -22,6 +22,8 @@ import java.lang.management.ManagementFactory;
 import java.nio.*;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,13 +36,7 @@ import java.util.stream.Stream;
  * @version 2.0
  * @since 1.0
  */
-final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, NotificationBroadcaster, Closeable {
-    private enum MBeanResources {
-        NOTIFICATIONS,
-        ATTRIBUTES,
-        OPERATIONS
-    }
-
+final class ProxyMBean implements DynamicMBean, NotificationBroadcaster, Closeable {
     private static final class OpenOperationAccessor extends JmxOperationAccessor{
         OpenOperationAccessor(final OpenMBeanOperationInfo metadata) {
             super((MBeanOperationInfo) metadata);
@@ -147,15 +143,29 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     private final NotificationListenerList listeners;
     private final String resourceName;
     private ServiceRegistration<?> registration;
+    private final LockDecorator attributesReadLock, attributesWriteLock;
+    private final LockDecorator notificationsReadLock, notificationsWriteLock;
+    private final LockDecorator operationsReadLock, operationsWriteLock;
 
     ProxyMBean(final String resourceName){
-        super(MBeanResources.class);
         this.resourceName = resourceName;
         this.notifications = new ResourceNotificationList<>();
         this.attributes = new ResourceAttributeList<>();
         this.operations = new ResourceOperationList<>();
         this.listeners = new NotificationListenerList();
         this.registration = null;
+
+        ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        attributesReadLock = LockDecorator.readLock(rwLock);
+        attributesWriteLock = LockDecorator.writeLock(rwLock);
+
+        rwLock = new ReentrantReadWriteLock();
+        operationsReadLock = LockDecorator.readLock(rwLock);
+        operationsWriteLock = LockDecorator.writeLock(rwLock);
+
+        rwLock = new ReentrantReadWriteLock();
+        notificationsReadLock = LockDecorator.readLock(rwLock);
+        notificationsWriteLock = LockDecorator.writeLock(rwLock);
     }
 
     String getResourceName(){
@@ -209,11 +219,11 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     NotificationAccessor addNotification(final MBeanNotificationInfo metadata){
-        return writeLock.apply(MBeanResources.NOTIFICATIONS, metadata, this::addNotificationImpl);
+        return notificationsWriteLock.apply(metadata, this::addNotificationImpl);
     }
 
     NotificationAccessor removeNotification(final MBeanNotificationInfo metadata) {
-        return writeLock.apply(MBeanResources.NOTIFICATIONS, metadata, (Function<MBeanNotificationInfo, NotificationAccessor>) notifications::remove);
+        return notificationsWriteLock.apply(metadata, (Function<MBeanNotificationInfo, NotificationAccessor>) notifications::remove);
     }
 
 
@@ -229,11 +239,11 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     OperationAccessor addOperation(final MBeanOperationInfo metadata){
-        return writeLock.apply(MBeanResources.OPERATIONS, metadata, this::addOperationImpl);
+        return operationsWriteLock.apply(metadata, this::addOperationImpl);
     }
 
     OperationAccessor removeOperation(final MBeanOperationInfo metadata) {
-        return writeLock.apply(MBeanResources.OPERATIONS, metadata, (Function<MBeanOperationInfo, OperationAccessor>) operations::remove);
+        return operationsWriteLock.apply(metadata, (Function<MBeanOperationInfo, OperationAccessor>) operations::remove);
     }
 
     private AttributeAccessor addAttributeImpl(final MBeanAttributeInfo metadata){
@@ -278,11 +288,11 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     AttributeAccessor addAttribute(final MBeanAttributeInfo metadata){
-        return writeLock.apply(MBeanResources.ATTRIBUTES, this, metadata, ProxyMBean::addAttributeImpl);
+        return attributesWriteLock.apply(this, metadata, ProxyMBean::addAttributeImpl);
     }
 
     AttributeAccessor removeAttribute(final MBeanAttributeInfo metadata){
-        return writeLock.apply(MBeanResources.ATTRIBUTES, attributes, metadata, ResourceAttributeList::remove);
+        return attributesWriteLock.apply(attributes, metadata, ResourceAttributeList::remove);
     }
 
     /**
@@ -297,7 +307,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public Object getAttribute(final String attributeName) throws AttributeNotFoundException, ReflectionException, MBeanException {
         try {
-            return readLock.call(MBeanResources.ATTRIBUTES, () -> attributes.getAttribute(attributeName), null);
+            return attributesReadLock.call(() -> attributes.getAttribute(attributeName), null);
         } catch (final AttributeNotFoundException | ReflectionException | MBeanException e) {
             throw e;
         } catch (final Exception e) {
@@ -321,7 +331,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public void setAttribute(final Attribute attributeHolder) throws AttributeNotFoundException, ReflectionException, InvalidAttributeValueException, MBeanException {
         try {
-            readLock.accept(MBeanResources.ATTRIBUTES, attributeHolder, this::setAttributeImpl, (Duration) null);
+            attributesReadLock.accept(attributeHolder, this::setAttributeImpl, (Duration) null);
         } catch (final AttributeNotFoundException | ReflectionException | InvalidAttributeValueException | MBeanException e) {
             throw e;
         } catch (final Exception e) {
@@ -395,7 +405,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     @Override
     public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
         try {
-            return readLock.call(MBeanResources.OPERATIONS, () -> operations.invoke(actionName, params, signature));
+            return operationsReadLock.call(() -> operations.invoke(actionName, params, signature));
         } catch (final ReflectionException | MBeanException e) {
             throw e;
         } catch (final Exception e) {
@@ -404,14 +414,14 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     private MBeanAttributeInfo[] getAttributeInfo() {
-        return readLock.apply(MBeanResources.ATTRIBUTES, attributes,
+        return attributesReadLock.apply(attributes,
                 attrs -> attrs.values().stream()
                         .map(JmxAttributeAccessor::cloneMetadata)
                         .toArray(MBeanAttributeInfo[]::new));
     }
 
     private MBeanOperationInfo[] getOperationInfo() {
-        return readLock.apply(MBeanResources.OPERATIONS, operations,
+        return operationsReadLock.apply(operations,
                 opers -> opers.values().stream()
                         .map(JmxOperationAccessor::cloneMetadata)
                         .toArray(MBeanOperationInfo[]::new));
@@ -419,7 +429,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
 
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
-        return readLock.apply(MBeanResources.NOTIFICATIONS, notifications,
+        return notificationsReadLock.apply(notifications,
                 notifs -> notifs.values().stream()
                         .map(JmxNotificationAccessor::cloneMetadata)
                         .toArray(MBeanNotificationInfo[]::new));
@@ -480,7 +490,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     <E extends Throwable> boolean forEachAttribute(final EntryReader<String, ? super JmxAttributeAccessor, E> attributeReader) throws E {
-        try (final SafeCloseable ignored = readLock.acquireLock(MBeanResources.ATTRIBUTES)) {
+        try (final SafeCloseable ignored = attributesReadLock.acquireLock()) {
             for (final JmxAttributeAccessor accessor : attributes.values())
                 if (!attributeReader.accept(resourceName, accessor))
                     return false;
@@ -489,7 +499,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super JmxNotificationAccessor, E> notificationReader) throws E {
-        try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.NOTIFICATIONS)){
+        try(final SafeCloseable ignored = notificationsReadLock.acquireLock()){
             for(final JmxNotificationAccessor accessor: notifications.values())
                 if(!notificationReader.accept(resourceName, accessor))
                     return false;
@@ -498,7 +508,7 @@ final class ProxyMBean extends ThreadSafeObject implements DynamicMBean, Notific
     }
 
     <E extends Throwable> boolean forEachOperation(final EntryReader<String, ? super JmxOperationAccessor, E> operationReader) throws E {
-        try(final SafeCloseable ignored = readLock.acquireLock(MBeanResources.OPERATIONS)){
+        try(final SafeCloseable ignored = operationsReadLock.acquireLock()){
             for(final JmxOperationAccessor accessor: operations.values())
                 if(!operationReader.accept(resourceName, accessor))
                     return false;

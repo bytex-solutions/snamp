@@ -4,7 +4,7 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
 import com.bytex.snamp.io.IOUtils;
@@ -16,6 +16,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
 import static com.bytex.snamp.internal.Utils.staticInit;
@@ -28,7 +30,7 @@ import static com.bytex.snamp.internal.Utils.staticInit;
  * @since 2.0
  */
 @ThreadSafe
-final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValueStorage {
+final class FileBasedKeyValueStorage implements KeyValueStorage {
     private static final File DATABASE_HOME = staticInit(() -> {
         final String KARAF_DATA_DIR = "karaf.data";
         final File databaseHome;
@@ -193,9 +195,9 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
 
     private final File storagePath;
     private final KeyedObjects<String, FileRecord> records;
+    private final LockDecorator readLock, writeLock;
 
     FileBasedKeyValueStorage(final String name) {
-        super(SingleResourceGroup.class);
         storagePath = Paths.get(DATABASE_HOME.getAbsolutePath(), name).toFile();
         records = AbstractKeyedObjects.create(FileRecord::getName);
         if (storagePath.exists()) {     //populate records loaded from file system
@@ -205,6 +207,9 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
                     records.put(new FileRecord(contentHolder));
         } else if (!storagePath.mkdirs())
             throw new UncheckedIOException(new IOException(String.format("Unable to create directory %s of local key/value storage", storagePath)));
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     /**
@@ -218,7 +223,7 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
     }
 
     private  <R extends Record> Optional<R> getRecord(final String key, final Class<R> recordView) {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             return Optional.ofNullable(records.get(key)).map(recordView::cast);
         }
     }
@@ -238,11 +243,11 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
 
     private <R extends Record, E extends Throwable> R getOrCreateRecord(final String key, final Class<R> recordView, final Acceptor<? super R, E> initializer) throws E {
         FileRecord record;
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             record = records.get(key);
         }
         if (record == null)
-            try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+            try (final SafeCloseable ignored = writeLock.acquireLock()) {
                 record = records.get(key);
                 if (record == null) {
                     record = new FileRecord(storagePath, key);
@@ -269,13 +274,13 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
 
     private  <R extends Record, E extends Throwable> void updateOrCreateRecord(final String key, final Class<R> recordView, final Acceptor<? super R, E> updater) throws E {
         FileRecord record;
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             record = records.get(key);
             if (record != null)
                 updater.accept(recordView.cast(record));
         }
         if (record == null)
-            try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+            try (final SafeCloseable ignored = writeLock.acquireLock()) {
                 record = records.get(key);
                 if (record == null) {
                     record = new FileRecord(storagePath, key);
@@ -300,7 +305,7 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
     }
 
     private boolean delete(final String key) {
-        try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = writeLock.acquireLock()) {
             final FileRecord record = records.remove(key);
             final boolean exists;
             if (exists = record != null)
@@ -321,7 +326,7 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
     }
 
     private boolean exists(final String key){
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             return records.containsKey(key);
         }
     }
@@ -349,7 +354,7 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
     public <R extends Record, E extends Throwable> void forEachRecord(final Class<R> recordType,
                                                                       final Predicate<? super Comparable<?>> filter,
                                                                       final EntryReader<? super Comparable<?>, ? super R, E> reader) throws E {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             for (final FileRecord record : records.values())
                 if (filter.test(record.getName()))
                     if (!reader.accept(record.getName(), recordType.cast(record)))
@@ -372,7 +377,7 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
      */
     @Override
     public void clear() {
-        try (final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = writeLock.acquireLock()) {
             records.values().forEach(FileRecord::delete);
         }
     }
