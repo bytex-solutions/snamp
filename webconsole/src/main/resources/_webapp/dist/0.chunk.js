@@ -37791,12 +37791,14 @@ var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index
 var model_thread_pool_1 = __webpack_require__("./src/app/configuration/model/model.thread.pool.ts");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
 var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var ResourcesComponent = (function () {
-    function ResourcesComponent(http, overlay, vcRef, modal) {
+    function ResourcesComponent(http, overlay, vcRef, modal, route) {
         this.http = http;
         this.overlay = overlay;
         this.vcRef = vcRef;
         this.modal = modal;
+        this.route = route;
         this.resources = [];
         this.oldTypeValue = "";
         this.oldGroupValue = "";
@@ -37817,10 +37819,7 @@ var ResourcesComponent = (function () {
                 _this.resources.push(new model_resource_1.Resource(_this.http, key, resData[key]));
             }
             if (_this.resources.length > 0) {
-                _this.activeResource = _this.resources[0];
-                _this.oldTypeValue = _this.activeResource.type;
-                _this.oldGroupValue = _this.activeResource.groupName;
-                _this.oldSmartMode = _this.activeResource.smartMode;
+                _this.setActiveResource(_this.resources[0]);
                 var _thisReference_1 = _this;
                 $(document).ready(function () {
                     $(ResourcesComponent.select2ElementId).select2();
@@ -37833,6 +37832,22 @@ var ResourcesComponent = (function () {
             _this.availableGroups = data[1];
             // making the selectionGroup decision after all actions before were performed
             _this.groupSelection = _this.getGroupSelectionForActiveResource();
+            _this.route
+                .queryParams
+                .subscribe(function (params) {
+                // Defaults to 0 if no query param provided.
+                var resourceName = params['resource'] || "";
+                if (!util_1.isNullOrUndefined(_this.activeResource) && resourceName.length > 0
+                    && resourceName != _this.activeResource.name && _this.resources.length > 0) {
+                    for (var i = 0; i < _this.resources.length; i++) {
+                        if (_this.resources[i].name == resourceName) {
+                            _this.setActiveResource(_this.resources[i]);
+                            _this.groupSelection = _this.getGroupSelectionForActiveResource();
+                            break;
+                        }
+                    }
+                }
+            });
         });
         // Get all the available bundles that belong to Resources
         this.http.get(app_restClient_1.REST.AVAILABLE_RESOURCE_LIST)
@@ -37857,21 +37872,26 @@ var ResourcesComponent = (function () {
             _thisReference.selectCurrentlyActiveResource($(e.target).val());
         });
         if (this.resources.length > 0) {
-            this.activeResource = newResource;
-            this.oldTypeValue = newResource.type;
-            this.oldGroupValue = newResource.groupName;
-            this.oldSmartMode = newResource.smartMode;
+            this.setActiveResource(newResource, true);
             $(ResourcesComponent.selectionId).html(this.activeResource.name);
             this.groupSelection = this.getGroupSelectionForActiveResource();
         }
     };
+    ResourcesComponent.prototype.setActiveResource = function (resource, setURL) {
+        this.activeResource = resource;
+        this.oldTypeValue = resource.type;
+        this.oldGroupValue = resource.groupName;
+        this.oldSmartMode = resource.smartMode;
+        if (history.pushState && setURL) {
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + resource.name;
+            window.history.pushState({ path: newurl }, '', newurl);
+        }
+        $(ResourcesComponent.selectionId).html(this.activeResource.name);
+    };
     ResourcesComponent.prototype.selectCurrentlyActiveResource = function (resourceName) {
         for (var i = 0; i < this.resources.length; i++) {
             if (this.resources[i].name == resourceName) {
-                this.activeResource = this.resources[i];
-                this.oldTypeValue = this.resources[i].type;
-                this.oldGroupValue = this.resources[i].groupName;
-                this.oldSmartMode = this.resources[i].smartMode;
+                this.setActiveResource(this.resources[i], true);
                 this.groupSelection = this.getGroupSelectionForActiveResource();
                 break;
             }
@@ -37989,17 +38009,16 @@ var ResourcesComponent = (function () {
     };
     ResourcesComponent.select2ElementId = "#resourceSelection";
     ResourcesComponent.selectionId = "#select2-resourceSelection-container";
-    ResourcesComponent.select2GroupId = "#resourceGroup";
     ResourcesComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
             template: __webpack_require__("./src/app/configuration/templates/resources.html"),
             styles: [__webpack_require__("./src/app/configuration/templates/css/checkbox.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _e) || Object])
     ], ResourcesComponent);
     return ResourcesComponent;
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
 }());
 exports.ResourcesComponent = ResourcesComponent;
 

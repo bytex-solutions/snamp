@@ -5,8 +5,9 @@ import { Response } from '@angular/http';
 import { Overlay } from 'angular2-modal';
 import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 import { ThreadPool } from "./model/model.thread.pool";
-import {isNullOrUndefined} from "util";
-import {Observable} from "rxjs/Observable";
+import { isNullOrUndefined } from "util";
+import { Observable } from "rxjs/Observable";
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     moduleId: module.id,
@@ -28,12 +29,11 @@ export class ResourcesComponent implements OnInit {
     private static select2ElementId:string = "#resourceSelection";
     private static selectionId:string = "#select2-resourceSelection-container";
 
-    private static select2GroupId:string = "#resourceGroup";
-
     constructor(private http: ApiClient,
                 private overlay: Overlay,
                 private vcRef: ViewContainerRef,
-                private modal: Modal) {
+                private modal: Modal,
+                private route: ActivatedRoute) {
         overlay.defaultViewContainer = vcRef;
     }
 
@@ -50,11 +50,7 @@ export class ResourcesComponent implements OnInit {
                 this.resources.push(new Resource(this.http, key, resData[key]))
             }
             if (this.resources.length > 0) {
-                this.activeResource = this.resources[0];
-                this.oldTypeValue = this.activeResource.type;
-                this.oldGroupValue = this.activeResource.groupName;
-                this.oldSmartMode = this.activeResource.smartMode;
-
+                this.setActiveResource(this.resources[0]);
                 let _thisReference = this;
                 $(document).ready(function() {
                     $(ResourcesComponent.select2ElementId).select2();
@@ -70,6 +66,23 @@ export class ResourcesComponent implements OnInit {
             // making the selectionGroup decision after all actions before were performed
             this.groupSelection = this.getGroupSelectionForActiveResource();
 
+            this.route
+                .queryParams
+                .subscribe(params => {
+
+                    // Defaults to 0 if no query param provided.
+                    let resourceName:string = params['resource'] || "";
+                    if (!isNullOrUndefined(this.activeResource) && resourceName.length > 0
+                            && resourceName != this.activeResource.name && this.resources.length > 0) {
+                        for (let i = 0; i < this.resources.length; i++) {
+                            if (this.resources[i].name == resourceName) {
+                                this.setActiveResource(this.resources[i]);
+                                this.groupSelection = this.getGroupSelectionForActiveResource();
+                                break;
+                            }
+                        }
+                    }
+                });
         });
 
         // Get all the available bundles that belong to Resources
@@ -98,22 +111,28 @@ export class ResourcesComponent implements OnInit {
         });
 
         if (this.resources.length > 0) {
-            this.activeResource = newResource;
-            this.oldTypeValue = newResource.type;
-            this.oldGroupValue = newResource.groupName;
-            this.oldSmartMode = newResource.smartMode;
+            this.setActiveResource(newResource, true);
             $(ResourcesComponent.selectionId).html(this.activeResource.name);
             this.groupSelection = this.getGroupSelectionForActiveResource();
         }
     }
 
+    private setActiveResource(resource:Resource, setURL?:boolean):void {
+        this.activeResource = resource;
+        this.oldTypeValue = resource.type;
+        this.oldGroupValue = resource.groupName;
+        this.oldSmartMode = resource.smartMode;
+        if (history.pushState && setURL) {
+            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + resource.name;
+            window.history.pushState({path:newurl},'',newurl);
+        }
+        $(ResourcesComponent.selectionId).html(this.activeResource.name);
+    }
+
     selectCurrentlyActiveResource(resourceName:string):void {
         for (let i = 0; i < this.resources.length; i++) {
             if (this.resources[i].name == resourceName) {
-                this.activeResource = this.resources[i];
-                this.oldTypeValue = this.resources[i].type;
-                this.oldGroupValue = this.resources[i].groupName;
-                this.oldSmartMode = this.resources[i].smartMode;
+                this.setActiveResource(this.resources[i], true);
                 this.groupSelection = this.getGroupSelectionForActiveResource();
                 break;
             }
