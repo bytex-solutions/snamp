@@ -401,6 +401,6 @@ final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValu
 
     @Override
     public boolean isViewSupported(final Class<? extends Record> recordView) {
-        return false;
+        return recordView.isAssignableFrom(FileRecord.class);
     }
 }
