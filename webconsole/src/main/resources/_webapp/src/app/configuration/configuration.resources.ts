@@ -7,7 +7,7 @@ import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 import { ThreadPool } from "./model/model.thread.pool";
 import { isNullOrUndefined } from "util";
 import { Observable } from "rxjs/Observable";
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
     moduleId: module.id,
@@ -69,7 +69,6 @@ export class ResourcesComponent implements OnInit {
             this.route
                 .queryParams
                 .subscribe(params => {
-
                     // Defaults to 0 if no query param provided.
                     let resourceName:string = params['resource'] || "";
                     if (!isNullOrUndefined(this.activeResource) && resourceName.length > 0
@@ -137,6 +136,37 @@ export class ResourcesComponent implements OnInit {
                 break;
             }
         }
+    }
+
+    removeResource():void {
+        this.modal.confirm()
+            .isBlocking(true)
+            .className(<VEXBuiltInThemes>'default')
+            .keyboard(27)
+            .message("Resource " + this.activeResource.name + " is being deleted. Are You sure?")
+            .open()
+            .then((resultPromise) => {
+                return (<Promise<boolean>>resultPromise.result)
+                    .then((response) => {
+                        this.http.delete(REST.RESOURCE_BY_NAME(this.activeResource.name))
+                            .subscribe(() => {
+                                for (let i = 0; i < this.resources.length; i++) {
+                                    if (this.resources[i].name == this.activeResource.name) {
+                                        this.resources.splice(i, 1);
+                                        if (this.resources.length > 0) {
+                                            this.setActiveResource(this.resources[0], true);
+                                            this.groupSelection = this.getGroupSelectionForActiveResource();
+                                        }
+                                        break;
+                                    }
+                                }
+                            });
+                        return response;
+                    })
+                    .catch(() => {
+                        return false;
+                    });
+            });
     }
 
     private getGroupSelectionForActiveResource():boolean {
