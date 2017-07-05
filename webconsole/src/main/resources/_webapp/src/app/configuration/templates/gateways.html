@@ -1,53 +1,56 @@
 <div class="right_col" role="main" style="min-height: 949px;">
-  <div class="">
-    <div class="page-title">
-      <div class="title_left">
-        <h3>Gateways configuration</h3>
-      </div>
+    <div class="row" style="padding-right: 10px;">
 
-      <div class="title_right" *ngIf="gateways && gateways.length > 0">
-        <div class="col-md-8 col-sm-8 col-xs-12 form-group pull-right">
-            <div class="row">
-              <div class="col-md-3">
-                <h5>Choose gateway</h5>
-              </div>
-              <div class="col-md-6" >
-                <select
-                  id="gatewaySelection"
-                  class="select2_group form-control">
-                  <optgroup label="Gateways">
-                    <option
-                      *ngFor="let gateway of gateways"
-                      [value]="gateway.name">
-                      {{gateway.name}}
-                    </option>
-                  </optgroup>
-                </select>
-              </div>
-              <div class="col-md-2">
-                <newEntity
-                  [entities]="gateways"
-                  (onSave)="dispatchNewGateway($event)"
-                  [type]="'gateway'">
-                </newEntity>
-              </div>
+        <div class="col-md-4" style="padding-top: 20px;">
+            <h3>Gateway configuration</h3>
+        </div>
+
+        <div class="col-md-4"></div>
+
+        <div class="col-md-4" style="padding-top: 20px;">
+            <div class="row" *ngIf="gateways && gateways.length > 0">
+                <div class="col-md-3">
+                    <h5>Select gateway</h5>
+                </div>
+                <div class="col-md-6">
+                    <select
+                            id="gatewaySelection"
+                            class="select2_group form-control">
+                        <optgroup label="Gateways" >
+                            <option
+                                    *ngFor="let gateway of gateways"
+                                    [value]="gateway.name">
+                                {{gateway.name}}
+                            </option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <newEntity
+                            [entities]="gateways"
+                            (onSave)="dispatchNewGateway($event)"
+                            [type]="'gateway'">
+                    </newEntity>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-danger" (click)="removeGateway()"><i class="fa fa-trash"></i></button>
+                </div>
             </div>
         </div>
-      </div>
-
     </div>
 
     <div class="clearfix"></div>
 
-      <div class="row" style="float: left !important;" *ngIf="!gateways || gateways.length == 0">
-          <div class="col-md-2">
-              <newEntity
-                      [entities]="gateways"
-                      (onSave)="dispatchNewGateway($event)"
-                      [type]="'gateway'">
-              </newEntity>
-          </div>
-      </div>
+    <div style="float: left !important;" *ngIf="!gateways || gateways.length == 0">
+        <div>
+            <h5>Add new gateway</h5>
+            <newEntity
+                    [entities]="gateways"
+                    (onSave)="dispatchNewGateway($event)"
+                    [type]="'gateway'">
+            </newEntity>
+        </div>
+    </div>
 
     <div class="row" style="margin-top: 30px" *ngIf="gateways && gateways.length > 0">
 
@@ -126,7 +129,5 @@
               </panel>
 
     </div>
-
-  </div>
 </div>
 

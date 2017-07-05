@@ -37333,10 +37333,13 @@ var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/in
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 __webpack_require__("./node_modules/select2/dist/js/select2.js");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var GatewaysComponent = (function () {
-    function GatewaysComponent(http, overlay, vcRef, modal) {
+    function GatewaysComponent(http, overlay, vcRef, modal, cd, route) {
         this.http = http;
         this.modal = modal;
+        this.cd = cd;
+        this.route = route;
         this.gateways = [];
         this.activeGateway = undefined;
         this.oldTypeValue = "";
@@ -37365,6 +37368,21 @@ var GatewaysComponent = (function () {
                 $(GatewaysComponent.selectionId).html(_this.activeGateway.name);
                 _this.oldTypeValue = _this.activeGateway.type;
             }
+            _this.route
+                .queryParams
+                .subscribe(function (params) {
+                // Defaults to 0 if no query param provided.
+                var gatewayName = params['gateway'] || "";
+                if (!util_1.isNullOrUndefined(_this.activeGateway) && gatewayName.length > 0
+                    && gatewayName != _this.activeGateway.name && _this.gateways.length > 0) {
+                    for (var i = 0; i < _this.gateways.length; i++) {
+                        if (_this.gateways[i].name == gatewayName) {
+                            _this.setActiveGateway(_this.gateways[i]);
+                            break;
+                        }
+                    }
+                }
+            });
         });
         // Get all the available bundles that belong to Gateways
         this.http.get(app_restClient_1.REST.AVAILABLE_GATEWAY_LIST)
@@ -37376,20 +37394,77 @@ var GatewaysComponent = (function () {
         if ($(GatewaysComponent.select2Id).data('select2')) {
             $(GatewaysComponent.select2Id).select2('destroy');
         }
-        $(GatewaysComponent.select2Id).select2({
-            placeholder: "Select gateway",
-            width: '100%',
-            allowClear: true
-        });
-        $(GatewaysComponent.select2Id).on('change', function (e) {
-            _thisReference.selectCurrentlyActiveGateway($(e.target).val());
-        });
         if (this.gateways.length > 0) {
-            this.activeGateway = newGateway;
+            this.setActiveGateway(newGateway, true);
+            this.cd.detectChanges(); // draw my select pls!
+            $(GatewaysComponent.select2Id).select2({
+                placeholder: "Select gateway",
+                width: '100%',
+                allowClear: true
+            });
+            $(GatewaysComponent.select2Id).on('change', function (e) {
+                _thisReference.selectCurrentlyActiveGateway($(e.target).val());
+            });
             $(GatewaysComponent.selectionId).html(this.activeGateway.name);
         }
     };
-    GatewaysComponent.prototype.ngAfterViewInit = function () { };
+    GatewaysComponent.prototype.setActiveGateway = function (gateway, setURL) {
+        this.activeGateway = gateway;
+        this.oldTypeValue = gateway.type;
+        if (history.pushState && setURL) {
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?gateway=" + gateway.name;
+            window.history.pushState({ path: newurl }, '', newurl);
+        }
+        $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+    };
+    GatewaysComponent.prototype.removeGateway = function () {
+        var _this = this;
+        this.modal.confirm()
+            .isBlocking(true)
+            .className('default')
+            .keyboard(27)
+            .message("Gateway " + this.activeGateway.name + " is being deleted. Are You sure?")
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this.http.delete(app_restClient_1.REST.GATEWAY_BY_NAME(_this.activeGateway.name))
+                    .subscribe(function () {
+                    var _loop_1 = function(i) {
+                        if (_this.gateways[i].name == _this.activeGateway.name) {
+                            _this.gateways.splice(i, 1);
+                            if (_this.gateways.length > 0) {
+                                _this.setActiveGateway(_this.gateways[0], true);
+                                if ($(GatewaysComponent.select2Id).data('select2')) {
+                                    $(GatewaysComponent.select2Id).select2('destroy');
+                                }
+                                _this.cd.detectChanges(); // draw my select pls!
+                                $(GatewaysComponent.select2Id).select2({
+                                    placeholder: "Select gateway",
+                                    width: '100%',
+                                    allowClear: true
+                                });
+                                var _thisReference_2 = _this;
+                                $(GatewaysComponent.select2Id).on('change', function (e) {
+                                    _thisReference_2.selectCurrentlyActiveGateway($(e.target).val());
+                                });
+                                $(GatewaysComponent.selectionId).html(_this.activeGateway.name);
+                            }
+                            return "break";
+                        }
+                    };
+                    for (var i = 0; i < _this.gateways.length; i++) {
+                        var state_1 = _loop_1(i);
+                        if (state_1 === "break") break;
+                    }
+                });
+                return response;
+            })
+                .catch(function () {
+                return false;
+            });
+        });
+    };
     GatewaysComponent.prototype.selectCurrentlyActiveGateway = function (gatewayName) {
         var selection;
         for (var i = 0; i < this.gateways.length; i++) {
@@ -37429,10 +37504,10 @@ var GatewaysComponent = (function () {
             moduleId: module.i,
             template: __webpack_require__("./src/app/configuration/templates/gateways.html")
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _f) || Object])
     ], GatewaysComponent);
     return GatewaysComponent;
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
 }());
 exports.GatewaysComponent = GatewaysComponent;
 
@@ -37912,15 +37987,35 @@ var ResourcesComponent = (function () {
                 .then(function (response) {
                 _this.http.delete(app_restClient_1.REST.RESOURCE_BY_NAME(_this.activeResource.name))
                     .subscribe(function () {
-                    for (var i = 0; i < _this.resources.length; i++) {
+                    var _loop_1 = function(i) {
                         if (_this.resources[i].name == _this.activeResource.name) {
                             _this.resources.splice(i, 1);
                             if (_this.resources.length > 0) {
                                 _this.setActiveResource(_this.resources[0], true);
                                 _this.groupSelection = _this.getGroupSelectionForActiveResource();
+                                var _thisReference_2 = _this;
+                                if ($(ResourcesComponent.select2ElementId).data('select2')) {
+                                    $(ResourcesComponent.select2ElementId).select2('destroy');
+                                }
+                                // refresh select2
+                                _this.groupSelection = _this.getGroupSelectionForActiveResource();
+                                _this.cd.detectChanges(); // draw my select pls!
+                                $(ResourcesComponent.select2ElementId).select2({
+                                    placeholder: "Select resource",
+                                    width: '100%',
+                                    allowClear: true
+                                });
+                                $(ResourcesComponent.select2ElementId).on('change', function (e) {
+                                    _thisReference_2.selectCurrentlyActiveResource($(e.target).val());
+                                });
+                                $(ResourcesComponent.selectionId).html(_this.activeResource.name);
                             }
-                            break;
+                            return "break";
                         }
+                    };
+                    for (var i = 0; i < _this.resources.length; i++) {
+                        var state_1 = _loop_1(i);
+                        if (state_1 === "break") break;
                     }
                 });
                 return response;
@@ -38700,7 +38795,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 140
 /***/ "./src/app/configuration/templates/gateways.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Gateways configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"title_right\" *ngIf=\"gateways && gateways.length > 0\">\r\n        <div class=\"col-md-8 col-sm-8 col-xs-12 form-group pull-right\">\r\n            <div class=\"row\">\r\n              <div class=\"col-md-3\">\r\n                <h5>Choose gateway</h5>\r\n              </div>\r\n              <div class=\"col-md-6\" >\r\n                <select\r\n                  id=\"gatewaySelection\"\r\n                  class=\"select2_group form-control\">\r\n                  <optgroup label=\"Gateways\">\r\n                    <option\r\n                      *ngFor=\"let gateway of gateways\"\r\n                      [value]=\"gateway.name\">\r\n                      {{gateway.name}}\r\n                    </option>\r\n                  </optgroup>\r\n                </select>\r\n              </div>\r\n              <div class=\"col-md-2\">\r\n                <newEntity\r\n                  [entities]=\"gateways\"\r\n                  (onSave)=\"dispatchNewGateway($event)\"\r\n                  [type]=\"'gateway'\">\r\n                </newEntity>\r\n              </div>\r\n            </div>\r\n        </div>\r\n      </div>\r\n\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n      <div class=\"row\" style=\"float: left !important;\" *ngIf=\"!gateways || gateways.length == 0\">\r\n          <div class=\"col-md-2\">\r\n              <newEntity\r\n                      [entities]=\"gateways\"\r\n                      (onSave)=\"dispatchNewGateway($event)\"\r\n                      [type]=\"'gateway'\">\r\n              </newEntity>\r\n          </div>\r\n      </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"gateways && gateways.length > 0\">\r\n\r\n        <div class=\"col-md-8 leftAlign\">\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Gateway type'\" [column]=\"'12'\">\r\n                <select disabled\r\n                        id=\"entityType\"\r\n                        [(ngModel)]=\"activeGateway.type\"\r\n                        (change)=\"changeType($event)\"\r\n                        style=\"height: auto;\"\r\n                        class=\"form-control\">\r\n                  <option\r\n                    *ngFor=\"let gateway of availableGateways\"\r\n                    [value]=\"gateway.type\">\r\n                    {{gateway.name}}\r\n                  </option>\r\n                </select>\r\n              </panel>\r\n            </div>\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n                  <parameters [entity]=\"activeGateway\"></parameters>\r\n              </panel>\r\n            </div>\r\n\r\n        </div>\r\n\r\n        <panel [header]=\"'Binding information'\" [column]=\"'4'\">\r\n                  <div class=\"panel-group group-accordeon\" id=\"accordionBindings\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                      <div class=\"panel panel-default\"  *ngIf=\"activeGateway.attributes.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                                      Attributes\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.attributes\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.events.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                                      Events\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.events\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.operations.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                                      Operations\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.operations\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                  </div>\r\n              </panel>\r\n\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n    <div class=\"row\" style=\"padding-right: 10px;\">\r\n\r\n        <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n            <h3>Gateway configuration</h3>\r\n        </div>\r\n\r\n        <div class=\"col-md-4\"></div>\r\n\r\n        <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n            <div class=\"row\" *ngIf=\"gateways && gateways.length > 0\">\r\n                <div class=\"col-md-3\">\r\n                    <h5>Select gateway</h5>\r\n                </div>\r\n                <div class=\"col-md-6\">\r\n                    <select\r\n                            id=\"gatewaySelection\"\r\n                            class=\"select2_group form-control\">\r\n                        <optgroup label=\"Gateways\" >\r\n                            <option\r\n                                    *ngFor=\"let gateway of gateways\"\r\n                                    [value]=\"gateway.name\">\r\n                                {{gateway.name}}\r\n                            </option>\r\n                        </optgroup>\r\n                    </select>\r\n                </div>\r\n                <div class=\"col-md-1\">\r\n                    <newEntity\r\n                            [entities]=\"gateways\"\r\n                            (onSave)=\"dispatchNewGateway($event)\"\r\n                            [type]=\"'gateway'\">\r\n                    </newEntity>\r\n                </div>\r\n                <div class=\"col-md-1\">\r\n                    <button class=\"btn btn-danger\" (click)=\"removeGateway()\"><i class=\"fa fa-trash\"></i></button>\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div style=\"float: left !important;\" *ngIf=\"!gateways || gateways.length == 0\">\r\n        <div>\r\n            <h5>Add new gateway</h5>\r\n            <newEntity\r\n                    [entities]=\"gateways\"\r\n                    (onSave)=\"dispatchNewGateway($event)\"\r\n                    [type]=\"'gateway'\">\r\n            </newEntity>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"gateways && gateways.length > 0\">\r\n\r\n        <div class=\"col-md-8 leftAlign\">\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Gateway type'\" [column]=\"'12'\">\r\n                <select disabled\r\n                        id=\"entityType\"\r\n                        [(ngModel)]=\"activeGateway.type\"\r\n                        (change)=\"changeType($event)\"\r\n                        style=\"height: auto;\"\r\n                        class=\"form-control\">\r\n                  <option\r\n                    *ngFor=\"let gateway of availableGateways\"\r\n                    [value]=\"gateway.type\">\r\n                    {{gateway.name}}\r\n                  </option>\r\n                </select>\r\n              </panel>\r\n            </div>\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n                  <parameters [entity]=\"activeGateway\"></parameters>\r\n              </panel>\r\n            </div>\r\n\r\n        </div>\r\n\r\n        <panel [header]=\"'Binding information'\" [column]=\"'4'\">\r\n                  <div class=\"panel-group group-accordeon\" id=\"accordionBindings\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                      <div class=\"panel panel-default\"  *ngIf=\"activeGateway.attributes.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                                      Attributes\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.attributes\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.events.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                                      Events\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.events\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.operations.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                                      Operations\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.operations\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                  </div>\r\n              </panel>\r\n\r\n    </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnInit, ViewContainerRef} from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Resource } from './model/model.resource';
 import { Response } from '@angular/http';
@@ -158,6 +158,23 @@ export class ResourcesComponent implements OnInit {
                                         if (this.resources.length > 0) {
                                             this.setActiveResource(this.resources[0], true);
                                             this.groupSelection = this.getGroupSelectionForActiveResource();
+
+                                            let _thisReference = this;
+                                            if ($(ResourcesComponent.select2ElementId).data('select2')) {
+                                                $(ResourcesComponent.select2ElementId).select2('destroy');
+                                            }
+                                            // refresh select2
+                                            this.groupSelection = this.getGroupSelectionForActiveResource();
+                                            this.cd.detectChanges(); // draw my select pls!
+                                            $(ResourcesComponent.select2ElementId).select2({
+                                                placeholder: "Select resource",
+                                                width: '100%',
+                                                allowClear: true
+                                            });
+                                            $(ResourcesComponent.select2ElementId).on('change', (e) => {
+                                                _thisReference.selectCurrentlyActiveResource($(e.target).val());
+                                            });
+                                            $(ResourcesComponent.selectionId).html(this.activeResource.name);
                                         }
                                         break;
                                     }
