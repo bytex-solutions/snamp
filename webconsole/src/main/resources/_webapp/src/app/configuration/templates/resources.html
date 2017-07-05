@@ -76,9 +76,22 @@
           </panel>
         </div>
 
-        <div class="row" *ngIf="availableGroups && availableGroups.length > 0">
+        <div class="row" >
           <panel [header]="'Resource group'" [column]="'12'" >
+
+            <div class="form-group row">
+              <label class="col-md-2 col-form-label">Select group from list</label>
+              <div class="col-md-10">
+                <ui-switch
+                        [(ngModel)]="groupSelection"
+                        [disabled]="!availableGroups || availableGroups.length == 0"
+                        [size]="'small'">
+                </ui-switch>
+              </div>
+            </div>
+
             <select
+                    *ngIf="groupSelection && availableGroups && availableGroups.length > 0"
                     id="resourceGroup"
                     [(ngModel)]="activeResource.groupName"
                     (change)="changeGroup($event)"
@@ -89,10 +102,26 @@
                 {{name}}
               </option>
             </select>
+
+            <div class="form-group row" *ngIf="!groupSelection">
+              <label for="manualGroupName" class="col-md-2 col-form-label">Input group name</label>
+              <div class="col-md-10">
+                <div class="input-group">
+                  <input class="form-control"
+                         type="text"
+                         [(ngModel)]="activeResource.groupName"
+                         id="manualGroupName"
+                         placeholder="Input group name manually...">
+                  <span class="input-group-btn">
+                     <button class="btn btn-secondary btn-primary" type="button" (click)="saveManualGroupName()">Save</button>
+                  </span>
+                </div>
+              </div>
+            </div>
           </panel>
         </div>
 
-        <div class="row" *ngIf="availableGroups && availableGroups.length > 0">
+        <div class="row" *ngIf="availableThreadPools && availableThreadPools.length > 0">
           <panel [header]="'Thread pool settings'" [column]="'12'" >
             <select
                     id="threadPoolInput"

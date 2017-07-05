@@ -5,6 +5,8 @@ import { Response } from '@angular/http';
 import { Overlay } from 'angular2-modal';
 import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 import { ThreadPool } from "./model/model.thread.pool";
+import {isNullOrUndefined} from "util";
+import {Observable} from "rxjs/Observable";
 
 @Component({
     moduleId: module.id,
@@ -21,9 +23,12 @@ export class ResourcesComponent implements OnInit {
     private availableGroups:string[] = [];
     private availableThreadPools:ThreadPool[] = [];
     private oldSmartMode = false;
+    private groupSelection:boolean = false;
 
     private static select2ElementId:string = "#resourceSelection";
     private static selectionId:string = "#select2-resourceSelection-container";
+
+    private static select2GroupId:string = "#resourceGroup";
 
     constructor(private http: ApiClient,
                 private overlay: Overlay,
@@ -34,37 +39,43 @@ export class ResourcesComponent implements OnInit {
 
     ngOnInit():void {
         // Get all configured resources from the server
-        this.http.get(REST.RESOURCE_CONFIG)
-            .map((res: Response) => res.json())
-            .subscribe(data => {
-                for (let key in data) {
-                    this.resources.push(new Resource(this.http, key, data[key]))
-                }
-                if (this.resources.length > 0) {
-                    this.activeResource = this.resources[0];
-                    this.oldTypeValue = this.activeResource.type;
-                    this.oldGroupValue = this.activeResource.groupName;
-                    this.oldSmartMode = this.activeResource.smartMode;
 
-                    let _thisReference = this;
-                    $(document).ready(function() {
-                        $(ResourcesComponent.select2ElementId).select2();
-                        $(ResourcesComponent.select2ElementId).on('change', (e) => {
-                            _thisReference.selectCurrentlyActiveResource($(e.target).val());
-                        });
+        Observable.forkJoin(
+            this.http.get(REST.RESOURCE_CONFIG).map((res: Response) => res.json()),
+            this.http.get(REST.RGROUP_LIST).map((res: Response) => res.json())
+        ).subscribe(data => {
+            // filling the resources
+            let resData = data[0];
+            for (let key in resData) {
+                this.resources.push(new Resource(this.http, key, resData[key]))
+            }
+            if (this.resources.length > 0) {
+                this.activeResource = this.resources[0];
+                this.oldTypeValue = this.activeResource.type;
+                this.oldGroupValue = this.activeResource.groupName;
+                this.oldSmartMode = this.activeResource.smartMode;
+
+                let _thisReference = this;
+                $(document).ready(function() {
+                    $(ResourcesComponent.select2ElementId).select2();
+                    $(ResourcesComponent.select2ElementId).on('change', (e) => {
+                        _thisReference.selectCurrentlyActiveResource($(e.target).val());
                     });
-                }
-            });
+                });
+            }
+
+            // filling the available rgroups
+            this.availableGroups = data[1];
+
+            // making the selectionGroup decision after all actions before were performed
+            this.groupSelection = this.getGroupSelectionForActiveResource();
+
+        });
 
         // Get all the available bundles that belong to Resources
         this.http.get(REST.AVAILABLE_RESOURCE_LIST)
             .map((res: Response) => res.json())
             .subscribe(data => this.availableResources = data);
-
-        // Get available group names for listing in the select element
-        this.http.get(REST.RGROUP_LIST)
-            .map((res: Response) => res.json())
-            .subscribe(data => this.availableGroups = data);
 
         // Get available thread pools
         this.http.get(REST.THREAD_POOL_CONFIG)
@@ -92,6 +103,7 @@ export class ResourcesComponent implements OnInit {
             this.oldGroupValue = newResource.groupName;
             this.oldSmartMode = newResource.smartMode;
             $(ResourcesComponent.selectionId).html(this.activeResource.name);
+            this.groupSelection = this.getGroupSelectionForActiveResource();
         }
     }
 
@@ -102,9 +114,32 @@ export class ResourcesComponent implements OnInit {
                 this.oldTypeValue = this.resources[i].type;
                 this.oldGroupValue = this.resources[i].groupName;
                 this.oldSmartMode = this.resources[i].smartMode;
+                this.groupSelection = this.getGroupSelectionForActiveResource();
                 break;
             }
         }
+    }
+
+    private getGroupSelectionForActiveResource():boolean {
+        if (this.availableGroups.length == 0) {
+            return false;
+        } else if (!isNullOrUndefined(this.activeResource)
+                && !isNullOrUndefined(this.activeResource.groupName)
+                && this.activeResource.groupName.length > 0) {
+            for (let i = 0; i < this.availableGroups.length; i++) {
+                if (this.availableGroups[i] == this.activeResource.groupName) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    saveManualGroupName():void {
+        this.http.put(REST.RESOURCE_GROUP(this.activeResource.name), this.activeResource.groupName)
+            .subscribe(() => console.log("Manual group name has been saved, no reload is required"));
     }
 
     changeType(event:any):void {
@@ -146,6 +181,7 @@ export class ResourcesComponent implements OnInit {
                     })
                     .catch(() => {
                         this.activeResource.groupName = this.oldGroupValue;
+                        this.groupSelection = this.getGroupSelectionForActiveResource();
                         return false;
                     });
             });
