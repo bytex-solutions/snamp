@@ -227,18 +227,6 @@ public abstract class LockDecorator implements Serializable {
         }
     }
 
-    public final Runnable runnable(final Runnable action) {
-        return () -> run(action);
-    }
-
-    public final <V> Callable<? extends V> callable(final Callable<? extends V> action) {
-        return () -> call(action);
-    }
-
-    public final <V> Callable<? extends V> callable(final Callable<? extends V> action, final Duration timeout) {
-        return () -> call(action, timeout);
-    }
-
     public final <V> V call(final Callable<? extends V> action) throws Exception {
         try(final SafeCloseable ignored = acquireLock()){
             return action.call();
