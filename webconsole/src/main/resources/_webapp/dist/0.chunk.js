@@ -37365,7 +37365,7 @@ var GatewaysComponent = (function () {
                         _thisReference_1.selectCurrentlyActiveGateway($(e.target).val());
                     });
                 });
-                $(GatewaysComponent.selectionId).html(_this.activeGateway.name);
+                $(GatewaysComponent.select2Id).val(_this.activeGateway.name).trigger('change.select2');
                 _this.oldTypeValue = _this.activeGateway.type;
             }
             _this.route
@@ -37405,7 +37405,7 @@ var GatewaysComponent = (function () {
             $(GatewaysComponent.select2Id).on('change', function (e) {
                 _thisReference.selectCurrentlyActiveGateway($(e.target).val());
             });
-            $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+            $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
         }
     };
     GatewaysComponent.prototype.setActiveGateway = function (gateway, setURL) {
@@ -37415,7 +37415,7 @@ var GatewaysComponent = (function () {
             var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?gateway=" + gateway.name;
             window.history.pushState({ path: newurl }, '', newurl);
         }
-        $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+        $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
     };
     GatewaysComponent.prototype.removeGateway = function () {
         var _this = this;
@@ -37448,7 +37448,7 @@ var GatewaysComponent = (function () {
                                 $(GatewaysComponent.select2Id).on('change', function (e) {
                                     _thisReference_2.selectCurrentlyActiveGateway($(e.target).val());
                                 });
-                                $(GatewaysComponent.selectionId).html(_this.activeGateway.name);
+                                $(GatewaysComponent.select2Id).val(_this.activeGateway.name).trigger('change.select2');
                             }
                             return "break";
                         }
@@ -37498,7 +37498,6 @@ var GatewaysComponent = (function () {
         });
     };
     GatewaysComponent.select2Id = "#gatewaySelection";
-    GatewaysComponent.selectionId = "#select2-gatewaySelection-container";
     GatewaysComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
@@ -37951,7 +37950,7 @@ var ResourcesComponent = (function () {
             $(ResourcesComponent.select2ElementId).on('change', function (e) {
                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
             });
-            $(ResourcesComponent.selectionId).html(this.activeResource.name);
+            $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
         }
     };
     ResourcesComponent.prototype.setActiveResource = function (resource, setURL) {
@@ -37963,7 +37962,7 @@ var ResourcesComponent = (function () {
             var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + resource.name;
             window.history.pushState({ path: newurl }, '', newurl);
         }
-        $(ResourcesComponent.selectionId).html(this.activeResource.name);
+        $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
     };
     ResourcesComponent.prototype.selectCurrentlyActiveResource = function (resourceName) {
         for (var i = 0; i < this.resources.length; i++) {
@@ -38008,7 +38007,7 @@ var ResourcesComponent = (function () {
                                 $(ResourcesComponent.select2ElementId).on('change', function (e) {
                                     _thisReference_2.selectCurrentlyActiveResource($(e.target).val());
                                 });
-                                $(ResourcesComponent.selectionId).html(_this.activeResource.name);
+                                $(ResourcesComponent.select2ElementId).val(_this.activeResource.name).trigger('change.select2');
                             }
                             return "break";
                         }
@@ -38136,7 +38135,6 @@ var ResourcesComponent = (function () {
             " has been changed to " + _this.activeResource.connectionString + " with result " + res); });
     };
     ResourcesComponent.select2ElementId = "#resourceSelection";
-    ResourcesComponent.selectionId = "#select2-resourceSelection-container";
     ResourcesComponent = __decorate([
         core_1.Component({
             moduleId: module.i,

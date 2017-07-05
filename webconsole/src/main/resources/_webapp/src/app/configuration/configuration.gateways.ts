@@ -26,7 +26,6 @@ export class GatewaysComponent implements OnInit {
    availableGateways :any[] = [];
 
    private static select2Id:string = "#gatewaySelection";
-   private static selectionId:string = "#select2-gatewaySelection-container";
 
    constructor(private http: ApiClient, overlay: Overlay, vcRef: ViewContainerRef,
                public modal: Modal, private cd: ChangeDetectorRef, private route: ActivatedRoute) {
@@ -51,7 +50,7 @@ export class GatewaysComponent implements OnInit {
                             _thisReference.selectCurrentlyActiveGateway($(e.target).val());
                         });
                     });
-                    $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+                    $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
                     this.oldTypeValue = this.activeGateway.type;
                 }
 
@@ -97,7 +96,7 @@ export class GatewaysComponent implements OnInit {
             $(GatewaysComponent.select2Id).on('change', (e) => {
                 _thisReference.selectCurrentlyActiveGateway($(e.target).val());
             });
-            $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+            $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
         }
     }
 
@@ -108,7 +107,7 @@ export class GatewaysComponent implements OnInit {
             let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?gateway=" + gateway.name;
             window.history.pushState({path:newurl},'',newurl);
         }
-        $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+        $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
     }
 
     removeGateway():void {
@@ -144,7 +143,7 @@ export class GatewaysComponent implements OnInit {
                                             $(GatewaysComponent.select2Id).on('change', (e) => {
                                                 _thisReference.selectCurrentlyActiveGateway($(e.target).val());
                                             });
-                                            $(GatewaysComponent.selectionId).html(this.activeGateway.name);
+                                            $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
 
                                         }
                                         break;

@@ -27,7 +27,6 @@ export class ResourcesComponent implements OnInit {
     private groupSelection:boolean = false;
 
     private static select2ElementId:string = "#resourceSelection";
-    private static selectionId:string = "#select2-resourceSelection-container";
 
     constructor(private http: ApiClient,
                 private overlay: Overlay,
@@ -114,7 +113,7 @@ export class ResourcesComponent implements OnInit {
             $(ResourcesComponent.select2ElementId).on('change', (e) => {
                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
             });
-            $(ResourcesComponent.selectionId).html(this.activeResource.name);
+            $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
         }
     }
 
@@ -127,7 +126,7 @@ export class ResourcesComponent implements OnInit {
             let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + resource.name;
             window.history.pushState({path:newurl},'',newurl);
         }
-        $(ResourcesComponent.selectionId).html(this.activeResource.name);
+        $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
     }
 
     selectCurrentlyActiveResource(resourceName:string):void {
@@ -174,7 +173,7 @@ export class ResourcesComponent implements OnInit {
                                             $(ResourcesComponent.select2ElementId).on('change', (e) => {
                                                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
                                             });
-                                            $(ResourcesComponent.selectionId).html(this.activeResource.name);
+                                            $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
                                         }
                                         break;
                                     }
