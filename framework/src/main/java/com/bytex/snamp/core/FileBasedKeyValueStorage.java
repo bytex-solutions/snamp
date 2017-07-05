@@ -27,7 +27,7 @@ import static com.bytex.snamp.internal.Utils.staticInit;
  */
 @ThreadSafe
 final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValueStorage {
-    private static File DATABASE_HOME = staticInit(() -> {
+    private static final File DATABASE_HOME = staticInit(() -> {
         final String KARAF_DATA_DIR = "karaf.data";
         final File databaseHome;
         if(System.getProperties().containsKey(KARAF_DATA_DIR))
