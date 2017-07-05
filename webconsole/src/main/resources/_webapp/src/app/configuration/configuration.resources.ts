@@ -39,7 +39,6 @@ export class ResourcesComponent implements OnInit {
 
     ngOnInit():void {
         // Get all configured resources from the server
-
         Observable.forkJoin(
             this.http.get(REST.RESOURCE_CONFIG).map((res: Response) => res.json()),
             this.http.get(REST.RGROUP_LIST).map((res: Response) => res.json())
@@ -50,7 +49,7 @@ export class ResourcesComponent implements OnInit {
                 this.resources.push(new Resource(this.http, key, resData[key]))
             }
             if (this.resources.length > 0) {
-                this.setActiveResource(this.resources[0]);
+                this.setActiveResource(this.resources[0], true);
                 let _thisReference = this;
                 $(document).ready(function() {
                     $(ResourcesComponent.select2ElementId).select2();
@@ -75,7 +74,7 @@ export class ResourcesComponent implements OnInit {
                             && resourceName != this.activeResource.name && this.resources.length > 0) {
                         for (let i = 0; i < this.resources.length; i++) {
                             if (this.resources[i].name == resourceName) {
-                                this.setActiveResource(this.resources[i]);
+                                this.setActiveResource(this.resources[i], true);
                                 this.groupSelection = this.getGroupSelectionForActiveResource();
                                 break;
                             }

@@ -21,7 +21,13 @@ $(document).ready(function() {
 
     if ($.urlParam("tokenExpired") == "true") {
         invalidCredentials("Token has been expired", "", "Token has been expired. Please re-login")
+    }
 
+    if ($.urlParam("isDemo") == "true") {
+        $.getJSON("/snamp/assets/demo.json").then(function(data) {
+            $("#usernameInput").val(data["username"]);
+            $("#passwordInput").val(data["password"]);
+        });
     }
 });
 
@@ -43,6 +49,7 @@ function showRequest(formData, jqForm, options) {
 // post-submit callback
 function redirect(data)  {
     $('.errorBlock').css("display", "none");
+    $('.passBlock').css("display", "none");
     console.log("Success!")
     window.location.href = "."
 }

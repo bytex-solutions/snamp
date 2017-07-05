@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
-import { Observable } from 'rxjs/Observable';
+
+import fileSaver = require("file-saver");
 
 import 'rxjs/Rx' ;
 
@@ -28,9 +29,9 @@ export class FullSaveComponent implements OnInit {
    }
 
    save() {
-      var blob = new Blob([this.currentConfiguration], { type: 'application/json' });
-      var url= window.URL.createObjectURL(blob);
-      window.open(url);
+       let blob = new Blob([this.currentConfiguration], {type: 'application/json'});
+       let filename = 'configuration.json';
+       fileSaver.saveAs(blob, filename);
    }
 
    load(event) {

@@ -1980,6 +1980,201 @@ exports.push([module.i, ".activeTr {\r\n    border: 1px solid #2f9c0a;\r\n}\r\n\
 
 /***/ },
 
+/***/ "./node_modules/file-saver/FileSaver.js":
+/***/ function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* FileSaver.js
+ * A saveAs() FileSaver implementation.
+ * 1.3.2
+ * 2016-06-16 18:25:19
+ *
+ * By Eli Grey, http://eligrey.com
+ * License: MIT
+ *   See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+ */
+
+/*global self */
+/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+
+var saveAs = saveAs || (function(view) {
+	"use strict";
+	// IE <10 is explicitly unsupported
+	if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
+		return;
+	}
+	var
+		  doc = view.document
+		  // only get URL when necessary in case Blob.js hasn't overridden it yet
+		, get_URL = function() {
+			return view.URL || view.webkitURL || view;
+		}
+		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+		, can_use_save_link = "download" in save_link
+		, click = function(node) {
+			var event = new MouseEvent("click");
+			node.dispatchEvent(event);
+		}
+		, is_safari = /constructor/i.test(view.HTMLElement)
+		, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+		, throw_outside = function(ex) {
+			(view.setImmediate || view.setTimeout)(function() {
+				throw ex;
+			}, 0);
+		}
+		, force_saveable_type = "application/octet-stream"
+		// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+		, arbitrary_revoke_timeout = 1000 * 40 // in ms
+		, revoke = function(file) {
+			var revoker = function() {
+				if (typeof file === "string") { // file is an object URL
+					get_URL().revokeObjectURL(file);
+				} else { // file is a File
+					file.remove();
+				}
+			};
+			setTimeout(revoker, arbitrary_revoke_timeout);
+		}
+		, dispatch = function(filesaver, event_types, event) {
+			event_types = [].concat(event_types);
+			var i = event_types.length;
+			while (i--) {
+				var listener = filesaver["on" + event_types[i]];
+				if (typeof listener === "function") {
+					try {
+						listener.call(filesaver, event || filesaver);
+					} catch (ex) {
+						throw_outside(ex);
+					}
+				}
+			}
+		}
+		, auto_bom = function(blob) {
+			// prepend BOM for UTF-8 XML and text/* types (including HTML)
+			// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+			if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+				return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+			}
+			return blob;
+		}
+		, FileSaver = function(blob, name, no_auto_bom) {
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			// First try a.download, then web filesystem, then object URLs
+			var
+				  filesaver = this
+				, type = blob.type
+				, force = type === force_saveable_type
+				, object_url
+				, dispatch_all = function() {
+					dispatch(filesaver, "writestart progress write writeend".split(" "));
+				}
+				// on any filesys errors revert to saving with object URLs
+				, fs_error = function() {
+					if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+						// Safari doesn't allow downloading of blob urls
+						var reader = new FileReader();
+						reader.onloadend = function() {
+							var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
+							var popup = view.open(url, '_blank');
+							if(!popup) view.location.href = url;
+							url=undefined; // release reference before dispatching
+							filesaver.readyState = filesaver.DONE;
+							dispatch_all();
+						};
+						reader.readAsDataURL(blob);
+						filesaver.readyState = filesaver.INIT;
+						return;
+					}
+					// don't create more object URLs than needed
+					if (!object_url) {
+						object_url = get_URL().createObjectURL(blob);
+					}
+					if (force) {
+						view.location.href = object_url;
+					} else {
+						var opened = view.open(object_url, "_blank");
+						if (!opened) {
+							// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+							view.location.href = object_url;
+						}
+					}
+					filesaver.readyState = filesaver.DONE;
+					dispatch_all();
+					revoke(object_url);
+				}
+			;
+			filesaver.readyState = filesaver.INIT;
+
+			if (can_use_save_link) {
+				object_url = get_URL().createObjectURL(blob);
+				setTimeout(function() {
+					save_link.href = object_url;
+					save_link.download = name;
+					click(save_link);
+					dispatch_all();
+					revoke(object_url);
+					filesaver.readyState = filesaver.DONE;
+				});
+				return;
+			}
+
+			fs_error();
+		}
+		, FS_proto = FileSaver.prototype
+		, saveAs = function(blob, name, no_auto_bom) {
+			return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
+		}
+	;
+	// IE 10+ (native saveAs)
+	if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
+		return function(blob, name, no_auto_bom) {
+			name = name || blob.name || "download";
+
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			return navigator.msSaveOrOpenBlob(blob, name);
+		};
+	}
+
+	FS_proto.abort = function(){};
+	FS_proto.readyState = FS_proto.INIT = 0;
+	FS_proto.WRITING = 1;
+	FS_proto.DONE = 2;
+
+	FS_proto.error =
+	FS_proto.onwritestart =
+	FS_proto.onprogress =
+	FS_proto.onwrite =
+	FS_proto.onabort =
+	FS_proto.onerror =
+	FS_proto.onwriteend =
+		null;
+
+	return saveAs;
+}(
+	   typeof self !== "undefined" && self
+	|| typeof window !== "undefined" && window
+	|| this.content
+));
+// `self` is undefined in Firefox for Android content script context
+// while `this` is nsIContentFrameMessageManager
+// with an attribute `content` that corresponds to the window
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.saveAs = saveAs;
+} else if (("function" !== "undefined" && __webpack_require__("./node_modules/webpack/buildin/amd-define.js") !== null) && (__webpack_require__("./node_modules/webpack/buildin/amd-options.js") !== null)) {
+  !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+    return saveAs;
+  }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+}
+
+
+/***/ },
+
 /***/ "./node_modules/ieee754/index.js":
 /***/ function(module, exports) {
 
@@ -37218,6 +37413,23 @@ exports.not = not;
 
 /***/ },
 
+/***/ "./node_modules/webpack/buildin/amd-define.js":
+/***/ function(module, exports) {
+
+module.exports = function() { throw new Error("define cannot be used indirect"); };
+
+
+/***/ },
+
+/***/ "./node_modules/webpack/buildin/amd-options.js":
+/***/ function(module, exports) {
+
+/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+
 /***/ "./src/app/configuration/components/binding-table.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37260,6 +37472,7 @@ module.exports = "<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+var fileSaver = __webpack_require__("./node_modules/file-saver/FileSaver.js");
 __webpack_require__("./node_modules/rxjs/Rx.js");
 var FullSaveComponent = (function () {
     function FullSaveComponent(apiClient) {
@@ -37275,8 +37488,8 @@ var FullSaveComponent = (function () {
     };
     FullSaveComponent.prototype.save = function () {
         var blob = new Blob([this.currentConfiguration], { type: 'application/json' });
-        var url = window.URL.createObjectURL(blob);
-        window.open(url);
+        var filename = 'configuration.json';
+        fileSaver.saveAs(blob, filename);
     };
     FullSaveComponent.prototype.load = function (event) {
         var fileList = event.target.files;
@@ -37885,8 +38098,8 @@ var ResourcesComponent = (function () {
         overlay.defaultViewContainer = vcRef;
     }
     ResourcesComponent.prototype.ngOnInit = function () {
-        // Get all configured resources from the server
         var _this = this;
+        // Get all configured resources from the server
         Observable_1.Observable.forkJoin(this.http.get(app_restClient_1.REST.RESOURCE_CONFIG).map(function (res) { return res.json(); }), this.http.get(app_restClient_1.REST.RGROUP_LIST).map(function (res) { return res.json(); })).subscribe(function (data) {
             // filling the resources
             var resData = data[0];
@@ -37894,7 +38107,7 @@ var ResourcesComponent = (function () {
                 _this.resources.push(new model_resource_1.Resource(_this.http, key, resData[key]));
             }
             if (_this.resources.length > 0) {
-                _this.setActiveResource(_this.resources[0]);
+                _this.setActiveResource(_this.resources[0], true);
                 var _thisReference_1 = _this;
                 $(document).ready(function () {
                     $(ResourcesComponent.select2ElementId).select2();
@@ -37916,7 +38129,7 @@ var ResourcesComponent = (function () {
                     && resourceName != _this.activeResource.name && _this.resources.length > 0) {
                     for (var i = 0; i < _this.resources.length; i++) {
                         if (_this.resources[i].name == resourceName) {
-                            _this.setActiveResource(_this.resources[i]);
+                            _this.setActiveResource(_this.resources[i], true);
                             _this.groupSelection = _this.getGroupSelectionForActiveResource();
                             break;
                         }
@@ -38165,10 +38378,14 @@ __webpack_require__("./node_modules/rxjs/add/operator/do.js");
 __webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var RGroupsComponent = (function () {
-    function RGroupsComponent(http, overlay, vcRef, modal) {
+    function RGroupsComponent(http, overlay, vcRef, modal, route, cd) {
         this.http = http;
         this.modal = modal;
+        this.route = route;
+        this.cd = cd;
         this.resources = [];
         this.oldTypeValue = "";
         this.availableResources = [];
@@ -38184,8 +38401,7 @@ var RGroupsComponent = (function () {
                 _this.resources.push(new model_resourceGroup_1.ResourceGroup(_this.http, key, data[key]));
             }
             if (_this.resources.length > 0) {
-                _this.activeResource = _this.resources[0];
-                _this.oldTypeValue = _this.activeResource.type;
+                _this.setActiveResourceGroup(_this.resources[0], true);
                 var _thisReference_1 = _this;
                 $(document).ready(function () {
                     $(RGroupsComponent.select2ElementId).select2();
@@ -38194,6 +38410,21 @@ var RGroupsComponent = (function () {
                     });
                 });
             }
+            _this.route
+                .queryParams
+                .subscribe(function (params) {
+                // Defaults to 0 if no query param provided.
+                var resourceName = params['rg'] || "";
+                if (!util_1.isNullOrUndefined(_this.activeResource) && resourceName.length > 0
+                    && resourceName != _this.activeResource.name && _this.resources.length > 0) {
+                    for (var i = 0; i < _this.resources.length; i++) {
+                        if (_this.resources[i].name == resourceName) {
+                            _this.setActiveResourceGroup(_this.resources[i], true);
+                            break;
+                        }
+                    }
+                }
+            });
         });
         // Get all the available bundles that belong to Resources
         this.http.get(app_restClient_1.REST.AVAILABLE_RESOURCE_LIST)
@@ -38205,19 +38436,77 @@ var RGroupsComponent = (function () {
         if ($(RGroupsComponent.select2ElementId).data('select2')) {
             $(RGroupsComponent.select2ElementId).select2('destroy');
         }
-        $(RGroupsComponent.select2ElementId).select2({
-            placeholder: "Select gateway",
-            width: '100%',
-            allowClear: true
-        });
-        $(RGroupsComponent.select2ElementId).on('change', function (e) {
-            _thisReference.selectCurrentlyActiveResource($(e.target).val());
-        });
         if (this.resources.length > 0) {
-            this.activeResource = newResource;
-            this.oldTypeValue = newResource.type;
-            $(RGroupsComponent.selectionId).html(this.activeResource.name);
+            this.setActiveResourceGroup(newResource, true);
+            this.cd.detectChanges(); // draw my select pls!
+            $(RGroupsComponent.select2ElementId).select2({
+                placeholder: "Select resource group",
+                width: '100%',
+                allowClear: true
+            });
+            $(RGroupsComponent.select2ElementId).on('change', function (e) {
+                _thisReference.selectCurrentlyActiveResource($(e.target).val());
+            });
+            $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
         }
+    };
+    RGroupsComponent.prototype.setActiveResourceGroup = function (resource, setURL) {
+        this.activeResource = resource;
+        this.oldTypeValue = resource.type;
+        if (history.pushState && setURL) {
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?rg=" + resource.name;
+            window.history.pushState({ path: newurl }, '', newurl);
+        }
+        $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
+    };
+    RGroupsComponent.prototype.removeResourceGroup = function () {
+        var _this = this;
+        this.modal.confirm()
+            .isBlocking(true)
+            .className('default')
+            .keyboard(27)
+            .message("Resource " + this.activeResource.name + " is being deleted. Are You sure?")
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this.http.delete(app_restClient_1.REST.RGROUP_BY_NAME(_this.activeResource.name))
+                    .subscribe(function () {
+                    var _loop_1 = function(i) {
+                        if (_this.resources[i].name == _this.activeResource.name) {
+                            _this.resources.splice(i, 1);
+                            if (_this.resources.length > 0) {
+                                _this.setActiveResourceGroup(_this.resources[0], true);
+                                var _thisReference_2 = _this;
+                                if ($(RGroupsComponent.select2ElementId).data('select2')) {
+                                    $(RGroupsComponent.select2ElementId).select2('destroy');
+                                }
+                                // refresh select2
+                                _this.cd.detectChanges(); // draw my select pls!
+                                $(RGroupsComponent.select2ElementId).select2({
+                                    placeholder: "Select resource group",
+                                    width: '100%',
+                                    allowClear: true
+                                });
+                                $(RGroupsComponent.select2ElementId).on('change', function (e) {
+                                    _thisReference_2.selectCurrentlyActiveResource($(e.target).val());
+                                });
+                                $(RGroupsComponent.select2ElementId).val(_this.activeResource.name).trigger('change.select2');
+                            }
+                            return "break";
+                        }
+                    };
+                    for (var i = 0; i < _this.resources.length; i++) {
+                        var state_1 = _loop_1(i);
+                        if (state_1 === "break") break;
+                    }
+                });
+                return response;
+            })
+                .catch(function () {
+                return false;
+            });
+        });
     };
     RGroupsComponent.prototype.selectCurrentlyActiveResource = function (resourceName) {
         for (var i = 0; i < this.resources.length; i++) {
@@ -38250,17 +38539,16 @@ var RGroupsComponent = (function () {
         }).catch(function () { });
     };
     RGroupsComponent.select2ElementId = "#resourceSelection";
-    RGroupsComponent.selectionId = "#select2-resourceSelection-container";
     RGroupsComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
             template: __webpack_require__("./src/app/configuration/templates/rgroups.html"),
             styles: [__webpack_require__("./src/app/configuration/templates/css/checkbox.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _e) || Object, (typeof (_f = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _f) || Object])
     ], RGroupsComponent);
     return RGroupsComponent;
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
 }());
 exports.RGroupsComponent = RGroupsComponent;
 
@@ -38786,7 +39074,7 @@ exports.ThreadPool = ThreadPool;
 /***/ "./src/app/configuration/templates/fullsave.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Save/restore configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Configuration'\" [column]=\"'12'\">\r\n          <pre class=\"row limitedCodeBlock\"><code>{{currentConfiguration}}</code></pre>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <button class=\"btn\" (click)=\"save()\">Download current configuration as JSON file</button>\r\n          </div>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <label class=\"btn btn-default btn-file\">\r\n              Upload configuration from your JSON file<input type=\"file\" (change)=\"load($event)\" style=\"display: none;\">\r\n            </label>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Save/restore configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Configuration'\" [column]=\"'12'\">\r\n          <pre class=\"row limitedCodeBlock normalspace\" ><code [innerHtml]=\"currentConfiguration\"></code></pre>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <button class=\"btn\" (click)=\"save()\">Download current configuration as JSON file</button>\r\n          </div>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <label class=\"btn btn-default btn-file\">\r\n              Upload configuration from your JSON file<input type=\"file\" (change)=\"load($event)\" style=\"display: none;\">\r\n            </label>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
@@ -38814,7 +39102,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949
 /***/ "./src/app/configuration/templates/rgroups.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Resource group configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"title_right\" *ngIf=\"resources && resources.length > 0\">\r\n        <div class=\"col-md-8 col-sm-8 col-xs-12 form-group pull-right\">\r\n          <div class=\"row\">\r\n            <div class=\"col-md-3\">\r\n              <h5>Choose group</h5>\r\n            </div>\r\n            <div class=\"col-md-6\">\r\n              <select\r\n                id=\"resourceSelection\"\r\n                class=\"select2_group form-control\">\r\n                <optgroup label=\"Resources\" >\r\n                  <option\r\n                    *ngFor=\"let resource of resources\"\r\n                    [value]=\"resource.name\">\r\n                    {{resource.name}}\r\n                  </option>\r\n                </optgroup>\r\n              </select>\r\n            </div>\r\n            <div class=\"col-md-2\">\r\n              <newEntity\r\n                [entities]=\"resources\"\r\n                (onSave)=\"dispatchNewResourceGroup(event)\"\r\n                [type]=\"'resourceGroup'\">\r\n              </newEntity>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"float: left !important;\" *ngIf=\"!resources || resources.length == 0\">\r\n      <div class=\"col-md-2\">\r\n        <newEntity\r\n                [entities]=\"resources\"\r\n                (onSave)=\"dispatchNewResourceGroup($event)\"\r\n                [type]=\"'resourceGroup'\">\r\n        </newEntity>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"resources && resources.length > 0 && activeResource != undefined\">\r\n\r\n      <div class=\"col-md-8 leftAlign\">\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Resource type'\" [column]=\"'6'\">\r\n            <select disabled\r\n                    id=\"entityType\"\r\n                    [(ngModel)]=\"activeResource.type\"\r\n                    (change)=\"changeType($event)\"\r\n                    style=\"height: auto;\"\r\n                    class=\"form-control\">\r\n              <option\r\n                *ngFor=\"let resource of availableResources\"\r\n                [value]=\"resource.type\">\r\n                {{resource.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n            <parameters [entity]=\"activeResource\"></parameters>\r\n          </panel>\r\n        </div>\r\n\r\n      </div>\r\n\r\n      <div class=\"col-md-4\">\r\n        <div class=\"row\">\r\n\r\n          <div class=\"col-md-12\">\r\n            <panel [header]=\"'Entities'\" [column]=\"'12'\">\r\n              <div class=\"row\">\r\n                <div class=\"col-md-12\">\r\n                  <div\r\n                    class=\"panel-group group-accordeon\"\r\n                    id=\"accordionBindings\"\r\n                    role=\"tablist\"\r\n                    aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                            Attributes\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.attributes\"\r\n                            [entityType]=\"'attribute'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                            Events\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.events\"\r\n                            [entityType]=\"'event'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                            Operations\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.operations\"\r\n                            [entityType]=\"'operation'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </panel>\r\n          </div>\r\n        </div>\r\n\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n    <div class=\"row\" style=\"padding-right: 10px;\">\r\n\r\n      <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n        <h3>Resource group configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"col-md-4\"></div>\r\n\r\n      <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n        <div class=\"row\" *ngIf=\"resources && resources.length > 0\">\r\n          <div class=\"col-md-3\">\r\n            <h5>Select group</h5>\r\n          </div>\r\n          <div class=\"col-md-6\">\r\n            <select\r\n                    id=\"resourceSelection\"\r\n                    class=\"select2_group form-control\">\r\n              <optgroup label=\"Resources\" >\r\n                <option\r\n                        *ngFor=\"let resource of resources\"\r\n                        [value]=\"resource.name\">\r\n                  {{resource.name}}\r\n                </option>\r\n              </optgroup>\r\n            </select>\r\n          </div>\r\n          <div class=\"col-md-1\">\r\n            <newEntity\r\n                    [entities]=\"resources\"\r\n                    (onSave)=\"dispatchNewResourceGroup($event)\"\r\n                    [type]=\"'resourceGroup'\">\r\n            </newEntity>\r\n          </div>\r\n          <div class=\"col-md-1\">\r\n            <button class=\"btn btn-danger\" (click)=\"removeResourceGroup()\"><i class=\"fa fa-trash\"></i></button>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <hr/>\r\n\r\n    <div style=\"float: left !important;\" *ngIf=\"!resources || resources.length == 0\">\r\n      <div>\r\n        <h5>Add new resource group</h5>\r\n        <newEntity\r\n                [entities]=\"resources\"\r\n                (onSave)=\"dispatchNewResourceGroup($event)\"\r\n                [type]=\"'resourceGroup'\">\r\n        </newEntity>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"resources && resources.length > 0 && activeResource != undefined\">\r\n\r\n      <div class=\"col-md-8 leftAlign\">\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Resource type'\" [column]=\"'6'\">\r\n            <select disabled\r\n                    id=\"entityType\"\r\n                    [(ngModel)]=\"activeResource.type\"\r\n                    (change)=\"changeType($event)\"\r\n                    style=\"height: auto;\"\r\n                    class=\"form-control\">\r\n              <option\r\n                *ngFor=\"let resource of availableResources\"\r\n                [value]=\"resource.type\">\r\n                {{resource.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n            <parameters [entity]=\"activeResource\"></parameters>\r\n          </panel>\r\n        </div>\r\n\r\n      </div>\r\n\r\n      <div class=\"col-md-4\">\r\n        <div class=\"row\">\r\n\r\n          <div class=\"col-md-12\">\r\n            <panel [header]=\"'Entities'\" [column]=\"'12'\">\r\n              <div class=\"row\">\r\n                <div class=\"col-md-12\">\r\n                  <div\r\n                    class=\"panel-group group-accordeon\"\r\n                    id=\"accordionBindings\"\r\n                    role=\"tablist\"\r\n                    aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                            Attributes\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.attributes\"\r\n                            [entityType]=\"'attribute'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                            Events\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.events\"\r\n                            [entityType]=\"'event'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                            Operations\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.operations\"\r\n                            [entityType]=\"'operation'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </panel>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n</div>\r\n"
 
 /***/ },
 

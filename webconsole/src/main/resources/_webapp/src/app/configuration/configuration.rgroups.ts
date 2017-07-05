@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewContainerRef } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { ResourceGroup } from './model/model.resourceGroup';
 import { Response } from '@angular/http';
@@ -9,6 +9,8 @@ import 'rxjs/add/operator/toPromise';
 
 import { Overlay } from 'angular2-modal';
 import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
+import { ActivatedRoute } from "@angular/router";
+import { isNullOrUndefined } from "util";
 
 @Component({
   moduleId: module.id,
@@ -23,9 +25,10 @@ export class RGroupsComponent implements OnInit {
    availableResources :any[] = [];
 
     private static select2ElementId:string = "#resourceSelection";
-    private static selectionId:string = "#select2-resourceSelection-container";
 
-   constructor(private http: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal) {
+   constructor(private http: ApiClient, overlay: Overlay, vcRef: ViewContainerRef, public modal: Modal,
+               private route: ActivatedRoute,
+               private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
    }
 
@@ -38,8 +41,7 @@ export class RGroupsComponent implements OnInit {
                     this.resources.push(new ResourceGroup(this.http, key, data[key]))
                 }
                 if (this.resources.length > 0) {
-                    this.activeResource = this.resources[0];
-                    this.oldTypeValue = this.activeResource.type;
+                    this.setActiveResourceGroup(this.resources[0], true);
                     let _thisReference = this;
                     $(document).ready(function() {
                         $(RGroupsComponent.select2ElementId).select2();
@@ -48,6 +50,22 @@ export class RGroupsComponent implements OnInit {
                         });
                     });
                 }
+
+                this.route
+                    .queryParams
+                    .subscribe(params => {
+                        // Defaults to 0 if no query param provided.
+                        let resourceName:string = params['rg'] || "";
+                        if (!isNullOrUndefined(this.activeResource) && resourceName.length > 0
+                            && resourceName != this.activeResource.name && this.resources.length > 0) {
+                            for (let i = 0; i < this.resources.length; i++) {
+                                if (this.resources[i].name == resourceName) {
+                                    this.setActiveResourceGroup(this.resources[i], true);
+                                    break;
+                                }
+                            }
+                        }
+                    });
             });
 
         // Get all the available bundles that belong to Resources
@@ -62,20 +80,81 @@ export class RGroupsComponent implements OnInit {
         if ($(RGroupsComponent.select2ElementId).data('select2')) {
             $(RGroupsComponent.select2ElementId).select2('destroy');
         }
-        $(RGroupsComponent.select2ElementId).select2({
-            placeholder: "Select gateway",
-            width: '100%',
-            allowClear: true
-        });
-        $(RGroupsComponent.select2ElementId).on('change', (e) => {
-            _thisReference.selectCurrentlyActiveResource($(e.target).val());
-        });
 
         if (this.resources.length > 0) {
-            this.activeResource = newResource;
-            this.oldTypeValue = newResource.type;
-            $(RGroupsComponent.selectionId).html(this.activeResource.name);
+            this.setActiveResourceGroup(newResource, true);
+
+            this.cd.detectChanges(); // draw my select pls!
+
+            $(RGroupsComponent.select2ElementId).select2({
+                placeholder: "Select resource group",
+                width: '100%',
+                allowClear: true
+            });
+            $(RGroupsComponent.select2ElementId).on('change', (e) => {
+                _thisReference.selectCurrentlyActiveResource($(e.target).val());
+            });
+
+            $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
         }
+    }
+
+    private setActiveResourceGroup(resource:ResourceGroup, setURL?:boolean):void {
+        this.activeResource = resource;
+        this.oldTypeValue = resource.type;
+        if (history.pushState && setURL) {
+            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?rg=" + resource.name;
+            window.history.pushState({path:newurl},'',newurl);
+        }
+        $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
+    }
+
+
+    removeResourceGroup():void {
+        this.modal.confirm()
+            .isBlocking(true)
+            .className(<VEXBuiltInThemes>'default')
+            .keyboard(27)
+            .message("Resource " + this.activeResource.name + " is being deleted. Are You sure?")
+            .open()
+            .then((resultPromise) => {
+                return (<Promise<boolean>>resultPromise.result)
+                    .then((response) => {
+                        this.http.delete(REST.RGROUP_BY_NAME(this.activeResource.name))
+                            .subscribe(() => {
+                                for (let i = 0; i < this.resources.length; i++) {
+                                    if (this.resources[i].name == this.activeResource.name) {
+                                        this.resources.splice(i, 1);
+                                        if (this.resources.length > 0) {
+                                            this.setActiveResourceGroup(this.resources[0], true);
+
+                                            let _thisReference = this;
+                                            if ($(RGroupsComponent.select2ElementId).data('select2')) {
+                                                $(RGroupsComponent.select2ElementId).select2('destroy');
+                                            }
+                                            // refresh select2
+                                            this.cd.detectChanges(); // draw my select pls!
+
+                                            $(RGroupsComponent.select2ElementId).select2({
+                                                placeholder: "Select resource group",
+                                                width: '100%',
+                                                allowClear: true
+                                            });
+                                            $(RGroupsComponent.select2ElementId).on('change', (e) => {
+                                                _thisReference.selectCurrentlyActiveResource($(e.target).val());
+                                            });
+                                            $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
+                                        }
+                                        break;
+                                    }
+                                }
+                            });
+                        return response;
+                    })
+                    .catch(() => {
+                        return false;
+                    });
+            });
     }
 
     selectCurrentlyActiveResource(resourceName:string) {
