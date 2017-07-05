@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewContainerRef } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit, ViewContainerRef} from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Resource } from './model/model.resource';
 import { Response } from '@angular/http';
@@ -33,7 +33,8 @@ export class ResourcesComponent implements OnInit {
                 private overlay: Overlay,
                 private vcRef: ViewContainerRef,
                 private modal: Modal,
-                private route: ActivatedRoute) {
+                private route: ActivatedRoute,
+                private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
     }
 
@@ -100,19 +101,20 @@ export class ResourcesComponent implements OnInit {
         if ($(ResourcesComponent.select2ElementId).data('select2')) {
             $(ResourcesComponent.select2ElementId).select2('destroy');
         }
-        $(ResourcesComponent.select2ElementId).select2({
-            placeholder: "Select gateway",
-            width: '100%',
-            allowClear: true
-        });
-        $(ResourcesComponent.select2ElementId).on('change', (e) => {
-            _thisReference.selectCurrentlyActiveResource($(e.target).val());
-        });
 
         if (this.resources.length > 0) {
             this.setActiveResource(newResource, true);
-            $(ResourcesComponent.selectionId).html(this.activeResource.name);
             this.groupSelection = this.getGroupSelectionForActiveResource();
+            this.cd.detectChanges(); // draw my select pls!
+            $(ResourcesComponent.select2ElementId).select2({
+                placeholder: "Select resource",
+                width: '100%',
+                allowClear: true
+            });
+            $(ResourcesComponent.select2ElementId).on('change', (e) => {
+                _thisReference.selectCurrentlyActiveResource($(e.target).val());
+            });
+            $(ResourcesComponent.selectionId).html(this.activeResource.name);
         }
     }
 
