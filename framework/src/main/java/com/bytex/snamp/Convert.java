@@ -1,6 +1,6 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.io.Buffers;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.Chars;
@@ -115,7 +115,7 @@ public final class Convert {
         }
     }
 
-    private static final LazySoftReference<Convert> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<Convert> INSTANCE = LazyReference.soft();
 
     private final ToIntConverter TO_INT;
     private final ToIntConverter TO_BYTE;

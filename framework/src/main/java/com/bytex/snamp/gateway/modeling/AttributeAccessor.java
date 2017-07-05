@@ -2,7 +2,7 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -50,8 +50,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     }
 
     private AttributeSupport attributeSupport;
-    private final LazyStrongReference<WellKnownType> wellKnownType;
-    private final LazyStrongReference<OpenType<?>> openType;
+    private final LazyReference<WellKnownType> wellKnownType;
+    private final LazyReference<OpenType<?>> openType;
 
     /**
      * Initializes a new attribute accessor.
@@ -60,8 +60,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeSupport = null;
-        wellKnownType = new LazyStrongReference<>();
-        openType = new LazyStrongReference<>();
+        wellKnownType = LazyReference.strong();
+        openType = LazyReference.strong();
     }
 
     public AttributeAccessor(final String attributeName, final AttributeSupport support) throws AttributeNotFoundException{

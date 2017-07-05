@@ -1,7 +1,7 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.SingletonMap;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
@@ -45,13 +45,13 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
 
     private static final class SupervisorInstances<S extends Supervisor> extends ServiceSubRegistryManager<Supervisor ,S>{
         private final SupervisorFactory<S> factory;
-        private final LazyStrongReference<Logger> logger;
+        private final LazyReference<Logger> logger;
 
         private SupervisorInstances(@Nonnull final SupervisorFactory<S> factory,
                                     final RequiredService<?>... dependencies){
             super(Supervisor.class, dependencies);
             this.factory = factory;
-            this.logger = new LazyStrongReference<>();
+            this.logger = LazyReference.strong();
         }
 
         private Logger getLoggerImpl(){

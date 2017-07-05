@@ -1,6 +1,6 @@
 package com.bytex.snamp.configuration.impl;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 
 import static com.bytex.snamp.concurrent.ThreadPoolRepository.DEFAULT_POOL;
 
@@ -13,7 +13,7 @@ import static com.bytex.snamp.concurrent.ThreadPoolRepository.DEFAULT_POOL;
 public final class DefaultThreadPoolParser extends SerializableConfigurationParser<SerializableThreadPoolConfiguration> {
     public static final String PID = "com.bytex.snamp.concurrency.threadPools";
 
-    private static final LazySoftReference<DefaultThreadPoolParser> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<DefaultThreadPoolParser> INSTANCE = LazyReference.soft();
 
     private DefaultThreadPoolParser() {
         super(SerializableAgentConfiguration::getThreadPools, PID, SerializableThreadPoolConfiguration.class, DEFAULT_POOL);

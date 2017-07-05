@@ -1,7 +1,7 @@
 package com.bytex.snamp.scripting;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.LazyWeakReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.internal.Utils;
 
 import javax.script.ScriptEngine;
@@ -17,12 +17,12 @@ import java.util.Objects;
 final class OSGiScriptEngineFactory implements ScriptEngineFactory{
     private final ScriptEngineFactory factory;
     private final ClassLoader contextClassLoader;
-    private final LazyWeakReference<ForwardingScriptEngine> cachedScriptEngine;
+    private final LazyReference<ForwardingScriptEngine> cachedScriptEngine;
 
-    OSGiScriptEngineFactory (final ScriptEngineFactory factory, final ClassLoader contextClassLoader){
+    OSGiScriptEngineFactory(final ScriptEngineFactory factory, final ClassLoader contextClassLoader){
         this.factory = Objects.requireNonNull(factory);
         this.contextClassLoader = Objects.requireNonNull(contextClassLoader);
-        this.cachedScriptEngine = new LazyWeakReference<>();
+        this.cachedScriptEngine = LazyReference.weak();
     }
 
     @Override

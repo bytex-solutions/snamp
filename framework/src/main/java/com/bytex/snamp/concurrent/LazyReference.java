@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
-interface LazyReference<V> extends Consumer<V>, Stateful {
+public interface LazyReference<V> extends Consumer<V>, Stateful {
     default V lazyGet(final Supplier<? extends V> initializer){
         V result = getValue();
         if(result == null)
@@ -62,4 +62,16 @@ interface LazyReference<V> extends Consumer<V>, Stateful {
     }
 
     V getValue();
+
+    static <V> LazyReference<V> strong(){
+        return new LazyStrongReference<>();
+    }
+
+    static <V> LazyReference<V> soft(){
+        return new LazySoftReference<>();
+    }
+
+    static <V> LazyReference<V> weak(){
+        return new LazyWeakReference<>();
+    }
 }

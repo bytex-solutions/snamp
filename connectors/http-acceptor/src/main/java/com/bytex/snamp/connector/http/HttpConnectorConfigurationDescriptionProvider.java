@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.http;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.connector.dataStream.DataStreamConnectorConfigurationDescriptionProvider;
 import com.google.common.base.Splitter;
 
@@ -21,7 +21,7 @@ final class HttpConnectorConfigurationDescriptionProvider extends DataStreamConn
     private static final String PARSER_SCRIPT_PATH_PARAM = "parserScriptPath";
     private static final String PARSER_SCRIPT_NAME_PARAM = "parserScript";
 
-    private static final LazySoftReference<HttpConnectorConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<HttpConnectorConfigurationDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private static final class HttpConnectorConfigurationDescription extends ConnectorConfigurationDescription{
         private HttpConnectorConfigurationDescription(){

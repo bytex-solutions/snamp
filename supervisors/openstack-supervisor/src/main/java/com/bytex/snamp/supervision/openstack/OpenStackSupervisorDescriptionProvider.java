@@ -1,6 +1,6 @@
 package com.bytex.snamp.supervision.openstack;
 
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.supervision.def.DefaultSupervisorConfigurationDescriptionProvider;
 import org.openstack4j.api.client.CloudProvider;
 import org.openstack4j.model.common.Identifier;
@@ -34,7 +34,7 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     private final Identifier defaultDomain;
     private final Identifier demoProject;
 
-    private static final LazyStrongReference<OpenStackSupervisorDescriptionProvider> INSTANCE = new LazyStrongReference<>();
+    private static final LazyReference<OpenStackSupervisorDescriptionProvider> INSTANCE = LazyReference.strong();
 
 
     private static final class SupervisorDescription extends DefaultSupervisorDescription{

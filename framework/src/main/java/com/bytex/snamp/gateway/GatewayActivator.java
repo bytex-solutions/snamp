@@ -2,7 +2,7 @@ package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -64,13 +64,13 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
     private static final class GatewayInstances<G extends Gateway> extends ServiceSubRegistryManager<Gateway, G>{
         private final GatewayFactory<G> gatewayInstanceFactory;
-        private final LazyStrongReference<Logger> logger;
+        private final LazyReference<Logger> logger;
 
         private GatewayInstances(@Nonnull final GatewayFactory<G> factory,
                                  final RequiredService<?>... dependencies) {
             super(Gateway.class, dependencies);
             this.gatewayInstanceFactory = factory;
-            this.logger = new LazyStrongReference<>();
+            this.logger = LazyReference.strong();
         }
 
         private Logger getLoggerImpl(){

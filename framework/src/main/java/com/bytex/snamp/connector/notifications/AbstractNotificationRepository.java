@@ -4,7 +4,7 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
@@ -97,7 +97,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private final NotificationListenerList listeners;
     private final NotificationMetricRecorder metrics;
     private Aggregator notificationSource;
-    private final LazyStrongReference<ExecutorService> defaultExecutor;
+    private final LazyReference<ExecutorService> defaultExecutor;
     private final LockDecorator readLock, writeLock;
 
     /**
@@ -111,7 +111,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         notifications = AbstractKeyedObjects.create(AbstractNotificationRepository::extractNotificationType);
         listeners = new NotificationListenerList();
         metrics = new NotificationMetricRecorder();
-        defaultExecutor = new LazyStrongReference<>();
+        defaultExecutor = LazyReference.strong();
         final ReadWriteLock rwLock = new ReentrantReadWriteLock();
         readLock = LockDecorator.readLock(rwLock);
         writeLock = LockDecorator.writeLock(rwLock);

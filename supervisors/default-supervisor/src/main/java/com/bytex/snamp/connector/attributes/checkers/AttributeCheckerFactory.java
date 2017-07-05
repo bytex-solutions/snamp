@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.attributes.checkers;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.core.ScriptletCompiler;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -19,8 +19,8 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @since 2.0
  */
 public class AttributeCheckerFactory implements ScriptletCompiler<AttributeChecker> {
-    private final LazySoftReference<ObjectMapper> mapper = new LazySoftReference<>();
-    private final LazySoftReference<GroovyAttributeCheckerFactory> groovyAttributeCheckerFactory = new LazySoftReference<>();
+    private final LazyReference<ObjectMapper> mapper = LazyReference.soft();
+    private final LazyReference<GroovyAttributeCheckerFactory> groovyAttributeCheckerFactory = LazyReference.soft();
 
     private void createGroovyCheckerFactory(final Consumer<GroovyAttributeCheckerFactory> acceptor) throws IOException {
         acceptor.accept(new GroovyAttributeCheckerFactory(getClass().getClassLoader()));

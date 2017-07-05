@@ -3,7 +3,7 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.Localizable;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -40,7 +40,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.0
  */
 public abstract class AbstractManagedResourceConnector extends AbstractAggregator implements ManagedResourceConnector, Localizable {
-    private final LazySoftReference<MetricsSupport> metrics;
+    private final LazyReference<MetricsSupport> metrics;
     private ManagedResourceInfo configuration;
 
     protected AbstractManagedResourceConnector() {
@@ -48,7 +48,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
     }
 
     protected AbstractManagedResourceConnector(@Nonnull final ManagedResourceInfo configuration) {
-        metrics = new LazySoftReference<>();
+        metrics = LazyReference.soft();
         setConfiguration(configuration);
     }
 

@@ -1,6 +1,6 @@
 package com.bytex.snamp.supervision.health.triggers;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.core.ScriptletCompiler;
 
@@ -17,7 +17,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * @since 2.0
  */
 public class TriggerFactory implements ScriptletCompiler<HealthStatusTrigger> {
-    private final LazySoftReference<GroovyTriggerFactory> groovyTriggerFactory = new LazySoftReference<>();
+    private final LazyReference<GroovyTriggerFactory> groovyTriggerFactory = LazyReference.soft();
 
     private void createGroovyTriggerFactory(final Consumer<GroovyTriggerFactory> acceptor) throws IOException {
         acceptor.accept(new GroovyTriggerFactory(getClass().getClassLoader()));

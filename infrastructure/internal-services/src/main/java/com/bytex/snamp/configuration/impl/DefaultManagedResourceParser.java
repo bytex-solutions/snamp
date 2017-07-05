@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SingletonMap;
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.io.IOUtils;
@@ -41,7 +41,7 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
 
     private static final String ALL_CONNECTORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(CONNECTOR_PID_TEMPLATE, "*"));
 
-    private static final LazySoftReference<DefaultManagedResourceParser> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<DefaultManagedResourceParser> INSTANCE = LazyReference.soft();
 
     private DefaultManagedResourceParser() {
         super(RESOURCE_NAME_PROPERTY, SerializableAgentConfiguration::getResources);

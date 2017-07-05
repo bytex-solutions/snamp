@@ -1,6 +1,6 @@
 package com.bytex.snamp.gateway.ssh;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -87,7 +87,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
         }
     }
 
-    private static final LazySoftReference<SshGatewayDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<SshGatewayDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private SshGatewayDescriptionProvider() {
         super(new GatewayConfigurationInfo());

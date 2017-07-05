@@ -368,7 +368,7 @@ final class InMemoryCommunicator implements Communicator {
         }
     }
 
-    private static final LazySoftReference<ExecutorService> LOCAL_MESSAGE_SENDER = new LazySoftReference<>();
+    private static final LazyReference<ExecutorService> LOCAL_MESSAGE_SENDER = LazyReference.soft();
     private final SharedCounter idGenerator;
     private final HeadMessageListenerNode firstNode;
     private final TailMessageListenerNode lastNode;

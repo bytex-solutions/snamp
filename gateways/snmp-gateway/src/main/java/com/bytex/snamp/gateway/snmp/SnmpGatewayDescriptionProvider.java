@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.snmp;
 
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import org.snmp4j.mp.MPv3;
@@ -127,7 +127,7 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
         }
     }
 
-    private static final LazySoftReference<SnmpGatewayDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<SnmpGatewayDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private SnmpGatewayDescriptionProvider(){
         super(new GatewayConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());

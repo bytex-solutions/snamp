@@ -3,7 +3,7 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -77,13 +77,13 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
         private final ManagedResourceConnectorFactory<TConnector> factory;
-        private final LazyStrongReference<Logger> logger;
+        private final LazyReference<Logger> logger;
 
         private ManagedResourceConnectorRegistry(@Nonnull final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class, dependencies);
             this.factory = controller;
-            this.logger = new LazyStrongReference<>();
+            this.logger = LazyReference.strong();
         }
 
         private Logger getLoggerImpl(){

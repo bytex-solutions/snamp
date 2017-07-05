@@ -4,7 +4,7 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.WeakEventListener;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ObjectArrays;
 import org.osgi.framework.*;
@@ -300,7 +300,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <TService> Type of the dynamic service.
      */
     public static abstract class DynamicServiceManager<TService> extends ProvidedService<ManagedServiceFactory, ManagedServiceFactoryImpl<TService>>{
-        private final LazyStrongReference<String> factoryPID;
+        private final LazyReference<String> factoryPID;
 
         /**
          * Initializes a new holder for the provided service.
@@ -310,7 +310,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         protected DynamicServiceManager(final RequiredService<?>... dependencies) {
             super(ManagedServiceFactory.class, dependencies);
-            factoryPID = new LazyStrongReference<>();
+            factoryPID = LazyReference.strong();
         }
 
         private String getCachedFactoryPID() {

@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -40,7 +40,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
     private static final String GROOVY_PATH_PARAM = "groovyPath";
 
-    private static final LazySoftReference<CompositeResourceConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<CompositeResourceConfigurationDescriptor> INSTANCE = LazyReference.soft();
 
     private static final class ResourceConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private ResourceConfigurationDescription(){

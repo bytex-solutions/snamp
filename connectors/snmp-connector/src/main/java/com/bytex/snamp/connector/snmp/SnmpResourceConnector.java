@@ -4,7 +4,7 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
@@ -62,12 +62,12 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
 final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     private static final class SnmpNotificationInfo extends AbstractNotificationInfo {
         private static final long serialVersionUID = -4792879013459588079L;
-        private final LazyStrongReference<OID> notificationID;
+        private final LazyReference<OID> notificationID;
 
         private SnmpNotificationInfo(final String listID,
                                      final NotificationDescriptor descriptor){
             super(listID, getDescription(descriptor), descriptor);
-            notificationID = new LazyStrongReference<>();
+            notificationID = LazyReference.strong();
         }
 
         private static String getDescription(final NotificationDescriptor descriptor){
@@ -236,7 +236,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
 
     private static abstract class SnmpAttributeInfo<V extends Variable> extends AbstractOpenAttributeInfo implements SnmpObjectConverter<V> {
         private static final long serialVersionUID = 4948510436343027716L;
-        private final LazyStrongReference<OID> attributeID;
+        private final LazyReference<OID> attributeID;
 
         private SnmpAttributeInfo(final String attributeID,
                                   final OpenType<?> openType,
@@ -256,7 +256,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     getDescription(descriptor),
                     specifier,
                     descriptor);
-            this.attributeID = new LazyStrongReference<>();
+            this.attributeID = LazyReference.strong();
         }
 
         private static String getDescription(final AttributeDescriptor descriptor){

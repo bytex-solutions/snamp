@@ -1,7 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.ServiceReference;
@@ -86,7 +86,7 @@ public abstract class AbstractStatefulFrameworkServiceTracker<S extends Framewor
 
     private volatile InternalState<F> mutableState;
     private final F initialConfig;
-    private final LazyStrongReference<Filter> resourceFilterCache = new LazyStrongReference<>();
+    private final LazyReference<Filter> resourceFilterCache = LazyReference.strong();
 
     protected AbstractStatefulFrameworkServiceTracker(@Nonnull final Class<S> serviceType, @Nonnull final InternalState<F> initialState){
         super(serviceType);
