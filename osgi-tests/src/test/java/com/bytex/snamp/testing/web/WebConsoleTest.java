@@ -362,7 +362,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final JsonNode node = httpGet("/groups", authenticationToken);
         assertNotNull(node);
         assertTrue(node.isArray());
-        assertEquals(2, node.size());
+        assertEquals(3, node.size());
     }
 
     @Test
@@ -371,7 +371,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
         final JsonNode node = httpGet("/groups/resources", authenticationToken);
         assertNotNull(node);
         assertTrue(node.isArray());
-        assertEquals(6, node.size());
+        assertTrue(node.size() > 6);
     }
 
     @Test
