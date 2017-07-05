@@ -18,9 +18,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.bytex.snamp.concurrent.LockDecorator.lockAndAccept;
-import static com.bytex.snamp.concurrent.LockDecorator.lockAndApply;
-
 /**
  * Represents a holder for metric.
  * @param <M> Type of metric recorder
@@ -31,13 +28,13 @@ import static com.bytex.snamp.concurrent.LockDecorator.lockAndApply;
  */
 abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notification> extends DistributedAttribute<CompositeData, N> implements AutoCloseable, Stateful {
     private static final long serialVersionUID = 2645456225474793148L;
-    private M metric;
+    private volatile M metric;
     private final Predicate<? super Serializable> isInstance;
     /*
         Handling notification and reading metric can be parallel, therefore, read lock is used
         Taking snapshot and state recovery must be executed with exclusive access, therefore, write lock is used
      */
-    private final ReadWriteLock lockManager;
+    private final LockDecorator readLock, writeLock;
 
     MetricHolderAttribute(final Class<N> notificationType,
                           final String name,
@@ -48,7 +45,9 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
         metric = metricFactory.apply(name);
         assert metric != null;
         isInstance = metric.getClass()::isInstance;
-        lockManager = new ReentrantReadWriteLock();
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     private void resetImpl(){
@@ -57,7 +56,7 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
 
     @Override
     public final void reset() {
-        lockAndAccept(lockManager.readLock(), this, MetricHolderAttribute::resetImpl);
+        metric.reset();
     }
 
     abstract CompositeData getValue(final M metric);
@@ -68,43 +67,31 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
 
     @Override
     protected final CompositeData getValue() throws InterruptedException {
-        return lockAndApply(lockManager.readLock(), this, MetricHolderAttribute::getValueImpl, Function.identity());
+        return getValue(metric);
     }
 
     @SuppressWarnings("unchecked")
-    private M takeSnapshotImpl(){
+    @Override
+    protected final M takeSnapshot() {
         final AbstractMetric result = metric.clone();
         assert isInstance.test(result);
         return (M) result;
     }
 
-    @Override
-    protected final M takeSnapshot() {
-        //taking snapshot is an exclusive operation. Another thread cannot modify the metric
-        return lockAndApply(lockManager.writeLock(), this, MetricHolderAttribute::takeSnapshotImpl).orElse(null);
-    }
-
     @SuppressWarnings("unchecked")
-    private void loadFromSnapshotImpl(final Serializable snapshot){
+    @Override
+    protected final void loadFromSnapshot(final Serializable snapshot) {
         if(isInstance.test(snapshot))
             metric = (M) snapshot;
     }
 
-    @Override
-    protected final void loadFromSnapshot(final Serializable snapshot) {
-        lockAndAccept(lockManager.writeLock(), this, snapshot, MetricHolderAttribute::loadFromSnapshotImpl);
-    }
-
     abstract void updateMetric(final M metric, final N notification);
-
-    private CompositeData handleNotificationImpl(final N notification) {
-        updateMetric(metric, notification);
-        return getValue(metric);
-    }
 
     @Override
     protected final CompositeData changeAttributeValue(final N notification) throws InterruptedException {
-        return LockDecorator.lockAndApply(lockManager.readLock(), this, notification, MetricHolderAttribute<M, N>::handleNotificationImpl, Function.identity());
+        final M metric = this.metric;
+        updateMetric(metric, notification);
+        return getValue(metric);
     }
 
     private void closeImpl() {
@@ -113,16 +100,14 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
 
     @Override
     public final void close() throws InterruptedException {
-        lockAndAccept(lockManager.writeLock(), this, MetricHolderAttribute::closeImpl, Function.identity());
+        metric = null;
     }
 
-    static <M extends Measurement, S extends AbstractMetric> boolean extractMeasurementAndUpdateMetric(final MeasurementNotification<?> notification,
+    static <M extends Measurement, S extends AbstractMetric> void extractMeasurementAndUpdateMetric(final MeasurementNotification<?> notification,
                                                                                                        final Class<M> measurementType,
                                                                                                        final S metric,
                                                                                                        final BiConsumer<? super S, ? super M> measurementHandler) {
-        final boolean success;
-        if (success = measurementType.isInstance(notification.getMeasurement()))
+        if (measurementType.isInstance(notification.getMeasurement()))
             measurementHandler.accept(metric, measurementType.cast(notification.getMeasurement()));
-        return success;
     }
 }

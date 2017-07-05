@@ -17,6 +17,7 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 /**
@@ -50,7 +51,7 @@ final class XMPPGateway extends AbstractGateway {
     }
 
     @Override
-    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws InterruptedException {
+    protected Stream<? extends FeatureAccessor<?>> removeAllFeatures(final String resourceName) throws InterruptedException, TimeoutException {
         return Stream.concat(
                 chatBot.getAttributes().clear(resourceName).stream(),
                 chatBot.getNotifications().clear(resourceName).stream()
@@ -59,7 +60,7 @@ final class XMPPGateway extends AbstractGateway {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws InterruptedException {
+    protected <M extends MBeanFeatureInfo> FeatureAccessor<M> removeFeature(final String resourceName, final M feature) throws InterruptedException, TimeoutException {
         if(feature instanceof MBeanAttributeInfo)
             return (FeatureAccessor<M>) chatBot.getAttributes().removeAttribute(resourceName, (MBeanAttributeInfo)feature);
         else if(feature instanceof MBeanNotificationInfo)

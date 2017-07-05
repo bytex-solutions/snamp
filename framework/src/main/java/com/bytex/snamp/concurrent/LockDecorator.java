@@ -7,7 +7,6 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -23,6 +22,7 @@ import java.util.function.*;
 public final class LockDecorator implements Serializable, Supplier<Lock> {
     private static final long serialVersionUID = -5122029652598077166L;
 
+    //value object
     private final class LockScope implements SafeCloseable, Serializable {
         private static final long serialVersionUID = 3412766281454711201L;
         final Lock lock;
@@ -276,102 +276,6 @@ public final class LockDecorator implements Serializable, Supplier<Lock> {
     public <I> void acceptLong(final I input1, final long input2, final ObjLongConsumer<? super I> action, final Duration timeout) throws TimeoutException, InterruptedException {
         try(final SafeCloseable ignored = acquireLock(timeout)){
             action.accept(input1, input2);
-        }
-    }
-
-    private static boolean lockInterruptibly(final Lock lock){
-        try {
-            lock.lockInterruptibly();
-        } catch (final InterruptedException e) {
-            return false;
-        }
-        return true;
-    }
-
-    private static <E extends Throwable> void lockInterruptibly(final Lock lock, final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
-        try {
-            lock.lockInterruptibly();
-        } catch (final InterruptedException e) {
-            throw exceptionFactory.apply(e);
-        }
-    }
-
-    public static <I, E extends Throwable> boolean lockAndAccept(final Lock lock, final I input, final Acceptor<? super I, E> consumer) throws E{
-        final boolean success;
-        if(success = lockInterruptibly(lock))
-            try{
-                consumer.accept(input);
-            } finally {
-                lock.unlock();
-            }
-        return success;
-    }
-
-    public static <I, E1 extends Throwable, E2 extends Throwable> void lockAndAccept(final Lock lock,
-                                         final I input,
-                                         final Acceptor<? super I, E1> consumer,
-                                         final Function<? super InterruptedException, ? extends E2> exceptionFactory) throws E1, E2{
-        lockInterruptibly(lock, exceptionFactory);
-        try {
-            consumer.accept(input);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public static <I1, I2> boolean lockAndAccept(final Lock lock, final I1 input1, final I2 input2, final BiConsumer<? super I1, ? super I2> consumer) {
-        final boolean success;
-        if (success = lockInterruptibly(lock))
-            try {
-                consumer.accept(input1, input2);
-            } finally {
-                lock.unlock();
-            }
-        return success;
-    }
-
-    public static <I, O> Optional<O> lockAndApply(final Lock lock, final I input, final Function<? super I, ? extends O> fn) {
-        if (lockInterruptibly(lock))
-            try {
-                return Optional.of(fn.apply(input));
-            } finally {
-                lock.unlock();
-            }
-        return Optional.empty();
-    }
-
-    public static <I, O, E extends Throwable> O lockAndApply(final Lock lock,
-                                                  final I input,
-                                                  final Function<? super I, ? extends O> fn,
-                                                                       final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
-        lockInterruptibly(lock, exceptionFactory);
-        try{
-            return fn.apply(input);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public static <I1, I2, O> Optional<O> lockAndApply(final Lock lock, final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends O> fn) {
-        if (lockInterruptibly(lock))
-            try {
-                return Optional.of(fn.apply(input1, input2));
-            } finally {
-                lock.unlock();
-            }
-        return Optional.empty();
-    }
-
-    public static <I1, I2, O, E extends Throwable> O lockAndApply(final Lock lock,
-                                                                  final I1 input1,
-                                                                  final I2 input2,
-                                                                  final BiFunction<? super I1, ? super I2, ? extends O> fn,
-                                                                  final Function<? super InterruptedException, ? extends E> exceptionFactory) throws E {
-        lockInterruptibly(lock, exceptionFactory);
-        try{
-            return fn.apply(input1, input2);
-        } finally {
-            lock.unlock();
         }
     }
 
