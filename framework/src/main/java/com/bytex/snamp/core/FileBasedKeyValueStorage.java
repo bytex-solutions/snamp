@@ -21,9 +21,11 @@ import java.util.function.Predicate;
 import static com.bytex.snamp.internal.Utils.staticInit;
 
 /**
+ * Represents file-based key/value storage.
+ * This storage is used for non-clustered installation of SNAMP.
  * @author Roman Sakno
- * @version 1.0
- * @since 1.0
+ * @version 2.0
+ * @since 2.0
  */
 @ThreadSafe
 final class FileBasedKeyValueStorage extends ThreadSafeObject implements KeyValueStorage {
