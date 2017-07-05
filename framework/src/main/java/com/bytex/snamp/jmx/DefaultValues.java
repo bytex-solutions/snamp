@@ -8,6 +8,7 @@ import javax.management.openmbean.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -23,60 +24,60 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  */
 public final class DefaultValues {
     private static final ImmutableMap<OpenType<?>, Object> values = Utils.staticInit(() -> {
-        final ImmutableMap.Builder<OpenType<?>, Object> builder = ImmutableMap.builder();
+        final Map<OpenType<?>, Object> types = new HashMap<>();
         //primitives
-        put(builder, SimpleType.STRING, "");
-        put(builder, SimpleType.BOOLEAN, false);
-        put(builder, SimpleType.CHARACTER, '\0');
-        put(builder, SimpleType.BYTE, (byte) 0);
-        put(builder, SimpleType.SHORT, (short) 0);
-        put(builder, SimpleType.INTEGER, 0);
-        put(builder, SimpleType.LONG, 0L);
-        put(builder, SimpleType.FLOAT, 0F);
-        put(builder, SimpleType.DOUBLE, 0.0);
-        put(builder, SimpleType.BIGINTEGER, BigInteger.ZERO);
-        put(builder, SimpleType.BIGDECIMAL, BigDecimal.ZERO);
-        put(builder, SimpleType.DATE, new Date(0L));
-        put(builder, SimpleType.OBJECTNAME, new ObjectName(""));
+        simpleType(types, SimpleType.STRING, "");
+        simpleType(types, SimpleType.BOOLEAN, false);
+        simpleType(types, SimpleType.CHARACTER, '\0');
+        simpleType(types, SimpleType.BYTE, (byte) 0);
+        simpleType(types, SimpleType.SHORT, (short) 0);
+        simpleType(types, SimpleType.INTEGER, 0);
+        simpleType(types, SimpleType.LONG, 0L);
+        simpleType(types, SimpleType.FLOAT, 0F);
+        simpleType(types, SimpleType.DOUBLE, 0.0);
+        simpleType(types, SimpleType.BIGINTEGER, BigInteger.ZERO);
+        simpleType(types, SimpleType.BIGDECIMAL, BigDecimal.ZERO);
+        simpleType(types, SimpleType.DATE, new Date(0L));
+        simpleType(types, SimpleType.OBJECTNAME, new ObjectName(""));
         //arrays
-        put(builder, new ArrayType<>(SimpleType.STRING, false));
-        put(builder, new ArrayType<>(SimpleType.BOOLEAN, true));
-        put(builder, new ArrayType<>(SimpleType.BOOLEAN, false));
-        put(builder, new ArrayType<>(SimpleType.CHARACTER, true));
-        put(builder, new ArrayType<>(SimpleType.CHARACTER, false));
-        put(builder, new ArrayType<>(SimpleType.BYTE, true));
-        put(builder, new ArrayType<>(SimpleType.BYTE, false));
-        put(builder, new ArrayType<>(SimpleType.SHORT, true));
-        put(builder, new ArrayType<>(SimpleType.SHORT, false));
-        put(builder, new ArrayType<>(SimpleType.INTEGER, true));
-        put(builder, new ArrayType<>(SimpleType.INTEGER, false));
-        put(builder, new ArrayType<>(SimpleType.LONG, true));
-        put(builder, new ArrayType<>(SimpleType.LONG, false));
-        put(builder, new ArrayType<>(SimpleType.FLOAT, true));
-        put(builder, new ArrayType<>(SimpleType.FLOAT, false));
-        put(builder, new ArrayType<>(SimpleType.DOUBLE, true));
-        put(builder, new ArrayType<>(SimpleType.DOUBLE, false));
-        put(builder, new ArrayType<>(SimpleType.BIGINTEGER, false));
-        put(builder, new ArrayType<>(SimpleType.BIGDECIMAL, false));
-        put(builder, new ArrayType<>(SimpleType.DATE, false));
-        put(builder, new ArrayType<>(SimpleType.OBJECTNAME, false));
-        return builder.build();
+        arrayType(types, new ArrayType<>(SimpleType.STRING, false));
+        arrayType(types, new ArrayType<>(SimpleType.BOOLEAN, true));
+        arrayType(types, new ArrayType<>(SimpleType.BOOLEAN, false));
+        arrayType(types, new ArrayType<>(SimpleType.CHARACTER, true));
+        arrayType(types, new ArrayType<>(SimpleType.CHARACTER, false));
+        arrayType(types, new ArrayType<>(SimpleType.BYTE, true));
+        arrayType(types, new ArrayType<>(SimpleType.BYTE, false));
+        arrayType(types, new ArrayType<>(SimpleType.SHORT, true));
+        arrayType(types, new ArrayType<>(SimpleType.SHORT, false));
+        arrayType(types, new ArrayType<>(SimpleType.INTEGER, true));
+        arrayType(types, new ArrayType<>(SimpleType.INTEGER, false));
+        arrayType(types, new ArrayType<>(SimpleType.LONG, true));
+        arrayType(types, new ArrayType<>(SimpleType.LONG, false));
+        arrayType(types, new ArrayType<>(SimpleType.FLOAT, true));
+        arrayType(types, new ArrayType<>(SimpleType.FLOAT, false));
+        arrayType(types, new ArrayType<>(SimpleType.DOUBLE, true));
+        arrayType(types, new ArrayType<>(SimpleType.DOUBLE, false));
+        arrayType(types, new ArrayType<>(SimpleType.BIGINTEGER, false));
+        arrayType(types, new ArrayType<>(SimpleType.BIGDECIMAL, false));
+        arrayType(types, new ArrayType<>(SimpleType.DATE, false));
+        arrayType(types, new ArrayType<>(SimpleType.OBJECTNAME, false));
+        return ImmutableMap.copyOf(types);
     });
 
     //macros that provides type safety when put default value into map
-    private static <T> void put(final ImmutableMap.Builder<OpenType<?>, Object> builder,
-                                                                     final OpenType<T> type,
-                                                                     final T value) {
+    private static <T> void simpleType(final Map<OpenType<?>, Object> builder,
+                                       final SimpleType<T> type,
+                                       final T value) {
         builder.put(type, value);
     }
 
-    private static void put(final ImmutableMap.Builder<OpenType<?>, Object> builder,
-                                final ArrayType<?> arrayType){
+    private static void arrayType(final Map<OpenType<?>, Object> builder,
+                                  final ArrayType<?> arrayType){
         builder.put(arrayType, emptyArray(arrayType, null));
     }
 
     private DefaultValues(){
-
+        throw new InstantiationError();
     }
 
     /**

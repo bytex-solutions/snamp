@@ -16,4 +16,9 @@ public interface OpenTypeBuilder<T extends OpenType<?>> {
      * @throws OpenDataException Unable to construct type.
      */
     T build() throws OpenDataException;
+
+    static Class<?> getUnderlyingJavaClass(final OpenType<?> openType,
+                                           final ClassLoader loader) throws ClassNotFoundException {
+        return Class.forName(openType.getClassName(), true, loader);
+    }
 }

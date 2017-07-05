@@ -1,5 +1,6 @@
 package com.bytex.snamp;
 
+import com.bytex.snamp.jmx.OpenTypeBuilder;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -83,7 +84,7 @@ public final class ArrayUtils {
                                 return TabularData.class;
                             else {
                                 final Class<?> result = simpleTypeMapping.get(elementType);
-                                return result == null ? Class.forName(elementType.getClassName()) : result;
+                                return result == null ? OpenTypeBuilder.getUnderlyingJavaClass(elementType, getClass().getClassLoader()) : result;
                             }
                         }
                     });
@@ -317,9 +318,7 @@ public final class ArrayUtils {
     public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader) {
         if (arrayType.getDimension() > 1)
             throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
-        final Class<?> elementType = callAndWrapException(
-                () -> Class.forName(arrayType.getClassName(), true, loader).getComponentType(),
-                IllegalArgumentException::new);
+        final Class<?> elementType = callAndWrapException(() -> OpenTypeBuilder.getUnderlyingJavaClass(arrayType, loader), IllegalArgumentException::new);
         return (T) emptyArrayImpl(elementType);
     }
 

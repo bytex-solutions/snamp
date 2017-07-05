@@ -563,14 +563,16 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
 
     <T> WellKnownType(final String name, final SimpleType<T> openType){
         this.openType = Objects.requireNonNull(openType, "openType is null.");
-        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
+        final ClassLoader loader = getClass().getClassLoader();
+        this.javaType = callUnchecked(() -> OpenTypeBuilder.getUnderlyingJavaClass(openType, loader));
         this.displayName = name;
     }
 
     <A> WellKnownType(final String name, final SimpleType<?> componentType,
                       final boolean primitive){
         this.openType = callUnchecked(() -> new ArrayType<A>(componentType, primitive));
-        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
+        final ClassLoader loader = getClass().getClassLoader();
+        this.javaType = callUnchecked(() -> OpenTypeBuilder.getUnderlyingJavaClass(openType, loader));
         this.displayName = name;
     }
 

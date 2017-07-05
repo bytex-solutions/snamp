@@ -296,7 +296,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public final Class<?> getRawType() throws ReflectionException {
         final String type = getMetadata().getType();
         final ClassLoader loader = getClass().getClassLoader();
-        return callAndWrapException(() -> Class.forName(type, true, loader), ReflectionException::new);
+        return callAndWrapException(() -> Class.forName(type, false, loader), ReflectionException::new);
     }
 
     /**
