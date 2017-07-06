@@ -6,10 +6,12 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/operator/catch';
+import { SnampLogService } from "./app.logService";
+import {RestClientNotification} from "./model/notifications/rest.client.notification";
 
 @Injectable()
 export class ApiClient {
-    constructor(private http: Http, private _cookieService: CookieService) {}
+    constructor(private http: Http, private _cookieService: CookieService, private _snampLogService: SnampLogService) {}
 
     createAuthorizationHeader(): Headers {
         let headers = new Headers();
@@ -19,13 +21,14 @@ export class ApiClient {
     }
 
     // Functional part of code to log and doing some actions
-    private static attachProcessing(response: Observable<Response>, emptyfyIfError?:boolean): Observable<Response> {
+    private attachProcessing(response: Observable<Response>, emptyfyIfError?:boolean, url?:string): Observable<Response> {
         return response
             .catch((error: Response | any) => {
                 if (error instanceof Response && error.status == 401) {
                     console.log("Auth is not working.", error);
                     window.location.href = "login.html?tokenExpired=true";
                 }
+                this._snampLogService.pushLog(new RestClientNotification(url, response));
                 return emptyfyIfError ? Observable.empty() : error;
             }).do(
                 ((data: any) => {
@@ -42,40 +45,40 @@ export class ApiClient {
     }
 
     get(url) {
-        return ApiClient.attachProcessing(this.http.get(url, {
+        return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, url);
     }
 
     put(url, data) {
-        return ApiClient.attachProcessing(this.http.put(url, data, {
+        return this.attachProcessing(this.http.put(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, url);
     }
 
     post(url, data) {
-        return ApiClient.attachProcessing(this.http.post(url, data, {
+        return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, url);
     }
 
     delete(url) {
-        return ApiClient.attachProcessing(this.http.delete(url, {
+        return this.attachProcessing(this.http.delete(url, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, url);
     }
 
 
     getWithErrors(url) {
-        return ApiClient.attachProcessing(this.http.get(url, {
+        return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }));
+        }), false, url);
     }
 
     postWithErrors(url, data) {
-        return ApiClient.attachProcessing(this.http.post(url, data, {
+        return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }));
+        }), false, url);
     }
 }
 

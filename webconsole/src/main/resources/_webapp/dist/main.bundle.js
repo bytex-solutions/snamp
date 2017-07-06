@@ -108744,6 +108744,7 @@ exports.ChartService = ChartService;
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
@@ -108803,7 +108804,11 @@ var SnampLogService = (function () {
         // we should make real js object from its json representation, because local storage contains serialized data
         var _retArray = [];
         for (var i = 0; i < logArray.length; i++) {
-            _retArray.push(factory_1.NotificationFactory.makeFromInnerObject(logArray[i]));
+            if (!util_1.isNullOrUndefined(logArray[i]["_type"]) && logArray[i]["_type"] == abstract_notification_1.AbstractNotification.REST) {
+            }
+            else {
+                _retArray.push(factory_1.NotificationFactory.makeFromInnerObject(logArray[i]));
+            }
         }
         return _retArray;
     };
@@ -108872,10 +108877,13 @@ var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
 __webpack_require__("./node_modules/rxjs/add/observable/throw.js");
 __webpack_require__("./node_modules/rxjs/add/observable/empty.js");
 __webpack_require__("./node_modules/rxjs/add/operator/catch.js");
+var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
+var rest_client_notification_1 = __webpack_require__("./src/app/services/model/notifications/rest.client.notification.ts");
 var ApiClient = (function () {
-    function ApiClient(http, _cookieService) {
+    function ApiClient(http, _cookieService, _snampLogService) {
         this.http = http;
         this._cookieService = _cookieService;
+        this._snampLogService = _snampLogService;
     }
     ApiClient.prototype.createAuthorizationHeader = function () {
         var headers = new http_1.Headers();
@@ -108884,13 +108892,15 @@ var ApiClient = (function () {
         return headers;
     };
     // Functional part of code to log and doing some actions
-    ApiClient.attachProcessing = function (response, emptyfyIfError) {
+    ApiClient.prototype.attachProcessing = function (response, emptyfyIfError, url) {
+        var _this = this;
         return response
             .catch(function (error) {
             if (error instanceof http_1.Response && error.status == 401) {
                 console.log("Auth is not working.", error);
                 window.location.href = "login.html?tokenExpired=true";
             }
+            _this._snampLogService.pushLog(new rest_client_notification_1.RestClientNotification(url, response));
             return emptyfyIfError ? Observable_1.Observable.empty() : error;
         }).do((function (data) {
             console.debug("Received data: ", data);
@@ -108902,41 +108912,41 @@ var ApiClient = (function () {
         }));
     };
     ApiClient.prototype.get = function (url) {
-        return ApiClient.attachProcessing(this.http.get(url, {
+        return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, url);
     };
     ApiClient.prototype.put = function (url, data) {
-        return ApiClient.attachProcessing(this.http.put(url, data, {
+        return this.attachProcessing(this.http.put(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, url);
     };
     ApiClient.prototype.post = function (url, data) {
-        return ApiClient.attachProcessing(this.http.post(url, data, {
+        return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, url);
     };
     ApiClient.prototype.delete = function (url) {
-        return ApiClient.attachProcessing(this.http.delete(url, {
+        return this.attachProcessing(this.http.delete(url, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, url);
     };
     ApiClient.prototype.getWithErrors = function (url) {
-        return ApiClient.attachProcessing(this.http.get(url, {
+        return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }));
+        }), false, url);
     };
     ApiClient.prototype.postWithErrors = function (url, data) {
-        return ApiClient.attachProcessing(this.http.post(url, data, {
+        return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }));
+        }), false, url);
     };
     ApiClient = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof http_1.Http !== 'undefined' && http_1.Http) === 'function' && _a) || Object, (typeof (_b = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof http_1.Http !== 'undefined' && http_1.Http) === 'function' && _a) || Object, (typeof (_b = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _b) || Object, (typeof (_c = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _c) || Object])
     ], ApiClient);
     return ApiClient;
-    var _a, _b;
+    var _a, _b, _c;
 }());
 exports.ApiClient = ApiClient;
 var REST = (function () {
@@ -109729,6 +109739,7 @@ var AbstractNotification = (function () {
     AbstractNotification.RESOURCE = "resourceNotification";
     AbstractNotification.COMPOSITION = "groupCompositionChanged";
     AbstractNotification.SCALING = "scalingHappens";
+    AbstractNotification.REST = "rest";
     return AbstractNotification;
 }());
 exports.AbstractNotification = AbstractNotification;
@@ -110095,6 +110106,43 @@ var ResourceNotification = (function (_super) {
 exports.ResourceNotification = ResourceNotification;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/services/model/notifications/rest.client.notification.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
+var RestClientNotification = (function (_super) {
+    __extends(RestClientNotification, _super);
+    function RestClientNotification(path, error) {
+        _super.call(this);
+        this.path = "";
+        this.error = undefined;
+        this.path = path;
+        this.error = error;
+        this.type = abstract_notification_1.AbstractNotification.REST;
+        this.level = "error";
+    }
+    RestClientNotification.prototype.htmlDetails = function () {
+        var _details = "<strong>PATH:</strong>" + this.path + "<br/>";
+        if (this.error != undefined) {
+            _details += "<strong>Error:</strong>" + this.error.toSource() + "<br/>";
+        }
+        return _details;
+    };
+    RestClientNotification.prototype.shortDescription = function () {
+        return "Rest request failed";
+    };
+    RestClientNotification.prototype.fillFromJson = function (json) {
+        // do nothing
+    };
+    return RestClientNotification;
+}(abstract_notification_1.AbstractNotification));
+exports.RestClientNotification = RestClientNotification;
+
 
 /***/ },
 

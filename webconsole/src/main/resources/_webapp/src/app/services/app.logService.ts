@@ -68,7 +68,10 @@ export class SnampLogService {
          // we should make real js object from its json representation, because local storage contains serialized data
          let _retArray:AbstractNotification[] = [];
          for (let i = 0; i < logArray.length; i++) {
-             _retArray.push(NotificationFactory.makeFromInnerObject(logArray[i]));
+             if (!isNullOrUndefined(logArray[i]["_type"]) && logArray[i]["_type"] == AbstractNotification.REST) {
+             } else {
+                 _retArray.push(NotificationFactory.makeFromInnerObject(logArray[i]));
+             }
          }
          return _retArray;
     }
