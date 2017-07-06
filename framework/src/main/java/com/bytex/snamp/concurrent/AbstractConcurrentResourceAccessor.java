@@ -31,6 +31,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> implements Serializa
      * @since 1.0
      * @version 2.0
      */
+    @FunctionalInterface
     public interface Action<R, V, E extends Throwable>{
         /**
          * Handles the resource.
@@ -41,8 +42,14 @@ public abstract class AbstractConcurrentResourceAccessor<R> implements Serializa
         V apply(final R resource) throws E;
     }
 
-    private final LockDecorator readLock;
-    final LockDecorator writeLock;
+    /**
+     * Represents read lock for thread-unsafe resource.
+     */
+    protected final LockDecorator readLock;
+    /**
+     * Represents write lock for thread-unsafe resource.
+     */
+    protected final LockDecorator writeLock;
 
     /**
      * Initializes a new concurrent access coordinator.

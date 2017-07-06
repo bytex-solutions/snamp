@@ -19,20 +19,14 @@ import javax.annotation.concurrent.ThreadSafe;
  *           new ConcurrentResourceAccessorImpl<>(new HashMap<>());
  *
  *         public String get(final String key){
- *           return map.invoke(new ConcurrentResourceAccess.ConsistentAction<Map<String, String>, String>(){
- *             public String invoke(final Map<String, String> map){
- *               return map.get(key);
- *             }
- *           });
+ *           return map.read(map -&gt; map.get(key));
  *         }
  *
- *         public void put(final Entry<String, String> entry){
- *           map.write(new ConcurrentResourceAccessImpl.ConsistentAction<Map<String, String>, Void>(){
- *             public Void write(final Map<String, String> m){
- *               m.put(entry.getKey(), entry.getRawValue());
- *               return null;
- *             }
- *           });
+ *         public void put(final String key, final String value){
+ *          map.write(map -&gt; {
+ *              map.put(key, value);
+ *              return null;
+ *          });
  *         }
  *     }
  *     }</pre>
