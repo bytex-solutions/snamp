@@ -17,7 +17,7 @@ export abstract class EntityWithSub extends TypedEntity {
             let attrs = parameters["attributes"];
 
             for (let key in attrs) {
-                let rwto:number = 0;
+                let rwto:number = null;
                 let override:boolean = false;
                 if  (attrs[key]["readWriteTimeout"] != undefined) {
                     rwto = attrs[key]["readWriteTimeout"];
@@ -45,7 +45,7 @@ export abstract class EntityWithSub extends TypedEntity {
         if (parameters["operations"] != undefined) {
             let operations = parameters["operations"];
             for (let key in operations) {
-                let rwto:number = 0;
+                let rwto:number = null;
                 let override:boolean = false;
                 if  (operations[key]["invocationTimeout"] != undefined) {
                     rwto = operations[key]["invocationTimeout"];
