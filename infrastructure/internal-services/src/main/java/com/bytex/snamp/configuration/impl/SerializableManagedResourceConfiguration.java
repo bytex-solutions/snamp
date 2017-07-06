@@ -22,6 +22,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     private static final long serialVersionUID = 5044050385424748355L;
 
     private String connectionString;
+    private String groupName;
     private final ModifiableStringSet overriddenProperties;
 
     /**
@@ -30,7 +31,29 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public SerializableManagedResourceConfiguration(){
         connectionString = "";
+        groupName = "";
         overriddenProperties = new ModifiableStringSet();
+    }
+
+    /**
+     * Sets resource group for this resource.
+     *
+     * @param value The name of the resource group. Cannot be {@literal null}.
+     */
+    @Override
+    public void setGroupName(final String value) {
+        groupName = nullToEmpty(value);
+        markAsModified();
+    }
+
+    /**
+     * Gets name of resource group.
+     *
+     * @return Name of resource group; or empty string, if group is not assigned.
+     */
+    @Override
+    public String getGroupName() {
+        return groupName;
     }
 
     @Override
@@ -66,6 +89,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @Override
     public void writeExternal(final ObjectOutput out) throws IOException {
         out.writeUTF(connectionString);
+        out.writeUTF(groupName);
         //save overridden properties
         overriddenProperties.writeExternal(out);
         //save entire map
@@ -87,6 +111,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     @Override
     public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
         connectionString = in.readUTF();
+        groupName = in.readUTF();
         //restore overridden properties
         overriddenProperties.readExternal(in);
         //restore entire map
@@ -94,7 +119,8 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     }
 
     private void load(final ManagedResourceConfiguration configuration){
-        connectionString = configuration.getConnectionString();
+        setConnectionString(configuration.getConnectionString());
+        setGroupName(configuration.getGroupName());
         overriddenProperties.clear();
         overriddenProperties.addAll(configuration.getOverriddenProperties());
         super.load(configuration);
@@ -131,12 +157,13 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
      */
     @Override
     public void setConnectionString(final String value) {
-        markAsModified();
         connectionString = nullToEmpty(value);
+        markAsModified();
     }
 
     private boolean equals(final ManagedResourceConfiguration other){
         return Objects.equals(getConnectionString(),  other.getConnectionString()) &&
+                Objects.equals(getGroupName(), other.getGroupName()) &&
                 Objects.equals(getType(), other.getType()) &&
                 other.getAttributes().equals(getAttributes()) &&
                 other.getEvents().equals(getEvents()) &&
@@ -153,6 +180,6 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ Objects.hash(connectionString, getType(), getAttributes(), getEvents(), getOperations(), overriddenProperties);
+        return super.hashCode() ^ Objects.hash(connectionString, groupName, getType(), getAttributes(), getEvents(), getOperations(), overriddenProperties);
     }
 }

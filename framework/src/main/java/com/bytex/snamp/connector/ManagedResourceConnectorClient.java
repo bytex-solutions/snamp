@@ -199,7 +199,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     }
 
     public String getGroupName() {
-        final String groupName = getConfiguration().getGroupName();
+        final String groupName = ManagedResourceFilterBuilder.getGroupName(this);
         return isNullOrEmpty(groupName) ? getManagedResourceName() : groupName;
     }
 

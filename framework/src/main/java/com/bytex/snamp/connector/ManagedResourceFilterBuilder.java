@@ -23,6 +23,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 public final class ManagedResourceFilterBuilder extends SimpleFilterBuilder {
+    private static final String GROUP_NAME_PROPERTY = "group";
     private static final String CATEGORY = "resourceConnector";
     private static final String NAME_PROPERTY = "resourceName";
     private static final String CONNECTION_STRING_PROPERTY = "connectionString";
@@ -36,6 +37,7 @@ public final class ManagedResourceFilterBuilder extends SimpleFilterBuilder {
         super(configuration);
         setConnectorType(configuration.getType())
                 .setConnectionString(configuration.getConnectionString())
+                .setGroupName(configuration.getGroupName())
                 .put(CATEGORY_PROPERTY, CATEGORY);
     }
 
@@ -73,9 +75,9 @@ public final class ManagedResourceFilterBuilder extends SimpleFilterBuilder {
 
     public ManagedResourceFilterBuilder setGroupName(final String value) {
         if (isNullOrEmpty(value))
-            remove(ManagedResourceConfiguration.GROUP_NAME_PROPERTY);
+            remove(GROUP_NAME_PROPERTY);
         else
-            put(ManagedResourceConfiguration.GROUP_NAME_PROPERTY, value);
+            put(GROUP_NAME_PROPERTY, value);
         return this;
     }
 
@@ -96,5 +98,9 @@ public final class ManagedResourceFilterBuilder extends SimpleFilterBuilder {
 
     static String getConnectionString(final ServiceReference<ManagedResourceConnector> connectorRef) {
         return getReferencePropertyAsString(connectorRef, CONNECTION_STRING_PROPERTY).orElse("");
+    }
+
+    static String getGroupName(final ServiceReference<ManagedResourceConnector> connectorRef){
+        return getReferencePropertyAsString(connectorRef, GROUP_NAME_PROPERTY).orElse("");
     }
 }
