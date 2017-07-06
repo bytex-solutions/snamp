@@ -16,9 +16,7 @@ import 'smartwizard';
 import { HealthStatusBasedScalingPolicy } from "./model/policy/health.status.based.scaling.policy";
 import { AttributeBasedScalingPolicy } from "./model/policy/attribute.based.scaling.policy";
 import { isNullOrUndefined } from "util";
-import {OpRange} from "./model/policy/operational.range";
-import FontWeight = CanvasGauges.FontWeight;
-import {AbstractWeightedScalingPolicy} from "./model/policy/abstract.weighted.scaling.policy";
+import { OpRange } from "./model/policy/operational.range";
 
 @Component({
     moduleId: module.id,

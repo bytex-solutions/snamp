@@ -90,8 +90,7 @@ export class GatewaysComponent implements OnInit {
 
             $(GatewaysComponent.select2Id).select2({
                 placeholder: "Select gateway",
-                width: '100%',
-                allowClear: true
+                width: '100%'
             });
             $(GatewaysComponent.select2Id).on('change', (e) => {
                 _thisReference.selectCurrentlyActiveGateway($(e.target).val());
@@ -136,8 +135,7 @@ export class GatewaysComponent implements OnInit {
 
                                             $(GatewaysComponent.select2Id).select2({
                                                 placeholder: "Select gateway",
-                                                width: '100%',
-                                                allowClear: true
+                                                width: '100%'
                                             });
                                             let _thisReference = this;
                                             $(GatewaysComponent.select2Id).on('change', (e) => {

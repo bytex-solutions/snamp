@@ -144,7 +144,7 @@
                         <!-- PARAMETERS -->
                         <div id="parameters" class="row" style="margin-top: 10px;">
                             <div class="col-md-12" id="tableParamsRow{{entityType}}">
-                                <table class="table">
+                                <table class="table" *ngIf="activeEntity.parameters && activeEntity.parameters.length > 0">
                                     <thead>
                                     <tr>
                                         <th>#</th>
@@ -155,11 +155,11 @@
                                     <tbody>
                                     <tr *ngFor="let param of activeEntity.parameters">
                                         <td>
-                              <span
-                                      class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
-                                      (click)="checkAndRemoveParameter(param)"
-                                      aria-hidden="true">
-                              </span>
+                                              <span
+                                                      class="glyphicon glyphicon-remove-circle btn btn-xs btn-danger"
+                                                      (click)="checkAndRemoveParameter(param)"
+                                                      aria-hidden="true">
+                                              </span>
                                         </td>
                                         <td>{{param.key}}</td>
                                         <td>
@@ -172,65 +172,77 @@
                                     </tr>
                                     <tr>
                                         <td></td>
-                                        <td></td>
+                                        <td>
+                                        </td>
                                         <td align="right">
-                                            <button
-                                                    type="button"
-                                                    class="btn btn-primary btn-sm"
-                                                    (click)="addNewParameter()">
-                                                Add new <i class="fa fa-caret-down" aria-hidden="true"></i>
-                                            </button>
+
                                         </td>
                                     </tr>
                                     </tbody>
                                 </table>
+
+                                <div style="height: 100px;" *ngIf="!activeEntity.parameters || activeEntity.parameters.length == 0"></div>
+                                <div class="row">
+                                    <div class="col-md-2 col-md-offset-2">
+                                        <button type="button" class="btn btn-sm btn-primary" (click)="addNewParameterManually()">
+                                            Add manually
+                                        </button>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button
+                                                *ngIf="(activeEntity.paramDescriptors | async)?.length > 0"
+                                                type="button"
+                                                class="btn btn-primary btn-sm"
+                                                (click)="addNewParameter()">
+                                            Add suggested <i class="fa fa-caret-down" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="col-md-12" style="display: none; margin-top: 15px"
-                                 id="newParamRow{{entityType}}">
-                                <div class="row">
-                                    <div class="col-md-5 col-md-offset-3" *ngIf="currentNewParam">
-                                        <select
-                                                style="width: 350px"
-                                                id="newParamSelect{{entityType}}"
-                                                [(ngModel)]="currentNewParam.key"
-                                                class="select2_group form-control">
-                                            <optgroup label="Custom parameter">
-                                                <option value="custom">Append your own param</option>
-                                            </optgroup>
-                                            <optgroup label="Suggested parameter"
-                                                      *ngIf="activeEntity.paramDescriptors | async">
-                                                <option
-                                                        *ngFor="let descriptor of activeEntity.paramDescriptors | async"
-                                                        [attr.required]="descriptor.required"
-                                                        [attr.pattern]="descriptor.pattern"
-                                                        [attr.defaultValue]="descriptor.defaultValue"
-                                                        [value]="descriptor.name">
-                                                    {{descriptor.name}}
-                                                </option>
-                                            </optgroup>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row" style="margin: 10px 0;">
-                                    <div class="col-md-4 col-md-offset-4">
-                                        <div class="form-group row" *ngIf="currentNewParam.key == 'custom'">
-                                            <label class="control-label col-md-3 col-sm-3 col-xs-12">Parameter
-                                                name</label>
-                                            <div class="col-md-9 col-sm-9 col-xs-12">
-                                                <input type="text" class="form-control" placeholder="Input the name"
-                                                       [(ngModel)]="customKey">
+                            <div class="col-md-12" style="display: none; margin-top: 15px" id="newParamRow{{entityType}}">
+                                <div class="row" *ngIf="currentNewParam">
+
+                                    <div class="item form-group" style="margin-top: 15px;">
+                                        <label
+                                                class="control-label col-md-3 col-sm-3 col-xs-12"
+                                                for="invtoInput"
+                                                style="margin-top: 7px;">
+                                            Select parameter
+                                        </label>
+                                        <div class="col-md-6 col-sm-6 col-xs-12">
+                                            <select
+                                                    style="width: 350px"
+                                                    id="newParamSelect{{entityType}}"
+                                                    [(ngModel)]="currentNewParam.key"
+                                                    class="select2_group form-control">
+                                                <optgroup label="Suggested parameter"
+                                                          *ngIf="activeEntity.paramDescriptors | async">
+                                                    <option
+                                                            *ngFor="let descriptor of activeEntity.paramDescriptors | async"
+                                                            [attr.required]="descriptor.required"
+                                                            [attr.pattern]="descriptor.pattern"
+                                                            [attr.defaultValue]="descriptor.defaultValue"
+                                                            [value]="descriptor.name">
+                                                        {{descriptor.name}}
+                                                    </option>
+                                                </optgroup>
+                                            </select>
+                                         </div>
+                                      </div>
+
+                                      <div class="item form-group" style="margin-top: 15px;">
+                                            <label
+                                                    class="control-label col-md-3 col-sm-3 col-xs-12"
+                                                    style="margin-top: 7px;">
+                                               Set parameter's value
+                                            </label>
+                                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                                <input type="text" class="form-control" placeholder="Input the value" [(ngModel)]="currentNewParam.value">
                                             </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label class="control-label col-md-3 col-sm-3 col-xs-12">Value</label>
-                                            <div class="col-md-9 col-sm-9 col-xs-12">
-                                                <input type="text" class="form-control" placeholder="Input the value"
-                                                       [(ngModel)]="currentNewParam.value">
-                                            </div>
-                                        </div>
-                                    </div>
+                                      </div>
                                 </div>
+
                                 <div class="row" style="margin-top:15px;">
                                     <div class="col-md-4 col-md-offset-4">
                                         <button class="btn" (click)="cancelAppendingParam()">
@@ -245,12 +257,9 @@
                             </div>
 
                         </div>
-                        <!-- PARAMETERS -->
-
 
                         <div id="save" class="row" style="margin-top: 20px;">
-                            <pre class="line-numbers"><code class="language-javascript"
-                                                            [innerHTML]="htmlViewForEntity()"></code></pre>
+                            <pre class="line-numbers"><code class="language-javascript" [innerHTML]="htmlViewForEntity()"></code></pre>
                             <button
                                     type="button"
                                     class="btn btn-primary"
@@ -261,9 +270,6 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="modal-footer">
-                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-             </div>-->
         </div>
     </div>
 </div>
@@ -347,7 +353,7 @@
     </div>
 </div>
 
-<table class="table">
+<table class="table" *ngIf="entities && entities.length > 0">
     <thead>
     <tr>
         <th>Name</th>
@@ -370,26 +376,22 @@
             </div>
         </td>
     </tr>
-    <tr>
-        <td></td>
-        <td>
-            <button
-                    type="button"
-                    data-toggle="modal"
-                    (click)="addNewEntity()"
-                    class="btn btn-default btn-xs">
-                Add new
-            </button>
-
-            <button
-                    *ngIf="isResourceType()"
-                    type="button"
-                    data-toggle="modal"
-                    (click)="addEntityFromList()"
-                    class="btn btn-default btn-xs">
-                Add from the list
-            </button>
-        </td>
-    </tr>
     </tbody>
 </table>
+
+<button
+        type="button"
+        data-toggle="modal"
+        (click)="addNewEntity()"
+        class="btn btn-default btn-xs">
+    Add new
+</button>
+
+<button
+        *ngIf="isResourceType()"
+        type="button"
+        data-toggle="modal"
+        (click)="addEntityFromList()"
+        class="btn btn-default btn-xs">
+    Add from the list
+</button>

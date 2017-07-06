@@ -106,8 +106,7 @@ export class ResourcesComponent implements OnInit {
             this.cd.detectChanges(); // draw my select pls!
             $(ResourcesComponent.select2ElementId).select2({
                 placeholder: "Select resource",
-                width: '100%',
-                allowClear: true
+                width: '100%'
             });
             $(ResourcesComponent.select2ElementId).on('change', (e) => {
                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
@@ -166,8 +165,7 @@ export class ResourcesComponent implements OnInit {
                                             this.cd.detectChanges(); // draw my select pls!
                                             $(ResourcesComponent.select2ElementId).select2({
                                                 placeholder: "Select resource",
-                                                width: '100%',
-                                                allowClear: true
+                                                width: '100%'
                                             });
                                             $(ResourcesComponent.select2ElementId).on('change', (e) => {
                                                 _thisReference.selectCurrentlyActiveResource($(e.target).val());

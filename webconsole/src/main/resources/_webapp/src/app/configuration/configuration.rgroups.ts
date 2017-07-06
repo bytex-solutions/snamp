@@ -88,8 +88,7 @@ export class RGroupsComponent implements OnInit {
 
             $(RGroupsComponent.select2ElementId).select2({
                 placeholder: "Select resource group",
-                width: '100%',
-                allowClear: true
+                width: '100%'
             });
             $(RGroupsComponent.select2ElementId).on('change', (e) => {
                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
@@ -137,8 +136,7 @@ export class RGroupsComponent implements OnInit {
 
                                             $(RGroupsComponent.select2ElementId).select2({
                                                 placeholder: "Select resource group",
-                                                width: '100%',
-                                                allowClear: true
+                                                width: '100%'
                                             });
                                             $(RGroupsComponent.select2ElementId).on('change', (e) => {
                                                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
