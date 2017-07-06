@@ -9,12 +9,14 @@ import { Factory } from './model/objectFactory';
 import { AbstractChart } from './model/abstract.chart';
 import { PanelOfAttributeValues } from "./model/charts/panel.attributes.values";
 import { NgGridConfig, NgGridItemEvent } from '../controls/nggrid/main';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ResourceGroupHealthStatusChart } from "./model/charts/resource.group.health.status";
 import { SeriesBasedChart, DescriptionIdClass } from "./model/abstract.line.based.chart";
 import { ScalingRateChart } from "./model/scaling.rate.chart";
 import { ChartOfAttributeValues } from "./model/abstract.chart.attributes.values";
 import { TwoDimensionalChartOfAttributeValues } from "./model/abstract.2d.chart.attributes.values";
+
+import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
 
 import 'rxjs/add/operator/publishLast';
 import 'rxjs/add/operator/cache';
@@ -98,7 +100,9 @@ export class Dashboard {
                 vcRef: ViewContainerRef,
                 private _chartService:ChartService,
                 private cd: ChangeDetectorRef,
-                private route: ActivatedRoute) {
+                private modal: Modal,
+                private route: ActivatedRoute,
+                private router: Router,) {
 
         overlay.defaultViewContainer = vcRef;
         this.timeInterval = this.intervals[0];
@@ -478,6 +482,29 @@ export class Dashboard {
             default:
                 return [];
         }
+    }
+
+    removeDashboard():void {
+        this.modal.confirm()
+            .className(<VEXBuiltInThemes>'default')
+            .message('Dashboard will be removed. Proceed?')
+            .open()
+            .then((resultPromise) => {
+                return (<Promise<boolean>>resultPromise.result)
+                    .then((response) => {
+                        this._chartService.removeChartsByGroupName(this.groupName);
+                        let _arr:string[] = this._chartService.getSimpleGroupName();
+                        if (_arr.length > 0) {
+                            this.router.navigate(['charts', _arr[0]]);
+                        } else {
+                            this.router.navigate(['charts']);
+                        }
+                        return response;
+                    })
+                    .catch(() => {
+                        console.log("user preferred to decline dashboard removing");
+                    });
+            }).catch(() => {});
     }
 }
 

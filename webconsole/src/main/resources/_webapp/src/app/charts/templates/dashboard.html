@@ -226,12 +226,24 @@
 </ul>
 
 <div class="right_col" role="main" style="min-height: 949px;">
-  <div class="">
-    <div class="page-title">
-      <div class="title_left">
+
+    <div class="row" style="padding-right: 10px;">
+      <div class="col-md-4" style="padding-top: 20px;">
         <h3>{{groupName}}</h3>
       </div>
+
+      <div class="col-md-6"></div>
+
+      <div class="col-md-2" style="padding-top: 20px;">
+
+        <div class="row" style="float: right">
+          <button class="btn btn-danger" (click)="removeDashboard()"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>
     </div>
+
+    <hr/>
+
 
     <div class="clearfix"></div>
 
@@ -275,5 +287,4 @@
             </div>
       </div>
     </div>
-  </div>
 </div>

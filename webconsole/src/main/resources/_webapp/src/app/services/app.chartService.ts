@@ -37,12 +37,27 @@ export class ChartService {
         return this._dashboard.charts;
     }
 
+    public getSimpleGroupName():string[] {
+        return this._dashboard.groups;
+    }
+
     public getChartsByGroupName(groupName:string):AbstractChart[] {
         return this._dashboard.charts.filter(_ch => (_ch.getGroupName() == groupName));
     }
 
     public removeChartsByGroupName(groupName:string):void {
-
+        for (let i = 0; i < this._dashboard.groups.length; i++) {
+            if (this._dashboard.groups[i] == groupName) {
+                this._dashboard.groups.splice(i, 1);
+                break;
+            }
+        }
+        for (let i = 0; i < this._dashboard.charts.length; i++) {
+            if (this._dashboard.charts[i].getGroupName() == groupName) {
+                this._dashboard.charts.splice(i, 1);
+            }
+        }
+        this.saveDashboard();
     }
 
     public getChartByName(chartName:string):AbstractChart {

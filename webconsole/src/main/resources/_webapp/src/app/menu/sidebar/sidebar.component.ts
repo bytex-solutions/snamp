@@ -63,6 +63,7 @@ export class Sidebar {
         this.modal.prompt()
             .className(<VEXBuiltInThemes>'default')
             .message('New dashboard')
+            .isBlocking(true)
             .placeholder('Please set the name for a new dashboard')
             .open()
              .then(dialog => dialog.result)

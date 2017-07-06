@@ -216,7 +216,7 @@ export class MainView {
                 return (<Promise<boolean>>resultPromise.result)
                     .then((response) => {
                         this._viewService.removeView(this.currentView.name);
-                        let _arr:E2EView[] =this._viewService.getViews();
+                        let _arr:E2EView[] = this._viewService.getViews();
                         if (_arr.length > 0) {
                             this.router.navigate(['view', _arr[0].name]);
                         } else {

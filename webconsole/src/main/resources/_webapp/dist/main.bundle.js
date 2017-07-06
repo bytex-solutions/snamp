@@ -108357,6 +108357,7 @@ var Sidebar = (function () {
         this.modal.prompt()
             .className('default')
             .message('New dashboard')
+            .isBlocking(true)
             .placeholder('Please set the name for a new dashboard')
             .open()
             .then(function (dialog) { return dialog.result; })
@@ -108528,10 +108529,25 @@ var ChartService = (function () {
     ChartService.prototype.getCharts = function () {
         return this._dashboard.charts;
     };
+    ChartService.prototype.getSimpleGroupName = function () {
+        return this._dashboard.groups;
+    };
     ChartService.prototype.getChartsByGroupName = function (groupName) {
         return this._dashboard.charts.filter(function (_ch) { return (_ch.getGroupName() == groupName); });
     };
     ChartService.prototype.removeChartsByGroupName = function (groupName) {
+        for (var i = 0; i < this._dashboard.groups.length; i++) {
+            if (this._dashboard.groups[i] == groupName) {
+                this._dashboard.groups.splice(i, 1);
+                break;
+            }
+        }
+        for (var i = 0; i < this._dashboard.charts.length; i++) {
+            if (this._dashboard.charts[i].getGroupName() == groupName) {
+                this._dashboard.charts.splice(i, 1);
+            }
+        }
+        this.saveDashboard();
     };
     ChartService.prototype.getChartByName = function (chartName) {
         return this._dashboard.charts.filter(function (_ch) { return (_ch.name == chartName); })[0];
