@@ -1,5 +1,5 @@
 import { AbstractPolicy } from "./abstract.policy";
-import * as moment from 'moment/moment';
+import { SnampUtils } from "../../../services/app.utils";
 
 export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
 
@@ -38,7 +38,7 @@ export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
     }
 
     formatObservationTime():string {
-        return moment.duration({ milliseconds: this.observationTime}).humanize();
+        return SnampUtils.toHumanizedDuration(this.observationTime);
     }
 
     public getPolicyWeight():string {

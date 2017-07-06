@@ -106910,7 +106910,7 @@ var ResourceEntitiesTable = (function () {
             switch (_this.entityType) {
                 case "attribute":
                     if (_this.isNewEntity) {
-                        _this.resource.attributes.push(_this.selectedEntity);
+                        _this.resource.attributes.push(_this.activeEntity);
                     }
                     else {
                         for (var i = 0; i < _this.resource.attributes.length; i++) {
@@ -106923,7 +106923,7 @@ var ResourceEntitiesTable = (function () {
                     break;
                 case "event":
                     if (_this.isNewEntity) {
-                        _this.resource.events.push(_this.selectedEntity);
+                        _this.resource.events.push(_this.activeEntity);
                     }
                     else {
                         for (var i = 0; i < _this.resource.events.length; i++) {
@@ -106936,7 +106936,7 @@ var ResourceEntitiesTable = (function () {
                     break;
                 case "operation":
                     if (_this.isNewEntity) {
-                        _this.resource.operations.push(_this.selectedEntity);
+                        _this.resource.operations.push(_this.activeEntity);
                     }
                     else {
                         for (var i = 0; i < _this.resource.operations.length; i++) {
@@ -107220,22 +107220,27 @@ exports.OptionalParametersFilter = OptionalParametersFilter;
 "use strict";
 "use strict";
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var Attribute = (function (_super) {
     __extends(Attribute, _super);
     function Attribute(http, resourceType, name, rwto, override, jsonObject) {
         _super.call(this, http, name, resourceType, override, jsonObject);
         this.rwto = 0; // read/write timeout
-        // if we pass there number - we should recognize it as a number (ms)
-        // otherwise - we parse it as a duration ISO8601
-        this.rwto = (!isNaN(parseFloat(rwto)) && isFinite(rwto)) ? rwto : moment.duration(rwto).asMilliseconds();
-        //console.log("Rwto for attribute " + name + ": " + rwto + " and " + this.rwto,  moment.duration(rwto));
+        this.isInfiniteDuration = true;
+        if (util_1.isNullOrUndefined(rwto)) {
+            this.rwto = 0;
+            this.isInfiniteDuration = true;
+        }
+        else {
+            this.rwto = app_utils_1.SnampUtils.parseDuration(rwto);
+        }
     }
     Attribute.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        // see https://momentjs.com/docs/#/durations/as-json/
-        //console.log("Here! ", this.rwto, moment.duration({ milliseconds: this.rwto}));
-        resultValue["readWriteTimeout"] = moment.duration({ milliseconds: this.rwto }).toISOString();
+        if (!this.isInfiniteDuration) {
+            resultValue["readWriteTimeout"] = app_utils_1.SnampUtils.toDurationString(this.rwto);
+        }
         resultValue["override"] = this.override;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
@@ -107538,19 +107543,27 @@ exports.Gateway = Gateway;
 "use strict";
 "use strict";
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var Operation = (function (_super) {
     __extends(Operation, _super);
     function Operation(http, resourceType, name, invokto, override, jsonObject) {
         _super.call(this, http, name, resourceType, override, jsonObject);
         this.invokto = 0; // invocation timeout
-        // if we pass there number - we should recognize it as a number (ms)
-        // otherwise - we parse it as a duration ISO8601
-        this.invokto = (!isNaN(parseFloat(invokto)) && isFinite(invokto)) ? invokto : moment.duration(invokto).asMilliseconds();
+        this.isInfiniteDuration = true;
+        if (util_1.isNullOrUndefined(invokto)) {
+            this.invokto = 0;
+            this.isInfiniteDuration = true;
+        }
+        else {
+            this.invokto = app_utils_1.SnampUtils.parseDuration(invokto);
+        }
     }
     Operation.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        resultValue["invocationTimeout"] = moment.duration({ milliseconds: this.invokto }).toISOString();
+        if (!this.isInfiniteDuration) {
+            resultValue["invocationTimeout"] = app_utils_1.SnampUtils.toDurationString(this.invokto);
+        }
         resultValue["override"] = this.override;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
@@ -109062,6 +109075,46 @@ var UserProfileService = (function () {
     var _a;
 }());
 exports.UserProfileService = UserProfileService;
+
+
+/***/ },
+
+/***/ "./src/app/services/app.utils.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var moment = __webpack_require__("./node_modules/moment/moment.js");
+var SnampUtils = (function () {
+    function SnampUtils() {
+    }
+    /**
+     * Returns the number of milliseconds for source.
+     * @param source - number (is being returned untouched) or string (duration notation).
+     */
+    SnampUtils.parseDuration = function (source) {
+        return (!isNaN(parseFloat(source)) && isFinite(source))
+            ? source : moment.duration(source).asMilliseconds();
+    };
+    /**
+     * Returns duration string notation for milliseconds.
+     * @param source - number of milliseconds.
+     * @returns {string} - duration string notation.
+     */
+    SnampUtils.toDurationString = function (source) {
+        return moment.duration({ milliseconds: source }).toISOString();
+    };
+    /**
+     * Humanize the duration.
+     * @param source - milliseconds number.
+     * @returns {string} - humanized duration string notation.
+     */
+    SnampUtils.toHumanizedDuration = function (source) {
+        return moment.duration({ milliseconds: source }).humanize();
+    };
+    return SnampUtils;
+}());
+exports.SnampUtils = SnampUtils;
 
 
 /***/ },

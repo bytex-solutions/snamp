@@ -558,8 +558,8 @@ exports.Guid = Guid;
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var watcher_1 = __webpack_require__("./src/app/watchers/model/watcher.ts");
 var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scriptlet.data.object.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var Factory = (function () {
     function Factory() {
     }
@@ -607,8 +607,7 @@ var Factory = (function () {
             _watcher.minClusterSize = json["minClusterSize"];
         }
         if (json["cooldownTime"] != undefined) {
-            _watcher.cooldownTime = (!isNaN(parseFloat(json["cooldownTime"])) && isFinite(json["cooldownTime"]))
-                ? json["cooldownTime"] : moment.duration(json["cooldownTime"]).asMilliseconds();
+            _watcher.cooldownTime = app_utils_1.SnampUtils.parseDuration(json["cooldownTime"]);
         }
         if (json["type"] != undefined) {
             _watcher.type = json["type"];
@@ -716,7 +715,7 @@ exports.AbstractPolicy = AbstractPolicy;
 "use strict";
 "use strict";
 var abstract_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.policy.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var AbstractWeightedScalingPolicy = (function (_super) {
     __extends(AbstractWeightedScalingPolicy, _super);
     function AbstractWeightedScalingPolicy() {
@@ -756,7 +755,7 @@ var AbstractWeightedScalingPolicy = (function (_super) {
         configurable: true
     });
     AbstractWeightedScalingPolicy.prototype.formatObservationTime = function () {
-        return moment.duration({ milliseconds: this.observationTime }).humanize();
+        return app_utils_1.SnampUtils.toHumanizedDuration(this.observationTime);
     };
     AbstractWeightedScalingPolicy.prototype.getPolicyWeight = function () {
         return this.voteWeight.toString();
@@ -774,8 +773,8 @@ exports.AbstractWeightedScalingPolicy = AbstractWeightedScalingPolicy;
 "use strict";
 "use strict";
 var abstract_weighted_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.weighted.scaling.policy.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
 var operational_range_1 = __webpack_require__("./src/app/watchers/model/policy/operational.range.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var AttributeBasedScalingPolicy = (function (_super) {
     __extends(AttributeBasedScalingPolicy, _super);
     function AttributeBasedScalingPolicy() {
@@ -826,16 +825,16 @@ var AttributeBasedScalingPolicy = (function (_super) {
         configurable: true
     });
     AttributeBasedScalingPolicy.prototype.formatAnalysisDepth = function () {
-        return moment.duration({ milliseconds: this.analysisDepth }).humanize();
+        return app_utils_1.SnampUtils.toHumanizedDuration(this.analysisDepth);
     };
     AttributeBasedScalingPolicy.prototype.toJSON = function () {
         var _value = {};
         _value["voteWeight"] = this.voteWeight;
         _value["incrementalWeight"] = this.incrementalWeight;
-        _value["observationTime"] = moment.duration({ milliseconds: this.observationTime }).toISOString();
+        _value["observationTime"] = app_utils_1.SnampUtils.toDurationString(this.observationTime);
         _value["attributeName"] = this.attributeName;
         _value["operationalRange"] = this.operationalRange.toString();
-        _value["analysisDepth"] = moment.duration({ milliseconds: this.analysisDepth }).toISOString();
+        _value["analysisDepth"] = app_utils_1.SnampUtils.toDurationString(this.analysisDepth);
         _value["aggregation"] = this.aggregation;
         return _value;
     };
@@ -855,7 +854,7 @@ exports.AttributeBasedScalingPolicy = AttributeBasedScalingPolicy;
 "use strict";
 "use strict";
 var abstract_weighted_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.weighted.scaling.policy.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var HealthStatusBasedScalingPolicy = (function (_super) {
     __extends(HealthStatusBasedScalingPolicy, _super);
     function HealthStatusBasedScalingPolicy() {
@@ -876,7 +875,7 @@ var HealthStatusBasedScalingPolicy = (function (_super) {
         var _value = {};
         _value["voteWeight"] = this.voteWeight;
         _value["incrementalWeight"] = this.incrementalWeight;
-        _value["observationTime"] = moment.duration({ milliseconds: this.observationTime }).toISOString();
+        _value["observationTime"] = app_utils_1.SnampUtils.toDurationString(this.observationTime);
         _value["level"] = this.level;
         return _value;
     };
@@ -1037,8 +1036,8 @@ var colored_checker_1 = __webpack_require__("./src/app/watchers/model/colored.ch
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
 var health_status_based_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/health.status.based.scaling.policy.ts");
 var attribute_based_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/attribute.based.scaling.policy.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
 var operational_range_1 = __webpack_require__("./src/app/watchers/model/policy/operational.range.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var ScriptletDataObject = (function (_super) {
     __extends(ScriptletDataObject, _super);
     function ScriptletDataObject(params) {
@@ -1075,26 +1074,20 @@ var ScriptletDataObject = (function (_super) {
                 var _jsonHSB = JSON.parse(instance.script);
                 instance.policyObject = new health_status_based_scaling_policy_1.HealthStatusBasedScalingPolicy();
                 instance.policyObject.level = _jsonHSB["level"];
-                instance.policyObject.observationTime =
-                    (!isNaN(parseFloat(_jsonHSB["observationTime"])) && isFinite(_jsonHSB["observationTime"]))
-                        ? _jsonHSB["observationTime"] : moment.duration(_jsonHSB["observationTime"]).asMilliseconds();
+                instance.policyObject.observationTime = app_utils_1.SnampUtils.parseDuration(_jsonHSB["observationTime"]);
                 instance.policyObject.incrementalWeight = _jsonHSB["incrementalWeight"];
                 instance.policyObject.voteWeight = _jsonHSB["voteWeight"];
                 break;
             case "MetricBased":
                 var _jsonMB = JSON.parse(instance.script);
                 instance.policyObject = new attribute_based_scaling_policy_1.AttributeBasedScalingPolicy();
-                instance.policyObject.analysisDepth =
-                    (!isNaN(parseFloat(_jsonMB["observationTime"])) && isFinite(_jsonMB["observationTime"]))
-                        ? _jsonMB["observationTime"] : moment.duration(_jsonMB["observationTime"]).asMilliseconds();
+                instance.policyObject.analysisDepth = app_utils_1.SnampUtils.parseDuration(_jsonMB["observationTime"]);
                 instance.policyObject.incrementalWeight = _jsonMB["incrementalWeight"];
                 instance.policyObject.voteWeight = _jsonMB["voteWeight"];
                 instance.policyObject.aggregation = _jsonMB["aggregation"];
                 instance.policyObject.attributeName = _jsonMB["attributeName"];
                 instance.policyObject.operationalRange = operational_range_1.OpRange.fromString(_jsonMB["operationalRange"]);
-                instance.policyObject.analysisDepth =
-                    (!isNaN(parseFloat(_jsonMB["analysisDepth"])) && isFinite(_jsonMB["analysisDepth"]))
-                        ? _jsonMB["analysisDepth"] : moment.duration(_jsonMB["analysisDepth"]).asMilliseconds();
+                instance.policyObject.analysisDepth = app_utils_1.SnampUtils.parseDuration(_jsonMB["analysisDepth"]);
                 break;
             case "ColoredAttributeChecker":
                 instance.object = new colored_checker_1.ColoredAttributeChecker();
@@ -1195,8 +1188,8 @@ exports.ScriptletDataObject = ScriptletDataObject;
 "use strict";
 var entity_1 = __webpack_require__("./src/app/watchers/model/entity.ts");
 var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scriptlet.data.object.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var Watcher = (function (_super) {
     __extends(Watcher, _super);
     function Watcher() {
@@ -1228,7 +1221,7 @@ var Watcher = (function (_super) {
         _value["parameters"] = this.stringifyParameters();
         _value["parameters"]["$strategy$"] = this.votingStrategy;
         _value["connectionStringTemplate"] = this.connectionStringTemplate;
-        _value["cooldownTime"] = moment.duration({ milliseconds: this.cooldownTime }).toISOString();
+        _value["cooldownTime"] = app_utils_1.SnampUtils.toDurationString(this.cooldownTime);
         _value["autoScaling"] = this.autoScaling;
         _value["scalingSize"] = this.scalingSize;
         _value["minClusterSize"] = this.minClusterSize;

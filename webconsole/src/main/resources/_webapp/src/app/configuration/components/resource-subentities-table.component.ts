@@ -278,7 +278,7 @@ export class ResourceEntitiesTable implements OnInit {
                 switch (this.entityType) {
                     case "attribute":
                         if (this.isNewEntity) {
-                            this.resource.attributes.push(<Attribute>this.selectedEntity);
+                            this.resource.attributes.push(<Attribute>this.activeEntity);
                         } else {
                             for (let i = 0; i < this.resource.attributes.length; i++) {
                                 if (this.resource.attributes[i].name == this.activeEntity.name) {
@@ -290,7 +290,7 @@ export class ResourceEntitiesTable implements OnInit {
                         break;
                     case "event":
                         if (this.isNewEntity) {
-                            this.resource.events.push(<Event>this.selectedEntity);
+                            this.resource.events.push(<Event>this.activeEntity);
                         } else {
                             for (let i = 0; i < this.resource.events.length; i++) {
                                 if (this.resource.events[i].name == this.activeEntity.name) {
@@ -302,7 +302,7 @@ export class ResourceEntitiesTable implements OnInit {
                         break;
                     case "operation":
                         if (this.isNewEntity) {
-                            this.resource.operations.push(<Operation>this.selectedEntity);
+                            this.resource.operations.push(<Operation>this.activeEntity);
                         } else {
                             for (let i = 0; i < this.resource.operations.length; i++) {
                                 if (this.resource.operations[i].name == this.activeEntity.name) {

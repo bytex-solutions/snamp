@@ -1,8 +1,8 @@
 import { Entity } from './entity';
 import { ScriptletDataObject } from './scriptlet.data.object';
-import * as moment from 'moment/moment';
-import {isNullOrUndefined} from "util";
-import {AbstractWeightedScalingPolicy} from "./policy/abstract.weighted.scaling.policy";
+import { isNullOrUndefined } from "util";
+import { AbstractWeightedScalingPolicy } from "./policy/abstract.weighted.scaling.policy";
+import { SnampUtils } from "../../services/app.utils";
 
 export class Watcher extends Entity {
 
@@ -34,7 +34,7 @@ export class Watcher extends Entity {
         _value["parameters"] = this.stringifyParameters();
         _value["parameters"]["$strategy$"] = this.votingStrategy;
         _value["connectionStringTemplate"] = this.connectionStringTemplate;
-        _value["cooldownTime"] = moment.duration({ milliseconds: this.cooldownTime}).toISOString();
+        _value["cooldownTime"] = SnampUtils.toDurationString(this.cooldownTime);
         _value["autoScaling"] = this.autoScaling;
         _value["scalingSize"] = this.scalingSize;
         _value["minClusterSize"] = this.minClusterSize;
