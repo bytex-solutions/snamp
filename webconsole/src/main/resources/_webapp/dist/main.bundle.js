@@ -106859,7 +106859,7 @@ var ResourceEntitiesTable = (function () {
             .then(function (resultPromise) {
             return resultPromise.result
                 .then(function (response) {
-                _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME(entity.getName() + "s", _this.resource.name, entity.name))
+                _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(_this.resource.getName(), _this.resource.name, _this.entityType + "s", entity.name))
                     .subscribe(function () {
                     for (var i = 0; i < _this.entities.length; i++) {
                         if (_this.entities[i].name == entity.name) {

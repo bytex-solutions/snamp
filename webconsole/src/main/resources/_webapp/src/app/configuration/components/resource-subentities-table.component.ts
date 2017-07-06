@@ -226,7 +226,7 @@ export class ResourceEntitiesTable implements OnInit {
             .then((resultPromise) => {
                 return (<Promise<boolean>>resultPromise.result)
                   .then((response) => {
-                    this.http.delete(REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME(entity.getName() + "s", this.resource.name, entity.name))
+                    this.http.delete(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", entity.name))
                         .subscribe(() => {
                             for (let i = 0; i < this.entities.length; i++) {
                                 if (this.entities[i].name == entity.name) {
