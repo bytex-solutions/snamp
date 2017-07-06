@@ -16,6 +16,7 @@ import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -48,10 +49,17 @@ public final class PersistentConfigurationManager implements ConfigurationManage
     private static void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
                                           final SerializableEntityMap<SerializableManagedResourceGroupConfiguration> groups) {
         //migrate attributes, events, operations and properties from modified groups into resources
-        groups.modifiedEntries((groupName, groupConfig) -> {
+        final Set<String> modifiedGroups = groups.modifiedEntries((groupName, groupConfig) -> {
             resources.values().stream()
                     .filter(resource -> resource.getGroupName().equals(groupName))
                     .forEach(groupConfig::fillResourceConfig);
+            return true;
+        });
+        //migrate attributes, events, operations and properties from groups into modified resources
+        resources.modifiedEntries((resourceName, resourceConfig) -> {
+            final String groupName = resourceConfig.getGroupName();
+            if (!modifiedGroups.contains(groupName))
+                groups.getIfPresent(groupName).ifPresent(groupConfig -> groupConfig.fillResourceConfig(resourceConfig));
             return true;
         });
     }

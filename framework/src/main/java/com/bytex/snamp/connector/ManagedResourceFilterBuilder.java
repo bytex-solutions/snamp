@@ -81,10 +81,21 @@ public final class ManagedResourceFilterBuilder extends SimpleFilterBuilder {
         return this;
     }
 
+    private ServiceReference<ManagedResourceConnector>[] getServiceReferences(final BundleContext context){
+        return getServiceReferences(context, ManagedResourceConnector.class);
+    }
+
     public Set<String> getResources(final BundleContext context) {
-        return Arrays.stream(getServiceReferences(context, ManagedResourceConnector.class))
+        return Arrays.stream(getServiceReferences(context))
                 .map(ManagedResourceFilterBuilder::getManagedResourceName)
                 .filter(name -> !isNullOrEmpty(name))
+                .collect(Collectors.toSet());
+    }
+
+    public Set<String> getGroups(final BundleContext context) {
+        return Arrays.stream(getServiceReferences(context))
+                .map(ManagedResourceFilterBuilder::getGroupName)
+                .filter(groupName -> !isNullOrEmpty(groupName))
                 .collect(Collectors.toSet());
     }
 

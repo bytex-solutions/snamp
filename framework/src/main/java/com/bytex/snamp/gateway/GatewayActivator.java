@@ -18,6 +18,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -103,8 +104,8 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         }
 
         @Override
-        protected G update(final G gatewayInstance,
-                           final Dictionary<String, ?> configuration) throws Exception {
+        protected G updateService(final G gatewayInstance,
+                                  final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
             gatewayInstance.update(newConfig.getValue());
             getLogger().info(String.format("Gateway %s is updated", gatewayInstance));
@@ -112,10 +113,10 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         }
 
         @Override
-        protected G createService(final Map<String, Object> identity,
-                                  final Dictionary<String, ?> configuration) throws Exception {
+        protected G activateService(final BiConsumer<String, Object> identity,
+                                    final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
-            identity.putAll(new GatewayFilterBuilder(newConfig.getValue()).setInstanceName(newConfig.getKey()));
+            new GatewayFilterBuilder(newConfig.getValue()).setInstanceName(newConfig.getKey()).forEach(identity);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(newConfig.getKey(), dependencies);
             gatewayInstance.update(newConfig.getValue());
             getLogger().info(String.format("Gateway %s is instantiated", gatewayInstance));
@@ -123,7 +124,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         }
 
         @Override
-        protected void cleanupService(final G gatewayInstance, final Map<String, ?> identity) throws IOException {
+        protected void disposeService(final G gatewayInstance, final Map<String, ?> identity) throws IOException {
             getLogger().info(String.format("Gateway %s is destroyed", gatewayInstance));
             gatewayInstance.close();
         }

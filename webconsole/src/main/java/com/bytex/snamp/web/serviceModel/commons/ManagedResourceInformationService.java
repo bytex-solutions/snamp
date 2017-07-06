@@ -10,7 +10,6 @@ import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.web.serviceModel.AbstractWebConsoleService;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import org.osgi.framework.BundleContext;
 
@@ -151,23 +150,11 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
                 .orElseThrow(ManagedResourceInformationService::noConfigurationManager);
     }
 
-    private static Set<String> getGroups(final BundleContext context, final ServiceHolder<ConfigurationManager> configurationManager){
-        try{
-            return configurationManager.get().transformConfiguration(config -> ImmutableSet.copyOf(config.getResourceGroups().keySet()));
-        } catch (final IOException e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
-        } finally {
-            configurationManager.release(context);
-        }
-    }
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<String> getGroups() {
-        final BundleContext context = getBundleContext();
-        return ServiceHolder.tryCreate(context, ConfigurationManager.class)
-                .map(holder -> getGroups(context, holder))
-                .orElseGet(ImmutableSet::of);
+        //list of groups can be extracted from already instantiated resources. No need to return groups without resources
+        return ManagedResourceConnectorClient.filterBuilder().getGroups(getBundleContext());
     }
 
     @GET

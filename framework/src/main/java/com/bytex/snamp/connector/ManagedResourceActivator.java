@@ -26,10 +26,7 @@ import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -183,8 +180,8 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
-        protected TConnector update(TConnector connector,
-                                    final Dictionary<String, ?> configuration) throws Exception {
+        protected TConnector updateService(TConnector connector,
+                                           final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
             //we should not update resource connector if connection parameters was not changed
             if (!connector.getConfiguration().equals(newConfig.getValue())) {
@@ -221,7 +218,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         /**
-         * Logs error details when {@link #dispose(Object, boolean)} failed.
+         * Logs error details when {@link #disposeService(Object, boolean)} failed.
          * @param logger
          * @param servicePID The persistent identifier of the service to dispose.
          * @param e          An exception occurred when disposing service.
@@ -243,10 +240,10 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
         @Override
-        protected TConnector createService(final Map<String, Object> identity,
-                                           final Dictionary<String, ?> configuration) throws Exception {
+        protected TConnector activateService(final BiConsumer<String, Object> identity,
+                                             final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
-            identity.putAll(new ManagedResourceFilterBuilder(newConfig.getValue()).setResourceName(newConfig.getKey()));
+            new ManagedResourceFilterBuilder(newConfig.getValue()).setResourceName(newConfig.getKey()).forEach(identity);
             final TConnector connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
             updateFeatures(connector, newConfig.getValue());
             getLogger().info(String.format("Connector %s for resource %s is instantiated", getConnectorType(), newConfig.getKey()));
@@ -254,7 +251,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         @Override
-        protected void cleanupService(final TConnector service,
+        protected void disposeService(final TConnector service,
                                       final Map<String, ?> identity) throws Exception {
             getLogger().info(String.format("Connector %s is destroyed", ManagedResourceFilterBuilder.getManagedResourceName(identity)));
             service.close();

@@ -44,6 +44,7 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
     public void setGroupName(String value) {
         value = nullToEmpty(value);
         markAsModified(!value.equals(groupName));
+        groupName = value;
     }
 
     /**

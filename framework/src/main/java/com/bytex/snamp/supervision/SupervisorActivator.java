@@ -17,6 +17,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -84,7 +85,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
 
         @Override
-        protected S update(final S supervisor, final Dictionary<String, ?> configuration) throws Exception {
+        protected S updateService(final S supervisor, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
             supervisor.update(newConfig.getValue());
             getLogger().info(String.format("Supervisor %s is updated", supervisor));
@@ -92,17 +93,17 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
         
         @Override
-        protected S createService(final Map<String, Object> identity, final Dictionary<String, ?> configuration) throws Exception {
+        protected S activateService(final BiConsumer<String, Object> identity, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
             final S supervisor = factory.createSupervisor(newConfig.getKey(), dependencies);
-            identity.putAll(new SupervisorFilterBuilder(newConfig.getValue()).setGroupName(newConfig.getKey()));
+            new SupervisorFilterBuilder(newConfig.getValue()).setGroupName(newConfig.getKey()).forEach(identity);
             supervisor.update(newConfig.getValue());
             getLogger().info(String.format("Supervisor %s is instantiated", supervisor));
             return supervisor;
         }
 
         @Override
-        protected void cleanupService(final S supervisor, final Map<String, ?> identity) throws Exception {
+        protected void disposeService(final S supervisor, final Map<String, ?> identity) throws Exception {
             getLogger().info(String.format("Supervisor %s is destroyed", supervisor));
             supervisor.close();
         }
