@@ -362,10 +362,16 @@ export class MainComponent implements OnInit {
             .map((res: Response) => res.text())
             .subscribe(data => {
                 console.log("watcher has been saved: ", data);
+                let _found:boolean = false;
                 for (let i = 0; i < this.watchers.length; i++) {
                     if (this.watchers[i].name == this.activeWatcher.name) {
                         this.watchers[i] = this.activeWatcher;
+                        _found = true;
+                        break;
                     }
+                }
+                if (!_found) {
+                    this.watchers.push(this.activeWatcher);
                 }
                 this.cleanSelection();
             });

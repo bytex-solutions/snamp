@@ -34,11 +34,13 @@ export class Watcher extends Entity {
         _value["parameters"] = this.stringifyParameters();
         _value["parameters"]["$strategy$"] = this.votingStrategy;
         _value["connectionStringTemplate"] = this.connectionStringTemplate;
-        _value["cooldownTime"] = SnampUtils.toDurationString(this.cooldownTime);
         _value["autoScaling"] = this.autoScaling;
-        _value["scalingSize"] = this.scalingSize;
-        _value["minClusterSize"] = this.minClusterSize;
-        _value["maxClusterSize"] = this.maxClusterSize;
+        if (this.autoScaling) {
+            _value["cooldownTime"] = SnampUtils.toDurationString(this.cooldownTime);
+            _value["scalingSize"] = this.scalingSize;
+            _value["minClusterSize"] = this.minClusterSize;
+            _value["maxClusterSize"] = this.maxClusterSize;
+        }
         _value["type"] = this.type;
         return _value;
     }

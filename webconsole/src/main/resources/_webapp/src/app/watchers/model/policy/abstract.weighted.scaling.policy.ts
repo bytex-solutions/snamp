@@ -1,5 +1,6 @@
 import { AbstractPolicy } from "./abstract.policy";
 import { SnampUtils } from "../../../services/app.utils";
+import {isNullOrUndefined} from "util";
 
 export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
 
@@ -42,6 +43,6 @@ export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
     }
 
     public getPolicyWeight():string {
-        return this.voteWeight.toString();
+        return isNullOrUndefined(this.voteWeight) ? "N/A" : this.voteWeight.toString();
     }
 }

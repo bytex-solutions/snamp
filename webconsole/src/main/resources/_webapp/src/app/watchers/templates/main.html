@@ -517,7 +517,7 @@
 
                     <div *ngIf="activePolicy?.language == 'MetricBased'">
 
-                      <div class="form-group row">
+                      <div class="form-group row" style="margin-top: 15px">
                         <label for="operationalRangePolicy" class="col-md-2 col-form-label">Operational range</label>
                         <div class="col-md-6">
                           <input class="form-control" disabled type="text" min="0" [attr.value]="activePolicy.policyObject.operationalRange.toString()" id="operationalRangePolicy">
