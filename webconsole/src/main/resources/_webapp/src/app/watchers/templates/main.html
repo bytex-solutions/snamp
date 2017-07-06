@@ -405,7 +405,7 @@
                       </tr>
                       </tbody>
                     </table>
-                    <button class="btn btn-primary btn-xs" (click)="addNewPolicy()">
+                    <button class="btn btn-primary btn-xs" (click)="addNewPolicy()" *ngIf="!newPolicyAppended">
                       Add new policy
                     </button>
                   </div>
@@ -852,7 +852,7 @@
               <button
                       style="float:right;"
                       class="btn btn-primary btn-sm"
-                      (click)="addNewWatcher()">+ New watcher</button>
+                      (click)="addNewWatcher()">+ New supervisor</button>
             </td>
           </tr>
           </tbody>

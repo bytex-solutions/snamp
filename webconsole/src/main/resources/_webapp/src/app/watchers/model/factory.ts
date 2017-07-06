@@ -10,7 +10,7 @@ export class Factory {
         let _pType:string = "all";
         if (!isNullOrUndefined(json["parameters"]) && !isNullOrUndefined(json["parameters"]["$strategy$"])) {
             _pType = json["parameters"]["$strategy$"];
-            json["parameters"]["$strategy$"] = null;
+            delete json["parameters"]["$strategy$"];
         }
         let _watcher:Watcher = new Watcher(name, json["parameters"]);
         _watcher.votingStrategy = _pType;

@@ -103312,6 +103312,8 @@ var E2EView = (function () {
         this._cy = undefined;
         this.preferences = {};
         this.id = "e2eview" + GUID.newGuid();
+        this.verticesCount = 0;
+        this.arrivalsCount = 0;
     }
     // checkboxes for setting which data aspects to display
     E2EView.prototype.getDisplayedMetadata = function () {
@@ -103466,7 +103468,6 @@ var E2EView = (function () {
                 }
             ]
         });
-        console.log(cy);
         this._cy = cy;
         return cy;
     };
@@ -103475,12 +103476,22 @@ var E2EView = (function () {
         return String(Math.round(value * power) / power);
     };
     E2EView.prototype.updateData = function (currentData) {
+        var originalData = currentData;
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
         console.log(currentData);
-        var result = [];
         var arrivals = [];
         if (currentData["arrivals"] != undefined) {
             arrivals = currentData["arrivals"];
+            if (arrivals.length != this.arrivalsCount) {
+                this._cy.json({ elements: this.getData(originalData) });
+                return;
+            }
+        }
+        if (currentData["vertices"] != undefined) {
+            if (currentData["vertices"].length != this.verticesCount) {
+                this._cy.json({ elements: this.getData(originalData) });
+                return;
+            }
         }
         for (var key in arrivals) {
             var _node = this._cy.$("#" + key);
@@ -103502,9 +103513,11 @@ var E2EView = (function () {
         var arrivals = [];
         if (currentData["vertices"] != undefined) {
             vertices = currentData["vertices"];
+            this.verticesCount = vertices.length;
         }
         if (currentData["arrivals"] != undefined) {
             arrivals = currentData["arrivals"];
+            this.arrivalsCount = arrivals.length;
         }
         // add all plain vertices
         for (var key in arrivals) {
@@ -108301,7 +108314,7 @@ __export(__webpack_require__("./src/app/app.module.ts"));
 /***/ "./src/app/menu/sidebar/sidebar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <profile></profile><br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" class=\"clickableAnchor\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" class=\"clickableAnchor\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"thread-pools\" routerLinkActive=\"active\">Thread pools</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisor - Health statuses</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" class=\"clickableAnchor\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" class=\"clickableAnchor\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <!--<li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Health statuses</a></li>-->\r\n              <li *ngFor=\"let _view of views | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <profile></profile><br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" class=\"clickableAnchor\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" class=\"clickableAnchor\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisors</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"thread-pools\" routerLinkActive=\"active\">Thread pools</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" class=\"clickableAnchor\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" class=\"clickableAnchor\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <!--<li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Health statuses</a></li>-->\r\n              <li *ngFor=\"let _view of views | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 

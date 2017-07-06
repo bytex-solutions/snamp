@@ -28,10 +28,10 @@
               <li routerLinkActive="activeLi"><a routerLink="gateways" routerLinkActive="active">Gateways</a></li>
               <li routerLinkActive="activeLi"><a routerLink="resources" routerLinkActive="active">Resources</a></li>
               <li routerLinkActive="activeLi"><a routerLink="rgroups" routerLinkActive="active">Resource groups</a></li>
+              <li routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Supervisors</a></li>
               <li routerLinkActive="activeLi"><a routerLink="snampcfg" routerLinkActive="active">SNAMP components</a></li>
               <li routerLinkActive="activeLi"><a routerLink="thread-pools" routerLinkActive="active">Thread pools</a></li>
               <li routerLinkActive="activeLi"><a routerLink="configuration" routerLinkActive="active">Save/restore</a></li>
-              <li routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Supervisor - Health statuses</a></li>
             </ul>
           </li>
           <li><a id="logsli" class="clickableAnchor"><i class="fa fa-commenting-o"></i> Notifications<span id="logschevron" class="fa fa-chevron-down"></span></a>

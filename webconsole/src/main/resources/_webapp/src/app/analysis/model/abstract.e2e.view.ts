@@ -14,6 +14,9 @@ export abstract class E2EView {
     public preferences:{ [key: string]: any } = { };
     public id:string = "e2eview" + GUID.newGuid();
 
+    private verticesCount:number = 0;
+    private arrivalsCount:number = 0;
+
     // checkboxes for setting which data aspects to display
     public getDisplayedMetadata():string[] {
         if (this.preferences && this.preferences["displayedMetadata"] != undefined) {
@@ -133,7 +136,7 @@ export abstract class E2EView {
     public draw(initialData:any):any {
        let _layout:string = this.getLayout();
        console.log("id element for find: ", document.getElementById(this.id));
-       var cy = cytoscape({
+       let cy = cytoscape({
          container: document.getElementById(this.id),
          elements: this.getData(initialData),
          zoomingEnabled: true,
@@ -194,24 +197,34 @@ export abstract class E2EView {
             }
          ]
        });
-        console.log(cy);
        this._cy = cy;
        return cy;
     }
 
     private toFixed(value:any, precision:number):string {
-        var power = Math.pow(10, precision || 0);
+        let power = Math.pow(10, precision || 0);
         return String(Math.round(value * power) / power);
     }
 
     public updateData(currentData:any):any {
+        let originalData:any = currentData;
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
         console.log(currentData);
-        let result:any = [];
         let arrivals:any[] = [];
 
         if (currentData["arrivals"] != undefined) {
             arrivals = currentData["arrivals"];
+            if (arrivals.length != this.arrivalsCount) {
+                this._cy.json({elements: this.getData(originalData)});
+                return;
+            }
+        }
+
+        if (currentData["vertices"] != undefined) {
+            if (currentData["vertices"].length != this.verticesCount) {
+                this._cy.json({elements: this.getData(originalData)});
+                return;
+            }
         }
 
         for (let key in arrivals) {
@@ -223,7 +236,7 @@ export abstract class E2EView {
 
     public updateDisplayedMetadata(_md:string[]):void {
         this.setDisplayedMetadata(_md);
-        var nodes = this._cy.filter('node');
+        let nodes = this._cy.filter('node');
         for (let i = 0; i < nodes.length; i++) {
             nodes[i].data('dl', this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
         }
@@ -238,10 +251,12 @@ export abstract class E2EView {
         let arrivals:any[] = [];
         if (currentData["vertices"] != undefined) {
             vertices = currentData["vertices"];
+            this.verticesCount = vertices.length;
         }
 
         if (currentData["arrivals"] != undefined) {
             arrivals = currentData["arrivals"];
+            this.arrivalsCount = arrivals.length;
         }
 
         // add all plain vertices
@@ -267,6 +282,7 @@ export abstract class E2EView {
                 });
             }
         }
+
 
         return result;
     }
@@ -349,7 +365,7 @@ export abstract class E2EView {
 class GUID {
     static newGuid():string {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+            let r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
             return v.toString(16);
         });
     }

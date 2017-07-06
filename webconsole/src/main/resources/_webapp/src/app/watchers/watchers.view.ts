@@ -62,6 +62,8 @@ export class MainComponent implements OnInit {
 
     private currentRecommendation:OpRange = undefined;
 
+    private newPolicyAppended:boolean = false;
+
     constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef, private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
     }
@@ -162,6 +164,7 @@ export class MainComponent implements OnInit {
 
     public initPoliciesModal(): void {
         // clean the data if the component was already initialized
+        this.newPolicyAppended = false;
         if (this.policiesInitialized) {
             // reset wizard
             $(this.getPoliciesWizardId()).off("showStep");
@@ -206,6 +209,7 @@ export class MainComponent implements OnInit {
         }
         this.activeChecker = this.activeWatcher.attributeCheckers[attr.name];
         this.selectedAttribute = attr;
+        $(this.getCheckersWizardId()).smartWizard("next");
     }
 
     private loadAttributesOnComponentSelected(): void {
@@ -379,6 +383,7 @@ export class MainComponent implements OnInit {
     public editPolicy(policyKey:string, policyValue:ScriptletDataObject):void {
         this.activePolicyName = policyKey;
         this.activePolicy = policyValue;
+        $(this.getPoliciesWizardId()).smartWizard("next");
     }
 
     public removePolicy(policyKey:string):void {
@@ -407,6 +412,8 @@ export class MainComponent implements OnInit {
                 this.activeWatcher.scalingPolicies = newMap;
                 this.activePolicy = this.activeWatcher.scalingPolicies[result];
                 this.activePolicyName = result;
+                this.newPolicyAppended = true;
+                $(this.getPoliciesWizardId()).smartWizard("next");
                 this.cd.markForCheck();
             })
             .catch(() => {});

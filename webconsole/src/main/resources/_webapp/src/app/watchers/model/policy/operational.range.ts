@@ -2,8 +2,8 @@ import { isNullOrUndefined } from "util";
 
 export class OpRange {
 
-    private _begin:number;
-    private _end:number;
+    private _begin:number = 0.0;
+    private _end:number = 1.0;
 
     public isBeginInfinite:boolean = false;
     public isEndInfinite:boolean = false;
@@ -50,11 +50,19 @@ export class OpRange {
     }
 
     private getBeginString():string {
-        return this.isBeginInfinite ? OpRange.MINUS_INFINITE : this.begin.toString();
+        if (this.isBeginInfinite || isNullOrUndefined(this.begin)) {
+            return OpRange.MINUS_INFINITE;
+        } else {
+            return this.begin.toString();
+        }
     }
 
     private getEndString():string {
-        return this.isEndInfinite ? OpRange.PLUS_INFINITE : this.end.toString();
+        if (this.isEndInfinite || isNullOrUndefined(this.end)) {
+            return OpRange.PLUS_INFINITE;
+        } else {
+            return this.end.toString();
+        }
     }
 
     public toString():string {
