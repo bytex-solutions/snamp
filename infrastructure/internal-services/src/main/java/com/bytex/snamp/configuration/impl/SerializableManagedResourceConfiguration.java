@@ -41,9 +41,9 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
      * @param value The name of the resource group. Cannot be {@literal null}.
      */
     @Override
-    public void setGroupName(final String value) {
-        groupName = nullToEmpty(value);
-        markAsModified();
+    public void setGroupName(String value) {
+        value = nullToEmpty(value);
+        markAsModified(!value.equals(groupName));
     }
 
     /**
@@ -156,9 +156,10 @@ final class SerializableManagedResourceConfiguration extends AbstractManagedReso
      * @param value The connection string that is used to connect to the management server.
      */
     @Override
-    public void setConnectionString(final String value) {
-        connectionString = nullToEmpty(value);
-        markAsModified();
+    public void setConnectionString(String value) {
+        value = nullToEmpty(value);
+        markAsModified(!value.equals(connectionString));
+        connectionString = value;
     }
 
     private boolean equals(final ManagedResourceConfiguration other){
