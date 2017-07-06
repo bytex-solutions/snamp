@@ -30,9 +30,8 @@ export class Resource extends EntityWithSub {
             this.removeParameter("smartMode");
         }
         // set the group
-        if (this.contains("group")) {
-            this.groupName = this.getParameter("group").value;
-            this.removeParameter("group");
+        if (parameters["groupName"] != undefined && parameters["groupName"].length > 0) {
+            this.groupName = parameters["groupName"];
         }
 
         // set the group

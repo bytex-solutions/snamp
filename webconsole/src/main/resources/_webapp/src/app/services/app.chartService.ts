@@ -15,7 +15,8 @@ import 'rxjs/add/operator/cache';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
-import {ChartDataFabric} from "../charts/model/data/fabric";
+import { ChartDataFabric } from "../charts/model/data/fabric";
+import { isNullOrUndefined } from "util";
 
 @Injectable()
 export class ChartService {
@@ -23,7 +24,7 @@ export class ChartService {
     private _dashboard:Dashboard;
     private chartSubjects:{ [key:string]: Subject<ChartData[]> } = {};
 
-    private groups:Observable<string[]>;
+    private groups:Subject<string[]> = new Subject<string[]>();
 
     constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
           this.loadDashboard();
@@ -40,12 +41,16 @@ export class ChartService {
         return this._dashboard.charts.filter(_ch => (_ch.getGroupName() == groupName));
     }
 
+    public removeChartsByGroupName(groupName:string):void {
+
+    }
+
     public getChartByName(chartName:string):AbstractChart {
         return this._dashboard.charts.filter(_ch => (_ch.name == chartName))[0];
     }
 
     public getGroups():Observable<string[]> {
-        return this.groups;
+        return this.groups.asObservable().share();
     }
 
     public addNewGroup(groupName:string):void {
@@ -71,8 +76,8 @@ export class ChartService {
 
     private loadDashboard():void {
         let _res:any = this._http.get(REST.CHART_DASHBOARD).map((res:Response) => res.json()).publishLast().refCount();
-        this.groups = _res.map((data:any) => ((data["groups"] == undefined) ? [] : data["groups"]));
         _res.subscribe(data => {
+            this.groups.next(isNullOrUndefined(data["groups"]) ? [] : data["groups"]);
             this._dashboard = new Dashboard();
             this.chartSubjects = {};
             if (data.charts.length > 0) {
@@ -89,7 +94,10 @@ export class ChartService {
 
     public saveDashboard():void {
          this._http.put(REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(() => console.log("Dashboard has been saved successfully"));
+            .subscribe(() => {
+                console.log("Dashboard has been saved successfully");
+                this.groups.next(this._dashboard.groups);
+         });
     }
 
     pushNewChartData(_data:any):void {

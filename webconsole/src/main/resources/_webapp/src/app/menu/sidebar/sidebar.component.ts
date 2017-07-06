@@ -8,6 +8,7 @@ import {
   Modal,
   DialogFormModal
 } from 'angular2-modal/plugins/vex';
+import { Observable } from "rxjs/Observable";
 
 @Component({
   selector: 'side-bar',
@@ -22,17 +23,12 @@ export class Sidebar {
     constructor(private _viewService:ViewService, private _chartService:ChartService,
         private modal: Modal, private _router: Router) {}
 
-    private views:string[] = [];
-    private groupNames:string[] = [];
+    private views:Observable<Array<string>>;
+    private groupNames:Observable<Array<string>>;
 
     ngOnInit() {
-        this._viewService.getViewNames().subscribe((data:string[]) => {
-            this.views = data;
-        });
-
-        this._chartService.getGroups().subscribe((data:string[]) => {
-            this.groupNames = data;
-        });
+        this.views = this._viewService.getViewNames();
+        this.groupNames = this._chartService.getGroups();
     }
 
     ngAfterViewInit() {
