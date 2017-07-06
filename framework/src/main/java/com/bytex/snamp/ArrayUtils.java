@@ -318,7 +318,7 @@ public final class ArrayUtils {
     public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader) {
         if (arrayType.getDimension() > 1)
             throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
-        final Class<?> elementType = callAndWrapException(() -> OpenTypeBuilder.getUnderlyingJavaClass(arrayType, loader), IllegalArgumentException::new);
+        final Class<?> elementType = callAndWrapException(() -> OpenTypeBuilder.getUnderlyingJavaClass(arrayType, loader), IllegalArgumentException::new).getComponentType();
         return (T) emptyArrayImpl(elementType);
     }
 

@@ -846,7 +846,6 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
 
         resource = resources.getOrAdd(STUB_RESOURCE_NAME);
         resource.setGroupName(SCALABLE_GROUP_NAME);
-        fillStubAttributes(resource.getAttributes());
 
         resource = resources.getOrAdd("implicit-group-resource1");
         resource.setGroupName(IMPLICIT_GROUP);
