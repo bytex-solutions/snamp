@@ -126,8 +126,9 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     private synchronized void updateStatus(final DefaultResourceGroupHealthStatus newStatus, final HealthStatusTrigger trigger) {
         final DefaultResourceGroupHealthStatus prevStatus = status;
+        status = newStatus;
         if (!prevStatus.like(newStatus))    //if status was not changed then exit without any notifications.
-            trigger.statusChanged(prevStatus, status = newStatus);
+            trigger.statusChanged(prevStatus, newStatus);
     }
 
     /**
