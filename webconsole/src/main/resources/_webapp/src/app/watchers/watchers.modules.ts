@@ -6,10 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
 import { ModalModule } from 'angular2-modal';
-import {
-  VexModalModule,
-  providers
-} from 'angular2-modal/plugins/vex';
+import { VexModalModule, providers } from 'angular2-modal/plugins/vex';
 import { CommonSnampUtilsModule } from '../app.module';
 
 import { TemplateComponent } from './watchers.template';
@@ -21,7 +18,6 @@ import { TriggerComponent } from './components/trigger.component';
 import { ColoredCondition } from './components/condition.block';
 
 import { KeysPipe } from './watchers.pipes';
-import { WatcherProvisioning } from "./watchers.prov";
 import { PTable } from "./components/ptable.component";
 import { PoliciesComponent } from "./components/policies.component";
 
@@ -42,8 +38,7 @@ const PROVIDERS:any =  [
       RouterModule.forChild([{
             path: '', component: TemplateComponent, children: [
                 { path: '', component: MainComponent },
-                { path: 'dashboard', component: WatcherDashboard },
-                { path: 'prov', component: WatcherProvisioning }
+                { path: 'dashboard', component: WatcherDashboard }
             ]
       }])
     ],
@@ -51,7 +46,6 @@ const PROVIDERS:any =  [
         TemplateComponent,
         MainComponent,
         WatcherDashboard,
-        WatcherProvisioning,
         CheckersComponent,
         TriggerComponent,
         PoliciesComponent,

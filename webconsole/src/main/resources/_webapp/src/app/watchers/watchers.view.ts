@@ -64,6 +64,10 @@ export class MainComponent implements OnInit {
 
     private newPolicyAppended:boolean = false;
 
+    private groupSelection:boolean = false;
+    private groupNameChanged:boolean = false;
+    private oldSelectedComponent:string = "";
+
     constructor(private http: ApiClient, private modal: Modal, overlay: Overlay, vcRef: ViewContainerRef, private cd: ChangeDetectorRef) {
         overlay.defaultViewContainer = vcRef;
     }
@@ -179,6 +183,7 @@ export class MainComponent implements OnInit {
 
     private selectCurrentComponent(component: string): void {
         this.selectedComponent = component;
+        this.oldSelectedComponent = component;
         this.loadAttributesOnComponentSelected();
         this.activeWatcher.name = component;
         this.activeWatcher.trigger = new ScriptletDataObject({});
@@ -275,7 +280,10 @@ export class MainComponent implements OnInit {
         this.activeWatcher = $.extend(true, {}, watcher);
         this.isNewEntity = false;
         this.selectedComponent = watcher.name;
+        this.oldSelectedComponent = watcher.name;
+        this.groupNameChanged = false;
         this.loadAttributesOnComponentSelected();
+        this.groupSelection = this.getGroupSelectionForActiveResource();
     }
 
     public getPanelHeader(): string {
@@ -460,6 +468,36 @@ export class MainComponent implements OnInit {
         this.currentRecommendation = undefined;
         this.cd.detectChanges();
     }
+
+    // group setting
+
+    saveManualGroupName():void {
+        this.selectCurrentComponent(this.selectedComponent);
+        console.log("Manual group name has been saved, no reload is required");
+        this.groupNameChanged = false;
+    }
+
+    triggerGroupNameChanged(value:string):void {
+        this.groupNameChanged = (this.oldSelectedComponent != value);
+    }
+
+    private getGroupSelectionForActiveResource():boolean {
+        if (isNullOrUndefined(this.components) || this.components.length == 0) {
+            return false;
+        } else if (!isNullOrUndefined(this.activeWatcher)
+            && !isNullOrUndefined(this.activeWatcher.name)
+            && this.activeWatcher.name.length > 0) {
+            for (let i = 0; i < this.components.length; i++) {
+                if (this.components[i] == this.activeWatcher.name) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
 
 }
 
