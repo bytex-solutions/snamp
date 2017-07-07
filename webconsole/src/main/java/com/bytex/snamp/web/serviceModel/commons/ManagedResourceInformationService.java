@@ -97,7 +97,7 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
                 resources.stream()
                         .map(ManagedResourceConfiguration::getAttributes)
                         .flatMap(attrs -> attrs.entrySet().stream().map(AttributeInformationWrapper::new))
-                        .collect(HashMultiset::create, HashMultiset::add, HashMultiset::addAll);
+                        .collect(HashMultiset::create, Multiset::add, Multiset::addAll);
 
         return attributes
                 .elementSet()
