@@ -666,7 +666,7 @@
     <!-- Supervisors subentities (checkers, triggers, policies) and supervisor's inner settings -->
     <div class="row" style="margin-top: 30px">
 
-      <div class="col-md-7">
+      <div class="col-md-8">
         <div class="row">
           <!-- Inner settings -->
           <panel [header]="'Supervisor settings'" [column]="'12'" *ngIf="activeWatcher != undefined">
@@ -774,47 +774,38 @@
         </div>
       </div>
 
-      <div class="col-md-5">
+      <div class="col-md-4" *ngIf="activeWatcher != undefined">
         <div class="row">
-          <!-- Subentities -->
-          <panel [header]="getPanelHeader()" [column]="'12'" *ngIf="activeWatcher != undefined">
-            <div class="row row-margin-bottom-sm">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
-                Trigger
-              </label>
-              <div class="col-md-4 col-sm-4 col-xs-12">
-                <button class="btn btn-primary"
-                        (click)="initTriggerModal()"
-                        aria-hidden="true"> Edit trigger
-                </button>
-              </div>
+          <div class="animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="tile-stats">
+              <div class="icon" style="cursor: pointer;" (click)="initTriggerModal()"><i class="fa fa-pencil-square-o"></i></div>
+              <div class="count">1</div>
+              <h3>Trigger</h3>
+              <p>Edit trigger for supervisor</p>
             </div>
+          </div>
+        </div>
 
-            <div class="row row-margin-bottom-sm">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
-                Checkers
-              </label>
-              <div class="col-md-4 col-sm-4 col-xs-12">
-                <button class="btn btn-primary"
-                        [disabled]="!(attributes && attributes.length > 0)"
-                        (click)="initCheckersModal()"
-                        aria-hidden="true"> Edit checkers
-                </button>
-              </div>
+        <div class="row">
+          <div class="animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="tile-stats">
+              <div class="icon" style="cursor: pointer;" (click)="initCheckersModal()"><i class="fa fa-pencil-square-o"></i></div>
+              <div class="count">{{activeWatcher.getCheckersCount()}}</div>
+              <h3>Checkers</h3>
+              <p>Edit checkers for supervisor</p>
             </div>
+          </div>
+        </div>
 
-            <div class="row row-margin-bottom-sm">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
-                Policies
-              </label>
-              <div class="col-md-4 col-sm-4 col-xs-12">
-                <button class="btn btn-primary"
-                        (click)="initPoliciesModal()"
-                        aria-hidden="true"> Edit policies
-                </button>
-              </div>
+        <div class="row">
+          <div class="animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="tile-stats">
+              <div class="icon" style="cursor: pointer;" (click)="initPoliciesModal()"><i class="fa fa-pencil-square-o"></i></div>
+              <div class="count">{{activeWatcher.getPoliciesCount()}}</div>
+              <h3>Policies</h3>
+              <p>Edit policies for supervisor</p>
             </div>
-          </panel>
+          </div>
         </div>
       </div>
     </div>

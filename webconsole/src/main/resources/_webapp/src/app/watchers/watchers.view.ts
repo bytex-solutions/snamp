@@ -219,6 +219,7 @@ export class MainComponent implements OnInit {
 
     private loadAttributesOnComponentSelected(): void {
         console.log("Looking for attributes for group: ", this.selectedComponent);
+        this.attributes = [];
         this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
             .map((res: Response) => {
                 let _data: any = res.json();
@@ -227,7 +228,8 @@ export class MainComponent implements OnInit {
                     _values.push(new AttributeInformation(_data[i]));
                 }
                 return _values;
-            }).catch((res: Response) => Observable.of([])).cache()
+            })
+            .catch((res: Response) => Observable.of([])).cache()
             .subscribe((data) => {
                 this.attributes = data;
                 console.log("attributes: ", data);

@@ -55,7 +55,7 @@ export class Watcher extends Entity {
 
     recalculateVotes():void {
         let _voteWeight:number = 0;
-        let _count:number = Object.keys(this.scalingPolicies).length;
+        let _count:number = this.getPoliciesCount();
         switch(this.votingStrategy) {
             case "all":
                 _voteWeight = 0.5 + Number.EPSILON;
@@ -75,5 +75,13 @@ export class Watcher extends Entity {
                 (<AbstractWeightedScalingPolicy>this.scalingPolicies[key].policyObject).voteWeight = _voteWeight;
             }
         }
+    }
+
+    getCheckersCount():number {
+        return Object.keys(this.attributeCheckers).length
+    }
+
+    getPoliciesCount():number {
+        return Object.keys(this.scalingPolicies).length;
     }
 }
