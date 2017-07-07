@@ -115,10 +115,11 @@
                   <input class="form-control"
                          type="text"
                          [(ngModel)]="activeResource.groupName"
+                         (ngModelChange)="triggerGroupNameChanged($event)"
                          id="manualGroupName"
                          placeholder="Input group name manually...">
                   <span class="input-group-btn">
-                     <button class="btn btn-secondary btn-primary" type="button" (click)="saveManualGroupName()">Save</button>
+                     <button class="btn btn-secondary" [class.btn-primary]="groupNameChanged" type="button" (click)="saveManualGroupName()" [disabled]="!groupNameChanged">Save</button>
                   </span>
                 </div>
               </div>

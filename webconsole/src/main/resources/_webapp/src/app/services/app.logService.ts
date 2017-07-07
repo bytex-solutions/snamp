@@ -5,7 +5,8 @@ import { Subject } from 'rxjs/Subject';
 import { AbstractNotification } from "./model/notifications/abstract.notification";
 import { LogNotification } from "./model/notifications/log.notification";
 import { NotificationFactory } from "./model/notifications/factory";
-import {isNullOrUndefined} from "util";
+import { isNullOrUndefined } from "util";
+import { $WebSocket } from 'angular2-websocket/angular2-websocket';
 
 @Injectable()
 export class SnampLogService {
@@ -15,6 +16,7 @@ export class SnampLogService {
        this.flushBuffer();
     }
 
+    private ws: $WebSocket;
     private MAX_SIZE:number = 500;
     private SPLICE_COUNT:number = 30; // how many elements will we delete from the end of the array
     private RECENT_COUNT:number = 15; // default count of the recent message
@@ -27,13 +29,36 @@ export class SnampLogService {
     constructor(private localStorageService: LocalStorageService) {
           let welcomeMessage:AbstractNotification = new LogNotification();
           welcomeMessage.message = "SNAMP WEB UI has started successfully";
-          this.logObs = new Subject<AbstractNotification>()
+          this.logObs = new Subject<AbstractNotification>();
           let _tmp:any = this.localStorageService.get(this.keyToggleAlerts);
           if (isNullOrUndefined(_tmp)) {
               this.displayAlerts = true;
           } else {
               this.displayAlerts = (_tmp == 'true');
           }
+
+        this.ws = new $WebSocket(SnampLogService.getWsAddress(), [],
+            {initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true});
+
+        this.ws.getDataStream()
+            .map((msg) => JSON.parse(msg.data))
+            .subscribe(
+                (msg)=> this.pushLog(NotificationFactory.makeFromJson(msg)),
+                (msg)=> console.log("Error occurred while listening to the socket: ", msg),
+                ()=> console.log("Socket connection has been completed")
+            );
+    }
+
+    private static getWsAddress():string {
+        let loc = window.location, new_uri;
+        if (loc.protocol === "https:") {
+            new_uri = "wss:";
+        } else {
+            new_uri = "ws:";
+        }
+        new_uri += "//" + loc.host;
+        new_uri += loc.pathname + "console/events";
+        return new_uri;
     }
 
     get displayAlerts(): boolean {

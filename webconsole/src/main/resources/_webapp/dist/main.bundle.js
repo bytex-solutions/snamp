@@ -103858,11 +103858,9 @@ __webpack_require__("./node_modules/style-loader/index.js!./node_modules/css-loa
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var platform_browser_1 = __webpack_require__("./node_modules/@angular/platform-browser/index.js");
-var angular2_websocket_1 = __webpack_require__("./node_modules/angular2-websocket/angular2-websocket.js");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var bootstrap_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
-var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var PNotify = __webpack_require__("./node_modules/pnotify/src/pnotify.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.mobile.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.buttons.js");
@@ -103877,27 +103875,9 @@ var App = (function () {
         title.setTitle("SNAMP web console");
         overlay.defaultViewContainer = vcRef;
     }
-    App.prototype.getWsAddress = function () {
-        var loc = window.location, new_uri;
-        if (loc.protocol === "https:") {
-            new_uri = "wss:";
-        }
-        else {
-            new_uri = "ws:";
-        }
-        new_uri += "//" + loc.host;
-        new_uri += loc.pathname + "console/events";
-        return new_uri;
-    };
     App.prototype.ngAfterViewInit = function () {
         var _this = this;
-        this.ws = new angular2_websocket_1.$WebSocket(this.getWsAddress(), [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
-        this.ws.getDataStream()
-            .map(function (msg) { return JSON.parse(msg.data); })
-            .subscribe(function (msg) {
-            var _log = factory_1.NotificationFactory.makeFromJson(msg);
-            _this._snampLogService.pushLog(_log);
-            // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)
+        this._snampLogService.getLogObs().subscribe(function (log) {
             if (_this._router.url.indexOf('/logview') < 0) {
                 // limit the notifications maximum count
                 if (_this.notificationCount > 3) {
@@ -103906,9 +103886,9 @@ var App = (function () {
                 }
                 if (!document.hidden && _this._snampLogService.displayAlerts) {
                     var notice = new PNotify({
-                        title: _log.level,
-                        text: _log.shortDescription() + "<a class='details'>Details</a>",
-                        type: _log.level,
+                        title: log.level,
+                        text: log.shortDescription() + "<a class='details'>Details</a>",
+                        type: log.level,
                         hide: false,
                         styling: 'bootstrap3',
                         addclass: "stack-bottomright",
@@ -103920,7 +103900,7 @@ var App = (function () {
                         _thisReference_1.modal.alert()
                             .size('lg')
                             .title("Details for notification")
-                            .body(_log.htmlDetails())
+                            .body(log.htmlDetails())
                             .isBlocking(false)
                             .keyboard(27)
                             .open();
@@ -103928,10 +103908,6 @@ var App = (function () {
                     _this.notificationCount++;
                 }
             }
-        }, function (msg) {
-            console.log("Error occurred while listening to the socket: ", msg);
-        }, function () {
-            console.log("Socket connection has been completed");
         });
     };
     App = __decorate([
@@ -108748,8 +108724,10 @@ var abstract_notification_1 = __webpack_require__("./src/app/services/model/noti
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var angular2_websocket_1 = __webpack_require__("./node_modules/angular2-websocket/angular2-websocket.js");
 var SnampLogService = (function () {
     function SnampLogService(localStorageService) {
+        var _this = this;
         this.localStorageService = localStorageService;
         this.MAX_SIZE = 500;
         this.SPLICE_COUNT = 30; // how many elements will we delete from the end of the array
@@ -108767,10 +108745,26 @@ var SnampLogService = (function () {
         else {
             this.displayAlerts = (_tmp == 'true');
         }
+        this.ws = new angular2_websocket_1.$WebSocket(SnampLogService.getWsAddress(), [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
+        this.ws.getDataStream()
+            .map(function (msg) { return JSON.parse(msg.data); })
+            .subscribe(function (msg) { return _this.pushLog(factory_1.NotificationFactory.makeFromJson(msg)); }, function (msg) { return console.log("Error occurred while listening to the socket: ", msg); }, function () { return console.log("Socket connection has been completed"); });
     }
     // Flush the buffer if the user is closing browser
     SnampLogService.prototype.beforeunloadHandler = function (event) {
         this.flushBuffer();
+    };
+    SnampLogService.getWsAddress = function () {
+        var loc = window.location, new_uri;
+        if (loc.protocol === "https:") {
+            new_uri = "wss:";
+        }
+        else {
+            new_uri = "ws:";
+        }
+        new_uri += "//" + loc.host;
+        new_uri += loc.pathname + "console/events";
+        return new_uri;
     };
     Object.defineProperty(SnampLogService.prototype, "displayAlerts", {
         get: function () {
@@ -108892,7 +108886,7 @@ var ApiClient = (function () {
         return headers;
     };
     // Functional part of code to log and doing some actions
-    ApiClient.prototype.attachProcessing = function (response, emptyfyIfError, url) {
+    ApiClient.prototype.attachProcessing = function (response, emptyfyIfError, pushError) {
         var _this = this;
         return response
             .catch(function (error) {
@@ -108900,13 +108894,18 @@ var ApiClient = (function () {
                 console.log("Auth is not working.", error);
                 window.location.href = "login.html?tokenExpired=true";
             }
-            _this._snampLogService.pushLog(new rest_client_notification_1.RestClientNotification(url, response));
+            if (pushError) {
+                _this._snampLogService.pushLog(new rest_client_notification_1.RestClientNotification(response));
+            }
             return emptyfyIfError ? Observable_1.Observable.empty() : error;
         }).do((function (data) {
             console.debug("Received data: ", data);
         }), (function (error) {
             console.log("Error occurred: ", error);
             $("#overlay").fadeOut();
+            if (pushError) {
+                _this._snampLogService.pushLog(new rest_client_notification_1.RestClientNotification(response));
+            }
         }), (function () {
             $("#overlay").fadeOut();
         }));
@@ -108914,32 +108913,32 @@ var ApiClient = (function () {
     ApiClient.prototype.get = function (url) {
         return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }), true, url);
+        }), true);
     };
     ApiClient.prototype.put = function (url, data) {
         return this.attachProcessing(this.http.put(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true, url);
+        }), true, true);
     };
     ApiClient.prototype.post = function (url, data) {
         return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true, url);
+        }), true, true);
     };
     ApiClient.prototype.delete = function (url) {
         return this.attachProcessing(this.http.delete(url, {
             headers: this.createAuthorizationHeader()
-        }), true, url);
+        }), true, true);
     };
     ApiClient.prototype.getWithErrors = function (url) {
         return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }), false, url);
+        }), false);
     };
     ApiClient.prototype.postWithErrors = function (url, data) {
         return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }), false, url);
+        }), false, true);
     };
     ApiClient = __decorate([
         core_1.Injectable(), 
@@ -110115,21 +110114,29 @@ exports.ResourceNotification = ResourceNotification;
 "use strict";
 "use strict";
 var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
+var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
 var RestClientNotification = (function (_super) {
     __extends(RestClientNotification, _super);
-    function RestClientNotification(path, error) {
+    function RestClientNotification(error) {
         _super.call(this);
-        this.path = "";
         this.error = undefined;
-        this.path = path;
         this.error = error;
         this.type = abstract_notification_1.AbstractNotification.REST;
         this.level = "error";
     }
     RestClientNotification.prototype.htmlDetails = function () {
-        var _details = "<strong>PATH:</strong>" + this.path + "<br/>";
+        var _details = "";
+        _details += "<strong>Error type: </strong>server request error<br/>";
+        _details += "<strong>Timestamp: </strong>" + this.timestamp + "<br/>";
         if (this.error != undefined) {
-            _details += "<strong>Error:</strong>" + this.error.toSource() + "<br/>";
+            if (this.error instanceof http_1.Response) {
+                _details += "<strong>Path:</strong>" + this.error.url + "<br/>";
+                _details += "<strong>Status code:</strong>" + this.error.status + "<br/>";
+                _details += "<strong>Status text:</strong>" + this.error.statusText + "<br/>";
+            }
+            else {
+                _details += "<strong>Error (json representation):</strong>" + JSON.stringify(this.error) + "<br/>";
+            }
         }
         return _details;
     };

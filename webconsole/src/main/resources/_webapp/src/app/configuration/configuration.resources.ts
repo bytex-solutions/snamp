@@ -25,6 +25,7 @@ export class ResourcesComponent implements OnInit {
     private availableThreadPools:ThreadPool[] = [];
     private oldSmartMode = false;
     private groupSelection:boolean = false;
+    private groupNameChanged:boolean = false;
 
     private static select2ElementId:string = "#resourceSelection";
 
@@ -203,7 +204,11 @@ export class ResourcesComponent implements OnInit {
 
     saveManualGroupName():void {
         this.http.put(REST.RESOURCE_GROUP(this.activeResource.name), this.activeResource.groupName)
-            .subscribe(() => console.log("Manual group name has been saved, no reload is required"));
+            .subscribe(() => {
+                console.log("Manual group name has been saved, no reload is required");
+                this.oldGroupValue = this.activeResource.groupName;
+                this.groupNameChanged = false;
+        });
     }
 
     changeType(event:any):void {
@@ -241,6 +246,7 @@ export class ResourcesComponent implements OnInit {
                         this.oldGroupValue = event.target.value;
                         this.http.put(REST.RESOURCE_GROUP(this.activeResource.name), event.target.value)
                             .subscribe(() => location.reload());
+                        this.groupNameChanged = false;
                         return response;
                     })
                     .catch(() => {
@@ -293,5 +299,9 @@ export class ResourcesComponent implements OnInit {
             this.activeResource.connectionString)
             .subscribe(res => console.log("connection string for " + this.activeResource.name +
                 " has been changed to " + this.activeResource.connectionString + " with result " + res));
+    }
+
+    triggerGroupNameChanged(value:string):void {
+        this.groupNameChanged = (this.oldGroupValue != value);
     }
 }

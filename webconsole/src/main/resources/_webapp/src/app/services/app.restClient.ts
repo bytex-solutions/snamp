@@ -7,7 +7,7 @@ import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/operator/catch';
 import { SnampLogService } from "./app.logService";
-import {RestClientNotification} from "./model/notifications/rest.client.notification";
+import { RestClientNotification } from "./model/notifications/rest.client.notification";
 
 @Injectable()
 export class ApiClient {
@@ -21,14 +21,16 @@ export class ApiClient {
     }
 
     // Functional part of code to log and doing some actions
-    private attachProcessing(response: Observable<Response>, emptyfyIfError?:boolean, url?:string): Observable<Response> {
+    private attachProcessing(response: Observable<Response>, emptyfyIfError?:boolean, pushError?:boolean): Observable<Response> {
         return response
             .catch((error: Response | any) => {
                 if (error instanceof Response && error.status == 401) {
                     console.log("Auth is not working.", error);
                     window.location.href = "login.html?tokenExpired=true";
                 }
-                this._snampLogService.pushLog(new RestClientNotification(url, response));
+                if (pushError) {
+                    this._snampLogService.pushLog(new RestClientNotification(response));
+                }
                 return emptyfyIfError ? Observable.empty() : error;
             }).do(
                 ((data: any) => {
@@ -37,6 +39,9 @@ export class ApiClient {
                 ((error: any) => {
                     console.log("Error occurred: ", error);
                     $("#overlay").fadeOut();
+                    if (pushError) {
+                        this._snampLogService.pushLog(new RestClientNotification(response));
+                    }
                 }),
                 (() => {
                     $("#overlay").fadeOut()
@@ -47,38 +52,38 @@ export class ApiClient {
     get(url) {
         return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }), true, url);
+        }), true);
     }
 
     put(url, data) {
         return this.attachProcessing(this.http.put(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true, url);
+        }), true, true);
     }
 
     post(url, data) {
         return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true, url);
+        }), true, true);
     }
 
     delete(url) {
         return this.attachProcessing(this.http.delete(url, {
             headers: this.createAuthorizationHeader()
-        }), true, url);
+        }), true, true);
     }
 
 
     getWithErrors(url) {
         return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }), false, url);
+        }), false);
     }
 
     postWithErrors(url, data) {
         return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }), false, url);
+        }), false, true);
     }
 }
 
