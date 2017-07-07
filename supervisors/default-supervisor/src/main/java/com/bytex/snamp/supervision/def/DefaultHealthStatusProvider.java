@@ -60,7 +60,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         }
 
         boolean like(final DefaultResourceGroupHealthStatus other) {
-            if (!groupStatus.equals(other.groupStatus))
+            if (!groupStatus.like(other.groupStatus))
                 return false;
             final OkStatus OK = new OkStatus();
             for (final String resourceName : Sets.union(keySet(), other.keySet())) {
