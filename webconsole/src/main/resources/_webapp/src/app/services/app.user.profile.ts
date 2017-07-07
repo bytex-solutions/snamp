@@ -16,6 +16,11 @@ export class UserProfileService {
         return this.decodeProfile()["roles"].indexOf("admin") >= 0;
     }
 
+    public isUserHasManagerOrAdminRole():boolean {
+        return (this.decodeProfile()["roles"].indexOf("admin") >= 0)
+            || (this.decodeProfile()["roles"].indexOf("manager") >= 0);
+    }
+
     public getUserName():string {
         return this.decodeProfile()["sub"];
     }

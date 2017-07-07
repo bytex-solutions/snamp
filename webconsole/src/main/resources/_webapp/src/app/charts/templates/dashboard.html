@@ -212,7 +212,7 @@
 </div>
 
 <img src="/snamp/assets/img/add.png" *ngIf="!_charts || _charts.length == 0" class="chartMenuImage"/>
-<ul id="chartMenu">
+<ul id="chartMenu" *ngIf="isAllowed()">
   <li [tooltip]="'Pie chart'" (click)="appendChartClicked('doughnut')"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
   <li [tooltip]="'Horizontal bar chart'" (click)="appendChartClicked('horizontalBar')"><i class="fa fa-align-left " aria-hidden="true"></i></li>
   <li [tooltip]="'Vertical bar chart'" (click)="appendChartClicked('bar')"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
@@ -236,7 +236,7 @@
 
       <div class="col-md-2" style="padding-top: 20px;">
 
-        <div class="row" style="float: right">
+        <div class="row" style="float: right" *ngIf="isAllowed()">
           <button class="btn btn-danger" (click)="removeDashboard()"><i class="fa fa-trash"></i></button>
         </div>
       </div>
@@ -262,9 +262,9 @@
                 <h5 *ngIf="chart.updateStopped">(Paused at {{chart.pausedTime | date:'dd/MM/y HH:mm:ss'}})</h5>
                 <ul class="nav navbar-right panel_toolbox">
                   <li>
-                    <a (click)="modifyChart(chart)"><i class="fa fa-wrench"></i></a>
+                    <a (click)="modifyChart(chart)" *ngIf="isAllowed()"><i class="fa fa-wrench"></i></a>
                     <a [attr.id]="'toggleDraw' + chart.id" class="toggle-link" (click)="toggleDrawingChart(chart)"><i class="fa fa-pause-circle-o"></i></a>
-                    <a class="close-link" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
+                    <a class="close-link" *ngIf="isAllowed()" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
                   </li>
                 </ul>
                 <div class="clearfix"></div>

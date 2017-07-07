@@ -26,6 +26,8 @@ import 'rxjs/add/observable/of';
 
 import 'smartwizard';
 import 'select2';
+import {UserProfileService} from "../services/app.user.profile";
+import {isNullOrUndefined} from "util";
 
 @Component({
     moduleId: module.id,
@@ -102,7 +104,8 @@ export class Dashboard {
                 private cd: ChangeDetectorRef,
                 private modal: Modal,
                 private route: ActivatedRoute,
-                private router: Router,) {
+                private router: Router,
+                private ups:UserProfileService) {
 
         overlay.defaultViewContainer = vcRef;
         this.timeInterval = this.intervals[0];
@@ -425,7 +428,7 @@ export class Dashboard {
     }
 
     onChangeStop(index: number, event: NgGridItemEvent): void {
-        if (index != undefined && this._charts[index] != undefined) {
+        if (this.isAllowed() && !isNullOrUndefined(index) && !isNullOrUndefined(this._charts[index])) {
             this._charts[index].preferences["gridcfg"] = event;
             this._chartService.saveDashboard();
             this._charts[index].resize();
@@ -505,6 +508,10 @@ export class Dashboard {
                         console.log("user preferred to decline dashboard removing");
                     });
             }).catch(() => {});
+    }
+
+    isAllowed():boolean {
+        return this.ups.isUserHasManagerOrAdminRole();
     }
 }
 

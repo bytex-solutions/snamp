@@ -106895,7 +106895,7 @@ var ResourceEntitiesTable = (function () {
         var _this = this;
         this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map(function (res) { return res.text(); })
-            .subscribe(function (data) {
+            .subscribe(function () {
             console.log("Entity " + _this.activeEntity.name + " has been saved");
             switch (_this.entityType) {
                 case "attribute":
@@ -106904,7 +106904,11 @@ var ResourceEntitiesTable = (function () {
                     }
                     else {
                         for (var i = 0; i < _this.resource.attributes.length; i++) {
-                            if (_this.resource.attributes[i].name == _this.activeEntity.name) {
+                            if (_this.resource.attributes[i].guid == _this.activeEntity.guid) {
+                                if (_this.resource.attributes[i].name != _this.activeEntity.name) {
+                                    // if we rename the entity - remove the original one
+                                    _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(_this.resource.getName(), _this.resource.name, _this.entityType + "s", _this.resource.attributes[i].name)).subscribe(function () { });
+                                }
                                 _this.resource.attributes[i] = _this.activeEntity;
                                 break;
                             }
@@ -106917,7 +106921,11 @@ var ResourceEntitiesTable = (function () {
                     }
                     else {
                         for (var i = 0; i < _this.resource.events.length; i++) {
-                            if (_this.resource.events[i].name == _this.activeEntity.name) {
+                            if (_this.resource.events[i].guid == _this.activeEntity.guid) {
+                                if (_this.resource.events[i].name != _this.activeEntity.name) {
+                                    // if we rename the entity - remove the original one
+                                    _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(_this.resource.getName(), _this.resource.name, _this.entityType + "s", _this.resource.events[i].name)).subscribe(function () { });
+                                }
                                 _this.resource.events[i] = _this.activeEntity;
                                 break;
                             }
@@ -106930,7 +106938,11 @@ var ResourceEntitiesTable = (function () {
                     }
                     else {
                         for (var i = 0; i < _this.resource.operations.length; i++) {
-                            if (_this.resource.operations[i].name == _this.activeEntity.name) {
+                            if (_this.resource.operations[i].guid == _this.activeEntity.guid) {
+                                if (_this.resource.operations[i].name != _this.activeEntity.name) {
+                                    // if we rename the entity - remove the original one
+                                    _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(_this.resource.getName(), _this.resource.name, _this.entityType + "s", _this.resource.operations[i].name)).subscribe(function () { });
+                                }
                                 _this.resource.operations[i] = _this.activeEntity;
                                 break;
                             }
@@ -107014,7 +107026,7 @@ var ResourceEntitiesTable = (function () {
         this.selectedEntity.name = this.selectedEntityName;
         this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
             .map(function (res) { return res.text(); })
-            .subscribe(function (data) {
+            .subscribe(function () {
             switch (_this.entityType) {
                 case "attribute":
                     _this.resource.attributes.push(_this.selectedEntity);
@@ -107031,6 +107043,7 @@ var ResourceEntitiesTable = (function () {
             _this.cd.detectChanges();
             $('#addExistentEntity' + _this.entityType).modal("hide");
             _this.selectedEntity.override = true;
+            _this.isNewEntity = false;
             _this.prepareEditEntityModal(_this.selectedEntity);
         });
     };
@@ -108290,7 +108303,7 @@ __export(__webpack_require__("./src/app/app.module.ts"));
 /***/ "./src/app/menu/sidebar/sidebar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <profile></profile><br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" class=\"clickableAnchor\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" class=\"clickableAnchor\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisors</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"thread-pools\" routerLinkActive=\"active\">Thread pools</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" class=\"clickableAnchor\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" class=\"clickableAnchor\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <!--<li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Health statuses</a></li>-->\r\n              <li *ngFor=\"let _view of views | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <profile></profile><br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" class=\"clickableAnchor\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li *ngIf=\"isAllowed()\"><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" class=\"clickableAnchor\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisors</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"thread-pools\" routerLinkActive=\"active\">Thread pools</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" class=\"clickableAnchor\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" class=\"clickableAnchor\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <!--<li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Health statuses</a></li>-->\r\n              <li *ngFor=\"let _view of views | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li *ngIf=\"isAllowed()\" routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
@@ -108305,12 +108318,14 @@ var app_chartService_1 = __webpack_require__("./src/app/services/app.chartServic
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var app_user_profile_1 = __webpack_require__("./src/app/services/app.user.profile.ts");
 var Sidebar = (function () {
-    function Sidebar(_viewService, _chartService, modal, _router) {
+    function Sidebar(_viewService, _chartService, modal, _router, ups) {
         this._viewService = _viewService;
         this._chartService = _chartService;
         this.modal = modal;
         this._router = _router;
+        this.ups = ups;
     }
     Sidebar.prototype.ngOnInit = function () {
         this.views = this._viewService.getViewNames();
@@ -108356,6 +108371,9 @@ var Sidebar = (function () {
         })
             .catch(function () { });
     };
+    Sidebar.prototype.isAllowed = function () {
+        return this.ups.isUserHasManagerOrAdminRole();
+    };
     Sidebar = __decorate([
         core_1.Component({
             selector: 'side-bar',
@@ -108365,10 +108383,10 @@ var Sidebar = (function () {
                 vex_1.DialogFormModal
             ]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _a) || Object, (typeof (_b = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _a) || Object, (typeof (_b = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _d) || Object, (typeof (_e = typeof app_user_profile_1.UserProfileService !== 'undefined' && app_user_profile_1.UserProfileService) === 'function' && _e) || Object])
     ], Sidebar);
     return Sidebar;
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
 }());
 exports.Sidebar = Sidebar;
 
@@ -109102,6 +109120,10 @@ var UserProfileService = (function () {
     };
     UserProfileService.prototype.isUserHasAdminRole = function () {
         return this.decodeProfile()["roles"].indexOf("admin") >= 0;
+    };
+    UserProfileService.prototype.isUserHasManagerOrAdminRole = function () {
+        return (this.decodeProfile()["roles"].indexOf("admin") >= 0)
+            || (this.decodeProfile()["roles"].indexOf("manager") >= 0);
     };
     UserProfileService.prototype.getUserName = function () {
         return this.decodeProfile()["sub"];
