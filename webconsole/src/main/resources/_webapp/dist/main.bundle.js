@@ -103305,13 +103305,15 @@ exports.AbstractComponentSpecificView = AbstractComponentSpecificView;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
 var cytoscape = __webpack_require__("./node_modules/cytoscape/src/index.js");
 var E2EView = (function () {
     function E2EView() {
         this._cy = undefined;
         this.preferences = {};
         this.id = "e2eview" + GUID.newGuid();
+        this.shelfLife = 0;
+        this.isShelfLifeSet = false;
         this.verticesCount = 0;
         this.arrivalsCount = 0;
     }
@@ -103471,11 +103473,13 @@ var E2EView = (function () {
         this._cy = cy;
         return cy;
     };
-    E2EView.prototype.toFixed = function (value, precision) {
+    E2EView.toFixed = function (value, precision) {
         var power = Math.pow(10, precision || 0);
         return String(Math.round(value * power) / power);
     };
     E2EView.prototype.updateData = function (currentData) {
+        if (document.hidden || !$('#' + this.id).length)
+            return; // do not update
         var originalData = currentData;
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
         console.log(currentData);
@@ -103596,10 +103600,10 @@ var E2EView = (function () {
             if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
                     result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                        + this.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
+                        + E2EView.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
                 }
                 else {
-                    result += "\n" + _md[i] + ": " + this.toFixed(data[_md[i]], 5);
+                    result += "\n" + _md[i] + ": " + E2EView.toFixed(data[_md[i]], 5);
                 }
             }
         }
@@ -103624,6 +103628,7 @@ var GUID = (function () {
     return GUID;
 }());
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -103634,6 +103639,7 @@ var GUID = (function () {
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_component_specific_view_1 = __webpack_require__("./src/app/analysis/model/abstract.component.specific.view.ts");
 var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var ChildComponentsView = (function (_super) {
     __extends(ChildComponentsView, _super);
     function ChildComponentsView() {
@@ -103647,6 +103653,9 @@ var ChildComponentsView = (function (_super) {
         _value["rootComponent"] = this.rootComponent;
         if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
+        }
+        if (this.isShelfLifeSet) {
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife);
         }
         return _value;
     };
@@ -103665,6 +103674,7 @@ exports.ChildComponentsView = ChildComponentsView;
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_component_specific_view_1 = __webpack_require__("./src/app/analysis/model/abstract.component.specific.view.ts");
 var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var ComponentModulesView = (function (_super) {
     __extends(ComponentModulesView, _super);
     function ComponentModulesView() {
@@ -103678,6 +103688,9 @@ var ComponentModulesView = (function (_super) {
         _value["rootComponent"] = this.rootComponent;
         if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
+        }
+        if (this.isShelfLifeSet) {
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife);
         }
         return _value;
     };
@@ -103723,6 +103736,7 @@ exports.Dashboard = Dashboard;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var LandscapeView = (function (_super) {
     __extends(LandscapeView, _super);
     function LandscapeView() {
@@ -103735,6 +103749,9 @@ var LandscapeView = (function (_super) {
         _value["name"] = this.name;
         if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
+        }
+        if (this.isShelfLifeSet) {
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife);
         }
         return _value;
     };
@@ -103756,11 +103773,13 @@ var abstract_component_specific_view_1 = __webpack_require__("./src/app/analysis
 var child_components_view_1 = __webpack_require__("./src/app/analysis/model/child.components.view.ts");
 var component_modules_view_1 = __webpack_require__("./src/app/analysis/model/component.modules.view.ts");
 var landscape_view_1 = __webpack_require__("./src/app/analysis/model/landscape.view.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
     }
-    Factory.createView = function (viewName, viewType, rootComponent) {
+    Factory.createView = function (viewName, viewType, rootComponent, shelfLife) {
         var _view;
         switch (viewType) {
             case abstract_e2e_view_1.E2EView.CHILD_COMPONENT:
@@ -103776,13 +103795,17 @@ var Factory = (function () {
                 throw new Error("Type " + viewType + " is unknown and cannot be parsed correctly");
         }
         _view.name = viewName;
-        if (rootComponent) {
+        if (!util_1.isNullOrUndefined(rootComponent)) {
             if (_view instanceof abstract_component_specific_view_1.AbstractComponentSpecificView) {
                 _view.rootComponent = rootComponent;
             }
             else {
                 console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
             }
+        }
+        if (!util_1.isNullOrUndefined(shelfLife)) {
+            _view.shelfLife = shelfLife;
+            _view.isShelfLifeSet = true;
         }
         // default values for the view
         _view.setDisplayedMetadata([]);
@@ -103824,6 +103847,10 @@ var Factory = (function () {
                 if (_json["rootComponent"] != undefined) {
                     _view.rootComponent = _json["rootComponent"];
                 }
+            }
+            if (_json["shelfLife"] != undefined) {
+                _view.shelfLife = app_utils_1.SnampUtils.parseDuration(_json["shelfLife"]);
+                _view.isShelfLifeSet = true;
             }
             if (_json["name"] != undefined) {
                 _view.name = _json["name"];

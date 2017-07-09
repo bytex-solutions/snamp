@@ -14,6 +14,9 @@ export abstract class E2EView {
     public preferences:{ [key: string]: any } = { };
     public id:string = "e2eview" + GUID.newGuid();
 
+    public shelfLife:number = 0;
+    public isShelfLifeSet:boolean = false;
+
     private verticesCount:number = 0;
     private arrivalsCount:number = 0;
 
@@ -201,12 +204,13 @@ export abstract class E2EView {
        return cy;
     }
 
-    private toFixed(value:any, precision:number):string {
+    private static toFixed(value:any, precision:number):string {
         let power = Math.pow(10, precision || 0);
         return String(Math.round(value * power) / power);
     }
 
     public updateData(currentData:any):any {
+        if (document.hidden ||  !$('#' + this.id).length) return; // do not update
         let originalData:any = currentData;
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
         console.log(currentData);
@@ -352,9 +356,9 @@ export abstract class E2EView {
             if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
                     result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                            + this.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
+                            + E2EView.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
                 } else {
-                    result += "\n" + _md[i] + ": " + this.toFixed(data[_md[i]], 5);
+                    result += "\n" + _md[i] + ": " + E2EView.toFixed(data[_md[i]], 5);
                 }
             }
         }

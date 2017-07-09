@@ -50,10 +50,13 @@ var AddView = (function () {
     function AddView(apiClient, _viewService, _router) {
         this._viewService = _viewService;
         this._router = _router;
-        this.types = ViewType.createViewTypes();
+        this.types = Description.createViewTypes();
         this.chosenComponent = undefined;
         this.viewType = undefined;
         this.viewName = undefined;
+        this.shelfLife = 1;
+        this.useShelfLife = false;
+        this.periods = Description.createPeriodsTypes();
         this.http = apiClient;
     }
     AddView.prototype.ngOnInit = function () {
@@ -62,7 +65,8 @@ var AddView = (function () {
             .publishLast().refCount();
     };
     AddView.prototype.saveView = function () {
-        var _view = objectFactory_1.Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
+        console.log("Trying to append following view: ", this.viewName, this.viewType.id, this.chosenComponent, this.useShelfLife ? this.shelfLife * 1000 : undefined);
+        var _view = objectFactory_1.Factory.createView(this.viewName, this.viewType.id, this.chosenComponent, this.useShelfLife ? this.shelfLife * 1000 : undefined);
         this._viewService.newView(_view);
         this._router.navigateByUrl('/view/' + _view.name);
     };
@@ -78,23 +82,36 @@ var AddView = (function () {
     var _a, _b, _c;
 }());
 exports.AddView = AddView;
-var ViewType = (function () {
-    function ViewType(name, id, description) {
+var Description = (function () {
+    function Description(name, id, description, period) {
         this.name = "";
         this.id = "";
         this.description = "";
+        this.period = 0; //in seconds
         this.name = name;
         this.id = id;
         this.description = description;
+        this.period = period;
     }
-    ViewType.createViewTypes = function () {
+    Description.createPeriodsTypes = function () {
         var result = [];
-        result.push(new ViewType("Landscape view", abstract_e2e_view_1.E2EView.LANDSCAPE, "Represents E2E view of all components in IT landscape"));
-        result.push(new ViewType("Child components view", abstract_e2e_view_1.E2EView.CHILD_COMPONENT, "Represents E2E view of child components"));
-        result.push(new ViewType("Component modules view", abstract_e2e_view_1.E2EView.COMPONENT_MODULES, "Represents communications scheme between the modules within the component"));
+        result.push(new Description("", "", "1 second", 1));
+        result.push(new Description("", "", "1 minute", 60));
+        result.push(new Description("", "", "5 minutes", 300));
+        result.push(new Description("", "", "15 minutes", 900));
+        result.push(new Description("", "", "1 hour", 3600));
+        result.push(new Description("", "", "12 hours", 43200));
+        result.push(new Description("", "", "24 hours", 86400));
         return result;
     };
-    return ViewType;
+    Description.createViewTypes = function () {
+        var result = [];
+        result.push(new Description("Landscape view", abstract_e2e_view_1.E2EView.LANDSCAPE, "Represents E2E view of all components in IT landscape"));
+        result.push(new Description("Child components view", abstract_e2e_view_1.E2EView.CHILD_COMPONENT, "Represents E2E view of child components"));
+        result.push(new Description("Component modules view", abstract_e2e_view_1.E2EView.COMPONENT_MODULES, "Represents communications scheme between the modules within the component"));
+        return result;
+    };
+    return Description;
 }());
 
 
@@ -506,7 +523,7 @@ exports.TimeIntervalsView = TimeIntervalsView;
 /***/ "./src/app/analysis/templates/addView.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Add E2E view</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'Gateway type'\" [column]=\"'8'\">\r\n        <div class=\"form leftAlign\">\r\n\r\n          <div class=\"form-group row\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewName\">\r\n              1. View name <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <input type=\"text\" id=\"viewName\" [(ngModel)]=\"viewName\" required=\"required\" class=\"form-control\" placeholder=\"Input view name\"/>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewType\">\r\n              2. Type of view <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <select class=\"form-control\" [(ngModel)]=\"viewType\" id=\"viewType\">\r\n                <option *ngFor=\"let type of types\" [ngValue]=\"type\">{{type.name}}</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\" *ngIf=\"viewType && viewType.id != 'landscape'\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewType\">\r\n              3. Component to analysis <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <select class=\"form-control\" [(ngModel)]=\"chosenComponent\" id=\"component\">\r\n                <option *ngFor=\"let component of components | async\" [ngValue]=\"component\">{{component}}</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"ln_solid\"></div>\r\n\r\n          <div class=\"row\">\r\n            <div class=\"col-sm-1 col-sm-offset-11\">\r\n              <div class=\"btn btn-primary\" (click)=\"saveView()\">Save</div>\r\n            </div>\r\n          </div>\r\n\r\n        </div>\r\n      </panel>\r\n\r\n      <panel [header]=\"'Description'\" [column]=\"'4'\">\r\n        <div class=\"row\">\r\n          <div class=\"col-sm-12 pagination-centered\" *ngIf=\"!viewType\">\r\n              Please select a type to get a description\r\n          </div>\r\n          <div class=\"col-sm-12\" *ngIf=\"viewType\">\r\n            {{viewType.description}}\r\n          </div>\r\n        </div>\r\n      </panel>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Add E2E view</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <panel [header]=\"'Gateway type'\" [column]=\"'8'\">\r\n        <div class=\"form leftAlign\">\r\n\r\n          <div class=\"form-group row\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewName\">\r\n              View name <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <input type=\"text\" id=\"viewName\" [(ngModel)]=\"viewName\" required=\"required\" class=\"form-control\" placeholder=\"Input view name\"/>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewType\">\r\n              Type of view <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <select class=\"form-control\" [(ngModel)]=\"viewType\" id=\"viewType\">\r\n                <option *ngFor=\"let type of types\" [ngValue]=\"type\">{{type.name}}</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\" *ngIf=\"viewType && viewType.id != 'landscape'\">\r\n            <label class=\"col-sm-2 col-form-label\" for=\"viewType\">\r\n              Component to analysis <span class=\"required\">*</span>\r\n            </label>\r\n            <div class=\"col-sm-10\">\r\n              <select class=\"form-control\" [(ngModel)]=\"chosenComponent\" id=\"component\">\r\n                <option *ngFor=\"let component of components | async\" [ngValue]=\"component\">{{component}}</option>\r\n              </select>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\">\r\n            <div class=\"item form-group\">\r\n              <label\r\n                      class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                      style=\"margin-top: 7px;\">\r\n                Use shelf life period\r\n              </label>\r\n\r\n              <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                <ui-switch\r\n                        [(ngModel)]=\"useShelfLife\"\r\n                        [size]=\"'small'\">\r\n                </ui-switch>\r\n              </div>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\">\r\n            <div class=\"item form-group\" *ngIf=\"useShelfLife\">\r\n              <label\r\n                      class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                      for=\"shelfLifeInputSelect\"\r\n                      style=\"margin-top: 7px;\">\r\n                Set shelf life duration (pick from list)\r\n              </label>\r\n\r\n              <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                <select class=\"form-control\" [(ngModel)]=\"shelfLife\" id=\"shelfLifeInputSelect\">\r\n                  <option *ngFor=\"let period of periods\" [ngValue]=\"period.period\">{{period.description}}</option>\r\n                </select>\r\n              </div>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"form-group row\">\r\n            <div class=\"item form-group\" *ngIf=\"useShelfLife\">\r\n              <label\r\n                      class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                      for=\"shelfLifeInputText\"\r\n                      style=\"margin-top: 7px;\">\r\n                Set shelf life duration (set manually in seconds)\r\n              </label>\r\n\r\n              <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                <input type=\"text\" id=\"shelfLifeInputText\" [(ngModel)]=\"shelfLife\" class=\"form-control\" placeholder=\"Input shelf life in seconds\"/>\r\n              </div>\r\n            </div>\r\n          </div>\r\n\r\n          <div class=\"ln_solid\"></div>\r\n\r\n          <div class=\"row\">\r\n            <div class=\"col-sm-1 col-sm-offset-11\">\r\n              <div class=\"btn btn-primary\" (click)=\"saveView()\">Save</div>\r\n            </div>\r\n          </div>\r\n\r\n        </div>\r\n      </panel>\r\n\r\n      <panel [header]=\"'Description'\" [column]=\"'4'\">\r\n        <div class=\"row\">\r\n          <div class=\"col-sm-12 pagination-centered\" *ngIf=\"!viewType\">\r\n              Please select a type to get a description\r\n          </div>\r\n          <div class=\"col-sm-12\" *ngIf=\"viewType\">\r\n            {{viewType.description}}\r\n          </div>\r\n        </div>\r\n      </panel>\r\n\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 

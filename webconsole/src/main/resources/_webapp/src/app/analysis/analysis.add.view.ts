@@ -24,11 +24,17 @@ export class AddView implements OnInit {
 
     private http:ApiClient;
     components:Observable<string[]>;
-    types:ViewType[] = ViewType.createViewTypes();
+    types:Description[] = Description.createViewTypes();
 
     chosenComponent:string = undefined;
-    viewType:ViewType = undefined;
+    viewType:Description = undefined;
     viewName:string = undefined;
+
+    shelfLife:number = 1;
+    useShelfLife:boolean = false;
+
+    periods = Description.createPeriodsTypes();
+
 
     constructor(apiClient: ApiClient, private _viewService:ViewService, private _router: Router) {
         this.http = apiClient;
@@ -41,28 +47,45 @@ export class AddView implements OnInit {
    }
 
    saveView():void {
-        let _view:E2EView = Factory.createView(this.viewName, this.viewType.id, this.chosenComponent);
+        console.log("Trying to append following view: ", this.viewName, this.viewType.id, this.chosenComponent,
+            this.useShelfLife ? this.shelfLife * 1000 : undefined);
+        let _view:E2EView = Factory.createView(this.viewName, this.viewType.id, this.chosenComponent,
+                this.useShelfLife ? this.shelfLife * 1000 : undefined);
         this._viewService.newView(_view);
         this._router.navigateByUrl('/view/' + _view.name);
    }
 }
 
-class ViewType {
+class Description {
     public name:string = "";
     public id:string = "";
     public description:string = "";
+    public period:number = 0; //in seconds
 
-    constructor(name:string, id:string, description:string) {
+    constructor(name:string, id:string, description:string, period?:number) {
         this.name = name;
         this.id = id;
         this.description = description;
+        this.period = period;
     }
 
-    public static createViewTypes():ViewType[] {
-        let result:ViewType[] = [];
-        result.push(new ViewType("Landscape view", E2EView.LANDSCAPE, "Represents E2E view of all components in IT landscape"));
-        result.push(new ViewType("Child components view", E2EView.CHILD_COMPONENT, "Represents E2E view of child components"));
-        result.push(new ViewType("Component modules view",  E2EView.COMPONENT_MODULES, "Represents communications scheme between the modules within the component"));
+    public static createPeriodsTypes():Description[] {
+        let result:Description[] = [];
+        result.push(new Description("", "", "1 second", 1));
+        result.push(new Description("", "", "1 minute", 60));
+        result.push(new Description("", "", "5 minutes", 300));
+        result.push(new Description("", "", "15 minutes", 900));
+        result.push(new Description("", "", "1 hour", 3600));
+        result.push(new Description("", "", "12 hours", 43200));
+        result.push(new Description("", "", "24 hours", 86400));
+        return result;
+    }
+
+    public static createViewTypes():Description[] {
+        let result:Description[] = [];
+        result.push(new Description("Landscape view", E2EView.LANDSCAPE, "Represents E2E view of all components in IT landscape"));
+        result.push(new Description("Child components view", E2EView.CHILD_COMPONENT, "Represents E2E view of child components"));
+        result.push(new Description("Component modules view",  E2EView.COMPONENT_MODULES, "Represents communications scheme between the modules within the component"));
         return result;
     }
 }
