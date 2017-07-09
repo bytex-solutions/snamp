@@ -148,4 +148,39 @@ public final class GraphOfComponentsTest extends Assert {
 
         graph.clear();
     }
+
+    @Test
+    public void shelfTimeTest(){
+        //root component
+        final Span rootSpan = new Span();
+        rootSpan.setComponentName(COMPONENT1);
+        rootSpan.setInstanceName("node1");
+        rootSpan.setDuration(15, TimeUnit.MILLISECONDS);
+        rootSpan.generateIDs();
+        graph.accept(rootSpan);
+
+        final Span span = new Span();
+        span.setComponentName(COMPONENT2);
+        span.setInstanceName("node1");
+        span.setDuration(5, TimeUnit.MILLISECONDS);
+        span.setCorrelationID(rootSpan.getCorrelationID());
+        span.setSpanID(Identifier.randomID(4));
+        span.setParentSpanID(rootSpan.getSpanID());
+        graph.accept(span);
+
+        assertEquals(2, graph.size());
+
+        final ComponentVertex rootComponent = graph.get(COMPONENT1);
+        assertNotNull(rootComponent);
+        assertEquals(1, rootComponent.size());
+        final ComponentVertex childComponent = graph.get(COMPONENT2);
+        assertNotNull(childComponent);
+        assertTrue(childComponent.isEmpty());
+
+        assertTrue(rootComponent.contains(childComponent));
+
+
+
+        graph.clear();
+    }
 }
