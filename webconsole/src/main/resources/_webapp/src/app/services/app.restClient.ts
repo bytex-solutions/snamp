@@ -25,7 +25,7 @@ export class ApiClient {
         return response
             .catch((error: Response | any) => {
                 if (error instanceof Response && error.status == 401) {
-                    console.log("Auth is not working.", error);
+                    console.debug("Auth is not working.", error);
                     window.location.href = "login.html?tokenExpired=true";
                 }
                 if (pushError) {
@@ -37,7 +37,7 @@ export class ApiClient {
                     console.debug("Received data: ", data)
                 }),
                 ((error: any) => {
-                    console.log("Error occurred: ", error);
+                    console.debug("Error occurred: ", error);
                     $("#overlay").fadeOut();
                     if (pushError) {
                         this._snampLogService.pushLog(new RestClientNotification(response));
@@ -174,7 +174,7 @@ export class REST {
 
     // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
     public static RESOURCE_ENTITY_BY_NAME(type:string, resourceName: string, entityType:string, entityName:string): string {
-        console.log("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
+        console.debug("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
         return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
     }
 

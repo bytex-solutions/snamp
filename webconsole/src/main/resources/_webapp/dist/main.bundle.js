@@ -103306,6 +103306,7 @@ exports.AbstractComponentSpecificView = AbstractComponentSpecificView;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var cytoscape = __webpack_require__("./node_modules/cytoscape/src/index.js");
 var E2EView = (function () {
     function E2EView() {
@@ -103408,7 +103409,7 @@ var E2EView = (function () {
     };
     E2EView.prototype.draw = function (initialData) {
         var _layout = this.getLayout();
-        console.log("id element for find: ", document.getElementById(this.id));
+        console.debug("id element for find: ", document.getElementById(this.id));
         var cy = cytoscape({
             container: document.getElementById(this.id),
             elements: this.getData(initialData),
@@ -103492,18 +103493,22 @@ var E2EView = (function () {
             return; // do not update
         var originalData = currentData;
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
-        console.log(currentData);
+        console.debug(currentData);
         var arrivals = [];
-        if (currentData["arrivals"] != undefined) {
+        console.debug("Arriviles count: ", Object.keys(currentData["arrivals"]).length, " saved count: ", this.arrivalsCount);
+        if (!util_1.isNullOrUndefined(currentData["arrivals"])) {
             arrivals = currentData["arrivals"];
-            if (arrivals.length != this.arrivalsCount) {
-                this._cy.json({ elements: this.getData(originalData) });
+            if (Object.keys(arrivals).length != this.arrivalsCount) {
+                //  this._cy.json({elements: this.getData(originalData)});
+                this._cy.load(this.getData(originalData));
                 return;
             }
         }
-        if (currentData["vertices"] != undefined) {
-            if (currentData["vertices"].length != this.verticesCount) {
-                this._cy.json({ elements: this.getData(originalData) });
+        console.debug("vertices count: ", Object.keys(currentData["vertices"]).length, " saved count: ", this.verticesCount);
+        if (!util_1.isNullOrUndefined(currentData["vertices"])) {
+            if (Object.keys(currentData["vertices"]).length != this.verticesCount) {
+                // this._cy.json({elements: this.getData(originalData)});
+                this._cy.load(this.getData(originalData));
                 return;
             }
         }
@@ -103525,13 +103530,13 @@ var E2EView = (function () {
         var result = [];
         var vertices = [];
         var arrivals = [];
-        if (currentData["vertices"] != undefined) {
+        if (!util_1.isNullOrUndefined(currentData["vertices"])) {
             vertices = currentData["vertices"];
-            this.verticesCount = vertices.length;
+            this.verticesCount = Object.keys(vertices).length;
         }
-        if (currentData["arrivals"] != undefined) {
+        if (!util_1.isNullOrUndefined(currentData["arrivals"])) {
             arrivals = currentData["arrivals"];
-            this.arrivalsCount = arrivals.length;
+            this.arrivalsCount = Object.keys(arrivals).length;
         }
         // add all plain vertices
         for (var key in arrivals) {
@@ -103664,7 +103669,7 @@ var ChildComponentsView = (function (_super) {
             _value["preferences"] = this.preferences;
         }
         if (this.isShelfLifeSet) {
-            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife);
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife, 1000);
         }
         return _value;
     };
@@ -103699,7 +103704,7 @@ var ComponentModulesView = (function (_super) {
             _value["preferences"] = this.preferences;
         }
         if (this.isShelfLifeSet) {
-            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife);
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife, 1000);
         }
         return _value;
     };
@@ -103760,7 +103765,7 @@ var LandscapeView = (function (_super) {
             _value["preferences"] = this.preferences;
         }
         if (this.isShelfLifeSet) {
-            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife);
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife, 1000);
         }
         return _value;
     };
@@ -103809,7 +103814,7 @@ var Factory = (function () {
                 _view.rootComponent = rootComponent;
             }
             else {
-                console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
+                console.debug("Attempt to set rootComponent for non component specific view. Will be ignored");
             }
         }
         if (!util_1.isNullOrUndefined(shelfLife)) {
@@ -103858,7 +103863,7 @@ var Factory = (function () {
                 }
             }
             if (_json["shelfLife"] != undefined) {
-                _view.shelfLife = app_utils_1.SnampUtils.parseDuration(_json["shelfLife"]);
+                _view.shelfLife = app_utils_1.SnampUtils.parseDuration(_json["shelfLife"]) / 1000;
                 _view.isShelfLifeSet = true;
             }
             if (_json["name"] != undefined) {
@@ -103867,7 +103872,7 @@ var Factory = (function () {
             if (_json["preferences"] != undefined) {
                 _view.preferences = _json["preferences"];
             }
-            console.log("New view has been instantiated from the json data object: ", _view);
+            console.debug("New view has been instantiated from the json data object: ", _view);
             return _view;
         }
     };
@@ -106618,7 +106623,7 @@ var ParametersTable = (function () {
             if (_this.selectedParam == undefined && _this.paramDescriptors.length > 0) {
                 _this.selectedParam = _this.paramDescriptors[0];
             }
-            console.log("After all we got: ", _this.paramDescriptors, _this.containsRequired, _this.containsOptional);
+            console.debug("After all we got: ", _this.paramDescriptors, _this.containsRequired, _this.containsOptional);
             _this.cd.detectChanges();
             $("#addParam").modal("show");
         });
@@ -106633,7 +106638,7 @@ var ParametersTable = (function () {
         this.http.put(app_restClient_1.REST.OVERRIDES_BY_NAME(this.entity.name), this.entity.overriddenProperties)
             .map(function (res) { return res.text(); })
             .subscribe(function () {
-            console.log("Saved overrides");
+            console.debug("Saved overrides");
         });
     };
     ParametersTable.prototype.isOverridden = function (paramName) {
@@ -106932,7 +106937,7 @@ var ResourceEntitiesTable = (function () {
         this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map(function (res) { return res.text(); })
             .subscribe(function () {
-            console.log("Entity " + _this.activeEntity.name + " has been saved");
+            console.debug("Entity " + _this.activeEntity.name + " has been saved");
             switch (_this.entityType) {
                 case "attribute":
                     if (_this.isNewEntity) {
@@ -107731,7 +107736,7 @@ var Resource = (function (_super) {
         else {
             this.overriddenProperties.push(value);
         }
-        console.log("Overriddens for resource " + this.name + " are " + this.overriddenProperties);
+        console.debug("Overriddens for resource " + this.name + " are " + this.overriddenProperties);
     };
     return Resource;
 }(model_entityWithSub_1.EntityWithSub));
@@ -108640,7 +108645,7 @@ var ChartService = (function () {
         var _this = this;
         this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
             .subscribe(function () {
-            console.log("Dashboard has been saved successfully");
+            console.debug("Dashboard has been saved successfully");
             _this.groups.next(_this._dashboard.groups);
         });
     };
@@ -108756,7 +108761,7 @@ var ChartService = (function () {
         return _value;
     };
     ChartService.prototype.resetChart = function (chart) {
-        console.log("reseting the chart: ", chart.group); // @todo replace instance of to enum
+        console.debug("reseting the chart: ", chart.group); // @todo replace instance of to enum
         this._http.post(app_restClient_1.REST.RESET_ELASTICITY(chart.group, chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart ? "groupStatus" : "elasticity"))
             .subscribe(function () { return console.debug("Elasticity state has been reset for ", chart.group); });
     };
@@ -108808,7 +108813,7 @@ var SnampLogService = (function () {
         this.ws = new angular2_websocket_1.$WebSocket(SnampLogService.getWsAddress(), [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
         this.ws.getDataStream()
             .map(function (msg) { return JSON.parse(msg.data); })
-            .subscribe(function (msg) { return _this.pushLog(factory_1.NotificationFactory.makeFromJson(msg)); }, function (msg) { return console.log("Error occurred while listening to the socket: ", msg); }, function () { return console.log("Socket connection has been completed"); });
+            .subscribe(function (msg) { return _this.pushLog(factory_1.NotificationFactory.makeFromJson(msg)); }, function (msg) { return console.debug("Error occurred while listening to the socket: ", msg); }, function () { return console.debug("Socket connection has been completed"); });
     }
     // Flush the buffer if the user is closing browser
     SnampLogService.prototype.beforeunloadHandler = function (event) {
@@ -108951,7 +108956,7 @@ var ApiClient = (function () {
         return response
             .catch(function (error) {
             if (error instanceof http_1.Response && error.status == 401) {
-                console.log("Auth is not working.", error);
+                console.debug("Auth is not working.", error);
                 window.location.href = "login.html?tokenExpired=true";
             }
             if (pushError) {
@@ -108961,7 +108966,7 @@ var ApiClient = (function () {
         }).do((function (data) {
             console.debug("Received data: ", data);
         }), (function (error) {
-            console.log("Error occurred: ", error);
+            console.debug("Error occurred: ", error);
             $("#overlay").fadeOut();
             if (pushError) {
                 _this._snampLogService.pushLog(new rest_client_notification_1.RestClientNotification(response));
@@ -109058,7 +109063,7 @@ var REST = (function () {
     };
     // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
     REST.RESOURCE_ENTITY_BY_NAME = function (type, resourceName, entityType, entityName) {
-        console.log("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
+        console.debug("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
         return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
     };
     REST.RESOURCE_GROUP = function (name) {
@@ -109208,8 +109213,8 @@ var SnampUtils = (function () {
      * @param source - number of milliseconds.
      * @returns {string} - duration string notation.
      */
-    SnampUtils.toDurationString = function (source) {
-        return moment.duration({ milliseconds: source }).toISOString();
+    SnampUtils.toDurationString = function (source, multiplier) {
+        return moment.duration({ milliseconds: source * (multiplier || 1) }).toISOString();
     };
     /**
      * Humanize the duration.
@@ -109255,10 +109260,10 @@ var ViewService = (function () {
     };
     ViewService.prototype.loadDashboard = function () {
         var _this = this;
-        console.log("Loading some dashboard for views...");
+        console.debug("Loading some dashboard for views...");
         var _res = this._http.get(app_restClient_1.REST.VIEWS_DASHBOARD)
             .map(function (res) {
-            console.log("Result of dashboard request is: ", res);
+            console.debug("Result of dashboard request is: ", res);
             return res.json();
         }).publishLast().refCount();
         _res.subscribe(function (data) {
@@ -109270,14 +109275,14 @@ var ViewService = (function () {
                     _this._dashboard.views.push(_currentView);
                 }
             }
-            console.log(_this._dashboard);
         });
     };
     ViewService.prototype.saveDashboard = function () {
         var _this = this;
+        console.debug("Saving the dashboard: ", JSON.stringify(this._dashboard.toJSON()));
         this._http.put(app_restClient_1.REST.VIEWS_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
             .subscribe(function () {
-            console.log("Dashboard has been saved successfully");
+            console.debug("Dashboard has been saved successfully");
             _this.viewNames.next(_this._dashboard.views.map(function (_d) { return _d.name; }));
         });
     };
@@ -109286,7 +109291,7 @@ var ViewService = (function () {
             throw new Error("View with that name already exists!");
         }
         else {
-            console.log("New created view is: ", view);
+            console.debug("New created view is: ", view);
             this._dashboard.views.push(view);
             this.viewNames.next(this._dashboard.views.map(function (data) { return data.name; }));
             this.saveDashboard();
@@ -109847,7 +109852,7 @@ var NotificationFactory = (function () {
                 _notification = new scaling_happened_1.ScalingNotification();
                 break;
             default:
-                console.log("Whole the json object is: ", _json);
+                console.debug("Whole the json object is: ", _json);
                 throw new Error("Could not recognize notification of type: " + _json['@messageType']);
         }
         _notification.fillFromJson(_json);
@@ -109876,7 +109881,7 @@ var NotificationFactory = (function () {
                 _notification = Object.assign(new scaling_happened_1.ScalingNotification(), _json);
                 break;
             default:
-                console.log("Whole the json object is: ", _json);
+                console.debug("Whole the json object is: ", _json);
                 throw new Error("Could not recognize notification of type: " + _json['_type']);
         }
         // restoring Date object from its string representation

@@ -47,10 +47,8 @@ export class AddView implements OnInit {
    }
 
    saveView():void {
-        console.log("Trying to append following view: ", this.viewName, this.viewType.id, this.chosenComponent,
-            this.useShelfLife ? this.shelfLife * 1000 : undefined);
         let _view:E2EView = Factory.createView(this.viewName, this.viewType.id, this.chosenComponent,
-                this.useShelfLife ? this.shelfLife * 1000 : undefined);
+                this.useShelfLife ? this.shelfLife : undefined);
         this._viewService.newView(_view);
         this._router.navigateByUrl('/view/' + _view.name);
    }

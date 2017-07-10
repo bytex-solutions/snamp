@@ -118,7 +118,7 @@ var ColoredCondition = (function () {
         this.entityType = (this.entity != undefined) ? this.entity.constructor.name : "";
     };
     ColoredCondition.prototype.ngAfterViewInit = function () {
-        console.log("Entity: ", this.entity, ", entityType: ", this.entityType);
+        console.debug("Entity: ", this.entity, ", entityType: ", this.entityType);
     };
     __decorate([
         core_1.Input(), 
@@ -549,7 +549,7 @@ var Factory = (function () {
     function Factory() {
     }
     Factory.watcherFromJSON = function (name, json) {
-        console.log("Watcher: ", JSON.stringify(json));
+        console.debug("Watcher: ", JSON.stringify(json));
         var _pType = "all";
         if (!util_1.isNullOrUndefined(json["parameters"]) && !util_1.isNullOrUndefined(json["parameters"]["$strategy$"])) {
             _pType = json["parameters"]["$strategy$"];
@@ -1052,7 +1052,7 @@ var ScriptletDataObject = (function (_super) {
     };
     // add "MetricBased"(AttributeBasedScalingPolicy) and
     ScriptletDataObject.fromJSON = function (json) {
-        console.log("Json from data object is: ", json);
+        console.debug("Json from data object is: ", json);
         var instance = new ScriptletDataObject(json["parameters"]);
         if (json["language"] != undefined) {
             instance.language = json["language"];
@@ -1163,7 +1163,7 @@ var ScriptletDataObject = (function (_super) {
                 this.script = JSON.stringify(this.policyObject.toJSON());
             }
         }
-        console.log("Trying to stringify current scriptlet object: ", _value);
+        console.debug("Trying to stringify current scriptlet object: ", _value);
         return _value;
     };
     ScriptletDataObject.prototype.getPolicyType = function () {
@@ -1205,7 +1205,7 @@ var Watcher = (function (_super) {
         this.votingStrategy = "all";
     }
     Watcher.prototype.toJSON = function () {
-        // console.log("JSONify the watcher from the watcher class: ", this);
+        // console.debug("JSONify the watcher from the watcher class: ", this);
         var _value = {};
         _value["attributeCheckers"] = {};
         for (var key in this.attributeCheckers) {
@@ -1249,7 +1249,7 @@ var Watcher = (function (_super) {
                 _voteWeight = 1;
                 break;
             default:
-                console.log("Do nothing - custom type is used");
+                console.debug("Do nothing - custom type is used");
                 return;
         }
         for (var key in this.scalingPolicies) {
@@ -1562,11 +1562,11 @@ var MainComponent = (function () {
         this.operationalRangeVisible = !this.operationalRangeVisible;
     };
     MainComponent.prototype.saveCurrentTrigger = function () {
-        console.log("Trigger has been saved: ", this.activeWatcher);
+        console.debug("Trigger has been saved: ", this.activeWatcher);
     };
     MainComponent.prototype.saveCurrentChecker = function () {
         this.activeWatcher.attributeCheckers[this.selectedAttribute.name] = this.activeChecker;
-        console.log("Checker has been saved", this.activeWatcher);
+        console.debug("Checker has been saved", this.activeWatcher);
     };
     MainComponent.prototype.getMainHeader = function () {
         return util_1.isNullOrUndefined(this.activeWatcher) ? "Setup supervisors" : "Setup " + this.activeWatcher.name + " supervisor";
@@ -1578,7 +1578,7 @@ var MainComponent = (function () {
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             _this.watchers = factory_1.Factory.watchersArrayFromJSON(data);
-            console.log("All the watchers list: ", _this.watchers);
+            console.debug("All the watchers list: ", _this.watchers);
         });
         // find all the components
         this.http.get(app_restClient_1.REST.GROUPS_WEB_API)
@@ -1592,7 +1592,7 @@ var MainComponent = (function () {
         this.http.get(app_restClient_1.REST.AVAILABLE_SUPERVISORS_LIST)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
-            console.log("Available supervisors list is: ", data);
+            console.debug("Available supervisors list is: ", data);
             _this.availableSupervisors = data;
         });
         this.http.get(app_restClient_1.REST.GROOVY_PATH + "/AttributeChecker.groovy")
@@ -1686,7 +1686,7 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.loadAttributesOnComponentSelected = function () {
         var _this = this;
-        console.log("Looking for attributes for group: ", this.selectedComponent);
+        console.debug("Looking for attributes for group: ", this.selectedComponent);
         this.attributes = [];
         this.http.get(app_restClient_1.REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
             .map(function (res) {
@@ -1700,7 +1700,7 @@ var MainComponent = (function () {
             .catch(function (res) { return Observable_1.Observable.of([]); }).cache()
             .subscribe(function (data) {
             _this.attributes = data;
-            console.log("attributes: ", data);
+            console.debug("attributes: ", data);
         });
     };
     MainComponent.prototype.selectCheckerType = function (type) {
@@ -1728,7 +1728,7 @@ var MainComponent = (function () {
                 _this.http.delete(app_restClient_1.REST.SUPERVISOR_BY_NAME(watcher.name))
                     .map(function (res) { return res.text(); })
                     .subscribe(function (data) {
-                    console.log("watcher has been removed: ", data);
+                    console.debug("watcher has been removed: ", data);
                     for (var i = 0; i < _this.watchers.length; i++) {
                         if (_this.watchers[i].name == watcher.name) {
                             _this.watchers.splice(i, 1);
@@ -1740,7 +1740,7 @@ var MainComponent = (function () {
                 return response;
             })
                 .catch(function () {
-                console.log("user preferred to decline watcher removing");
+                console.debug("user preferred to decline watcher removing");
             });
         });
     };
@@ -1773,7 +1773,7 @@ var MainComponent = (function () {
             transitionEffect: 'fade'
         });
         $(this.getTriggerWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            console.log(stepNumber);
+            console.debug(stepNumber);
         });
     };
     MainComponent.prototype.initCheckersWizard = function () {
@@ -1786,7 +1786,7 @@ var MainComponent = (function () {
             transitionEffect: 'fade'
         });
         $(this.getCheckersWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            console.log(stepNumber);
+            console.debug(stepNumber);
         });
     };
     MainComponent.prototype.initPoliciesWizard = function () {
@@ -1802,7 +1802,7 @@ var MainComponent = (function () {
             transitionEffect: 'fade'
         });
         $(this.getPoliciesWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            console.log(stepNumber);
+            console.debug(stepNumber);
         });
     };
     MainComponent.prototype.addNewWatcher = function () {
@@ -1812,19 +1812,19 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.onGreenNotify = function (event) {
         this.activeChecker.object.green = event;
-        console.log("Saved green condition: ", event);
+        console.debug("Saved green condition: ", event);
     };
     MainComponent.prototype.onYellowNotify = function (event) {
         this.activeChecker.object.yellow = event;
-        console.log("Saved yellow condition: ", event);
+        console.debug("Saved yellow condition: ", event);
     };
     MainComponent.prototype.saveActiveWatcher = function () {
         var _this = this;
-        console.log("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
+        console.debug("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
         this.http.put(app_restClient_1.REST.SUPERVISOR_BY_NAME(this.activeWatcher.name), this.activeWatcher.toJSON())
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("watcher has been saved: ", data);
+            console.debug("watcher has been saved: ", data);
             var _found = false;
             for (var i = 0; i < _this.watchers.length; i++) {
                 if (_this.watchers[i].name == _this.activeWatcher.name) {
@@ -1896,7 +1896,7 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.saveCurrentPolicy = function () {
         this.activeWatcher.scalingPolicies[this.activePolicyName] = this.activePolicy;
-        console.log("Policy has been saved");
+        console.debug("Policy has been saved");
     };
     MainComponent.prototype.selectVotingStrategy = function (type) {
         this.activeWatcher.votingStrategy = type;
@@ -1905,7 +1905,7 @@ var MainComponent = (function () {
     MainComponent.prototype.updatePolicyRecommendation = function () {
         var _this = this;
         this.http.get(app_restClient_1.REST.SUPERVISOR_POLICY_RECOMMENDATION(this.activeWatcher.name, this.activePolicyName))
-            .map(function (res) { console.log("Response is: ", res.json()); return res.json(); })
+            .map(function (res) { console.debug("Response is: ", res.json()); return res.json(); })
             .subscribe(function (data) {
             _this.currentRecommendation = operational_range_1.OpRange.fromString(data);
             _this.cd.detectChanges();
@@ -1919,7 +1919,7 @@ var MainComponent = (function () {
     // group setting
     MainComponent.prototype.saveManualGroupName = function () {
         this.selectCurrentComponent(this.selectedComponent);
-        console.log("Manual group name has been saved, no reload is required");
+        console.debug("Manual group name has been saved, no reload is required");
         this.groupNameChanged = false;
     };
     MainComponent.prototype.triggerGroupNameChanged = function (value) {

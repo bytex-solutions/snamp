@@ -75,6 +75,7 @@ import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.IntUnaryOperator;
 import java.util.logging.Level;
 
@@ -213,6 +214,14 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 try (final TraceScope ignored = registry.tracer(TRACE_NAME).beginTrace(correlationID, parentSpanId)) {
                     Thread.sleep(delay.applyAsInt(150));
                 }
+            }
+        },
+        DELAYED_TOPOLOGY {
+            private final AtomicLong counter = new AtomicLong();
+            @Override
+            void sendTestSpans(final MetricRegistry registry, final IntUnaryOperator delay) throws IOException, InterruptedException {
+                if(counter.incrementAndGet() > 4)
+                    ONE_TO_MANY.sendTestSpans(registry, delay);
             }
         };
         static final String TRACE_NAME = "myTrace";
@@ -618,7 +627,7 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
                 // append new int for third attribute changer pls
             });
             //2. generate spans for correct topology
-            TestTopology.ONE_TO_MANY.sendTestSpans(registry, rnd::nextInt);
+            TestTopology.DELAYED_TOPOLOGY.sendTestSpans(registry, rnd::nextInt);
             //3. generate resources through resource discovery
             try (final SupervisorClient supervisor = SupervisorClient.tryCreate(getTestBundleContext(), GROUP_NAME)
                     .orElseThrow(AssertionError::new)) {

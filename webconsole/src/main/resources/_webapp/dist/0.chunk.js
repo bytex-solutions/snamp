@@ -37508,12 +37508,12 @@ var FullSaveComponent = (function () {
         this.http.post(app_restClient_1.REST.CURRENT_CONFIG, fileString)
             .map(function (response) { return response.text(); })
             .subscribe(function (data) {
-            console.log("configuration has been upload successfully", data);
+            console.debug("configuration has been upload successfully", data);
             location.reload();
         });
     };
     FullSaveComponent.prototype.errorHandler = function (evt) {
-        console.log("Error occured while loading file: ", evt);
+        console.debug("Error occured while loading file: ", evt);
     };
     FullSaveComponent = __decorate([
         core_1.Component({
@@ -37802,7 +37802,7 @@ var SnampLogSettingsComponent = (function () {
         this.http.put(app_restClient_1.REST.NOTIFICATIONS_SETTINGS, _settings)
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("Notification settings has been stored: ", data);
+            console.debug("Notification settings has been stored: ", data);
         });
     };
     SnampLogSettingsComponent.prototype.isSelected = function (type) {
@@ -38256,7 +38256,7 @@ var ResourcesComponent = (function () {
         var _this = this;
         this.http.put(app_restClient_1.REST.RESOURCE_GROUP(this.activeResource.name), this.activeResource.groupName)
             .subscribe(function () {
-            console.log("Manual group name has been saved, no reload is required");
+            console.debug("Manual group name has been saved, no reload is required");
             _this.oldGroupValue = _this.activeResource.groupName;
             _this.groupNameChanged = false;
         });
@@ -38309,11 +38309,11 @@ var ResourcesComponent = (function () {
     };
     ResourcesComponent.prototype.changeThreadPool = function (event) {
         this.http.put(app_restClient_1.REST.RESOURCE_THREAD_POOL(this.activeResource.name), event.target.value)
-            .subscribe(function () { return console.log("Resource thread pool has been changed to " + event.target.value); });
+            .subscribe(function () { return console.debug("Resource thread pool has been changed to " + event.target.value); });
     };
     ResourcesComponent.prototype.triggerSmartMode = function () {
         var _this = this;
-        console.log("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
+        console.debug("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
         if (!this.oldSmartMode) {
             this.modal.confirm()
                 .className('default')
@@ -38326,7 +38326,7 @@ var ResourcesComponent = (function () {
                     .then(function (response) {
                     _this.http.put(app_restClient_1.REST.ENTITY_PARAMETERS("resource", _this.activeResource.name, "smartMode"), true)
                         .subscribe(function (data) {
-                        console.log("setting to true result is ", data);
+                        console.debug("setting to true result is ", data);
                         _this.oldSmartMode = true;
                         _this.activeResource.smartMode = true;
                         location.reload();
@@ -38347,7 +38347,7 @@ var ResourcesComponent = (function () {
     ResourcesComponent.prototype.saveConnectionString = function () {
         var _this = this;
         this.http.put(app_restClient_1.REST.RESOURCE_CONNECTION_STRING(this.activeResource.name), this.activeResource.connectionString)
-            .subscribe(function (res) { return console.log("connection string for " + _this.activeResource.name +
+            .subscribe(function (res) { return console.debug("connection string for " + _this.activeResource.name +
             " has been changed to " + _this.activeResource.connectionString + " with result " + res); });
     };
     ResourcesComponent.prototype.triggerGroupNameChanged = function (value) {
@@ -38598,7 +38598,7 @@ var SnampCfgComponent = (function () {
         this.http.postWithErrors(app_restClient_1.REST.ENABLE_COMPONENT(selected._class, selected.type), "")
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("Started " + selected.type + " " + selected._class + " component. Result from server is " + data);
+            console.debug("Started " + selected.type + " " + selected._class + " component. Result from server is " + data);
             if (data == "true") {
                 selected.state = "ACTIVE";
                 for (var i = 0; i < _this.components.length; i++) {
@@ -38609,7 +38609,7 @@ var SnampCfgComponent = (function () {
                 }
             }
             else {
-                console.log("Could not start component " + selected.type + " - server responded false");
+                console.debug("Could not start component " + selected.type + " - server responded false");
             }
             $('#overlay').fadeOut();
         }, function (err) {
@@ -38626,7 +38626,7 @@ var SnampCfgComponent = (function () {
         this.http.postWithErrors(app_restClient_1.REST.DISABLE_COMPONENT(selected._class, selected.type), "")
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("Stopped " + selected.type + " " + selected._class + " component. Result from server is " + data);
+            console.debug("Stopped " + selected.type + " " + selected._class + " component. Result from server is " + data);
             if (data == "true") {
                 selected.state = "RESOLVED";
                 for (var i = 0; i < _this.components.length; i++) {
@@ -38637,7 +38637,7 @@ var SnampCfgComponent = (function () {
                 }
             }
             else {
-                console.log("Could not stop component " + selected.type + " - server responded false");
+                console.debug("Could not stop component " + selected.type + " - server responded false");
             }
             $('#overlay').fadeOut();
         }, function (err) {
@@ -38745,7 +38745,7 @@ var ThreadPoolsComponent = (function () {
                 if (this.threadPools.length > 0) {
                     this.setActiveThreadPool(this.threadPools[0]);
                 }
-                console.log("Thread pool has been removed");
+                console.debug("Thread pool has been removed");
                 break;
             }
         }
@@ -38804,7 +38804,7 @@ var ThreadPoolsComponent = (function () {
                 return response;
             })
                 .catch(function () {
-                console.log("User preferred to decline thread pool removing");
+                console.debug("User preferred to decline thread pool removing");
             });
         });
     };
@@ -38846,7 +38846,7 @@ var ThreadPoolsComponent = (function () {
                     return response;
                 })
                     .catch(function () {
-                    console.log("User preferred to decline thread pool saving");
+                    console.debug("User preferred to decline thread pool saving");
                 });
             });
         }

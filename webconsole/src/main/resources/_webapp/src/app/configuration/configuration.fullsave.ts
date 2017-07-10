@@ -54,13 +54,13 @@ export class FullSaveComponent implements OnInit {
          this.http.post(REST.CURRENT_CONFIG, fileString)
             .map((response:Response) => response.text())
             .subscribe((data) => {
-                console.log("configuration has been upload successfully", data);
+                console.debug("configuration has been upload successfully", data);
                 location.reload();
             });
    }
 
    private errorHandler(evt:any):void {
-        console.log("Error occured while loading file: ", evt);
+        console.debug("Error occured while loading file: ", evt);
    }
 
 }

@@ -6,7 +6,7 @@ import { SnampUtils } from "../../services/app.utils";
 export class Factory {
 
     public static watcherFromJSON(name:string, json:any):Watcher {
-        console.log("Watcher: ", JSON.stringify(json));
+        console.debug("Watcher: ", JSON.stringify(json));
         let _pType:string = "all";
         if (!isNullOrUndefined(json["parameters"]) && !isNullOrUndefined(json["parameters"]["$strategy$"])) {
             _pType = json["parameters"]["$strategy$"];

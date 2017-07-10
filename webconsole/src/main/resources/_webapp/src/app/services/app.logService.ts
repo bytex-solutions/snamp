@@ -44,8 +44,8 @@ export class SnampLogService {
             .map((msg) => JSON.parse(msg.data))
             .subscribe(
                 (msg)=> this.pushLog(NotificationFactory.makeFromJson(msg)),
-                (msg)=> console.log("Error occurred while listening to the socket: ", msg),
-                ()=> console.log("Socket connection has been completed")
+                (msg)=> console.debug("Error occurred while listening to the socket: ", msg),
+                ()=> console.debug("Socket connection has been completed")
             );
     }
 

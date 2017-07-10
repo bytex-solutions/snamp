@@ -442,7 +442,7 @@ var Dashboard = (function () {
                 return response;
             })
                 .catch(function () {
-                console.log("user preferred to decline dashboard removing");
+                console.debug("user preferred to decline dashboard removing");
             });
         }).catch(function () { });
     };
@@ -479,7 +479,7 @@ var Dashboard = (function () {
                 return response;
             })
                 .catch(function () {
-                console.log("user preferred to decline dashboard removing");
+                console.debug("user preferred to decline dashboard removing");
             });
         }).catch(function () { });
     };

@@ -35,7 +35,7 @@ export class ScriptletDataObject extends Entity {
 
     // add "MetricBased"(AttributeBasedScalingPolicy) and
     public static fromJSON(json:string):ScriptletDataObject {
-        console.log("Json from data object is: ", json);
+        console.debug("Json from data object is: ", json);
         let instance:ScriptletDataObject = new ScriptletDataObject(json["parameters"]);
         if (json["language"] != undefined) {
             instance.language = json["language"];
@@ -147,7 +147,7 @@ export class ScriptletDataObject extends Entity {
                 this.script = JSON.stringify(this.policyObject.toJSON());
             }
         }
-        console.log("Trying to stringify current scriptlet object: ", _value);
+        console.debug("Trying to stringify current scriptlet object: ", _value);
         return _value;
     }
 

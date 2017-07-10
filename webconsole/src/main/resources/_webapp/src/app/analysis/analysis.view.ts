@@ -85,7 +85,7 @@ export class MainView {
             this.useShelfLife = _view.isShelfLifeSet;
             this.oldValueShelfLife = _view.shelfLife;
 
-            console.log(this.selectedLayout, this.textSize, this.textColor, this.backgroundColor, this.textOutlineColor,
+            console.debug(this.selectedLayout, this.textSize, this.textColor, this.backgroundColor, this.textOutlineColor,
                 this.textOutlineWidth, this.textWeight, this.edgeWidth, this.edgeLineColor, this.edgeArrowColor, this.edgeArrowShape);
 
 
@@ -194,6 +194,12 @@ export class MainView {
         this.shelfLifeChanged = (this.oldValueShelfLife != value);
     }
 
+    public triggerUseShelfLife(event:boolean):void {
+        this.currentView.isShelfLifeSet = event;
+        console.debug("Current value from event: ", event, this.currentView.isShelfLifeSet);
+        this._viewService.saveDashboard();
+    }
+
     public resetView(): void {
         this.modal.confirm()
             .className(<VEXBuiltInThemes>'default')
@@ -203,12 +209,12 @@ export class MainView {
                 return (<Promise<boolean>>resultPromise.result)
                     .then((response) => {
                         this._viewService.resetView(this.currentView).subscribe(data => {
-                            console.log("view has been reset: ", data);
+                            console.debug("view has been reset: ", data);
                         });
                         return response;
                     })
                     .catch(() => {
-                        console.log("user preferred to decline view reset");
+                        console.debug("user preferred to decline view reset");
                     });
             }).catch(() => {});
     }
@@ -252,7 +258,7 @@ export class MainView {
                         return response;
                     })
                     .catch(() => {
-                        console.log("user preferred to decline view removing");
+                        console.debug("user preferred to decline view removing");
                     });
             }).catch(() => {});
     }

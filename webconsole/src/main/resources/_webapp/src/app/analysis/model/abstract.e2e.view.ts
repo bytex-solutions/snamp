@@ -1,3 +1,4 @@
+import {isNullOrUndefined} from "util";
 const cytoscape = require('cytoscape');
 
 export abstract class E2EView {
@@ -138,7 +139,7 @@ export abstract class E2EView {
 
     public draw(initialData:any):any {
        let _layout:string = this.getLayout();
-       console.log("id element for find: ", document.getElementById(this.id));
+       console.debug("id element for find: ", document.getElementById(this.id));
        let cy = cytoscape({
          container: document.getElementById(this.id),
          elements: this.getData(initialData),
@@ -223,20 +224,24 @@ export abstract class E2EView {
         if (document.hidden ||  !$('#' + this.id).length) return; // do not update
         let originalData:any = currentData;
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
-        console.log(currentData);
+        console.debug(currentData);
         let arrivals:any[] = [];
 
-        if (currentData["arrivals"] != undefined) {
+        console.debug("Arriviles count: ", Object.keys(currentData["arrivals"]).length, " saved count: ", this.arrivalsCount);
+        if (!isNullOrUndefined(currentData["arrivals"])) {
             arrivals = currentData["arrivals"];
-            if (arrivals.length != this.arrivalsCount) {
-                this._cy.json({elements: this.getData(originalData)});
+            if (Object.keys(arrivals).length != this.arrivalsCount) {
+              //  this._cy.json({elements: this.getData(originalData)});
+                this._cy.load(this.getData(originalData));
                 return;
             }
         }
 
-        if (currentData["vertices"] != undefined) {
-            if (currentData["vertices"].length != this.verticesCount) {
-                this._cy.json({elements: this.getData(originalData)});
+        console.debug("vertices count: ", Object.keys(currentData["vertices"]).length, " saved count: ", this.verticesCount);
+        if (!isNullOrUndefined(currentData["vertices"])) {
+            if (Object.keys(currentData["vertices"]).length != this.verticesCount) {
+               // this._cy.json({elements: this.getData(originalData)});
+                this._cy.load( this.getData(originalData));
                 return;
             }
         }
@@ -263,14 +268,14 @@ export abstract class E2EView {
 
         let vertices:any[] = [];
         let arrivals:any[] = [];
-        if (currentData["vertices"] != undefined) {
+        if (!isNullOrUndefined(currentData["vertices"])) {
             vertices = currentData["vertices"];
-            this.verticesCount = vertices.length;
+            this.verticesCount = Object.keys(vertices).length;
         }
 
-        if (currentData["arrivals"] != undefined) {
+        if (!isNullOrUndefined(currentData["arrivals"])) {
             arrivals = currentData["arrivals"];
-            this.arrivalsCount = arrivals.length;
+            this.arrivalsCount = Object.keys(arrivals).length;
         }
 
         // add all plain vertices

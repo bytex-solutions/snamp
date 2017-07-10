@@ -277,7 +277,7 @@ export class ResourceEntitiesTable implements OnInit {
         this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map((res:Response) => res.text())
             .subscribe(() => {
-                console.log("Entity " + this.activeEntity.name + " has been saved");
+                console.debug("Entity " + this.activeEntity.name + " has been saved");
                 switch (this.entityType) {
                     case "attribute":
                         if (this.isNewEntity) {

@@ -205,7 +205,7 @@ export class ResourcesComponent implements OnInit {
     saveManualGroupName():void {
         this.http.put(REST.RESOURCE_GROUP(this.activeResource.name), this.activeResource.groupName)
             .subscribe(() => {
-                console.log("Manual group name has been saved, no reload is required");
+                console.debug("Manual group name has been saved, no reload is required");
                 this.oldGroupValue = this.activeResource.groupName;
                 this.groupNameChanged = false;
         });
@@ -259,11 +259,11 @@ export class ResourcesComponent implements OnInit {
 
     changeThreadPool(event:any) {
         this.http.put(REST.RESOURCE_THREAD_POOL(this.activeResource.name), event.target.value)
-            .subscribe(() => console.log("Resource thread pool has been changed to " + event.target.value));
+            .subscribe(() => console.debug("Resource thread pool has been changed to " + event.target.value));
     }
 
     triggerSmartMode():void {
-        console.log("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
+        console.debug("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
         if (!this.oldSmartMode) {
             this.modal.confirm()
                 .className(<VEXBuiltInThemes>'default')
@@ -276,7 +276,7 @@ export class ResourcesComponent implements OnInit {
                         .then((response) => {
                             this.http.put(REST.ENTITY_PARAMETERS("resource", this.activeResource.name, "smartMode"), true)
                                 .subscribe(data => {
-                                    console.log("setting to true result is ", data);
+                                    console.debug("setting to true result is ", data);
                                     this.oldSmartMode = true;
                                     this.activeResource.smartMode = true;
                                     location.reload();
@@ -297,7 +297,7 @@ export class ResourcesComponent implements OnInit {
     saveConnectionString():void {
         this.http.put(REST.RESOURCE_CONNECTION_STRING(this.activeResource.name),
             this.activeResource.connectionString)
-            .subscribe(res => console.log("connection string for " + this.activeResource.name +
+            .subscribe(res => console.debug("connection string for " + this.activeResource.name +
                 " has been changed to " + this.activeResource.connectionString + " with result " + res));
     }
 

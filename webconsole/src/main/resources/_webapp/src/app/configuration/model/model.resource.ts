@@ -70,6 +70,6 @@ export class Resource extends EntityWithSub {
         } else {
             this.overriddenProperties.push(value);
         }
-        console.log("Overriddens for resource " + this.name + " are " + this.overriddenProperties);
+        console.debug("Overriddens for resource " + this.name + " are " + this.overriddenProperties);
     }
 }

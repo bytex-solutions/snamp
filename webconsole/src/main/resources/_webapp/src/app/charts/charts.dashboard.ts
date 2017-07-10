@@ -491,7 +491,7 @@ export class Dashboard {
                         return response;
                     })
                     .catch(() => {
-                        console.log("user preferred to decline dashboard removing");
+                        console.debug("user preferred to decline dashboard removing");
                     });
             }).catch(() => {});
     }
@@ -528,7 +528,7 @@ export class Dashboard {
                         return response;
                     })
                     .catch(() => {
-                        console.log("user preferred to decline dashboard removing");
+                        console.debug("user preferred to decline dashboard removing");
                     });
             }).catch(() => {});
     }

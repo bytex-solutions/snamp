@@ -14,7 +14,7 @@ export class ChildComponentsView extends AbstractComponentSpecificView {
             _value["preferences"] = this.preferences;
         }
         if (this.isShelfLifeSet) {
-            _value["shelfLife"] = SnampUtils.toDurationString(this.shelfLife);
+            _value["shelfLife"] = SnampUtils.toDurationString(this.shelfLife, 1000);
         }
         return _value;
     }

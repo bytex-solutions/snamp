@@ -112,7 +112,7 @@ export class ChartService {
     public saveDashboard():void {
          this._http.put(REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
             .subscribe(() => {
-                console.log("Dashboard has been saved successfully");
+                console.debug("Dashboard has been saved successfully");
                 this.groups.next(this._dashboard.groups);
          });
     }
@@ -239,7 +239,7 @@ export class ChartService {
     }
 
     resetChart(chart:ChartWithGroupName):void {
-        console.log("reseting the chart: ", chart.group); // @todo replace instance of to enum
+        console.debug("reseting the chart: ", chart.group); // @todo replace instance of to enum
         this._http.post(REST.RESET_ELASTICITY(chart.group, chart instanceof ResourceGroupHealthStatusChart ? "groupStatus" : "elasticity"))
             .subscribe(() => console.debug("Elasticity state has been reset for ", chart.group))
     }

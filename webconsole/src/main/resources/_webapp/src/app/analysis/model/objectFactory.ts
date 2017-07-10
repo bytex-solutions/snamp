@@ -29,7 +29,7 @@ export class Factory {
             if (_view instanceof AbstractComponentSpecificView) {
                 (<AbstractComponentSpecificView>_view).rootComponent = rootComponent;
              } else {
-                console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
+                console.debug("Attempt to set rootComponent for non component specific view. Will be ignored");
              }
         }
         if (!isNullOrUndefined(shelfLife)) {
@@ -81,7 +81,7 @@ export class Factory {
             }
 
             if (_json["shelfLife"] != undefined) {
-                _view.shelfLife = SnampUtils.parseDuration(_json["shelfLife"]);
+                _view.shelfLife = SnampUtils.parseDuration(_json["shelfLife"]) / 1000;
                 _view.isShelfLifeSet = true;
             }
 
@@ -91,7 +91,7 @@ export class Factory {
             if (_json["preferences"] != undefined) {
                 _view.preferences = _json["preferences"];
             }
-            console.log("New view has been instantiated from the json data object: ", _view);
+            console.debug("New view has been instantiated from the json data object: ", _view);
             return _view;
         }
     }

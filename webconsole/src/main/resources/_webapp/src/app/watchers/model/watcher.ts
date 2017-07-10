@@ -20,7 +20,7 @@ export class Watcher extends Entity {
     public votingStrategy:string = "all";
 
     public toJSON():any {
-        // console.log("JSONify the watcher from the watcher class: ", this);
+        // console.debug("JSONify the watcher from the watcher class: ", this);
          let _value:any = {};
         _value["attributeCheckers"] = {};
         for (let key in this.attributeCheckers) {
@@ -67,7 +67,7 @@ export class Watcher extends Entity {
                 _voteWeight = 1;
                 break;
             default:
-                console.log("Do nothing - custom type is used");
+                console.debug("Do nothing - custom type is used");
                 return;
         }
         for (let key in this.scalingPolicies) {

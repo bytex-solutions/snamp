@@ -16,8 +16,8 @@ export class SnampUtils {
      * @param source - number of milliseconds.
      * @returns {string} - duration string notation.
      */
-    public static toDurationString(source:number):string {
-        return moment.duration({ milliseconds: source}).toISOString();
+    public static toDurationString(source:number, multiplier?:number):string {
+        return moment.duration({ milliseconds: source * (multiplier || 1)}).toISOString();
     }
 
     /**
