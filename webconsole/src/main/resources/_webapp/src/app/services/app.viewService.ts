@@ -55,9 +55,8 @@ export class ViewService {
     }
 
     public saveDashboard():void {
-        console.log("Saving some dashboard... ");
          this._http.put(REST.VIEWS_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(data => {
+            .subscribe(() => {
                 console.log("Dashboard has been saved successfully");
                 this.viewNames.next(this._dashboard.views.map(_d => _d.name));
             });

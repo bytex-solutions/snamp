@@ -204,9 +204,19 @@ export abstract class E2EView {
        return cy;
     }
 
-    private static toFixed(value:any, precision:number):string {
-        let power = Math.pow(10, precision || 0);
-        return String(Math.round(value * power) / power);
+    private static toFixed(fieldName:string, value:number, precision?:number):string {
+        switch(fieldName) {
+            case "responseTime90":
+            case "responseTime95":
+            case "responseTime98":
+            case "responseTimeStdDev":
+            case "maxResponseTime":
+            case "meanResponseTime":
+                return fieldName +  "(ms): " + value/Math.pow(10, 6);
+            default:
+                let power = Math.pow(10,  precision || 5);
+                return fieldName + Math.round(value * power) / power;
+        }
     }
 
     public updateData(currentData:any):any {
@@ -355,10 +365,9 @@ export abstract class E2EView {
         for (let i = 0; i < _md.length; i++) {
             if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
-                    result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                            + E2EView.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
+                    result += "\n" + E2EView.toFixed(_md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")", data[_md[i].split("/")[0]][_md[i].split("/")[1]]);
                 } else {
-                    result += "\n" + _md[i] + ": " + E2EView.toFixed(data[_md[i]], 5);
+                    result += "\n" + E2EView.toFixed(_md[i], data[_md[i]]);
                 }
             }
         }

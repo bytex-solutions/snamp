@@ -13,6 +13,7 @@ import 'rxjs/add/observable/of';
 
 import { Overlay } from "angular2-modal";
 import { VEXBuiltInThemes, Modal, DialogFormModal } from 'angular2-modal/plugins/vex';
+import {Description} from "./analysis.add.view";
 
 @Component({
     moduleId: module.id,
@@ -44,6 +45,14 @@ export class MainView {
     edgeArrowShape: string = "";
     showSettings:boolean = false;
 
+    shelfLife:number = 1;
+    useShelfLife:boolean = false;
+    oldValueShelfLife:number = 1;
+
+    shelfLifeChanged:boolean = false;
+
+    periods = Description.createPeriodsTypes();
+
     timerId: any = undefined;
 
     constructor(private route: ActivatedRoute, overlay: Overlay, private router: Router,
@@ -71,6 +80,10 @@ export class MainView {
             this.edgeLineColor = _view.getEdgeLineColor();
             this.edgeArrowColor = _view.getEdgeArrowColor();
             this.edgeArrowShape = _view.getEdgeArrowShape();
+
+            this.shelfLife = _view.shelfLife;
+            this.useShelfLife = _view.isShelfLifeSet;
+            this.oldValueShelfLife = _view.shelfLife;
 
             console.log(this.selectedLayout, this.textSize, this.textColor, this.backgroundColor, this.textOutlineColor,
                 this.textOutlineWidth, this.textWeight, this.edgeWidth, this.edgeLineColor, this.edgeArrowColor, this.edgeArrowShape);
@@ -165,6 +178,20 @@ export class MainView {
     public onChangeEdgeArrowShape(event: any): void {
         this.currentView.changeEdgeArrowShape(event);
         this._viewService.saveDashboard();
+    }
+
+    public onChangeShelfLife(event: any): void {
+        this.currentView.shelfLife = event;
+        this.shelfLifeChanged = false;
+        this._viewService.saveDashboard();
+    }
+
+    public saveShelfLife():void {
+        this.onChangeShelfLife(this.shelfLife);
+    }
+
+    public triggerShelfLifeChanged(value:number):void {
+        this.shelfLifeChanged = (this.oldValueShelfLife != value);
     }
 
     public resetView(): void {

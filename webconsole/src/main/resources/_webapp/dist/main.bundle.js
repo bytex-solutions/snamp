@@ -103473,9 +103473,19 @@ var E2EView = (function () {
         this._cy = cy;
         return cy;
     };
-    E2EView.toFixed = function (value, precision) {
-        var power = Math.pow(10, precision || 0);
-        return String(Math.round(value * power) / power);
+    E2EView.toFixed = function (fieldName, value, precision) {
+        switch (fieldName) {
+            case "responseTime90":
+            case "responseTime95":
+            case "responseTime98":
+            case "responseTimeStdDev":
+            case "maxResponseTime":
+            case "meanResponseTime":
+                return fieldName + "(ms): " + value / Math.pow(10, 6);
+            default:
+                var power = Math.pow(10, precision || 5);
+                return fieldName + Math.round(value * power) / power;
+        }
     };
     E2EView.prototype.updateData = function (currentData) {
         if (document.hidden || !$('#' + this.id).length)
@@ -103599,11 +103609,10 @@ var E2EView = (function () {
         for (var i = 0; i < _md.length; i++) {
             if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
-                    result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                        + E2EView.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
+                    result += "\n" + E2EView.toFixed(_md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")", data[_md[i].split("/")[0]][_md[i].split("/")[1]]);
                 }
                 else {
-                    result += "\n" + _md[i] + ": " + E2EView.toFixed(data[_md[i]], 5);
+                    result += "\n" + E2EView.toFixed(_md[i], data[_md[i]]);
                 }
             }
         }
@@ -109256,9 +109265,8 @@ var ViewService = (function () {
     };
     ViewService.prototype.saveDashboard = function () {
         var _this = this;
-        console.log("Saving some dashboard... ");
         this._http.put(app_restClient_1.REST.VIEWS_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(function (data) {
+            .subscribe(function () {
             console.log("Dashboard has been saved successfully");
             _this.viewNames.next(_this._dashboard.views.map(function (_d) { return _d.name; }));
         });

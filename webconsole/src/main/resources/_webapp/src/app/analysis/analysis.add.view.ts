@@ -56,7 +56,7 @@ export class AddView implements OnInit {
    }
 }
 
-class Description {
+export class Description {
     public name:string = "";
     public id:string = "";
     public description:string = "";

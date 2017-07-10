@@ -266,6 +266,72 @@
                     </div>
                 </div>
 
+
+                <div class="form-group row">
+                    <div class="item form-group">
+                        <label
+                                class="control-label col-md-3 col-sm-3 col-xs-12"
+                                style="margin-top: 7px;">
+                            Use shelf life period
+                        </label>
+
+                        <div class="col-md-6 col-sm-6 col-xs-12" >
+                            <ui-switch
+                                    [(ngModel)]="useShelfLife"
+                                    [size]="'small'">
+                            </ui-switch>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="item form-group" *ngIf="useShelfLife">
+                        <label
+                                class="control-label col-md-3 col-sm-3 col-xs-12"
+                                for="shelfLifeInputSelect"
+                                style="margin-top: 7px;">
+                            Set shelf life duration (pick from list)
+                        </label>
+
+                        <div class="col-md-6 col-sm-6 col-xs-12" >
+                            <select class="form-control" [(ngModel)]="shelfLife" id="shelfLifeInputSelect" (ngModelChange)="onChangeShelfLife($event)">
+                                <option *ngFor="let period of periods" [ngValue]="period.period">{{period.description}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="item form-group" *ngIf="useShelfLife">
+                        <label
+                                class="control-label col-md-3 col-sm-3 col-xs-12"
+                                for="shelfLifeInputText"
+                                style="margin-top: 7px;">
+                            Set shelf life duration (set manually in seconds)
+                        </label>
+
+                        <div class="col-md-9 col-sm-9 col-xs-12" >
+                            <div class="input-group">
+                                <input class="form-control"
+                                       type="number"
+                                       id="shelfLifeInputText"
+                                       [(ngModel)]="shelfLife"
+                                       (ngModelChange)="triggerShelfLifeChanged($event)"
+                                       class="form-control"
+                                       placeholder="Input shelf life in seconds">
+                              <span class="input-group-btn">
+                                 <button class="btn btn-secondary"
+                                         [class.btn-primary]="shelfLifeChanged"
+                                         type="button"
+                                         (click)="saveShelfLife()"
+                                         [disabled]="!shelfLifeChanged">Save
+                                 </button>
+                              </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <button class="btn btn-primary" (click)="resetView()">Reset view</button>
                 </div>
