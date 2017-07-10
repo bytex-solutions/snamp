@@ -4,8 +4,9 @@ import { Axis } from "../axis/abstract.axis";
 import { VotingData } from "../data/voting.data";
 
 import { RadialGauge } from 'canvas-gauges';
+import {ChartWithGroupName} from "./group.name.based.chart";
 
-export class VotingResultChart extends AbstractChart {
+export class VotingResultChart extends AbstractChart implements ChartWithGroupName {
 
     get type(): string {
         return AbstractChart.VOTING;

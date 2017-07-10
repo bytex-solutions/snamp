@@ -108557,6 +108557,7 @@ __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 var fabric_1 = __webpack_require__("./src/app/charts/model/data/fabric.ts");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
 var ChartService = (function () {
     function ChartService(localStorageService, _http) {
         this.localStorageService = localStorageService;
@@ -108753,6 +108754,11 @@ var ChartService = (function () {
             }
         }
         return _value;
+    };
+    ChartService.prototype.resetChart = function (chart) {
+        console.log("reseting the chart: ", chart.group); // @todo replace instance of to enum
+        this._http.post(app_restClient_1.REST.RESET_ELASTICITY(chart.group, chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart ? "groupStatus" : "elasticity"))
+            .subscribe(function () { return console.debug("Elasticity state has been reset for ", chart.group); });
     };
     ChartService = __decorate([
         core_1.Injectable(), 
@@ -109081,6 +109087,10 @@ var REST = (function () {
     };
     REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
         return REST.GROUPS_WEB_API + "/resources/" + encodeURIComponent(instanceName) + "/attributes";
+    };
+    // reset chart view
+    REST.RESET_ELASTICITY = function (name, classifier) {
+        return REST.ROOT_WEB_API_PATH + "/resource-group-watcher/" + encodeURIComponent(name) + "/" + classifier + "/reset";
     };
     // endpoint for certain supervisor
     REST.SUPERVISOR_BY_NAME = function (name) {

@@ -3,11 +3,12 @@ import { NumericAxis } from "./axis/numeric.axis";
 import { TwoDimensionalChart } from "./two.dimensional.chart";
 import { DescriptionIdClass } from "./abstract.line.based.chart";
 import { ScalingData } from "./data/scaling.data";
+import { ChartWithGroupName } from "./charts/group.name.based.chart";
 
 const d3 = require('d3');
 const nv = require('nvd3');
 
-export abstract class ScalingRateChart extends TwoDimensionalChart {
+export abstract class ScalingRateChart extends TwoDimensionalChart implements ChartWithGroupName {
 
     public group:string = "";
     public metrics:string[] = [];

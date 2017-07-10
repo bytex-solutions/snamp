@@ -28,6 +28,8 @@ import 'smartwizard';
 import 'select2';
 import {UserProfileService} from "../services/app.user.profile";
 import {isNullOrUndefined} from "util";
+import {VotingResultChart} from "./model/charts/voting.result.chart";
+import {ChartWithGroupName} from "./model/charts/group.name.based.chart";
 
 @Component({
     moduleId: module.id,
@@ -471,6 +473,27 @@ export class Dashboard {
 
     isNewChart():boolean {
         return this.currentChart == undefined;
+    }
+
+    isResetable(chart:AbstractChart):boolean {
+        return chart instanceof ScalingRateChart || chart instanceof VotingResultChart || chart instanceof ResourceGroupHealthStatusChart;
+    }
+
+    resetChart(chart:ChartWithGroupName):void {
+        this.modal.confirm()
+            .className(<VEXBuiltInThemes>'default')
+            .message('Chart will be reset for all dashboards and users. Proceed?')
+            .open()
+            .then((resultPromise) => {
+                return (<Promise<boolean>>resultPromise.result)
+                    .then((response) => {
+                        this._chartService.resetChart(chart);
+                        return response;
+                    })
+                    .catch(() => {
+                        console.log("user preferred to decline dashboard removing");
+                    });
+            }).catch(() => {});
     }
 
     private getHiddenSteps():number[] {

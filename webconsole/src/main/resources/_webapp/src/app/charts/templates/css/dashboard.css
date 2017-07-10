@@ -126,7 +126,7 @@ select.form-control:not([size]):not([multiple]) {
     font-size: inherit !important;
     color: black;
     display: inline;
-    max-width: calc(100% - 65px);
+    max-width: calc(100% - 81px);
 }
 
 .x_title h5 {

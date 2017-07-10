@@ -17,6 +17,8 @@ import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
 import { ChartDataFabric } from "../charts/model/data/fabric";
 import { isNullOrUndefined } from "util";
+import {ChartWithGroupName} from "../charts/model/charts/group.name.based.chart";
+import {ResourceGroupHealthStatusChart} from "../charts/model/charts/resource.group.health.status";
 
 @Injectable()
 export class ChartService {
@@ -234,5 +236,11 @@ export class ChartService {
             }
         }
         return _value;
+    }
+
+    resetChart(chart:ChartWithGroupName):void {
+        console.log("reseting the chart: ", chart.group); // @todo replace instance of to enum
+        this._http.post(REST.RESET_ELASTICITY(chart.group, chart instanceof ResourceGroupHealthStatusChart ? "groupStatus" : "elasticity"))
+            .subscribe(() => console.debug("Elasticity state has been reset for ", chart.group))
     }
 }

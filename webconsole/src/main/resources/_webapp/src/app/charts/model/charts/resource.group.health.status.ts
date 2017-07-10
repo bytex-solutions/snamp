@@ -4,10 +4,12 @@ import { ResourceNameAxis } from "../axis/resource.name.axis";
 import { HealthStatusAxis } from "../axis/health.status.axis";
 import { AbstractChart } from "../abstract.chart";
 import { HealthStatusChartData } from "../data/health.status.chart.data";
+import { ChartWithGroupName } from "./group.name.based.chart";
 
 import 'jstree';
 
-export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
+
+export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implements ChartWithGroupName {
     get type():string {
         return AbstractChart.HEALTH_STATUS;
     }

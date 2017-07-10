@@ -61,7 +61,7 @@ export class ApiClient {
         }), true, true);
     }
 
-    post(url, data) {
+    post(url, data?) {
         return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
         }), true, true);
@@ -239,6 +239,11 @@ export class REST {
 
     // reset e2e view
     public static RESET_VIEW:string = REST.ROOT_WEB_API_PATH + "/e2e/reset";
+
+    // reset chart view
+    public static RESET_ELASTICITY(name:string, classifier:string):string {
+        return REST.ROOT_WEB_API_PATH + "/resource-group-watcher/" + encodeURIComponent(name) + "/" + classifier + "/reset";
+    }
 
     // path for storing/receiving full snamp configuration as a json
     public static CURRENT_CONFIG:string = REST.ROOT_PATH + "/configuration";

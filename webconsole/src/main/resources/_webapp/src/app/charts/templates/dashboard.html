@@ -262,6 +262,7 @@
                 <h5 *ngIf="chart.updateStopped">(Paused at {{chart.pausedTime | date:'dd/MM/y HH:mm:ss'}})</h5>
                 <ul class="nav navbar-right panel_toolbox">
                   <li>
+                    <a (click)="resetChart(chart)" *ngIf="isAllowed() && isResetable(chart)"><i class="fa fa-refresh"></i></a>
                     <a (click)="modifyChart(chart)" *ngIf="isAllowed()"><i class="fa fa-wrench"></i></a>
                     <a [attr.id]="'toggleDraw' + chart.id" class="toggle-link" (click)="toggleDrawingChart(chart)"><i class="fa fa-pause-circle-o"></i></a>
                     <a class="close-link" *ngIf="isAllowed()" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
