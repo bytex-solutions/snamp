@@ -12,19 +12,19 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
- * Represents abstract implementation of filter builder.
+ * Represents service selector.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-public class SimpleFilterBuilder extends HashMap<String, String> implements FilterBuilder, Constants {
+public class DefaultServiceSelector extends HashMap<String, String> implements ServiceSelector, Constants {
     private static final long serialVersionUID = -4019896459706940608L;
 
-    public SimpleFilterBuilder() {
+    public DefaultServiceSelector() {
 
     }
 
-    protected SimpleFilterBuilder(final Map<String, String> properties) {
+    protected DefaultServiceSelector(final Map<String, String> properties) {
         super(properties);
     }
 
@@ -72,7 +72,7 @@ public class SimpleFilterBuilder extends HashMap<String, String> implements Filt
 
     @Override
     @Nonnull
-    public SimpleFilterBuilder setServiceType(@Nonnull final Class<?> serviceType) {
+    public final DefaultServiceSelector setServiceType(@Nonnull final Class<?> serviceType) {
         put(OBJECTCLASS, serviceType.getName());
         return this;
     }

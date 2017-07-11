@@ -316,8 +316,8 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
      */
     @Nonnull
     @Override
-    protected ManagedResourceFilterBuilder createServiceFilter() {
-        return ManagedResourceConnectorClient.filterBuilder();
+    protected ManagedResourceSelector createServiceFilter() {
+        return ManagedResourceConnectorClient.selector();
     }
 
     @Nonnull

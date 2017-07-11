@@ -68,15 +68,15 @@ public final class GatewayClient extends ServiceHolder<Gateway> implements Gatew
                 });
     }
 
-    public static GatewayFilterBuilder filterBuilder() {
-        final GatewayFilterBuilder builder = new GatewayFilterBuilder();
+    public static GatewaySelector selector() {
+        final GatewaySelector builder = new GatewaySelector();
         builder.setServiceType(Gateway.class);
         return builder;
     }
     
     private static ServiceReference<Gateway> getGatewayInstance(final BundleContext context,
                                                                 final String instanceName) {
-        return filterBuilder().setInstanceName(instanceName).getServiceReference(context, Gateway.class).orElse(null);
+        return selector().setInstanceName(instanceName).getServiceReference(context, Gateway.class).orElse(null);
     }
 
     /**
@@ -134,7 +134,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> implements Gatew
         if (context == null || configurationEntity == null) return null;
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
-            ref = filterBuilder()
+            ref = selector()
                     .setGatewayType(gatewayType)
                     .setServiceType(ConfigurationEntityDescriptionProvider.class)
                     .getServiceReference(context, ConfigurationEntityDescriptionProvider.class)
@@ -194,7 +194,7 @@ public final class GatewayClient extends ServiceHolder<Gateway> implements Gatew
      * @return The name of the gateway instance.
      */
     public String getInstanceName() {
-        return GatewayFilterBuilder.getGatewayInstance(this);
+        return GatewaySelector.getGatewayInstance(this);
     }
 
     public <M extends MBeanFeatureInfo, E extends Exception> boolean forEachFeature(final Class<M> featureType,

@@ -3,7 +3,7 @@ package com.bytex.snamp.web;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
-import com.bytex.snamp.core.SimpleFilterBuilder;
+import com.bytex.snamp.core.DefaultServiceSelector;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.JWTAuthFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
@@ -37,7 +37,7 @@ final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleE
     }
 
     private ServiceReference<WebConsoleService>[] getServices() {
-        return new SimpleFilterBuilder()
+        return new DefaultServiceSelector()
                 .setServiceType(WebConsoleService.class)
                 .getServiceReferences(getBundleContext(), WebConsoleService.class);
     }

@@ -32,7 +32,7 @@ public final class DebugHealthStatusTriggerCommand extends ScriptletDebugger<Hea
         void debugGroupStatus(final String groupName, final HealthStatusTrigger trigger) {
             final BundleContext context = Utils.getBundleContextOfObject(this);
             statusBuilder()
-                    .updateResourcesStatuses(context, ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(context))
+                    .updateResourcesStatuses(context, ManagedResourceConnectorClient.selector().setGroupName(groupName).getResources(context))
                     .build(trigger)
                     .close();
         }

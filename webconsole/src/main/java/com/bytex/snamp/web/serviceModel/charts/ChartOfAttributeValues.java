@@ -60,7 +60,7 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
     public final Collection<? extends AttributeChartData> collectChartData(final BundleContext context) throws Exception {
         final Set<String> resources = isNullOrEmpty(groupName) ?
                 instances :
-                ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(context);
+                ManagedResourceConnectorClient.selector().setGroupName(groupName).getResources(context);
         final List<AttributeChartData> result = new LinkedList<>();
         for (final String resourceName : resources) {
             final Optional<ManagedResourceConnectorClient> clientRef = ManagedResourceConnectorClient.tryCreate(context, resourceName);

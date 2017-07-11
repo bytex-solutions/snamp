@@ -7,7 +7,7 @@ import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
+import com.bytex.snamp.connector.ManagedResourceSelector;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
@@ -76,15 +76,15 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
      * Constructs a new instance of the filter used to obtain service {@link Supervisor} from OSGi service registry.
      * @return A new instance of the filter builder.
      */
-    public static SupervisorFilterBuilder filterBuilder(){
-        final SupervisorFilterBuilder filter = new SupervisorFilterBuilder();
-        filter.setServiceType(Supervisor.class);
-        return filter;
+    public static SupervisorSelector selector(){
+        final SupervisorSelector selector = new SupervisorSelector();
+        selector.setServiceType(Supervisor.class);
+        return selector;
     }
 
     private static ServiceReference<Supervisor> getSupervisorInstance(final BundleContext context,
                                                                 final String groupName) {
-        return filterBuilder().setGroupName(groupName).getServiceReference(context, Supervisor.class).orElse(null);
+        return selector().setGroupName(groupName).getServiceReference(context, Supervisor.class).orElse(null);
     }
 
     private static UnsupportedOperationException unsupportedServiceRequest(final String supervisorType,
@@ -103,7 +103,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     public static  ConfigurationEntityDescription<SupervisorConfiguration> getConfigurationDescriptor(final BundleContext context, final String supervisorType) throws UnsupportedOperationException {
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
-            ref = filterBuilder()
+            ref = selector()
                     .setSupervisorType(supervisorType)
                     .setServiceType(ConfigurationEntityDescriptionProvider.class)
                     .getServiceReference(context, ConfigurationEntityDescriptionProvider.class)
@@ -163,7 +163,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
      * @return Name of the group.
      */
     public String getGroupName() {
-        return SupervisorFilterBuilder.getGroupName(this);
+        return SupervisorSelector.getGroupName(this);
     }
 
     /**
@@ -219,7 +219,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
         get().update(configuration);
     }
 
-    private static ResourceGroupHealthStatus getStatus(final BundleContext context, final ManagedResourceFilterBuilder filter) {
+    private static ResourceGroupHealthStatus getStatus(final BundleContext context, final String groupName) {
         final class FakeResourceGroupHealthStatus extends HashMap<String, HealthStatus> implements ResourceGroupHealthStatus, Consumer<ManagedResourceConnectorClient> {
             private static final long serialVersionUID = 420503389377659109L;
 
@@ -237,17 +237,21 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
                 }
             }
         }
-
+        final ManagedResourceSelector filter = ManagedResourceConnectorClient.selector().setGroupName(groupName);
         final FakeResourceGroupHealthStatus status = new FakeResourceGroupHealthStatus();
         for (final String resourceName : filter.getResources(context))
             ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(status);
         return status;
     }
 
+    private ResourceGroupHealthStatus getFallbackStatus(){
+        return getStatus(context, getGroupName());
+    }
+
     public ResourceGroupHealthStatus getStatus(){
         return queryObject(HealthStatusProvider.class)
                 .map(HealthStatusProvider::getStatus)
-                .orElseGet(() -> getStatus(context, ManagedResourceConnectorClient.filterBuilder().setGroupName(getGroupName())));
+                .orElseGet(this::getFallbackStatus);
     }
 
     public static ResourceGroupHealthStatus getGroupStatus(final BundleContext context, final String groupName) {
@@ -259,7 +263,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
                         client.close();
                     }
                 })
-                .orElseGet(() -> getStatus(context, ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName)));
+                .orElseGet(() -> getStatus(context, groupName));
     }
 
     /**

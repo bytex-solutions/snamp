@@ -135,7 +135,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         if (context == null || configurationEntity == null) return null;
         ServiceReference<ConfigurationEntityDescriptionProvider> ref = null;
         try {
-            ref = filterBuilder()
+            ref = selector()
                     .setConnectorType(connectorType)
                     .setServiceType(ConfigurationEntityDescriptionProvider.class)
                     .getServiceReference(context, ConfigurationEntityDescriptionProvider.class)
@@ -165,7 +165,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
                                                            final ManagedResourceInfo configuration) throws Exception {
         ServiceReference<ManagedResourceConnectorFactoryService> ref = null;
         try {
-            ref = filterBuilder()
+            ref = selector()
                     .setConnectorType(connectorType)
                     .setServiceType(ManagedResourceConnectorFactoryService.class)
                     .getServiceReference(context, ManagedResourceConnectorFactoryService.class)
@@ -186,7 +186,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return The connection string used by management connector.
      */
     public String getConnectionString(){
-        return ManagedResourceFilterBuilder.getConnectionString(this);
+        return ManagedResourceSelector.getConnectionString(this);
     }
 
     /**
@@ -195,17 +195,17 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return The name of the management target.
      */
     public String getManagedResourceName(){
-        return ManagedResourceFilterBuilder.getManagedResourceName(this);
+        return ManagedResourceSelector.getManagedResourceName(this);
     }
 
     public String getGroupName() {
-        final String groupName = ManagedResourceFilterBuilder.getGroupName(this);
+        final String groupName = ManagedResourceSelector.getGroupName(this);
         return isNullOrEmpty(groupName) ? getManagedResourceName() : groupName;
     }
 
     private static ServiceReference<ManagedResourceConnector> getResourceConnector(final BundleContext context,
                                                                           final String resourceName) {
-        return filterBuilder()
+        return selector()
                 .setResourceName(resourceName)
                 .getServiceReference(context, ManagedResourceConnector.class)
                 .orElse(null);
@@ -215,8 +215,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * Constructs a new filter builder used to query instances of {@link ManagedResourceConnector}.
      * @return A new filter builder.
      */
-    public static ManagedResourceFilterBuilder filterBuilder() {
-        final ManagedResourceFilterBuilder result = new ManagedResourceFilterBuilder();
+    public static ManagedResourceSelector selector() {
+        final ManagedResourceSelector result = new ManagedResourceSelector();
         result.setServiceType(ManagedResourceConnector.class);
         return result;
     }

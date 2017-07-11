@@ -154,20 +154,20 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
     @Produces(MediaType.APPLICATION_JSON)
     public Set<String> getGroups() {
         //list of groups can be extracted from already instantiated resources. No need to return groups without resources
-        return ManagedResourceConnectorClient.filterBuilder().getGroups(getBundleContext());
+        return ManagedResourceConnectorClient.selector().getGroups(getBundleContext());
     }
 
     @GET
     @Path("/resources")
     @Produces(MediaType.APPLICATION_JSON)
     public Set<String> getResources() {
-        return ManagedResourceConnectorClient.filterBuilder().getResources(getBundleContext());
+        return ManagedResourceConnectorClient.selector().getResources(getBundleContext());
     }
 
     @GET
     @Path("{groupName}/resources")
     @Produces(MediaType.APPLICATION_JSON)
     public Set<String> getResources(@PathParam("groupName")final String groupName) {
-        return ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(getBundleContext());
+        return ManagedResourceConnectorClient.selector().setGroupName(groupName).getResources(getBundleContext());
     }
 }

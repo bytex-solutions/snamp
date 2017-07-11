@@ -188,8 +188,8 @@ final class SmtpModelOfSupervisors extends AbstractStatefulFrameworkServiceTrack
      */
     @Nonnull
     @Override
-    protected SupervisorFilterBuilder createServiceFilter() {
-        return SupervisorClient.filterBuilder();
+    protected SupervisorSelector createServiceFilter() {
+        return SupervisorClient.selector();
     }
 
     @Override

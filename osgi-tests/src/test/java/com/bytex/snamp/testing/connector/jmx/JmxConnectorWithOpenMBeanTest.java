@@ -283,7 +283,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         final BundleContext context = getTestBundleContext();
         final CompletableFuture<Boolean> unregistered = new CompletableFuture<>();
         final CompletableFuture<Boolean> registered = new CompletableFuture<>();
-        ManagedResourceConnectorClient.filterBuilder().addServiceListener(context, event -> {
+        ManagedResourceConnectorClient.selector().addServiceListener(context, event -> {
             switch (event.getType()){
                 case ServiceEvent.UNREGISTERING:
                     unregistered.complete(isResourceConnector(event.getServiceReference()));

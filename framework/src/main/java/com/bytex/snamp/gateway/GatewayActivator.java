@@ -116,7 +116,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         protected G activateService(final BiConsumer<String, Object> identity,
                                     final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
-            new GatewayFilterBuilder(newConfig.getValue()).setInstanceName(newConfig.getKey()).forEach(identity);
+            new GatewaySelector(newConfig.getValue()).setInstanceName(newConfig.getKey()).forEach(identity);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(newConfig.getKey(), dependencies);
             gatewayInstance.update(newConfig.getValue());
             getLogger().info(String.format("Gateway %s is instantiated", gatewayInstance));
@@ -189,7 +189,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         @Override
         @Nonnull
         protected T activateService(final Map<String, Object> identity) throws Exception {
-            identity.putAll(new GatewayFilterBuilder().setGatewayType(getGatewayType()));
+            identity.putAll(new GatewaySelector().setGatewayType(getGatewayType()));
             return activator.activateService(dependencies);
         }
 

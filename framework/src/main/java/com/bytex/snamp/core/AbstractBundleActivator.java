@@ -245,7 +245,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
 
         final ServiceReference<S>[] getCandidates(final BundleContext context) {
-            return new SimpleFilterBuilder()
+            return new DefaultServiceSelector()
                     .setServiceType(dependencyContract)
                     .getServiceReferences(context, dependencyContract);
         }

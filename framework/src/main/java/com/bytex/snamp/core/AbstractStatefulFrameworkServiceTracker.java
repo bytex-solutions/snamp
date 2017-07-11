@@ -123,7 +123,7 @@ public abstract class AbstractStatefulFrameworkServiceTracker<S extends Framewor
      * @return A filter used to query services from OSGi Service Registry.
      */
     @Nonnull
-    protected abstract FilterBuilder createServiceFilter();
+    protected abstract ServiceSelector createServiceFilter();
 
     /**
      * Stops tracking services.
@@ -143,7 +143,7 @@ public abstract class AbstractStatefulFrameworkServiceTracker<S extends Framewor
         final InternalState<F> currentState = mutableState;
         switch (currentState.state) {
             case STARTED:
-                final FilterBuilder filter = createServiceFilter();
+                final ServiceSelector filter = createServiceFilter();
                 try {
                     stop();
                     for (final ServiceReference<S> serviceRef : filter.getServiceReferences(context, serviceContract)) {
@@ -187,7 +187,7 @@ public abstract class AbstractStatefulFrameworkServiceTracker<S extends Framewor
         switch (currentState.state) {
             case CREATED:
             case STOPPED:
-                final FilterBuilder filter = createServiceFilter();
+                final ServiceSelector filter = createServiceFilter();
                 //explore all available resources
                 final BundleContext context = getBundleContext();
                 filter.addServiceListener(context, this);

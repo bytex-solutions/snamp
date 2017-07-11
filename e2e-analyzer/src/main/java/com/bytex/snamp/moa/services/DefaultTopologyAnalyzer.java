@@ -7,7 +7,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.core.AbstractFrameworkServiceTracker;
-import com.bytex.snamp.core.FilterBuilder;
+import com.bytex.snamp.core.ServiceSelector;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.moa.topology.ComponentVertex;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
@@ -35,7 +35,7 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
     DefaultTopologyAnalyzer(final long historySize){
         super(ManagedResourceConnector.class);
         graph = new FilteredGraphOfComponents(historySize);
-        final FilterBuilder builder = ManagedResourceConnectorClient.filterBuilder();
+        final ServiceSelector builder = ManagedResourceConnectorClient.selector();
         builder.addServiceListener(getBundleContext(), this);
         resourceFilter = builder.get();
     }

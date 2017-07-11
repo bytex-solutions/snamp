@@ -243,7 +243,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         protected TConnector activateService(final BiConsumer<String, Object> identity,
                                              final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
-            new ManagedResourceFilterBuilder(newConfig.getValue()).setResourceName(newConfig.getKey()).forEach(identity);
+            new ManagedResourceSelector(newConfig.getValue()).setResourceName(newConfig.getKey()).forEach(identity);
             final TConnector connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
             updateFeatures(connector, newConfig.getValue());
             getLogger().info(String.format("Connector %s for resource %s is instantiated", getConnectorType(), newConfig.getKey()));
@@ -253,7 +253,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         @Override
         protected void disposeService(final TConnector service,
                                       final Map<String, ?> identity) throws Exception {
-            getLogger().info(String.format("Connector %s is destroyed", ManagedResourceFilterBuilder.getManagedResourceName(identity)));
+            getLogger().info(String.format("Connector %s is destroyed", ManagedResourceSelector.getManagedResourceName(identity)));
             service.close();
         }
 
@@ -303,7 +303,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         @Override
         @Nonnull
         protected final T activateService(final Map<String, Object> identity) throws Exception {
-            identity.putAll(new ManagedResourceFilterBuilder().setConnectorType(getConnectorType()));
+            identity.putAll(new ManagedResourceSelector().setConnectorType(getConnectorType()));
             return createService(identity);
         }
 
