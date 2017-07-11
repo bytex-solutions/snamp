@@ -88,6 +88,7 @@ export class Factory {
                     break;
                 case AbstractChart.HEALTH_STATUS:
                     _chart = new ResourceGroupHealthStatusChart();
+                    (<ResourceGroupHealthStatusChart>_chart).group = _json["group"];
                     break;
                 case AbstractChart.RESOURCE_COUNT:
                     _chart = new NumberOfResourcesChart();

@@ -194,6 +194,7 @@ export class Dashboard {
         // reset wizard
         $(Dashboard.wizardId).off("showStep");
         $(Dashboard.wizardId).smartWizard("reset");
+
         this.initWizard();
 
         if ($(Dashboard.select2Id).data('select2')) {
@@ -400,7 +401,7 @@ export class Dashboard {
     }
 
     addChartToDashboard():void {
-        let _instances:string[] = ((this.selectedAllInstances) ? this.allInstances : this.selectedInstances);
+        let _instances:string[] = ((this.selectedAllInstances) ? [] : this.selectedInstances);
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
 
@@ -427,6 +428,7 @@ export class Dashboard {
         this._chartService.modifyChart(this.currentChart);
         this.cd.detectChanges();
         this.currentChart.draw();
+        $(Dashboard.chartModalId).modal("hide");
     }
 
     onChangeStop(index: number, event: NgGridItemEvent): void {

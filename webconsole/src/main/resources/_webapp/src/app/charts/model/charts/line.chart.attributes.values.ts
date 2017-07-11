@@ -3,6 +3,7 @@ import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
 import { AttributeChartData } from "../data/attribute.chart.data";
 import { SeriesBasedChart } from "../abstract.line.based.chart";
+import { isNullOrUndefined } from "util";
 
 const d3 = require('d3');
 const nv = require('nvd3');
@@ -28,7 +29,7 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
         this.setSizeY(10);
     }
 
-    private prepareDatasets():any {
+    private prepareDatasets_old():any {
         let _value:any[] = [];
         for (let i = 0; i < this.resources.length; i++) {
             let _currentValue:any = {};
@@ -44,13 +45,29 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
         return _value;
     }
 
+
+    private prepareDatasets():any {
+        let _value:any = {};
+        for (let j = 0; j < this.chartData.length; j++) {
+            if (isNullOrUndefined(_value[(<AttributeChartData>this.chartData[j]).resourceName])) {
+                _value[(<AttributeChartData>this.chartData[j]).resourceName] = [];
+            }
+            _value[(<AttributeChartData>this.chartData[j]).resourceName].push({x: this.chartData[j].timestamp, y: (<AttributeChartData>this.chartData[j]).attributeValue});
+        }
+
+        return Object.keys(_value).map((_key) => {
+            return { key: _key, values: _value[_key]}
+        });
+    }
+
+
     public newValues(allData:AttributeChartData[]):void {
         if (document.hidden) return;
         this.chartData.push(...allData);
         if (this._chartObject != undefined) {
             let _ds:any[] = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
-                _ds = this.prepareDatasets();
+                d3.select('#' + this.id).datum(this.prepareDatasets()).transition().call(this._chartObject);
             } else {
                 for (let i = 0; i < _ds.length; i++) {
                     for (let j = 0; j < allData.length; j++) {
@@ -63,8 +80,8 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
                         }
                     }
                 }
+                this._chartObject.update();
             }
-            this._chartObject.update();
         }
     }
 
@@ -88,8 +105,7 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
 
             chart.x2Axis.tickFormat(function (d) { return ''; });
 
-            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
-                .transition().call(chart);
+            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets()).transition().call(chart);
 
                 nv.utils.windowResize(chart.update);
             _thisReference._chartObject = chart;

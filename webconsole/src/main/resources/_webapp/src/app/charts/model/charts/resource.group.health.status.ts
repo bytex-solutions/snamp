@@ -181,26 +181,9 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implemen
     public newValues(_data:HealthStatusChartData[]):void {
         if (document.hidden) return;
         this.chartData = _data;
-        if (this._chartObject != undefined) {
-            this._chartObject.settings.core.data = this.prepareDatasets();
-            this._chartObject.refresh(true);
-        }
-    }
-
-    public newValue(_data:HealthStatusChartData):void {
-        if (document.hidden) return;
-
-        let _index:number = -1;
-        for (let i = 0; i < this.chartData.length; i++) {
-            if ((<HealthStatusChartData>this.chartData[i]).name == _data.name) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
+        this.chartData.sort((a:HealthStatusChartData, b:HealthStatusChartData) => {
+            return a.name.localeCompare(b.name);
+        });
         if (this._chartObject != undefined) {
             this._chartObject.settings.core.data = this.prepareDatasets();
             this._chartObject.refresh(true);

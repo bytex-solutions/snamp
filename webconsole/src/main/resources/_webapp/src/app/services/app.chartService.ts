@@ -80,6 +80,7 @@ export class ChartService {
          for (let i = 0; i < _chs.length; i++) {
             _chArrJson.push(_chs[i].toJSON());
          }
+         console.debug("Computing charts: ", REST.CHARTS_COMPUTE, _chArrJson);
          this._http.post(REST.CHARTS_COMPUTE, _chArrJson)
             .map((res:Response) => res.json())
             .subscribe(data => {

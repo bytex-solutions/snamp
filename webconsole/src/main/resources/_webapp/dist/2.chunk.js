@@ -365,7 +365,7 @@ var Dashboard = (function () {
         }
     };
     Dashboard.prototype.addChartToDashboard = function () {
-        var _instances = ((this.selectedAllInstances) ? this.allInstances : this.selectedInstances);
+        var _instances = ((this.selectedAllInstances) ? [] : this.selectedInstances);
         var chart = objectFactory_1.Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent, _instances, this.selectedMetric);
         // if this is a line chart - add time interval
         if (chart instanceof abstract_line_based_chart_1.SeriesBasedChart) {
@@ -389,6 +389,7 @@ var Dashboard = (function () {
         this._chartService.modifyChart(this.currentChart);
         this.cd.detectChanges();
         this.currentChart.draw();
+        $(Dashboard.chartModalId).modal("hide");
     };
     Dashboard.prototype.onChangeStop = function (index, event) {
         if (this.isAllowed() && !util_1.isNullOrUndefined(index) && !util_1.isNullOrUndefined(this._charts[index])) {

@@ -104744,6 +104744,7 @@ var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var LineChartOfAttributeValues = (function (_super) {
@@ -104767,7 +104768,7 @@ var LineChartOfAttributeValues = (function (_super) {
     LineChartOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
-    LineChartOfAttributeValues.prototype.prepareDatasets = function () {
+    LineChartOfAttributeValues.prototype.prepareDatasets_old = function () {
         var _value = [];
         for (var i = 0; i < this.resources.length; i++) {
             var _currentValue = {};
@@ -104782,6 +104783,18 @@ var LineChartOfAttributeValues = (function (_super) {
         }
         return _value;
     };
+    LineChartOfAttributeValues.prototype.prepareDatasets = function () {
+        var _value = {};
+        for (var j = 0; j < this.chartData.length; j++) {
+            if (util_1.isNullOrUndefined(_value[this.chartData[j].resourceName])) {
+                _value[this.chartData[j].resourceName] = [];
+            }
+            _value[this.chartData[j].resourceName].push({ x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue });
+        }
+        return Object.keys(_value).map(function (_key) {
+            return { key: _key, values: _value[_key] };
+        });
+    };
     LineChartOfAttributeValues.prototype.newValues = function (allData) {
         if (document.hidden)
             return;
@@ -104789,7 +104802,7 @@ var LineChartOfAttributeValues = (function (_super) {
         if (this._chartObject != undefined) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
-                _ds = this.prepareDatasets();
+                d3.select('#' + this.id).datum(this.prepareDatasets()).transition().call(this._chartObject);
             }
             else {
                 for (var i = 0; i < _ds.length; i++) {
@@ -104803,8 +104816,8 @@ var LineChartOfAttributeValues = (function (_super) {
                         }
                     }
                 }
+                this._chartObject.update();
             }
-            this._chartObject.update();
         }
         var _a;
     };
@@ -104823,8 +104836,7 @@ var LineChartOfAttributeValues = (function (_super) {
                 .tickFormat(d3.format('d'))
                 .axisLabel(_thisReference.getAxisY().sourceAttribute.unitOfMeasurement);
             chart.x2Axis.tickFormat(function (d) { return ''; });
-            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
-                .transition().call(chart);
+            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets()).transition().call(chart);
             nv.utils.windowResize(chart.update);
             _thisReference._chartObject = chart;
             return chart;
@@ -105287,25 +105299,9 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         if (document.hidden)
             return;
         this.chartData = _data;
-        if (this._chartObject != undefined) {
-            this._chartObject.settings.core.data = this.prepareDatasets();
-            this._chartObject.refresh(true);
-        }
-    };
-    ResourceGroupHealthStatusChart.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].name == _data.name) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
+        this.chartData.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
         if (this._chartObject != undefined) {
             this._chartObject.settings.core.data = this.prepareDatasets();
             this._chartObject.refresh(true);
@@ -106022,6 +106018,7 @@ var Factory = (function () {
                     break;
                 case abstract_chart_1.AbstractChart.HEALTH_STATUS:
                     _chart = new resource_group_health_status_1.ResourceGroupHealthStatusChart();
+                    _chart.group = _json["group"];
                     break;
                 case abstract_chart_1.AbstractChart.RESOURCE_COUNT:
                     _chart = new number_of_resources_1.NumberOfResourcesChart();
@@ -108614,6 +108611,7 @@ var ChartService = (function () {
         for (var i = 0; i < _chs.length; i++) {
             _chArrJson.push(_chs[i].toJSON());
         }
+        console.debug("Computing charts: ", app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson);
         this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {

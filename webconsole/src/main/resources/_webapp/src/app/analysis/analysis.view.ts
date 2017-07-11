@@ -14,6 +14,7 @@ import 'rxjs/add/observable/of';
 import { Overlay } from "angular2-modal";
 import { VEXBuiltInThemes, Modal, DialogFormModal } from 'angular2-modal/plugins/vex';
 import {Description} from "./analysis.add.view";
+import {UserProfileService} from "../services/app.user.profile";
 
 @Component({
     moduleId: module.id,
@@ -55,8 +56,8 @@ export class MainView {
 
     timerId: any = undefined;
 
-    constructor(private route: ActivatedRoute, overlay: Overlay, private router: Router,
-                private _viewService: ViewService, private modal: Modal, vcRef: ViewContainerRef) {
+    constructor(private route: ActivatedRoute, overlay: Overlay, private router: Router, private _viewService: ViewService,
+                private modal: Modal, vcRef: ViewContainerRef ,private ups:UserProfileService) {
         overlay.defaultViewContainer = vcRef;
     }
 
@@ -269,6 +270,10 @@ export class MainView {
         let _menuBlock:any = $("#viewMenu");
         _menuBlock.css("top", (_btn.offset().top + _btn.height() + 150) + "px");
         _menuBlock.height(($("footer").offset().top - _menuBlock.offset().top - 150) + "px");
+    }
+
+    isAllowed():boolean {
+        return this.ups.isUserHasManagerOrAdminRole();
     }
 }
 

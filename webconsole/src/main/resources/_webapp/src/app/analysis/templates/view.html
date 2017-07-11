@@ -1,4 +1,4 @@
-<div id="viewMenu" [class.hided]="!showSettings">
+<div id="viewMenu" [class.hided]="!showSettings" *ngIf="isAllowed()">
     <div role="tabpanel" data-example-id="togglable-tabs">
         <ul id="myTab1" class="nav nav-tabs bar_tabs" role="tablist">
             <li role="presentation" class=""><a href="#tab_info" id="home-tabb" role="tab" data-toggle="tab"
@@ -353,7 +353,7 @@
 
         <div class="col-md-2" style="padding-top: 20px;">
 
-            <div class="row" style="float: right">
+            <div class="row" style="float: right" *ngIf="isAllowed()">
                 <button class="btn btn-danger" (click)="removeView()"><i class="fa fa-trash"></i></button>
                 <button class="btn btn-primary" id="btnSettings" (click)="toggleShowSettings()"><i class="fa" [class.fa-angle-up]="showSettings" [class.fa-angle-down]="!showSettings"></i> Settings</button>
             </div>
