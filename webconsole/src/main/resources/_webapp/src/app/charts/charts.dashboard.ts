@@ -64,8 +64,8 @@ export class Dashboard {
     private rateIntervals:DescriptionIdClass[] = SeriesBasedChart.generateRateIntervals();
     private rateMetrics:DescriptionIdClass[] = ScalingRateChart.prepareRareMetrics();
 
-    private timeInterval:DescriptionIdClass = undefined;
-    private rateInterval:DescriptionIdClass = undefined;
+    private timeInterval:number = undefined;
+    private rateInterval:string = undefined;
 
     private static select2Id:string = "#instancesSelect";
     private static chartModalId:string = "#addChartModal";
@@ -73,6 +73,8 @@ export class Dashboard {
     private static rateMetricSelect2Id:string = "#rateMetricSelect";
 
     private currentChart:AbstractChart = undefined;
+
+    private smartWizardInitialized:boolean = false;
 
     private gridConfig: NgGridConfig = <NgGridConfig> {
         'margins': [10],
@@ -110,8 +112,8 @@ export class Dashboard {
                 private ups:UserProfileService) {
 
         overlay.defaultViewContainer = vcRef;
-        this.timeInterval = this.intervals[0];
-        this.rateInterval = this.rateIntervals[0];
+        this.timeInterval = this.intervals[0].id;
+        this.rateInterval = this.rateIntervals[0].additionalId;
     }
 
     appendChartClicked(type:string) {
@@ -128,9 +130,9 @@ export class Dashboard {
         this.selectedInstances = [];
         this.selectedMetric = undefined;
         this.selectedComponent = "";
-        this.timeInterval = this.intervals[0];
+        this.timeInterval = this.intervals[0].id;
         this.selectedRateMetrics = [];
-        this.rateInterval = this.rateIntervals[0];
+        this.rateInterval = this.rateIntervals[0].additionalId;
         this.currentChart = undefined;
 
         // fill components and selected component
@@ -143,6 +145,7 @@ export class Dashboard {
     modifyChart(chart:AbstractChart):void {
         // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
         this.currentChart = chart;
+        this.selectedChartType = Object.keys(AbstractChart.TYPE_MAPPING).filter((key) => AbstractChart.TYPE_MAPPING[key] == chart.type)[0];
 
         // prefill instances from the existing chart
         if (chart instanceof ChartOfAttributeValues && chart.resources != undefined && chart.resources.length > 0) {
@@ -163,17 +166,17 @@ export class Dashboard {
         // fill the rate metric and rate intervals from the chart
         if (chart instanceof ScalingRateChart) {
             this.selectedRateMetrics =  chart.metrics;
-            this.rateInterval = this.rateIntervals.filter(element => element.additionalId == chart.interval)[0];
+            this.rateInterval = chart.interval;
         } else {
             this.selectedRateMetrics = [];
-            this.rateInterval = this.intervals[0];
+            this.rateInterval = isNullOrUndefined(this.intervals[0]) ? undefined : this.intervals[0].additionalId;
         }
 
         // fill the time interval if the chart belongs to series based charts
         if (chart instanceof SeriesBasedChart) {
-            this.timeInterval = this.rateIntervals.filter(element => element.id == chart.preferences["interval"])[0];
+            this.timeInterval = chart.preferences["interval"];
         } else {
-            this.timeInterval = this.intervals[0];
+            this.timeInterval = this.intervals[0].id;
         }
 
         // fill the selected metric if the chart has metric in one of its axes
@@ -187,13 +190,17 @@ export class Dashboard {
         this.cd.detectChanges();
 
         // init modal components and show the modal
+        console.debug("Rate interval for chart ", chart.name, " is: ", this.rateInterval);
+        console.debug("Time interval for chart ", chart.name, " is: ", this.timeInterval);
         this.initModal();
     }
 
     private initModal():void {
         // reset wizard
-        $(Dashboard.wizardId).off("showStep");
-        $(Dashboard.wizardId).smartWizard("reset");
+        if (this.smartWizardInitialized) {
+            $(Dashboard.wizardId).off("showStep");
+            $(Dashboard.wizardId).smartWizard("reset");
+        }
 
         this.initWizard();
 
@@ -298,6 +305,7 @@ export class Dashboard {
                 _thisReference.triggerShowInstances(_thisReference.selectedAllInstances);
             }
         });
+        this.smartWizardInitialized = true;
     }
 
     onComponentSelect(event:any):void {
@@ -407,11 +415,11 @@ export class Dashboard {
 
         // if this is a line chart - add time interval
         if (chart instanceof SeriesBasedChart) {
-            chart.preferences["interval"] = this.timeInterval.id;
+            chart.preferences["interval"] = this.timeInterval;
         }
         if (chart instanceof ScalingRateChart) {
             chart.metrics = this.selectedRateMetrics;
-            chart.interval = this.rateInterval.additionalId;
+            chart.interval = this.rateInterval;
         }
         this._chartService.newChart(chart);
         this._charts = this._chartService.getChartsByGroupName(this.groupName);

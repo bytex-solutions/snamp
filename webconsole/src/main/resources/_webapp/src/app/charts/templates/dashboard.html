@@ -148,7 +148,7 @@
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12">
                     <select class="form-control" [(ngModel)]="timeInterval" id="lineChartIntervalSelect">
-                      <option *ngFor="let interval of intervals" [ngValue]="interval">{{interval.description}}</option>
+                      <option *ngFor="let interval of intervals" [ngValue]="interval.id">{{interval.description}}</option>
                     </select>
                   </div>
                 </div>
@@ -164,7 +164,7 @@
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12">
                     <select class="form-control" [(ngModel)]="rateInterval" id="rateIntervalSelect">
-                      <option *ngFor="let interval of rateIntervals" [ngValue]="interval">{{interval.description}}</option>
+                      <option *ngFor="let interval of rateIntervals" [ngValue]="interval.additionalId">{{interval.description}}</option>
                     </select>
                   </div>
                 </div>
