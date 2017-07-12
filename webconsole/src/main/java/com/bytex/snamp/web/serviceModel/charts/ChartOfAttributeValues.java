@@ -2,7 +2,6 @@ package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.osgi.framework.BundleContext;
 
@@ -47,11 +46,6 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
 
     public final void addResource(final String resourceName) {
         instances.add(resourceName);
-    }
-
-    @JsonIgnore
-    final boolean hasResource(final String resourceName){
-        return instances.isEmpty() || instances.contains(resourceName);
     }
 
     abstract void fillChartData(final String resourceName, final AttributeList attributes, final Consumer<? super AttributeChartData> acceptor);
