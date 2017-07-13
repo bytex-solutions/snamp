@@ -98,7 +98,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
         int index = 0;
         for(final String itemName: attachment.getCompositeType().keySet()){
             final WellKnownType itemType = WellKnownType.getType(attachment.getCompositeType().getType(itemName));
-            if(itemType == null || !itemType.isPrimitive()) continue;
+            if(itemType == null || !itemType.isSimple()) continue;
             final SnmpType snmpType = SnmpType.map(itemType);
             assert snmpType != null;
             handler.accept(new VariableBinding(new OID(new int[]{index++}), snmpType.convert(attachment.get(itemName), options)));
@@ -109,7 +109,7 @@ final class SnmpNotification extends HashMap<OID, Variable> {
                                                                final DescriptorRead options,
                                                                final Acceptor<VariableBinding, E> handler) throws E{
         final WellKnownType elementType = WellKnownType.getType(array.getClass().getComponentType());
-        if(elementType == null || !elementType.isPrimitive()) return;
+        if(elementType == null || !elementType.isSimple()) return;
         final SnmpType snmpType = SnmpType.map(elementType);
         assert snmpType != null;
         for(int i = 0; i < Array.getLength(array); i++) {

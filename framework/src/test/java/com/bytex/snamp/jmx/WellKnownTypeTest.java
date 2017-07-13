@@ -17,8 +17,9 @@ public class WellKnownTypeTest extends Assert {
 
     @Test
     public void byteTypeTest(){
-        assertTrue(WellKnownType.BYTE.isInstance((byte) 2));
+        assertTrue(WellKnownType.BYTE.test((byte) 2));
         assertEquals(WellKnownType.BYTE, WellKnownType.fromValue((byte)3));
+        assertFalse(WellKnownType.INT.test((byte) 3));
     }
 
     @Test
@@ -50,7 +51,7 @@ public class WellKnownTypeTest extends Assert {
             assertTrue("Not array: " + type, type.getOpenType() instanceof ArrayType<?>);
             assertTrue(type.isArray());
             assertTrue(type.isOpenType());
-            final Object emptyArray = ArrayUtils.emptyArray((ArrayType<?>) type.getOpenType(), getClass().getClassLoader());
+            final Object emptyArray = OpenTypes.defaultValue(type.getOpenType());
             assertEquals(0, Array.getLength(emptyArray));
         }
     }

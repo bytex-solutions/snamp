@@ -1,26 +1,25 @@
 package com.bytex.snamp;
 
-import com.bytex.snamp.jmx.OpenTypeBuilder;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.management.ObjectName;
-import javax.management.openmbean.*;
+import javax.management.openmbean.ArrayType;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
 import java.io.Serializable;
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.BitSet;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.*;
 
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
+import static com.bytex.snamp.jmx.OpenTypes.isPrimitive;
 
 /**
  * Represents advanced routines to work with arrays.
@@ -35,15 +34,6 @@ public final class ArrayUtils {
         byte[] convert(final T array, final int index);
     }
 
-    private static final ImmutableSet<SimpleType<?>> PRIMITIVE_TYPES = ImmutableSet.of(SimpleType.BOOLEAN,
-            SimpleType.CHARACTER,
-            SimpleType.BYTE,
-            SimpleType.SHORT,
-            SimpleType.INTEGER,
-            SimpleType.LONG,
-            SimpleType.FLOAT,
-            SimpleType.DOUBLE);
-
     private static final LoadingCache<Class<?>, Object> EMPTY_ARRAYS = CacheBuilder
             .newBuilder()
             .softValues()
@@ -53,41 +43,6 @@ public final class ArrayUtils {
                     return Array.newInstance(componentType, 0);
                 }
             });
-
-    private static final LoadingCache<OpenType<?>, Class<?>> OPEN_TYPE_MAPPING =
-            CacheBuilder.newBuilder()
-                    .maximumSize(20)
-                    .softValues()
-                    .build(new CacheLoader<OpenType<?>, Class<?>>() {
-                        private final Map<OpenType<?>, Class<?>> simpleTypeMapping = ImmutableMap.<OpenType<?>, Class<?>>builder()
-                                .put(SimpleType.BYTE, Byte.class)
-                                .put(SimpleType.CHARACTER, Character.class)
-                                .put(SimpleType.SHORT, Short.class)
-                                .put(SimpleType.INTEGER, Integer.class)
-                                .put(SimpleType.LONG, Long.class)
-                                .put(SimpleType.BOOLEAN, Boolean.class)
-                                .put(SimpleType.FLOAT, Float.class)
-                                .put(SimpleType.DOUBLE, Double.class)
-                                .put(SimpleType.VOID, Void.class)
-                                .put(SimpleType.STRING, String.class)
-                                .put(SimpleType.BIGDECIMAL, BigDecimal.class)
-                                .put(SimpleType.BIGINTEGER, BigInteger.class)
-                                .put(SimpleType.OBJECTNAME, ObjectName.class)
-                                .put(SimpleType.DATE, Date.class)
-                                .build();
-
-                        @Override
-                        public Class<?> load(@Nonnull final OpenType<?> elementType) throws ClassNotFoundException {
-                            if(elementType instanceof CompositeType)
-                                return CompositeData.class;
-                            else if(elementType instanceof TabularType)
-                                return TabularData.class;
-                            else {
-                                final Class<?> result = simpleTypeMapping.get(elementType);
-                                return result == null ? OpenTypeBuilder.getUnderlyingJavaClass(elementType, getClass().getClassLoader()) : result;
-                            }
-                        }
-                    });
 
     private ArrayUtils(){
         throw new InstantiationError();
@@ -254,29 +209,6 @@ public final class ArrayUtils {
         return Optional.empty();
     }
 
-    private static Object newArray(final OpenType<?> elementType,
-                                   final int[] dimensions,
-                                   final boolean isPrimitive) {
-        final Class<?> itemType = OPEN_TYPE_MAPPING.getUnchecked(elementType);
-        return Array.newInstance(isPrimitive ? Primitives.unwrap(itemType) : itemType, dimensions);
-    }
-
-    /**
-     * Creates a new instance of the array.
-     * @param arrayType An array type definition.
-     * @param dimensions An array of length of each dimension.
-     * @return A new empty array.
-     * @throws java.lang.IllegalArgumentException The specified number of dimensions doesn't match to the number of dimensions
-     * in the array definition.
-     */
-    public static Object newArray(final ArrayType<?> arrayType, final int... dimensions) {
-        if(arrayType == null || dimensions == null)
-            return null;
-        else if(dimensions.length != arrayType.getDimension())
-            throw new IllegalArgumentException("Actual number of dimensions doesn't match to the array type");
-        else return newArray(arrayType.getElementOpenType(), dimensions, arrayType.isPrimitiveArray());
-    }
-
     public static boolean equals(final Object array1, final Object array2){
         return equals(array1, array2, false);
     }
@@ -297,29 +229,11 @@ public final class ArrayUtils {
     }
 
     private static <T> ArrayType<T[]> createArrayType(final SimpleType<T> elementType) throws OpenDataException{
-        return new ArrayType<>(elementType, PRIMITIVE_TYPES.contains(elementType));
+        return new ArrayType<>(elementType, isPrimitive(elementType));
     }
 
     public static <T> ArrayType<T[]> createArrayType(final OpenType<T> elementType) throws OpenDataException {
-        if(elementType instanceof SimpleType<?>)
-            return createArrayType((SimpleType<T>)elementType);
-        else return ArrayType.getArrayType(elementType);
-    }
-
-    /**
-     * Gets empty array of the specified type.
-     * @param arrayType An array type. Must be single-dimensional. Cannot be {@literal null}.
-     * @param loader Class loader used to resolve component type of array. May be {@literal null}.
-     * @param <T> Type of elements in the array.
-     * @return Empty array.
-     * @throws IllegalArgumentException Incorrect array type.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader) {
-        if (arrayType.getDimension() > 1)
-            throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
-        final Class<?> elementType = callAndWrapException(() -> OpenTypeBuilder.getUnderlyingJavaClass(arrayType, loader), IllegalArgumentException::new).getComponentType();
-        return (T) emptyArrayImpl(elementType);
+        return elementType instanceof SimpleType<?> ? createArrayType((SimpleType<T>) elementType) : ArrayType.getArrayType(elementType);
     }
 
     public static <T> Optional<T> getLast(final T[] array){

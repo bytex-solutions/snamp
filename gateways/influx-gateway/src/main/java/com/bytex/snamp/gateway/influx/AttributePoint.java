@@ -37,7 +37,7 @@ final class AttributePoint extends AttributeAccessor {
                 fields = CompositeDataUtils.toMap(getValue(CompositeData.class));
                 break;
             default:
-                if (type.isPrimitive())
+                if (type.isSimple())
                     fields = Helpers.toScalar(getValue());
                 else
                     throw new UnsupportedAttributeTypeException(getRawType());
