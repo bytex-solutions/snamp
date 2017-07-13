@@ -104226,6 +104226,7 @@ var AbstractChart = (function () {
         this.preferences = {};
         this.id = "chart" + GUID.newGuid();
         this.chartData = [];
+        this.initialized = false;
         this.preferences["gridcfg"] = {};
         this.preferences["gridcfg"]['dragHandle'] = '.handle';
         this.setCol(1);
@@ -104768,21 +104769,6 @@ var LineChartOfAttributeValues = (function (_super) {
     LineChartOfAttributeValues.prototype.createDefaultAxisY = function () {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
-    LineChartOfAttributeValues.prototype.prepareDatasets_old = function () {
-        var _value = [];
-        for (var i = 0; i < this.resources.length; i++) {
-            var _currentValue = {};
-            _currentValue.key = this.resources[i];
-            _currentValue.values = [];
-            for (var j = 0; j < this.chartData.length; j++) {
-                if (this.resources[i] == this.chartData[j].resourceName) {
-                    _currentValue.values.push({ x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue });
-                }
-            }
-            _value.push(_currentValue);
-        }
-        return _value;
-    };
     LineChartOfAttributeValues.prototype.prepareDatasets = function () {
         var _value = {};
         for (var j = 0; j < this.chartData.length; j++) {
@@ -104822,6 +104808,9 @@ var LineChartOfAttributeValues = (function (_super) {
         var _a;
     };
     LineChartOfAttributeValues.prototype.draw = function () {
+        if (this._chartObject != undefined) {
+            d3.selectAll('#' + this.id + " > svg > *").remove();
+        }
         var _thisReference = this;
         nv.addGraph(function () {
             var chart = nv.models.lineWithFocusChart();
@@ -108552,14 +108541,15 @@ var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var dashboard_1 = __webpack_require__("./src/app/charts/model/dashboard.ts");
 var objectFactory_1 = __webpack_require__("./src/app/charts/model/objectFactory.ts");
+var fabric_1 = __webpack_require__("./src/app/charts/model/data/fabric.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
+var BehaviorSubject_1 = __webpack_require__("./node_modules/rxjs/BehaviorSubject.js");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
-var fabric_1 = __webpack_require__("./src/app/charts/model/data/fabric.ts");
-var util_1 = __webpack_require__("./node_modules/util/util.js");
-var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
 var ChartService = (function () {
     function ChartService(localStorageService, _http) {
         this.localStorageService = localStorageService;
@@ -108572,14 +108562,13 @@ var ChartService = (function () {
             this.localStorageService.set(this.KEY_DATA, {});
         }
     }
-    ChartService.prototype.getCharts = function () {
-        return this._dashboard.charts;
-    };
     ChartService.prototype.getSimpleGroupName = function () {
         return this._dashboard.groups;
     };
     ChartService.prototype.getChartsByGroupName = function (groupName) {
-        return this._dashboard.charts.filter(function (_ch) { return (_ch.getGroupName() == groupName); });
+        return this.charts.asObservable().map(function (array) {
+            return array.filter(function (element) { return element.getGroupName() == groupName; });
+        }).share();
     };
     ChartService.prototype.removeChartsByGroupName = function (groupName) {
         for (var i = 0; i < this._dashboard.groups.length; i++) {
@@ -108605,21 +108594,20 @@ var ChartService = (function () {
         this._dashboard.groups.push(groupName);
         this.saveDashboard();
     };
-    ChartService.prototype.receiveChartDataForCharts = function (_chs) {
-        var _this = this;
+    ChartService.stringifyArray = function (_chs) {
         var _chArrJson = [];
         for (var i = 0; i < _chs.length; i++) {
             _chArrJson.push(_chs[i].toJSON());
         }
-        console.debug("Computing charts: ", app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson);
-        this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson)
+        return _chArrJson;
+    };
+    ChartService.prototype.receiveDataForCharts = function (_chs) {
+        var _this = this;
+        this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, ChartService.stringifyArray(_chs))
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             _this.pushNewChartData(data);
         });
-    };
-    ChartService.prototype.receiveChartDataForGroupName = function (gn) {
-        this.receiveChartDataForCharts(this.getChartsByGroupName(gn));
     };
     ChartService.prototype.loadDashboard = function () {
         var _this = this;
@@ -108635,16 +108623,22 @@ var ChartService = (function () {
                     _currentChart.subscribeToSubject(_this.chartSubjects[_currentChart.name]);
                     _this._dashboard.charts.push(_currentChart);
                 }
+                _this.charts = new BehaviorSubject_1.BehaviorSubject(_this._dashboard.charts);
+            }
+            else {
+                _this.charts = new BehaviorSubject_1.BehaviorSubject([]);
             }
             _this._dashboard.groups = data.groups;
         });
     };
     ChartService.prototype.saveDashboard = function () {
         var _this = this;
+        console.debug("Saving chart dashboard: ", app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()));
         this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
             .subscribe(function () {
             console.debug("Dashboard has been saved successfully");
             _this.groups.next(_this._dashboard.groups);
+            _this.charts.next(_this._dashboard.charts);
         });
     };
     ChartService.prototype.pushNewChartData = function (_data) {
@@ -108701,16 +108695,21 @@ var ChartService = (function () {
         }
     };
     ChartService.prototype.modifyChart = function (chart) {
+        console.debug("Trying to modify chart ", chart, " in a dashboard ", this._dashboard.charts);
         if (!this.hasChartWithName(chart.name)) {
             throw new Error("Trying to modify chart that does not exist within the active dashboard");
         }
         else {
             for (var i = 0; i < this._dashboard.charts.length; i++) {
                 if (this._dashboard.charts[i].name == chart.name) {
-                    this._dashboard.charts[i] = chart;
+                    this._dashboard.charts.splice(i, 1, chart);
+                    this._dashboard.charts[i].initialized = false;
+                    this.chartSubjects[this._dashboard.charts[i].name] = new Subject_1.Subject();
+                    this._dashboard.charts[i].subscribeToSubject(this.chartSubjects[this._dashboard.charts[i].name]);
                     break;
                 }
             }
+            console.debug("Resulting dashboard is: ", this._dashboard.charts);
             this.saveDashboard();
         }
     };
@@ -108733,14 +108732,6 @@ var ChartService = (function () {
             }
         }
         throw new Error("Could not find a chart " + chartName);
-    };
-    ChartService.prototype.getObservableForChart = function (name) {
-        if (this.chartSubjects[name] != undefined) {
-            return this.chartSubjects[name].asObservable().share();
-        }
-        else {
-            throw new Error("Cannot find any subject for chart " + name);
-        }
     };
     ChartService.prototype.getEntireChartData = function () {
         var _object = this.localStorageService.get(this.KEY_DATA);

@@ -29,23 +29,6 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
         this.setSizeY(10);
     }
 
-    private prepareDatasets_old():any {
-        let _value:any[] = [];
-        for (let i = 0; i < this.resources.length; i++) {
-            let _currentValue:any = {};
-            _currentValue.key = this.resources[i];
-            _currentValue.values = [];
-            for (let j = 0; j < this.chartData.length; j++) {
-                if (this.resources[i] == (<AttributeChartData>this.chartData[j]).resourceName) {
-                    _currentValue.values.push({x: this.chartData[j].timestamp, y: (<AttributeChartData>this.chartData[j]).attributeValue});
-                }
-            }
-            _value.push(_currentValue);
-        }
-        return _value;
-    }
-
-
     private prepareDatasets():any {
         let _value:any = {};
         for (let j = 0; j < this.chartData.length; j++) {
@@ -86,6 +69,9 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
     }
 
     public draw():void {
+        if (this._chartObject != undefined) {
+            d3.selectAll('#' + this.id + " > svg > *").remove();
+        }
         let _thisReference = this;
         nv.addGraph(function() {
             let chart = nv.models.lineWithFocusChart();

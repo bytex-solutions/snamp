@@ -34,6 +34,7 @@ export abstract class AbstractChart {
     public id:string = "chart" + GUID.newGuid();
     public chartData: ChartData[] = [];
     public abstract toJSON():any;
+    public initialized:boolean = false;
 
     private _stopUpdate:boolean;
 

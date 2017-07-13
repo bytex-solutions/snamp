@@ -56,7 +56,7 @@ export class Dashboard {
 
     private chartName:string = "newChart";
 
-    private _charts:AbstractChart[] = [];
+    private allCharts:AbstractChart[] = [];
 
     private groupName:string = "";
 
@@ -142,10 +142,12 @@ export class Dashboard {
         this.initModal();
     }
 
-    modifyChart(chart:AbstractChart):void {
+    modifyChart(chartToModify:AbstractChart):void {
+        let chart:AbstractChart =  jQuery.extend(true, {}, chartToModify);
         // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
         this.currentChart = chart;
         this.selectedChartType = Object.keys(AbstractChart.TYPE_MAPPING).filter((key) => AbstractChart.TYPE_MAPPING[key] == chart.type)[0];
+        this.chartName = chart.name;
 
         // prefill instances from the existing chart
         if (chart instanceof ChartOfAttributeValues && chart.resources != undefined && chart.resources.length > 0) {
@@ -162,6 +164,8 @@ export class Dashboard {
         } else {
             this.selectedComponent = "";
         }
+
+        this.onComponentSelect(this.selectedComponent);
 
         // fill the rate metric and rate intervals from the chart
         if (chart instanceof ScalingRateChart) {
@@ -229,8 +233,7 @@ export class Dashboard {
     private updateChartName():void {
         this.chartName = this.selectedChartType + "." +
             (this.selectedComponent != "" ? this.selectedComponent  + "." : "") +
-            ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" +
-            this._charts.length;
+            ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_";
     }
 
     ngOnInit():void {
@@ -259,14 +262,27 @@ export class Dashboard {
             .map(params => params['groupName'])
             .subscribe((gn) => {
                 this.groupName = gn;
-                this._charts = this._chartService.getChartsByGroupName(this.groupName);
-                this.cd.detectChanges();
-                for (let i = 0; i < this._charts.length; i++) {
-                    this._charts[i].draw();
-                }
-                this.timerId = setInterval(function(){
-                    _thisReference._chartService.receiveChartDataForGroupName(gn);
-                }, 1500);
+                this._chartService.getChartsByGroupName(gn).subscribe((chs:AbstractChart[]) => {
+                    console.debug("Got following charts from corresponding observable: ", chs.length, chs);
+                    this.allCharts = chs;
+                    this.cd.detectChanges(); // process template
+                    if (!isNullOrUndefined(this.timerId)) {
+                        clearInterval(this.timerId);
+                    }
+                    for (let i = 0; i < chs.length; i++) {
+                        if (!chs[i].initialized) {
+                            chs[i].draw();
+                            chs[i].initialized = true;
+                        }
+                    }
+
+                    if (chs.length > 0) {
+                        this.timerId = setInterval(function () {
+                            console.debug("Timer event is thrown");
+                            _thisReference._chartService.receiveDataForCharts(chs);
+                        }, 1500);
+                    }
+                });
             });
     }
 
@@ -408,7 +424,7 @@ export class Dashboard {
         }
     }
 
-    addChartToDashboard():void {
+    private generateChart():AbstractChart {
         let _instances:string[] = ((this.selectedAllInstances) ? [] : this.selectedInstances);
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
@@ -421,35 +437,32 @@ export class Dashboard {
             chart.metrics = this.selectedRateMetrics;
             chart.interval = this.rateInterval;
         }
-        this._chartService.newChart(chart);
-        this._charts = this._chartService.getChartsByGroupName(this.groupName);
+        return chart;
+    }
+
+    addChartToDashboard():void {
+        this._chartService.newChart(this.generateChart());
         $(Dashboard.chartModalId).modal("hide");
-        this.cd.detectChanges();
-        let _thisReference:any = this;
-        setTimeout(function() {
-            chart.draw();
-            _thisReference._chartService.saveDashboard();
-        }, 400);
     }
 
     saveChart():void {
-        this._chartService.modifyChart(this.currentChart);
-        this.cd.detectChanges();
-        this.currentChart.draw();
+        let _gChart:AbstractChart = this.generateChart();
+        _gChart.id = this.currentChart.id;
+        this._chartService.modifyChart(_gChart);
+        this.currentChart = undefined;
         $(Dashboard.chartModalId).modal("hide");
     }
 
     onChangeStop(index: number, event: NgGridItemEvent): void {
-        if (this.isAllowed() && !isNullOrUndefined(index) && !isNullOrUndefined(this._charts[index])) {
-            this._charts[index].preferences["gridcfg"] = event;
+        if (this.isAllowed() && !isNullOrUndefined(index) && !isNullOrUndefined(this.allCharts[index])) {
+            this.allCharts[index].preferences["gridcfg"] = event;
             this._chartService.saveDashboard();
-            this._charts[index].resize();
+            this.allCharts[index].resize();
         }
     }
 
     removeChart(chartName:string):void {
         this._chartService.removeChart(chartName);
-        this._charts = this._chartService.getChartsByGroupName(this.groupName);
     }
 
     ngOnDestroy():void {
