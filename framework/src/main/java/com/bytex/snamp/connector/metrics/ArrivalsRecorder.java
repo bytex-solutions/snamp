@@ -89,7 +89,7 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
         return Double.min(summaryDuration / uptime, 1D);
     }
 
-    public final void setStartTime(@Nonnull final Instant value){
+    public void setStartTime(@Nonnull final Instant value){
         startTime = Objects.requireNonNull(value);
     }
 
