@@ -55,7 +55,7 @@
   </modules>
   <scm>
     <connection>scm:git:https://bitbucket.org/bytex-solutions/snamp.git</connection>
-    <tag>${project.version}</tag>
+    <tag>2.0.0</tag>
     <url>https://bitbucket.org/bytex-solutions/snamp.git</url>
   </scm>
   <issueManagement>

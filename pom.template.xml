@@ -108,7 +108,7 @@
   </licenses>
   <scm>
       <url>https://bitbucket.org/bytex-solutions/snamp.git</url>
-      <tag>${project.version}</tag>
+      <tag>${snamp.version}</tag>
       <connection>scm:git:https://bitbucket.org/bytex-solutions/snamp.git</connection>
   </scm>
   <issueManagement>
