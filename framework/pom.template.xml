@@ -42,6 +42,7 @@
             <configuration>
                 <instructions>
                     <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
+                    <Export-Package>com.bytex.snamp.*</Export-Package>
                 </instructions>
             </configuration>
         </plugin>

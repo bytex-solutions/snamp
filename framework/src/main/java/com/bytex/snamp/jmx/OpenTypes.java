@@ -168,4 +168,12 @@ public final class OpenTypes {
             return convert(array, arrayType).orElseThrow(AssertionError::new);
         }
     }
+
+    private static <T> ArrayType<T[]> createArrayType(final SimpleType<T> elementType) throws OpenDataException{
+        return new ArrayType<>(elementType, isPrimitive(elementType));
+    }
+
+    public static <T> ArrayType<T[]> createArrayType(final OpenType<T> elementType) throws OpenDataException {
+        return elementType instanceof SimpleType<?> ? createArrayType((SimpleType<T>) elementType) : ArrayType.getArrayType(elementType);
+    }
 }

@@ -33,20 +33,24 @@ public final class ArrayUtilsTest extends Assert {
 
     @Test
     public void boxArrayTest(){
-        final Byte[] result = ArrayUtils.wrapArray(new byte[]{2, 5, 7});
+        Byte[] result = ArrayUtils.wrapArray(new byte[]{2, 5, 7});
         assertEquals(3, result.length);
         assertEquals(new Byte((byte)2), result[0]);
         assertEquals(new Byte((byte)5), result[1]);
         assertEquals(new Byte((byte)7), result[2]);
+        result = ArrayUtils.wrapArray(new byte[0]);
+        assertEquals(0, result.length);
     }
 
     @Test
     public void unboxArrayTest(){
-        final int[] result = ArrayUtils.unwrapArray(new Integer[]{2, 5, 7});
+        int[] result = ArrayUtils.unwrapArray(new Integer[]{2, 5, 7});
         assertEquals(3, result.length);
         assertEquals(2, result[0]);
         assertEquals(5, result[1]);
         assertEquals(7, result[2]);
+        result = ArrayUtils.unwrapArray(new Integer[0]);
+        assertEquals(0, result.length);
     }
 
     @Test
@@ -143,5 +147,12 @@ public final class ArrayUtilsTest extends Assert {
     public void arrayConstructorTest(){
         final String[] arr = ArrayUtils.arrayConstructor(String.class).apply(10);
         assertEquals(10, arr.length);
+    }
+
+    @Test
+    public void removeTest(){
+        String[] arr = {"Danny"};
+        arr = ArrayUtils.remove(arr, 0);
+        assertEquals(0, arr.length);
     }
 }

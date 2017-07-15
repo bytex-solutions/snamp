@@ -409,9 +409,13 @@ public final class WebConsoleTest extends AbstractSnampIntegrationTest {
     @Test
     public void listOfGroupAttributes() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();
-        final JsonNode node = httpGet("/groups/" + URLEncoder.encode(IMPLICIT_GROUP, "UTF-8") + "/attributes", authenticationToken);
-        assertTrue(node instanceof ArrayNode);
-        assertEquals(1, node.size());
+        JsonNode attributes = httpGet("/groups/" + URLEncoder.encode(IMPLICIT_GROUP, "UTF-8") + "/attributes", authenticationToken);
+        assertTrue(attributes instanceof ArrayNode);
+        assertEquals(1, attributes.size());
+        final JsonNode otherAttributes = httpPost("/groups/resources/attributes",
+                authenticationToken,
+                JsonUtils.toJsonArray("implicit-group-resource1", "implicit-group-resource2", "implicit-group-resource3"));
+        assertEquals(attributes, otherAttributes);
     }
 
     @Test

@@ -1,9 +1,7 @@
 package com.bytex.snamp.web.serviceModel.commons;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceGroupConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.core.ServiceHolder;
@@ -17,9 +15,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Provides information about active managed resources and their attributes.
@@ -46,64 +44,26 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
         return URL_CONTEXT;
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/resources/{resourceName}/attributes")
-    public AttributeInformation[] getResourceAttributes(@PathParam("resourceName") final String resourceName) {
-        try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName)
-                .orElseThrow(() -> new WebApplicationException(Response.Status.NOT_FOUND))) {
-            return ArrayUtils.transform(client.getMBeanInfo().getAttributes(), AttributeInformation.class, AttributeInformation::new);
-        }
-    }
-
-    private static AttributeInformation[] getCommonAttributes(final Collection<ManagedResourceConfiguration> resources) {
-        //wrapper that overrides equality for AttributeInformation and takes into account only type and name
-        final class AttributeInformationWrapper implements Supplier<AttributeInformation> {
-            private final AttributeInformation information;
-
-            private AttributeInformationWrapper(final String attributeName, final AttributeConfiguration configuration) {
-                this.information = new AttributeInformation(attributeName, configuration);
-            }
-
-            private AttributeInformationWrapper(final Map.Entry<String, ? extends AttributeConfiguration> entry){
-                this(entry.getKey(), entry.getValue());
-            }
-
-            @Override
-            public AttributeInformation get() {
-                return information;
-            }
-
-            @Override
-            public int hashCode() {
-                return Objects.hash(information.getType(), information.getName());
-            }
-
-            private boolean equals(final AttributeInformation other) {
-                return Objects.equals(information.getType(), other.getType()) &&
-                        Objects.equals(information.getName(), other.getName());
-            }
-
-            private boolean equals(final AttributeInformationWrapper other) {
-                return equals(other.get());
-            }
-
-            @Override
-            public boolean equals(final Object other) {
-                return other instanceof AttributeInformationWrapper && equals((AttributeInformationWrapper) other);
-            }
-        }
-        final Multiset<AttributeInformationWrapper> attributes =
-                resources.stream()
-                        .map(ManagedResourceConfiguration::getAttributes)
-                        .flatMap(attrs -> attrs.entrySet().stream().map(AttributeInformationWrapper::new))
-                        .collect(HashMultiset::create, Multiset::add, Multiset::addAll);
+    private static AttributeInformation[] getCommonAttributes(final BundleContext context, final Set<String> resources) {
+        if (resources.isEmpty())
+            return ArrayUtils.emptyArray(AttributeInformation[].class);
+        final Multiset<AttributeInformation> attributes = resources.stream()
+                .map(resourceName -> ManagedResourceConnectorClient.tryCreate(context, resourceName))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .flatMap(client -> {
+                    try {
+                        return Arrays.stream(client.getMBeanInfo().getAttributes()).map(AttributeInformation::new);
+                    } finally {
+                        client.close();
+                    }
+                })
+                .collect(HashMultiset::create, Multiset::add, Multiset::addAll);
 
         return attributes
                 .elementSet()
                 .stream()
                 .filter(wrapper -> attributes.count(wrapper) == resources.size())
-                .map(AttributeInformationWrapper::get)
                 .toArray(AttributeInformation[]::new);
     }
 
@@ -118,26 +78,39 @@ public final class ManagedResourceInformationService extends AbstractWebConsoleS
                         .stream()
                         .map(entry -> new AttributeInformation(entry.getKey(), entry.getValue()))
                         .toArray(AttributeInformation[]::new);
-            //try to extract attributes from resources with the same group name
-            return configurationManager.get().transformConfiguration(config -> {
-                final Collection<ManagedResourceConfiguration> resources = config.getResources().values()
-                        .stream()
-                        .filter(resource -> Objects.equals(resource.getGroupName(), groupName))
-                        .collect(Collectors.toList());
-                if (resources.isEmpty())
-                    throw new WebApplicationException(Response.Status.NOT_FOUND);
-                else
-                    return getCommonAttributes(resources);
-            });
         } catch (final IOException e) {
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         } finally {
             configurationManager.release(context);
         }
+        final Set<String> resources = ManagedResourceConnectorClient.selector().setGroupName(groupName).getResources(context);
+        //try to extract attributes from resources with the same group name
+        if (resources.isEmpty())
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        else
+            return getCommonAttributes(context, resources);
     }
 
     private static WebApplicationException noConfigurationManager(){
         return new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("ConfigurationManager is not available").build());
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/resources/{resourceName}/attributes")
+    public AttributeInformation[] getResourceAttributes(@PathParam("resourceName") final String resourceName) {
+        try (final ManagedResourceConnectorClient client = ManagedResourceConnectorClient.tryCreate(getBundleContext(), resourceName)
+                .orElseThrow(() -> new WebApplicationException(Response.Status.NOT_FOUND))) {
+            return Arrays.stream(client.getMBeanInfo().getAttributes()).map(AttributeInformation::new).toArray(AttributeInformation[]::new);
+        }
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/resources/attributes")
+    public AttributeInformation[] getAttributes(final Set<String> resources) {
+        return getCommonAttributes(getBundleContext(), resources);
     }
 
     @GET
