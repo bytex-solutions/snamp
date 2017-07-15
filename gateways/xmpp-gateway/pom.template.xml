@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>gateways</artifactId>
-        <groupId>com.bytex.snamp.gateways</groupId>
+        <groupId>io.snamp.gateways</groupId>
         <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -38,9 +38,7 @@
                     <instructions>
                         <Bundle-SymbolicName>snamp-${project.artifactId}-gateway</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.gateway.xmpp.XMPPGatewayActivator</Bundle-Activator>
-                        <Export-Package>
-                            com.bytex.snamp.gateway.xmpp.client.*
-                        </Export-Package>
+                        <Export-Package>com.bytex.snamp.gateway.xmpp.client.*</Export-Package>
                         <Import-Package>
                             com.bytex.snamp,
                             com.bytex.snamp.concurrent,
@@ -75,7 +73,7 @@
     <dependencies>
         <dependency>
             <scope>provided</scope>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
         </dependency>
@@ -122,7 +120,7 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>json-helpers</artifactId>
             <version>${snamp.json.version}</version>
             <scope>provided</scope>

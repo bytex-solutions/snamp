@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp.supervisors</groupId>
+    <groupId>io.snamp.supervisors</groupId>
     <artifactId>supervisors</artifactId>
     <version>2.0.0</version>
   </parent>
@@ -14,7 +14,7 @@
   <description>A framework for building custom supervisors</description>
   <dependencies>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>framework</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
@@ -37,12 +37,12 @@
       <classifier>indy</classifier>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>scripting</artifactId>
       <version>2.0.0</version>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>json-helpers</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
@@ -60,7 +60,7 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>internal-services</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>

@@ -18,7 +18,7 @@ public final class FileBasedKeyValueStorageTest extends Assert {
         try(final Writer writer = record.createJsonWriter()){
             writer.append(value);
         } catch (final IOException e){
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e);  
         }
     }
 

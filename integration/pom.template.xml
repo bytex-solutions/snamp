@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>snamp</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>io.snamp</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.bytex.snamp.integration</groupId>
+    <groupId>io.snamp.integration</groupId>
     <artifactId>integration</artifactId>
     <name>Integration Components</name>
     <packaging>pom</packaging>

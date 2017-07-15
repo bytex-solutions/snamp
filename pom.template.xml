@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.bytex.snamp</groupId>
+  <groupId>io.snamp</groupId>
   <artifactId>snamp</artifactId>
 
   <packaging>pom</packaging>
@@ -34,7 +34,7 @@
     <sshj.version>0.18.0</sshj.version>
     <netty.version>3.10.6.Final</netty.version>
     <orientdb.version>2.2.21</orientdb.version>
-    <openstack4j.version>3.0.3</openstack4j.version>
+    <openstack4j.version>3.0.4</openstack4j.version>
     <jsr305.version>3.0.1</jsr305.version>
     <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>
     <stringtemplate.version>4.0.8</stringtemplate.version>
@@ -82,9 +82,35 @@
   </properties>
   <version>${snamp.version}</version>
   <organization>
-        <name>Bytex</name>
-        <url>http://www.bytex.solutions/</url>
+        <name>Bytex Solutions</name>
+        <url>https://www.bytex.solutions/</url>
   </organization>
+  <developers>
+      <developer>
+          <name>Roman Sakno</name>
+          <email>roman.sakno@bytex.solutions</email>
+          <organization>Bytex Solutions</organization>
+      </developer>
+      <developer>
+          <name>Evgeniy Kirichenko</name>
+          <email>evgeniy.kirichenko@bytex.solutions</email>
+          <organization>Bytex Solutions</organization>
+      </developer>
+  </developers>
+  <inceptionYear>2015</inceptionYear>
+  <url>https://snamp.io</url>
+  <licenses>
+      <license>
+          <name>Apache 2</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+          <distribution>repo</distribution>
+      </license>
+  </licenses>
+  <scm>
+      <url>https://bitbucket.org/bytex-solutions/snamp.git</url>
+      <tag>${project.version}</tag>
+      <connection>scm:git:https://bitbucket.org/bytex-solutions/snamp.git</connection>
+  </scm>
   <build>
         <pluginManagement>
             <plugins>

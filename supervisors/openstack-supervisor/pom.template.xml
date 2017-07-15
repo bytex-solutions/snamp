@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>supervisors</artifactId>
-        <groupId>com.bytex.snamp.supervisors</groupId>
+        <groupId>io.snamp.supervisors</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -50,7 +50,7 @@
     <dependencies>
         <dependency>
             <scope>provided</scope>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
         </dependency>
@@ -73,7 +73,7 @@
             <artifactId>jsr305</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp.supervisors</groupId>
+            <groupId>io.snamp.supervisors</groupId>
             <artifactId>default</artifactId>
             <version>${snamp.supervisor.default.version}</version>
             <scope>provided</scope>
@@ -83,13 +83,13 @@
             <artifactId>jackson-mapper-asl</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>json-helpers</artifactId>
             <version>${snamp.json.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp.osgi</groupId>
+            <groupId>io.snamp.osgi</groupId>
             <artifactId>stringtemplate4</artifactId>
             <version>${stringtemplate.version}</version>
             <scope>provided</scope>

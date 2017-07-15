@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp</groupId>
+    <groupId>io.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>2.0.0</version>
     <relativePath>../../pom.xml</relativePath>
@@ -15,7 +15,7 @@
   <description>SNAMP Management Utilities</description>
   <dependencies>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>framework</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
@@ -41,13 +41,13 @@
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>security</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>json-helpers</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
@@ -61,7 +61,7 @@
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>internal-services</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
@@ -69,6 +69,7 @@
     <dependency>
       <groupId>org.apache.karaf.shell</groupId>
       <artifactId>org.apache.karaf.shell.console</artifactId>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>

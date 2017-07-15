@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp.connectors</groupId>
+    <groupId>io.snamp.connectors</groupId>
     <artifactId>connectors</artifactId>
     <version>2.0.0</version>
   </parent>
@@ -14,19 +14,19 @@
   <description>SNAMP Connector that accepts data using HTTP passive check</description>
   <dependencies>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>framework</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.connectors</groupId>
+      <groupId>io.snamp.connectors</groupId>
       <artifactId>data-stream</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.instrumentation</groupId>
+      <groupId>io.snamp.instrumentation</groupId>
       <artifactId>core</artifactId>
       <version>1.0.0</version>
       <scope>provided</scope>
@@ -68,7 +68,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>groovy-xml-bridge</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>

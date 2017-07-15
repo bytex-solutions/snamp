@@ -16,10 +16,7 @@ import javax.management.openmbean.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -110,6 +107,17 @@ public final class OpenTypes {
     }
 
     /**
+     * Casts value to the specified JMX Open Type.
+     * @param <T> Type of the conversion result.
+     * @param value Value to cast.
+     * @param type JMX Open Type. Cannot be {@literal null}.
+     * @return Converter value.
+     */
+    public static <T> Optional<T> convert(final Object value, final OpenType<T> type){
+        return Convert.toType(value, type);
+    }
+
+    /**
      * Gets default value of the specified OpenType.
      *
      * @param type OpenType instance. Cannot be {@literal null}.
@@ -131,7 +139,7 @@ public final class OpenTypes {
             result = DEFAULT_VALUES.lazyGet(OpenTypes::loadDefaultValues).get(type);
         else
             result = null;
-        return Convert.toType(result, type).orElse(null);
+        return convert(result, type).orElse(null);
     }
 
     private static Object newArray(final OpenType<?> elementType,
@@ -157,7 +165,7 @@ public final class OpenTypes {
             throw new IllegalArgumentException("Actual number of dimensions doesn't match to the array type");
         else {
             final Object array = newArray(arrayType.getElementOpenType(), dimensions, arrayType.isPrimitiveArray());
-            return Convert.toType(array, arrayType).orElseThrow(AssertionError::new);
+            return convert(array, arrayType).orElseThrow(AssertionError::new);
         }
     }
 }
