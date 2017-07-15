@@ -478,7 +478,6 @@ public final class ArrayUtils {
         return length -> length == 0 ? emptyObjectArray(elementType) : ObjectArrays.newArray(elementType, length);
     }
 
-    @SuppressWarnings("unchecked")
     public static <I, O> O[] transform(final I[] array, final Class<O> elementType, final Function<? super I, ? extends O> transformer) {
         return Arrays.stream(array).map(transformer).toArray(arrayConstructor(elementType));
     }

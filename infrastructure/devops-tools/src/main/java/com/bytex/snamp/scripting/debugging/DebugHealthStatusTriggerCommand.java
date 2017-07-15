@@ -5,6 +5,7 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.health.ConnectionProblem;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.shell.SnampShellCommand;
 import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
 import com.bytex.snamp.supervision.health.triggers.TriggerFactory;
@@ -16,6 +17,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.framework.BundleContext;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * This command used to test health status trigger.
@@ -23,7 +25,7 @@ import java.io.IOException;
  * @version 2.0
  * @since 2.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = SnampShellCommand.SCOPE,
         description = "Executes health status trigger for debugging purposes",
         name = "debug-health-status-trigger")
 @Service
@@ -57,19 +59,19 @@ public final class DebugHealthStatusTriggerCommand extends ScriptletDebugger<Hea
     private String groupName;
 
     @Override
-    public Object execute() throws Exception {
-        final HealthStatusTrigger trigger = compile(language, scriptLocation);
-        try(final HealthStatusDebugger debugger = new HealthStatusDebugger()){
-            if(groupName != null)
-                debugger.debugGroupStatus(groupName, trigger);
-            else
-                debugger.testStatuses(trigger);
-        }
-        return "Debugging completed";
+    TriggerFactory createCompiler() {
+        return new TriggerFactory();
     }
 
     @Override
-    TriggerFactory createCompiler() {
-        return new TriggerFactory();
+    protected void execute(final PrintWriter writer) throws Exception {
+        final HealthStatusTrigger trigger = compile(language, scriptLocation);
+        try (final HealthStatusDebugger debugger = new HealthStatusDebugger()) {
+            if (groupName != null)
+                debugger.debugGroupStatus(groupName, trigger);
+            else
+                debugger.testStatuses(trigger);
+            writer.format("Debugging completed. Health status is %s", debugger.getStatus()).println();
+        }
     }
 }

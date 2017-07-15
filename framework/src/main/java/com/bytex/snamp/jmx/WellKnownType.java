@@ -8,7 +8,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
 
 import javax.annotation.Nonnull;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.io.Serializable;
@@ -22,7 +21,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * Describes a well-known type that should be supported by
@@ -577,14 +576,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object> {
         this.displayName = name;
     }
 
-    private static ObjectName parseObjectName(final String value) throws ClassCastException{
-        try {
-            return new ObjectName(value);
-        } catch (final MalformedObjectNameException e) {
-            final ClassCastException error = new ClassCastException(e.getMessage());
-            error.initCause(e);
-            throw error;
-        }
+    private static ObjectName parseObjectName(final String value) throws ClassCastException {
+        return callAndWrapException(() -> new ObjectName(value), e -> wrapException(e.getMessage(), e, ClassCastException::new));
     }
 
     /**

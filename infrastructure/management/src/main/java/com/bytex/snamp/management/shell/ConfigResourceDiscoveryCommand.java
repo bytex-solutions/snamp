@@ -3,7 +3,6 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -15,7 +14,7 @@ import java.io.PrintWriter;
 /**
  * Provides configuration of resource discovery supplied by supervisor
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         description = "Configure discovery service",
         name = "configure-discovery-service")
 @Service

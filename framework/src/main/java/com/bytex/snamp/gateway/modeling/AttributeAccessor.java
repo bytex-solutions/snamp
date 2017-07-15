@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
+import static com.bytex.snamp.internal.Utils.wrapException;
 
 /**
  * Exposes access to individual management attribute.
@@ -218,13 +219,11 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @throws javax.management.ReflectionException Internal connector error.
      * @throws javax.management.InvalidAttributeValueException Attribute type mismatch.
      */
-    public final Object getValue(final WellKnownType valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
+    public final Object getValue(final WellKnownType valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         try {
             return valueType.convert(getValue());
-        } catch (final ClassCastException e){
-            final InvalidAttributeValueException invalidValue = new InvalidAttributeValueException(e.getMessage());
-            invalidValue.initCause(e);
-            throw invalidValue;
+        } catch (final ClassCastException e) {
+            throw wrapException(e.getMessage(), e, InvalidAttributeValueException::new);
         }
     }
 

@@ -6,7 +6,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
@@ -24,7 +23,7 @@ import java.util.Arrays;
  * @version 2.0
  * @since 2.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         name = "configure-scaling-policy",
         description = "Configure scaling policy")
 @Service

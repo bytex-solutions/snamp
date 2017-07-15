@@ -155,4 +155,13 @@ public final class ArrayUtilsTest extends Assert {
         arr = ArrayUtils.remove(arr, 0);
         assertEquals(0, arr.length);
     }
+
+    @Test
+    public void transformTest() {
+        String[] result = ArrayUtils.transformByteArray(new byte[0], String.class, Integer::toString);
+        assertEquals(0, result.length);
+        result = ArrayUtils.transformByteArray(new byte[]{1, 2, 3}, String.class, Integer::toString);
+        assertEquals(3, result.length);
+        assertEquals("2", result[1]);
+    }
 }

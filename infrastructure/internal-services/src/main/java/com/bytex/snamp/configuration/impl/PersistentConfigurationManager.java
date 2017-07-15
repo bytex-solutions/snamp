@@ -21,6 +21,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
+import static com.bytex.snamp.internal.Utils.wrapException;
 
 /**
  * Represents SNAMP configuration manager that uses {@link ConfigurationAdmin}
@@ -83,12 +84,6 @@ public final class PersistentConfigurationManager implements ConfigurationManage
         DefaultAgentParser.saveParameters(admin, config);
     }
 
-    private static InterruptedIOException interruptedIOException(final Exception e){
-        final InterruptedIOException result = new InterruptedIOException("Unable to acquire synchronization lock");
-        result.initCause(e);
-        return result;
-    }
-
     private static  <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler,
                                                             final ConfigurationAdmin admin,
                                                             final LockDecorator synchronizer) throws E, IOException {
@@ -105,9 +100,7 @@ public final class PersistentConfigurationManager implements ConfigurationManage
             if (handler.process(config) && config.isModified())
                 save(config, admin);
         } catch (final InterruptedException | TimeoutException e) {
-            final InterruptedIOException ioError = new InterruptedIOException("Unable to acquire synchronization lock");
-            ioError.initCause(e);
-            throw ioError;
+            throw wrapException("Unable to acquire synchronization lock", e, InterruptedIOException::new);
         }
     }
 

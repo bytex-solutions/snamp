@@ -36,27 +36,36 @@ import static org.osgi.framework.Constants.OBJECTCLASS;
  */
 @Internal
 public final class Utils {
-    /**
-     * Namespace of commands.
-     */
-    public static final String SHELL_COMMAND_SCOPE = "snamp";
+    @FunctionalInterface
+    private interface SilentInvoker extends Function<Callable<?>, Object> {
+        MethodType SIGNATURE = MethodType.methodType(Object.class, Callable.class);//signature after type erasure
 
-    @SuppressWarnings("unchecked")
-    private static final Function CALL_SILENT_FN;
+        @SpecialUse({SpecialUse.Case.REFLECTION, SpecialUse.Case.JVM})
+        <V> V invoke(final Callable<V> callable);
+
+        @Override
+        default Object apply(final Callable<?> callable) {
+            return invoke(callable);
+        }
+
+        @SpecialUse({SpecialUse.Case.REFLECTION, SpecialUse.Case.JVM})
+        static <V> V call(final Callable<V> callable) throws Exception {
+            return callable.call();
+        }
+    }
+
+    private static final SilentInvoker SILENT_INVOKER;
 
     static {
         final MethodHandles.Lookup lookup = MethodHandles.lookup();
-        final MethodType lambdaSignature = MethodType.methodType(Object.class, Callable.class);
-
         try {
             final CallSite site = LambdaMetafactory.metafactory(lookup,
-                    "apply",
-                    MethodType.methodType(Function.class),
-                    MethodType.methodType(Object.class, Object.class),
-                    lookup.findStatic(Utils.class, "callUncheckedImpl", lambdaSignature),
-                    lambdaSignature);
-
-            CALL_SILENT_FN = (Function) site.getTarget().invokeExact();
+                    "invoke",
+                    MethodType.methodType(SilentInvoker.class),
+                    SilentInvoker.SIGNATURE,
+                    lookup.findStatic(SilentInvoker.class, "call", SilentInvoker.SIGNATURE),
+                    SilentInvoker.SIGNATURE);
+            SILENT_INVOKER = (SilentInvoker) site.getTarget().invokeExact();
         } catch (final Throwable e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -137,12 +146,20 @@ public final class Utils {
         return callAndWrapException(initializer, ExceptionInInitializerError::new);
     }
 
-    public static <T, E extends Throwable> T callAndWrapException(final Callable<T> task, final Function<? super Exception, ? extends E> wrapper) throws E{
+    public static <T, E extends Throwable> T callAndWrapException(final Callable<? extends T> task, final Function<? super Exception, ? extends E> wrapper) throws E{
         try {
             return task.call();
         } catch (final Exception e) {
             throw wrapper.apply(e);
         }
+    }
+
+    public static <I, E extends Throwable> E wrapException(final I input,
+                                                             final Exception toWrap,
+                                                             final Function<? super I, ? extends E> wrapper) {
+        final E newException = wrapper.apply(input);
+        newException.initCause(toWrap);
+        return newException;
     }
 
     private static Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
@@ -235,11 +252,6 @@ public final class Utils {
         callUnchecked(tasks);
     }
 
-    @SpecialUse(SpecialUse.Case.REFLECTION)
-    private static Object callUncheckedImpl(final Callable<?> callable) throws Exception{
-        return callable.call();     
-    }
-
     /**
      * Calls code with checked exception as a code without checked exception.
      * <p>
@@ -249,9 +261,8 @@ public final class Utils {
      * @param <V> Type of result.
      * @return An object returned by portion of code.
      */
-    @SuppressWarnings("unchecked")
-    public static <V> V callUnchecked(final Callable<V> callable){
-        return (V) CALL_SILENT_FN.apply(callable);
+    public static <V> V callUnchecked(final Callable<V> callable) {
+        return SILENT_INVOKER.invoke(callable);
     }
 
     /**

@@ -28,20 +28,9 @@ final class UdpTransportMapping extends DefaultUdpTransportMapping {
                 socket = null;
             }
         final WorkerTask task = listener;
-        if (task != null){
+        if (task != null) {
             task.interrupt();
             listener = null;
         }
-//            try {
-//                task.interrupt();
-//                task.join();
-//            } catch (final InterruptedException e) {
-//                Thread.currentThread().interrupt();
-//                final InterruptedIOException exception = new InterruptedIOException();
-//                exception.initCause(e);
-//                throw exception;
-//            } finally {
-//                listener = null;
-//            }
     }
 }
