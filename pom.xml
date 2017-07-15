@@ -58,6 +58,10 @@
     <tag>${project.version}</tag>
     <url>https://bitbucket.org/bytex-solutions/snamp.git</url>
   </scm>
+  <issueManagement>
+    <system>jira</system>
+    <url>https://bitbucket.org/bytex-solutions/snamp/issues</url>
+  </issueManagement>
   <properties>
     <snamp.gateway.influx.version>2.0.0</snamp.gateway.influx.version>
     <eddsa.version>0.1.0</eddsa.version>

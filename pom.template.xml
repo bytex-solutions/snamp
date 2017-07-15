@@ -111,6 +111,10 @@
       <tag>${project.version}</tag>
       <connection>scm:git:https://bitbucket.org/bytex-solutions/snamp.git</connection>
   </scm>
+  <issueManagement>
+      <url>https://bitbucket.org/bytex-solutions/snamp/issues</url>
+      <system>jira</system>
+  </issueManagement>
   <build>
         <pluginManagement>
             <plugins>
