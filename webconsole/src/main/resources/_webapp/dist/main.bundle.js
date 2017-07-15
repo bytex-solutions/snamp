@@ -106056,6 +106056,8 @@ var Factory = (function () {
             if (_json["preferences"] != undefined) {
                 _chart.preferences = _json["preferences"];
             }
+            _chart.chartData = [];
+            _chart.initialized = false;
             return _chart;
         }
     };
@@ -106119,6 +106121,8 @@ var Factory = (function () {
                 _chart.setSourceAttribute(sourceAttribute);
             }
         }
+        _chart.chartData = [];
+        _chart.initialized = false;
         return _chart;
     };
     return Factory;
@@ -108536,7 +108540,6 @@ exports.TopNavBar = TopNavBar;
 "use strict";
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var dashboard_1 = __webpack_require__("./src/app/charts/model/dashboard.ts");
@@ -108551,16 +108554,11 @@ __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 var ChartService = (function () {
-    function ChartService(localStorageService, _http) {
-        this.localStorageService = localStorageService;
+    function ChartService(_http) {
         this._http = _http;
-        this.KEY_DATA = "snampChartData";
         this.chartSubjects = {};
         this.groups = new Subject_1.Subject();
         this.loadDashboard();
-        if (this.localStorageService.get(this.KEY_DATA) == undefined) {
-            this.localStorageService.set(this.KEY_DATA, {});
-        }
     }
     ChartService.prototype.getSimpleGroupName = function () {
         return this._dashboard.groups;
@@ -108650,22 +108648,6 @@ var ChartService = (function () {
             for (var i = 0; i < _d.length; i++) {
                 var _chartData = fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]);
                 _allChartData.push(_chartData);
-                // append this data for this data array
-                if (1 < 0) {
-                    // load data from localStorage, create one if no data exists
-                    var _dataNow = this.getEntireChartData();
-                    if (_dataNow == undefined) {
-                        _dataNow = {};
-                    }
-                    // check if our localStorage contains the data for this chart
-                    if (_dataNow[_currentChartName] == undefined) {
-                        _dataNow[_currentChartName] = [];
-                    }
-                    // in case of line - we just push the value
-                    _dataNow[_currentChartName].push(_chartData);
-                    // save data back to localStorage
-                    this.localStorageService.set(this.KEY_DATA, _dataNow);
-                }
             }
             // notify all the components that something has changed
             if (this.chartSubjects[_currentChartName] != undefined) {
@@ -108720,34 +108702,12 @@ var ChartService = (function () {
                 this._dashboard.charts.splice(i, 1);
                 // nullify the corresppnding subject
                 this.chartSubjects[chartName] = undefined;
-                // remove localStorage data for this chart
-                var _dataLC = this.localStorageService.get(this.KEY_DATA);
-                if (_dataLC != undefined && _dataLC[chartName] != undefined) {
-                    _dataLC[chartName] = undefined;
-                    this.localStorageService.set(this.KEY_DATA, _dataLC);
-                }
                 // save the dashboard
                 this.saveDashboard();
                 return;
             }
         }
         throw new Error("Could not find a chart " + chartName);
-    };
-    ChartService.prototype.getEntireChartData = function () {
-        var _object = this.localStorageService.get(this.KEY_DATA);
-        var _value = {};
-        if (_object != undefined) {
-            for (var _element in _object) {
-                var _newChartDataArray = [];
-                if (_object[_element] instanceof Array) {
-                    for (var i = 0; i < _object[_element].length; i++) {
-                        _newChartDataArray.push(fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_object).type, _object[_element][i]));
-                    }
-                }
-                _value[_element] = _newChartDataArray;
-            }
-        }
-        return _value;
     };
     ChartService.prototype.resetChart = function (chart) {
         console.debug("reseting the chart: ", chart.group); // @todo replace instance of to enum
@@ -108756,10 +108716,10 @@ var ChartService = (function () {
     };
     ChartService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
     ], ChartService);
     return ChartService;
-    var _a, _b;
+    var _a;
 }());
 exports.ChartService = ChartService;
 

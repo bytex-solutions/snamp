@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Response } from '@angular/http';
-import { LocalStorageService } from 'angular-2-local-storage';
 import { Subject } from 'rxjs/Subject';
 import { ApiClient, REST } from './app.restClient';
 
@@ -24,18 +23,14 @@ import 'rxjs/add/observable/of';
 
 @Injectable()
 export class ChartService {
-    private KEY_DATA:string = "snampChartData";
     private _dashboard:Dashboard;
     private chartSubjects:{ [key:string]: Subject<ChartData[]> } = {};
 
     private groups:Subject<string[]> = new Subject<string[]>();
     private charts:BehaviorSubject<AbstractChart[]>;
 
-    constructor(private localStorageService: LocalStorageService, private _http:ApiClient) {
+    constructor( private _http:ApiClient) {
           this.loadDashboard();
-          if (this.localStorageService.get(this.KEY_DATA) == undefined) {
-               this.localStorageService.set(this.KEY_DATA, {});
-          }
     }
 
     public getSimpleGroupName():string[] {
@@ -133,22 +128,6 @@ export class ChartService {
                 let _chartData:ChartData = ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]);
                 _allChartData.push(_chartData);
                 // append this data for this data array
-                if (1 < 0) {
-                    // load data from localStorage, create one if no data exists
-                    let _dataNow:any = this.getEntireChartData();
-                    if (_dataNow == undefined) {
-                        _dataNow = {};
-                    }
-                    // check if our localStorage contains the data for this chart
-                    if (_dataNow[_currentChartName] == undefined) {
-                        _dataNow[_currentChartName] = [];
-                    }
-                    // in case of line - we just push the value
-                    _dataNow[_currentChartName].push(_chartData);
-
-                    // save data back to localStorage
-                    this.localStorageService.set(this.KEY_DATA, _dataNow);
-                }
             }
             // notify all the components that something has changed
             if (this.chartSubjects[_currentChartName] != undefined) {
@@ -209,36 +188,12 @@ export class ChartService {
                 // nullify the corresppnding subject
                 this.chartSubjects[chartName] = undefined;
 
-                // remove localStorage data for this chart
-                let _dataLC:any = this.localStorageService.get(this.KEY_DATA);
-                if (_dataLC != undefined && _dataLC[chartName] != undefined) {
-                    _dataLC[chartName] = undefined;
-                    this.localStorageService.set(this.KEY_DATA, _dataLC);
-                }
-
                 // save the dashboard
                 this.saveDashboard();
                 return;
             }
         }
         throw new Error("Could not find a chart " + chartName);
-    }
-
-    getEntireChartData():{ [key:string]: ChartData[] } {
-        let _object:any = this.localStorageService.get(this.KEY_DATA);
-        let _value:{ [key:string]: ChartData[] } = {};
-        if (_object != undefined) {
-            for (let _element in _object) {
-                let _newChartDataArray:ChartData[] = [];
-                if (_object[_element] instanceof Array) {
-                    for (let i = 0; i < _object[_element].length; i++) {
-                        _newChartDataArray.push(ChartDataFabric.chartDataFromJSON(this.getChartByName(_object).type,_object[_element][i]));
-                    }
-                }
-                _value[_element] = _newChartDataArray;
-            }
-        }
-        return _value;
     }
 
     resetChart(chart:ChartWithGroupName):void {

@@ -49,7 +49,6 @@ export class Dashboard {
     private instances:Observable<string[]>;
     private selectedInstances:string[] = [];
     private allInstances:string[] = [];
-    private selectedAllInstances:boolean = true;
     private selectedRateMetrics:string[] = [];
 
     private selectedChartType:string = "";
@@ -125,7 +124,6 @@ export class Dashboard {
     private initNewChart():void {
 
         // set all elements to the initial state
-        this.selectedAllInstances = true;
         this.allInstances = [];
         this.selectedInstances = [];
         this.selectedMetric = undefined;
@@ -144,17 +142,14 @@ export class Dashboard {
 
     modifyChart(chartToModify:AbstractChart):void {
         let chart:AbstractChart =  jQuery.extend(true, {}, chartToModify);
-        // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
-        this.currentChart = chart;
+
         this.selectedChartType = Object.keys(AbstractChart.TYPE_MAPPING).filter((key) => AbstractChart.TYPE_MAPPING[key] == chart.type)[0];
         this.chartName = chart.name;
 
         // prefill instances from the existing chart
-        if (chart instanceof ChartOfAttributeValues && chart.resources != undefined && chart.resources.length > 0) {
-            this.selectedAllInstances = false;
-            this.selectedInstances = chart.resources;
+        if (chart["resources"] != undefined && chart["resources"].length > 0) {
+            this.selectedInstances = chart["resources"];
         } else {
-            this.selectedAllInstances = true;
             this.selectedInstances = [];
         }
 
@@ -168,16 +163,20 @@ export class Dashboard {
         this.onComponentSelect(this.selectedComponent);
 
         // fill the rate metric and rate intervals from the chart
-        if (chart instanceof ScalingRateChart) {
-            this.selectedRateMetrics =  chart.metrics;
-            this.rateInterval = chart.interval;
+        if (!isNullOrUndefined(chart["metrics"])) {
+            this.selectedRateMetrics =  chart["metrics"];
         } else {
             this.selectedRateMetrics = [];
+        }
+
+        if (!isNullOrUndefined(chart["interval"])) {
+            this.rateInterval = chart["interval"];
+        } else {
             this.rateInterval = isNullOrUndefined(this.intervals[0]) ? undefined : this.intervals[0].additionalId;
         }
 
         // fill the time interval if the chart belongs to series based charts
-        if (chart instanceof SeriesBasedChart) {
+        if (!isNullOrUndefined(chart.preferences["interval"])) {
             this.timeInterval = chart.preferences["interval"];
         } else {
             this.timeInterval = this.intervals[0].id;
@@ -190,12 +189,17 @@ export class Dashboard {
             this.selectedMetric = undefined;
         }
 
+        // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
+        this.currentChart = chart;
+
         // make sure the front end has received the changes
         this.cd.detectChanges();
 
         // init modal components and show the modal
+        console.debug("Modifying chart class name is ", chart.constructor.name);
         console.debug("Rate interval for chart ", chart.name, " is: ", this.rateInterval);
         console.debug("Time interval for chart ", chart.name, " is: ", this.timeInterval);
+        console.debug("Selected instances for chart ", chart.name, " are: ", this.selectedInstances);
         this.initModal();
     }
 
@@ -233,7 +237,7 @@ export class Dashboard {
     private updateChartName():void {
         this.chartName = this.selectedChartType + "." +
             (this.selectedComponent != "" ? this.selectedComponent  + "." : "") +
-            ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_";
+            ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" + this.allCharts.length;
     }
 
     ngOnInit():void {
@@ -241,18 +245,12 @@ export class Dashboard {
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
         this.components.subscribe((data:string[]) => {
-            if (data && data.length > 0) {
+            if (data && data.length > 0 && $.inArray(this.selectedChartType, ["statuses", "scaleIn", "scaleOut", "voting"]) >= 0) {
                 this.selectedComponent = data[0];
-                // load instances as well - if we autoselect a component
-                this.instances = this.http.get(REST.GROUPS_RESOURCE_BY_COMPONENT_NAME(this.selectedComponent))
-                    .map((res:Response) => { return <string[]>res.json()}).publishLast().refCount();
-                this.instances.subscribe((data:string[]) => { this.allInstances = data});
             } else {
                 this.selectedComponent = "";
-                this.instances = this.http.get(REST.GROUPS_RESOURCES)
-                    .map((res:Response) => { return <string[]>res.json()}).publishLast().refCount();
-                this.instances.subscribe((data:string[]) => { this.allInstances = data});
             }
+            this.onComponentSelect(this.selectedComponent);
         });
     }
 
@@ -278,7 +276,6 @@ export class Dashboard {
 
                     if (chs.length > 0) {
                         this.timerId = setInterval(function () {
-                            console.debug("Timer event is thrown");
                             _thisReference._chartService.receiveDataForCharts(chs);
                         }, 1500);
                     }
@@ -309,16 +306,12 @@ export class Dashboard {
 
         $(Dashboard.wizardId).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
             _thisReference.cd.detectChanges();
-            if (stepNumber == 3 && _thisReference.isNewChart()) {
+            if (stepNumber == 3 && _thisReference.isNewChart() && stepDirection == "forward") {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2 && stepDirection == "forward") {
                 _thisReference.loadMetricsOnInstancesSelected();
-            } else if (stepNumber == 1) {
-                if (stepDirection == "forward" && _thisReference.isNewChart()) {
-                    _thisReference.selectedAllInstances = true;
-                    _thisReference.selectedInstances = [];
-                }
-                _thisReference.triggerShowInstances(_thisReference.selectedAllInstances);
+            } else if (stepNumber == 1 && stepDirection == "forward" && _thisReference.isNewChart()) {
+                _thisReference.selectedInstances = [];
             }
         });
         this.smartWizardInitialized = true;
@@ -342,8 +335,6 @@ export class Dashboard {
     }
 
     private loadMetricsOnInstancesSelected():void {
-        $('#overlay').fadeIn();
-        let _instanceForSearchMetrics:string = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
         let _obsComponents = this.selectedComponent == "" ? Observable.of([]) : this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
             .map((res:Response) => {
                 let _data:any = res.json();
@@ -354,7 +345,7 @@ export class Dashboard {
                 return _values;
             }).catch((res:Response) => Observable.of([])).cache();
 
-        let _obsInstances = this.http.get(REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
+        let _obsInstances = this.http.post(REST.CHART_METRICS_BY_INSTANCE(JSON.stringify(this.selectedInstances)))
             .map((res:Response) => {
                 let _data:any = res.json();
                 let _values:AttributeInformation[] = [];
@@ -364,35 +355,7 @@ export class Dashboard {
                 return _values;
             }).catch((res:Response) => Observable.of([])).cache();
 
-        this.metrics = Observable.forkJoin([_obsComponents, _obsInstances])
-            .map((_data) => {
-                let _returnData:AttributeInformation[] = [];
-                // if one of input arrays is empty - return another one
-                if (_data[1].length == 0 && _data[0].length > 0) {
-                    return _data[0];
-                }
-                if (_data[0].length == 0 && _data[1].length > 0) {
-                    return _data[1];
-                }
-                for (let i = 0; i < _data[0].length; i++) {
-                    let _currentValue:AttributeInformation = _data[0][i];
-                    for (let j = 0; j < _data[1].length; j++) {
-                        if (_currentValue.name == _data[1][j].name) {
-                            if (_currentValue.description == undefined) {
-                                _currentValue.description = _data[1][j].description;
-                            }
-                            if (_currentValue.type == undefined) {
-                                _currentValue.type = _data[1][j].type;
-                            }
-                            if (_currentValue.unitOfMeasurement == undefined) {
-                                _currentValue.unitOfMeasurement = _data[1][j].unitOfMeasurement;
-                            }
-                        }
-                    }
-                    _returnData.push(_currentValue);
-                }
-                return _returnData;
-            });
+        this.metrics = this.selectedComponent != "" ? _obsComponents : _obsInstances;
 
         // set auto selected first metric if the array is not empty
         this.metrics.subscribe((data:AttributeInformation[]) => {
@@ -400,32 +363,10 @@ export class Dashboard {
                 this.selectedMetric = data[0];
             }
         });
-        $('#overlay').fadeOut();
-    }
-
-    triggerShowInstances(event:any):void {
-        let _select:any = $(Dashboard.select2Id);
-        let _thisReference:any = this;
-        if (event == false) {
-            _select.select2({
-                placeholder: "Select instances from the dropdown",
-                allowClear: true
-            });
-            _select.on('change', (e) => {
-                _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
-            });
-            _select.fadeIn("fast");
-        } else {
-            if (_select.data('select2')) {
-                _select.fadeOut("fast", function(){
-                    _select.select2("destroy");
-                });
-            }
-        }
     }
 
     private generateChart():AbstractChart {
-        let _instances:string[] = ((this.selectedAllInstances) ? [] : this.selectedInstances);
+        let _instances:string[] = this.selectedInstances;
         let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
             _instances, this.selectedMetric);
 
@@ -446,11 +387,10 @@ export class Dashboard {
     }
 
     saveChart():void {
-        let _gChart:AbstractChart = this.generateChart();
-        _gChart.id = this.currentChart.id;
-        this._chartService.modifyChart(_gChart);
-        this.currentChart = undefined;
-        $(Dashboard.chartModalId).modal("hide");
+        this.allCharts = this.allCharts.filter((as:AbstractChart) => as.name != this.currentChart.name);
+        this.removeChart(this.currentChart.name);
+        this.cd.detectChanges();
+        this.addChartToDashboard();
     }
 
     onChangeStop(index: number, event: NgGridItemEvent): void {

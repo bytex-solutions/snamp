@@ -68,14 +68,7 @@
                 </label>
 
                 <div class="col-md-6 col-sm-6 col-xs-12" >
-                  Select all
-                  <ui-switch
-                          [(ngModel)]="selectedAllInstances"
-                          (change)="triggerShowInstances($event)"
-                          [size]="'small'">
-                  </ui-switch>
-                  <br/>
-                  <select class="select2_multiple form-control" id="instancesSelect" style="display: none;" multiple="multiple">
+                  <select class="select2_multiple form-control" id="instancesSelect" multiple="multiple">
                     <option *ngFor="let instance of instances | async" [attr.selected]="isInstanceSelected(instance) ? true : null">{{instance}}</option>
                   </select>
                 </div>

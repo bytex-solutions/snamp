@@ -141,6 +141,8 @@ export class Factory {
             if (_json["preferences"] != undefined) {
                 _chart.preferences = _json["preferences"];
             }
+            _chart.chartData = [];
+            _chart.initialized = false;
             return _chart;
         }
     }
@@ -211,6 +213,8 @@ export class Factory {
                     _chart.setSourceAttribute(sourceAttribute);
                 }
             }
+            _chart.chartData = [];
+            _chart.initialized = false;
             return _chart;
     }
 }
