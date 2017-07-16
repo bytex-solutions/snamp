@@ -28,11 +28,11 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleEngine, WebSocketCreator {
+final class DefaultWebConsoleEngine extends WebSocketServlet implements WebConsoleEngine, WebSocketCreator {
     static final String CONTEXT = "/snamp/console/events";
     private transient final JWTAuthFilter securityFilter;
 
-    WebConsoleEngineImpl(final ClusterMember clusterMember) {
+    DefaultWebConsoleEngine(final ClusterMember clusterMember) {
         securityFilter = WebConsoleSecurityFilter.forWebSocket(clusterMember);
     }
 

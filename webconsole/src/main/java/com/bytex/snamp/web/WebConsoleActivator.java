@@ -33,16 +33,16 @@ import java.util.Map;
 public final class WebConsoleActivator extends AbstractServiceLibrary {
     private static final String THREAD_POOL_NAME = "WebConsoleThreadPool";
 
-    private static final class WebConsoleServletProvider extends ProvidedService<WebConsoleEngine, WebConsoleEngineImpl>{
+    private static final class WebConsoleServletProvider extends ProvidedService<WebConsoleEngine, DefaultWebConsoleEngine>{
         private WebConsoleServletProvider(){
             super(WebConsoleEngine.class, noRequiredServices(), Servlet.class);
         }
 
         @Override
         @Nonnull
-        protected WebConsoleEngineImpl activateService(final Map<String, Object> identity) throws InvalidSyntaxException {
-            final WebConsoleEngineImpl registry = new WebConsoleEngineImpl(ClusterMember.get(Utils.getBundleContextOfObject(this)));
-            identity.put("alias", WebConsoleEngineImpl.CONTEXT);
+        protected DefaultWebConsoleEngine activateService(final Map<String, Object> identity) throws InvalidSyntaxException {
+            final DefaultWebConsoleEngine registry = new DefaultWebConsoleEngine(ClusterMember.get(Utils.getBundleContextOfObject(this)));
+            identity.put("alias", DefaultWebConsoleEngine.CONTEXT);
             return registry;
         }
     }
