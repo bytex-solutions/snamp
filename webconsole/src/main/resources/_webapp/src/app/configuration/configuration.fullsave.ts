@@ -12,15 +12,11 @@ import 'rxjs/Rx' ;
   styleUrls: [ './templates/css/fullsave.css' ]
 })
 export class FullSaveComponent implements OnInit {
-
-  private http:ApiClient;
   currentConfiguration:string;
 
-  constructor(apiClient: ApiClient) {
-        this.http = apiClient;
-   }
+  constructor(private http: ApiClient) {}
 
-   ngOnInit() {
+   ngOnInit():void {
         this.http.get(REST.CURRENT_CONFIG)
             .map((data:Response) => JSON.stringify(data.json(), null, 4))
             .subscribe((data) => {
@@ -28,14 +24,15 @@ export class FullSaveComponent implements OnInit {
             });
    }
 
-   save() {
+   save():void {
        let blob = new Blob([this.currentConfiguration], {type: 'application/json'});
        let filename = 'configuration.json';
        fileSaver.saveAs(blob, filename);
    }
 
    load(event) {
-     let fileList: FileList = event.target.files;
+      let _thisReference = this;
+      let fileList: FileList = event.target.files;
         if(fileList.length > 0) {
              let file: File = fileList[0];
              let reader:any = new FileReader();
@@ -44,23 +41,18 @@ export class FullSaveComponent implements OnInit {
               reader.readAsText(file, "UTF-8");
 
               // Handle progress, success, and errors
-              reader.onload = this.loaded;
-              reader.onerror = this.errorHandler;
+              reader.onload = function(evt:any){
+                  let fileString:string = evt.target.result;
+                  _thisReference.http.put(REST.CURRENT_CONFIG, fileString)
+                      .map((response:Response) => response.text())
+                      .subscribe((data) => {
+                          console.debug("configuration has been upload successfully", data);
+                          location.reload();
+                      });
+              };
+              reader.onerror = function(evt:any){
+                  console.debug("Error occured while loading file: ", evt);
+              };
         }
    }
-
-   private loaded(evt:any):void {
-         let fileString:string = evt.target.result;
-         this.http.post(REST.CURRENT_CONFIG, fileString)
-            .map((response:Response) => response.text())
-            .subscribe((data) => {
-                console.debug("configuration has been upload successfully", data);
-                location.reload();
-            });
-   }
-
-   private errorHandler(evt:any):void {
-        console.debug("Error occured while loading file: ", evt);
-   }
-
 }

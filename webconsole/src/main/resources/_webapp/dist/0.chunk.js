@@ -37475,8 +37475,8 @@ var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts
 var fileSaver = __webpack_require__("./node_modules/file-saver/FileSaver.js");
 __webpack_require__("./node_modules/rxjs/Rx.js");
 var FullSaveComponent = (function () {
-    function FullSaveComponent(apiClient) {
-        this.http = apiClient;
+    function FullSaveComponent(http) {
+        this.http = http;
     }
     FullSaveComponent.prototype.ngOnInit = function () {
         var _this = this;
@@ -37492,6 +37492,7 @@ var FullSaveComponent = (function () {
         fileSaver.saveAs(blob, filename);
     };
     FullSaveComponent.prototype.load = function (event) {
+        var _thisReference = this;
         var fileList = event.target.files;
         if (fileList.length > 0) {
             var file = fileList[0];
@@ -37499,21 +37500,19 @@ var FullSaveComponent = (function () {
             // Read file into memory as UTF-8
             reader.readAsText(file, "UTF-8");
             // Handle progress, success, and errors
-            reader.onload = this.loaded;
-            reader.onerror = this.errorHandler;
+            reader.onload = function (evt) {
+                var fileString = evt.target.result;
+                _thisReference.http.put(app_restClient_1.REST.CURRENT_CONFIG, fileString)
+                    .map(function (response) { return response.text(); })
+                    .subscribe(function (data) {
+                    console.debug("configuration has been upload successfully", data);
+                    location.reload();
+                });
+            };
+            reader.onerror = function (evt) {
+                console.debug("Error occured while loading file: ", evt);
+            };
         }
-    };
-    FullSaveComponent.prototype.loaded = function (evt) {
-        var fileString = evt.target.result;
-        this.http.post(app_restClient_1.REST.CURRENT_CONFIG, fileString)
-            .map(function (response) { return response.text(); })
-            .subscribe(function (data) {
-            console.debug("configuration has been upload successfully", data);
-            location.reload();
-        });
-    };
-    FullSaveComponent.prototype.errorHandler = function (evt) {
-        console.debug("Error occured while loading file: ", evt);
     };
     FullSaveComponent = __decorate([
         core_1.Component({
