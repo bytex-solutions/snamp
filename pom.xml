@@ -356,7 +356,7 @@
   </build>
   <profiles>
     <profile>
-      <id>ossrh</id>
+      <id>Maven Central</id>
       <build>
         <plugins>
           <plugin>

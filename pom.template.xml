@@ -378,7 +378,7 @@
 
     <profiles>
         <profile>
-            <id>ossrh</id>
+            <id>Maven Central</id>
             <distributionManagement>
                 <repository>
                     <id>central</id>
