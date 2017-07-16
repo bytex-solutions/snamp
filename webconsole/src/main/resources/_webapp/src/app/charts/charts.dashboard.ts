@@ -13,7 +13,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ResourceGroupHealthStatusChart } from "./model/charts/resource.group.health.status";
 import { SeriesBasedChart, DescriptionIdClass } from "./model/abstract.line.based.chart";
 import { ScalingRateChart } from "./model/scaling.rate.chart";
-import { ChartOfAttributeValues } from "./model/abstract.chart.attributes.values";
 import { TwoDimensionalChartOfAttributeValues } from "./model/abstract.2d.chart.attributes.values";
 
 import { VEXBuiltInThemes, Modal } from 'angular2-modal/plugins/vex';
@@ -26,10 +25,10 @@ import 'rxjs/add/observable/of';
 
 import 'smartwizard';
 import 'select2';
-import {UserProfileService} from "../services/app.user.profile";
-import {isNullOrUndefined} from "util";
-import {VotingResultChart} from "./model/charts/voting.result.chart";
-import {ChartWithGroupName} from "./model/charts/group.name.based.chart";
+import { UserProfileService } from "../services/app.user.profile";
+import { isNullOrUndefined } from "util";
+import { VotingResultChart } from "./model/charts/voting.result.chart";
+import { ChartWithGroupName } from "./model/charts/group.name.based.chart";
 
 @Component({
     moduleId: module.id,
@@ -248,6 +247,8 @@ export class Dashboard {
         this.route.params
             .map(params => params['groupName'])
             .subscribe((gn) => {
+                console.debug("Component is active now: ", gn);
+                let componentFirstInit:boolean = true;
                 this.groupName = gn;
                 this._chartService.getChartsByGroupName(gn).subscribe((chs:AbstractChart[]) => {
                     console.debug("Got following charts from corresponding observable: ", chs.length, chs);
@@ -256,10 +257,18 @@ export class Dashboard {
                     if (!isNullOrUndefined(this.timerId)) {
                         clearInterval(this.timerId);
                     }
-                    for (let i = 0; i < chs.length; i++) {
-                        if (!chs[i].initialized) {
+                    if (componentFirstInit) {
+                        for (let i = 0; i < chs.length; i++) {
                             chs[i].draw();
                             chs[i].initialized = true;
+                        }
+                        componentFirstInit = false;
+                    } else {
+                        for (let i = 0; i < chs.length; i++) {
+                            if (!chs[i].initialized) {
+                                chs[i].draw();
+                                chs[i].initialized = true;
+                            }
                         }
                     }
 

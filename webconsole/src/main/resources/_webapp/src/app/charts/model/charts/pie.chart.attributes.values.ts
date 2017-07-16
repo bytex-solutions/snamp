@@ -40,6 +40,7 @@ export class PieChartOfAttributeValues extends ChartJsChart {
                     borderWidth: 1
                 }],
                 options: {
+                    animation: false,
                     responsive: true,
                     cutoutPercentage: 40,
                     rotation: Math.PI,

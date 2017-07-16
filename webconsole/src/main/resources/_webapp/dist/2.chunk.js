@@ -216,6 +216,8 @@ var Dashboard = (function () {
         this.route.params
             .map(function (params) { return params['groupName']; })
             .subscribe(function (gn) {
+            console.debug("Component is active now: ", gn);
+            var componentFirstInit = true;
             _this.groupName = gn;
             _this._chartService.getChartsByGroupName(gn).subscribe(function (chs) {
                 console.debug("Got following charts from corresponding observable: ", chs.length, chs);
@@ -224,10 +226,19 @@ var Dashboard = (function () {
                 if (!util_1.isNullOrUndefined(_this.timerId)) {
                     clearInterval(_this.timerId);
                 }
-                for (var i = 0; i < chs.length; i++) {
-                    if (!chs[i].initialized) {
+                if (componentFirstInit) {
+                    for (var i = 0; i < chs.length; i++) {
                         chs[i].draw();
                         chs[i].initialized = true;
+                    }
+                    componentFirstInit = false;
+                }
+                else {
+                    for (var i = 0; i < chs.length; i++) {
+                        if (!chs[i].initialized) {
+                            chs[i].draw();
+                            chs[i].initialized = true;
+                        }
                     }
                 }
                 if (chs.length > 0) {
