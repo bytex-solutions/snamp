@@ -70,6 +70,7 @@ export class OpRange {
     }
 
     public static fromString(str:string):OpRange {
+        console.debug("String to parse operational: ", str);
         let splits:string[] = str.split(OpRange.DELIMITER);
         let _result:OpRange = new OpRange(0.0, 0.0);
 
@@ -88,13 +89,13 @@ export class OpRange {
         }
 
         // ending parse
-        if (splits[1].substr(splits[1].length - 2, splits[1].length - 1) == "]") {
+        if (splits[1].substr(splits[1].length - 1, 1) == "]") {
             _result.isEndInfinite = false;
             _result.isEndIncluding = true;
         } else {
             _result.isEndIncluding = false;
         }
-        let endStr:string = splits[1].substr(0, splits[1].length - 2);
+        let endStr:string = splits[1].substr(0, splits[1].length - 1);
         if (endStr == OpRange.PLUS_INFINITE) {
             _result.isEndInfinite = true;
         } else {

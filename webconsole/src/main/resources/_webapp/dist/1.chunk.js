@@ -942,6 +942,7 @@ var OpRange = (function () {
         return this.getLeftBracket() + this.getBeginString() + OpRange.DELIMITER + this.getEndString() + this.getRightBracket();
     };
     OpRange.fromString = function (str) {
+        console.debug("String to parse operational: ", str);
         var splits = str.split(OpRange.DELIMITER);
         var _result = new OpRange(0.0, 0.0);
         // begining parsing
@@ -960,14 +961,14 @@ var OpRange = (function () {
             _result.begin = Number.parseFloat(beginStr);
         }
         // ending parse
-        if (splits[1].substr(splits[1].length - 2, splits[1].length - 1) == "]") {
+        if (splits[1].substr(splits[1].length - 1, 1) == "]") {
             _result.isEndInfinite = false;
             _result.isEndIncluding = true;
         }
         else {
             _result.isEndIncluding = false;
         }
-        var endStr = splits[1].substr(0, splits[1].length - 2);
+        var endStr = splits[1].substr(0, splits[1].length - 1);
         if (endStr == OpRange.PLUS_INFINITE) {
             _result.isEndInfinite = true;
         }
