@@ -109039,9 +109039,6 @@ var REST = (function () {
     REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
         return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/attributes";
     };
-    REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
-        return REST.GROUPS_WEB_API + "/resources/" + encodeURIComponent(instanceName) + "/attributes";
-    };
     // reset chart view
     REST.RESET_ELASTICITY = function (name, classifier) {
         return REST.ROOT_WEB_API_PATH + "/resource-group-watcher/" + encodeURIComponent(name) + "/" + classifier + "/reset";
@@ -109078,6 +109075,8 @@ var REST = (function () {
     REST.GROUPS_WEB_API = REST.ROOT_WEB_API_PATH + "/groups";
     // receiving all the available resources
     REST.GROUPS_RESOURCES = REST.GROUPS_WEB_API + "/resources/";
+    // attributes for resource list
+    REST.CHART_METRICS_BY_INSTANCES = REST.GROUPS_WEB_API + "/resources/attributes";
     // web console api (view related and others)
     REST.VIEWS_DASHBOARD = REST.ROOT_WEB_API_PATH + "/e2e/settings";
     // compute e2e view

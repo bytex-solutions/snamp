@@ -182,13 +182,6 @@ export class Dashboard {
             this.timeInterval = this.intervals[0].id;
         }
 
-        // fill the selected metric if the chart has metric in one of its axes
-        if (chart instanceof TwoDimensionalChartOfAttributeValues) {
-            this.selectedMetric = chart.getSourceAttribute();
-        } else {
-            this.selectedMetric = undefined;
-        }
-
         // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
         this.currentChart = chart;
 
@@ -211,10 +204,6 @@ export class Dashboard {
         }
 
         this.initWizard();
-
-        if ($(Dashboard.select2Id).data('select2')) {
-            $(Dashboard.select2Id).select2("destroy");
-        }
 
         // reset rate metric select2 component
         let _thisReference = this;
@@ -310,8 +299,21 @@ export class Dashboard {
                 _thisReference.updateChartName();
             } else if (stepNumber == 2 && stepDirection == "forward") {
                 _thisReference.loadMetricsOnInstancesSelected();
-            } else if (stepNumber == 1 && stepDirection == "forward" && _thisReference.isNewChart()) {
-                _thisReference.selectedInstances = [];
+            } else if (stepNumber == 1 && stepDirection == "forward") {
+                if (_thisReference.isNewChart()) {
+                    _thisReference.selectedInstances = [];
+                }
+                if ($(Dashboard.select2Id).data('select2')) {
+                    $(Dashboard.select2Id).select2("destroy");
+                }
+                $(Dashboard.select2Id).select2({
+                    placeholder: "Select instances from the dropdown",
+                    width: '100%',
+                    allowClear: true
+                });
+                $(Dashboard.select2Id).on('change', (e) => {
+                    _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
+                });
             }
         });
         this.smartWizardInitialized = true;
@@ -345,7 +347,7 @@ export class Dashboard {
                 return _values;
             }).catch((res:Response) => Observable.of([])).cache();
 
-        let _obsInstances = this.http.post(REST.CHART_METRICS_BY_INSTANCE(JSON.stringify(this.selectedInstances)))
+        let _obsInstances = this.http.post(REST.CHART_METRICS_BY_INSTANCES, this.selectedInstances)
             .map((res:Response) => {
                 let _data:any = res.json();
                 let _values:AttributeInformation[] = [];
@@ -360,7 +362,14 @@ export class Dashboard {
         // set auto selected first metric if the array is not empty
         this.metrics.subscribe((data:AttributeInformation[]) => {
             if (data && data.length > 0) {
-                this.selectedMetric = data[0];
+                if (this.isNewChart()) {
+                    this.selectedMetric = data[0];
+                } else if (typeof this.currentChart["getSourceAttribute"] != undefined) {
+                    console.debug("Chart after metrics received: ", this.currentChart, " instanceof: ", this.currentChart instanceof TwoDimensionalChartOfAttributeValues, " or ", typeof this.currentChart["getSourceAttribute"] != undefined);
+                    let _attr:AttributeInformation = this.currentChart["getSourceAttribute"]();
+                    this.selectedMetric = data.find(metric => metric.name == _attr.name && metric.type == _attr.type);
+                    console.debug("Attr was ", _attr, " metric is ", this.selectedMetric);
+                }
             }
         });
     }

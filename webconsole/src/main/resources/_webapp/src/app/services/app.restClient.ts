@@ -227,9 +227,8 @@ export class REST {
         return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/attributes";
     }
 
-    public static CHART_METRICS_BY_INSTANCE(instanceName: string): string {
-        return REST.GROUPS_WEB_API + "/resources/" + encodeURIComponent(instanceName) + "/attributes";
-    }
+    // attributes for resource list
+    public static CHART_METRICS_BY_INSTANCES: string =  REST.GROUPS_WEB_API + "/resources/attributes";
 
     // web console api (view related and others)
     public static VIEWS_DASHBOARD:string = REST.ROOT_WEB_API_PATH + "/e2e/settings";
