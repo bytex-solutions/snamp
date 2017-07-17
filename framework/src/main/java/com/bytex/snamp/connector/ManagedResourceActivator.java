@@ -150,7 +150,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         private static void updateFeatures(final ManagedResourceConnector connector,
-                            final ManagedResourceConfiguration configuration) throws Exception {
+                            final ManagedResourceConfiguration configuration) {
             connector.queryObject(AttributeSupport.class)
                     .ifPresent(attributeSupport -> updateAttributes(attributeSupport, configuration.getAttributes()));
             connector.queryObject(NotificationSupport.class)
@@ -264,17 +264,6 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
     }
 
     /**
-     * Represents activator for support service.
-     * @param <T> Type of support service.
-     * @since 2.0
-     */
-    @FunctionalInterface
-    protected interface SupportServiceFactory<T extends SupportService>{
-        @Nonnull
-        T activateService(final DependencyManager dependencies) throws Exception;
-    }
-
-    /**
      * Represents superclass for all-optional resource connector service providers.
      * You cannot derive from this class directly.
      * @param <S> Type of the gateway-related service contract.
@@ -282,7 +271,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
-     * @see #configurationDescriptor(SupportServiceFactory, RequiredService[])
+     * @see #configurationDescriptor(Function, RequiredService[])
      */
     protected static abstract class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T> {
 
@@ -321,19 +310,19 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         static <S extends SupportService, T extends S> SupportServiceManager<S, T> create(final Class<S> contract,
-                                                                                                  final SupportServiceFactory<T> activator,
+                                                                                                  final Function<DependencyManager, T> activator,
                                                                                                   final RequiredService<?>... dependencies){
             return new SupportServiceManager<S, T>(contract, dependencies) {
                 @Nonnull
                 @Override
                 protected T createService(final Map<String, Object> identity) throws Exception {
-                    return activator.activateService(super.dependencies);
+                    return activator.apply(super.dependencies);
                 }
             };
         }
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceFactory<T> factory,
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Function<DependencyManager, T> factory,
                                                                                                                                                                  final RequiredService<?>... dependencies) {
         return SupportServiceManager.create(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }

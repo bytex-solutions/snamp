@@ -92,12 +92,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <artifactSet>
-                        <excludes>
-                        </excludes>
-                    </artifactSet>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>

@@ -38,19 +38,22 @@ abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends Fea
     }
 
     private TAccessor addFeatureImpl(final String resourceName,
-                                       final M metadata) throws Exception{
+                                       final M metadata) throws Exception {
         //find resource storage
         final L list;
-        if(features.containsKey(resourceName))
+        if (features.containsKey(resourceName))
             list = features.get(resourceName);
         else
             features.put(resourceName, list = featureListFactory.get());
         //find feature
         final TAccessor accessor;
-        if(list.containsKey(metadata))
+        if (list.containsKey(metadata))
             accessor = list.get(metadata);
-        else
-            list.put(accessor = createAccessor(resourceName, metadata));
+        else {
+            accessor = createAccessor(resourceName, metadata);
+            if (accessor != null)
+                list.put(accessor);
+        }
         return accessor;
     }
 

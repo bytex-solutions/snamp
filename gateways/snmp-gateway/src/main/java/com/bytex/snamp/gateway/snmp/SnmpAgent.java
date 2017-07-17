@@ -50,7 +50,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Gat
             final String hostName,
             final SecurityConfiguration securityOptions,
             final int socketTimeout,
-            final ExecutorService threadPool) throws IOException {
+            final ExecutorService threadPool) {
 		// These files does not exist and are not used but has to be specified
 		// Read snmp4j docs for more info
 		super(new File("conf.agent"), null,

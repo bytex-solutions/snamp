@@ -1,6 +1,5 @@
 package com.bytex.snamp.io;
 
-import java.io.IOException;
 import java.io.ObjectStreamClass;
 
 /**
@@ -16,11 +15,10 @@ public interface ClassResolver {
      * description.
      * @param desc Serialized information about class. Cannot be {@literal null}.
      * @return Resolved class.
-     * @throws IOException any of the usual Input/Output exceptions.
      * @throws ClassNotFoundException if class of a serialized object cannot be found.
      */
     Class<?> resolveClass(final ObjectStreamClass desc)
-            throws IOException, ClassNotFoundException;
+            throws ClassNotFoundException;
 
     static ClassResolver forClassLoader(final ClassLoader loader) {
         return desc -> Class.forName(desc.getName(), false, loader);

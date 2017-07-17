@@ -46,7 +46,7 @@ abstract class ModifiableHashSet<E> extends HashSet<E> implements Modifiable, Ex
     }
 
     @Override
-    public final boolean removeAll(final Collection<?> c) {
+    public final boolean removeAll(@Nonnull final Collection<?> c) {
         final boolean removed = super.removeAll(c);
         modified |= removed;
         return removed;

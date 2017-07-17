@@ -15,6 +15,6 @@ abstract class AbstractAttributeCommand extends AbstractCommand {
         super(commandOptions);
     }
 
-    protected AbstractAttributeCommand() {
+    AbstractAttributeCommand() {
     }
 }

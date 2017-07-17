@@ -31,7 +31,7 @@ public final class Activator extends AbstractServiceLibrary {
 
         @Nonnull
         abstract T activateService(final Map<String, Object> identity,
-                                    final ImmutableMap<String, String> configuration) throws Exception;
+                                    final ImmutableMap<String, String> configuration);
 
         @Override
         @Nonnull
@@ -50,7 +50,7 @@ public final class Activator extends AbstractServiceLibrary {
 
         @Nonnull
         @Override
-        DefaultTopologyAnalyzer activateService(final Map<String, Object> identity, final ImmutableMap<String, String> configuration) throws Exception {
+        DefaultTopologyAnalyzer activateService(final Map<String, Object> identity, final ImmutableMap<String, String> configuration) {
             final long historySize = getValue(configuration, HISTORY_SIZE_PARAM, Long::parseLong).orElse(DEFAULT_HISTORY_SIZE);
             return new DefaultTopologyAnalyzer(historySize);
         }

@@ -45,7 +45,7 @@ abstract class ScalingRateChart extends RateChart {
     }
 
     @Override
-    protected final Rate extractDataSource(final BundleContext context) throws Exception {
+    protected final Rate extractDataSource(final BundleContext context) {
         return SupervisorClient.tryCreate(context, groupName).map(this::getRate).orElse(Rate.EMPTY);
     }
 }

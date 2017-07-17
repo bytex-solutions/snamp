@@ -12,7 +12,6 @@ import java.util.Map;
 
 import static com.bytex.snamp.management.shell.ResourceInfoCommand.*;
 
-;
 /**
  * Displays full information about managed resource group.
  * @author Roman Sakno

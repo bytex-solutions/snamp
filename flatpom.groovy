@@ -68,9 +68,9 @@ final POM_FILE_OPTION = "i"
 options.addOption POM_FILE_OPTION, "input", true, "Name of all POM files"
 final DIR_OPTION = "d"
 options.addOption DIR_OPTION, "directory", true, "Path to directory with root POM"
-final HELP_OPTION = "h";
+final HELP_OPTION = "h"
 options.addOption HELP_OPTION, "help", false, "Print this message"
-final OUT_FILE_OPTION = "o";
+final OUT_FILE_OPTION = "o"
 options.addOption OUT_FILE_OPTION, "out", true, "Name of output POM files"
 final parser = new DefaultParser()
 final cmd = parser.parse options, args

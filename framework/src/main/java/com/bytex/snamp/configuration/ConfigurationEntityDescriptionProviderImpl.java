@@ -35,6 +35,6 @@ public class ConfigurationEntityDescriptionProviderImpl extends AbstractAggregat
         return descriptions.stream()
                 .filter(description -> configurationEntity.equals(description.getEntityType()))
                 .findFirst()
-                .orElseGet(() -> null);
+                .orElse(null);
     }
 }

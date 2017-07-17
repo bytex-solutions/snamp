@@ -24,7 +24,6 @@ import org.osgi.framework.ServiceReference;
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.servlet.Servlet;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -67,7 +66,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
 
         @Nonnull
-        abstract T activateService() throws Exception;
+        abstract T activateService();
 
         @OverridingMethodsMustInvokeSuper
         void fillIdentity(final Map<String, Object> identity){
@@ -162,7 +161,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
         @Nonnull
         @Override
-        E2EDataSource activateService() throws IOException {
+        E2EDataSource activateService() {
             return new E2EDataSource();
         }
     }
@@ -191,7 +190,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
         @Nonnull
         @Override
-        ManagedResourceInformationService activateService() throws Exception {
+        ManagedResourceInformationService activateService() {
             return new ManagedResourceInformationService();
         }
     }
@@ -228,7 +227,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
         @Nonnull
         @Override
-        LogNotifier activateService() throws Exception {
+        LogNotifier activateService() {
             final ThreadPoolRepository repository = dependencies.getService(ThreadPoolRepository.class).orElseThrow(AssertionError::new);
             return new LogNotifier(repository.getThreadPool(THREAD_POOL_NAME, true));
         }

@@ -15,7 +15,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleReference;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +37,7 @@ public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine
     public OSGiGroovyScriptEngine(final ClassLoader rootClassLoader,
                                   final Properties properties,
                                   final Class<B> baseScriptClass,
-                                  final URL... paths) throws IOException {
+                                  final URL... paths) {
         super(paths, rootClassLoader);
         setupCompilerConfiguration(getConfig(), properties, baseScriptClass);
         rootBinding = new Binding();

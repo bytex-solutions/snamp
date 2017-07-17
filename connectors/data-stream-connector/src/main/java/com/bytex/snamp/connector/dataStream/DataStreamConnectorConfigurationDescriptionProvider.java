@@ -11,8 +11,6 @@ import com.google.common.collect.ObjectArrays;
 
 import javax.management.Descriptor;
 import javax.management.NotificationFilter;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
@@ -143,12 +141,8 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
         filterFactory = createNotificationFilterFactory(getClass().getClassLoader());
     }
 
-    private static GroovyNotificationFilterFactory createNotificationFilterFactory(final ClassLoader loader){
-        try {
-            return new GroovyNotificationFilterFactory(loader);
-        } catch (final IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private static GroovyNotificationFilterFactory createNotificationFilterFactory(final ClassLoader loader) {
+        return new GroovyNotificationFilterFactory(loader);
     }
 
     protected Duration parseSyncPeriod(final Map<String, String> parameters) {

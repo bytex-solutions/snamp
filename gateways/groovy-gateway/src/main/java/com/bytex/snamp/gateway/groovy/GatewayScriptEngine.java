@@ -5,7 +5,6 @@ import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
@@ -20,7 +19,7 @@ import java.util.Properties;
 public final class GatewayScriptEngine extends OSGiGroovyScriptEngine<GatewayScript> {
     public GatewayScriptEngine(final ClassLoader rootClassLoader,
                                final Properties properties,
-                               final URL... paths) throws IOException {
+                               final URL... paths) {
         super(rootClassLoader, properties, GatewayScript.class, paths);
     }
 

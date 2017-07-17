@@ -203,6 +203,7 @@ final class SmtpModelOfSupervisors extends AbstractStatefulFrameworkServiceTrack
     }
 
     @Override
+    @Nonnull
     protected SupervisorClient createClient(final ServiceReference<Supervisor> serviceRef) throws InstanceNotFoundException {
         return new SupervisorClient(getBundleContext(), serviceRef);
     }

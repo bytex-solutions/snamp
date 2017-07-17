@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.attributes.checkers;
 
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -12,7 +11,7 @@ import java.util.Properties;
  * @since 2.0
  */
 final class GroovyAttributeCheckerFactory extends OSGiGroovyScriptEngine<GroovyAttributeChecker> {
-    GroovyAttributeCheckerFactory(final ClassLoader rootClassLoader) throws IOException {
+    GroovyAttributeCheckerFactory(final ClassLoader rootClassLoader) {
         super(rootClassLoader, new Properties(), GroovyAttributeChecker.class);
     }
 

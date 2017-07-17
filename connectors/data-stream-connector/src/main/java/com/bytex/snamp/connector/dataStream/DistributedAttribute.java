@@ -27,7 +27,7 @@ public abstract class DistributedAttribute<T, N extends Notification> extends Ty
         super(notificationType, name, type, description, AttributeSpecifier.READ_ONLY, descriptor);
     }
 
-    protected abstract T getValue() throws Exception;
+    protected abstract T getValue();
 
     protected abstract Serializable takeSnapshot();
 

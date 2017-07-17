@@ -154,7 +154,7 @@ public interface Communicator extends SharedObject {
 
     <V> V sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException;
 
-    <V> CompletableFuture<V> sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser) throws InterruptedException;
+    <V> CompletableFuture<V> sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser);
 
     static Predicate<MessageEvent> responseWithMessageID(final long messageID){
         return MessageType.RESPONSE.and(msg -> msg.getMessageID() == messageID);

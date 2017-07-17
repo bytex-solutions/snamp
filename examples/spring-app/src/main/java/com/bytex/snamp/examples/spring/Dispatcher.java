@@ -19,8 +19,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @Component("dispatcher")
 public final class Dispatcher {
-
-    private boolean isDispatcher;
+    private final boolean isDispatcher;
     private final RestTemplate restClient;
     private final SpanReporter spanReporter;
 

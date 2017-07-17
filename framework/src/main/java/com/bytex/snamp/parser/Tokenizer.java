@@ -30,7 +30,7 @@ public class Tokenizer implements SafeCloseable {
      */
     @FunctionalInterface
     protected interface TokenParser{
-        Token parseToken(final CharReader reader) throws IOException, ParseException;
+        Token parseToken(final CharReader reader) throws IOException;
     }
 
     private final CharReader reader;

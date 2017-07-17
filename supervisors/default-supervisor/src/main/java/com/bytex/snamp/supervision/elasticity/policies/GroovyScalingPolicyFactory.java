@@ -2,7 +2,6 @@ package com.bytex.snamp.supervision.elasticity.policies;
 
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -12,7 +11,7 @@ import java.util.Properties;
  */
 final class GroovyScalingPolicyFactory extends OSGiGroovyScriptEngine<GroovyScalingPolicy> {
 
-    GroovyScalingPolicyFactory(final ClassLoader rootClassLoader) throws IOException {
+    GroovyScalingPolicyFactory(final ClassLoader rootClassLoader) {
         super(rootClassLoader, new Properties(), GroovyScalingPolicy.class);
     }
 

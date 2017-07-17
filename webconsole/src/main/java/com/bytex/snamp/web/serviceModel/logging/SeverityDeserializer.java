@@ -8,7 +8,7 @@ import org.codehaus.jackson.map.JsonDeserializer;
 import java.io.IOException;
 
 /**
- * Represents deserializer for {@link LogLevel}.
+ * Represents deserializer for {@link Severity}.
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0

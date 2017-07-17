@@ -92,12 +92,12 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Sup
      * @param metadata The metadata of the feature that should be removed from the collection. Cannot be {@literal null}.
      * @return A number of removed features.
      */
-    protected static <M extends MBeanFeatureInfo> int removeAll(final Iterable<? extends FeatureAccessor<M>> features,
+    static <M extends MBeanFeatureInfo> int removeAll(final Iterable<? extends FeatureAccessor<M>> features,
                                                                 final M metadata){
         return removeAll(features.iterator(), metadata);
     }
 
-    protected static <M extends MBeanFeatureInfo, F extends FeatureAccessor<M>> F remove(final Iterable<? extends F> features,
+    static <M extends MBeanFeatureInfo, F extends FeatureAccessor<M>> F remove(final Iterable<? extends F> features,
                                                                                             final M metadata){
         return remove(features.iterator(), metadata);
     }

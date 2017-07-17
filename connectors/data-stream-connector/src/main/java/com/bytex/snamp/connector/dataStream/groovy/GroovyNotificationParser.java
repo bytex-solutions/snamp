@@ -112,13 +112,13 @@ public abstract class GroovyNotificationParser extends Scriptlet implements Noti
     protected final MeasurementPipeline measurement = new MeasurementPipeline();
     //measurement types
     @SpecialUse(SpecialUse.Case.SCRIPTING)
-    protected final MeasurementFinalizer<ValueMeasurement> bool = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofBool);
+    protected final MeasurementFinalizer<ValueMeasurement> bool = new MeasurementFinalizerImpl<>(ValueMeasurementNotification::ofBool);
     @SpecialUse(SpecialUse.Case.SCRIPTING)
-    protected final MeasurementFinalizer<ValueMeasurement> integer = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofInt);
+    protected final MeasurementFinalizer<ValueMeasurement> integer = new MeasurementFinalizerImpl<>(ValueMeasurementNotification::ofInt);
     @SpecialUse(SpecialUse.Case.SCRIPTING)
-    protected final MeasurementFinalizer<ValueMeasurement> fp = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofFP);
+    protected final MeasurementFinalizer<ValueMeasurement> fp = new MeasurementFinalizerImpl<>(ValueMeasurementNotification::ofFP);
     @SpecialUse(SpecialUse.Case.SCRIPTING)
-    protected final MeasurementFinalizer<ValueMeasurement> string = new MeasurementFinalizerImpl<ValueMeasurement>(ValueMeasurementNotification::ofString);
+    protected final MeasurementFinalizer<ValueMeasurement> string = new MeasurementFinalizerImpl<>(ValueMeasurementNotification::ofString);
 
     private final ThreadLocal<Collection<NotificationFactory>> notifications = ThreadLocal.withInitial(LinkedList::new);
     private NotificationParser nextParser;

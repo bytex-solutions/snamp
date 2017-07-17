@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.Stateful;
-import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.AbstractMetric;
 import com.bytex.snamp.instrumentation.measurements.Measurement;
@@ -12,8 +11,6 @@ import javax.management.Notification;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeType;
 import java.io.Serializable;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -30,11 +27,6 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
     private static final long serialVersionUID = 2645456225474793148L;
     private volatile M metric;
     private final Predicate<? super Serializable> isInstance;
-    /*
-        Handling notification and reading metric can be parallel, therefore, read lock is used
-        Taking snapshot and state recovery must be executed with exclusive access, therefore, write lock is used
-     */
-    private final LockDecorator readLock, writeLock;
 
     MetricHolderAttribute(final Class<N> notificationType,
                           final String name,
@@ -45,9 +37,6 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
         metric = metricFactory.apply(name);
         assert metric != null;
         isInstance = metric.getClass()::isInstance;
-        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-        readLock = LockDecorator.readLock(rwLock);
-        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     private void resetImpl(){
@@ -66,7 +55,7 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
     }
 
     @Override
-    protected final CompositeData getValue() throws InterruptedException {
+    protected final CompositeData getValue() {
         return getValue(metric);
     }
 
@@ -88,18 +77,14 @@ abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notific
     abstract void updateMetric(final M metric, final N notification);
 
     @Override
-    protected final CompositeData changeAttributeValue(final N notification) throws InterruptedException {
+    protected final CompositeData changeAttributeValue(final N notification) {
         final M metric = this.metric;
         updateMetric(metric, notification);
         return getValue(metric);
     }
 
-    private void closeImpl() {
-        metric = null;
-    }
-
     @Override
-    public final void close() throws InterruptedException {
+    public final void close() {
         metric = null;
     }
 

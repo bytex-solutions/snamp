@@ -6,6 +6,7 @@ import com.bytex.snamp.concurrent.GroupedThreadFactory;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.osgi.framework.BundleContext;
 
 import java.io.Serializable;
@@ -20,7 +21,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
@@ -433,7 +433,11 @@ final class InMemoryCommunicator implements Communicator {
     public <V> V receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         try (final MessageFuture<V> future = receiveMessage(filter, messageParser, false)) {
             final Callable<V> callable = timeout == null ? future::get : () -> future.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-            return callUnchecked(callable);
+            return callable.call();
+        } catch (final InterruptedException | TimeoutException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new UncheckedExecutionException(e);
         }
     }
 
@@ -486,12 +490,16 @@ final class InMemoryCommunicator implements Communicator {
         try (final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, false)) {
             sendMessage(message, MessageType.REQUEST, messageID);
             final Callable<V> callable = timeout == null ? receiver::get : () -> receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-            return callUnchecked(callable);
+            return callable.call();
+        } catch (final InterruptedException | TimeoutException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new UncheckedExecutionException(e);
         }
     }
 
     @Override
-    public <V> MessageFuture<V> sendRequest(final Serializable message, final Function<? super MessageEvent, ? extends V> messageParser) throws InterruptedException {
+    public <V> MessageFuture<V> sendRequest(final Serializable message, final Function<? super MessageEvent, ? extends V> messageParser) {
         final long messageID = newMessageID();
         final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, true);
         sendMessage(message, MessageType.REQUEST, messageID);

@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableMap
 import java.util.concurrent.atomic.AtomicInteger
 
 final class ResourceNameGenerator extends AtomicInteger{
-    final static ResourceNameGenerator INSTANCE = new ResourceNameGenerator();
+    final static ResourceNameGenerator INSTANCE = new ResourceNameGenerator()
 
     String nextName(){
         return "provisioned-resource-" + Integer.toString(getAndIncrement())

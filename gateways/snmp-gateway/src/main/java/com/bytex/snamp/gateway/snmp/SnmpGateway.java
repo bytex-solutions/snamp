@@ -17,7 +17,6 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanNotificationInfo;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -125,7 +124,7 @@ final class SnmpGateway extends AbstractGateway {
     }
 
     private SnmpNotificationAcessor addNotification(final String resourceName,
-                                                        final MBeanNotificationInfo metadata) throws ParseException {
+                                                        final MBeanNotificationInfo metadata) {
         if(!isValidNotification(metadata)) return null;
         final SnmpNotificationAcessor mapping = new SnmpNotificationAcessor(metadata, resourceName);
         notifications.put(resourceName, mapping);
@@ -135,7 +134,7 @@ final class SnmpGateway extends AbstractGateway {
     }
 
     private AttributeAccessor addAttribute(final String resourceName,
-                                           final MBeanAttributeInfo metadata) throws DuplicateRegistrationException, ParseException {
+                                           final MBeanAttributeInfo metadata) throws DuplicateRegistrationException {
         final SnmpAttributeAccessorImpl accessor = new SnmpAttributeAccessorImpl(metadata);
         attributes.put(resourceName, accessor);
         if(updateManager != null)

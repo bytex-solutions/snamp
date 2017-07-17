@@ -16,7 +16,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import javax.management.JMException;
 import javax.management.openmbean.InvalidKeyException;
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -124,7 +123,7 @@ public final class GridMember implements ClusterMember, AutoCloseable {
     private final boolean shutdownHazelcast;
     private final LoadingCache<GridServiceKey<?>, GridSharedObject> sharedObjects;
 
-    private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdownHazelcast) throws ReflectiveOperationException, JAXBException, IOException, JMException {
+    private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdownHazelcast) throws ReflectiveOperationException, IOException, JMException {
         databaseHost = new DatabaseNode(hazelcastInstance);
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
@@ -133,11 +132,11 @@ public final class GridMember implements ClusterMember, AutoCloseable {
                 .build(new GridServiceLoader());
     }
 
-    public GridMember(final HazelcastInstance hazelcastInstance) throws ReflectiveOperationException, JAXBException, IOException, JMException {
+    public GridMember(final HazelcastInstance hazelcastInstance) throws ReflectiveOperationException, IOException, JMException {
         this(hazelcastInstance, false);
     }
 
-    GridMember() throws JMException, ReflectiveOperationException, IOException, JAXBException {
+    GridMember() throws JMException, ReflectiveOperationException, IOException {
         this(Hazelcast.newHazelcastInstance(), true);
     }
 
