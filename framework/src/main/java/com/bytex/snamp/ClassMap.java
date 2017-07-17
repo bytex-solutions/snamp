@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 2.0
  */
 @ThreadSafe
-final class ClassMap<V> extends ConcurrentHashMap<Class<?>, V> {
+class ClassMap<V> extends ConcurrentHashMap<Class<?>, V> {
     private static final long serialVersionUID = 3041733574645762326L;
 
     /**
@@ -21,7 +21,7 @@ final class ClassMap<V> extends ConcurrentHashMap<Class<?>, V> {
      * @param key Key
      * @return Value associated with the key.
      */
-    V getOrAdd(final Class<?> key) {
+    final V getOrAdd(final Class<?> key) {
         for (Class<?> lookup = key; lookup != null; lookup = lookup.getSuperclass()) {
             final V value = get(lookup);
             if (value != null) {
