@@ -1,8 +1,8 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.core.DefaultServiceSelector;
+import com.bytex.snamp.core.FrameworkService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 

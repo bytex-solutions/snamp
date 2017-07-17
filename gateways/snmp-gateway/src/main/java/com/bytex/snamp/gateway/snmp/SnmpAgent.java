@@ -16,7 +16,7 @@ import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.security.SecurityModel;
 import org.snmp4j.security.USM;
 import org.snmp4j.smi.*;
-import org.snmp4j.transport.*;
+import org.snmp4j.transport.TransportMappings;
 import org.snmp4j.util.ConcurrentMessageDispatcher;
 
 import java.io.Closeable;

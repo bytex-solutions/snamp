@@ -47,7 +47,8 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
+import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.MESSAGE_OID_PARAM;
+import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 

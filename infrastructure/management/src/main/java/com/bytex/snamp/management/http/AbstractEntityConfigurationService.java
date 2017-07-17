@@ -1,6 +1,9 @@
 package com.bytex.snamp.management.http;
 
-import com.bytex.snamp.configuration.*;
+import com.bytex.snamp.configuration.AgentConfiguration;
+import com.bytex.snamp.configuration.ConfigurationManager;
+import com.bytex.snamp.configuration.EntityConfiguration;
+import com.bytex.snamp.configuration.EntityMapResolver;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.management.http.model.AbstractDataObject;
 import org.osgi.framework.BundleContext;

@@ -11,6 +11,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
+
 import static com.bytex.snamp.internal.Utils.wrapException;
 
 /**

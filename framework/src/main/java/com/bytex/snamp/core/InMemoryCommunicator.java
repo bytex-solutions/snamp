@@ -2,7 +2,10 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.*;
+import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.concurrent.LazyReference;
+import com.bytex.snamp.concurrent.LockDecorator;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import org.osgi.framework.BundleContext;
 
 import java.io.Serializable;

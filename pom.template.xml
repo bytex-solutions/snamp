@@ -356,7 +356,6 @@
     <module>integration</module>
     <module>webconsole</module>
     <module>features</module>
-    <module>osgi-tests</module>
   </modules>
     <repositories>
         <repository>
@@ -407,15 +406,58 @@
                         </configuration>
                     </plugin>
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.3</version>
-                        <extensions>true</extensions>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.1</version>
                         <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <excludes>
+                                <exclude>src/test/*</exclude>
+                            </excludes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <stylesheet>java</stylesheet>
+                            <doctitle>${project.name} ${project.version}</doctitle>
+                            <footer>Copyright 2015-2017 Bytex Solutions</footer>
+                            <windowtitle>${project.name} ${project.version}</windowtitle>
+                            <excludePackageNames>com.bytex.snamp.testing</excludePackageNames>
+                            <show>protected</show>
+                            <version/>
+                            <author/>
+                            <encoding>UTF-8</encoding>
                         </configuration>
                     </plugin>
+                    <!--<plugin>-->
+                        <!--<groupId>org.sonatype.plugins</groupId>-->
+                        <!--<artifactId>nexus-staging-maven-plugin</artifactId>-->
+                        <!--<version>1.6.3</version>-->
+                        <!--<extensions>true</extensions>-->
+                        <!--<configuration>-->
+                            <!--<serverId>ossrh</serverId>-->
+                            <!--<nexusUrl>https://oss.sonatype.org/</nexusUrl>-->
+                        <!--</configuration>-->
+                    <!--</plugin>-->
                 </plugins>
             </build>
         </profile>
@@ -428,6 +470,9 @@
                 <!-- skip tests -->
                 <maven.test.skip>true</maven.test.skip>
             </properties>
+            <modules>
+                <module>osgi-tests</module>
+            </modules>
         </profile>
         <profile>
             <id>Release</id>

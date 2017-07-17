@@ -15,9 +15,9 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
 
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.compileTemplate;
 import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.createRenderer;
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents discovery service based on Senlin.
