@@ -1,6 +1,7 @@
 import { ChartUtils } from "./chart.utils";
 import { TwoDimensionalChartOfAttributeValues } from "./abstract.2d.chart.attributes.values";
 import { AttributeChartData } from "./data/attribute.chart.data";
+import { isNullOrUndefined } from "util";
 
 export abstract class ChartJsChart extends TwoDimensionalChartOfAttributeValues {
 
@@ -28,31 +29,31 @@ export abstract class ChartJsChart extends TwoDimensionalChartOfAttributeValues 
     protected _chartObject:any = undefined;
 
     public newValues(_data:AttributeChartData[]):void {
-        if (document.hidden) return;
-        for (let i = 0; i < _data.length; i++) {
-            let _index:number = -1;
-            for (let j = 0; j < this.chartData.length; j++) {
-                if ((<AttributeChartData>this.chartData[j]).resourceName == _data[i].resourceName) {
-                    _index = j; // remember the index
-                    this.chartData[j] = _data[i]; // change the data
-                    break;
+        if (document.hidden || isNullOrUndefined(_data)) return;
+            if (!isNullOrUndefined(this._chartObject != undefined)) {
+            for (let i = 0; i < _data.length; i++) {
+                let _index:number = -1;
+                for (let j = 0; j < this.chartData.length; j++) {
+                    if ((<AttributeChartData>this.chartData[j]).resourceName == _data[i].resourceName) {
+                        _index = j; // remember the index
+                        this.chartData[j] = _data[i]; // change the data
+                        break;
+                    }
+                }
+                if (_index == -1) {
+                    if (this._chartObject != undefined) {
+                        this._chartObject.destroy();
+                    }
+                    this.chartData = _data;
+                    this.draw();
+                    return;
+                } else if (this._chartObject != undefined) {
+                    this._chartObject.data.datasets[0].data[_index] = _data[i].attributeValue;
                 }
             }
-            if (_index == -1) {
-                if (this._chartObject != undefined) {
-                    this._chartObject.destroy();
-                }
-                this.chartData = _data;
-                this.draw();
-                return;
-            } else if (this._chartObject != undefined) {
-                this._chartObject.data.datasets[0].data[_index] = _data[i].attributeValue;
-            }
-        }
-
-        if (this._chartObject != undefined) {
             this._chartObject.update();
+        } else {
+            this.draw()
         }
-
     }
 }

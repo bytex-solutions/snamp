@@ -1,4 +1,4 @@
-import { Component, ViewContainerRef, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewContainerRef, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { ApiClient, REST } from '../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
@@ -35,7 +35,7 @@ import { ChartWithGroupName } from "./model/charts/group.name.based.chart";
     templateUrl: './templates/dashboard.html',
     styleUrls: [ './templates/css/dashboard.css' ]
 })
-export class Dashboard {
+export class Dashboard implements OnDestroy {
 
     private timerId:any = undefined;
 
@@ -73,6 +73,12 @@ export class Dashboard {
     private currentChart:AbstractChart = undefined;
 
     private smartWizardInitialized:boolean = false;
+
+    private subscriberRoute:any = undefined;
+    private chartGroupSubscriber:any = undefined;
+    private componentSubscriber:any = undefined;
+    private instancesSubscriber:any = undefined;
+    private metricsSubscriber:any = undefined;
 
     private gridConfig: NgGridConfig = <NgGridConfig> {
         'margins': [10],
@@ -131,9 +137,6 @@ export class Dashboard {
         this.selectedRateMetrics = [];
         this.rateInterval = this.rateIntervals[0].additionalId;
         this.currentChart = undefined;
-
-        // fill components and selected component
-        this.ngOnInit();
 
         // init modal components and show modal itself
         this.initModal();
@@ -228,55 +231,57 @@ export class Dashboard {
             ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" + this.allCharts.length;
     }
 
-    ngOnInit():void {
-        this.components = this.http.get(REST.GROUPS_WEB_API)
-            .map((res:Response) => { return <string[]>res.json()})
-            .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
-        this.components.subscribe((data:string[]) => {
-            if (data && data.length > 0 && $.inArray(this.selectedChartType, ["statuses", "scaleIn", "scaleOut", "voting"]) >= 0) {
-                this.selectedComponent = data[0];
-            } else {
-                this.selectedComponent = "";
-            }
-            this.onComponentSelect(this.selectedComponent);
-        });
-    }
-
     ngAfterViewInit():void {
-        let _thisReference:any = this;
-        this.route.params
+        this.subscriberRoute = this.route.params
             .map(params => params['groupName'])
             .subscribe((gn) => {
+                this.components = this.http.get(REST.GROUPS_WEB_API)
+                    .map((res:Response) => { return <string[]>res.json()})
+                    .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
+                this.componentSubscriber = this.components.subscribe((data:string[]) => {
+                    if (data && data.length > 0 && $.inArray(this.selectedChartType, ["statuses", "scaleIn", "scaleOut", "voting"]) >= 0) {
+                        this.selectedComponent = data[0];
+                    } else {
+                        this.selectedComponent = "";
+                    }
+                    this.onComponentSelect(this.selectedComponent);
+                });
                 console.debug("Component is active now: ", gn);
                 let componentFirstInit:boolean = true;
                 this.groupName = gn;
-                this._chartService.getChartsByGroupName(gn).subscribe((chs:AbstractChart[]) => {
+                this.chartGroupSubscriber = this._chartService.getChartsByGroupName(gn).subscribe((chs:AbstractChart[]) => {
+                    this.cd.reattach();
                     console.debug("Got following charts from corresponding observable: ", chs.length, chs);
+                    console.debug("here 0");
                     this.allCharts = chs;
-                    this.cd.detectChanges(); // process template
-                    if (!isNullOrUndefined(this.timerId)) {
-                        clearInterval(this.timerId);
-                    }
-                    if (componentFirstInit) {
-                        for (let i = 0; i < chs.length; i++) {
-                            chs[i].draw();
-                            chs[i].initialized = true;
+                    console.debug("here 1");
+                    this.cd.markForCheck(); // process template
+                    setTimeout(() => {
+                        console.debug("here 2");
+                        if (!isNullOrUndefined(this.timerId)) {
+                            clearInterval(this.timerId);
                         }
-                        componentFirstInit = false;
-                    } else {
+                        console.debug("here 3");
                         for (let i = 0; i < chs.length; i++) {
-                            if (!chs[i].initialized) {
+                            if (componentFirstInit || !chs[i].initialized) {
                                 chs[i].draw();
                                 chs[i].initialized = true;
                             }
                         }
-                    }
+                        componentFirstInit = false;
 
-                    if (chs.length > 0) {
-                        this.timerId = setInterval(function () {
-                            _thisReference._chartService.receiveDataForCharts(chs);
-                        }, 1500);
-                    }
+                        console.debug("here 4");
+
+                        let _thisReference:any = this;
+                        if (chs.length > 0) {
+                            this.timerId = setInterval(() => {
+                                if (!document.hidden) {
+                                    _thisReference._chartService.receiveDataForCharts(chs);
+                                }
+                            }, 1500);
+                        }
+                        console.debug("here 5");
+                    }, 500);
                 });
             });
     }
@@ -334,7 +339,7 @@ export class Dashboard {
             .map((res:Response) => { return <string[]>res.json()})
             .publishLast()
             .refCount();
-        this.instances.subscribe((data:string[]) => { this.allInstances = data});
+        this.instancesSubscriber = this.instances.subscribe((data:string[]) => { this.allInstances = data});
     }
 
     private onInstanceSelect(event):void {
@@ -369,7 +374,7 @@ export class Dashboard {
         this.metrics = this.selectedComponent != "" ? _obsComponents : _obsInstances;
 
         // set auto selected first metric if the array is not empty
-        this.metrics.subscribe((data:AttributeInformation[]) => {
+        this.metricsSubscriber = this.metrics.subscribe((data:AttributeInformation[]) => {
             if (data && data.length > 0) {
                 if (this.isNewChart()) {
                     this.selectedMetric = data[0];
@@ -413,8 +418,7 @@ export class Dashboard {
 
     onChangeStop(index: number, event: NgGridItemEvent): void {
         if (this.isAllowed() && !isNullOrUndefined(index) && !isNullOrUndefined(this.allCharts[index])) {
-            this.allCharts[index].preferences["gridcfg"] = event;
-            this._chartService.saveDashboard();
+            this._chartService.saveChartsPreferences(this.allCharts[index].name, event);
             this.allCharts[index].resize();
         }
     }
@@ -424,7 +428,25 @@ export class Dashboard {
     }
 
     ngOnDestroy():void {
+        console.debug("DESTROING CHART FOR GROUP ",this.groupName);
         clearInterval(this.timerId);
+        this.allCharts = [];
+        this.cd.detach();
+        if (!isNullOrUndefined(this.subscriberRoute)) {
+            this.subscriberRoute.unsubscribe();
+        }
+        if (!isNullOrUndefined(this.chartGroupSubscriber)) {
+            this.chartGroupSubscriber.unsubscribe();
+        }
+        if (!isNullOrUndefined(this.componentSubscriber)) {
+            this.componentSubscriber.unsubscribe();
+        }
+        if (!isNullOrUndefined(this.instancesSubscriber)) {
+            this.instancesSubscriber.unsubscribe();
+        }
+        if (!isNullOrUndefined(this.metricsSubscriber)) {
+            this.metricsSubscriber.unsubscribe();
+        }
     }
 
     isInstanceSelected(instance:string):boolean {

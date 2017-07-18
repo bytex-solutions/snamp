@@ -45,9 +45,9 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
 
 
     public newValues(allData:AttributeChartData[]):void {
-        if (document.hidden) return;
+        if (document.hidden || isNullOrUndefined(allData)) return;
         this.chartData.push(...allData);
-        if (this._chartObject != undefined) {
+        if (!isNullOrUndefined(this._chartObject != undefined)) {
             let _ds:any[] = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 d3.select('#' + this.id).datum(this.prepareDatasets()).transition().call(this._chartObject);
@@ -65,6 +65,8 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
                 }
                 this._chartObject.update();
             }
+        } else {
+            this.draw();
         }
     }
 
@@ -76,7 +78,7 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
         nv.addGraph(function() {
             let chart = nv.models.lineWithFocusChart();
             chart.interactiveUpdateDelay(0);
-            d3.rebind('clipVoronoi');
+            chart.tooltip.enabled(false);
             chart.clipVoronoi(false);
 
             chart.xAxis.tickFormat(function(d){

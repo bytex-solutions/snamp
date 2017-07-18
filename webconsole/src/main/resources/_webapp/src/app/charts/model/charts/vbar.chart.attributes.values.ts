@@ -23,6 +23,7 @@ export class VerticalBarChartOfAttributeValues extends ChartJsChart {
         super();
         this.setSizeX(10);
         this.setSizeY(10);
+        Chart.defaults.global.maintainAspectRatio = false;
     }
 
     public draw():void {
@@ -40,7 +41,9 @@ export class VerticalBarChartOfAttributeValues extends ChartJsChart {
                     borderWidth: 1
                 }],
                 options: {
-                    animation: false,
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     title: {
                         display: true,

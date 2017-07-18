@@ -4,6 +4,7 @@ import { TwoDimensionalChart } from "./two.dimensional.chart";
 import { DescriptionIdClass } from "./abstract.line.based.chart";
 import { ScalingData } from "./data/scaling.data";
 import { ChartWithGroupName } from "./charts/group.name.based.chart";
+import {isNullOrUndefined} from "util";
 
 const d3 = require('d3');
 const nv = require('nvd3');
@@ -63,9 +64,9 @@ export abstract class ScalingRateChart extends TwoDimensionalChart implements Ch
     }
 
     public newValues(allData:ScalingData[]):void {
-        if (document.hidden) return;
+        if (document.hidden || isNullOrUndefined(allData)) return;
         this.chartData.push(...allData);
-        if (this._chartObject != undefined) {
+        if (!isNullOrUndefined(this._chartObject)) {
             let _ds:any[] = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 _ds = this.prepareDatasets();
@@ -83,6 +84,8 @@ export abstract class ScalingRateChart extends TwoDimensionalChart implements Ch
                 }
             }
             this._chartObject.update();
+        } else {
+            this.draw();
         }
     }
 

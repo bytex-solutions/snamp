@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 import { ChartData } from "./data/abstract.data";
 
-const Chart = require('chart.js');
+
 
 export abstract class AbstractChart {
     public static VBAR:string = "verticalBarChartOfAttributeValues";
@@ -35,6 +35,7 @@ export abstract class AbstractChart {
     public chartData: ChartData[] = [];
     public abstract toJSON():any;
     public initialized:boolean = false;
+    public subscriber:any = undefined;
 
     private _stopUpdate:boolean;
 
@@ -94,7 +95,6 @@ export abstract class AbstractChart {
         this.setSizeY(2);
         this._stopUpdate = false;
         this.pausedTime = new Date();
-        Chart.defaults.global.maintainAspectRatio = false;
     }
 
     // different types of charts should be rendered in different ways
@@ -108,7 +108,7 @@ export abstract class AbstractChart {
     }
 
     public subscribeToSubject(_obs:Observable<ChartData[]>):void {
-        _obs.subscribe((data:ChartData[]) => {
+        this. subscriber = _obs.subscribe((data:ChartData[]) => {
             if(this.isUpdateRequired()) {
                 this.newValues(data); // if the chart is visible - update
             }

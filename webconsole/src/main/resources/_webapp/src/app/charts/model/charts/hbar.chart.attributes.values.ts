@@ -25,6 +25,7 @@ export class HorizontalBarChartOfAttributeValues extends ChartJsChart {
         super();
         this.setSizeX(10);
         this.setSizeY(10);
+        Chart.defaults.global.maintainAspectRatio = false;
     }
 
 
@@ -43,7 +44,9 @@ export class HorizontalBarChartOfAttributeValues extends ChartJsChart {
                     borderWidth: 1
                 }],
                 options: {
-                    animation: false,
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     title: {
                         display: true,

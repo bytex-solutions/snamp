@@ -4,6 +4,7 @@ import { ChronoAxis } from "../axis/chrono.axis";
 import { NumericAxis } from "../axis/numeric.axis";
 import { ResourceCountData } from "../data/resource.count.data";
 import { SeriesBasedChart } from "../abstract.line.based.chart";
+import {isNullOrUndefined} from "util";
 
 const d3 = require('d3');
 const nv = require('nvd3');
@@ -85,9 +86,9 @@ export class NumberOfResourcesChart extends SeriesBasedChart {
     }
 
     public newValues(_data:ResourceCountData[]):void { // its guaranteed the only element of array exists
-        if (document.hidden) return;
+        if (document.hidden || isNullOrUndefined(_data)) return;
         this.chartData.push(_data[0]);
-        if (this._chartObject != undefined) {
+        if (!isNullOrUndefined(this._chartObject != undefined)) {
             let _ds:any[] = d3.select('#' + this.id).datum();
             if (_ds.length == 0) {
                 _ds = this.prepareDatasets();
@@ -98,6 +99,8 @@ export class NumberOfResourcesChart extends SeriesBasedChart {
                 }
             }
             this._chartObject.update();
+        } else {
+            this.draw();
         }
     }
 }

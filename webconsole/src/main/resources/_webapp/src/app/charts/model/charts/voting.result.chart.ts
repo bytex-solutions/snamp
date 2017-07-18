@@ -63,7 +63,7 @@ export class VotingResultChart extends AbstractChart implements ChartWithGroupNa
 
     public resize():void {
         let _thisReference = this;
-        setTimeout(function(){
+        setTimeout(() => {
             let _parent = $("#" + _thisReference.id).parent();
             let _width = _parent.width();
             let _height = _parent.height();

@@ -7,6 +7,7 @@ import { HealthStatusChartData } from "../data/health.status.chart.data";
 import { ChartWithGroupName } from "./group.name.based.chart";
 
 import 'jstree';
+import {isNullOrUndefined} from "util";
 
 
 export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implements ChartWithGroupName {
@@ -50,7 +51,6 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implemen
     }
 
     public draw(): void {
-        let _thisReference:any = this;
         $("#" + this.id).jstree({
             "core" : {
                 'data' : [],
@@ -179,14 +179,16 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implemen
     }
 
     public newValues(_data:HealthStatusChartData[]):void {
-        if (document.hidden) return;
+        if (document.hidden || isNullOrUndefined(_data)) return;
         this.chartData = _data;
         this.chartData.sort((a:HealthStatusChartData, b:HealthStatusChartData) => {
             return a.name.localeCompare(b.name);
         });
-        if (this._chartObject != undefined) {
+        if (!isNullOrUndefined(this._chartObject != undefined)) {
             this._chartObject.settings.core.data = this.prepareDatasets();
             this._chartObject.refresh(true);
+        } else {
+            this.draw();
         }
     }
 }

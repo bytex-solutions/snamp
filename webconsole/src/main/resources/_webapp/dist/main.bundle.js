@@ -104220,13 +104220,13 @@ exports.ChartOfAttributeValues = ChartOfAttributeValues;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
-var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var AbstractChart = (function () {
     function AbstractChart() {
         this.preferences = {};
         this.id = "chart" + GUID.newGuid();
         this.chartData = [];
         this.initialized = false;
+        this.subscriber = undefined;
         this.preferences["gridcfg"] = {};
         this.preferences["gridcfg"]['dragHandle'] = '.handle';
         this.setCol(1);
@@ -104235,7 +104235,6 @@ var AbstractChart = (function () {
         this.setSizeY(2);
         this._stopUpdate = false;
         this.pausedTime = new Date();
-        Chart.defaults.global.maintainAspectRatio = false;
     }
     AbstractChart.prototype.getGroupName = function () {
         return this.preferences["groupName"];
@@ -104288,7 +104287,7 @@ var AbstractChart = (function () {
     };
     AbstractChart.prototype.subscribeToSubject = function (_obs) {
         var _this = this;
-        _obs.subscribe(function (data) {
+        this.subscriber = _obs.subscribe(function (data) {
             if (_this.isUpdateRequired()) {
                 _this.newValues(data); // if the chart is visible - update
             }
@@ -104342,6 +104341,7 @@ var GUID = (function () {
 "use strict";
 "use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var ChartJsChart = (function (_super) {
     __extends(ChartJsChart, _super);
     function ChartJsChart() {
@@ -104365,31 +104365,34 @@ var ChartJsChart = (function (_super) {
         this._backgroundHoverColors = this.chartData.map(function (data, i) { return ChartJsChart.hslFromValue(i, _this.chartData.length, 0.85); });
     };
     ChartJsChart.prototype.newValues = function (_data) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(_data))
             return;
-        for (var i = 0; i < _data.length; i++) {
-            var _index = -1;
-            for (var j = 0; j < this.chartData.length; j++) {
-                if (this.chartData[j].resourceName == _data[i].resourceName) {
-                    _index = j; // remember the index
-                    this.chartData[j] = _data[i]; // change the data
-                    break;
+        if (!util_1.isNullOrUndefined(this._chartObject != undefined)) {
+            for (var i = 0; i < _data.length; i++) {
+                var _index = -1;
+                for (var j = 0; j < this.chartData.length; j++) {
+                    if (this.chartData[j].resourceName == _data[i].resourceName) {
+                        _index = j; // remember the index
+                        this.chartData[j] = _data[i]; // change the data
+                        break;
+                    }
+                }
+                if (_index == -1) {
+                    if (this._chartObject != undefined) {
+                        this._chartObject.destroy();
+                    }
+                    this.chartData = _data;
+                    this.draw();
+                    return;
+                }
+                else if (this._chartObject != undefined) {
+                    this._chartObject.data.datasets[0].data[_index] = _data[i].attributeValue;
                 }
             }
-            if (_index == -1) {
-                if (this._chartObject != undefined) {
-                    this._chartObject.destroy();
-                }
-                this.chartData = _data;
-                this.draw();
-                return;
-            }
-            else if (this._chartObject != undefined) {
-                this._chartObject.data.datasets[0].data[_index] = _data[i].attributeValue;
-            }
-        }
-        if (this._chartObject != undefined) {
             this._chartObject.update();
+        }
+        else {
+            this.draw();
         }
     };
     // for chartJS purposes
@@ -104677,6 +104680,7 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         _super.call(this);
         this.setSizeX(10);
         this.setSizeY(10);
+        Chart.defaults.global.maintainAspectRatio = false;
     }
     Object.defineProperty(HorizontalBarChartOfAttributeValues.prototype, "type", {
         get: function () {
@@ -104706,7 +104710,9 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
                         borderWidth: 1
                     }],
                 options: {
-                    animation: false,
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     title: {
                         display: true,
@@ -104783,10 +104789,10 @@ var LineChartOfAttributeValues = (function (_super) {
         });
     };
     LineChartOfAttributeValues.prototype.newValues = function (allData) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(allData))
             return;
         (_a = this.chartData).push.apply(_a, allData);
-        if (this._chartObject != undefined) {
+        if (!util_1.isNullOrUndefined(this._chartObject != undefined)) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 d3.select('#' + this.id).datum(this.prepareDatasets()).transition().call(this._chartObject);
@@ -104806,6 +104812,9 @@ var LineChartOfAttributeValues = (function (_super) {
                 this._chartObject.update();
             }
         }
+        else {
+            this.draw();
+        }
         var _a;
     };
     LineChartOfAttributeValues.prototype.draw = function () {
@@ -104816,7 +104825,7 @@ var LineChartOfAttributeValues = (function (_super) {
         nv.addGraph(function () {
             var chart = nv.models.lineWithFocusChart();
             chart.interactiveUpdateDelay(0);
-            d3.rebind('clipVoronoi');
+            chart.tooltip.enabled(false);
             chart.clipVoronoi(false);
             chart.xAxis.tickFormat(function (d) {
                 return d3.time.format('%X')(new Date(d));
@@ -104862,6 +104871,7 @@ var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.char
 var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis.ts");
 var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
 var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var NumberOfResourcesChart = (function (_super) {
@@ -104930,10 +104940,10 @@ var NumberOfResourcesChart = (function (_super) {
         return _value;
     };
     NumberOfResourcesChart.prototype.newValues = function (_data) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(_data))
             return;
         this.chartData.push(_data[0]);
-        if (this._chartObject != undefined) {
+        if (!util_1.isNullOrUndefined(this._chartObject != undefined)) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length == 0) {
                 _ds = this.prepareDatasets();
@@ -104945,6 +104955,9 @@ var NumberOfResourcesChart = (function (_super) {
                 }
             }
             this._chartObject.update();
+        }
+        else {
+            this.draw();
         }
     };
     return NumberOfResourcesChart;
@@ -104964,12 +104977,13 @@ var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/chart
 var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var PanelOfAttributeValues = (function (_super) {
     __extends(PanelOfAttributeValues, _super);
     function PanelOfAttributeValues() {
         _super.call(this);
         this.setSizeX(10);
-        this.setSizeY(10);
+        this.setSizeY(5);
     }
     Object.defineProperty(PanelOfAttributeValues.prototype, "type", {
         get: function () {
@@ -104985,24 +104999,22 @@ var PanelOfAttributeValues = (function (_super) {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
     PanelOfAttributeValues.prototype.newValues = function (data) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(data))
             return;
-        for (var i = 0; i < data.length; i++) {
-            var _data = data[i];
-            var _index = -1;
-            for (var j = 0; j < this.chartData.length; j++) {
-                if (this.chartData[j].resourceName == _data.resourceName) {
-                    _index = j; // remember the index
-                    this.chartData[j] = _data; // change the data
-                    break;
+        var _table = $("#" + this.id + " table");
+        if (!util_1.isNullOrUndefined(_table) && _table.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+                var _data = data[i];
+                var _index = -1;
+                for (var j = 0; j < this.chartData.length; j++) {
+                    if (this.chartData[j].resourceName == _data.resourceName) {
+                        _index = j; // remember the index
+                        this.chartData[j] = _data; // change the data
+                        break;
+                    }
                 }
-            }
-            if (_index < 0) {
-                this.chartData.push(_data); // if no data with this instance is found - append it to array
-            }
-            var _table = $("#" + this.id + " table");
-            if (_table != undefined) {
                 if (_index < 0) {
+                    this.chartData.push(_data); // if no data with this instance is found - append it to array
                     var _tr = $("<tr/>");
                     _tr.append("<td>" + _data.resourceName + "</td>");
                     _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
@@ -105012,6 +105024,9 @@ var PanelOfAttributeValues = (function (_super) {
                     _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
                 }
             }
+        }
+        else {
+            this.draw();
         }
     };
     PanelOfAttributeValues.prototype.draw = function () {
@@ -105067,6 +105082,7 @@ var PieChartOfAttributeValues = (function (_super) {
         _super.call(this);
         this.setSizeX(10);
         this.setSizeY(10);
+        Chart.defaults.global.maintainAspectRatio = false;
     }
     Object.defineProperty(PieChartOfAttributeValues.prototype, "type", {
         get: function () {
@@ -105096,7 +105112,9 @@ var PieChartOfAttributeValues = (function (_super) {
                         borderWidth: 1
                     }],
                 options: {
-                    animation: false,
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     cutoutPercentage: 40,
                     rotation: Math.PI,
@@ -105140,6 +105158,7 @@ var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/reso
 var health_status_axis_1 = __webpack_require__("./src/app/charts/model/axis/health.status.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 __webpack_require__("./node_modules/jstree/dist/jstree.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var ResourceGroupHealthStatusChart = (function (_super) {
     __extends(ResourceGroupHealthStatusChart, _super);
     function ResourceGroupHealthStatusChart() {
@@ -105177,7 +105196,6 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         return input.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '_');
     };
     ResourceGroupHealthStatusChart.prototype.draw = function () {
-        var _thisReference = this;
         $("#" + this.id).jstree({
             "core": {
                 'data': [],
@@ -105287,15 +105305,18 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         return _value;
     };
     ResourceGroupHealthStatusChart.prototype.newValues = function (_data) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(_data))
             return;
         this.chartData = _data;
         this.chartData.sort(function (a, b) {
             return a.name.localeCompare(b.name);
         });
-        if (this._chartObject != undefined) {
+        if (!util_1.isNullOrUndefined(this._chartObject != undefined)) {
             this._chartObject.settings.core.data = this.prepareDatasets();
             this._chartObject.refresh(true);
+        }
+        else {
+            this.draw();
         }
     };
     return ResourceGroupHealthStatusChart;
@@ -105386,6 +105407,7 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
         _super.call(this);
         this.setSizeX(10);
         this.setSizeY(10);
+        Chart.defaults.global.maintainAspectRatio = false;
     }
     Object.defineProperty(VerticalBarChartOfAttributeValues.prototype, "type", {
         get: function () {
@@ -105415,7 +105437,9 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
                         borderWidth: 1
                     }],
                 options: {
-                    animation: false,
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     title: {
                         display: true,
@@ -106144,6 +106168,7 @@ var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis
 var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
 var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
 var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var ScalingRateChart = (function (_super) {
@@ -106192,10 +106217,10 @@ var ScalingRateChart = (function (_super) {
         return _value;
     };
     ScalingRateChart.prototype.newValues = function (allData) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(allData))
             return;
         (_a = this.chartData).push.apply(_a, allData);
-        if (this._chartObject != undefined) {
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 _ds = this.prepareDatasets();
@@ -106214,6 +106239,9 @@ var ScalingRateChart = (function (_super) {
                 }
             }
             this._chartObject.update();
+        }
+        else {
+            this.draw();
         }
         var _a;
     };
@@ -108566,16 +108594,17 @@ var ChartService = (function () {
     function ChartService(_http) {
         this._http = _http;
         this.chartSubjects = {};
+        this.computeSubscriber = undefined;
+        this.saveSubscriber = undefined;
         this.groups = new Subject_1.Subject();
+        this.groupSubjects = {};
         this.loadDashboard();
     }
     ChartService.prototype.getSimpleGroupName = function () {
         return this._dashboard.groups;
     };
     ChartService.prototype.getChartsByGroupName = function (groupName) {
-        return this.charts.asObservable().map(function (array) {
-            return array.filter(function (element) { return element.getGroupName() == groupName; });
-        }).share();
+        return this.groupSubjects[groupName].asObservable();
     };
     ChartService.prototype.removeChartsByGroupName = function (groupName) {
         for (var i = 0; i < this._dashboard.groups.length; i++) {
@@ -108586,19 +108615,30 @@ var ChartService = (function () {
         }
         for (var i = 0; i < this._dashboard.charts.length; i++) {
             if (this._dashboard.charts[i].getGroupName() == groupName) {
+                if (!util_1.isNullOrUndefined(this._dashboard.charts[i].subscriber)) {
+                    this._dashboard.charts[i].subscriber.unsubscribe();
+                    this._dashboard.charts[i].subscriber = undefined;
+                }
+                if (!util_1.isNullOrUndefined(this.chartSubjects[this._dashboard.charts[i].name])) {
+                    this.chartSubjects[this._dashboard.charts[i].name].unsubscribe();
+                    this.chartSubjects[this._dashboard.charts[i].name] = undefined;
+                }
                 this._dashboard.charts.splice(i, 1);
             }
         }
+        this.groupSubjects[groupName].unsubscribe();
+        this.groupSubjects[groupName] = undefined;
         this.saveDashboard();
     };
     ChartService.prototype.getChartByName = function (chartName) {
-        return this._dashboard.charts.filter(function (_ch) { return (_ch.name == chartName); })[0];
+        return this._dashboard.charts.find(function (_ch) { return (_ch.name == chartName); });
     };
     ChartService.prototype.getGroups = function () {
         return this.groups.asObservable().share();
     };
     ChartService.prototype.addNewGroup = function (groupName) {
         this._dashboard.groups.push(groupName);
+        this.groupSubjects[groupName] = new BehaviorSubject_1.BehaviorSubject([]);
         this.saveDashboard();
     };
     ChartService.stringifyArray = function (_chs) {
@@ -108608,9 +108648,13 @@ var ChartService = (function () {
         }
         return _chArrJson;
     };
+    ChartService.prototype.saveChartsPreferences = function (chartName, preferences) {
+        this.getChartByName(chartName).preferences["gridcfg"] = preferences;
+        this.saveDashboard();
+    };
     ChartService.prototype.receiveDataForCharts = function (_chs) {
         var _this = this;
-        this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, ChartService.stringifyArray(_chs))
+        this.computeSubscriber = this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, ChartService.stringifyArray(_chs))
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             _this.pushNewChartData(data);
@@ -108618,8 +108662,7 @@ var ChartService = (function () {
     };
     ChartService.prototype.loadDashboard = function () {
         var _this = this;
-        var _res = this._http.get(app_restClient_1.REST.CHART_DASHBOARD).map(function (res) { return res.json(); }).publishLast().refCount();
-        _res.subscribe(function (data) {
+        this._http.get(app_restClient_1.REST.CHART_DASHBOARD).map(function (res) { return res.json(); }).subscribe(function (data) {
             _this.groups.next(util_1.isNullOrUndefined(data["groups"]) ? [] : data["groups"]);
             _this._dashboard = new dashboard_1.Dashboard();
             _this.chartSubjects = {};
@@ -108636,16 +108679,36 @@ var ChartService = (function () {
                 _this.charts = new BehaviorSubject_1.BehaviorSubject([]);
             }
             _this._dashboard.groups = data.groups;
+            if (!util_1.isNullOrUndefined(data["groups"]) && data.groups.length > 0) {
+                _this._dashboard.groups.forEach(function (element) {
+                    var _groupCharts = [];
+                    _this._dashboard.charts.forEach(function (chart) {
+                        if (chart.getGroupName() == element) {
+                            _groupCharts.push(chart);
+                        }
+                    });
+                    _this.groupSubjects[element] = new BehaviorSubject_1.BehaviorSubject(_groupCharts);
+                });
+            }
         });
     };
     ChartService.prototype.saveDashboard = function () {
         var _this = this;
         console.debug("Saving chart dashboard: ", app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()));
-        this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
+        this.saveSubscriber = this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
             .subscribe(function () {
             console.debug("Dashboard has been saved successfully");
             _this.groups.next(_this._dashboard.groups);
             _this.charts.next(_this._dashboard.charts);
+            _this._dashboard.groups.forEach(function (element) {
+                var _groupCharts = [];
+                _this._dashboard.charts.forEach(function (chart) {
+                    if (chart.getGroupName() == element) {
+                        _groupCharts.push(chart);
+                    }
+                });
+                _this.groupSubjects[element].next(_groupCharts);
+            });
         });
     };
     ChartService.prototype.pushNewChartData = function (_data) {
@@ -108655,8 +108718,7 @@ var ChartService = (function () {
             var _d = _data[_currentChartName];
             var _allChartData = [];
             for (var i = 0; i < _d.length; i++) {
-                var _chartData = fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]);
-                _allChartData.push(_chartData);
+                _allChartData.push(fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]));
             }
             // notify all the components that something has changed
             if (this.chartSubjects[_currentChartName] != undefined) {
@@ -108685,28 +108747,13 @@ var ChartService = (function () {
             this.saveDashboard();
         }
     };
-    ChartService.prototype.modifyChart = function (chart) {
-        console.debug("Trying to modify chart ", chart, " in a dashboard ", this._dashboard.charts);
-        if (!this.hasChartWithName(chart.name)) {
-            throw new Error("Trying to modify chart that does not exist within the active dashboard");
-        }
-        else {
-            for (var i = 0; i < this._dashboard.charts.length; i++) {
-                if (this._dashboard.charts[i].name == chart.name) {
-                    this._dashboard.charts.splice(i, 1, chart);
-                    this._dashboard.charts[i].initialized = false;
-                    this.chartSubjects[this._dashboard.charts[i].name] = new Subject_1.Subject();
-                    this._dashboard.charts[i].subscribeToSubject(this.chartSubjects[this._dashboard.charts[i].name]);
-                    break;
-                }
-            }
-            console.debug("Resulting dashboard is: ", this._dashboard.charts);
-            this.saveDashboard();
-        }
-    };
     ChartService.prototype.removeChart = function (chartName) {
         for (var i = 0; i < this._dashboard.charts.length; i++) {
             if (this._dashboard.charts[i].name == chartName) {
+                if (!util_1.isNullOrUndefined(this._dashboard.charts[i].subscriber)) {
+                    this._dashboard.charts[i].subscriber.unsubscribe();
+                    this._dashboard.charts[i].subscriber = undefined;
+                }
                 // remove the chart from the dashboard
                 this._dashboard.charts.splice(i, 1);
                 // nullify the corresppnding subject
@@ -108722,6 +108769,21 @@ var ChartService = (function () {
         console.debug("reseting the chart: ", chart.group); // @todo replace instance of to enum
         this._http.post(app_restClient_1.REST.RESET_ELASTICITY(chart.group, chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart ? "groupStatus" : "elasticity"))
             .subscribe(function () { return console.debug("Elasticity state has been reset for ", chart.group); });
+    };
+    ChartService.prototype.ngOnDestroy = function () {
+        this.charts.subscribe(function (data) {
+            for (var i = 0; i < data.length; i++) {
+                if (!util_1.isNullOrUndefined(data[i].subscriber)) {
+                    data[i].subscriber.unsubscribe();
+                }
+            }
+        }).unsubscribe();
+        if (!util_1.isNullOrUndefined(this.computeSubscriber)) {
+            this.computeSubscriber.unsubscribe();
+        }
+        if (!util_1.isNullOrUndefined(this.saveSubscriber)) {
+            this.saveSubscriber.unsubscribe();
+        }
     };
     ChartService = __decorate([
         core_1.Injectable(), 
