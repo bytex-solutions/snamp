@@ -104367,7 +104367,7 @@ var ChartJsChart = (function (_super) {
     ChartJsChart.prototype.newValues = function (_data) {
         if (document.hidden || util_1.isNullOrUndefined(_data))
             return;
-        if (!util_1.isNullOrUndefined(this._chartObject != undefined)) {
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
             for (var i = 0; i < _data.length; i++) {
                 var _index = -1;
                 for (var j = 0; j < this.chartData.length; j++) {
@@ -104792,7 +104792,7 @@ var LineChartOfAttributeValues = (function (_super) {
         if (document.hidden || util_1.isNullOrUndefined(allData))
             return;
         (_a = this.chartData).push.apply(_a, allData);
-        if (!util_1.isNullOrUndefined(this._chartObject != undefined)) {
+        if (!util_1.isNullOrUndefined(this._chartObject) && !util_1.isNullOrUndefined(d3.select('#' + this.id).datum())) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 d3.select('#' + this.id).datum(this.prepareDatasets()).transition().call(this._chartObject);
@@ -104943,14 +104943,14 @@ var NumberOfResourcesChart = (function (_super) {
         if (document.hidden || util_1.isNullOrUndefined(_data))
             return;
         this.chartData.push(_data[0]);
-        if (!util_1.isNullOrUndefined(this._chartObject != undefined)) {
+        if (!util_1.isNullOrUndefined(this._chartObject) && !util_1.isNullOrUndefined(d3.select('#' + this.id).datum())) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length == 0) {
                 _ds = this.prepareDatasets();
             }
             else {
                 _ds[0].values.push({ x: _data[0].timestamp, y: _data[0].count });
-                if ((new Date().getTime() - _ds[0].values[0].x.getTime()) > this.preferences["interval"] * 60 * 1000) {
+                if (!util_1.isNullOrUndefined(_ds[0].values[0].x) && (new Date().getTime() - _ds[0].values[0].x.getTime()) > this.preferences["interval"] * 60 * 1000) {
                     _ds[0].values.shift(); // remove first element in case it's out of interval range
                 }
             }
@@ -105196,40 +105196,43 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         return input.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '_');
     };
     ResourceGroupHealthStatusChart.prototype.draw = function () {
-        $("#" + this.id).jstree({
-            "core": {
-                'data': [],
-                "check_callback": true
-            },
-            "types": {
-                "#": {
-                    "max_children": 1,
-                    "max_depth": 5,
-                    "valid_children": ["summary"]
+        var _selection = $("#" + this.id);
+        if (_selection.length) {
+            _selection.jstree({
+                "core": {
+                    'data': [],
+                    "check_callback": true
                 },
-                "summary": {
-                    "icon": "glyphicon glyphicon-certificate",
-                    "valid_children": ["instance"]
+                "types": {
+                    "#": {
+                        "max_children": 1,
+                        "max_depth": 5,
+                        "valid_children": ["summary"]
+                    },
+                    "summary": {
+                        "icon": "glyphicon glyphicon-certificate",
+                        "valid_children": ["instance"]
+                    },
+                    "instance": {
+                        "icon": "glyphicon glyphicon-leaf",
+                        "valid_children": ["healthStatus", "timestamp"]
+                    },
+                    "healthStatus": {
+                        "icon": "glyphicon glyphicon-list-alt",
+                        "valid_children": ["additional"]
+                    },
+                    "timestamp": {
+                        "icon": "glyphicon glyphicon-time",
+                        "valid_children": []
+                    },
+                    "additional": {
+                        "icon": false
+                    }
                 },
-                "instance": {
-                    "icon": "glyphicon glyphicon-leaf",
-                    "valid_children": ["healthStatus", "timestamp"]
-                },
-                "healthStatus": {
-                    "icon": "glyphicon glyphicon-list-alt",
-                    "valid_children": ["additional"]
-                },
-                "timestamp": {
-                    "icon": "glyphicon glyphicon-time",
-                    "valid_children": []
-                },
-                "additional": {
-                    "icon": false
-                }
-            },
-            "plugins": ["state", "types"]
-        });
-        this._chartObject = $("#" + this.id).jstree(true);
+                "plugins": ["state", "types"]
+            });
+            this._chartObject = _selection.jstree(true);
+        }
     };
     ResourceGroupHealthStatusChart.prototype.prepareDatasets = function () {
         var _value = [];
@@ -105311,7 +105314,7 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         this.chartData.sort(function (a, b) {
             return a.name.localeCompare(b.name);
         });
-        if (!util_1.isNullOrUndefined(this._chartObject != undefined)) {
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
             this._chartObject.settings.core.data = this.prepareDatasets();
             this._chartObject.refresh(true);
         }
@@ -105478,6 +105481,7 @@ exports.VerticalBarChartOfAttributeValues = VerticalBarChartOfAttributeValues;
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
 var canvas_gauges_1 = __webpack_require__("./node_modules/canvas-gauges/gauge.min.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var VotingResultChart = (function (_super) {
     __extends(VotingResultChart, _super);
     function VotingResultChart() {
@@ -105522,7 +105526,7 @@ var VotingResultChart = (function (_super) {
     };
     VotingResultChart.prototype.newValues = function (_data) {
         this.chartData = _data;
-        if (this._chart != undefined && !document.hidden) {
+        if (!util_1.isNullOrUndefined(this._chart) && !document.hidden) {
             this._chart.value = _data[0].votingResult;
         }
         else {
@@ -108598,8 +108602,20 @@ var ChartService = (function () {
         this.saveSubscriber = undefined;
         this.groups = new Subject_1.Subject();
         this.groupSubjects = {};
+        this.groupTimers = {};
         this.loadDashboard();
     }
+    ChartService.prototype.beforeunloadHandler = function (event) {
+        var _this = this;
+        if (!util_1.isNullOrUndefined(this._dashboard) && !util_1.isNullOrUndefined(this._dashboard.groups)
+            && !util_1.isNullOrUndefined(this.groupTimers)) {
+            this._dashboard.groups.forEach(function (gn) {
+                if (!util_1.isNullOrUndefined(_this.groupTimers[gn])) {
+                    clearInterval(_this.groupTimers[gn]);
+                }
+            });
+        }
+    };
     ChartService.prototype.getSimpleGroupName = function () {
         return this._dashboard.groups;
     };
@@ -108669,7 +108685,7 @@ var ChartService = (function () {
             if (data.charts.length > 0) {
                 for (var i = 0; i < data.charts.length; i++) {
                     var _currentChart = objectFactory_1.Factory.chartFromJSON(data.charts[i]);
-                    _this.chartSubjects[_currentChart.name] = new Subject_1.Subject();
+                    _this.chartSubjects[_currentChart.name] = new BehaviorSubject_1.BehaviorSubject([]);
                     _currentChart.subscribeToSubject(_this.chartSubjects[_currentChart.name]);
                     _this._dashboard.charts.push(_currentChart);
                 }
@@ -108701,13 +108717,7 @@ var ChartService = (function () {
             _this.groups.next(_this._dashboard.groups);
             _this.charts.next(_this._dashboard.charts);
             _this._dashboard.groups.forEach(function (element) {
-                var _groupCharts = [];
-                _this._dashboard.charts.forEach(function (chart) {
-                    if (chart.getGroupName() == element) {
-                        _groupCharts.push(chart);
-                    }
-                });
-                _this.groupSubjects[element].next(_groupCharts);
+                _this.groupSubjects[element].next(_this._dashboard.charts.filter(function (chart) { return (chart.getGroupName() == element); }));
             });
         });
     };
@@ -108742,7 +108752,7 @@ var ChartService = (function () {
         }
         else {
             this._dashboard.charts.push(chart);
-            this.chartSubjects[chart.name] = new Subject_1.Subject();
+            this.chartSubjects[chart.name] = new BehaviorSubject_1.BehaviorSubject([]);
             chart.subscribeToSubject(this.chartSubjects[chart.name]);
             this.saveDashboard();
         }
@@ -108785,6 +108795,12 @@ var ChartService = (function () {
             this.saveSubscriber.unsubscribe();
         }
     };
+    __decorate([
+        core_1.HostListener('window:beforeunload', ['$event']), 
+        __metadata('design:type', Function), 
+        __metadata('design:paramtypes', [Object]), 
+        __metadata('design:returntype', void 0)
+    ], ChartService.prototype, "beforeunloadHandler", null);
     ChartService = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])

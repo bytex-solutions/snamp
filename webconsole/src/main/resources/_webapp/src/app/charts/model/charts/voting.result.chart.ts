@@ -5,6 +5,7 @@ import { VotingData } from "../data/voting.data";
 
 import { RadialGauge } from 'canvas-gauges';
 import {ChartWithGroupName} from "./group.name.based.chart";
+import {isNullOrUndefined} from "util";
 
 export class VotingResultChart extends AbstractChart implements ChartWithGroupName {
 
@@ -54,7 +55,7 @@ export class VotingResultChart extends AbstractChart implements ChartWithGroupNa
 
     newValues(_data: VotingData[]) {
         this.chartData = _data;
-        if (this._chart != undefined && !document.hidden) {
+        if (!isNullOrUndefined(this._chart) && !document.hidden) {
            this._chart.value = _data[0].votingResult;
         } else {
             this.draw();

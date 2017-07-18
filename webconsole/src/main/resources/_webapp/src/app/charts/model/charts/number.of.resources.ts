@@ -88,13 +88,13 @@ export class NumberOfResourcesChart extends SeriesBasedChart {
     public newValues(_data:ResourceCountData[]):void { // its guaranteed the only element of array exists
         if (document.hidden || isNullOrUndefined(_data)) return;
         this.chartData.push(_data[0]);
-        if (!isNullOrUndefined(this._chartObject != undefined)) {
+        if (!isNullOrUndefined(this._chartObject) && !isNullOrUndefined(d3.select('#' + this.id).datum())) {
             let _ds:any[] = d3.select('#' + this.id).datum();
             if (_ds.length == 0) {
                 _ds = this.prepareDatasets();
             } else {
                 _ds[0].values.push({ x: _data[0].timestamp, y: _data[0].count});
-                if ((new Date().getTime() - (<Date>_ds[0].values[0].x).getTime()) > this.preferences["interval"] * 60 * 1000) {
+                if (!isNullOrUndefined(_ds[0].values[0].x) && (new Date().getTime() - (<Date>_ds[0].values[0].x).getTime()) > this.preferences["interval"] * 60 * 1000) {
                     _ds[0].values.shift(); // remove first element in case it's out of interval range
                 }
             }

@@ -30,7 +30,7 @@ export abstract class ChartJsChart extends TwoDimensionalChartOfAttributeValues 
 
     public newValues(_data:AttributeChartData[]):void {
         if (document.hidden || isNullOrUndefined(_data)) return;
-            if (!isNullOrUndefined(this._chartObject != undefined)) {
+            if (!isNullOrUndefined(this._chartObject)) {
             for (let i = 0; i < _data.length; i++) {
                 let _index:number = -1;
                 for (let j = 0; j < this.chartData.length; j++) {

@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { HostListener, Injectable, OnDestroy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Response } from '@angular/http';
 import { Subject } from 'rxjs/Subject';
@@ -23,17 +23,29 @@ import 'rxjs/add/observable/of';
 
 @Injectable()
 export class ChartService implements OnDestroy {
+
+    @HostListener('window:beforeunload', ['$event'])
+    beforeunloadHandler(event) {
+        if (!isNullOrUndefined(this._dashboard) && !isNullOrUndefined(this._dashboard.groups)
+                                                            &&!isNullOrUndefined(this.groupTimers)) {
+            this._dashboard.groups.forEach((gn: string) => {
+                if (!isNullOrUndefined(this.groupTimers[gn])) {
+                    clearInterval(this.groupTimers[gn]);
+                }
+            });
+        }
+    }
+
     private _dashboard:Dashboard;
-    private chartSubjects:{ [key:string]: Subject<ChartData[]> } = {};
+    private chartSubjects:{ [key:string]: BehaviorSubject<ChartData[]> } = {};
     private computeSubscriber:any = undefined;
     private saveSubscriber:any = undefined;
 
     private groups:Subject<string[]> = new Subject<string[]>();
     private charts:BehaviorSubject<AbstractChart[]>;
 
-    private groupSubjects:{ [key:string]: BehaviorSubject<AbstractChart[]>} = {};
-    private groupTimers: {[key:string]: any} = {};
-    private INTERVAL:number = 1500;
+    public groupSubjects:{ [key:string]: BehaviorSubject<AbstractChart[]>} = {};
+    public groupTimers: {[key:string]: any} = {};
 
     constructor(private _http:ApiClient) {
           this.loadDashboard();
@@ -44,16 +56,7 @@ export class ChartService implements OnDestroy {
     }
 
     public getChartsByGroupName(groupName:string):Observable<AbstractChart[]> {
-        return this.groupSubjects[groupName].asObservable().do((charts:AbstractChart[]) => {
-            this._dashboard.groups.filter((gn:string) => gn != groupName).forEach((gn:string) => {
-                if (!isNullOrUndefined(this.groupTimers[gn])) {
-                    clearInterval(this.groupTimers[gn]);
-                }
-            });
-            this.groupTimers[groupName] = setInterval(() => {
-                this.receiveDataForCharts(charts)
-            }, this.INTERVAL);
-        });
+        return this.groupSubjects[groupName].asObservable();
     }
 
     public removeChartsByGroupName(groupName:string):void {
@@ -124,7 +127,7 @@ export class ChartService implements OnDestroy {
             if (data.charts.length > 0) {
                 for (let i = 0; i < data.charts.length; i++) {
                     let _currentChart:AbstractChart = Factory.chartFromJSON(data.charts[i]);
-                    this.chartSubjects[_currentChart.name] = new Subject<ChartData[]>();
+                    this.chartSubjects[_currentChart.name] = new BehaviorSubject<ChartData[]>([]);
                     _currentChart.subscribeToSubject(this.chartSubjects[_currentChart.name]);
                     this._dashboard.charts.push(_currentChart);
                 }
@@ -156,13 +159,7 @@ export class ChartService implements OnDestroy {
                 this.groups.next(this._dashboard.groups);
                 this.charts.next(this._dashboard.charts);
                 this._dashboard.groups.forEach((element:string) => {
-                    let _groupCharts:AbstractChart[] = [];
-                    this._dashboard.charts.forEach((chart:AbstractChart) => {
-                        if (chart.getGroupName() == element) {
-                            _groupCharts.push(chart);
-                        }
-                    });
-                    this.groupSubjects[element].next(_groupCharts);
+                    this.groupSubjects[element].next(this._dashboard.charts.filter((chart:AbstractChart) => (chart.getGroupName() == element)));
                 })
 
          });
@@ -202,7 +199,7 @@ export class ChartService implements OnDestroy {
             throw new Error("Chart with that name already exists!");
         } else {
             this._dashboard.charts.push(chart);
-            this.chartSubjects[chart.name] = new Subject<ChartData[]>();
+            this.chartSubjects[chart.name] = new BehaviorSubject<ChartData[]>([]);
             chart.subscribeToSubject(this.chartSubjects[chart.name]);
             this.saveDashboard();
         }
@@ -213,7 +210,7 @@ export class ChartService implements OnDestroy {
             if (this._dashboard.charts[i].name == chartName) {
 
                 if (!isNullOrUndefined(this._dashboard.charts[i].subscriber)) {
-                    this._dashboard.charts[i].subscriber.unsubscribe()
+                    this._dashboard.charts[i].subscriber.unsubscribe();
                     this._dashboard.charts[i].subscriber = undefined;
                 }
                 // remove the chart from the dashboard

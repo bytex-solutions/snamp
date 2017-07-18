@@ -51,41 +51,44 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implemen
     }
 
     public draw(): void {
-        $("#" + this.id).jstree({
-            "core" : {
-                'data' : [],
-                "check_callback" : true
-            },
-            "types" : {
-                "#" : {
-                    "max_children" : 1,
-                    "max_depth" : 5,
-                    "valid_children" : ["summary"]
+        let _selection = $("#" + this.id);
+        if (_selection.length) {
+            _selection.jstree({
+                "core": {
+                    'data': [],
+                    "check_callback": true
                 },
-                "summary" : {
-                    "icon" : "glyphicon glyphicon-certificate",
-                    "valid_children" : ["instance"]
+                "types": {
+                    "#": {
+                        "max_children": 1,
+                        "max_depth": 5,
+                        "valid_children": ["summary"]
+                    },
+                    "summary": {
+                        "icon": "glyphicon glyphicon-certificate",
+                        "valid_children": ["instance"]
+                    },
+                    "instance": {
+                        "icon": "glyphicon glyphicon-leaf",
+                        "valid_children": ["healthStatus", "timestamp"]
+                    },
+                    "healthStatus": {
+                        "icon": "glyphicon glyphicon-list-alt",
+                        "valid_children": ["additional"]
+                    },
+                    "timestamp": {
+                        "icon": "glyphicon glyphicon-time",
+                        "valid_children": []
+                    },
+                    "additional": {
+                        "icon": false
+                    }
                 },
-                "instance" : {
-                    "icon" : "glyphicon glyphicon-leaf",
-                    "valid_children" : ["healthStatus", "timestamp"]
-                },
-                "healthStatus" : {
-                    "icon" : "glyphicon glyphicon-list-alt",
-                    "valid_children" : ["additional"]
-                },
-                "timestamp" : {
-                    "icon" : "glyphicon glyphicon-time",
-                    "valid_children" : []
-                },
-                "additional": {
-                    "icon": false
-                }
-            },
-            "plugins" : [ "state", "types" ]
-        });
+                "plugins": ["state", "types"]
+            });
 
-        this._chartObject = $("#" + this.id).jstree(true);
+            this._chartObject = _selection.jstree(true);
+        }
     }
 
     private prepareDatasets():any {
@@ -184,7 +187,7 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implemen
         this.chartData.sort((a:HealthStatusChartData, b:HealthStatusChartData) => {
             return a.name.localeCompare(b.name);
         });
-        if (!isNullOrUndefined(this._chartObject != undefined)) {
+        if (!isNullOrUndefined(this._chartObject)) {
             this._chartObject.settings.core.data = this.prepareDatasets();
             this._chartObject.refresh(true);
         } else {

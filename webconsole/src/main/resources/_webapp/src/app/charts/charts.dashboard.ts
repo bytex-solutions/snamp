@@ -29,6 +29,8 @@ import { UserProfileService } from "../services/app.user.profile";
 import { isNullOrUndefined } from "util";
 import { VotingResultChart } from "./model/charts/voting.result.chart";
 import { ChartWithGroupName } from "./model/charts/group.name.based.chart";
+import {Subscription} from "rxjs/Subscription";
+import {TimerObservable} from "rxjs/observable/TimerObservable";
 
 @Component({
     moduleId: module.id,
@@ -36,8 +38,6 @@ import { ChartWithGroupName } from "./model/charts/group.name.based.chart";
     styleUrls: [ './templates/css/dashboard.css' ]
 })
 export class Dashboard implements OnDestroy {
-
-    private timerId:any = undefined;
 
     private components:Observable<string[]>;
     private selectedComponent:string = "";
@@ -79,6 +79,8 @@ export class Dashboard implements OnDestroy {
     private componentSubscriber:any = undefined;
     private instancesSubscriber:any = undefined;
     private metricsSubscriber:any = undefined;
+
+    private subscription: Subscription;
 
     private gridConfig: NgGridConfig = <NgGridConfig> {
         'margins': [10],
@@ -140,6 +142,14 @@ export class Dashboard implements OnDestroy {
 
         // init modal components and show modal itself
         this.initModal();
+    }
+
+    routerOnActivate() {
+        console.debug("ROUTER ACTIVATED");
+    }
+
+    routerOnDeactivate() {
+        console.debug("REOUTER DEACTIVATED");
     }
 
     modifyChart(chartToModify:AbstractChart):void {
@@ -232,9 +242,15 @@ export class Dashboard implements OnDestroy {
     }
 
     ngAfterViewInit():void {
+        this.subscription = TimerObservable.create(2000, 1000).subscribe(t => {
+            console.debug("ticked: ", t);
+            if (this.allCharts.length > 0) this._chartService.receiveDataForCharts(this.allCharts)
+        });
+
         this.subscriberRoute = this.route.params
             .map(params => params['groupName'])
             .subscribe((gn) => {
+                this.cd.reattach();
                 this.components = this.http.get(REST.GROUPS_WEB_API)
                     .map((res:Response) => { return <string[]>res.json()})
                     .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
@@ -246,42 +262,11 @@ export class Dashboard implements OnDestroy {
                     }
                     this.onComponentSelect(this.selectedComponent);
                 });
-                console.debug("Component is active now: ", gn);
-                let componentFirstInit:boolean = true;
                 this.groupName = gn;
                 this.chartGroupSubscriber = this._chartService.getChartsByGroupName(gn).subscribe((chs:AbstractChart[]) => {
-                    this.cd.reattach();
-                    console.debug("Got following charts from corresponding observable: ", chs.length, chs);
-                    console.debug("here 0");
                     this.allCharts = chs;
-                    console.debug("here 1");
                     this.cd.markForCheck(); // process template
-                    setTimeout(() => {
-                        console.debug("here 2");
-                        if (!isNullOrUndefined(this.timerId)) {
-                            clearInterval(this.timerId);
-                        }
-                        console.debug("here 3");
-                        for (let i = 0; i < chs.length; i++) {
-                            if (componentFirstInit || !chs[i].initialized) {
-                                chs[i].draw();
-                                chs[i].initialized = true;
-                            }
-                        }
-                        componentFirstInit = false;
 
-                        console.debug("here 4");
-
-                        let _thisReference:any = this;
-                        if (chs.length > 0) {
-                            this.timerId = setInterval(() => {
-                                if (!document.hidden) {
-                                    _thisReference._chartService.receiveDataForCharts(chs);
-                                }
-                            }, 1500);
-                        }
-                        console.debug("here 5");
-                    }, 500);
                 });
             });
     }
@@ -429,9 +414,7 @@ export class Dashboard implements OnDestroy {
 
     ngOnDestroy():void {
         console.debug("DESTROING CHART FOR GROUP ",this.groupName);
-        clearInterval(this.timerId);
-        this.allCharts = [];
-        this.cd.detach();
+        if (!isNullOrUndefined(this.subscription)) this.subscription.unsubscribe();
         if (!isNullOrUndefined(this.subscriberRoute)) {
             this.subscriberRoute.unsubscribe();
         }

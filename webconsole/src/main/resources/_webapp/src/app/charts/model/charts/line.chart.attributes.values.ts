@@ -47,7 +47,7 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
     public newValues(allData:AttributeChartData[]):void {
         if (document.hidden || isNullOrUndefined(allData)) return;
         this.chartData.push(...allData);
-        if (!isNullOrUndefined(this._chartObject != undefined)) {
+        if (!isNullOrUndefined(this._chartObject) && !isNullOrUndefined(d3.select('#' + this.id).datum())) {
             let _ds:any[] = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 d3.select('#' + this.id).datum(this.prepareDatasets()).transition().call(this._chartObject);
