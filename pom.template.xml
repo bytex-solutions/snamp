@@ -19,7 +19,7 @@
     <jetty.version>9.2.19.v20160908</jetty.version>
     <guava.version>19.0</guava.version>
     <jersey.version>1.19.3</jersey.version>
-    <groovy.version>2.4.11</groovy.version>
+    <groovy.version>2.4.12</groovy.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
     <cellar.version>4.0.3</cellar.version>
     <jline.version>2.14.1</jline.version>
