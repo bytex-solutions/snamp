@@ -58,7 +58,7 @@ export class GatewaysComponent implements OnInit {
                     .queryParams
                     .subscribe(params => {
                         // Defaults to 0 if no query param provided.
-                        let gatewayName:string = params['gateway'] || "";
+                        let gatewayName:string = decodeURIComponent(params['gateway'] || "");
                         if (!isNullOrUndefined(this.activeGateway) && gatewayName.length > 0
                             && gatewayName != this.activeGateway.name && this.gateways.length > 0) {
                             for (let i = 0; i < this.gateways.length; i++) {
@@ -102,8 +102,9 @@ export class GatewaysComponent implements OnInit {
     private setActiveGateway(gateway:Gateway, setURL?:boolean):void {
         this.activeGateway = gateway;
         this.oldTypeValue = gateway.type;
+        this.cd.detectChanges();
         if (history.pushState && setURL) {
-            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?gateway=" + gateway.name;
+            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?gateway=" + encodeURIComponent(gateway.name);
             window.history.pushState({path:newurl},'',newurl);
         }
         $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');

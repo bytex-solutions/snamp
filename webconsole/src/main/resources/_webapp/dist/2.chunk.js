@@ -275,14 +275,9 @@ var Dashboard = (function () {
         this.selectedRateMetrics = [];
         this.rateInterval = this.rateIntervals[0].additionalId;
         this.currentChart = undefined;
+        this.cd.detectChanges();
         // init modal components and show modal itself
         this.initModal();
-    };
-    Dashboard.prototype.routerOnActivate = function () {
-        console.debug("ROUTER ACTIVATED");
-    };
-    Dashboard.prototype.routerOnDeactivate = function () {
-        console.debug("REOUTER DEACTIVATED");
     };
     Dashboard.prototype.modifyChart = function (chartToModify) {
         var chart = jQuery.extend(true, {}, chartToModify);
@@ -335,6 +330,7 @@ var Dashboard = (function () {
         this.initModal();
     };
     Dashboard.prototype.initModal = function () {
+        var _this = this;
         // reset wizard
         if (this.smartWizardInitialized) {
             $(Dashboard.wizardId).off("showStep");
@@ -342,7 +338,6 @@ var Dashboard = (function () {
         }
         this.initWizard();
         // reset rate metric select2 component
-        var _thisReference = this;
         if ($(Dashboard.rateMetricSelect2Id).data('select2')) {
             $(Dashboard.rateMetricSelect2Id).select2("destroy");
         }
@@ -352,7 +347,7 @@ var Dashboard = (function () {
             allowClear: true
         });
         $(Dashboard.rateMetricSelect2Id).on('change', function (e) {
-            _thisReference.onRateMetricSelect($(e.target).val());
+            _this.onRateMetricSelect($(e.target).val());
         });
         // open the modal
         $(Dashboard.chartModalId).modal("show");
@@ -393,8 +388,8 @@ var Dashboard = (function () {
         });
     };
     Dashboard.prototype.initWizard = function () {
-        var _thisReference = this;
-        var _hidden = _thisReference.getHiddenSteps();
+        var _this = this;
+        var _hidden = this.getHiddenSteps();
         $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
             hiddenSteps: _hidden,
@@ -412,16 +407,18 @@ var Dashboard = (function () {
             }
         }
         $(Dashboard.wizardId).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            _thisReference.cd.detectChanges();
-            if (stepNumber == 3 && _thisReference.isNewChart() && stepDirection == "forward") {
-                _thisReference.updateChartName();
+            _this.cd.detectChanges();
+            if (stepNumber == 3 && _this.isNewChart() && stepDirection == "forward") {
+                _this.updateChartName();
             }
             else if (stepNumber == 2 && stepDirection == "forward") {
-                _thisReference.loadMetricsOnInstancesSelected();
+                _this.loadMetricsOnInstancesSelected();
             }
             else if (stepNumber == 1 && stepDirection == "forward") {
-                if (_thisReference.isNewChart()) {
-                    _thisReference.selectedInstances = [];
+                if (_this.isNewChart()) {
+                    _this.selectedInstances = [];
+                    _this.cd.detectChanges();
+                    $(Dashboard.select2Id).trigger('change.select2');
                 }
                 if ($(Dashboard.select2Id).data('select2')) {
                     $(Dashboard.select2Id).select2("destroy");
@@ -432,7 +429,7 @@ var Dashboard = (function () {
                     allowClear: true
                 });
                 $(Dashboard.select2Id).on('change', function (e) {
-                    _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
+                    _this.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
                 });
             }
         });

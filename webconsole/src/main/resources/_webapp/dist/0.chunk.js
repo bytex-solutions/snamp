@@ -37584,7 +37584,7 @@ var GatewaysComponent = (function () {
                 .queryParams
                 .subscribe(function (params) {
                 // Defaults to 0 if no query param provided.
-                var gatewayName = params['gateway'] || "";
+                var gatewayName = decodeURIComponent(params['gateway'] || "");
                 if (!util_1.isNullOrUndefined(_this.activeGateway) && gatewayName.length > 0
                     && gatewayName != _this.activeGateway.name && _this.gateways.length > 0) {
                     for (var i = 0; i < _this.gateways.length; i++) {
@@ -37622,8 +37622,9 @@ var GatewaysComponent = (function () {
     GatewaysComponent.prototype.setActiveGateway = function (gateway, setURL) {
         this.activeGateway = gateway;
         this.oldTypeValue = gateway.type;
+        this.cd.detectChanges();
         if (history.pushState && setURL) {
-            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?gateway=" + gateway.name;
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?gateway=" + encodeURIComponent(gateway.name);
             window.history.pushState({ path: newurl }, '', newurl);
         }
         $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
@@ -38106,11 +38107,10 @@ var ResourcesComponent = (function () {
             }
             if (_this.resources.length > 0) {
                 _this.setActiveResource(_this.resources[0], true);
-                var _thisReference_1 = _this;
                 $(document).ready(function () {
                     $(ResourcesComponent.select2ElementId).select2();
                     $(ResourcesComponent.select2ElementId).on('change', function (e) {
-                        _thisReference_1.selectCurrentlyActiveResource($(e.target).val());
+                        _this.selectCurrentlyActiveResource($(e.target).val());
                     });
                 });
             }
@@ -38122,7 +38122,8 @@ var ResourcesComponent = (function () {
                 .queryParams
                 .subscribe(function (params) {
                 // Defaults to 0 if no query param provided.
-                var resourceName = params['resource'] || "";
+                var resourceName = decodeURIComponent(params['resource'] || "");
+                console.debug("Passed parameter: ", params['resource'], " resource name is ", resourceName);
                 if (!util_1.isNullOrUndefined(_this.activeResource) && resourceName.length > 0
                     && resourceName != _this.activeResource.name && _this.resources.length > 0) {
                     for (var i = 0; i < _this.resources.length; i++) {
@@ -38168,8 +38169,9 @@ var ResourcesComponent = (function () {
         this.oldTypeValue = resource.type;
         this.oldGroupValue = resource.groupName;
         this.oldSmartMode = resource.smartMode;
+        this.cd.detectChanges();
         if (history.pushState && setURL) {
-            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + resource.name;
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + encodeURIComponent(resource.name);
             window.history.pushState({ path: newurl }, '', newurl);
         }
         $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
@@ -38202,7 +38204,7 @@ var ResourcesComponent = (function () {
                             if (_this.resources.length > 0) {
                                 _this.setActiveResource(_this.resources[0], true);
                                 _this.groupSelection = _this.getGroupSelectionForActiveResource();
-                                var _thisReference_2 = _this;
+                                var _thisReference_1 = _this;
                                 if ($(ResourcesComponent.select2ElementId).data('select2')) {
                                     $(ResourcesComponent.select2ElementId).select2('destroy');
                                 }
@@ -38214,7 +38216,7 @@ var ResourcesComponent = (function () {
                                     width: '100%'
                                 });
                                 $(ResourcesComponent.select2ElementId).on('change', function (e) {
-                                    _thisReference_2.selectCurrentlyActiveResource($(e.target).val());
+                                    _thisReference_1.selectCurrentlyActiveResource($(e.target).val());
                                 });
                                 $(ResourcesComponent.select2ElementId).val(_this.activeResource.name).trigger('change.select2');
                             }
@@ -38419,7 +38421,7 @@ var RGroupsComponent = (function () {
                 .queryParams
                 .subscribe(function (params) {
                 // Defaults to 0 if no query param provided.
-                var resourceName = params['rg'] || "";
+                var resourceName = decodeURIComponent(params['rg'] || "");
                 if (!util_1.isNullOrUndefined(_this.activeResource) && resourceName.length > 0
                     && resourceName != _this.activeResource.name && _this.resources.length > 0) {
                     for (var i = 0; i < _this.resources.length; i++) {
@@ -38457,8 +38459,9 @@ var RGroupsComponent = (function () {
     RGroupsComponent.prototype.setActiveResourceGroup = function (resource, setURL) {
         this.activeResource = resource;
         this.oldTypeValue = resource.type;
+        this.cd.detectChanges();
         if (history.pushState && setURL) {
-            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?rg=" + resource.name;
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?rg=" + encodeURIComponent(resource.name);
             window.history.pushState({ path: newurl }, '', newurl);
         }
         $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');

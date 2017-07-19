@@ -29,8 +29,8 @@ import { UserProfileService } from "../services/app.user.profile";
 import { isNullOrUndefined } from "util";
 import { VotingResultChart } from "./model/charts/voting.result.chart";
 import { ChartWithGroupName } from "./model/charts/group.name.based.chart";
-import {Subscription} from "rxjs/Subscription";
-import {TimerObservable} from "rxjs/observable/TimerObservable";
+import { Subscription } from "rxjs/Subscription";
+import { TimerObservable } from "rxjs/observable/TimerObservable";
 
 @Component({
     moduleId: module.id,
@@ -139,17 +139,10 @@ export class Dashboard implements OnDestroy {
         this.selectedRateMetrics = [];
         this.rateInterval = this.rateIntervals[0].additionalId;
         this.currentChart = undefined;
+        this.cd.detectChanges();
 
         // init modal components and show modal itself
         this.initModal();
-    }
-
-    routerOnActivate() {
-        console.debug("ROUTER ACTIVATED");
-    }
-
-    routerOnDeactivate() {
-        console.debug("REOUTER DEACTIVATED");
     }
 
     modifyChart(chartToModify:AbstractChart):void {
@@ -218,7 +211,6 @@ export class Dashboard implements OnDestroy {
         this.initWizard();
 
         // reset rate metric select2 component
-        let _thisReference = this;
         if ($(Dashboard.rateMetricSelect2Id).data('select2')) {
             $(Dashboard.rateMetricSelect2Id).select2("destroy");
         }
@@ -228,7 +220,7 @@ export class Dashboard implements OnDestroy {
             allowClear: true
         });
         $(Dashboard.rateMetricSelect2Id).on('change', (e) => {
-            _thisReference.onRateMetricSelect($(e.target).val());
+            this.onRateMetricSelect($(e.target).val());
         });
 
         // open the modal
@@ -272,8 +264,7 @@ export class Dashboard implements OnDestroy {
     }
 
     private initWizard():void {
-        let _thisReference:any = this;
-        let _hidden:number[] =  _thisReference.getHiddenSteps();
+        let _hidden:number[] =  this.getHiddenSteps();
 
         $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
@@ -292,15 +283,17 @@ export class Dashboard implements OnDestroy {
             }
         }
 
-        $(Dashboard.wizardId).on("showStep", function(e, anchorObject, stepNumber, stepDirection) {
-            _thisReference.cd.detectChanges();
-            if (stepNumber == 3 && _thisReference.isNewChart() && stepDirection == "forward") {
-                _thisReference.updateChartName();
+        $(Dashboard.wizardId).on("showStep", (e, anchorObject, stepNumber, stepDirection) => {
+            this.cd.detectChanges();
+            if (stepNumber == 3 && this.isNewChart() && stepDirection == "forward") {
+                this.updateChartName();
             } else if (stepNumber == 2 && stepDirection == "forward") {
-                _thisReference.loadMetricsOnInstancesSelected();
+                this.loadMetricsOnInstancesSelected();
             } else if (stepNumber == 1 && stepDirection == "forward") {
-                if (_thisReference.isNewChart()) {
-                    _thisReference.selectedInstances = [];
+                if (this.isNewChart()) {
+                    this.selectedInstances = [];
+                    this.cd.detectChanges();
+                    $(Dashboard.select2Id).trigger('change.select2');
                 }
                 if ($(Dashboard.select2Id).data('select2')) {
                     $(Dashboard.select2Id).select2("destroy");
@@ -311,7 +304,7 @@ export class Dashboard implements OnDestroy {
                     allowClear: true
                 });
                 $(Dashboard.select2Id).on('change', (e) => {
-                    _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
+                    this.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
                 });
             }
         });

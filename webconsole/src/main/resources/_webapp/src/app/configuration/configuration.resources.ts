@@ -51,11 +51,10 @@ export class ResourcesComponent implements OnInit {
             }
             if (this.resources.length > 0) {
                 this.setActiveResource(this.resources[0], true);
-                let _thisReference = this;
-                $(document).ready(function() {
+                $(document).ready(() => {
                     $(ResourcesComponent.select2ElementId).select2();
                     $(ResourcesComponent.select2ElementId).on('change', (e) => {
-                        _thisReference.selectCurrentlyActiveResource($(e.target).val());
+                        this.selectCurrentlyActiveResource($(e.target).val());
                     });
                 });
             }
@@ -70,7 +69,8 @@ export class ResourcesComponent implements OnInit {
                 .queryParams
                 .subscribe(params => {
                     // Defaults to 0 if no query param provided.
-                    let resourceName:string = params['resource'] || "";
+                    let resourceName:string = decodeURIComponent(params['resource'] || "");
+                    console.debug("Passed parameter: ", params['resource'], " resource name is ", resourceName);
                     if (!isNullOrUndefined(this.activeResource) && resourceName.length > 0
                             && resourceName != this.activeResource.name && this.resources.length > 0) {
                         for (let i = 0; i < this.resources.length; i++) {
@@ -121,8 +121,9 @@ export class ResourcesComponent implements OnInit {
         this.oldTypeValue = resource.type;
         this.oldGroupValue = resource.groupName;
         this.oldSmartMode = resource.smartMode;
+        this.cd.detectChanges();
         if (history.pushState && setURL) {
-            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + resource.name;
+            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + encodeURIComponent(resource.name);
             window.history.pushState({path:newurl},'',newurl);
         }
         $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
