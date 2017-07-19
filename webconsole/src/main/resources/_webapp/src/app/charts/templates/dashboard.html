@@ -12,14 +12,8 @@
           <ul>
             <li>
               <a [attr.href]="'#component'">
-                Group<br />
-                <small>Select group</small>
-              </a>
-            </li>
-            <li>
-              <a [attr.href]="'#instances'">
-                Resources<br />
-                <small>Mark resources</small>
+                Chart data object<br />
+                <small>Select group or instances</small>
               </a>
             </li>
             <li>
@@ -37,42 +31,58 @@
           </ul>
 
           <div style="height:100%">
-            <div id="component" class="row" style="margin-top: 100px;">
-              <div class="item form-group">
-                <label
-                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                        for="componentSelect"
-                        style="margin-top: 7px;">
-                  Group
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
-                    <option value="" *ngIf="selectedChartType != 'statuses' && selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut' && selectedChartType != 'voting' ">NO GROUP</option>
-                    <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
-                  </select>
+            <div id="component" class="row" style="margin-top: 70px;">
+              <div class="row" *ngIf="isInstancesSupported && (instances | async)">
+                <div class="item form-group">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="componentSelect"
+                          style="margin-top: 7px;">
+                    Build chart on resource group
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <ui-switch
+                            [(ngModel)]="useGroup"
+                            (ngModelChange)="triggerUseGroup($event)"
+                            [size]="'small'">
+                    </ui-switch>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div id="instances" class="row" style="margin-top: 100px;">
-              <div class="col-md-12 col-sm-12 col-xs-12 text-center" *ngIf="(instances | async) == undefined">
-                <strong>No resources are found - cannot proceed</strong>
-              </div>
-
-              <div class="item form-group" *ngIf="instances | async">
-                <label
-                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                        for="instancesSelect"
-                        style="margin-top: 7px;">
-                  Resources
-                </label>
-
-                <div class="col-md-6 col-sm-6 col-xs-12" >
-                  <select class="select2_multiple form-control" id="instancesSelect" multiple="multiple">
-                    <option *ngFor="let instance of instances | async" [attr.selected]="isInstanceSelected(instance) ? true : null">{{instance}}</option>
-                  </select>
+              <div class="row" *ngIf="useGroup" style="margin-top: 15px;">
+                <div class="item form-group">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="componentSelect"
+                          style="margin-top: 7px;">
+                    Group
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <select class="form-control" [(ngModel)]="selectedComponent" id="componentSelect">
+                      <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
+                    </select>
+                  </div>
                 </div>
               </div>
+
+              <div class="row" *ngIf="!useGroup && (instances | async)" style="margin-top: 15px;">
+                <div class="item form-group">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="instancesSelect"
+                          style="margin-top: 7px;">
+                    Instances
+                  </label>
+
+                  <div class="col-md-6 col-sm-6 col-xs-12" >
+                    <select class="select2_multiple form-control" id="instancesSelect" multiple="multiple">
+                      <option *ngFor="let instance of instances | async" [attr.selected]="isInstanceSelected(instance) ? true : null">{{instance}}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             <div id="metric" class="row" style="margin-top: 10px;">

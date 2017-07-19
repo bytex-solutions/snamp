@@ -31,6 +31,7 @@ import { VotingResultChart } from "./model/charts/voting.result.chart";
 import { ChartWithGroupName } from "./model/charts/group.name.based.chart";
 import { Subscription } from "rxjs/Subscription";
 import { TimerObservable } from "rxjs/observable/TimerObservable";
+import { ChartTypeDescription } from "./model/utils";
 
 @Component({
     moduleId: module.id,
@@ -82,6 +83,11 @@ export class Dashboard implements OnDestroy {
 
     private subscription: Subscription;
 
+    private useGroup:boolean = true;
+    private isInstancesSupported:boolean = true;
+
+    static TYPES:ChartTypeDescription[] = ChartTypeDescription.generateType();
+
     private gridConfig: NgGridConfig = <NgGridConfig> {
         'margins': [10],
         'draggable': true,
@@ -124,6 +130,8 @@ export class Dashboard implements OnDestroy {
 
     appendChartClicked(type:string) {
         this.selectedChartType = type;
+        this.isInstancesSupported = Dashboard.TYPES.find((_type:ChartTypeDescription) => this.selectedChartType == _type.consoleSpecificName).instancesSupport;
+        this.useGroup = true;
         this.cd.detectChanges(); // draw the modal html
         this.initNewChart();
     }
@@ -134,7 +142,10 @@ export class Dashboard implements OnDestroy {
         this.allInstances = [];
         this.selectedInstances = [];
         this.selectedMetric = undefined;
-        this.selectedComponent = "";
+        this.components.subscribe((comps:string[]) => {
+                this.selectedComponent = comps.length > 0 ? comps[0] : "";
+            this.cd.detectChanges();
+        });
         this.timeInterval = this.intervals[0].id;
         this.selectedRateMetrics = [];
         this.rateInterval = this.rateIntervals[0].additionalId;
@@ -148,24 +159,24 @@ export class Dashboard implements OnDestroy {
     modifyChart(chartToModify:AbstractChart):void {
         let chart:AbstractChart =  jQuery.extend(true, {}, chartToModify);
 
-        this.selectedChartType = Object.keys(AbstractChart.TYPE_MAPPING).filter((key) => AbstractChart.TYPE_MAPPING[key] == chart.type)[0];
+        this.selectedChartType = Dashboard.TYPES.find((key:ChartTypeDescription) => key.mappedTypeName == chart.type).mappedTypeName;
+        this.isInstancesSupported = Dashboard.TYPES.find((key:ChartTypeDescription) => key.mappedTypeName == chart.type).instancesSupport;
+
         this.chartName = chart.name;
 
         // prefill instances from the existing chart
-        if (chart["resources"] != undefined && chart["resources"].length > 0) {
+        if (!isNullOrUndefined(chart["resources"]) && chart["resources"].length > 0) {
             this.selectedInstances = chart["resources"];
         } else {
             this.selectedInstances = [];
         }
 
         // fill the group (I used property check because some charts have 'group' property defined in different places - fix@todo)
-        if (chart['group'] != undefined && chart['group'].length > 0) {
+        if (!isNullOrUndefined(chart['group']) && chart['group'].length > 0) {
             this.selectedComponent = chart['group'];
         } else {
             this.selectedComponent = "";
         }
-
-        this.onComponentSelect(this.selectedComponent);
 
         // fill the rate metric and rate intervals from the chart
         if (!isNullOrUndefined(chart["metrics"])) {
@@ -187,11 +198,17 @@ export class Dashboard implements OnDestroy {
             this.timeInterval = this.intervals[0].id;
         }
 
+        this.useGroup = this.selectedComponent.length > 0;
+
         // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
         this.currentChart = chart;
 
         // make sure the front end has received the changes
         this.cd.detectChanges();
+
+        if (!this.useGroup) { // initialize the select2 in case of need
+            this.triggerUseGroup(false);
+        }
 
         // init modal components and show the modal
         console.debug("Modifying chart class name is ", chart.constructor.name);
@@ -220,7 +237,7 @@ export class Dashboard implements OnDestroy {
             allowClear: true
         });
         $(Dashboard.rateMetricSelect2Id).on('change', (e) => {
-            this.onRateMetricSelect($(e.target).val());
+            this.selectedRateMetrics = $(e.target).val();
         });
 
         // open the modal
@@ -234,8 +251,7 @@ export class Dashboard implements OnDestroy {
     }
 
     ngAfterViewInit():void {
-        this.subscription = TimerObservable.create(2000, 1000).subscribe(t => {
-            console.debug("ticked: ", t);
+        this.subscription = TimerObservable.create(2000, 1000).subscribe(() => {
             if (this.allCharts.length > 0) this._chartService.receiveDataForCharts(this.allCharts)
         });
 
@@ -243,17 +259,27 @@ export class Dashboard implements OnDestroy {
             .map(params => params['groupName'])
             .subscribe((gn) => {
                 this.cd.reattach();
+                // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
+
+                //fill components
                 this.components = this.http.get(REST.GROUPS_WEB_API)
                     .map((res:Response) => { return <string[]>res.json()})
-                    .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
+                    .publishLast()
+                    .refCount();
                 this.componentSubscriber = this.components.subscribe((data:string[]) => {
-                    if (data && data.length > 0 && $.inArray(this.selectedChartType, ["statuses", "scaleIn", "scaleOut", "voting"]) >= 0) {
+                    if (data && data.length > 0) {
                         this.selectedComponent = data[0];
-                    } else {
-                        this.selectedComponent = "";
                     }
-                    this.onComponentSelect(this.selectedComponent);
                 });
+
+                // fill instances
+                this.instances = this.http.get(REST.GROUPS_RESOURCES)
+                    .map((res:Response) => { return <string[]>res.json()})
+                    .publishLast()
+                    .refCount();
+                this.instancesSubscriber = this.instances.subscribe((data:string[]) => { this.allInstances = data});
+
+                // fill dashboard name (group that charts here belong to)
                 this.groupName = gn;
                 this.chartGroupSubscriber = this._chartService.getChartsByGroupName(gn).subscribe((chs:AbstractChart[]) => {
                     this.allCharts = chs;
@@ -285,73 +311,40 @@ export class Dashboard implements OnDestroy {
 
         $(Dashboard.wizardId).on("showStep", (e, anchorObject, stepNumber, stepDirection) => {
             this.cd.detectChanges();
-            if (stepNumber == 3 && this.isNewChart() && stepDirection == "forward") {
+            if (stepNumber == 2 && this.isNewChart() && stepDirection == "forward") {
                 this.updateChartName();
-            } else if (stepNumber == 2 && stepDirection == "forward") {
-                this.loadMetricsOnInstancesSelected();
             } else if (stepNumber == 1 && stepDirection == "forward") {
-                if (this.isNewChart()) {
-                    this.selectedInstances = [];
-                    this.cd.detectChanges();
-                    $(Dashboard.select2Id).trigger('change.select2');
+                if (this.useGroup) {
+                    this.loadMetricsByComponents();
+                } else {
+                    this.loadMetricsByInstances();
                 }
-                if ($(Dashboard.select2Id).data('select2')) {
-                    $(Dashboard.select2Id).select2("destroy");
-                }
-                $(Dashboard.select2Id).select2({
-                    placeholder: "Select instances from the dropdown",
-                    width: '100%',
-                    allowClear: true
-                });
-                $(Dashboard.select2Id).on('change', (e) => {
-                    this.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
-                });
             }
         });
         this.smartWizardInitialized = true;
     }
 
-    onComponentSelect(event:any):void {
-        let _endpoint:string = event == "" ? REST.GROUPS_RESOURCES : REST.GROUPS_RESOURCE_BY_COMPONENT_NAME(event);
-        this.instances = this.http.get(_endpoint)
-            .map((res:Response) => { return <string[]>res.json()})
-            .publishLast()
-            .refCount();
-        this.instancesSubscriber = this.instances.subscribe((data:string[]) => { this.allInstances = data});
+    triggerUseGroup(useGroupStatus:boolean):void {
+        this.cd.detectChanges();
+        // if we show the select for instances - reinitialize the select2 component
+        if (!useGroupStatus) {
+            if ($(Dashboard.select2Id).data('select2')) {
+                $(Dashboard.select2Id).select2("destroy");
+            }
+            $(Dashboard.select2Id).select2({
+                placeholder: "Select instances from the dropdown",
+                width: '100%',
+                allowClear: true
+            });
+            $(Dashboard.select2Id).on('change', (e) => {
+                this.selectedInstances = $(e.target).val(); // no native actions on the selec2 componentс
+            });
+        }
     }
 
-    private onInstanceSelect(event):void {
-        this.selectedInstances = event;
-    }
-
-    private onRateMetricSelect(event):void {
-        this.selectedRateMetrics = event;
-    }
-
-    private loadMetricsOnInstancesSelected():void {
-        let _obsComponents = this.selectedComponent == "" ? Observable.of([]) : this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
-            .map((res:Response) => {
-                let _data:any = res.json();
-                let _values:AttributeInformation[] = [];
-                for (let i in _data) {
-                    _values.push(new AttributeInformation(_data[i]));
-                }
-                return _values;
-            }).catch((res:Response) => Observable.of([])).cache();
-
-        let _obsInstances = this.http.post(REST.CHART_METRICS_BY_INSTANCES, this.selectedInstances)
-            .map((res:Response) => {
-                let _data:any = res.json();
-                let _values:AttributeInformation[] = [];
-                for (let i in _data) {
-                    _values.push(new AttributeInformation(_data[i]));
-                }
-                return _values;
-            }).catch((res:Response) => Observable.of([])).cache();
-
-        this.metrics = this.selectedComponent != "" ? _obsComponents : _obsInstances;
-
-        // set auto selected first metric if the array is not empty
+    private fillMetrics(obs:Observable<AttributeInformation[]>):void {
+        this.metrics = obs;
+            // set auto selected first metric if the array is not empty
         this.metricsSubscriber = this.metrics.subscribe((data:AttributeInformation[]) => {
             if (data && data.length > 0) {
                 if (this.isNewChart()) {
@@ -366,10 +359,38 @@ export class Dashboard implements OnDestroy {
         });
     }
 
+    private loadMetricsByInstances():void {
+        this.fillMetrics(
+            this.http.post(REST.CHART_METRICS_BY_INSTANCES, this.selectedInstances)
+                .map((res:Response) => {
+                    let _data:any = res.json();
+                    let _values:AttributeInformation[] = [];
+                    for (let i in _data) {
+                        _values.push(new AttributeInformation(_data[i]));
+                    }
+                    return _values;
+                }).catch((res:Response) => Observable.of([])).cache()
+        );
+    }
+
+    private loadMetricsByComponents():void {
+        this.fillMetrics(
+            this.selectedComponent == "" ? Observable.of([]) : this.http.get(REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+                .map((res:Response) => {
+                    let _data:any = res.json();
+                    let _values:AttributeInformation[] = [];
+                    for (let i in _data) {
+                        _values.push(new AttributeInformation(_data[i]));
+                    }
+                    return _values;
+                }).catch((res:Response) => Observable.of([])).cache()
+        );
+    }
+
     private generateChart():AbstractChart {
         let _instances:string[] = this.selectedInstances;
-        let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent,
-            _instances, this.selectedMetric);
+        let chart:AbstractChart = Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.useGroup ? this.selectedComponent : "",
+            this.useGroup ? [] : _instances, this.selectedMetric);
 
         // if this is a line chart - add time interval
         if (chart instanceof SeriesBasedChart) {
@@ -480,9 +501,6 @@ export class Dashboard implements OnDestroy {
             case "statuses":
             case "resources":
             case "voting":
-                return [1,2];
-            case "scaleIn":
-            case "scaleOut":
                 return [1];
             default:
                 return [];

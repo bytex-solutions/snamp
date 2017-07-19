@@ -66,7 +66,7 @@ export abstract class ScalingRateChart extends TwoDimensionalChart implements Ch
     public newValues(allData:ScalingData[]):void {
         if (document.hidden || isNullOrUndefined(allData)) return;
         this.chartData.push(...allData);
-        if (!isNullOrUndefined(this._chartObject)) {
+        if (!isNullOrUndefined(this._chartObject) && !isNullOrUndefined(d3.select('#' + this.id).datum())) {
             let _ds:any[] = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 _ds = this.prepareDatasets();

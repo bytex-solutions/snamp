@@ -104303,19 +104303,6 @@ var AbstractChart = (function () {
     AbstractChart.SCALE_IN = "scaleIn";
     AbstractChart.SCALE_OUT = "scaleOut";
     AbstractChart.VOTING = "votesForScaling";
-    // map chartjs types to current hierarchy types
-    AbstractChart.TYPE_MAPPING = {
-        'doughnut': AbstractChart.PIE,
-        'horizontalBar': AbstractChart.HBAR,
-        'bar': AbstractChart.VBAR,
-        'line': AbstractChart.LINE,
-        'panel': AbstractChart.PANEL,
-        'statuses': AbstractChart.HEALTH_STATUS,
-        'resources': AbstractChart.RESOURCE_COUNT,
-        'scaleIn': AbstractChart.SCALE_IN,
-        'scaleOut': AbstractChart.SCALE_OUT,
-        'voting': AbstractChart.VOTING
-    };
     return AbstractChart;
 }());
 exports.AbstractChart = AbstractChart;
@@ -104342,20 +104329,23 @@ var GUID = (function () {
 "use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var ChartJsChart = (function (_super) {
     __extends(ChartJsChart, _super);
     function ChartJsChart() {
-        _super.apply(this, arguments);
+        _super.call(this);
         // for chartJS purposes
         this._borderColorData = [];
         this._backgroundColors = [];
         this._backgroundHoverColors = [];
         this._chartObject = undefined;
+        Chart.defaults.global.maintainAspectRatio = false;
+        Chart.defaults.global.animation.duration = 100;
     }
     // for chartJS purposes
     ChartJsChart.hslFromValue = function (i, count, opacity) {
         var clr = 360 * i / count;
-        return 'hsla(' + clr + ', 100%, 50%, ' + opacity + ')';
+        return 'hsl(' + clr + ', 100%, 50%)';
     };
     // for chartJS purposes
     ChartJsChart.prototype.updateColors = function () {
@@ -104680,7 +104670,6 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
         _super.call(this);
         this.setSizeX(10);
         this.setSizeY(10);
-        Chart.defaults.global.maintainAspectRatio = false;
     }
     Object.defineProperty(HorizontalBarChartOfAttributeValues.prototype, "type", {
         get: function () {
@@ -105082,7 +105071,6 @@ var PieChartOfAttributeValues = (function (_super) {
         _super.call(this);
         this.setSizeX(10);
         this.setSizeY(10);
-        Chart.defaults.global.maintainAspectRatio = false;
     }
     Object.defineProperty(PieChartOfAttributeValues.prototype, "type", {
         get: function () {
@@ -105410,7 +105398,6 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
         _super.call(this);
         this.setSizeX(10);
         this.setSizeY(10);
-        Chart.defaults.global.maintainAspectRatio = false;
     }
     Object.defineProperty(VerticalBarChartOfAttributeValues.prototype, "type", {
         get: function () {
@@ -105972,6 +105959,7 @@ var scale_in_chart_1 = __webpack_require__("./src/app/charts/model/charts/scale.
 var scale_out_chart_1 = __webpack_require__("./src/app/charts/model/charts/scale.out.chart.ts");
 var scaling_rate_chart_1 = __webpack_require__("./src/app/charts/model/scaling.rate.chart.ts");
 var voting_result_chart_1 = __webpack_require__("./src/app/charts/model/charts/voting.result.chart.ts");
+var utils_1 = __webpack_require__("./src/app/charts/model/utils.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
@@ -106094,7 +106082,7 @@ var Factory = (function () {
     };
     Factory.create2dChart = function (type, name, groupName, component, instances, sourceAttribute) {
         var _chart;
-        type = abstract_chart_1.AbstractChart.TYPE_MAPPING[type];
+        type = Factory.TYPES.find(function (_type) { return _type.consoleSpecificName == type; }).mappedTypeName;
         switch (type) {
             case abstract_chart_1.AbstractChart.VBAR:
                 _chart = new vbar_chart_attributes_values_1.VerticalBarChartOfAttributeValues();
@@ -106156,6 +106144,7 @@ var Factory = (function () {
         _chart.initialized = false;
         return _chart;
     };
+    Factory.TYPES = utils_1.ChartTypeDescription.generateType();
     return Factory;
 }());
 exports.Factory = Factory;
@@ -106224,7 +106213,7 @@ var ScalingRateChart = (function (_super) {
         if (document.hidden || util_1.isNullOrUndefined(allData))
             return;
         (_a = this.chartData).push.apply(_a, allData);
-        if (!util_1.isNullOrUndefined(this._chartObject)) {
+        if (!util_1.isNullOrUndefined(this._chartObject) && !util_1.isNullOrUndefined(d3.select('#' + this.id).datum())) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 _ds = this.prepareDatasets();
@@ -106325,6 +106314,39 @@ var TwoDimensionalChart = (function (_super) {
     return TwoDimensionalChart;
 }(abstract_chart_1.AbstractChart));
 exports.TwoDimensionalChart = TwoDimensionalChart;
+
+
+/***/ },
+
+/***/ "./src/app/charts/model/utils.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var ChartTypeDescription = (function () {
+    function ChartTypeDescription(csm, mtn, is) {
+        this.consoleSpecificName = csm;
+        this.mappedTypeName = mtn;
+        this.instancesSupport = is;
+    }
+    ChartTypeDescription.generateType = function () {
+        return [
+            new ChartTypeDescription('doughnut', abstract_chart_1.AbstractChart.PIE, true),
+            new ChartTypeDescription('horizontalBar', abstract_chart_1.AbstractChart.HBAR, true),
+            new ChartTypeDescription('bar', abstract_chart_1.AbstractChart.VBAR, true),
+            new ChartTypeDescription('line', abstract_chart_1.AbstractChart.LINE, true),
+            new ChartTypeDescription('panel', abstract_chart_1.AbstractChart.PANEL, true),
+            new ChartTypeDescription('statuses', abstract_chart_1.AbstractChart.HEALTH_STATUS, false),
+            new ChartTypeDescription('resources', abstract_chart_1.AbstractChart.RESOURCE_COUNT, false),
+            new ChartTypeDescription('scaleIn', abstract_chart_1.AbstractChart.SCALE_IN, false),
+            new ChartTypeDescription('scaleOut', abstract_chart_1.AbstractChart.SCALE_OUT, false),
+            new ChartTypeDescription('voting', abstract_chart_1.AbstractChart.VOTING, false)
+        ];
+    };
+    return ChartTypeDescription;
+}());
+exports.ChartTypeDescription = ChartTypeDescription;
 
 
 /***/ },

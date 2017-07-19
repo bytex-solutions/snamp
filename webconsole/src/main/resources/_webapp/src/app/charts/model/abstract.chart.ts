@@ -1,8 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import { ChartData } from "./data/abstract.data";
 
-
-
 export abstract class AbstractChart {
     public static VBAR:string = "verticalBarChartOfAttributeValues";
     public static PIE:string = "pieChartOfAttributeValues";
@@ -14,20 +12,6 @@ export abstract class AbstractChart {
     public static SCALE_IN:string = "scaleIn";
     public static SCALE_OUT:string = "scaleOut";
     public static VOTING:string = "votesForScaling";
-
-    // map chartjs types to current hierarchy types
-    public static TYPE_MAPPING:{[key:string]:string} = {
-        'doughnut':         AbstractChart.PIE,
-        'horizontalBar':    AbstractChart.HBAR,
-        'bar':              AbstractChart.VBAR,
-        'line':             AbstractChart.LINE,
-        'panel':            AbstractChart.PANEL,
-        'statuses':         AbstractChart.HEALTH_STATUS,
-        'resources':        AbstractChart.RESOURCE_COUNT,
-        'scaleIn':          AbstractChart.SCALE_IN,
-        'scaleOut':         AbstractChart.SCALE_OUT,
-        'voting':           AbstractChart.VOTING
-    };
 
     public name:string;
     public preferences:{ [key: string]: any } = { };
