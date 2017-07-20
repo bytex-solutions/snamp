@@ -103485,7 +103485,7 @@ var E2EView = (function () {
                 return fieldName + "(ms): " + value / Math.pow(10, 6);
             default:
                 var power = Math.pow(10, precision || 5);
-                return fieldName + Math.round(value * power) / power;
+                return fieldName + ": " + Math.round(value * power) / power;
         }
     };
     E2EView.prototype.updateData = function (currentData) {

@@ -216,7 +216,7 @@ export abstract class E2EView {
                 return fieldName +  "(ms): " + value/Math.pow(10, 6);
             default:
                 let power = Math.pow(10,  precision || 5);
-                return fieldName + Math.round(value * power) / power;
+                return fieldName + ": " + Math.round(value * power) / power;
         }
     }
 
