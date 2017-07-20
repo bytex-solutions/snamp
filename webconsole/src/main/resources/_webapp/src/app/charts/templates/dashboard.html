@@ -32,7 +32,7 @@
 
           <div style="height:100%">
             <div id="component" class="row" style="margin-top: 70px;">
-              <div class="row" *ngIf="isInstancesSupported && (instances | async)">
+              <div class="row" *ngIf="isInstancesSupported && (instances | async)?.length > 0">
                 <div class="item form-group">
                   <label
                           class="control-label col-md-3 col-sm-3 col-xs-12"
@@ -44,6 +44,7 @@
                     <ui-switch
                             [(ngModel)]="useGroup"
                             (ngModelChange)="triggerUseGroup($event)"
+                            [disabled]="isInstancesSupported && (components | async)?.length == 0"
                             [size]="'small'">
                     </ui-switch>
                   </div>
@@ -66,7 +67,7 @@
                 </div>
               </div>
 
-              <div class="row" *ngIf="!useGroup && (instances | async)" style="margin-top: 15px;">
+              <div class="row" *ngIf="!useGroup" style="margin-top: 15px;">
                 <div class="item form-group">
                   <label
                           class="control-label col-md-3 col-sm-3 col-xs-12"
@@ -214,19 +215,21 @@
   </div>
 </div>
 
-<img src="/snamp/assets/img/add.png" *ngIf="!allCharts || allCharts.length == 0" class="chartMenuImage"/>
-<ul id="chartMenu" *ngIf="isAllowed()">
-  <li [tooltip]="'Pie chart'" (click)="appendChartClicked('doughnut')"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
-  <li [tooltip]="'Horizontal bar chart'" (click)="appendChartClicked('horizontalBar')"><i class="fa fa-align-left " aria-hidden="true"></i></li>
-  <li [tooltip]="'Vertical bar chart'" (click)="appendChartClicked('bar')"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
-  <li [tooltip]="'Simple line chart'" (click)="appendChartClicked('line')"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
-  <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
-  <li [tooltip]="'Resource group health status'" (click)="appendChartClicked('statuses')"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></li>
-  <li [tooltip]="'Resources count in a group'" (click)="appendChartClicked('resources')"><i class="fa fa-sitemap" aria-hidden="true"></i></li>
-  <li [tooltip]="'Rate of downscale'" (click)="appendChartClicked('scaleIn')"><i class="fa fa-arrow-circle-down" aria-hidden="true"></i></li>
-  <li [tooltip]="'Rate of upscale'" (click)="appendChartClicked('scaleOut')"><i class="fa fa-arrow-circle-up" aria-hidden="true"></i></li>
-  <li [tooltip]="'Voting chart'" (click)="appendChartClicked('voting')"><i class="fa fa-arrows-v" aria-hidden="true"></i></li>
-</ul>
+<div *ngIf="isAllowed() && ((components | async)?.length > 0 || (instances | async)?.length > 0)">
+  <img src="/snamp/assets/img/add.png" *ngIf="!allCharts || allCharts.length == 0" class="chartMenuImage"/>
+  <ul id="chartMenu" *ngIf="isAllowed()">
+    <li [tooltip]="'Pie chart'" (click)="appendChartClicked('doughnut')"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
+    <li [tooltip]="'Horizontal bar chart'" (click)="appendChartClicked('horizontalBar')"><i class="fa fa-align-left " aria-hidden="true"></i></li>
+    <li [tooltip]="'Vertical bar chart'" (click)="appendChartClicked('bar')"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
+    <li [tooltip]="'Simple line chart'" (click)="appendChartClicked('line')"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
+    <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
+    <li [tooltip]="'Resource group health status'" (click)="appendChartClicked('statuses')"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></li>
+    <li [tooltip]="'Resources count in a group'" (click)="appendChartClicked('resources')"><i class="fa fa-sitemap" aria-hidden="true"></i></li>
+    <li [tooltip]="'Rate of downscale'" (click)="appendChartClicked('scaleIn')"><i class="fa fa-arrow-circle-down" aria-hidden="true"></i></li>
+    <li [tooltip]="'Rate of upscale'" (click)="appendChartClicked('scaleOut')"><i class="fa fa-arrow-circle-up" aria-hidden="true"></i></li>
+    <li [tooltip]="'Voting chart'" (click)="appendChartClicked('voting')"><i class="fa fa-arrows-v" aria-hidden="true"></i></li>
+  </ul>
+</div>
 
 <div class="right_col" role="main" style="min-height: 949px;">
 

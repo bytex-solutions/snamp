@@ -131,20 +131,22 @@ export class Dashboard implements OnDestroy {
     appendChartClicked(type:string) {
         this.selectedChartType = type;
         this.isInstancesSupported = Dashboard.TYPES.find((_type:ChartTypeDescription) => this.selectedChartType == _type.consoleSpecificName).instancesSupport;
-        this.useGroup = true;
         this.cd.detectChanges(); // draw the modal html
         this.initNewChart();
     }
 
     private initNewChart():void {
+        this.updateComponentsAndInstances();
 
         // set all elements to the initial state
         this.allInstances = [];
         this.selectedInstances = [];
         this.selectedMetric = undefined;
         this.components.subscribe((comps:string[]) => {
-                this.selectedComponent = comps.length > 0 ? comps[0] : "";
-            this.cd.detectChanges();
+            this.selectedComponent = comps.length > 0 ? comps[0] : "";
+            this.useGroup = comps.length > 0;
+            console.debug("Components got: ", comps, " useGroup: ", this.useGroup);
+            this.triggerUseGroup(this.useGroup);
         });
         this.timeInterval = this.intervals[0].id;
         this.selectedRateMetrics = [];
@@ -218,6 +220,30 @@ export class Dashboard implements OnDestroy {
         this.initModal();
     }
 
+    private updateComponentsAndInstances():void {
+        //fill components
+        this.components = this.http.get(REST.GROUPS_WEB_API)
+            .map((res:Response) => { return <string[]>res.json()})
+            .publishLast()
+            .refCount();
+        this.componentSubscriber = this.components.subscribe((data:string[]) => {
+            if (data && data.length > 0) {
+                this.selectedComponent = data[0];
+            }
+        });
+
+        // fill instances
+        this.instances = this.http.get(REST.GROUPS_RESOURCES)
+            .map((res:Response) => { return <string[]>res.json()})
+            .publishLast()
+            .refCount();
+        this.instancesSubscriber = this.instances.subscribe((data:string[]) => {
+            this.allInstances = data;
+        });
+
+        this.cd.detectChanges();
+    }
+
     private initModal():void {
         // reset wizard
         if (this.smartWizardInitialized) {
@@ -239,7 +265,6 @@ export class Dashboard implements OnDestroy {
         $(Dashboard.rateMetricSelect2Id).on('change', (e) => {
             this.selectedRateMetrics = $(e.target).val();
         });
-
         // open the modal
         $(Dashboard.chartModalId).modal("show");
     }
@@ -259,32 +284,12 @@ export class Dashboard implements OnDestroy {
             .map(params => params['groupName'])
             .subscribe((gn) => {
                 this.cd.reattach();
-                // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
-
-                //fill components
-                this.components = this.http.get(REST.GROUPS_WEB_API)
-                    .map((res:Response) => { return <string[]>res.json()})
-                    .publishLast()
-                    .refCount();
-                this.componentSubscriber = this.components.subscribe((data:string[]) => {
-                    if (data && data.length > 0) {
-                        this.selectedComponent = data[0];
-                    }
-                });
-
-                // fill instances
-                this.instances = this.http.get(REST.GROUPS_RESOURCES)
-                    .map((res:Response) => { return <string[]>res.json()})
-                    .publishLast()
-                    .refCount();
-                this.instancesSubscriber = this.instances.subscribe((data:string[]) => { this.allInstances = data});
-
+                this.updateComponentsAndInstances();
                 // fill dashboard name (group that charts here belong to)
                 this.groupName = gn;
                 this.chartGroupSubscriber = this._chartService.getChartsByGroupName(gn).subscribe((chs:AbstractChart[]) => {
                     this.allCharts = chs;
                     this.cd.markForCheck(); // process template
-
                 });
             });
     }
@@ -326,6 +331,7 @@ export class Dashboard implements OnDestroy {
 
     triggerUseGroup(useGroupStatus:boolean):void {
         this.cd.detectChanges();
+        console.debug("Triggered. UseGroupStatus is ", useGroupStatus);
         // if we show the select for instances - reinitialize the select2 component
         if (!useGroupStatus) {
             if ($(Dashboard.select2Id).data('select2')) {
