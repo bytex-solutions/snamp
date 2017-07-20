@@ -14,12 +14,14 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SignatureException;
 import java.util.Objects;
 import java.util.logging.Logger;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Filter for JWT based auth - refreshes token in case it has 1/3 time to live.
@@ -122,6 +124,20 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
         return requestContext;
     }
 
+    private HttpCookie refreshToken(final JwtPrincipal principal,
+                                       final ContainerRequest containerRequest) {
+
+        final HttpCookie authCookie = new HttpCookie(authCookieName, principal.refresh().createJwtToken(getTokenSecret()));
+        authCookie.setPath(securedPath);
+        authCookie.setSecure(containerRequest.isSecure());
+        authCookie.setMaxAge(JwtPrincipal.TOKEN_LIFETIME.getSeconds());
+        final String FORWARDED_HOST_HEADER = "X-Forwarded-Host";
+        final String originalHost = containerRequest.getHeaderValue(FORWARDED_HOST_HEADER);
+        if (!isNullOrEmpty(originalHost))
+            authCookie.setDomain(originalHost);
+        return authCookie;
+    }
+
     //intercept HTTP response
     @Override
     public final ContainerResponse filter(final ContainerRequest containerRequest, final ContainerResponse containerResponse) {
@@ -141,8 +157,7 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
             // check if the token requires to be updated
             if (principal.isRefreshRequired()) {
                 logger.fine(() -> String.format("Refresh of the token for user %s is required", principal.getName()));
-                final String jwToken = principal.refresh().createJwtToken(getTokenSecret());
-                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, authCookieName + '=' + jwToken + "; Path=" + securedPath + ';');
+                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, refreshToken(principal, containerRequest));
             }
         }
         return containerResponse;

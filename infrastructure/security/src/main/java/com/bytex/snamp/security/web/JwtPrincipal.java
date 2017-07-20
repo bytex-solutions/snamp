@@ -42,7 +42,7 @@ final class JwtPrincipal implements Principal {
     /**
      * The Token lifetime.
      */
-    private static final Duration TOKEN_LIFETIME = Duration.ofDays(7);
+    static final Duration TOKEN_LIFETIME = Duration.ofDays(7);
     private static final String SUBJECT_FIELD = "sub";
     private static final String ROLES_FIELD = "roles";
     private static final String ISSUED_AT_FIELD = "iat";
