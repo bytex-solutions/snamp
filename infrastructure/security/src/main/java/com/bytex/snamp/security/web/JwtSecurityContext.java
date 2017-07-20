@@ -33,7 +33,7 @@ final class JwtSecurityContext implements SecurityContext {
         }
         try {
             principal = new JwtPrincipal(jwToken, secret);
-        } catch (final JWTVerifyException e) {
+        } catch (final JWTVerifyException | IllegalStateException e) {
             throw new SignatureException(e);
         }
     }

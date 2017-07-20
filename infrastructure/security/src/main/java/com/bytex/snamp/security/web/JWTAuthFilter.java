@@ -90,10 +90,10 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
     private JwtSecurityContext createSecurityContext(final HttpRequestContext request) throws WebApplicationException {
         try {
             return new JwtSecurityContext(request, extractors, getTokenSecret());
-        } catch (final NoSuchAlgorithmException | IOException e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         } catch (final InvalidKeyException | SignatureException e) {
             throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
+        } catch (final Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
