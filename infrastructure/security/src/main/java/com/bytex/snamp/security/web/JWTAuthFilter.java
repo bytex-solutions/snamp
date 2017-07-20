@@ -157,7 +157,7 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
             // check if the token requires to be updated
             if (principal.isRefreshRequired()) {
                 logger.fine(() -> String.format("Refresh of the token for user %s is required", principal.getName()));
-                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, refreshToken(principal, containerRequest));
+                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, refreshToken(principal, containerRequest).toString());
             }
         }
         return containerResponse;
