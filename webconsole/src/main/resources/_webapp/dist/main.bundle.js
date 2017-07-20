@@ -108779,7 +108779,7 @@ var ChartService = (function () {
             this.saveDashboard();
         }
     };
-    ChartService.prototype.removeChart = function (chartName) {
+    ChartService.prototype.removeChart = function (chartName, update) {
         for (var i = 0; i < this._dashboard.charts.length; i++) {
             if (this._dashboard.charts[i].name == chartName) {
                 if (!util_1.isNullOrUndefined(this._dashboard.charts[i].subscriber)) {
@@ -108791,7 +108791,8 @@ var ChartService = (function () {
                 // nullify the corresppnding subject
                 this.chartSubjects[chartName] = undefined;
                 // save the dashboard
-                this.saveDashboard();
+                if (update)
+                    this.saveDashboard();
                 return;
             }
         }

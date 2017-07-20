@@ -161,7 +161,7 @@ export class Dashboard implements OnDestroy {
     modifyChart(chartToModify:AbstractChart):void {
         let chart:AbstractChart =  jQuery.extend(true, {}, chartToModify);
 
-        this.selectedChartType = Dashboard.TYPES.find((key:ChartTypeDescription) => key.mappedTypeName == chart.type).mappedTypeName;
+        this.selectedChartType = Dashboard.TYPES.find((key:ChartTypeDescription) => key.mappedTypeName == chart.type).consoleSpecificName;
         this.isInstancesSupported = Dashboard.TYPES.find((key:ChartTypeDescription) => key.mappedTypeName == chart.type).instancesSupport;
 
         this.chartName = chart.name;
@@ -415,8 +415,8 @@ export class Dashboard implements OnDestroy {
     }
 
     saveChart():void {
+        this._chartService.removeChart(this.currentChart.name, false);
         this.allCharts = this.allCharts.filter((as:AbstractChart) => as.name != this.currentChart.name);
-        this.removeChart(this.currentChart.name);
         this.cd.detectChanges();
         this.addChartToDashboard();
     }
@@ -429,7 +429,7 @@ export class Dashboard implements OnDestroy {
     }
 
     removeChart(chartName:string):void {
-        this._chartService.removeChart(chartName);
+        this._chartService.removeChart(chartName, true);
     }
 
     ngOnDestroy():void {

@@ -205,7 +205,7 @@ export class ChartService implements OnDestroy {
         }
     }
 
-    removeChart(chartName:string):void {
+    removeChart(chartName:string, update:boolean):void {
         for (let i = 0; i < this._dashboard.charts.length; i++ ) {
             if (this._dashboard.charts[i].name == chartName) {
 
@@ -220,7 +220,7 @@ export class ChartService implements OnDestroy {
                 this.chartSubjects[chartName] = undefined;
 
                 // save the dashboard
-                this.saveDashboard();
+                if (update) this.saveDashboard();
                 return;
             }
         }

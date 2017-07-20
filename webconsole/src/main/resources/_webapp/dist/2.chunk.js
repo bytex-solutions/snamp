@@ -292,7 +292,7 @@ var Dashboard = (function () {
     };
     Dashboard.prototype.modifyChart = function (chartToModify) {
         var chart = jQuery.extend(true, {}, chartToModify);
-        this.selectedChartType = Dashboard.TYPES.find(function (key) { return key.mappedTypeName == chart.type; }).mappedTypeName;
+        this.selectedChartType = Dashboard.TYPES.find(function (key) { return key.mappedTypeName == chart.type; }).consoleSpecificName;
         this.isInstancesSupported = Dashboard.TYPES.find(function (key) { return key.mappedTypeName == chart.type; }).instancesSupport;
         this.chartName = chart.name;
         // prefill instances from the existing chart
@@ -526,8 +526,8 @@ var Dashboard = (function () {
     };
     Dashboard.prototype.saveChart = function () {
         var _this = this;
+        this._chartService.removeChart(this.currentChart.name, false);
         this.allCharts = this.allCharts.filter(function (as) { return as.name != _this.currentChart.name; });
-        this.removeChart(this.currentChart.name);
         this.cd.detectChanges();
         this.addChartToDashboard();
     };
@@ -538,7 +538,7 @@ var Dashboard = (function () {
         }
     };
     Dashboard.prototype.removeChart = function (chartName) {
-        this._chartService.removeChart(chartName);
+        this._chartService.removeChart(chartName, true);
     };
     Dashboard.prototype.ngOnDestroy = function () {
         console.debug("DESTROING CHART FOR GROUP ", this.groupName);
