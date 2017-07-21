@@ -10,6 +10,7 @@ import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Principal;
+import java.time.Duration;
 import java.util.Objects;
 
 /**
@@ -19,10 +20,23 @@ import java.util.Objects;
  * @since 2.0
  */
 public class JWTAuthenticator {
-    private final ClusterMember clusterMember;
+    /**
+     * System property that can be used to modify lifetime of all JWT tokens in SNAMP.
+     */
+    public static final String TOKEN_LIFETIME_PROPERTY = "com.bytex.snamp.security.jwt.lifetime";
 
-    public JWTAuthenticator(final ClusterMember clusterMember){
+    /**
+     * Default lifetime of token.
+     */
+    private static final String DEFAULT_TOKEN_LIFETIME = Duration.ofDays(7).toString();
+
+    private final ClusterMember clusterMember;
+    private final Duration tokenLifetime;
+
+    public JWTAuthenticator(final ClusterMember clusterMember) {
         this.clusterMember = Objects.requireNonNull(clusterMember);
+        final String tokenLifetime = System.getProperty(TOKEN_LIFETIME_PROPERTY, DEFAULT_TOKEN_LIFETIME);
+        this.tokenLifetime = Duration.parse(tokenLifetime);
     }
 
     /**
@@ -31,9 +45,12 @@ public class JWTAuthenticator {
      * @param user the user
      * @return the string
      */
-    private String issueAuthToken(final Subject user){
-        final JwtPrincipal principal = new JwtPrincipal(user);
-        return principal.createJwtToken(getTokenSecret());
+    private String issueAuthToken(final Subject user) {
+        return new JwtPrincipal(user, getTokenLifetime()).createJwtToken(getTokenSecret());
+    }
+
+    protected Duration getTokenLifetime() {
+        return tokenLifetime;
     }
 
     protected String getTokenSecret(){

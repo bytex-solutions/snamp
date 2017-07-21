@@ -124,13 +124,13 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
         return requestContext;
     }
 
-    private HttpCookie refreshToken(final JwtPrincipal principal,
+    private HttpCookie refreshToken(JwtPrincipal principal,
                                        final ContainerRequest containerRequest) {
-
-        final HttpCookie authCookie = new HttpCookie(authCookieName, principal.refresh().createJwtToken(getTokenSecret()));
+        principal = principal.refresh();
+        final HttpCookie authCookie = new HttpCookie(authCookieName, principal.createJwtToken(getTokenSecret()));
         authCookie.setPath(securedPath);
         authCookie.setSecure(containerRequest.isSecure());
-        authCookie.setMaxAge(JwtPrincipal.TOKEN_LIFETIME.getSeconds());
+        authCookie.setMaxAge(principal.getLifetime().getSeconds());
         final String FORWARDED_HOST_HEADER = "X-Forwarded-Host";
         final String originalHost = containerRequest.getHeaderValue(FORWARDED_HOST_HEADER);
         if (!isNullOrEmpty(originalHost))
@@ -157,7 +157,7 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
             // check if the token requires to be updated
             if (principal.isRefreshRequired()) {
                 logger.fine(() -> String.format("Refresh of the token for user %s is required", principal.getName()));
-                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, refreshToken(principal, containerRequest).toString());
+                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, refreshToken(principal, containerRequest));
             }
         }
         return containerResponse;
