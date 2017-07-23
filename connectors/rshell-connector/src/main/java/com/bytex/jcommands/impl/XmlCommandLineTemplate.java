@@ -19,7 +19,8 @@ import java.util.Map;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.*;
+import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.compileTemplate;
+import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.createRenderer;
 
 /**
  * Represents XML-serializable template of the command-line tool.

@@ -1,7 +1,5 @@
 package com.bytex.snamp.jmx;
 
-import com.bytex.snamp.Convert;
-
 import javax.management.ImmutableDescriptor;
 import javax.management.openmbean.OpenMBeanParameterInfo;
 import javax.management.openmbean.OpenMBeanParameterInfoSupport;
@@ -111,7 +109,7 @@ public final class OpenMBeanParameterInfoSupplier<T> implements Supplier<OpenMBe
      */
     public T getArgument(final Map<String, ?> arguments) throws OperationArgumentException {
         if (arguments.containsKey(parameter.getName())) {
-            return Convert.toType(arguments.get(parameter.getName()), getOpenType())
+            return OpenTypes.convert(arguments.get(parameter.getName()), getOpenType())
                     .orElseThrow(() -> new OperationArgumentException(getOpenType()));
         } else if (isNullable() || getDefaultValue() != null)
             return getDefaultValue();

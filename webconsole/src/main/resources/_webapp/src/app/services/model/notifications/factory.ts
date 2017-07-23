@@ -26,7 +26,7 @@ export class NotificationFactory {
                 _notification = new ScalingNotification();
                 break;
             default:
-                console.log("Whole the json object is: ", _json);
+                console.debug("Whole the json object is: ", _json);
                 throw new Error("Could not recognize notification of type: " + _json['@messageType']);
         }
         _notification.fillFromJson(_json);
@@ -56,7 +56,7 @@ export class NotificationFactory {
                 _notification = Object.assign(new ScalingNotification(), _json);
                 break;
             default:
-                console.log("Whole the json object is: ", _json);
+                console.debug("Whole the json object is: ", _json);
                 throw new Error("Could not recognize notification of type: " + _json['_type']);
         }
         // restoring Date object from its string representation

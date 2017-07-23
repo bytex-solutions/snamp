@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -17,7 +16,7 @@ import java.util.Map;
  * @version 2.0
  * @since 1.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         name = "resource",
         description = "Display configuration of the managed resource")
 @Service

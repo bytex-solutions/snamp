@@ -16,7 +16,6 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.security.Principal;
 import java.util.Objects;
-import java.util.Optional;
 
 import static com.bytex.snamp.core.KeyValueStorage.JsonRecordView;
 
@@ -89,8 +88,7 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
     }
 
     protected final USERDATA getUserData(final WebConsoleSession session) {
-        final Optional<USERDATA> cachedData = session.getUserData(userDataType);
-        return cachedData.isPresent() ? cachedData.get() : getUserData(session.getPrincipal());
+        return session.getUserData(userDataType).orElseGet(() -> getUserData(session.getPrincipal()));
     }
 
     protected final void setUserData(final Principal principal, final USERDATA data) {

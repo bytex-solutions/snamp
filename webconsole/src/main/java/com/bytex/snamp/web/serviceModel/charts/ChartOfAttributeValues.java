@@ -2,7 +2,6 @@ package com.bytex.snamp.web.serviceModel.charts;
 
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.osgi.framework.BundleContext;
 
@@ -49,18 +48,13 @@ public abstract class ChartOfAttributeValues extends AbstractChart {
         instances.add(resourceName);
     }
 
-    @JsonIgnore
-    final boolean hasResource(final String resourceName){
-        return instances.isEmpty() || instances.contains(resourceName);
-    }
-
     abstract void fillChartData(final String resourceName, final AttributeList attributes, final Consumer<? super AttributeChartData> acceptor);
 
     @Override
     public final Collection<? extends AttributeChartData> collectChartData(final BundleContext context) throws Exception {
         final Set<String> resources = isNullOrEmpty(groupName) ?
                 instances :
-                ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(context);
+                ManagedResourceConnectorClient.selector().setGroupName(groupName).getResources(context);
         final List<AttributeChartData> result = new LinkedList<>();
         for (final String resourceName : resources) {
             final Optional<ManagedResourceConnectorClient> clientRef = ManagedResourceConnectorClient.tryCreate(context, resourceName);

@@ -208,7 +208,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     }
 
     private void attributeProcessed(final SyntheticAttribute attribute, final SyntheticAttribute.NotificationProcessingResult result) {
-        if(result.isProcessed()) {
+        if (result.isProcessed()) {
             //log processing error if it was happened
             final Optional<Throwable> processingError = result.getProcessingError();
             if (processingError.isPresent()) {
@@ -216,18 +216,17 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
                 return;
             }
             //fire AttributeChangeNotification
-            final Optional<Object> newAttributeValue = result.getAttributeValue();
-            if (newAttributeValue.isPresent()) {
+            result.getAttributeValue().ifPresent(newAttributeValue -> {
                 final AttributeChangeNotification notification = new AttributeChangeNotification(this,
                         0L,
                         System.currentTimeMillis(),
-                        String.format("Attribute %s was changed", attribute.getName()),
+                        String.format("Attribute %s is changed", attribute.getName()),
                         attribute.getName(),
                         attribute.getType(),
-                        newAttributeValue.get(),
-                        newAttributeValue.get());
+                        newAttributeValue,
+                        newAttributeValue);
                 notifications.accept(notification);
-            }
+            });
         }
     }
 

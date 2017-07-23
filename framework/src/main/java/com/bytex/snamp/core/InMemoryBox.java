@@ -2,6 +2,7 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.Box;
 
+import java.io.Serializable;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -13,7 +14,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
-final class InMemoryBox extends AtomicReference<Object> implements Box<Object>, SharedBox {
+final class InMemoryBox extends AtomicReference<Serializable> implements Box<Serializable>, SharedBox {
     private static final long serialVersionUID = -4201147737679412750L;
     private final String name;
 
@@ -22,8 +23,8 @@ final class InMemoryBox extends AtomicReference<Object> implements Box<Object>, 
     }
 
     @Override
-    public Object setIfAbsent(final Supplier<?> valueProvider) {
-        Object current;
+    public Serializable setIfAbsent(final Supplier<? extends Serializable> valueProvider) {
+        Serializable current;
         do {
             current = get();
             if (current == null)
@@ -40,13 +41,13 @@ final class InMemoryBox extends AtomicReference<Object> implements Box<Object>, 
     }
 
     @Override
-    public Object getOrDefault(final Supplier<?> defaultProvider) {
-        final Object current = get();
+    public Serializable getOrDefault(final Supplier<? extends Serializable> defaultProvider) {
+        final Serializable current = get();
         return current == null ? defaultProvider.get() : current;
     }
 
     @Override
-    public <R> Optional<R> map(final Function<? super Object, ? extends R> mapper) {
+    public <R> Optional<R> map(final Function<? super Serializable, ? extends R> mapper) {
         return Optional.ofNullable(get()).map(mapper);
     }
 
@@ -56,7 +57,7 @@ final class InMemoryBox extends AtomicReference<Object> implements Box<Object>, 
     }
 
     @Override
-    public void accept(final Object value) {
+    public void accept(final Serializable value) {
         set(value);
     }
 

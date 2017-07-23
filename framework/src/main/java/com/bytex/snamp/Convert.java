@@ -18,6 +18,7 @@ import java.nio.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.*;
 
 /**
@@ -28,8 +29,20 @@ import java.util.function.*;
  */
 @ThreadSafe
 public final class Convert {
-    private static abstract class TypeConverter<C> extends ClassMap<C> {
+    private static abstract class TypeConverter<C> extends ConcurrentHashMap<Class<?>, C> {
         private static final long serialVersionUID = -2745877310143387409L;
+
+        private C getOrAdd(final Class<?> key) {
+            for (Class<?> lookup = key; lookup != null; lookup = lookup.getSuperclass()) {
+                final C value = get(lookup);
+                if (value != null) {
+                    //cache converter for the origin key, not for current inheritance frame
+                    putIfAbsent(key, value);
+                    return value;
+                }
+            }
+            return null;
+        }
 
         final C getConverter(final Object value) {
             return value == null ? null : getOrAdd(value.getClass());

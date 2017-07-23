@@ -9,6 +9,10 @@
             <br/>
             <div class="modal-body">
 
+                <div class="form-group row" *ngIf="isNameNotUnique()" style="text-align: center; color: red;">
+                    <strong>{{type}} with name already exists</strong>
+                </div>
+
                 <div class="form-group row">
                     <label for="inputComponentName" class="col-md-2 col-form-label">Input {{type}} name</label>
                     <div class="col-md-10">

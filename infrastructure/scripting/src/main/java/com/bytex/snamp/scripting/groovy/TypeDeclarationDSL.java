@@ -1,8 +1,8 @@
 package com.bytex.snamp.scripting.groovy;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.jmx.CompositeTypeBuilder;
+import com.bytex.snamp.jmx.OpenTypes;
 import com.bytex.snamp.jmx.TabularTypeBuilder;
 
 import javax.management.ObjectName;
@@ -50,7 +50,7 @@ public interface TypeDeclarationDSL extends ScriptingAPI {
     SimpleType<Date> DATETIME = SimpleType.DATE;
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     static <T> ArrayType<T[]> ARRAY(final OpenType<T> elementType) throws OpenDataException {
-        return ArrayUtils.createArrayType(elementType);
+        return OpenTypes.createArrayType(elementType);
     }
     /**
      * Declares dictionary type.

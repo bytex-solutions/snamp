@@ -1,6 +1,14 @@
 package com.bytex.snamp.web.serviceModel.e2e;
 
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.json.DurationDeserializer;
+import com.bytex.snamp.json.DurationSerializer;
 import com.bytex.snamp.moa.topology.TopologyAnalyzer;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import java.time.Duration;
 
 /**
  * Represents view which data can be constructed as adjacency matrix.
@@ -8,7 +16,25 @@ import com.bytex.snamp.moa.topology.TopologyAnalyzer;
  * @version 2.0
  * @since 2.0
  */
-abstract class MatrixBasedView extends E2EView {
+public abstract class MatrixBasedView extends E2EView {
+    private Duration historyDepth;
+
+    MatrixBasedView(){
+        
+    }
+
+    @JsonProperty("shelfLife")
+    @JsonDeserialize(using = DurationDeserializer.class)
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
+    public final void setShelfLife(final Duration value){
+        historyDepth = value;
+    }
+
+    @JsonSerialize(using = DurationSerializer.class)
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
+    public final Duration getShelfLife() {
+        return historyDepth;
+    }
 
     abstract AdjacencyMatrix createMatrix();
 

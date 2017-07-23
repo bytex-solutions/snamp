@@ -1,5 +1,6 @@
 package com.bytex.snamp.security.web;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableList;
@@ -14,12 +15,14 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.security.SignatureException;
 import java.util.Objects;
 import java.util.logging.Logger;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Filter for JWT based auth - refreshes token in case it has 1/3 time to live.
@@ -28,7 +31,7 @@ import java.util.logging.Logger;
  * @since 2.0
  */
 public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestFilter {
-
+    public static final String FORWARDED_HOST_HEADER = "X-Forwarded-Host";
     private static final String PRINCIPAL_ATTRIBUTE = "principal";
 
     /**
@@ -90,10 +93,10 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
     private JwtSecurityContext createSecurityContext(final HttpRequestContext request) throws WebApplicationException {
         try {
             return new JwtSecurityContext(request, extractors, getTokenSecret());
-        } catch (final NoSuchAlgorithmException | IOException e) {
-            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         } catch (final InvalidKeyException | SignatureException e) {
             throw new WebApplicationException(e, Response.Status.UNAUTHORIZED);
+        } catch (final Exception e) {
+            throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -122,27 +125,31 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
         return requestContext;
     }
 
+    private HttpCookie refreshToken(JwtPrincipal principal,
+                                       final ContainerRequest containerRequest) {
+        principal = principal.refresh();
+        final HttpCookie authCookie = principal.createCookie(authCookieName, getTokenSecret());
+        authCookie.setPath(securedPath);
+        authCookie.setSecure(containerRequest.isSecure());
+        final String originalHost = containerRequest.getHeaderValue(FORWARDED_HOST_HEADER);
+        if (!isNullOrEmpty(originalHost))
+            authCookie.setDomain(originalHost);
+        return authCookie;
+    }
+
     //intercept HTTP response
     @Override
     public final ContainerResponse filter(final ContainerRequest containerRequest, final ContainerResponse containerResponse) {
         // if user goes to auth method - we do not apply this filter
         if (authenticationRequired(containerRequest)) {
-            final JwtPrincipal principal;
-            if (containerRequest.getSecurityContext() instanceof JwtSecurityContext) {
-                principal = ((JwtSecurityContext)
-                        containerRequest.getSecurityContext()).getUserPrincipal();
-            } else {
-                logger.fine(() -> String.format("RequestContext has Security context but not JwtSecurityContext. " +
-                                "Actual class is %s. Trying to create security context from token...",
-                        containerRequest.getSecurityContext().getClass()));
-                principal = createSecurityContext(containerRequest).getUserPrincipal();
-            }
+            final JwtPrincipal principal = Convert.toType(containerRequest.getSecurityContext(), JwtSecurityContext.class)
+                    .orElseGet(() -> createSecurityContext(containerRequest))
+                    .getUserPrincipal();
             logger.fine(() -> String.format("TokenRefreshFilter is being applied. JWT principle is %s.", principal.getName()));
             // check if the token requires to be updated
             if (principal.isRefreshRequired()) {
                 logger.fine(() -> String.format("Refresh of the token for user %s is required", principal.getName()));
-                final String jwToken = principal.refresh().createJwtToken(getTokenSecret());
-                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, authCookieName + '=' + jwToken + "; Path=" + securedPath + ';');
+                containerResponse.getHttpHeaders().add(HttpHeaders.SET_COOKIE, refreshToken(principal, containerRequest));
             }
         }
         return containerResponse;

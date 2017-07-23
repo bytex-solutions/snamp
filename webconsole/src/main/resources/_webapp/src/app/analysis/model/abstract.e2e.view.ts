@@ -1,3 +1,4 @@
+import {isNullOrUndefined} from "util";
 const cytoscape = require('cytoscape');
 
 export abstract class E2EView {
@@ -13,6 +14,12 @@ export abstract class E2EView {
     public name:string;
     public preferences:{ [key: string]: any } = { };
     public id:string = "e2eview" + GUID.newGuid();
+
+    public shelfLife:number = 0;
+    public isShelfLifeSet:boolean = false;
+
+    private verticesCount:number = 0;
+    private arrivalsCount:number = 0;
 
     // checkboxes for setting which data aspects to display
     public getDisplayedMetadata():string[] {
@@ -132,8 +139,8 @@ export abstract class E2EView {
 
     public draw(initialData:any):any {
        let _layout:string = this.getLayout();
-       console.log("id element for find: ", document.getElementById(this.id));
-       var cy = cytoscape({
+       console.debug("id element for find: ", document.getElementById(this.id));
+       let cy = cytoscape({
          container: document.getElementById(this.id),
          elements: this.getData(initialData),
          zoomingEnabled: true,
@@ -194,24 +201,49 @@ export abstract class E2EView {
             }
          ]
        });
-        console.log(cy);
        this._cy = cy;
        return cy;
     }
 
-    private toFixed(value:any, precision:number):string {
-        var power = Math.pow(10, precision || 0);
-        return String(Math.round(value * power) / power);
+    private static toFixed(fieldName:string, value:number, precision?:number):string {
+        switch(fieldName) {
+            case "responseTime90":
+            case "responseTime95":
+            case "responseTime98":
+            case "responseTimeStdDev":
+            case "maxResponseTime":
+            case "meanResponseTime":
+                return fieldName +  "(ms): " + value/Math.pow(10, 6);
+            default:
+                let power = Math.pow(10,  precision || 5);
+                return fieldName + ": " + Math.round(value * power) / power;
+        }
     }
 
     public updateData(currentData:any):any {
+        if (document.hidden ||  !$('#' + this.id).length) return; // do not update
+        let originalData:any = currentData;
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
-        console.log(currentData);
-        let result:any = [];
+        console.debug(currentData);
         let arrivals:any[] = [];
 
-        if (currentData["arrivals"] != undefined) {
+        console.debug("Arriviles count: ", Object.keys(currentData["arrivals"]).length, " saved count: ", this.arrivalsCount);
+        if (!isNullOrUndefined(currentData["arrivals"])) {
             arrivals = currentData["arrivals"];
+            if (Object.keys(arrivals).length != this.arrivalsCount) {
+              //  this._cy.json({elements: this.getData(originalData)});
+                this._cy.load(this.getData(originalData));
+                return;
+            }
+        }
+
+        console.debug("vertices count: ", Object.keys(currentData["vertices"]).length, " saved count: ", this.verticesCount);
+        if (!isNullOrUndefined(currentData["vertices"])) {
+            if (Object.keys(currentData["vertices"]).length != this.verticesCount) {
+               // this._cy.json({elements: this.getData(originalData)});
+                this._cy.load( this.getData(originalData));
+                return;
+            }
         }
 
         for (let key in arrivals) {
@@ -223,7 +255,7 @@ export abstract class E2EView {
 
     public updateDisplayedMetadata(_md:string[]):void {
         this.setDisplayedMetadata(_md);
-        var nodes = this._cy.filter('node');
+        let nodes = this._cy.filter('node');
         for (let i = 0; i < nodes.length; i++) {
             nodes[i].data('dl', this.getLabelFromMetadata(nodes[i].data('id'), nodes[i].data('arrival')));
         }
@@ -236,12 +268,14 @@ export abstract class E2EView {
 
         let vertices:any[] = [];
         let arrivals:any[] = [];
-        if (currentData["vertices"] != undefined) {
+        if (!isNullOrUndefined(currentData["vertices"])) {
             vertices = currentData["vertices"];
+            this.verticesCount = Object.keys(vertices).length;
         }
 
-        if (currentData["arrivals"] != undefined) {
+        if (!isNullOrUndefined(currentData["arrivals"])) {
             arrivals = currentData["arrivals"];
+            this.arrivalsCount = Object.keys(arrivals).length;
         }
 
         // add all plain vertices
@@ -267,6 +301,7 @@ export abstract class E2EView {
                 });
             }
         }
+
 
         return result;
     }
@@ -335,10 +370,9 @@ export abstract class E2EView {
         for (let i = 0; i < _md.length; i++) {
             if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
-                    result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                            + this.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
+                    result += "\n" + E2EView.toFixed(_md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")", data[_md[i].split("/")[0]][_md[i].split("/")[1]]);
                 } else {
-                    result += "\n" + _md[i] + ": " + this.toFixed(data[_md[i]], 5);
+                    result += "\n" + E2EView.toFixed(_md[i], data[_md[i]]);
                 }
             }
         }
@@ -349,7 +383,7 @@ export abstract class E2EView {
 class GUID {
     static newGuid():string {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+            let r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
             return v.toString(16);
         });
     }

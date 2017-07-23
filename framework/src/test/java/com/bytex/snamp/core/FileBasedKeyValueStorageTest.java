@@ -5,7 +5,10 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.UncheckedIOException;
+import java.io.Writer;
 
 /**
  * Represents tests for {@link FileBasedKeyValueStorage}.
@@ -18,7 +21,7 @@ public final class FileBasedKeyValueStorageTest extends Assert {
         try(final Writer writer = record.createJsonWriter()){
             writer.append(value);
         } catch (final IOException e){
-            throw new UncheckedIOException(e);
+            throw new UncheckedIOException(e);  
         }
     }
 

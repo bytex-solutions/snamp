@@ -1,6 +1,7 @@
 package com.bytex.jcommands.impl;
 
 import javax.xml.bind.annotation.*;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents parsing rule that detects line termination for recursive data structures,
@@ -26,6 +27,6 @@ public final class LineTerminationParsingRule extends ParsingRule{
     }
 
     public void setTerminationRule(final String value){
-        terminationRule = value != null ? value : null;
+        terminationRule = nullToEmpty(value);
     }
 }

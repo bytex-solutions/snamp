@@ -59,6 +59,12 @@
       <div class="col-md-8 leftAlign">
 
         <div class="row">
+          <panel [header]="'Parameters'" [column]="'12'">
+            <parameters [entity]="activeResource"></parameters>
+          </panel>
+        </div>
+
+        <div class="row">
           <panel [header]="'Resource type'" [column]="'6'">
             <select disabled
                     id="entityType"
@@ -73,15 +79,7 @@
               </option>
             </select>
           </panel>
-
         </div>
-
-        <div class="row">
-          <panel [header]="'Parameters'" [column]="'12'">
-            <parameters [entity]="activeResource"></parameters>
-          </panel>
-        </div>
-
       </div>
 
       <div class="col-md-4">

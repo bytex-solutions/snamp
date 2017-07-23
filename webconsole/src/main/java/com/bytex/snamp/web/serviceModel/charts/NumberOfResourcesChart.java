@@ -144,7 +144,7 @@ public final class NumberOfResourcesChart extends AbstractChart implements TwoDi
      */
     @Override
     public Iterable<? extends ChartData> collectChartData(final BundleContext context) throws Exception {
-        final ChartData data = new ChartData(ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName).getResources(context).size());
+        final ChartData data = new ChartData(ManagedResourceConnectorClient.selector().setGroupName(groupName).getResources(context).size());
         return ImmutableList.of(data);
     }
 }

@@ -1,8 +1,8 @@
 package com.bytex.snamp.supervision;
 
 import com.bytex.snamp.configuration.SupervisorConfiguration;
+import com.bytex.snamp.core.DefaultServiceSelector;
 import com.bytex.snamp.core.FrameworkService;
-import com.bytex.snamp.core.SimpleFilterBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -18,21 +18,21 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-public final class SupervisorFilterBuilder extends SimpleFilterBuilder {
+public final class SupervisorSelector extends DefaultServiceSelector {
     private static final long serialVersionUID = 5989084420590109152L;
     private static final String CATEGORY = "supervisor";
     private static final String GROUP_NAME_PROPERTY = "groupName";
 
-    SupervisorFilterBuilder(){
+    SupervisorSelector(){
         put(FrameworkService.CATEGORY_PROPERTY, CATEGORY);
     }
 
-    SupervisorFilterBuilder(final SupervisorConfiguration configuration){
+    SupervisorSelector(final SupervisorConfiguration configuration){
         super(configuration);
         setSupervisorType(configuration.getType()).put(FrameworkService.CATEGORY_PROPERTY, CATEGORY);
     }
 
-    public SupervisorFilterBuilder setGroupName(final String value) {
+    public SupervisorSelector setGroupName(final String value) {
         if (isNullOrEmpty(value))
             remove(GROUP_NAME_PROPERTY);
         else
@@ -40,7 +40,7 @@ public final class SupervisorFilterBuilder extends SimpleFilterBuilder {
         return this;
     }
 
-    public SupervisorFilterBuilder setSupervisorType(final String value){
+    public SupervisorSelector setSupervisorType(final String value){
         if(isNullOrEmpty(value))
             remove(TYPE_CAPABILITY_ATTRIBUTE);
         else
@@ -55,7 +55,7 @@ public final class SupervisorFilterBuilder extends SimpleFilterBuilder {
      */
     public Set<String> getGroups(final BundleContext context) {
         return Arrays.stream(getServiceReferences(context, Supervisor.class))
-                .map(SupervisorFilterBuilder::getGroupName)
+                .map(SupervisorSelector::getGroupName)
                 .filter(name -> !isNullOrEmpty(name))
                 .collect(Collectors.toSet());
     }

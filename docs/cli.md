@@ -73,6 +73,7 @@ Command | Description
 ---- | ----
 snamp:debug-attribute-checker | Execute health checker based on attribute using real or test data. Useful for debugging
 snamp:debug-health-status-trigger | Execute health check trigger using real or test data. Useful for debugging
+snamp:debug-scaling-policy | Evaluate scaling policy. Useful for debugging
 snamp:receive-message | Wait for cluster-wide message transmitted using command `post-message`
 snamp:post-message | Send cluster-wide message. Useful for debugging clustered configuration of SNAMP
 

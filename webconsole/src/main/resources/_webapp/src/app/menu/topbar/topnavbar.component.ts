@@ -28,6 +28,8 @@ export class TopNavBar {
     }
 
     public clearCookie() {
+        // make sure it works on remote server
+      document.cookie = "snamp-auth-token=; expires=" + +new Date() + "; domain=" + window.location.hostname + "; path=/";
       this._cookieService.removeAll();
       this._snampLogService.clear();
     }

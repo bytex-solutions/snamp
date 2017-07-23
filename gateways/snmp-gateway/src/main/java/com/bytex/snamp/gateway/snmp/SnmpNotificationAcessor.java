@@ -12,7 +12,6 @@ import org.snmp4j.smi.*;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
 import java.lang.ref.WeakReference;
-import java.text.ParseException;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -31,7 +30,7 @@ final class SnmpNotificationAcessor extends NotificationAccessor implements Snmp
     private final OID notificationID;
 
     SnmpNotificationAcessor(final MBeanNotificationInfo metadata,
-                            final String resourceName) throws IllegalArgumentException, ParseException {
+                            final String resourceName) {
         super(metadata);
         this.notificationOriginator = null;
         this.resourceName = resourceName;

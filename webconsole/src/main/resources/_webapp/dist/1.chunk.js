@@ -15,21 +15,6 @@ exports.push([module.i, ".form-group {\r\n    margin-bottom: 10px;\r\n    displa
 
 /***/ },
 
-/***/ "./node_modules/css-loader/index.js!./src/app/watchers/templates/css/prov.css":
-/***/ function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/css-base.js")();
-// imports
-
-
-// module
-exports.push([module.i, "", ""]);
-
-// exports
-
-
-/***/ },
-
 /***/ "./node_modules/css-loader/index.js!./src/app/watchers/templates/css/statuses.css":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -133,7 +118,7 @@ var ColoredCondition = (function () {
         this.entityType = (this.entity != undefined) ? this.entity.constructor.name : "";
     };
     ColoredCondition.prototype.ngAfterViewInit = function () {
-        console.log("Entity: ", this.entity, ", entityType: ", this.entityType);
+        console.debug("Entity: ", this.entity, ", entityType: ", this.entityType);
     };
     __decorate([
         core_1.Input(), 
@@ -558,17 +543,17 @@ exports.Guid = Guid;
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var watcher_1 = __webpack_require__("./src/app/watchers/model/watcher.ts");
 var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scriptlet.data.object.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var Factory = (function () {
     function Factory() {
     }
     Factory.watcherFromJSON = function (name, json) {
-        console.log("Watcher: ", JSON.stringify(json));
+        console.debug("Watcher: ", JSON.stringify(json));
         var _pType = "all";
         if (!util_1.isNullOrUndefined(json["parameters"]) && !util_1.isNullOrUndefined(json["parameters"]["$strategy$"])) {
             _pType = json["parameters"]["$strategy$"];
-            json["parameters"]["$strategy$"] = null;
+            delete json["parameters"]["$strategy$"];
         }
         var _watcher = new watcher_1.Watcher(name, json["parameters"]);
         _watcher.votingStrategy = _pType;
@@ -607,8 +592,7 @@ var Factory = (function () {
             _watcher.minClusterSize = json["minClusterSize"];
         }
         if (json["cooldownTime"] != undefined) {
-            _watcher.cooldownTime = (!isNaN(parseFloat(json["cooldownTime"])) && isFinite(json["cooldownTime"]))
-                ? json["cooldownTime"] : moment.duration(json["cooldownTime"]).asMilliseconds();
+            _watcher.cooldownTime = app_utils_1.SnampUtils.parseDuration(json["cooldownTime"]);
         }
         if (json["type"] != undefined) {
             _watcher.type = json["type"];
@@ -716,7 +700,8 @@ exports.AbstractPolicy = AbstractPolicy;
 "use strict";
 "use strict";
 var abstract_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.policy.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var AbstractWeightedScalingPolicy = (function (_super) {
     __extends(AbstractWeightedScalingPolicy, _super);
     function AbstractWeightedScalingPolicy() {
@@ -756,10 +741,10 @@ var AbstractWeightedScalingPolicy = (function (_super) {
         configurable: true
     });
     AbstractWeightedScalingPolicy.prototype.formatObservationTime = function () {
-        return moment.duration({ milliseconds: this.observationTime }).humanize();
+        return app_utils_1.SnampUtils.toHumanizedDuration(this.observationTime);
     };
     AbstractWeightedScalingPolicy.prototype.getPolicyWeight = function () {
-        return this.voteWeight.toString();
+        return util_1.isNullOrUndefined(this.voteWeight) ? "N/A" : this.voteWeight.toString();
     };
     return AbstractWeightedScalingPolicy;
 }(abstract_policy_1.AbstractPolicy));
@@ -774,8 +759,8 @@ exports.AbstractWeightedScalingPolicy = AbstractWeightedScalingPolicy;
 "use strict";
 "use strict";
 var abstract_weighted_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.weighted.scaling.policy.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
 var operational_range_1 = __webpack_require__("./src/app/watchers/model/policy/operational.range.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var AttributeBasedScalingPolicy = (function (_super) {
     __extends(AttributeBasedScalingPolicy, _super);
     function AttributeBasedScalingPolicy() {
@@ -826,16 +811,16 @@ var AttributeBasedScalingPolicy = (function (_super) {
         configurable: true
     });
     AttributeBasedScalingPolicy.prototype.formatAnalysisDepth = function () {
-        return moment.duration({ milliseconds: this.analysisDepth }).humanize();
+        return app_utils_1.SnampUtils.toHumanizedDuration(this.analysisDepth);
     };
     AttributeBasedScalingPolicy.prototype.toJSON = function () {
         var _value = {};
         _value["voteWeight"] = this.voteWeight;
         _value["incrementalWeight"] = this.incrementalWeight;
-        _value["observationTime"] = moment.duration({ milliseconds: this.observationTime }).toISOString();
+        _value["observationTime"] = app_utils_1.SnampUtils.toDurationString(this.observationTime);
         _value["attributeName"] = this.attributeName;
         _value["operationalRange"] = this.operationalRange.toString();
-        _value["analysisDepth"] = moment.duration({ milliseconds: this.analysisDepth }).toISOString();
+        _value["analysisDepth"] = app_utils_1.SnampUtils.toDurationString(this.analysisDepth);
         _value["aggregation"] = this.aggregation;
         return _value;
     };
@@ -855,7 +840,7 @@ exports.AttributeBasedScalingPolicy = AttributeBasedScalingPolicy;
 "use strict";
 "use strict";
 var abstract_weighted_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/abstract.weighted.scaling.policy.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var HealthStatusBasedScalingPolicy = (function (_super) {
     __extends(HealthStatusBasedScalingPolicy, _super);
     function HealthStatusBasedScalingPolicy() {
@@ -876,7 +861,7 @@ var HealthStatusBasedScalingPolicy = (function (_super) {
         var _value = {};
         _value["voteWeight"] = this.voteWeight;
         _value["incrementalWeight"] = this.incrementalWeight;
-        _value["observationTime"] = moment.duration({ milliseconds: this.observationTime }).toISOString();
+        _value["observationTime"] = app_utils_1.SnampUtils.toDurationString(this.observationTime);
         _value["level"] = this.level;
         return _value;
     };
@@ -898,6 +883,8 @@ exports.HealthStatusBasedScalingPolicy = HealthStatusBasedScalingPolicy;
 var util_1 = __webpack_require__("./node_modules/util/util.js");
 var OpRange = (function () {
     function OpRange(begin, end) {
+        this._begin = 0.0;
+        this._end = 1.0;
         this.isBeginInfinite = false;
         this.isEndInfinite = false;
         this.isBeginIncluding = true;
@@ -936,15 +923,26 @@ var OpRange = (function () {
         return (this.isEndIncluding && !this.isEndInfinite) ? "]" : ")";
     };
     OpRange.prototype.getBeginString = function () {
-        return this.isBeginInfinite ? OpRange.MINUS_INFINITE : this.begin.toString();
+        if (this.isBeginInfinite || util_1.isNullOrUndefined(this.begin)) {
+            return OpRange.MINUS_INFINITE;
+        }
+        else {
+            return this.begin.toString();
+        }
     };
     OpRange.prototype.getEndString = function () {
-        return this.isEndInfinite ? OpRange.PLUS_INFINITE : this.end.toString();
+        if (this.isEndInfinite || util_1.isNullOrUndefined(this.end)) {
+            return OpRange.PLUS_INFINITE;
+        }
+        else {
+            return this.end.toString();
+        }
     };
     OpRange.prototype.toString = function () {
         return this.getLeftBracket() + this.getBeginString() + OpRange.DELIMITER + this.getEndString() + this.getRightBracket();
     };
     OpRange.fromString = function (str) {
+        console.debug("String to parse operational: ", str);
         var splits = str.split(OpRange.DELIMITER);
         var _result = new OpRange(0.0, 0.0);
         // begining parsing
@@ -963,14 +961,14 @@ var OpRange = (function () {
             _result.begin = Number.parseFloat(beginStr);
         }
         // ending parse
-        if (splits[1].substr(splits[1].length - 2, splits[1].length - 1) == "]") {
+        if (splits[1].substr(splits[1].length - 1, 1) == "]") {
             _result.isEndInfinite = false;
             _result.isEndIncluding = true;
         }
         else {
             _result.isEndIncluding = false;
         }
-        var endStr = splits[1].substr(0, splits[1].length - 2);
+        var endStr = splits[1].substr(0, splits[1].length - 1);
         if (endStr == OpRange.PLUS_INFINITE) {
             _result.isEndInfinite = true;
         }
@@ -1037,8 +1035,8 @@ var colored_checker_1 = __webpack_require__("./src/app/watchers/model/colored.ch
 var model_entity_1 = __webpack_require__("./src/app/configuration/model/model.entity.ts");
 var health_status_based_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/health.status.based.scaling.policy.ts");
 var attribute_based_scaling_policy_1 = __webpack_require__("./src/app/watchers/model/policy/attribute.based.scaling.policy.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
 var operational_range_1 = __webpack_require__("./src/app/watchers/model/policy/operational.range.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var ScriptletDataObject = (function (_super) {
     __extends(ScriptletDataObject, _super);
     function ScriptletDataObject(params) {
@@ -1055,7 +1053,7 @@ var ScriptletDataObject = (function (_super) {
     };
     // add "MetricBased"(AttributeBasedScalingPolicy) and
     ScriptletDataObject.fromJSON = function (json) {
-        console.log("Json from data object is: ", json);
+        console.debug("Json from data object is: ", json);
         var instance = new ScriptletDataObject(json["parameters"]);
         if (json["language"] != undefined) {
             instance.language = json["language"];
@@ -1075,26 +1073,20 @@ var ScriptletDataObject = (function (_super) {
                 var _jsonHSB = JSON.parse(instance.script);
                 instance.policyObject = new health_status_based_scaling_policy_1.HealthStatusBasedScalingPolicy();
                 instance.policyObject.level = _jsonHSB["level"];
-                instance.policyObject.observationTime =
-                    (!isNaN(parseFloat(_jsonHSB["observationTime"])) && isFinite(_jsonHSB["observationTime"]))
-                        ? _jsonHSB["observationTime"] : moment.duration(_jsonHSB["observationTime"]).asMilliseconds();
+                instance.policyObject.observationTime = app_utils_1.SnampUtils.parseDuration(_jsonHSB["observationTime"]);
                 instance.policyObject.incrementalWeight = _jsonHSB["incrementalWeight"];
                 instance.policyObject.voteWeight = _jsonHSB["voteWeight"];
                 break;
             case "MetricBased":
                 var _jsonMB = JSON.parse(instance.script);
                 instance.policyObject = new attribute_based_scaling_policy_1.AttributeBasedScalingPolicy();
-                instance.policyObject.analysisDepth =
-                    (!isNaN(parseFloat(_jsonMB["observationTime"])) && isFinite(_jsonMB["observationTime"]))
-                        ? _jsonMB["observationTime"] : moment.duration(_jsonMB["observationTime"]).asMilliseconds();
+                instance.policyObject.analysisDepth = app_utils_1.SnampUtils.parseDuration(_jsonMB["observationTime"]);
                 instance.policyObject.incrementalWeight = _jsonMB["incrementalWeight"];
                 instance.policyObject.voteWeight = _jsonMB["voteWeight"];
                 instance.policyObject.aggregation = _jsonMB["aggregation"];
                 instance.policyObject.attributeName = _jsonMB["attributeName"];
                 instance.policyObject.operationalRange = operational_range_1.OpRange.fromString(_jsonMB["operationalRange"]);
-                instance.policyObject.analysisDepth =
-                    (!isNaN(parseFloat(_jsonMB["analysisDepth"])) && isFinite(_jsonMB["analysisDepth"]))
-                        ? _jsonMB["analysisDepth"] : moment.duration(_jsonMB["analysisDepth"]).asMilliseconds();
+                instance.policyObject.analysisDepth = app_utils_1.SnampUtils.parseDuration(_jsonMB["analysisDepth"]);
                 break;
             case "ColoredAttributeChecker":
                 instance.object = new colored_checker_1.ColoredAttributeChecker();
@@ -1172,7 +1164,7 @@ var ScriptletDataObject = (function (_super) {
                 this.script = JSON.stringify(this.policyObject.toJSON());
             }
         }
-        console.log("Trying to stringify current scriptlet object: ", _value);
+        console.debug("Trying to stringify current scriptlet object: ", _value);
         return _value;
     };
     ScriptletDataObject.prototype.getPolicyType = function () {
@@ -1195,8 +1187,8 @@ exports.ScriptletDataObject = ScriptletDataObject;
 "use strict";
 var entity_1 = __webpack_require__("./src/app/watchers/model/entity.ts");
 var scriptlet_data_object_1 = __webpack_require__("./src/app/watchers/model/scriptlet.data.object.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var Watcher = (function (_super) {
     __extends(Watcher, _super);
     function Watcher() {
@@ -1214,7 +1206,7 @@ var Watcher = (function (_super) {
         this.votingStrategy = "all";
     }
     Watcher.prototype.toJSON = function () {
-        // console.log("JSONify the watcher from the watcher class: ", this);
+        // console.debug("JSONify the watcher from the watcher class: ", this);
         var _value = {};
         _value["attributeCheckers"] = {};
         for (var key in this.attributeCheckers) {
@@ -1228,11 +1220,13 @@ var Watcher = (function (_super) {
         _value["parameters"] = this.stringifyParameters();
         _value["parameters"]["$strategy$"] = this.votingStrategy;
         _value["connectionStringTemplate"] = this.connectionStringTemplate;
-        _value["cooldownTime"] = moment.duration({ milliseconds: this.cooldownTime }).toISOString();
         _value["autoScaling"] = this.autoScaling;
-        _value["scalingSize"] = this.scalingSize;
-        _value["minClusterSize"] = this.minClusterSize;
-        _value["maxClusterSize"] = this.maxClusterSize;
+        if (this.autoScaling) {
+            _value["cooldownTime"] = app_utils_1.SnampUtils.toDurationString(this.cooldownTime);
+            _value["scalingSize"] = this.scalingSize;
+            _value["minClusterSize"] = this.minClusterSize;
+            _value["maxClusterSize"] = this.maxClusterSize;
+        }
         _value["type"] = this.type;
         return _value;
     };
@@ -1244,7 +1238,7 @@ var Watcher = (function (_super) {
     };
     Watcher.prototype.recalculateVotes = function () {
         var _voteWeight = 0;
-        var _count = Object.keys(this.scalingPolicies).length;
+        var _count = this.getPoliciesCount();
         switch (this.votingStrategy) {
             case "all":
                 _voteWeight = 0.5 + Number.EPSILON;
@@ -1256,7 +1250,7 @@ var Watcher = (function (_super) {
                 _voteWeight = 1;
                 break;
             default:
-                console.log("Do nothing - custom type is used");
+                console.debug("Do nothing - custom type is used");
                 return;
         }
         for (var key in this.scalingPolicies) {
@@ -1264,6 +1258,12 @@ var Watcher = (function (_super) {
                 this.scalingPolicies[key].policyObject.voteWeight = _voteWeight;
             }
         }
+    };
+    Watcher.prototype.getCheckersCount = function () {
+        return Object.keys(this.attributeCheckers).length;
+    };
+    Watcher.prototype.getPoliciesCount = function () {
+        return Object.keys(this.scalingPolicies).length;
     };
     return Watcher;
 }(entity_1.Entity));
@@ -1277,21 +1277,6 @@ exports.Watcher = Watcher;
 
 
         var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/watchers/templates/css/main.css");
-
-        if (typeof result === "string") {
-            module.exports = result;
-        } else {
-            module.exports = result.toString();
-        }
-    
-
-/***/ },
-
-/***/ "./src/app/watchers/templates/css/prov.css":
-/***/ function(module, exports, __webpack_require__) {
-
-
-        var result = __webpack_require__("./node_modules/css-loader/index.js!./src/app/watchers/templates/css/prov.css");
 
         if (typeof result === "string") {
             module.exports = result;
@@ -1320,14 +1305,7 @@ exports.Watcher = Watcher;
 /***/ "./src/app/watchers/templates/main.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>{{getMainHeader()}}</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n\r\n    <!-- Modal for edit the trigger for activeWatcher -->\r\n    <div class=\"modal fade\" id=\"editTriggerModal\" role=\"dialog\" aria-labelledby=\"editTriggerLabel\"  *ngIf=\"activeWatcher != undefined\">\r\n      <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n          <div class=\"modal-header\">\r\n            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n            <h4 class=\"modal-title leftAlign\" id=\"editTriggerLabel\">Edit trigger</h4>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizardForTrigger\" style=\"height: 95%\">\r\n                <ul>\r\n                  <li>\r\n                    <a [attr.href]=\"'#language'\">\r\n                      Language<br />\r\n                      <small>Select language for trigger</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#url'\">\r\n                      Use url<br />\r\n                      <small>Use URL for loading script</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#ptable'\">\r\n                      Parameters<br />\r\n                      <small>Append parameters</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#script'\">\r\n                      Script<br />\r\n                      <small>Trigger's script</small>\r\n                    </a>\r\n                  </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n                  <div id=\"language\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              for=\"languageSelect\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Language <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <select class=\"form-control\" [(ngModel)]=\"activeWatcher.trigger.language\" id=\"languageSelect\">\r\n                          <option *ngFor=\"let language of triggerLanguages\" [ngValue]=\"language\">{{language}}</option>\r\n                        </select>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"url\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Load script from external URL <span class=\"required\">*</span>\r\n                      </label>\r\n\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                        <ui-switch\r\n                                [(ngModel)]=\"activeWatcher.trigger.isURL\"\r\n                                [size]=\"'small'\">\r\n                        </ui-switch>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"ptable\" class=\"row\" style=\"margin-top: 30px;\">\r\n                    <div>\r\n                      <ptable [entity]=\"activeWatcher.trigger\"></ptable>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"script\" class=\"row\" style=\"margin-top: 20px;\">\r\n                    <div *ngIf=\"activeWatcher.trigger.isURL\">\r\n                      <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                for=\"urlForTrigger\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Url for script loading <span class=\"required\">*</span>\r\n                        </label>\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                          <input type=\"text\" class=\"form-control\" id=\"urlForTrigger\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activeWatcher.trigger.script\"/>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div *ngIf=\"!activeWatcher.trigger.isURL\">\r\n                      <div>\r\n                        <div class=\"row\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForTrigger\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Script body for the trigger <span class=\"required\">*</span>\r\n                          </label>\r\n                        </div>\r\n                        <div class=\"row\">\r\n                          <div class=\"col-md-12 col-sm-12 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForTrigger\" rows=\"10\" class=\"form-control\" [(ngModel)]=\"activeWatcher.trigger.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"col-md-2\" style=\"float:right; margin-top: 30px;\">\r\n                      <button class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"saveCurrentTrigger()\">Save trigger</button>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <!-- Modal for edit checkers for activeWatcher -->\r\n    <div class=\"modal fade\" id=\"editCheckerModal\" role=\"dialog\" aria-labelledby=\"editCheckerLabel\" *ngIf=\"activeWatcher != undefined\">\r\n      <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n          <div class=\"modal-header\">\r\n            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n            <h4 class=\"modal-title leftAlign\" id=\"editCheckerLabel\">Edit attribute checkers</h4>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizardForCheckers\" style=\"height: 95%\">\r\n                <ul>\r\n                  <li>\r\n                    <a [attr.href]=\"'#checkerTable'\">\r\n                      Select checker<br />\r\n                      <small>Select type of checker</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#checkerType'\">\r\n                      Type<br />\r\n                      <small>Select type of checker</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#checkerPTable'\">\r\n                      Parameters<br />\r\n                      <small>Set parameters</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#checkerBody'\">\r\n                      Checker's logic<br />\r\n                      <small>What action will be performed</small>\r\n                    </a>\r\n                  </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n\r\n                  <div id=\"checkerTable\" class=\"row\" style=\"margin-top: 5px;\">\r\n                    <table class=\"table table-hover table-bordered\">\r\n                      <thead class=\"thead-inverse\">\r\n                      <tr>\r\n                        <th>Actions</th>\r\n                        <th>Attribute</th>\r\n                        <th>Binding</th>\r\n                        <th>Checker type</th>\r\n                      </tr>\r\n                      </thead>\r\n                      <tbody>\r\n                      <tr *ngFor=\"let attribute of attributes\" class=\"clickableTr\" [class.activeTr]=\"((selectedAttribute != undefined) && (selectedAttribute.name == attribute.name))\" (click)=\"editCheckerForAttribute(attribute)\">\r\n                        <td>\r\n                                  <span\r\n                                          class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                          (click)=\"removeCheckerForAttribute(attribute)\"\r\n                                          aria-hidden=\"true\">\r\n                                  </span>\r\n                        </td>\r\n                        <th scope=\"row\">{{attribute.name}}</th>\r\n                        <td>\r\n                                <span class=\"input-group-addon\"  *ngIf=\"activeWatcher.checkerExists(attribute.name)\">\r\n                                      <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                 </span>\r\n                        </td>\r\n                        <td>\r\n                          {{activeWatcher.checkerTypeForAttributeName(attribute.name)}}\r\n                        </td>\r\n                      </tr>\r\n                      </tbody>\r\n                    </table>\r\n                  </div>\r\n\r\n                  <div id=\"checkerPTable\" class=\"row\" style=\"margin-top: 30px;\">\r\n                    <div>\r\n                      <ptable [entity]=\"activeChecker\"></ptable>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"checkerType\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              for=\"checkerTypeSelect\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Set type for attribute checker <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <select class=\"form-control\" [(ngModel)]=\"activeChecker.language\" id=\"checkerTypeSelect\" (ngModelChange)=\"selectCheckerType($event)\">\r\n                          <option *ngFor=\"let type of checkersType\" [ngValue]=\"type.id\">{{type.description}}</option>\r\n                        </select>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n\r\n                  <div id=\"checkerBody\" class=\"row\" style=\"margin-top: 5px;\">\r\n                    <div *ngIf=\"activeChecker?.language != 'ColoredAttributeChecker'\" style=\"margin-top: 20px;\">\r\n\r\n                      <div class=\"item form-group\" style=\"margin-bottom: 15px;\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Load script from external URL <span class=\"required\">*</span>\r\n                        </label>\r\n\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activeChecker.isURL\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div *ngIf=\"activeChecker?.isURL\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"urlForChecker\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input type=\"text\" class=\"form-control\" id=\"urlForChecker\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activeChecker.script\"/>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div *ngIf=\"!activeChecker?.isURL\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForChecker\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Script body for the checker <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForChecker\" rows=\"5\" class=\"form-control\" [(ngModel)]=\"activeChecker.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div *ngIf=\"activeChecker?.language == 'ColoredAttributeChecker'\">\r\n                      <div class=\"panel-group group-accordeon\" id=\"accordionChecker\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                        <div class=\"panel panel-default\" >\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                            <h4 class=\"panel-title\">\r\n                              <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionChecker\" href=\"#collapseGreen\" aria-expanded=\"true\" aria-controls=\"collapseGreen\">\r\n                                <img src=\"assets/img/green-circle.png\" class=\"img-inline\"> Green condition\r\n                              </a>\r\n                            </h4>\r\n                          </div>\r\n                          <div id=\"collapseGreen\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                            <div class=\"panel-body\">\r\n                              <coloredCondition [entity]=\"activeChecker.object.green\" (notify)=\"onGreenNotify($event)\"></coloredCondition>\r\n                            </div>\r\n                          </div>\r\n                        </div>\r\n                        <div class=\"panel panel-default\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                            <h4 class=\"panel-title\">\r\n                              <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionChecker\" href=\"#collapseYellow\" aria-expanded=\"false\" aria-controls=\"collapseYellow\">\r\n                                <img src=\"assets/img/yellow-circle.png\" class=\"img-inline\"> Yellow condition\r\n                              </a>\r\n                            </h4>\r\n                          </div>\r\n                          <div id=\"collapseYellow\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                            <div class=\"panel-body\">\r\n                              <coloredCondition [entity]=\"activeChecker.object.yellow\" (notify)=\"onYellowNotify($event)\"></coloredCondition>\r\n                            </div>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div class=\"col-md-2\" style=\"float:right;\">\r\n                      <button class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"saveCurrentChecker()\">Save checker</button>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <!-- Modal for edit policies for activeWatcher -->\r\n    <div class=\"modal fade\" id=\"editPolicyModal\" role=\"dialog\" aria-labelledby=\"editPolicyLabel\" *ngIf=\"activeWatcher != undefined\">\r\n      <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n          <div class=\"modal-header\">\r\n            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n            <h4 class=\"modal-title leftAlign\" id=\"editPolicyLabel\">Edit scaling policies</h4>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizardForPolicies\" style=\"height: 95%\">\r\n                <ul>\r\n                  <li>\r\n                    <a [attr.href]=\"'#votingStrategy'\">\r\n                      Voting strategy<br />\r\n                      <small>Select voting strategy</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#policyTable'\">\r\n                      Policy selection<br />\r\n                      <small>Select or add a policy</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#policyType'\">\r\n                      Type<br />\r\n                      <small>Select type of policy</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#policyPTable'\">\r\n                      Parameters<br />\r\n                      <small>Set parameters</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#policyBody'\">\r\n                      Policy's logic<br />\r\n                      <small>How the policy works</small>\r\n                    </a>\r\n                  </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n\r\n                  <div id=\"votingStrategy\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              for=\"strategySelect\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Set strategy <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <select class=\"form-control\" [(ngModel)]=\"activeWatcher.votingStrategy\" id=\"strategySelect\" (ngModelChange)=\"selectVotingStrategy($event)\">\r\n                          <option *ngFor=\"let type of strategyTypes\" [ngValue]=\"type.id\">{{type.description}}</option>\r\n                        </select>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"policyTable\" class=\"row\" style=\"margin-top: 5px;\">\r\n                    <table class=\"table table-hover table-bordered\">\r\n                      <thead class=\"thead-inverse\">\r\n                      <tr>\r\n                        <th>Actions</th>\r\n                        <th>Name</th>\r\n                        <th>Type</th>\r\n                        <th *ngIf=\"activeWatcher.votingStrategy == 'custom'\">Weight</th>\r\n                      </tr>\r\n                      </thead>\r\n                      <tbody>\r\n                      <tr *ngFor=\"let entry of activeWatcher.scalingPolicies | keys\" class=\"clickableTr\" [class.activeTr]=\"isPolicyActive(entry.key)\" (click)=\"editPolicy(entry.key, entry.value)\">\r\n                        <td>\r\n                                  <span\r\n                                          class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                          (click)=\"removePolicy(entry.key)\"\r\n                                          aria-hidden=\"true\">\r\n                                  </span>\r\n                        </td>\r\n                        <th scope=\"row\">{{entry.key}}</th>\r\n                        <td>\r\n                          {{entry.value.getPolicyType()}}\r\n                        </td>\r\n                        <td *ngIf=\"activeWatcher.votingStrategy == 'custom'\">\r\n                          {{entry.value.getPolicyWeight()}}\r\n                        </td>\r\n                      </tr>\r\n                      </tbody>\r\n                    </table>\r\n                    <button class=\"btn btn-primary btn-xs\" (click)=\"addNewPolicy()\">\r\n                      Add new policy\r\n                    </button>\r\n                  </div>\r\n\r\n                  <div id=\"policyType\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              for=\"policyTypeSelect\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Set type for policy <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <select class=\"form-control\" [(ngModel)]=\"activePolicy.language\" id=\"policyTypeSelect\" (ngModelChange)=\"selectPolicyType($event)\">\r\n                          <option *ngFor=\"let type of policyTypes\" [ngValue]=\"type.id\">{{type.description}}</option>\r\n                        </select>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"policyPTable\" class=\"row\" style=\"margin-top: 30px;\">\r\n                    <div>\r\n                      <ptable [entity]=\"activePolicy\"></ptable>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"policyBody\" class=\"row\" style=\"margin-top: 5px;\">\r\n                    <div *ngIf=\"activePolicy?.language == 'Groovy'\" style=\"margin-top: 20px;\">\r\n\r\n                      <div class=\"item form-group\" style=\"margin-bottom: 15px;\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Load script from external URL <span class=\"required\">*</span>\r\n                        </label>\r\n\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activePolicy.isURL\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div *ngIf=\"activePolicy?.isURL\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"urlForPolicy\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input type=\"text\" class=\"form-control\" id=\"urlForPolicy\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activePolicy.script\"/>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div *ngIf=\"!activePolicy?.isURL\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForPolicy\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Script body for the policy <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForPolicy\" rows=\"5\" class=\"form-control\" [(ngModel)]=\"activePolicy.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div *ngIf=\"activePolicy?.language == 'HealthStatusBased'\">\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"healthStatusTypeSelection\" class=\"col-md-2 col-form-label\">Level</label>\r\n                        <div class=\"col-md-10\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.level\" id=\"healthStatusTypeSelection\">\r\n                            <option  *ngFor=\"let level of healthStatusLevels\" [ngValue]=\"level\">{{level}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\" *ngIf=\"activeWatcher.votingStrategy == 'custom'\">\r\n                        <label for=\"voteWeightHSBPolicy\" class=\"col-md-2 col-form-label\">Vote weight</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\"  min=\"0\" [(ngModel)]=\"activePolicy.policyObject.voteWeight\" id=\"voteWeightHSBPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"observationTimeHSBPolicy\" class=\"col-md-2 col-form-label\">Observation time (ms)</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\" min=\"0\" [(ngModel)]=\"activePolicy.policyObject.observationTime\" id=\"observationTimeHSBPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label class=\"col-md-2 col-form-label\">Incremental weight</label>\r\n                        <div class=\"col-md-10\">\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activePolicy.policyObject.incrementalWeight\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n\r\n                    </div>\r\n\r\n                    <div *ngIf=\"activePolicy?.language == 'MetricBased'\">\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"operationalRangePolicy\" class=\"col-md-2 col-form-label\">Operational range</label>\r\n                        <div class=\"col-md-6\">\r\n                          <input class=\"form-control\" disabled type=\"text\" min=\"0\" [attr.value]=\"activePolicy.policyObject.operationalRange.toString()\" id=\"operationalRangePolicy\">\r\n                        </div>\r\n                        <div class=\"col-md-2\">\r\n                          <button class=\"btn btn-primary\" (click)=\"toggleOperationalRangeDialog()\">{{ operationalRangeVisible ? 'Hide' : 'Edit' }}</button>\r\n                        </div>\r\n                        <div class=\"col-md-4\">\r\n                          <button class=\"btn\" (click)=\"updatePolicyRecommendation()\">Recommendation</button>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\" *ngIf=\"currentRecommendation != undefined\">\r\n                        <label for=\"operationalRangePolicyRec\" class=\"col-md-2 col-form-label\">Recommendation for operational range</label>\r\n                        <div class=\"col-md-8\">\r\n                          <input class=\"form-control\" disabled type=\"text\" min=\"0\" [attr.value]=\"currentRecommendation.toString()\" id=\"operationalRangePolicyRec\">\r\n                        </div>\r\n                        <div class=\"col-md-2\">\r\n                          <button class=\"btn btn-primary\" (click)=\"applyRecommendation()\">Apply</button>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\" *ngIf=\"operationalRangeVisible\">\r\n                        <label for=\"operationalRangePolicy\" class=\"col-md-2 col-form-label\">Operational settings</label>\r\n                        <div class=\"col-md-10\">\r\n                          <div class=\"row\">\r\n                            <br/><br/>\r\n                          </div>\r\n                          <div class=\"row\">\r\n                            <label class=\"col-md-3\">Lower bound infinite</label>\r\n                            <div class=\"col-md-9\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activePolicy.policyObject.operationalRange.isBeginInfinite\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                            </div>\r\n                          </div>\r\n\r\n                          <div class=\"row\" *ngIf=\"!activePolicy.policyObject.operationalRange.isBeginInfinite\">\r\n                            <label class=\"col-md-3\">Lower bound value</label>\r\n                            <div class=\"col-md-4\">\r\n                              <input type=\"number\" class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.operationalRange.begin\"/>\r\n                            </div>\r\n                            <label class=\"col-md-1\">including</label>\r\n                            <div class=\"col-md-4\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activePolicy.policyObject.operationalRange.isBeginIncluding\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                            </div>\r\n                          </div>\r\n\r\n                          <div class=\"row\">\r\n                            <label class=\"col-md-3\">Upper bound infinite</label>\r\n                            <div class=\"col-md-9\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activePolicy.policyObject.operationalRange.isEndInfinite\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                            </div>\r\n                          </div>\r\n\r\n                          <div class=\"row\" *ngIf=\"!activePolicy.policyObject.operationalRange.isEndInfinite\">\r\n                            <label class=\"col-md-3\">Upper bound value</label>\r\n                            <div class=\"col-md-4\">\r\n                              <input type=\"number\" class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.operationalRange.end\"/>\r\n                            </div>\r\n                            <label class=\"col-md-1\">including</label>\r\n                            <div class=\"col-md-4\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activePolicy.policyObject.operationalRange.isEndIncluding\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                            </div>\r\n                          </div>\r\n\r\n                        </div>\r\n                      </div>\r\n\r\n                      <hr/>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"metricAttributeSelection\" class=\"col-md-2 col-form-label\">Attribute</label>\r\n                        <div class=\"col-md-10\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.attributeName\" id=\"metricAttributeSelection\">\r\n                              <option  *ngFor=\"let attribute of attributes\" [ngValue]=\"attribute.name\">{{attribute.name}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"metricAggregationSelection\" class=\"col-md-2 col-form-label\">Aggregation</label>\r\n                        <div class=\"col-md-10\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.aggregation\" id=\"metricAggregationSelection\">\r\n                            <option  *ngFor=\"let aggregation of aggregations\" [ngValue]=\"aggregation\">{{aggregation}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"analysisDepthPolicy\" class=\"col-md-2 col-form-label\">Analysis depth (ms)</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\" min=\"0\" [(ngModel)]=\"activePolicy.policyObject.analysisDepth\" id=\"analysisDepthPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\" *ngIf=\"activeWatcher.votingStrategy == 'custom'\">\r\n                        <label for=\"voteWeightAttrPolicy\" class=\"col-md-2 col-form-label\">Vote weight</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\"  min=\"0\" [(ngModel)]=\"activePolicy.policyObject.voteWeight\" id=\"voteWeightAttrPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"observationTimeAttrPolicy\" class=\"col-md-2 col-form-label\">Observation time (ms)</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\" min=\"0\" [(ngModel)]=\"activePolicy.policyObject.observationTime\" id=\"observationTimeAttrPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label class=\"col-md-2 col-form-label\">Incremental weight</label>\r\n                        <div class=\"col-md-10\">\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activePolicy.policyObject.incrementalWeight\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n\r\n                    </div>\r\n\r\n                    <div class=\"col-md-2\" style=\"float:right;\">\r\n                      <button class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"saveCurrentPolicy()\">Save policy</button>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n      <panel [header]=\"'Supervisor settings'\" [column]=\"'7'\" *ngIf=\"activeWatcher != undefined\">\r\n\r\n        <div class=\"form-group row\">\r\n          <label for=\"watcherTypeSelection\" class=\"col-md-2 col-form-label\">Type</label>\r\n          <div class=\"col-md-10\">\r\n            <select class=\"form-control\" [(ngModel)]=\"activeWatcher.type\" id=\"watcherTypeSelection\">\r\n              <option  *ngFor=\"let supervisor of availableSupervisors\" [ngValue]=\"supervisor.type\">{{supervisor.type}}</option>\r\n            </select>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"form-group row\">\r\n          <label for=\"connectionStringTmpl\" class=\"col-md-2 col-form-label\">Connection string template</label>\r\n          <div class=\"col-md-10\">\r\n            <input class=\"form-control\" type=\"text\" [(ngModel)]=\"activeWatcher.connectionStringTemplate\" id=\"connectionStringTmpl\">\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"form-group row\" *ngIf=\"activeWatcher.autoScaling\">\r\n          <label for=\"scalingSizeInput\" class=\"col-md-2 col-form-label\">Scaling size</label>\r\n          <div class=\"col-md-10\">\r\n            <input class=\"form-control\" type=\"number\" min=\"0\" [attr.max]=\"activeWatcher.maxClusterSize\" [(ngModel)]=\"activeWatcher.scalingSize\" id=\"scalingSizeInput\">\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"form-group row\" *ngIf=\"activeWatcher.autoScaling\">\r\n          <label for=\"minClusterSizeInput\" class=\"col-md-2 col-form-label\">Minimum cluster size</label>\r\n          <div class=\"col-md-10\">\r\n            <input class=\"form-control\" type=\"number\" min=\"0\" [(ngModel)]=\"activeWatcher.minClusterSize\" id=\"minClusterSizeInput\">\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"form-group row\" *ngIf=\"activeWatcher.autoScaling\">\r\n          <label for=\"maxClusterSizeInput\" class=\"col-md-2 col-form-label\">Maximum cluster size</label>\r\n          <div class=\"col-md-10\">\r\n            <input class=\"form-control\" type=\"number\" [attr.min]=\"activeWatcher.minClusterSize\" [(ngModel)]=\"activeWatcher.maxClusterSize\" id=\"maxClusterSizeInput\">\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"form-group row\" *ngIf=\"activeWatcher.autoScaling\">\r\n          <label for=\"cooldownTimeInput\" class=\"col-md-2 col-form-label\">Cooldown time (ms)</label>\r\n          <div class=\"col-md-10\">\r\n            <input class=\"form-control\" type=\"number\" [(ngModel)]=\"activeWatcher.cooldownTime\" id=\"cooldownTimeInput\">\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"form-group row\">\r\n          <label class=\"col-md-2 col-form-label\">Autoscaling</label>\r\n          <div class=\"col-md-10\">\r\n            <ui-switch\r\n                    [(ngModel)]=\"activeWatcher.autoScaling\"\r\n                    [size]=\"'small'\">\r\n            </ui-switch>\r\n          </div>\r\n        </div>\r\n      </panel>\r\n\r\n      <panel [header]=\"getPanelHeader()\" [column]=\"'5'\" *ngIf=\"activeWatcher != undefined\">\r\n\r\n        <div class=\"row row-margin-bottom-sm\">\r\n          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\" for=\"componentSelection\" style=\"margin-top:10px;\">\r\n              Select group <span class=\"required\">*</span>\r\n          </label>\r\n          <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n            <select class=\"form-control\" [(ngModel)]=\"selectedComponent\" id=\"componentSelection\" (ngModelChange)=\"selectCurrentComponent($event)\">\r\n              <option  *ngFor=\"let component of components\" [ngValue]=\"component\">{{component}}</option>\r\n            </select>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"row row-margin-bottom-sm\" *ngIf=\"!(attributes && attributes.length > 0)\">\r\n          <h5>Selected group does not contain attributes - please select another component or set some attributes</h5>\r\n        </div>\r\n\r\n        <div class=\"row row-margin-bottom-sm\">\r\n          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\" style=\"margin-top:10px;\">\r\n            Trigger\r\n          </label>\r\n          <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n            <button class=\"btn btn-primary\"\r\n                    (click)=\"initTriggerModal()\"\r\n                    aria-hidden=\"true\"> Edit trigger\r\n            </button>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"row row-margin-bottom-sm\">\r\n          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\" style=\"margin-top:10px;\">\r\n            Checkers\r\n          </label>\r\n          <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n            <button class=\"btn btn-primary\"\r\n                    [disabled]=\"!(attributes && attributes.length > 0)\"\r\n                    (click)=\"initCheckersModal()\"\r\n                    aria-hidden=\"true\"> Edit checkers\r\n            </button>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"row row-margin-bottom-sm\">\r\n          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\" style=\"margin-top:10px;\">\r\n            Policies\r\n          </label>\r\n          <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n            <button class=\"btn btn-primary\"\r\n                    (click)=\"initPoliciesModal()\"\r\n                    aria-hidden=\"true\"> Edit policies\r\n            </button>\r\n          </div>\r\n        </div>\r\n      </panel>\r\n\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 10px\">\r\n      <panel [header]=\"'Supervisor parameters'\" [column]=\"'12'\" *ngIf=\"activeWatcher != undefined\">\r\n        <ptable [entity]=\"activeWatcher\"></ptable>\r\n      </panel>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 20px; float:right;\" *ngIf=\"activeWatcher != undefined\">\r\n      <hr/>\r\n      <div>\r\n        <button class=\"btn btn-primary\" (click)=\"saveActiveWatcher()\">Save</button>\r\n        <button class=\"btn\" (click)=\"cleanSelection()\">Cancel/clean</button>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 10px\" *ngIf=\"activeWatcher == undefined\">\r\n      <panel [header]=\"'List of supervisors'\" [column]=\"'12'\">\r\n        <table class=\"table table-hover table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th style=\"width:90px;\">Actions</th>\r\n            <th>Name</th>\r\n            <th>Type</th>\r\n            <th>Autoscaling</th>\r\n            <th>Scaling size</th>\r\n            <th>Cooldown time</th>\r\n            <th>Min/max cluster size</th>\r\n            <th>Checkers</th>\r\n            <th>Trigger</th>\r\n            <th>Scaling policy</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\" [class.active-tr]=\"isWatcherActive(watcher)\">\r\n            <td>\r\n              <span\r\n                  class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                  (click)=\"removeWatcher(watcher)\"\r\n                  aria-hidden=\"true\">\r\n              </span>\r\n              <span\r\n                  class=\"glyphicon glyphicon-pencil btn btn-xs btn-primary\"\r\n                  (click)=\"editWatcher(watcher)\"\r\n                  aria-hidden=\"true\">\r\n              </span>\r\n            </td>\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <th scope=\"row\">{{watcher.type}}</th>\r\n            <th scope=\"row\">{{watcher.autoScaling}}</th>\r\n            <th scope=\"row\">{{watcher.scalingSize}}</th>\r\n            <th scope=\"row\">{{watcher.cooldownTime}}</th>\r\n            <th scope=\"row\">{{watcher.minClusterSize}}/{{watcher.maxClusterSize}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n            <td>\r\n              <policies [entity]=\"watcher.scalingPolicies\"></policies>\r\n            </td>\r\n          </tr>\r\n          <tr>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td>\r\n              <button\r\n                      style=\"float:right;\"\r\n                      class=\"btn btn-primary btn-sm\"\r\n                      (click)=\"addNewWatcher()\">+ New watcher</button>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n\r\n\r\n  </div>\r\n</div>\r\n\r\n"
-
-/***/ },
-
-/***/ "./src/app/watchers/templates/prov.html":
-/***/ function(module, exports) {
-
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Provisioning settings</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 10px\">\r\n\r\n      <panel [header]=\"'Provisioning table'\" [column]=\"'12'\">\r\n        <p>Hello there!</p>\r\n      </panel>\r\n     </div>\r\n  </div>\r\n</div>"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>{{getMainHeader()}}</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <hr/>\r\n\r\n\r\n    <!-- Modal for edit the trigger for activeWatcher -->\r\n    <div class=\"modal fade\" id=\"editTriggerModal\" role=\"dialog\" aria-labelledby=\"editTriggerLabel\"  *ngIf=\"activeWatcher != undefined\">\r\n      <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n          <div class=\"modal-header\">\r\n            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n            <h4 class=\"modal-title leftAlign\" id=\"editTriggerLabel\">Edit trigger</h4>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizardForTrigger\" style=\"height: 95%\">\r\n                <ul>\r\n                  <li>\r\n                    <a [attr.href]=\"'#language'\">\r\n                      Language<br />\r\n                      <small>Select language for trigger</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#url'\">\r\n                      Use url<br />\r\n                      <small>Use URL for loading script</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#ptable'\">\r\n                      Parameters<br />\r\n                      <small>Append parameters</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#script'\">\r\n                      Script<br />\r\n                      <small>Trigger's script</small>\r\n                    </a>\r\n                  </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n                  <div id=\"language\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              for=\"languageSelect\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Language <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <select class=\"form-control\" [(ngModel)]=\"activeWatcher.trigger.language\" id=\"languageSelect\">\r\n                          <option *ngFor=\"let language of triggerLanguages\" [ngValue]=\"language\">{{language}}</option>\r\n                        </select>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"url\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Load script from external URL <span class=\"required\">*</span>\r\n                      </label>\r\n\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                        <ui-switch\r\n                                [(ngModel)]=\"activeWatcher.trigger.isURL\"\r\n                                [size]=\"'small'\">\r\n                        </ui-switch>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"ptable\" class=\"row\" style=\"margin-top: 30px;\">\r\n                    <div>\r\n                      <ptable [entity]=\"activeWatcher.trigger\"></ptable>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"script\" class=\"row\" style=\"margin-top: 20px;\">\r\n                    <div *ngIf=\"activeWatcher.trigger.isURL\">\r\n                      <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                for=\"urlForTrigger\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Url for script loading <span class=\"required\">*</span>\r\n                        </label>\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                          <input type=\"text\" class=\"form-control\" id=\"urlForTrigger\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activeWatcher.trigger.script\"/>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div *ngIf=\"!activeWatcher.trigger.isURL\">\r\n                      <div>\r\n                        <div class=\"row\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForTrigger\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Script body for the trigger <span class=\"required\">*</span>\r\n                          </label>\r\n                        </div>\r\n                        <div class=\"row\">\r\n                          <div class=\"col-md-12 col-sm-12 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForTrigger\" rows=\"10\" class=\"form-control\" [(ngModel)]=\"activeWatcher.trigger.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"col-md-2\" style=\"float:right; margin-top: 30px;\">\r\n                      <button class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"saveCurrentTrigger()\">Save trigger</button>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <!-- Modal for edit checkers for activeWatcher -->\r\n    <div class=\"modal fade\" id=\"editCheckerModal\" role=\"dialog\" aria-labelledby=\"editCheckerLabel\" *ngIf=\"activeWatcher != undefined\">\r\n      <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n          <div class=\"modal-header\">\r\n            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n            <h4 class=\"modal-title leftAlign\" id=\"editCheckerLabel\">Edit attribute checkers</h4>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizardForCheckers\" style=\"height: 95%\">\r\n                <ul>\r\n                  <li>\r\n                    <a [attr.href]=\"'#checkerTable'\">\r\n                      Select checker<br />\r\n                      <small>Select type of checker</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#checkerType'\">\r\n                      Type<br />\r\n                      <small>Select type of checker</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#checkerPTable'\">\r\n                      Parameters<br />\r\n                      <small>Set parameters</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#checkerBody'\">\r\n                      Checker's logic<br />\r\n                      <small>What action will be performed</small>\r\n                    </a>\r\n                  </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n\r\n                  <div id=\"checkerTable\" class=\"row\" style=\"margin-top: 5px;\">\r\n                    <table class=\"table table-bordered\">\r\n                      <thead class=\"thead-inverse\">\r\n                      <tr>\r\n                        <th>Actions</th>\r\n                        <th>Attribute</th>\r\n                        <th>Binding</th>\r\n                        <th>Checker type</th>\r\n                      </tr>\r\n                      </thead>\r\n                      <tbody>\r\n                      <tr *ngFor=\"let attribute of attributes\" class=\"clickableTr\" [class.activeTr]=\"((selectedAttribute != undefined) && (selectedAttribute.name == attribute.name))\" (click)=\"editCheckerForAttribute(attribute)\">\r\n                        <td>\r\n                                  <span\r\n                                          class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                          (click)=\"removeCheckerForAttribute(attribute)\"\r\n                                          aria-hidden=\"true\">\r\n                                  </span>\r\n                        </td>\r\n                        <th scope=\"row\">{{attribute.name}}</th>\r\n                        <td>\r\n                                <span class=\"input-group-addon\"  *ngIf=\"activeWatcher.checkerExists(attribute.name)\">\r\n                                      <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                 </span>\r\n                        </td>\r\n                        <td>\r\n                          {{activeWatcher.checkerTypeForAttributeName(attribute.name)}}\r\n                        </td>\r\n                      </tr>\r\n                      </tbody>\r\n                    </table>\r\n                  </div>\r\n\r\n                  <div id=\"checkerPTable\" class=\"row\" style=\"margin-top: 30px;\">\r\n                    <div>\r\n                      <ptable [entity]=\"activeChecker\"></ptable>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"checkerType\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              for=\"checkerTypeSelect\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Set type for attribute checker <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <select class=\"form-control\" [(ngModel)]=\"activeChecker.language\" id=\"checkerTypeSelect\" (ngModelChange)=\"selectCheckerType($event)\">\r\n                          <option *ngFor=\"let type of checkersType\" [ngValue]=\"type.id\">{{type.description}}</option>\r\n                        </select>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n\r\n                  <div id=\"checkerBody\" class=\"row\" style=\"margin-top: 5px;\">\r\n                    <div *ngIf=\"activeChecker?.language != 'ColoredAttributeChecker'\" style=\"margin-top: 20px;\">\r\n\r\n                      <div class=\"item form-group\" style=\"margin-bottom: 15px;\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Load script from external URL <span class=\"required\">*</span>\r\n                        </label>\r\n\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activeChecker.isURL\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div *ngIf=\"activeChecker?.isURL\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"urlForChecker\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input type=\"text\" class=\"form-control\" id=\"urlForChecker\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activeChecker.script\"/>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div *ngIf=\"!activeChecker?.isURL\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForChecker\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Script body for the checker <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForChecker\" rows=\"5\" class=\"form-control\" [(ngModel)]=\"activeChecker.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div *ngIf=\"activeChecker?.language == 'ColoredAttributeChecker'\">\r\n                      <div class=\"panel-group group-accordeon\" id=\"accordionChecker\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                        <div class=\"panel panel-default\" >\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                            <h4 class=\"panel-title\">\r\n                              <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionChecker\" href=\"#collapseGreen\" aria-expanded=\"true\" aria-controls=\"collapseGreen\">\r\n                                <img src=\"assets/img/green-circle.png\" class=\"img-inline\"> Green condition\r\n                              </a>\r\n                            </h4>\r\n                          </div>\r\n                          <div id=\"collapseGreen\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                            <div class=\"panel-body\">\r\n                              <coloredCondition [entity]=\"activeChecker.object.green\" (notify)=\"onGreenNotify($event)\"></coloredCondition>\r\n                            </div>\r\n                          </div>\r\n                        </div>\r\n                        <div class=\"panel panel-default\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                            <h4 class=\"panel-title\">\r\n                              <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionChecker\" href=\"#collapseYellow\" aria-expanded=\"false\" aria-controls=\"collapseYellow\">\r\n                                <img src=\"assets/img/yellow-circle.png\" class=\"img-inline\"> Yellow condition\r\n                              </a>\r\n                            </h4>\r\n                          </div>\r\n                          <div id=\"collapseYellow\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                            <div class=\"panel-body\">\r\n                              <coloredCondition [entity]=\"activeChecker.object.yellow\" (notify)=\"onYellowNotify($event)\"></coloredCondition>\r\n                            </div>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div class=\"col-md-2\" style=\"float:right;\">\r\n                      <button class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"saveCurrentChecker()\">Save checker</button>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <!-- Modal for edit policies for activeWatcher -->\r\n    <div class=\"modal fade\" id=\"editPolicyModal\" role=\"dialog\" aria-labelledby=\"editPolicyLabel\" *ngIf=\"activeWatcher != undefined\">\r\n      <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n          <div class=\"modal-header\">\r\n            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n            <h4 class=\"modal-title leftAlign\" id=\"editPolicyLabel\">Edit scaling policies</h4>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizardForPolicies\" style=\"height: 95%\">\r\n                <ul>\r\n                  <li>\r\n                    <a [attr.href]=\"'#votingStrategy'\">\r\n                      Voting strategy<br />\r\n                      <small>Select voting strategy</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#policyTable'\">\r\n                      Policy selection<br />\r\n                      <small>Select or add a policy</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#policyType'\">\r\n                      Type<br />\r\n                      <small>Select type of policy</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#policyPTable'\">\r\n                      Parameters<br />\r\n                      <small>Set parameters</small>\r\n                    </a>\r\n                  </li>\r\n                  <li>\r\n                    <a [attr.href]=\"'#policyBody'\">\r\n                      Policy's logic<br />\r\n                      <small>How the policy works</small>\r\n                    </a>\r\n                  </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n\r\n                  <div id=\"votingStrategy\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              for=\"strategySelect\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Set strategy <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <select class=\"form-control\" [(ngModel)]=\"activeWatcher.votingStrategy\" id=\"strategySelect\" (ngModelChange)=\"selectVotingStrategy($event)\">\r\n                          <option *ngFor=\"let type of strategyTypes\" [ngValue]=\"type.id\">{{type.description}}</option>\r\n                        </select>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"policyTable\" class=\"row\" style=\"margin-top: 5px;\">\r\n                    <table class=\"table table-bordered\">\r\n                      <thead class=\"thead-inverse\">\r\n                      <tr>\r\n                        <th>Actions</th>\r\n                        <th>Name</th>\r\n                        <th>Type</th>\r\n                        <th *ngIf=\"activeWatcher.votingStrategy == 'custom'\">Weight</th>\r\n                      </tr>\r\n                      </thead>\r\n                      <tbody>\r\n                      <tr *ngFor=\"let entry of activeWatcher.scalingPolicies | keys\" class=\"clickableTr\" [class.activeTr]=\"isPolicyActive(entry.key)\" (click)=\"editPolicy(entry.key, entry.value)\">\r\n                        <td>\r\n                                  <span\r\n                                          class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                          (click)=\"removePolicy(entry.key)\"\r\n                                          aria-hidden=\"true\">\r\n                                  </span>\r\n                        </td>\r\n                        <th scope=\"row\">{{entry.key}}</th>\r\n                        <td>\r\n                          {{entry.value.getPolicyType()}}\r\n                        </td>\r\n                        <td *ngIf=\"activeWatcher.votingStrategy == 'custom'\">\r\n                          {{entry.value.getPolicyWeight()}}\r\n                        </td>\r\n                      </tr>\r\n                      </tbody>\r\n                    </table>\r\n                    <button class=\"btn btn-primary btn-xs\" (click)=\"addNewPolicy()\" *ngIf=\"!newPolicyAppended\">\r\n                      Add new policy\r\n                    </button>\r\n                  </div>\r\n\r\n                  <div id=\"policyType\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                              class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                              for=\"policyTypeSelect\"\r\n                              style=\"margin-top: 7px;\">\r\n                        Set type for policy <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <select class=\"form-control\" [(ngModel)]=\"activePolicy.language\" id=\"policyTypeSelect\" (ngModelChange)=\"selectPolicyType($event)\">\r\n                          <option *ngFor=\"let type of policyTypes\" [ngValue]=\"type.id\">{{type.description}}</option>\r\n                        </select>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"policyPTable\" class=\"row\" style=\"margin-top: 30px;\">\r\n                    <div>\r\n                      <ptable [entity]=\"activePolicy\"></ptable>\r\n                    </div>\r\n                  </div>\r\n\r\n                  <div id=\"policyBody\" class=\"row\" style=\"margin-top: 5px;\">\r\n                    <div *ngIf=\"activePolicy?.language == 'Groovy'\" style=\"margin-top: 20px;\">\r\n\r\n                      <div class=\"item form-group\" style=\"margin-bottom: 15px;\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                style=\"margin-top: 7px;\">\r\n                          Load script from external URL <span class=\"required\">*</span>\r\n                        </label>\r\n\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activePolicy.isURL\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div *ngIf=\"activePolicy?.isURL\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"urlForPolicy\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Url for script loading <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input type=\"text\" class=\"form-control\" id=\"urlForPolicy\" placeholder=\"Input url for script to be loaded from\" [(ngModel)]=\"activePolicy.script\"/>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div *ngIf=\"!activePolicy?.isURL\">\r\n                        <div class=\"item form-group\">\r\n                          <label\r\n                                  class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                  for=\"scriptBodyForPolicy\"\r\n                                  style=\"margin-top: 7px;\">\r\n                            Script body for the policy <span class=\"required\">*</span>\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <textarea id=\"scriptBodyForPolicy\" rows=\"5\" class=\"form-control\" [(ngModel)]=\"activePolicy.script\"></textarea>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                    <div *ngIf=\"activePolicy?.language == 'HealthStatusBased'\">\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"healthStatusTypeSelection\" class=\"col-md-2 col-form-label\">Level</label>\r\n                        <div class=\"col-md-10\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.level\" id=\"healthStatusTypeSelection\">\r\n                            <option  *ngFor=\"let level of healthStatusLevels\" [ngValue]=\"level\">{{level}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\" *ngIf=\"activeWatcher.votingStrategy == 'custom'\">\r\n                        <label for=\"voteWeightHSBPolicy\" class=\"col-md-2 col-form-label\">Vote weight</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\"  min=\"0\" [(ngModel)]=\"activePolicy.policyObject.voteWeight\" id=\"voteWeightHSBPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"observationTimeHSBPolicy\" class=\"col-md-2 col-form-label\">Observation time (ms)</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\" min=\"0\" [(ngModel)]=\"activePolicy.policyObject.observationTime\" id=\"observationTimeHSBPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label class=\"col-md-2 col-form-label\">Incremental weight</label>\r\n                        <div class=\"col-md-10\">\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activePolicy.policyObject.incrementalWeight\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n\r\n                    </div>\r\n\r\n                    <div *ngIf=\"activePolicy?.language == 'MetricBased'\">\r\n\r\n                      <div class=\"form-group row\" style=\"margin-top: 15px\">\r\n                        <label for=\"operationalRangePolicy\" class=\"col-md-2 col-form-label\">Operational range</label>\r\n                        <div class=\"col-md-6\">\r\n                          <input class=\"form-control\" disabled type=\"text\" min=\"0\" [attr.value]=\"activePolicy.policyObject.operationalRange.toString()\" id=\"operationalRangePolicy\">\r\n                        </div>\r\n                        <div class=\"col-md-2\">\r\n                          <button class=\"btn btn-primary\" (click)=\"toggleOperationalRangeDialog()\">{{ operationalRangeVisible ? 'Hide' : 'Edit' }}</button>\r\n                        </div>\r\n                        <div class=\"col-md-4\">\r\n                          <button class=\"btn\" (click)=\"updatePolicyRecommendation()\">Recommendation</button>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\" *ngIf=\"currentRecommendation != undefined\">\r\n                        <label for=\"operationalRangePolicyRec\" class=\"col-md-2 col-form-label\">Recommendation for operational range</label>\r\n                        <div class=\"col-md-8\">\r\n                          <input class=\"form-control\" disabled type=\"text\" min=\"0\" [attr.value]=\"currentRecommendation.toString()\" id=\"operationalRangePolicyRec\">\r\n                        </div>\r\n                        <div class=\"col-md-2\">\r\n                          <button class=\"btn btn-primary\" (click)=\"applyRecommendation()\">Apply</button>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\" *ngIf=\"operationalRangeVisible\">\r\n                        <label for=\"operationalRangePolicy\" class=\"col-md-2 col-form-label\">Operational settings</label>\r\n                        <div class=\"col-md-10\">\r\n                          <div class=\"row\">\r\n                            <br/><br/>\r\n                          </div>\r\n                          <div class=\"row\">\r\n                            <label class=\"col-md-3\">Lower bound infinite</label>\r\n                            <div class=\"col-md-9\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activePolicy.policyObject.operationalRange.isBeginInfinite\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                            </div>\r\n                          </div>\r\n\r\n                          <div class=\"row\" *ngIf=\"!activePolicy.policyObject.operationalRange.isBeginInfinite\">\r\n                            <label class=\"col-md-3\">Lower bound value</label>\r\n                            <div class=\"col-md-4\">\r\n                              <input type=\"number\" class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.operationalRange.begin\"/>\r\n                            </div>\r\n                            <label class=\"col-md-1\">including</label>\r\n                            <div class=\"col-md-4\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activePolicy.policyObject.operationalRange.isBeginIncluding\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                            </div>\r\n                          </div>\r\n\r\n                          <div class=\"row\">\r\n                            <label class=\"col-md-3\">Upper bound infinite</label>\r\n                            <div class=\"col-md-9\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activePolicy.policyObject.operationalRange.isEndInfinite\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                            </div>\r\n                          </div>\r\n\r\n                          <div class=\"row\" *ngIf=\"!activePolicy.policyObject.operationalRange.isEndInfinite\">\r\n                            <label class=\"col-md-3\">Upper bound value</label>\r\n                            <div class=\"col-md-4\">\r\n                              <input type=\"number\" class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.operationalRange.end\"/>\r\n                            </div>\r\n                            <label class=\"col-md-1\">including</label>\r\n                            <div class=\"col-md-4\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activePolicy.policyObject.operationalRange.isEndIncluding\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                            </div>\r\n                          </div>\r\n\r\n                        </div>\r\n                      </div>\r\n\r\n                      <hr/>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"metricAttributeSelection\" class=\"col-md-2 col-form-label\">Attribute</label>\r\n                        <div class=\"col-md-10\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.attributeName\" id=\"metricAttributeSelection\">\r\n                              <option  *ngFor=\"let attribute of attributes\" [ngValue]=\"attribute.name\">{{attribute.name}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"metricAggregationSelection\" class=\"col-md-2 col-form-label\">Aggregation</label>\r\n                        <div class=\"col-md-10\">\r\n                          <select class=\"form-control\" [(ngModel)]=\"activePolicy.policyObject.aggregation\" id=\"metricAggregationSelection\">\r\n                            <option  *ngFor=\"let aggregation of aggregations\" [ngValue]=\"aggregation\">{{aggregation}}</option>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"analysisDepthPolicy\" class=\"col-md-2 col-form-label\">Analysis depth (ms)</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\" min=\"0\" [(ngModel)]=\"activePolicy.policyObject.analysisDepth\" id=\"analysisDepthPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\" *ngIf=\"activeWatcher.votingStrategy == 'custom'\">\r\n                        <label for=\"voteWeightAttrPolicy\" class=\"col-md-2 col-form-label\">Vote weight</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\"  min=\"0\" [(ngModel)]=\"activePolicy.policyObject.voteWeight\" id=\"voteWeightAttrPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label for=\"observationTimeAttrPolicy\" class=\"col-md-2 col-form-label\">Observation time (ms)</label>\r\n                        <div class=\"col-md-10\">\r\n                          <input class=\"form-control\" type=\"number\" min=\"0\" [(ngModel)]=\"activePolicy.policyObject.observationTime\" id=\"observationTimeAttrPolicy\">\r\n                        </div>\r\n                      </div>\r\n\r\n                      <div class=\"form-group row\">\r\n                        <label class=\"col-md-2 col-form-label\">Incremental weight</label>\r\n                        <div class=\"col-md-10\">\r\n                          <ui-switch\r\n                                  [(ngModel)]=\"activePolicy.policyObject.incrementalWeight\"\r\n                                  [size]=\"'small'\">\r\n                          </ui-switch>\r\n                        </div>\r\n                      </div>\r\n\r\n                    </div>\r\n\r\n                    <div class=\"col-md-2\" style=\"float:right;\">\r\n                      <button class=\"btn btn-primary\" data-dismiss=\"modal\" (click)=\"saveCurrentPolicy()\">Save policy</button>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <!-- Supervisors subentities (checkers, triggers, policies) and supervisor's inner settings -->\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <div class=\"col-md-8\">\r\n        <div class=\"row\">\r\n          <!-- Inner settings -->\r\n          <panel [header]=\"'Supervisor settings'\" [column]=\"'12'\" *ngIf=\"activeWatcher != undefined\">\r\n            <div class=\"form-group row\">\r\n              <label for=\"watcherTypeSelection\" class=\"col-md-2 col-form-label\">Type</label>\r\n              <div class=\"col-md-10\">\r\n                <select class=\"form-control\" [(ngModel)]=\"activeWatcher.type\" id=\"watcherTypeSelection\">\r\n                  <option  *ngFor=\"let supervisor of availableSupervisors\" [ngValue]=\"supervisor.type\">{{supervisor.type}}</option>\r\n                </select>\r\n              </div>\r\n            </div>\r\n\r\n            <div class=\"form-group row\">\r\n              <label for=\"connectionStringTmpl\" class=\"col-md-2 col-form-label\">Connection string template</label>\r\n              <div class=\"col-md-10\">\r\n                <input class=\"form-control\" type=\"text\" [(ngModel)]=\"activeWatcher.connectionStringTemplate\" id=\"connectionStringTmpl\">\r\n              </div>\r\n            </div>\r\n\r\n            <div class=\"form-group row\" *ngIf=\"activeWatcher.autoScaling\">\r\n              <label for=\"scalingSizeInput\" class=\"col-md-2 col-form-label\">Scaling size</label>\r\n              <div class=\"col-md-10\">\r\n                <input class=\"form-control\" type=\"number\" min=\"0\" [attr.max]=\"activeWatcher.maxClusterSize\" [(ngModel)]=\"activeWatcher.scalingSize\" id=\"scalingSizeInput\">\r\n              </div>\r\n            </div>\r\n\r\n            <div class=\"form-group row\" *ngIf=\"activeWatcher.autoScaling\">\r\n              <label for=\"minClusterSizeInput\" class=\"col-md-2 col-form-label\">Minimum cluster size</label>\r\n              <div class=\"col-md-10\">\r\n                <input class=\"form-control\" type=\"number\" min=\"0\" [(ngModel)]=\"activeWatcher.minClusterSize\" id=\"minClusterSizeInput\">\r\n              </div>\r\n            </div>\r\n\r\n            <div class=\"form-group row\" *ngIf=\"activeWatcher.autoScaling\">\r\n              <label for=\"maxClusterSizeInput\" class=\"col-md-2 col-form-label\">Maximum cluster size</label>\r\n              <div class=\"col-md-10\">\r\n                <input class=\"form-control\" type=\"number\" [attr.min]=\"activeWatcher.minClusterSize\" [(ngModel)]=\"activeWatcher.maxClusterSize\" id=\"maxClusterSizeInput\">\r\n              </div>\r\n            </div>\r\n\r\n            <div class=\"form-group row\" *ngIf=\"activeWatcher.autoScaling\">\r\n              <label for=\"cooldownTimeInput\" class=\"col-md-2 col-form-label\">Cooldown time (ms)</label>\r\n              <div class=\"col-md-10\">\r\n                <input class=\"form-control\" type=\"number\" [(ngModel)]=\"activeWatcher.cooldownTime\" id=\"cooldownTimeInput\">\r\n              </div>\r\n            </div>\r\n\r\n            <div class=\"form-group row\">\r\n              <label class=\"col-md-2 col-form-label\">Autoscaling</label>\r\n              <div class=\"col-md-10\">\r\n                <ui-switch\r\n                        [(ngModel)]=\"activeWatcher.autoScaling\"\r\n                        [size]=\"'small'\">\r\n                </ui-switch>\r\n              </div>\r\n            </div>\r\n          </panel>\r\n        </div>\r\n        <div class=\"row\">\r\n          <!-- Set the component -->\r\n          <panel [header]=\"'Supervisor group'\" [column]=\"'12'\" *ngIf=\"activeWatcher != undefined\">\r\n\r\n            <div class=\"form-group row\">\r\n              <label class=\"col-md-2 col-form-label\">Select group from list</label>\r\n              <div class=\"col-md-10\">\r\n                <ui-switch\r\n                        [(ngModel)]=\"groupSelection\"\r\n                        [disabled]=\"!components || components.length == 0\"\r\n                        [size]=\"'small'\">\r\n                </ui-switch>\r\n              </div>\r\n            </div>\r\n\r\n            <select\r\n                    class=\"form-control\"\r\n                    [(ngModel)]=\"selectedComponent\"\r\n                    id=\"componentSelection\"\r\n                    *ngIf=\"groupSelection && components && components.length > 0\"\r\n                    (ngModelChange)=\"selectCurrentComponent($event)\">\r\n              <option  *ngFor=\"let component of components\" [ngValue]=\"component\">{{component}}</option>\r\n            </select>\r\n\r\n            <div class=\"form-group row\" *ngIf=\"!groupSelection\">\r\n              <label for=\"manualGroupName\" class=\"col-md-2 col-form-label\">Input group name</label>\r\n              <div class=\"col-md-10\">\r\n                <div class=\"input-group\">\r\n                  <input class=\"form-control\"\r\n                         type=\"text\"\r\n                         [(ngModel)]=\"selectedComponent\"\r\n                         (ngModelChange)=\"triggerGroupNameChanged($event)\"\r\n                         id=\"manualGroupName\"\r\n                         placeholder=\"Input group name manually...\">\r\n                  <span class=\"input-group-btn\">\r\n                     <button class=\"btn btn-secondary\" [class.btn-primary]=\"groupNameChanged\" type=\"button\" (click)=\"saveManualGroupName()\" [disabled]=\"!groupNameChanged\">Save</button>\r\n                  </span>\r\n                </div>\r\n              </div>\r\n            </div>\r\n\r\n            <div class=\"row row-margin-bottom-sm\" *ngIf=\"!(attributes && attributes.length > 0)\">\r\n              <h5>Selected group does not contain attributes - please select another component or set some attributes</h5>\r\n            </div>\r\n\r\n          </panel>\r\n        </div>\r\n      </div>\r\n\r\n      <div class=\"col-md-4\" *ngIf=\"activeWatcher != undefined\">\r\n        <div class=\"row\">\r\n          <div class=\"animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12\">\r\n            <div class=\"tile-stats\">\r\n              <div class=\"icon\" style=\"cursor: pointer;\" (click)=\"initTriggerModal()\"><i class=\"fa fa-pencil-square-o\"></i></div>\r\n              <div class=\"count\">1</div>\r\n              <h3>Trigger</h3>\r\n              <p>Edit trigger for supervisor</p>\r\n            </div>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <div class=\"animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12\">\r\n            <div class=\"tile-stats\">\r\n              <div class=\"icon\" style=\"cursor: pointer;\" (click)=\"initCheckersModal()\"><i class=\"fa fa-pencil-square-o\"></i></div>\r\n              <div class=\"count\">{{activeWatcher.getCheckersCount()}}</div>\r\n              <h3>Checkers</h3>\r\n              <p>Edit checkers for supervisor</p>\r\n            </div>\r\n          </div>\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <div class=\"animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12\">\r\n            <div class=\"tile-stats\">\r\n              <div class=\"icon\" style=\"cursor: pointer;\" (click)=\"initPoliciesModal()\"><i class=\"fa fa-pencil-square-o\"></i></div>\r\n              <div class=\"count\">{{activeWatcher.getPoliciesCount()}}</div>\r\n              <h3>Policies</h3>\r\n              <p>Edit policies for supervisor</p>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <!-- Supervisor's parameter table -->\r\n    <div class=\"row\" style=\"margin-top: 10px\">\r\n      <panel [header]=\"'Supervisor parameters'\" [column]=\"'12'\" *ngIf=\"activeWatcher != undefined\">\r\n        <ptable [entity]=\"activeWatcher\"></ptable>\r\n      </panel>\r\n    </div>\r\n\r\n    <!-- Save/cancel buttons -->\r\n    <div class=\"row\" style=\"margin-top: 20px; float:right;\" *ngIf=\"activeWatcher != undefined\">\r\n      <hr/>\r\n      <div>\r\n        <button class=\"btn btn-primary\" (click)=\"saveActiveWatcher()\">Save</button>\r\n        <button class=\"btn\" (click)=\"cleanSelection()\">Cancel/clean</button>\r\n      </div>\r\n    </div>\r\n\r\n    <!-- Supervisors table -->\r\n    <div class=\"row\" style=\"margin-top: 10px\" *ngIf=\"activeWatcher == undefined\">\r\n      <panel [header]=\"'List of supervisors'\" [column]=\"'12'\">\r\n        <table class=\"table table-bordered\">\r\n          <thead class=\"thead-inverse\">\r\n          <tr>\r\n            <th style=\"width:90px;\">Actions</th>\r\n            <th>Name</th>\r\n            <th>Type</th>\r\n            <th>Autoscaling</th>\r\n            <th>Scaling size</th>\r\n            <th>Cooldown time</th>\r\n            <th>Min/max cluster size</th>\r\n            <th>Checkers</th>\r\n            <th>Trigger</th>\r\n            <th>Scaling policy</th>\r\n          </tr>\r\n          </thead>\r\n          <tbody>\r\n          <tr *ngFor=\"let watcher of watchers\" [class.active-tr]=\"isWatcherActive(watcher)\">\r\n            <td>\r\n              <span\r\n                  class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                  (click)=\"removeWatcher(watcher)\"\r\n                  aria-hidden=\"true\">\r\n              </span>\r\n              <span\r\n                  class=\"glyphicon glyphicon-pencil btn btn-xs btn-primary\"\r\n                  (click)=\"editWatcher(watcher)\"\r\n                  aria-hidden=\"true\">\r\n              </span>\r\n            </td>\r\n            <th scope=\"row\">{{watcher.name}}</th>\r\n            <th scope=\"row\">{{watcher.type}}</th>\r\n            <th scope=\"row\">{{watcher.autoScaling}}</th>\r\n            <th scope=\"row\">{{watcher.scalingSize}}</th>\r\n            <th scope=\"row\">{{watcher.cooldownTime}}</th>\r\n            <th scope=\"row\">{{watcher.minClusterSize}}/{{watcher.maxClusterSize}}</th>\r\n            <td>\r\n              <checkers [entity]=\"watcher.attributeCheckers\"></checkers>\r\n            </td>\r\n            <td>\r\n              <trigger [entity]=\"watcher.trigger\"></trigger>\r\n            </td>\r\n            <td>\r\n              <policies [entity]=\"watcher.scalingPolicies\"></policies>\r\n            </td>\r\n          </tr>\r\n          <tr>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td></td>\r\n            <td>\r\n              <button\r\n                      style=\"float:right;\"\r\n                      class=\"btn btn-primary btn-sm\"\r\n                      (click)=\"addNewWatcher()\">+ New supervisor</button>\r\n            </td>\r\n          </tr>\r\n          </tbody>\r\n        </table>\r\n\r\n      </panel>\r\n    </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -1426,7 +1404,6 @@ var checkers_component_1 = __webpack_require__("./src/app/watchers/components/ch
 var trigger_component_1 = __webpack_require__("./src/app/watchers/components/trigger.component.ts");
 var condition_block_1 = __webpack_require__("./src/app/watchers/components/condition.block.ts");
 var watchers_pipes_1 = __webpack_require__("./src/app/watchers/watchers.pipes.ts");
-var watchers_prov_1 = __webpack_require__("./src/app/watchers/watchers.prov.ts");
 var ptable_component_1 = __webpack_require__("./src/app/watchers/components/ptable.component.ts");
 var policies_component_1 = __webpack_require__("./src/app/watchers/components/policies.component.ts");
 var PROVIDERS = [
@@ -1449,8 +1426,7 @@ var WatchersModule = (function () {
                 router_1.RouterModule.forChild([{
                         path: '', component: watchers_template_1.TemplateComponent, children: [
                             { path: '', component: watchers_view_1.MainComponent },
-                            { path: 'dashboard', component: watchers_dashboard_1.WatcherDashboard },
-                            { path: 'prov', component: watchers_prov_1.WatcherProvisioning }
+                            { path: 'dashboard', component: watchers_dashboard_1.WatcherDashboard }
                         ]
                     }])
             ],
@@ -1458,7 +1434,6 @@ var WatchersModule = (function () {
                 watchers_template_1.TemplateComponent,
                 watchers_view_1.MainComponent,
                 watchers_dashboard_1.WatcherDashboard,
-                watchers_prov_1.WatcherProvisioning,
                 checkers_component_1.CheckersComponent,
                 trigger_component_1.TriggerComponent,
                 policies_component_1.PoliciesComponent,
@@ -1500,41 +1475,6 @@ var KeysPipe = (function () {
     return KeysPipe;
 }());
 exports.KeysPipe = KeysPipe;
-
-
-/***/ },
-
-/***/ "./src/app/watchers/watchers.prov.ts":
-/***/ function(module, exports, __webpack_require__) {
-
-"use strict";
-"use strict";
-var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
-__webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
-var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
-var index_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
-var WatcherProvisioning = (function () {
-    function WatcherProvisioning(apiClient, modal, overlay, vcRef) {
-        this.modal = modal;
-        this.http = apiClient;
-        overlay.defaultViewContainer = vcRef;
-    }
-    WatcherProvisioning.prototype.ngOnInit = function () {
-        console.log("Hello from WatcherProvisioning");
-    };
-    WatcherProvisioning = __decorate([
-        core_1.Component({
-            moduleId: module.i,
-            template: __webpack_require__("./src/app/watchers/templates/prov.html"),
-            styles: [__webpack_require__("./src/app/watchers/templates/css/prov.css")]
-        }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof index_1.Modal !== 'undefined' && index_1.Modal) === 'function' && _b) || Object, (typeof (_c = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _c) || Object, (typeof (_d = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _d) || Object])
-    ], WatcherProvisioning);
-    return WatcherProvisioning;
-    var _a, _b, _c, _d;
-}());
-exports.WatcherProvisioning = WatcherProvisioning;
 
 
 /***/ },
@@ -1613,17 +1553,21 @@ var MainComponent = (function () {
         this.defaultGroovyPolicyScript = "";
         this.operationalRangeVisible = false;
         this.currentRecommendation = undefined;
+        this.newPolicyAppended = false;
+        this.groupSelection = false;
+        this.groupNameChanged = false;
+        this.oldSelectedComponent = "";
         overlay.defaultViewContainer = vcRef;
     }
     MainComponent.prototype.toggleOperationalRangeDialog = function () {
         this.operationalRangeVisible = !this.operationalRangeVisible;
     };
     MainComponent.prototype.saveCurrentTrigger = function () {
-        console.log("Trigger has been saved: ", this.activeWatcher);
+        console.debug("Trigger has been saved: ", this.activeWatcher);
     };
     MainComponent.prototype.saveCurrentChecker = function () {
         this.activeWatcher.attributeCheckers[this.selectedAttribute.name] = this.activeChecker;
-        console.log("Checker has been saved", this.activeWatcher);
+        console.debug("Checker has been saved", this.activeWatcher);
     };
     MainComponent.prototype.getMainHeader = function () {
         return util_1.isNullOrUndefined(this.activeWatcher) ? "Setup supervisors" : "Setup " + this.activeWatcher.name + " supervisor";
@@ -1635,7 +1579,7 @@ var MainComponent = (function () {
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             _this.watchers = factory_1.Factory.watchersArrayFromJSON(data);
-            console.log("All the watchers list: ", _this.watchers);
+            console.debug("All the watchers list: ", _this.watchers);
         });
         // find all the components
         this.http.get(app_restClient_1.REST.GROUPS_WEB_API)
@@ -1649,7 +1593,7 @@ var MainComponent = (function () {
         this.http.get(app_restClient_1.REST.AVAILABLE_SUPERVISORS_LIST)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
-            console.log("Available supervisors list is: ", data);
+            console.debug("Available supervisors list is: ", data);
             _this.availableSupervisors = data;
         });
         this.http.get(app_restClient_1.REST.GROOVY_PATH + "/AttributeChecker.groovy")
@@ -1699,6 +1643,7 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.initPoliciesModal = function () {
         // clean the data if the component was already initialized
+        this.newPolicyAppended = false;
         if (this.policiesInitialized) {
             // reset wizard
             $(this.getPoliciesWizardId()).off("showStep");
@@ -1712,6 +1657,7 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.selectCurrentComponent = function (component) {
         this.selectedComponent = component;
+        this.oldSelectedComponent = component;
         this.loadAttributesOnComponentSelected();
         this.activeWatcher.name = component;
         this.activeWatcher.trigger = new scriptlet_data_object_1.ScriptletDataObject({});
@@ -1737,10 +1683,12 @@ var MainComponent = (function () {
         }
         this.activeChecker = this.activeWatcher.attributeCheckers[attr.name];
         this.selectedAttribute = attr;
+        $(this.getCheckersWizardId()).smartWizard("next");
     };
     MainComponent.prototype.loadAttributesOnComponentSelected = function () {
         var _this = this;
-        console.log("Looking for attributes for group: ", this.selectedComponent);
+        console.debug("Looking for attributes for group: ", this.selectedComponent);
+        this.attributes = [];
         this.http.get(app_restClient_1.REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
             .map(function (res) {
             var _data = res.json();
@@ -1749,10 +1697,11 @@ var MainComponent = (function () {
                 _values.push(new attribute_1.AttributeInformation(_data[i]));
             }
             return _values;
-        }).catch(function (res) { return Observable_1.Observable.of([]); }).cache()
+        })
+            .catch(function (res) { return Observable_1.Observable.of([]); }).cache()
             .subscribe(function (data) {
             _this.attributes = data;
-            console.log("attributes: ", data);
+            console.debug("attributes: ", data);
         });
     };
     MainComponent.prototype.selectCheckerType = function (type) {
@@ -1780,7 +1729,7 @@ var MainComponent = (function () {
                 _this.http.delete(app_restClient_1.REST.SUPERVISOR_BY_NAME(watcher.name))
                     .map(function (res) { return res.text(); })
                     .subscribe(function (data) {
-                    console.log("watcher has been removed: ", data);
+                    console.debug("watcher has been removed: ", data);
                     for (var i = 0; i < _this.watchers.length; i++) {
                         if (_this.watchers[i].name == watcher.name) {
                             _this.watchers.splice(i, 1);
@@ -1792,7 +1741,7 @@ var MainComponent = (function () {
                 return response;
             })
                 .catch(function () {
-                console.log("user preferred to decline watcher removing");
+                console.debug("user preferred to decline watcher removing");
             });
         });
     };
@@ -1800,7 +1749,10 @@ var MainComponent = (function () {
         this.activeWatcher = $.extend(true, {}, watcher);
         this.isNewEntity = false;
         this.selectedComponent = watcher.name;
+        this.oldSelectedComponent = watcher.name;
+        this.groupNameChanged = false;
         this.loadAttributesOnComponentSelected();
+        this.groupSelection = this.getGroupSelectionForActiveResource();
     };
     MainComponent.prototype.getPanelHeader = function () {
         return this.isNewEntity ? "Add new watcher" : ("Edit watcher " + this.activeWatcher.name);
@@ -1822,7 +1774,7 @@ var MainComponent = (function () {
             transitionEffect: 'fade'
         });
         $(this.getTriggerWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            console.log(stepNumber);
+            console.debug(stepNumber);
         });
     };
     MainComponent.prototype.initCheckersWizard = function () {
@@ -1835,7 +1787,7 @@ var MainComponent = (function () {
             transitionEffect: 'fade'
         });
         $(this.getCheckersWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            console.log(stepNumber);
+            console.debug(stepNumber);
         });
     };
     MainComponent.prototype.initPoliciesWizard = function () {
@@ -1851,7 +1803,7 @@ var MainComponent = (function () {
             transitionEffect: 'fade'
         });
         $(this.getPoliciesWizardId()).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            console.log(stepNumber);
+            console.debug(stepNumber);
         });
     };
     MainComponent.prototype.addNewWatcher = function () {
@@ -1861,23 +1813,29 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.onGreenNotify = function (event) {
         this.activeChecker.object.green = event;
-        console.log("Saved green condition: ", event);
+        console.debug("Saved green condition: ", event);
     };
     MainComponent.prototype.onYellowNotify = function (event) {
         this.activeChecker.object.yellow = event;
-        console.log("Saved yellow condition: ", event);
+        console.debug("Saved yellow condition: ", event);
     };
     MainComponent.prototype.saveActiveWatcher = function () {
         var _this = this;
-        console.log("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
+        console.debug("Saving selected watcher: ", this.activeWatcher, ", json is: ", this.activeWatcher.toJSON());
         this.http.put(app_restClient_1.REST.SUPERVISOR_BY_NAME(this.activeWatcher.name), this.activeWatcher.toJSON())
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("watcher has been saved: ", data);
+            console.debug("watcher has been saved: ", data);
+            var _found = false;
             for (var i = 0; i < _this.watchers.length; i++) {
                 if (_this.watchers[i].name == _this.activeWatcher.name) {
                     _this.watchers[i] = _this.activeWatcher;
+                    _found = true;
+                    break;
                 }
+            }
+            if (!_found) {
+                _this.watchers.push(_this.activeWatcher);
             }
             _this.cleanSelection();
         });
@@ -1891,6 +1849,7 @@ var MainComponent = (function () {
     MainComponent.prototype.editPolicy = function (policyKey, policyValue) {
         this.activePolicyName = policyKey;
         this.activePolicy = policyValue;
+        $(this.getPoliciesWizardId()).smartWizard("next");
     };
     MainComponent.prototype.removePolicy = function (policyKey) {
         delete this.activeWatcher.scalingPolicies[policyKey];
@@ -1918,6 +1877,8 @@ var MainComponent = (function () {
             _this.activeWatcher.scalingPolicies = newMap;
             _this.activePolicy = _this.activeWatcher.scalingPolicies[result];
             _this.activePolicyName = result;
+            _this.newPolicyAppended = true;
+            $(_this.getPoliciesWizardId()).smartWizard("next");
             _this.cd.markForCheck();
         })
             .catch(function () { });
@@ -1936,7 +1897,7 @@ var MainComponent = (function () {
     };
     MainComponent.prototype.saveCurrentPolicy = function () {
         this.activeWatcher.scalingPolicies[this.activePolicyName] = this.activePolicy;
-        console.log("Policy has been saved");
+        console.debug("Policy has been saved");
     };
     MainComponent.prototype.selectVotingStrategy = function (type) {
         this.activeWatcher.votingStrategy = type;
@@ -1945,7 +1906,7 @@ var MainComponent = (function () {
     MainComponent.prototype.updatePolicyRecommendation = function () {
         var _this = this;
         this.http.get(app_restClient_1.REST.SUPERVISOR_POLICY_RECOMMENDATION(this.activeWatcher.name, this.activePolicyName))
-            .map(function (res) { console.log("Response is: ", res.json()); return res.json(); })
+            .map(function (res) { console.debug("Response is: ", res.json()); return res.json(); })
             .subscribe(function (data) {
             _this.currentRecommendation = operational_range_1.OpRange.fromString(data);
             _this.cd.detectChanges();
@@ -1955,6 +1916,33 @@ var MainComponent = (function () {
         this.activePolicy.policyObject.operationalRange = this.currentRecommendation;
         this.currentRecommendation = undefined;
         this.cd.detectChanges();
+    };
+    // group setting
+    MainComponent.prototype.saveManualGroupName = function () {
+        this.selectCurrentComponent(this.selectedComponent);
+        console.debug("Manual group name has been saved, no reload is required");
+        this.groupNameChanged = false;
+    };
+    MainComponent.prototype.triggerGroupNameChanged = function (value) {
+        this.groupNameChanged = (this.oldSelectedComponent != value);
+    };
+    MainComponent.prototype.getGroupSelectionForActiveResource = function () {
+        if (util_1.isNullOrUndefined(this.components) || this.components.length == 0) {
+            return false;
+        }
+        else if (!util_1.isNullOrUndefined(this.activeWatcher)
+            && !util_1.isNullOrUndefined(this.activeWatcher.name)
+            && this.activeWatcher.name.length > 0) {
+            for (var i = 0; i < this.components.length; i++) {
+                if (this.components[i] == this.activeWatcher.name) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else {
+            return true;
+        }
     };
     MainComponent = __decorate([
         core_1.Component({

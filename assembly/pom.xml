@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp</groupId>
+    <groupId>io.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>2.0.0</version>
   </parent>
@@ -34,7 +34,7 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.features</groupId>
+      <groupId>io.snamp.features</groupId>
       <artifactId>platform</artifactId>
       <version>2.0.0</version>
       <type>xml</type>
@@ -126,7 +126,7 @@
             <configuration>
               <artifactItems>
                 <artifactItem>
-                  <groupId>com.bytex.snamp.features</groupId>
+                  <groupId>io.snamp.features</groupId>
                   <artifactId>connectors</artifactId>
                   <version>${snamp.version}</version>
                   <type>kar</type>
@@ -134,7 +134,7 @@
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.bytex.snamp.features</groupId>
+                  <groupId>io.snamp.features</groupId>
                   <artifactId>gateways</artifactId>
                   <version>${snamp.version}</version>
                   <type>kar</type>
@@ -142,7 +142,7 @@
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.bytex.snamp.features</groupId>
+                  <groupId>io.snamp.features</groupId>
                   <artifactId>standard</artifactId>
                   <version>${snamp.version}</version>
                   <type>kar</type>
@@ -150,7 +150,7 @@
                   <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                 </artifactItem>
                 <artifactItem>
-                  <groupId>com.bytex.snamp.features</groupId>
+                  <groupId>io.snamp.features</groupId>
                   <artifactId>integration</artifactId>
                   <version>${snamp.version}</version>
                   <type>kar</type>

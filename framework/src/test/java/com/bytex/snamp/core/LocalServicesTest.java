@@ -5,6 +5,7 @@ import com.bytex.snamp.SafeCloseable;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -24,7 +25,7 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void boxTest(){
-        final Box<Object> box = ClusterMember.get(null).getService("testBox", SharedObjectType.BOX).orElseThrow(AssertionError::new);
+        final Box<Serializable> box = ClusterMember.get(null).getService("testBox", SharedObjectType.BOX).orElseThrow(AssertionError::new);
         Object result = box.setIfAbsent(() -> "Str");
         assertEquals("Str", result);
         result = box.setIfAbsent(() -> "Frank Underwood");

@@ -20,7 +20,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 2.0
  */
-public interface FilterBuilder extends Supplier<Filter>, Stateful {
+public interface ServiceSelector extends Supplier<Filter>, Stateful {
     default void addServiceListener(final BundleContext context, final ServiceListener listener) {
         final String filter = toString();
         callUnchecked(() -> {
@@ -44,7 +44,7 @@ public interface FilterBuilder extends Supplier<Filter>, Stateful {
     }
 
     @Nonnull
-    FilterBuilder setServiceType(@Nonnull final Class<?> serviceType);
+    ServiceSelector setServiceType(@Nonnull final Class<?> serviceType);
 
     /**
      * Constructs OSGi filter in text format.

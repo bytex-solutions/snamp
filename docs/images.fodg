@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" xmlns:presentation="urn:oasis:names:tc:opendocument:xmlns:presentation:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:chart="urn:oasis:names:tc:opendocument:xmlns:chart:1.0" xmlns:dr3d="urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="urn:oasis:names:tc:opendocument:xmlns:form:1.0" xmlns:script="urn:oasis:names:tc:opendocument:xmlns:script:1.0" xmlns:config="urn:oasis:names:tc:opendocument:xmlns:config:1.0" xmlns:ooo="http://openoffice.org/2004/office" xmlns:ooow="http://openoffice.org/2004/writer" xmlns:oooc="http://openoffice.org/2004/calc" xmlns:dom="http://www.w3.org/2001/xml-events" xmlns:xforms="http://www.w3.org/2002/xforms" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:smil="urn:oasis:names:tc:opendocument:xmlns:smil-compatible:1.0" xmlns:anim="urn:oasis:names:tc:opendocument:xmlns:animation:1.0" xmlns:rpt="http://openoffice.org/2005/report" xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:grddl="http://www.w3.org/2003/g/data-view#" xmlns:officeooo="http://openoffice.org/2009/office" xmlns:tableooo="http://openoffice.org/2009/table" xmlns:drawooo="http://openoffice.org/2010/draw" xmlns:calcext="urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0" xmlns:loext="urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0" xmlns:field="urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0" xmlns:formx="urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0" xmlns:css3t="http://www.w3.org/TR/css3-text/" office:version="1.2" office:mimetype="application/vnd.oasis.opendocument.graphics">
- <office:meta><meta:creation-date>2015-04-29T01:40:25.179447095</meta:creation-date><dc:date>2017-07-03T02:07:18.416239147</dc:date><meta:editing-duration>P4DT6H50M6S</meta:editing-duration><meta:editing-cycles>65</meta:editing-cycles><meta:generator>LibreOffice/5.3.1.2$Linux_X86_64 LibreOffice_project/30m0$Build-2</meta:generator><meta:document-statistic meta:object-count="306"/></office:meta>
+ <office:meta><meta:creation-date>2015-04-29T01:40:25.179447095</meta:creation-date><dc:date>2017-07-16T15:06:11.534785304</dc:date><meta:editing-duration>P4DT6H50M20S</meta:editing-duration><meta:editing-cycles>66</meta:editing-cycles><meta:generator>LibreOffice/5.3.1.2$Linux_X86_64 LibreOffice_project/30m0$Build-2</meta:generator><meta:document-statistic meta:object-count="324"/></office:meta>
  <office:settings>
   <config:config-item-set config:name="ooo:view-settings">
-   <config:config-item config:name="VisibleAreaTop" config:type="int">3625</config:config-item>
-   <config:config-item config:name="VisibleAreaLeft" config:type="int">8969</config:config-item>
-   <config:config-item config:name="VisibleAreaWidth" config:type="int">30030</config:config-item>
-   <config:config-item config:name="VisibleAreaHeight" config:type="int">23760</config:config-item>
+   <config:config-item config:name="VisibleAreaTop" config:type="int">-6309</config:config-item>
+   <config:config-item config:name="VisibleAreaLeft" config:type="int">-2849</config:config-item>
+   <config:config-item config:name="VisibleAreaWidth" config:type="int">46200</config:config-item>
+   <config:config-item config:name="VisibleAreaHeight" config:type="int">36553</config:config-item>
    <config:config-item-map-indexed config:name="Views">
     <config:config-item-map-entry>
      <config:config-item config:name="ViewId" config:type="string">view1</config:config-item>
@@ -29,16 +29,16 @@
      <config:config-item config:name="NoColors" config:type="boolean">true</config:config-item>
      <config:config-item config:name="RulerIsVisible" config:type="boolean">true</config:config-item>
      <config:config-item config:name="PageKind" config:type="short">0</config:config-item>
-     <config:config-item config:name="SelectedPage" config:type="short">25</config:config-item>
+     <config:config-item config:name="SelectedPage" config:type="short">26</config:config-item>
      <config:config-item config:name="IsLayerMode" config:type="boolean">true</config:config-item>
      <config:config-item config:name="IsDoubleClickTextEdit" config:type="boolean">true</config:config-item>
      <config:config-item config:name="IsClickChangeRotation" config:type="boolean">true</config:config-item>
      <config:config-item config:name="SlidesPerRow" config:type="short">4</config:config-item>
      <config:config-item config:name="EditMode" config:type="int">0</config:config-item>
-     <config:config-item config:name="VisibleAreaTop" config:type="int">3625</config:config-item>
-     <config:config-item config:name="VisibleAreaLeft" config:type="int">8969</config:config-item>
-     <config:config-item config:name="VisibleAreaWidth" config:type="int">30031</config:config-item>
-     <config:config-item config:name="VisibleAreaHeight" config:type="int">23761</config:config-item>
+     <config:config-item config:name="VisibleAreaTop" config:type="int">-6309</config:config-item>
+     <config:config-item config:name="VisibleAreaLeft" config:type="int">-2849</config:config-item>
+     <config:config-item config:name="VisibleAreaWidth" config:type="int">46201</config:config-item>
+     <config:config-item config:name="VisibleAreaHeight" config:type="int">36554</config:config-item>
      <config:config-item config:name="GridCoarseWidth" config:type="int">1270</config:config-item>
      <config:config-item config:name="GridCoarseHeight" config:type="int">1270</config:config-item>
      <config:config-item config:name="GridFineWidth" config:type="int">127</config:config-item>
@@ -91,7 +91,7 @@
    <config:config-item config:name="PrintQuality" config:type="int">0</config:config-item>
    <config:config-item config:name="PrinterIndependentLayout" config:type="string">low-resolution</config:config-item>
    <config:config-item config:name="PrinterName" config:type="string">Generic Printer</config:config-item>
-   <config:config-item config:name="PrinterSetup" config:type="base64Binary">lQH+/0dlbmVyaWMgUHJpbnRlcgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU0dFTlBSVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAMAtgAAAAAAAAAIAFZUAAAkbQAASm9iRGF0YSAxCnByaW50ZXI9R2VuZXJpYyBQcmludGVyCm9yaWVudGF0aW9uPVBvcnRyYWl0CmNvcGllcz0xCm1hcmdpbmRhanVzdG1lbnQ9MCwwLDAsMApjb2xvcmRlcHRoPTI0CnBzbGV2ZWw9MApwZGZkZXZpY2U9MApjb2xvcmRldmljZT0wClBQRENvbnRleERhdGEKRHVwbGV4Ok5vbmUAUGFnZVNpemU6TGV0dGVyAAASAENPTVBBVF9EVVBMRVhfTU9ERQ8ARHVwbGV4TW9kZTo6T2Zm</config:config-item>
+   <config:config-item config:name="PrinterSetup" config:type="base64Binary">lQH+/0dlbmVyaWMgUHJpbnRlcgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU0dFTlBSVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAMAtgAAAAAAAAAIAFZUAAAkbQAASm9iRGF0YSAxCnByaW50ZXI9R2VuZXJpYyBQcmludGVyCm9yaWVudGF0aW9uPVBvcnRyYWl0CmNvcGllcz0xCm1hcmdpbmRhanVzdG1lbnQ9MCwwLDAsMApjb2xvcmRlcHRoPTI0CnBzbGV2ZWw9MApwZGZkZXZpY2U9MApjb2xvcmRldmljZT0wClBQRENvbnRleERhdGEKUGFnZVNpemU6TGV0dGVyAER1cGxleDpOb25lAAASAENPTVBBVF9EVVBMRVhfTU9ERQ8ARHVwbGV4TW9kZTo6T2Zm</config:config-item>
    <config:config-item config:name="SaveVersionOnClose" config:type="boolean">false</config:config-item>
    <config:config-item config:name="ScaleDenominator" config:type="int">1</config:config-item>
    <config:config-item config:name="ScaleNumerator" config:type="int">1</config:config-item>
@@ -415,22 +415,22 @@
    <style:graphic-properties draw:fill-color="#ccffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.817cm" fo:min-width="3.812cm" fo:wrap-option="wrap"/>
   </style:style>
   <style:style style:name="gr57" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.053cm" fo:min-width="22.614cm"/>
-  </style:style>
-  <style:style style:name="gr58" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:marker-start="Arrowheads_20_2" draw:marker-end="" draw:textarea-vertical-align="middle"/>
   </style:style>
-  <style:style style:name="gr59" style:family="graphic" style:parent-style-name="standard">
+  <style:style style:name="gr58" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:marker-start="" draw:marker-end="Arrowheads_20_2" draw:textarea-vertical-align="middle"/>
   </style:style>
-  <style:style style:name="gr60" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.18cm" fo:min-width="6.612cm"/>
+  <style:style style:name="gr59" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.18cm" fo:min-width="6.612cm"/>
   </style:style>
-  <style:style style:name="gr61" style:family="graphic" style:parent-style-name="standard">
+  <style:style style:name="gr60" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:fill-color="#cccccc" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.433cm" fo:min-width="5.596cm"/>
   </style:style>
-  <style:style style:name="gr62" style:family="graphic" style:parent-style-name="standard">
+  <style:style style:name="gr61" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:fill-color="#00a6a8" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.433cm" fo:min-width="3.439cm" fo:wrap-option="wrap"/>
+  </style:style>
+  <style:style style:name="gr62" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:marker-start="Arrowheads_20_2" draw:marker-end="" draw:textarea-vertical-align="middle"/>
   </style:style>
   <style:style style:name="gr63" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:fill-color="#579d1c" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="2.417cm" fo:min-width="5.469cm"/>
@@ -442,16 +442,16 @@
    <style:graphic-properties draw:marker-end="Arrow" draw:textarea-vertical-align="middle"/>
   </style:style>
   <style:style style:name="gr66" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:stroke="none" svg:stroke-color="#000000" draw:fill="none" draw:fill-color="#ffffff" draw:textarea-horizontal-align="left" draw:auto-grow-height="true" draw:auto-grow-width="true" fo:min-height="0cm" fo:min-width="0cm"/>
+   <style:graphic-properties draw:stroke="none" svg:stroke-color="#000000" draw:fill="none" draw:fill-color="#ffffff" draw:textarea-horizontal-align="left" draw:auto-grow-height="true" draw:auto-grow-width="true" fo:min-height="0.628cm" fo:min-width="4.235cm"/>
   </style:style>
   <style:style style:name="gr67" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.909cm" fo:min-width="6.104cm"/>
+   <style:graphic-properties draw:opacity="0%" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.909cm" fo:min-width="6.104cm"/>
   </style:style>
   <style:style style:name="gr68" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.242cm" fo:min-width="3.546cm"/>
+   <style:graphic-properties draw:opacity="0%" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.242cm" fo:min-width="3.546cm"/>
   </style:style>
   <style:style style:name="gr69" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="0.675cm" fo:min-width="1.991cm"/>
+   <style:graphic-properties draw:opacity="0%" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="0.675cm" fo:min-width="1.991cm"/>
   </style:style>
   <style:style style:name="gr70" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:marker-end="Arrow"/>
@@ -460,28 +460,55 @@
    <style:graphic-properties draw:marker-end="Arrow" draw:textarea-vertical-align="bottom"/>
   </style:style>
   <style:style style:name="gr72" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="0.703cm" fo:min-width="2.612cm"/>
+   <style:graphic-properties draw:opacity="0%" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="0.703cm" fo:min-width="2.612cm"/>
   </style:style>
   <style:style style:name="gr73" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.909cm" fo:min-width="5.469cm"/>
+   <style:graphic-properties draw:opacity="0%" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="1.909cm" fo:min-width="5.469cm"/>
   </style:style>
   <style:style style:name="gr74" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:marker-end="Arrow" draw:textarea-vertical-align="top"/>
   </style:style>
   <style:style style:name="gr75" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.053cm" fo:min-width="11.311cm"/>
+   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.053cm" fo:min-width="11.311cm"/>
   </style:style>
   <style:style style:name="gr76" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:fill-color="#cccccc" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.433cm" fo:min-width="3.564cm"/>
   </style:style>
   <style:style style:name="gr77" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:stroke="dash" draw:stroke-dash="Fine_20_Dashed" draw:fill-color="#ffffff" draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="9.021cm" fo:min-width="10.422cm"/>
+   <style:graphic-properties draw:stroke="dash" draw:stroke-dash="Fine_20_Dashed" draw:fill-color="#ffffff" draw:opacity="0%" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="9.021cm" fo:min-width="10.422cm"/>
   </style:style>
   <style:style style:name="gr78" style:family="graphic" style:parent-style-name="standard">
-   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:opacity-name="" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.053cm" fo:min-width="11.184cm"/>
+   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.053cm" fo:min-width="11.184cm"/>
   </style:style>
   <style:style style:name="gr79" style:family="graphic" style:parent-style-name="standard">
    <style:graphic-properties draw:fill-color="#a80053" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.433cm" fo:min-width="3.564cm"/>
+  </style:style>
+  <style:style style:name="gr80" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.18cm" fo:min-width="5.85cm"/>
+  </style:style>
+  <style:style style:name="gr81" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:fill-color="#00a6a8" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.56cm" fo:min-width="3.31cm" fo:wrap-option="wrap"/>
+  </style:style>
+  <style:style style:name="gr82" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:fill-color="#00a6a8" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.56cm" fo:min-width="3.439cm" fo:wrap-option="wrap"/>
+  </style:style>
+  <style:style style:name="gr83" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%" draw:textarea-horizontal-align="left" draw:textarea-vertical-align="top" draw:auto-grow-height="false" fo:min-height="11.18cm" fo:min-width="13.597cm"/>
+  </style:style>
+  <style:style style:name="gr84" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:fill-color="#ff950e" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.56cm" fo:min-width="4.707cm" fo:wrap-option="wrap"/>
+  </style:style>
+  <style:style style:name="gr85" style:family="graphic" style:parent-style-name="Object_20_with_20_no_20_fill_20_and_20_no_20_line">
+   <style:graphic-properties draw:textarea-vertical-align="bottom" draw:color-mode="standard" draw:luminance="0%" draw:contrast="0%" draw:gamma="100%" draw:red="0%" draw:green="0%" draw:blue="0%" fo:clip="rect(0cm, 0cm, 0cm, 0cm)" draw:image-opacity="100%" style:mirror="none"/>
+  </style:style>
+  <style:style style:name="gr86" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:fill-color="#ff950e" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.56cm" fo:min-width="4.582cm" fo:wrap-option="wrap"/>
+  </style:style>
+  <style:style style:name="gr87" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties svg:stroke-color="#729fcf" draw:fill-color="#ccffff" draw:textarea-horizontal-align="justify" draw:textarea-vertical-align="middle" draw:auto-grow-height="false" fo:min-height="3.56cm" fo:min-width="4.58cm"/>
+  </style:style>
+  <style:style style:name="gr88" style:family="graphic" style:parent-style-name="standard">
+   <style:graphic-properties draw:stroke="none" svg:stroke-color="#000000" draw:fill="none" draw:fill-color="#ffffff" draw:textarea-horizontal-align="left" draw:auto-grow-height="true" draw:auto-grow-width="false" fo:min-height="0.548cm" fo:min-width="0cm"/>
   </style:style>
   <style:style style:name="P1" style:family="paragraph">
    <style:paragraph-properties fo:text-align="center"/>
@@ -624,50 +651,49 @@
    <style:text-properties fo:font-size="14pt" style:font-size-asian="14pt" style:font-size-complex="14pt"/>
   </style:style>
   <style:style style:name="P32" style:family="paragraph">
-   <loext:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%"/>
-   <style:paragraph-properties fo:text-align="center"/>
-   <style:text-properties fo:font-size="18pt"/>
-  </style:style>
-  <style:style style:name="P33" style:family="paragraph">
    <loext:graphic-properties draw:fill-color="#83caff"/>
    <style:paragraph-properties fo:text-align="center"/>
    <style:text-properties fo:font-size="18pt"/>
   </style:style>
-  <style:style style:name="P34" style:family="paragraph">
+  <style:style style:name="P33" style:family="paragraph">
    <loext:graphic-properties draw:fill-color="#cccccc"/>
    <style:paragraph-properties fo:text-align="center"/>
    <style:text-properties fo:font-size="14pt" style:font-size-asian="14pt" style:font-size-complex="14pt"/>
   </style:style>
-  <style:style style:name="P35" style:family="paragraph">
+  <style:style style:name="P34" style:family="paragraph">
    <loext:graphic-properties draw:fill-color="#00a6a8"/>
    <style:paragraph-properties fo:text-align="center"/>
    <style:text-properties fo:font-size="14pt" style:font-size-asian="14pt" style:font-size-complex="14pt"/>
   </style:style>
-  <style:style style:name="P36" style:family="paragraph">
+  <style:style style:name="P35" style:family="paragraph">
    <loext:graphic-properties draw:fill-color="#ff7f00"/>
    <style:paragraph-properties fo:text-align="center"/>
    <style:text-properties fo:font-size="14pt" style:font-size-asian="14pt" style:font-size-complex="14pt"/>
   </style:style>
-  <style:style style:name="P37" style:family="paragraph">
-   <style:text-properties fo:font-size="16pt" style:font-size-asian="16pt" style:font-size-complex="16pt"/>
-  </style:style>
-  <style:style style:name="P38" style:family="paragraph">
+  <style:style style:name="P36" style:family="paragraph">
    <loext:graphic-properties draw:fill="none" draw:fill-color="#ffffff"/>
    <style:text-properties fo:font-size="16pt" style:font-size-asian="16pt" style:font-size-complex="16pt"/>
   </style:style>
-  <style:style style:name="P39" style:family="paragraph">
+  <style:style style:name="P37" style:family="paragraph">
    <loext:graphic-properties draw:opacity="0%"/>
    <style:paragraph-properties fo:text-align="center"/>
    <style:text-properties fo:font-size="14pt" style:font-size-asian="14pt" style:font-size-complex="14pt"/>
   </style:style>
-  <style:style style:name="P40" style:family="paragraph">
+  <style:style style:name="P38" style:family="paragraph">
    <loext:graphic-properties draw:fill-color="#ffffff" draw:opacity="0%"/>
    <style:paragraph-properties fo:text-align="center"/>
    <style:text-properties fo:font-size="14pt" style:font-size-asian="14pt" style:font-size-complex="14pt"/>
   </style:style>
-  <style:style style:name="P41" style:family="paragraph">
+  <style:style style:name="P39" style:family="paragraph">
    <loext:graphic-properties draw:fill-color="#a80053"/>
    <style:paragraph-properties fo:text-align="center"/>
+   <style:text-properties fo:font-size="14pt" style:font-size-asian="14pt" style:font-size-complex="14pt"/>
+  </style:style>
+  <style:style style:name="P40" style:family="paragraph">
+   <style:paragraph-properties fo:margin-top="0cm" fo:margin-bottom="0cm" fo:text-align="center"/>
+  </style:style>
+  <style:style style:name="P41" style:family="paragraph">
+   <loext:graphic-properties draw:fill="none" draw:fill-color="#ffffff"/>
    <style:text-properties fo:font-size="14pt" style:font-size-asian="14pt" style:font-size-complex="14pt"/>
   </style:style>
   <style:style style:name="T1" style:family="text">
@@ -866,7 +892,7 @@
      <text:p/>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr11" draw:text-style-name="P2" draw:layer="layout" svg:width="7.874cm" svg:height="1.27cm" svg:x="16.621cm" svg:y="7.223cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">SNAMP </text:span><text:span text:style-name="T1">Web </text:span><text:span text:style-name="T1">Console</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">SNAMP Web Console</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
    </draw:page>
@@ -985,7 +1011,7 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">JMX</text:span></text:p>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr11" draw:text-style-name="P2" draw:layer="layout" svg:width="7.874cm" svg:height="1.27cm" svg:x="16.621cm" svg:y="7.35cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">SNAMP </text:span><text:span text:style-name="T1">Web </text:span><text:span text:style-name="T1">Console</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">SNAMP Web Console</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr13" draw:text-style-name="P8" xml:id="id25" draw:id="id25" draw:layer="layout" svg:width="3.81cm" svg:height="6.985cm" svg:x="22.59cm" svg:y="15.478cm">
@@ -1118,8 +1144,8 @@
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr30" draw:text-style-name="P22" draw:layer="layout" svg:width="20.193cm" svg:height="2.413cm" svg:x="11.16cm" svg:y="22.336cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T6">Apache Karaf </text:span></text:p>
-     <text:p text:style-name="P1"><text:span text:style-name="T6">(OSGi </text:span><text:span text:style-name="T6">implementation)</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T6">Apache </text:span><text:span text:style-name="T6">Karaf </text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T6">(OSGi </text:span><text:span text:style-name="T6">implementati</text:span><text:span text:style-name="T6">on)</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr31" draw:text-style-name="P23" draw:layer="layout" svg:width="20.193cm" svg:height="2.413cm" svg:x="11.16cm" svg:y="19.415cm">
@@ -1167,13 +1193,13 @@
      <text:p/>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr32" draw:text-style-name="P24" draw:layer="layout" svg:width="20.193cm" svg:height="2.413cm" svg:x="11.033cm" svg:y="12.049cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP Web </text:span><text:span text:style-name="T6">Console</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T6">S</text:span><text:span text:style-name="T6">N</text:span><text:span text:style-name="T6">A</text:span><text:span text:style-name="T6">M</text:span><text:span text:style-name="T6">P</text:span><text:span text:style-name="T6"> </text:span><text:span text:style-name="T6">W</text:span><text:span text:style-name="T6">e</text:span><text:span text:style-name="T6">b</text:span><text:span text:style-name="T6"> </text:span><text:span text:style-name="T6">C</text:span><text:span text:style-name="T6">o</text:span><text:span text:style-name="T6">n</text:span><text:span text:style-name="T6">s</text:span><text:span text:style-name="T6">o</text:span><text:span text:style-name="T6">l</text:span><text:span text:style-name="T6">e</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
    </draw:page>
    <draw:page draw:name="JMX Connector" draw:style-name="dp2" draw:master-page-name="Default">
     <draw:custom-shape draw:style-name="gr33" draw:text-style-name="P25" draw:layer="layout" svg:width="19.431cm" svg:height="10.16cm" svg:x="5.445cm" svg:y="6.08cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T6">S</text:span><text:span text:style-name="T6">N</text:span><text:span text:style-name="T6">A</text:span><text:span text:style-name="T6">M</text:span><text:span text:style-name="T6">P</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr34" draw:text-style-name="P3" xml:id="id43" draw:id="id43" draw:layer="layout" svg:width="5.747cm" svg:height="5.207cm" svg:x="32.083cm" svg:y="9.001cm">
@@ -1221,7 +1247,7 @@
    </draw:page>
    <draw:page draw:name="HTTP Acceptor" draw:style-name="dp2" draw:master-page-name="Default">
     <draw:custom-shape draw:style-name="gr33" draw:text-style-name="P25" draw:layer="layout" svg:width="19.431cm" svg:height="10.16cm" svg:x="5.445cm" svg:y="6.08cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T6">SNAM</text:span><text:span text:style-name="T6">P</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr34" draw:text-style-name="P3" xml:id="id46" draw:id="id46" draw:layer="layout" svg:width="5.747cm" svg:height="5.207cm" svg:x="32.083cm" svg:y="8.874cm">
@@ -1957,7 +1983,7 @@
      </draw:enhanced-geometry>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr35" draw:text-style-name="P6" draw:layer="layout" svg:x1="20.495cm" svg:y1="9.636cm" svg:x2="34.956cm" svg:y2="9.001cm" draw:start-shape="id57" draw:start-glue-point="0" draw:end-shape="id58" svg:d="M20495 9636v-1137h14461v502" svg:viewBox="0 0 14462 1138">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">Modbus/TCP or </text:span><text:span text:style-name="T1">Modbus/UDP Request</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Modbus/TCP or Modbus/UDP Request</text:span></text:p>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id57" draw:id="id57" draw:layer="measurelines" svg:width="3.939cm" svg:height="3.683cm" svg:x="18.526cm" svg:y="9.636cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">Modbus Connector</text:span></text:p>
@@ -2390,7 +2416,7 @@
     </draw:connector>
    </draw:page>
    <draw:page draw:name="Syslog Gateway" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr57" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
+    <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P25" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -2416,12 +2442,12 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">Syslog Server</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="10800 0 3163 3163 0 10800 3163 18437 10800 21600 18437 18437 21600 10800 18437 3163" draw:text-areas="3163 3163 18437 18437" draw:type="ellipse" draw:enhanced-path="U 10800 10800 10800 10800 0 360 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr58" draw:text-style-name="P6" draw:layer="measurelines" svg:x1="9.128cm" svg:y1="11.478cm" svg:x2="15.732cm" svg:y2="11.477cm" draw:start-shape="id105" draw:start-glue-point="10" draw:end-shape="id102" svg:d="M9128 11478h3303v-1h3301" svg:viewBox="0 0 6605 2">
+    <draw:connector draw:style-name="gr57" draw:text-style-name="P6" draw:layer="measurelines" svg:x1="9.128cm" svg:y1="11.478cm" svg:x2="15.732cm" svg:y2="11.477cm" draw:start-shape="id105" draw:start-glue-point="10" draw:end-shape="id102" svg:d="M9128 11478h3303v-1h3301" svg:viewBox="0 0 6605 2">
      <text:p text:style-name="P1"><text:span text:style-name="T1">Syslog/TCP</text:span></text:p>
     </draw:connector>
    </draw:page>
    <draw:page draw:name="NRDP Gateway" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr57" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
+    <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P25" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -2447,19 +2473,19 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">Nagios</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="10800 0 3163 3163 0 10800 3163 18437 10800 21600 18437 18437 21600 10800 18437 3163" draw:text-areas="3163 3163 18437 18437" draw:type="ellipse" draw:enhanced-path="U 10800 10800 10800 10800 0 360 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr58" draw:text-style-name="P6" draw:layer="measurelines" svg:x1="9.509cm" svg:y1="17.383cm" svg:x2="17.764cm" svg:y2="13.319cm" draw:start-shape="id109" draw:start-glue-point="0" draw:end-shape="id106" svg:d="M9509 17383v-2033h8255v-2031" svg:viewBox="0 0 8256 4065">
+    <draw:connector draw:style-name="gr57" draw:text-style-name="P6" draw:layer="measurelines" svg:x1="9.509cm" svg:y1="17.383cm" svg:x2="17.764cm" svg:y2="13.319cm" draw:start-shape="id109" draw:start-glue-point="0" draw:end-shape="id106" svg:d="M9509 17383v-2033h8255v-2031" svg:viewBox="0 0 8256 4065">
      <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP/XML</text:span></text:p>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr49" draw:text-style-name="P30" xml:id="id109" draw:id="id109" draw:layer="measurelines" svg:width="4.572cm" svg:height="2.667cm" svg:x="7.223cm" svg:y="17.383cm">
      <text:p text:style-name="P1">NRDP Agent</text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr59" draw:text-style-name="P1" draw:layer="measurelines" svg:x1="7.223cm" svg:y1="18.716cm" svg:x2="6.08cm" svg:y2="12.938cm" draw:start-shape="id109" draw:start-glue-point="3" draw:end-shape="id110" svg:d="M7223 18716h-1143v-5778" svg:viewBox="0 0 1144 5779">
+    <draw:connector draw:style-name="gr58" draw:text-style-name="P1" draw:layer="measurelines" svg:x1="7.223cm" svg:y1="18.716cm" svg:x2="6.08cm" svg:y2="12.938cm" draw:start-shape="id109" draw:start-glue-point="3" draw:end-shape="id110" svg:d="M7223 18716h-1143v-5778" svg:viewBox="0 0 1144 5779">
      <text:p/>
     </draw:connector>
    </draw:page>
    <draw:page draw:name="NSCA Gateway" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr57" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
+    <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P25" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -2485,28 +2511,28 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">Nagios</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="10800 0 3163 3163 0 10800 3163 18437 10800 21600 18437 18437 21600 10800 18437 3163" draw:text-areas="3163 3163 18437 18437" draw:type="ellipse" draw:enhanced-path="U 10800 10800 10800 10800 0 360 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr58" draw:text-style-name="P6" draw:layer="measurelines" svg:x1="9.509cm" svg:y1="17.383cm" svg:x2="17.764cm" svg:y2="13.319cm" draw:start-shape="id114" draw:start-glue-point="0" draw:end-shape="id111" svg:d="M9509 17383v-2033h8255v-2031" svg:viewBox="0 0 8256 4065">
+    <draw:connector draw:style-name="gr57" draw:text-style-name="P6" draw:layer="measurelines" svg:x1="9.509cm" svg:y1="17.383cm" svg:x2="17.764cm" svg:y2="13.319cm" draw:start-shape="id114" draw:start-glue-point="0" draw:end-shape="id111" svg:d="M9509 17383v-2033h8255v-2031" svg:viewBox="0 0 8256 4065">
      <text:p text:style-name="P1"><text:span text:style-name="T1">TCP</text:span></text:p>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr49" draw:text-style-name="P33" xml:id="id114" draw:id="id114" draw:layer="measurelines" svg:width="4.572cm" svg:height="2.667cm" svg:x="7.223cm" svg:y="17.383cm">
+    <draw:custom-shape draw:style-name="gr49" draw:text-style-name="P32" xml:id="id114" draw:id="id114" draw:layer="measurelines" svg:width="4.572cm" svg:height="2.667cm" svg:x="7.223cm" svg:y="17.383cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">NSCA Agent</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr59" draw:text-style-name="P1" draw:layer="measurelines" svg:x1="7.223cm" svg:y1="18.716cm" svg:x2="6.08cm" svg:y2="12.938cm" draw:start-shape="id114" draw:start-glue-point="3" draw:end-shape="id115" svg:d="M7223 18716h-1143v-5778" svg:viewBox="0 0 1144 5779">
+    <draw:connector draw:style-name="gr58" draw:text-style-name="P1" draw:layer="measurelines" svg:x1="7.223cm" svg:y1="18.716cm" svg:x2="6.08cm" svg:y2="12.938cm" draw:start-shape="id114" draw:start-glue-point="3" draw:end-shape="id115" svg:d="M7223 18716h-1143v-5778" svg:viewBox="0 0 1144 5779">
      <text:p/>
     </draw:connector>
    </draw:page>
    <draw:page draw:name="SMTP Gateway" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr57" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
+    <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P25" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr37" draw:text-style-name="P5" xml:id="id116" draw:id="id116" draw:layer="layout" svg:width="4.064cm" svg:height="3.683cm" svg:x="15.732cm" svg:y="9.636cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">SMTP </text:span><text:span text:style-name="T1">Gateway</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">SMTP Gateway</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id117" draw:id="id117" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="30.464cm" svg:y="6.842cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">Resource </text:span><text:span text:style-name="T1">Connecto</text:span><text:span text:style-name="T1">r</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Resource Connector</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id118" draw:id="id118" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="30.464cm" svg:y="12.557cm">
@@ -2523,19 +2549,19 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">Mail Client</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="10800 0 3163 3163 0 10800 3163 18437 10800 21600 18437 18437 21600 10800 18437 3163" draw:text-areas="3163 3163 18437 18437" draw:type="ellipse" draw:enhanced-path="U 10800 10800 10800 10800 0 360 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr58" draw:text-style-name="P6" draw:layer="layout" svg:x1="9.509cm" svg:y1="17.383cm" svg:x2="17.764cm" svg:y2="13.319cm" draw:start-shape="id119" draw:start-glue-point="0" draw:end-shape="id116" svg:d="M9509 17383v-2033h8255v-2031" svg:viewBox="0 0 8256 4065">
+    <draw:connector draw:style-name="gr57" draw:text-style-name="P6" draw:layer="layout" svg:x1="9.509cm" svg:y1="17.383cm" svg:x2="17.764cm" svg:y2="13.319cm" draw:start-shape="id119" draw:start-glue-point="0" draw:end-shape="id116" svg:d="M9509 17383v-2033h8255v-2031" svg:viewBox="0 0 8256 4065">
      <text:p text:style-name="P1"><text:span text:style-name="T1">SMTP</text:span></text:p>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr49" draw:text-style-name="P33" xml:id="id119" draw:id="id119" draw:layer="layout" svg:width="4.572cm" svg:height="2.667cm" svg:x="7.223cm" svg:y="17.383cm">
+    <draw:custom-shape draw:style-name="gr49" draw:text-style-name="P32" xml:id="id119" draw:id="id119" draw:layer="layout" svg:width="4.572cm" svg:height="2.667cm" svg:x="7.223cm" svg:y="17.383cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">Mail Server</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr59" draw:text-style-name="P1" draw:layer="layout" svg:x1="7.223cm" svg:y1="18.716cm" svg:x2="6.08cm" svg:y2="12.938cm" draw:start-shape="id119" draw:start-glue-point="3" draw:end-shape="id120" svg:d="M7223 18716h-1143v-5778" svg:viewBox="0 0 1144 5779">
+    <draw:connector draw:style-name="gr58" draw:text-style-name="P1" draw:layer="layout" svg:x1="7.223cm" svg:y1="18.716cm" svg:x2="6.08cm" svg:y2="12.938cm" draw:start-shape="id119" draw:start-glue-point="3" draw:end-shape="id120" svg:d="M7223 18716h-1143v-5778" svg:viewBox="0 0 1144 5779">
      <text:p/>
     </draw:connector>
    </draw:page>
    <draw:page draw:name="Influx Gateway" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr57" draw:text-style-name="P32" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
+    <draw:custom-shape draw:style-name="gr55" draw:text-style-name="P25" draw:layer="layout" svg:width="23.114cm" svg:height="11.303cm" svg:x="14.208cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -2544,7 +2570,7 @@
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id122" draw:id="id122" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="30.464cm" svg:y="6.842cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T1">Resource </text:span><text:span text:style-name="T1">Connecto</text:span><text:span text:style-name="T1">r</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Resource Connector</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id123" draw:id="id123" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="30.464cm" svg:y="12.557cm">
@@ -2561,61 +2587,61 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">Grafana</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="10800 0 3163 3163 0 10800 3163 18437 10800 21600 18437 18437 21600 10800 18437 3163" draw:text-areas="3163 3163 18437 18437" draw:type="ellipse" draw:enhanced-path="U 10800 10800 10800 10800 0 360 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr58" draw:text-style-name="P6" draw:layer="layout" svg:x1="9.509cm" svg:y1="17.383cm" svg:x2="17.764cm" svg:y2="13.319cm" draw:start-shape="id124" draw:start-glue-point="0" draw:end-shape="id121" svg:d="M9509 17383v-2033h8255v-2031" svg:viewBox="0 0 8256 4065">
+    <draw:connector draw:style-name="gr57" draw:text-style-name="P6" draw:layer="layout" svg:x1="9.509cm" svg:y1="17.383cm" svg:x2="17.764cm" svg:y2="13.319cm" draw:start-shape="id124" draw:start-glue-point="0" draw:end-shape="id121" svg:d="M9509 17383v-2033h8255v-2031" svg:viewBox="0 0 8256 4065">
      <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP</text:span></text:p>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr49" draw:text-style-name="P33" xml:id="id124" draw:id="id124" draw:layer="layout" svg:width="4.572cm" svg:height="2.667cm" svg:x="7.223cm" svg:y="17.383cm">
+    <draw:custom-shape draw:style-name="gr49" draw:text-style-name="P32" xml:id="id124" draw:id="id124" draw:layer="layout" svg:width="4.572cm" svg:height="2.667cm" svg:x="7.223cm" svg:y="17.383cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">InfluxDB</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:connector draw:style-name="gr59" draw:text-style-name="P1" draw:layer="layout" svg:x1="7.223cm" svg:y1="18.716cm" svg:x2="6.08cm" svg:y2="12.938cm" draw:start-shape="id124" draw:start-glue-point="3" draw:end-shape="id125" svg:d="M7223 18716h-1143v-5778" svg:viewBox="0 0 1144 5779">
+    <draw:connector draw:style-name="gr58" draw:text-style-name="P1" draw:layer="layout" svg:x1="7.223cm" svg:y1="18.716cm" svg:x2="6.08cm" svg:y2="12.938cm" draw:start-shape="id124" draw:start-glue-point="3" draw:end-shape="id125" svg:d="M7223 18716h-1143v-5778" svg:viewBox="0 0 1144 5779">
      <text:p/>
     </draw:connector>
    </draw:page>
    <draw:page draw:name="Group health check" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr60" draw:text-style-name="P32" draw:layer="layout" svg:width="7.112cm" svg:height="11.43cm" svg:x="1.508cm" svg:y="2.27cm">
+    <draw:custom-shape draw:style-name="gr59" draw:text-style-name="P25" draw:layer="layout" svg:width="7.112cm" svg:height="11.43cm" svg:x="1.508cm" svg:y="2.27cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">Resource Group</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr61" draw:text-style-name="P34" xml:id="id126" draw:id="id126" draw:layer="layout" svg:width="6.096cm" svg:height="3.683cm" svg:x="16.113cm" svg:y="6.08cm">
+    <draw:custom-shape draw:style-name="gr60" draw:text-style-name="P33" xml:id="id126" draw:id="id126" draw:layer="layout" svg:width="6.096cm" svg:height="3.683cm" svg:x="16.113cm" svg:y="6.08cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">If (usedMemory) &gt; 2Gb </text:span></text:p>
      <text:p text:style-name="P1"><text:span text:style-name="T1">then health=Malfunction</text:span></text:p>
      <text:p text:style-name="P1"><text:span text:style-name="T1">Else health=OK</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr62" draw:text-style-name="P35" xml:id="id127" draw:id="id127" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="2.141cm" svg:y="3.54cm">
+    <draw:custom-shape draw:style-name="gr61" draw:text-style-name="P34" xml:id="id127" draw:id="id127" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="2.141cm" svg:y="3.54cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">Resource #1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr62" draw:text-style-name="P35" xml:id="id128" draw:id="id128" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="2.27cm" svg:y="8.747cm">
+    <draw:custom-shape draw:style-name="gr61" draw:text-style-name="P34" xml:id="id128" draw:id="id128" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="2.27cm" svg:y="8.747cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">Resource #2</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr23" draw:text-style-name="P6" draw:layer="layout" svg:x1="16.113cm" svg:y1="7.921cm" svg:x2="6.08cm" svg:y2="5.381cm" draw:start-shape="id126" draw:end-shape="id127" svg:d="M16113 7921h-5017v-2540h-5016" svg:viewBox="0 0 10034 2541">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">UsedMemory=1.5Gb</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">UsedMemory=1.5Gb</text:span></text:p>
     </draw:connector>
     <draw:connector draw:style-name="gr23" draw:text-style-name="P6" draw:layer="layout" svg:x1="16.113cm" svg:y1="7.921cm" svg:x2="6.209cm" svg:y2="10.588cm" draw:start-shape="id126" draw:end-shape="id128" svg:d="M16113 7921h-4952v2667h-4952" svg:viewBox="0 0 9905 2668">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">UsedMemory=2.3Gb</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">UsedMemory=2.3Gb</text:span></text:p>
     </draw:connector>
-    <draw:connector draw:style-name="gr58" draw:text-style-name="P6" draw:layer="layout" svg:x1="26.4cm" svg:y1="7.921cm" svg:x2="22.209cm" svg:y2="7.921cm" draw:start-shape="id129" draw:end-shape="id126" draw:end-glue-point="1" svg:d="M26400 7921h-4191" svg:viewBox="0 0 4192 1">
-     <text:p text:style-name="P1"><text:span text:style-name="T1"/></text:p>
+    <draw:connector draw:style-name="gr62" draw:text-style-name="P6" draw:layer="layout" svg:x1="26.4cm" svg:y1="7.921cm" svg:x2="22.209cm" svg:y2="7.921cm" draw:start-shape="id129" draw:end-shape="id126" draw:end-glue-point="1" svg:d="M26400 7921h-4191" svg:viewBox="0 0 4192 1">
+     <text:p/>
     </draw:connector>
     <draw:custom-shape draw:style-name="gr63" draw:text-style-name="P5" xml:id="id129" draw:id="id129" draw:layer="layout" svg:width="5.969cm" svg:height="2.667cm" svg:x="26.4cm" svg:y="6.588cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Resource #1 </text:span><text:span text:style-name="T1">status:</text:span></text:p>
-     <text:p text:style-name="P6"><text:span text:style-name="T1">OK</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Resource #1 status:</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">OK</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr64" draw:text-style-name="P36" xml:id="id130" draw:id="id130" draw:layer="layout" svg:width="5.969cm" svg:height="2.667cm" svg:x="26.4cm" svg:y="11.033cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Resource #2 status:</text:span></text:p>
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Malfunction</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr64" draw:text-style-name="P35" xml:id="id130" draw:id="id130" draw:layer="layout" svg:width="5.969cm" svg:height="2.667cm" svg:x="26.4cm" svg:y="11.033cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Resource #2 status:</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Malfunction</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" svg:x1="22.209cm" svg:y1="7.921cm" svg:x2="26.4cm" svg:y2="12.366cm" draw:start-shape="id126" draw:start-glue-point="1" draw:end-shape="id130" draw:end-glue-point="3" svg:d="M22209 7921h2095v4445h2096" svg:viewBox="0 0 4192 4446">
      <text:p/>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr64" draw:text-style-name="P36" xml:id="id131" draw:id="id131" draw:layer="layout" svg:width="5.969cm" svg:height="2.667cm" svg:x="26.4cm" svg:y="2.27cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Group status:</text:span></text:p>
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Malfunction</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr64" draw:text-style-name="P35" xml:id="id131" draw:id="id131" draw:layer="layout" svg:width="5.969cm" svg:height="2.667cm" svg:x="26.4cm" svg:y="2.27cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Group status:</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Malfunction</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr10" draw:text-style-name="P1" draw:layer="layout" svg:x1="32.369cm" svg:y1="3.603cm" svg:x2="32.369cm" svg:y2="7.921cm" draw:start-shape="id131" draw:start-glue-point="1" draw:end-shape="id129" svg:d="M32369 3603h500v4318h-500" svg:viewBox="0 0 501 4319">
@@ -2624,32 +2650,32 @@
     <draw:connector draw:style-name="gr10" draw:text-style-name="P1" draw:layer="layout" svg:x1="32.369cm" svg:y1="3.603cm" svg:x2="32.369cm" svg:y2="12.366cm" draw:start-shape="id131" draw:start-glue-point="1" draw:end-shape="id130" draw:end-glue-point="1" svg:d="M32369 3603h500v8763h-500" svg:viewBox="0 0 501 8764">
      <text:p/>
     </draw:connector>
-    <draw:frame draw:style-name="gr66" draw:text-style-name="P38" draw:layer="layout" svg:width="4.735cm" svg:height="0.878cm" svg:x="16.875cm" svg:y="9.89cm">
+    <draw:frame draw:style-name="gr66" draw:text-style-name="P36" draw:layer="layout" svg:width="4.735cm" svg:height="0.878cm" svg:x="16.875cm" svg:y="9.89cm">
      <draw:text-box>
-      <text:p text:style-name="P37"><text:span text:style-name="T8">Attribute checker</text:span></text:p>
+      <text:p><text:span text:style-name="T8">Attribute checker</text:span></text:p>
      </draw:text-box>
     </draw:frame>
    </draw:page>
    <draw:page draw:name="Voting process" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr67" draw:text-style-name="P39" xml:id="id133" draw:id="id133" draw:layer="layout" svg:width="6.604cm" svg:height="2.159cm" svg:x="3.286cm" svg:y="5.14cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Compute casting </text:span><text:span text:style-name="T1">vote:</text:span></text:p>
-     <text:p text:style-name="P6"><text:span text:style-name="T1">number of scaling </text:span><text:span text:style-name="T1">policies / 2</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr67" draw:text-style-name="P37" xml:id="id133" draw:id="id133" draw:layer="layout" svg:width="6.604cm" svg:height="2.159cm" svg:x="3.286cm" svg:y="5.14cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Compute casting vote:</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">number of scaling policies / 2</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr68" draw:text-style-name="P39" xml:id="id132" draw:id="id132" draw:layer="layout" svg:width="5.722cm" svg:height="2.108cm" svg:x="3.725cm" svg:y="1cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Start voting process</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr68" draw:text-style-name="P37" xml:id="id132" draw:id="id132" draw:layer="layout" svg:width="5.722cm" svg:height="2.108cm" svg:x="3.725cm" svg:y="1cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Start voting process</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="10800 0 3163 3163 0 10800 3163 18437 10800 21600 18437 18437 21600 10800 18437 3163" draw:text-areas="3163 3163 18437 18437" draw:type="ellipse" draw:enhanced-path="U 10800 10800 10800 10800 0 360 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" svg:x1="6.586cm" svg:y1="3.108cm" svg:x2="6.588cm" svg:y2="5.14cm" draw:start-shape="id132" draw:start-glue-point="8" draw:end-shape="id133" draw:end-glue-point="0" svg:d="M6586 3108v1016h2v1016" svg:viewBox="0 0 3 2033">
      <text:p/>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr67" draw:text-style-name="P39" xml:id="id134" draw:id="id134" draw:layer="layout" svg:width="6.604cm" svg:height="2.159cm" svg:x="3.286cm" svg:y="8.62cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Voting of scaling policies</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr67" draw:text-style-name="P37" xml:id="id134" draw:id="id134" draw:layer="layout" svg:width="6.604cm" svg:height="2.159cm" svg:x="3.286cm" svg:y="8.62cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Voting of scaling policies</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr69" draw:text-style-name="P39" xml:id="id135" draw:id="id135" draw:layer="layout" svg:width="4.445cm" svg:height="1.651cm" svg:x="15.097cm" svg:y="5.699cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Policy #1</text:span></text:p>
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Vote: V1</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr69" draw:text-style-name="P37" xml:id="id135" draw:id="id135" draw:layer="layout" svg:width="4.445cm" svg:height="1.651cm" svg:x="15.097cm" svg:y="5.699cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Policy #1</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Vote: V1</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="?f6 10800 10800 21600 ?f5 10800 10800 0" draw:text-areas="?f3 ?f3 ?f4 ?f4" draw:type="trapezoid" draw:modifiers="5400" draw:enhanced-path="M 0 0 L 21600 0 ?f0 21600 ?f1 21600 Z N">
       <draw:equation draw:name="f0" draw:formula="21600-$0 "/>
       <draw:equation draw:name="f1" draw:formula="$0 "/>
@@ -2661,9 +2687,9 @@
       <draw:handle draw:handle-position="$0 bottom" draw:handle-range-x-minimum="0" draw:handle-range-x-maximum="10800"/>
      </draw:enhanced-geometry>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr69" draw:text-style-name="P39" xml:id="id136" draw:id="id136" draw:layer="layout" svg:width="4.445cm" svg:height="1.651cm" svg:x="15.224cm" svg:y="8.874cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">P</text:span><text:span text:style-name="T1">ol</text:span><text:span text:style-name="T1">ic</text:span><text:span text:style-name="T1">y </text:span><text:span text:style-name="T1">#</text:span><text:span text:style-name="T1">2</text:span></text:p>
-     <text:p text:style-name="P6"><text:span text:style-name="T1">V</text:span><text:span text:style-name="T1">ot</text:span><text:span text:style-name="T1">e: </text:span><text:span text:style-name="T1">V</text:span><text:span text:style-name="T1">2</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr69" draw:text-style-name="P37" xml:id="id136" draw:id="id136" draw:layer="layout" svg:width="4.445cm" svg:height="1.651cm" svg:x="15.224cm" svg:y="8.874cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Policy #2</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Vote: V2</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="?f6 10800 10800 21600 ?f5 10800 10800 0" draw:text-areas="?f3 ?f3 ?f4 ?f4" draw:type="trapezoid" draw:modifiers="5400" draw:enhanced-path="M 0 0 L 21600 0 ?f0 21600 ?f1 21600 Z N">
       <draw:equation draw:name="f0" draw:formula="21600-$0 "/>
       <draw:equation draw:name="f1" draw:formula="$0 "/>
@@ -2675,9 +2701,9 @@
       <draw:handle draw:handle-position="$0 bottom" draw:handle-range-x-minimum="0" draw:handle-range-x-maximum="10800"/>
      </draw:enhanced-geometry>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr69" draw:text-style-name="P39" xml:id="id137" draw:id="id137" draw:layer="layout" svg:width="4.445cm" svg:height="1.651cm" svg:x="15.097cm" svg:y="11.795cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">P</text:span><text:span text:style-name="T1">ol</text:span><text:span text:style-name="T1">ic</text:span><text:span text:style-name="T1">y </text:span><text:span text:style-name="T1">#</text:span><text:span text:style-name="T1">3</text:span></text:p>
-     <text:p text:style-name="P6"><text:span text:style-name="T1">V</text:span><text:span text:style-name="T1">ot</text:span><text:span text:style-name="T1">e: </text:span><text:span text:style-name="T1">V</text:span><text:span text:style-name="T1">3</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr69" draw:text-style-name="P37" xml:id="id137" draw:id="id137" draw:layer="layout" svg:width="4.445cm" svg:height="1.651cm" svg:x="15.097cm" svg:y="11.795cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Policy #3</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Vote: V3</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="?f6 10800 10800 21600 ?f5 10800 10800 0" draw:text-areas="?f3 ?f3 ?f4 ?f4" draw:type="trapezoid" draw:modifiers="5400" draw:enhanced-path="M 0 0 L 21600 0 ?f0 21600 ?f1 21600 Z N">
       <draw:equation draw:name="f0" draw:formula="21600-$0 "/>
       <draw:equation draw:name="f1" draw:formula="$0 "/>
@@ -2701,9 +2727,9 @@
     <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" draw:line-skew="0.064cm" svg:x1="9.89cm" svg:y1="9.699cm" svg:x2="15.097cm" svg:y2="12.62cm" draw:start-shape="id134" draw:start-glue-point="1" draw:end-shape="id137" draw:end-glue-point="3" svg:d="M9890 9699h2667v2921h2540" svg:viewBox="0 0 5208 2922">
      <text:p/>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr67" draw:text-style-name="P39" xml:id="id138" draw:id="id138" draw:layer="layout" svg:width="6.604cm" svg:height="2.159cm" svg:x="3.286cm" svg:y="13.065cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Compute sum of votes:</text:span></text:p>
-     <text:p text:style-name="P6"><text:span text:style-name="T1">S=V1 + V2 + V3</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr67" draw:text-style-name="P37" xml:id="id138" draw:id="id138" draw:layer="layout" svg:width="6.604cm" svg:height="2.159cm" svg:x="3.286cm" svg:y="13.065cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Compute sum of votes:</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">S=V1 + V2 + V3</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" draw:line-skew="0.134cm" svg:x1="19.542cm" svg:y1="6.524cm" svg:x2="9.89cm" svg:y2="14.144cm" draw:start-shape="id135" draw:start-glue-point="1" draw:end-shape="id138" draw:end-glue-point="1" svg:d="M19542 6524h635v7620h-10287" svg:viewBox="0 0 10288 7621">
@@ -2715,36 +2741,36 @@
     <draw:connector draw:style-name="gr71" draw:text-style-name="P29" draw:layer="layout" draw:line-skew="0.134cm" svg:x1="19.542cm" svg:y1="12.62cm" svg:x2="9.89cm" svg:y2="14.144cm" draw:start-shape="id137" draw:start-glue-point="1" draw:end-shape="id138" draw:end-glue-point="1" svg:d="M19542 12620h635v1524h-10287" svg:viewBox="0 0 10288 1525">
      <text:p text:style-name="P18"><text:span text:style-name="T1">Voting result: V1, V2, V3</text:span></text:p>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr72" draw:text-style-name="P39" xml:id="id139" draw:id="id139" draw:layer="layout" svg:width="6.223cm" svg:height="1.905cm" svg:x="3.481cm" svg:y="16.113cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">S &gt; castingVote</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr72" draw:text-style-name="P37" xml:id="id139" draw:id="id139" draw:layer="layout" svg:width="6.223cm" svg:height="1.905cm" svg:x="3.481cm" svg:y="16.113cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">S &gt; castingVote</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="10800 0 0 10800 10800 21600 21600 10800" draw:text-areas="5400 5400 16200 16200" draw:type="diamond" draw:enhanced-path="M 10800 0 L 21600 10800 10800 21600 0 10800 10800 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" svg:x1="6.588cm" svg:y1="15.224cm" svg:x2="6.593cm" svg:y2="16.113cm" draw:start-shape="id138" draw:start-glue-point="2" draw:end-shape="id139" draw:end-glue-point="4" svg:d="M6588 15224v444h5v445" svg:viewBox="0 0 6 890">
      <text:p/>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr73" draw:text-style-name="P39" xml:id="id140" draw:id="id140" draw:layer="layout" svg:width="5.969cm" svg:height="2.159cm" svg:x="11.16cm" svg:y="19.08cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Enlarge cluster</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr73" draw:text-style-name="P37" xml:id="id140" draw:id="id140" draw:layer="layout" svg:width="5.969cm" svg:height="2.159cm" svg:x="11.16cm" svg:y="19.08cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Enlarge cluster</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr74" draw:text-style-name="P6" draw:layer="layout" svg:x1="9.704cm" svg:y1="17.066cm" svg:x2="14.144cm" svg:y2="19.08cm" draw:start-shape="id139" draw:start-glue-point="7" draw:end-shape="id140" draw:end-glue-point="0" svg:d="M9704 17066h4440v2014" svg:viewBox="0 0 4441 2015">
      <text:p text:style-name="P1"><text:span text:style-name="T1">Yes</text:span></text:p>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr72" draw:text-style-name="P39" xml:id="id141" draw:id="id141" draw:layer="layout" svg:width="6.223cm" svg:height="1.905cm" svg:x="3.481cm" svg:y="19.313cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">S &lt; castingVote</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr72" draw:text-style-name="P37" xml:id="id141" draw:id="id141" draw:layer="layout" svg:width="6.223cm" svg:height="1.905cm" svg:x="3.481cm" svg:y="19.313cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">S &lt; castingVote</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:glue-points="10800 0 0 10800 10800 21600 21600 10800" draw:text-areas="5400 5400 16200 16200" draw:type="diamond" draw:enhanced-path="M 10800 0 L 21600 10800 10800 21600 0 10800 10800 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr50" draw:text-style-name="P6" draw:layer="layout" svg:x1="6.593cm" svg:y1="18.018cm" svg:x2="6.593cm" svg:y2="19.313cm" draw:start-shape="id139" draw:start-glue-point="6" draw:end-shape="id141" draw:end-glue-point="4" svg:d="M6593 18018v1295" svg:viewBox="0 0 1 1296">
      <text:p text:style-name="P1"><text:span text:style-name="T1">No</text:span></text:p>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr73" draw:text-style-name="P39" xml:id="id142" draw:id="id142" draw:layer="layout" svg:width="5.969cm" svg:height="2.159cm" svg:x="11.16cm" svg:y="22.58cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Shrink cluster</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr73" draw:text-style-name="P37" xml:id="id142" draw:id="id142" draw:layer="layout" svg:width="5.969cm" svg:height="2.159cm" svg:x="11.16cm" svg:y="22.58cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Shrink cluster</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr50" draw:text-style-name="P6" draw:layer="layout" svg:x1="9.704cm" svg:y1="20.266cm" svg:x2="11.16cm" svg:y2="23.659cm" draw:start-shape="id141" draw:start-glue-point="7" draw:end-shape="id142" draw:end-glue-point="3" svg:d="M9704 20266h728v3393h728" svg:viewBox="0 0 1457 3394">
      <text:p text:style-name="P1"><text:span text:style-name="T1">Yes</text:span></text:p>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr67" draw:text-style-name="P39" xml:id="id143" draw:id="id143" draw:layer="layout" svg:width="6.604cm" svg:height="2.159cm" svg:x="3.286cm" svg:y="25.165cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Cooldown</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr67" draw:text-style-name="P37" xml:id="id143" draw:id="id143" draw:layer="layout" svg:width="6.604cm" svg:height="2.159cm" svg:x="3.286cm" svg:y="25.165cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Cooldown</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" svg:x1="14.144cm" svg:y1="24.739cm" svg:x2="9.89cm" svg:y2="26.244cm" draw:start-shape="id142" draw:start-glue-point="2" draw:end-shape="id143" svg:d="M14144 24739v1505h-4254" svg:viewBox="0 0 4255 1506">
@@ -2761,7 +2787,7 @@
     </draw:connector>
    </draw:page>
    <draw:page draw:name="OpenStack Supervisor" draw:style-name="dp2" draw:master-page-name="Default">
-    <draw:custom-shape draw:style-name="gr75" draw:text-style-name="P32" draw:layer="layout" svg:width="11.811cm" svg:height="11.303cm" svg:x="11.16cm" svg:y="6.207cm">
+    <draw:custom-shape draw:style-name="gr75" draw:text-style-name="P25" draw:layer="layout" svg:width="11.811cm" svg:height="11.303cm" svg:x="11.16cm" svg:y="6.207cm">
      <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
@@ -2775,13 +2801,13 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">(name app-2)</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr76" draw:text-style-name="P34" xml:id="id145" draw:id="id145" draw:layer="layout" svg:width="4.064cm" svg:height="3.683cm" svg:x="17.891cm" svg:y="10.398cm">
+    <draw:custom-shape draw:style-name="gr76" draw:text-style-name="P33" xml:id="id145" draw:id="id145" draw:layer="layout" svg:width="4.064cm" svg:height="3.683cm" svg:x="17.891cm" svg:y="10.398cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">OpenStack </text:span></text:p>
      <text:p text:style-name="P1"><text:span text:style-name="T1">Supervisor</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr77" draw:text-style-name="P40" draw:layer="layout" svg:width="10.922cm" svg:height="9.271cm" svg:x="11.541cm" svg:y="7.35cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">Resource </text:span><text:span text:style-name="T1">Group</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr77" draw:text-style-name="P38" draw:layer="layout" svg:width="10.922cm" svg:height="9.271cm" svg:x="11.541cm" svg:y="7.35cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Resource Group</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr10" draw:text-style-name="P1" draw:layer="layout" svg:x1="16.369cm" svg:y1="10.08cm" svg:x2="17.891cm" svg:y2="12.239cm" draw:start-shape="id144" draw:start-glue-point="1" draw:end-shape="id145" draw:end-glue-point="3" svg:d="M16369 10080h761v2159h761" svg:viewBox="0 0 1523 2160">
@@ -2790,8 +2816,8 @@
     <draw:connector draw:style-name="gr10" draw:text-style-name="P1" draw:layer="layout" svg:x1="16.367cm" svg:y1="14.271cm" svg:x2="17.891cm" svg:y2="12.239cm" draw:start-shape="id146" draw:start-glue-point="1" draw:end-shape="id145" draw:end-glue-point="3" svg:d="M16367 14271h762v-2032h762" svg:viewBox="0 0 1525 2033">
      <text:p/>
     </draw:connector>
-    <draw:custom-shape draw:style-name="gr78" draw:text-style-name="P32" draw:layer="layout" svg:width="11.684cm" svg:height="11.303cm" svg:x="25.511cm" svg:y="6.08cm">
-     <text:p text:style-name="P1"><text:span text:style-name="T6">O</text:span><text:span text:style-name="T6">p</text:span><text:span text:style-name="T6">e</text:span><text:span text:style-name="T6">n</text:span><text:span text:style-name="T6">St</text:span><text:span text:style-name="T6">ac</text:span><text:span text:style-name="T6">k</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr78" draw:text-style-name="P25" draw:layer="layout" svg:width="11.684cm" svg:height="11.303cm" svg:x="25.511cm" svg:y="6.08cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T6">OpenStack</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:custom-shape draw:style-name="gr47" draw:text-style-name="P4" xml:id="id147" draw:id="id147" draw:layer="layout" svg:width="3.939cm" svg:height="3.683cm" svg:x="32.494cm" svg:y="8.112cm">
@@ -2804,13 +2830,13 @@
      <text:p text:style-name="P1"><text:span text:style-name="T1">(name app-2)</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr79" draw:text-style-name="P41" xml:id="id148" draw:id="id148" draw:layer="layout" svg:width="4.064cm" svg:height="3.683cm" svg:x="26.527cm" svg:y="10.398cm">
+    <draw:custom-shape draw:style-name="gr79" draw:text-style-name="P39" xml:id="id148" draw:id="id148" draw:layer="layout" svg:width="4.064cm" svg:height="3.683cm" svg:x="26.527cm" svg:y="10.398cm">
      <text:p text:style-name="P1"><text:span text:style-name="T1">Senlin </text:span></text:p>
      <text:p text:style-name="P1"><text:span text:style-name="T1">REST API</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
-    <draw:custom-shape draw:style-name="gr77" draw:text-style-name="P40" draw:layer="layout" svg:width="10.922cm" svg:height="9.271cm" svg:x="25.892cm" svg:y="7.223cm">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">S</text:span><text:span text:style-name="T1">e</text:span><text:span text:style-name="T1">nl</text:span><text:span text:style-name="T1">in </text:span><text:span text:style-name="T1">Cl</text:span><text:span text:style-name="T1">u</text:span><text:span text:style-name="T1">st</text:span><text:span text:style-name="T1">er</text:span></text:p>
+    <draw:custom-shape draw:style-name="gr77" draw:text-style-name="P38" draw:layer="layout" svg:width="10.922cm" svg:height="9.271cm" svg:x="25.892cm" svg:y="7.223cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Senlin Cluster</text:span></text:p>
      <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
     </draw:custom-shape>
     <draw:connector draw:style-name="gr10" draw:text-style-name="P1" draw:layer="layout" svg:x1="32.494cm" svg:y1="9.953cm" svg:x2="30.591cm" svg:y2="12.239cm" draw:start-shape="id147" draw:end-shape="id148" draw:end-glue-point="1" svg:d="M32494 9953h-952v2286h-951" svg:viewBox="0 0 1904 2287">
@@ -2820,7 +2846,839 @@
      <text:p/>
     </draw:connector>
     <draw:connector draw:style-name="gr7" draw:text-style-name="P6" draw:layer="layout" svg:x1="21.955cm" svg:y1="12.239cm" svg:x2="26.527cm" svg:y2="12.239cm" draw:start-shape="id145" draw:start-glue-point="1" draw:end-shape="id148" draw:end-glue-point="3" svg:d="M21955 12239h4572" svg:viewBox="0 0 4573 1">
-     <text:p text:style-name="P6"><text:span text:style-name="T1">HTTP</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP</text:span></text:p>
+    </draw:connector>
+   </draw:page>
+   <draw:page draw:name="Instrumentation" draw:style-name="dp2" draw:master-page-name="Default">
+    <draw:custom-shape draw:style-name="gr80" draw:text-style-name="P25" draw:layer="layout" svg:width="6.35cm" svg:height="11.43cm" svg:x="8.702cm" svg:y="17.281cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T6">Application#1</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr80" draw:text-style-name="P25" draw:layer="layout" svg:width="6.35cm" svg:height="11.43cm" svg:x="16.494cm" svg:y="17.24cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T6">Application#2</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr81" draw:text-style-name="P34" xml:id="id154" draw:id="id154" draw:layer="layout" svg:width="3.81cm" svg:height="3.81cm" svg:x="10.072cm" svg:y="23.631cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Instrumented code</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr82" draw:text-style-name="P34" xml:id="id155" draw:id="id155" draw:layer="layout" svg:width="3.939cm" svg:height="3.81cm" svg:x="17.864cm" svg:y="23.59cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Instrumented code</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr37" draw:text-style-name="P5" xml:id="id150" draw:id="id150" draw:layer="layout" svg:width="4.064cm" svg:height="3.683cm" svg:x="9.972cm" svg:y="18.678cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP </text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Reporter</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr37" draw:text-style-name="P5" xml:id="id152" draw:id="id152" draw:layer="layout" svg:width="4.064cm" svg:height="3.683cm" svg:x="17.764cm" svg:y="18.51cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Kafka </text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Reporter</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr83" draw:text-style-name="P25" draw:layer="layout" svg:width="14.097cm" svg:height="11.43cm" svg:x="8.62cm" svg:y="1.07cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T6">SNAMP</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr84" draw:text-style-name="P4" xml:id="id151" draw:id="id151" draw:layer="layout" svg:width="5.207cm" svg:height="3.81cm" svg:x="9.763cm" svg:y="7.42cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP Resource Connector</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:frame draw:style-name="gr85" draw:text-style-name="P40" xml:id="id153" draw:id="id153" draw:layer="layout" svg:width="5.08cm" svg:height="5.08cm" svg:x="27.543cm" svg:y="12.43cm">
+     <draw:image xlink:href="">
+      <office:binary-data>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
+      </office:binary-data>
+      <text:p text:style-name="P40"/>
+     </draw:image>
+    </draw:frame>
+    <draw:custom-shape draw:style-name="gr86" draw:text-style-name="P4" xml:id="id156" draw:id="id156" draw:layer="layout" svg:width="5.082cm" svg:height="3.81cm" svg:x="16.113cm" svg:y="7.42cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Kafka Resource Connector</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr87" draw:text-style-name="P2" draw:layer="layout" svg:width="5.08cm" svg:height="3.81cm" svg:x="9.89cm" svg:y="2.34cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">SNAMP Web</text:span></text:p>
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Console</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:custom-shape draw:style-name="gr87" draw:text-style-name="P2" draw:layer="layout" svg:width="5.08cm" svg:height="3.81cm" svg:x="16.24cm" svg:y="2.34cm">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">Gateways</text:span></text:p>
+     <draw:enhanced-geometry svg:viewBox="0 0 21600 21600" draw:type="rectangle" draw:enhanced-path="M 0 0 L 21600 0 21600 21600 0 21600 0 0 Z N"/>
+    </draw:custom-shape>
+    <draw:connector draw:style-name="gr50" draw:text-style-name="P6" draw:layer="layout" draw:line-skew="-3.054cm" svg:x1="9.972cm" svg:y1="20.519cm" svg:x2="9.763cm" svg:y2="9.325cm" draw:start-shape="id150" draw:start-glue-point="3" draw:end-shape="id151" draw:end-glue-point="3" svg:d="M9972 20519h-3765v-11194h3556" svg:viewBox="0 0 3766 11195">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">HTTP/JSON</text:span></text:p>
+    </draw:connector>
+    <draw:frame draw:style-name="gr88" draw:text-style-name="P41" draw:layer="layout" svg:width="3.592cm" svg:height="0.798cm" svg:x="28.462cm" svg:y="17.474cm">
+     <draw:text-box>
+      <text:p><text:span text:style-name="T1">Apache Kafka</text:span></text:p>
+     </draw:text-box>
+    </draw:frame>
+    <draw:connector draw:style-name="gr50" draw:text-style-name="P6" draw:layer="layout" svg:x1="21.828cm" svg:y1="20.351cm" svg:x2="27.543cm" svg:y2="14.97cm" draw:start-shape="id152" draw:start-glue-point="1" draw:end-shape="id153" draw:end-glue-point="3" svg:d="M21828 20351h2858v-5381h2857" svg:viewBox="0 0 5716 5382">
+     <text:p text:style-name="P1"><text:span text:style-name="T1">TCP/Bi</text:span><text:span text:style-name="T1">nary</text:span></text:p>
+    </draw:connector>
+    <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" svg:x1="11.977cm" svg:y1="23.631cm" svg:x2="12.004cm" svg:y2="22.361cm" draw:start-shape="id154" draw:start-glue-point="0" draw:end-shape="id150" draw:end-glue-point="2" svg:d="M11977 23631v-635h27v-635" svg:viewBox="0 0 28 1271">
+     <text:p/>
+    </draw:connector>
+    <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" svg:x1="19.833cm" svg:y1="23.59cm" svg:x2="19.796cm" svg:y2="22.193cm" draw:start-shape="id155" draw:start-glue-point="0" draw:end-shape="id152" draw:end-glue-point="2" svg:d="M19833 23590v-699h-37v-698" svg:viewBox="0 0 38 1398">
+     <text:p/>
+    </draw:connector>
+    <draw:connector draw:style-name="gr65" draw:text-style-name="P1" draw:layer="layout" svg:x1="30.083cm" svg:y1="12.43cm" svg:x2="21.195cm" svg:y2="9.325cm" draw:start-shape="id153" draw:start-glue-point="0" draw:end-shape="id156" draw:end-glue-point="1" svg:d="M30083 12430v-3105h-8888" svg:viewBox="0 0 8889 3106">
+     <text:p/>
     </draw:connector>
    </draw:page>
   </office:drawing>

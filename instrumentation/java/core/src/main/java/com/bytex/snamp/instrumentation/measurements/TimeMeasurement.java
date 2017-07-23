@@ -94,6 +94,7 @@ public class TimeMeasurement extends Measurement {
         switch (className) {
             case "java.time.Duration":
                 return toDuration();
+            case "java.lang.Long":
             case "long":
                 return timeUnit.toNanos(duration);
             default:

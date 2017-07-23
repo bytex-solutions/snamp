@@ -9,36 +9,36 @@ import org.apache.commons.cli.HelpFormatter
 
 import java.nio.file.Paths
 
-static String normalizeProperty(String key){
-    if(key == null) return null;
-    else if(key.startsWith("\${") && key.endsWith("}"))
-        return key.substring(2, key.length() - 1)
-    else return key
+static def replaceProperty(final Object obj, final String propertyName, final Properties context) {
+    def propertyValue = obj?."$propertyName"
+    if (propertyValue instanceof String) {
+        if (propertyValue.startsWith("\${") && propertyValue.endsWith("}")) {
+            propertyValue = propertyValue.substring 2, propertyValue.length() - 1
+            if (context.containsKey(propertyValue))
+                obj."$propertyName" = context.getProperty propertyValue
+        }
+    }
 }
 
-static Properties createProperties(final Properties p1, final Properties p2){
-    final result = new Properties()
+static def createProperties(final Properties p1, final Properties p2){
+    final result = new Properties(p1)
     result.putAll p1
     result.putAll p2
     result
 }
 
-def flattenPOMs(final MavenXpp3Reader reader, Properties properties, final String pomFile, final String directory, final String outPomFile){
+static def flattenPOMs(final MavenXpp3Reader reader, Properties properties, final String pomFile, final String directory, final String outPomFile){
     new FileInputStream(Paths.get(directory, pomFile).toFile()).withStream {is ->
         final model = reader.read is
-        println "Processing $model.artifactId"
+        println "Processing $model.artifactId($model.name)"
         //collect properties
         properties = createProperties properties, model.properties
         //replace version
-        def key = normalizeProperty model.version
-        if(key != null && properties.containsKey(key))
-            model.version = properties.getProperty key
+        replaceProperty model, "version", properties
+        //replace tag
+        replaceProperty model.scm, "tag", properties
         //replace in all dependencies
-        model.dependencies.each {dependency ->
-            key = normalizeProperty dependency.version
-            if(key != null && properties.containsKey(key))
-                dependency.version = properties.getProperty key
-        }
+        model.dependencies.each {dependency -> replaceProperty dependency, "version", properties}
         //save into new file
         new FileOutputStream(Paths.get(directory, outPomFile).toFile()).withStream {os ->
             new MavenXpp3Writer().write os, model
@@ -58,7 +58,7 @@ def flattenPOMs(final MavenXpp3Reader reader, Properties properties, final Strin
     }
 }
 
-def flattenPOMs(final String pomFile, final String directory, final String outPomFile){
+static def flattenPOMs(final String pomFile, final String directory, final String outPomFile){
     flattenPOMs(new MavenXpp3Reader(), new Properties(), pomFile, directory, outPomFile)
 }
 
@@ -68,9 +68,9 @@ final POM_FILE_OPTION = "i"
 options.addOption POM_FILE_OPTION, "input", true, "Name of all POM files"
 final DIR_OPTION = "d"
 options.addOption DIR_OPTION, "directory", true, "Path to directory with root POM"
-final HELP_OPTION = "h";
+final HELP_OPTION = "h"
 options.addOption HELP_OPTION, "help", false, "Print this message"
-final OUT_FILE_OPTION = "o";
+final OUT_FILE_OPTION = "o"
 options.addOption OUT_FILE_OPTION, "out", true, "Name of output POM files"
 final parser = new DefaultParser()
 final cmd = parser.parse options, args

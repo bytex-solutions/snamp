@@ -29,7 +29,7 @@ export abstract class SeriesBasedChart extends TwoDimensionalChartOfAttributeVal
 }
 
 export class DescriptionIdClass {
-    public id:any = 0;
+    public id:number = 0;
     public description:string = "";
     public additionalId:string = "";
 

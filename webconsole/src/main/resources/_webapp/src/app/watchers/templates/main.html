@@ -1,5 +1,4 @@
 <div class="right_col" role="main" style="min-height: 949px;">
-  <div class="">
     <div class="page-title">
       <div class="title_left">
         <h3>{{getMainHeader()}}</h3>
@@ -7,6 +6,8 @@
     </div>
 
     <div class="clearfix"></div>
+
+    <hr/>
 
 
     <!-- Modal for edit the trigger for activeWatcher -->
@@ -169,7 +170,7 @@
                 <div style="height:100%">
 
                   <div id="checkerTable" class="row" style="margin-top: 5px;">
-                    <table class="table table-hover table-bordered">
+                    <table class="table table-bordered">
                       <thead class="thead-inverse">
                       <tr>
                         <th>Actions</th>
@@ -377,7 +378,7 @@
                   </div>
 
                   <div id="policyTable" class="row" style="margin-top: 5px;">
-                    <table class="table table-hover table-bordered">
+                    <table class="table table-bordered">
                       <thead class="thead-inverse">
                       <tr>
                         <th>Actions</th>
@@ -405,7 +406,7 @@
                       </tr>
                       </tbody>
                     </table>
-                    <button class="btn btn-primary btn-xs" (click)="addNewPolicy()">
+                    <button class="btn btn-primary btn-xs" (click)="addNewPolicy()" *ngIf="!newPolicyAppended">
                       Add new policy
                     </button>
                   </div>
@@ -517,7 +518,7 @@
 
                     <div *ngIf="activePolicy?.language == 'MetricBased'">
 
-                      <div class="form-group row">
+                      <div class="form-group row" style="margin-top: 15px">
                         <label for="operationalRangePolicy" class="col-md-2 col-form-label">Operational range</label>
                         <div class="col-md-6">
                           <input class="form-control" disabled type="text" min="0" [attr.value]="activePolicy.policyObject.operationalRange.toString()" id="operationalRangePolicy">
@@ -662,127 +663,161 @@
       </div>
     </div>
 
+    <!-- Supervisors subentities (checkers, triggers, policies) and supervisor's inner settings -->
     <div class="row" style="margin-top: 30px">
-      <panel [header]="'Supervisor settings'" [column]="'7'" *ngIf="activeWatcher != undefined">
 
-        <div class="form-group row">
-          <label for="watcherTypeSelection" class="col-md-2 col-form-label">Type</label>
-          <div class="col-md-10">
-            <select class="form-control" [(ngModel)]="activeWatcher.type" id="watcherTypeSelection">
-              <option  *ngFor="let supervisor of availableSupervisors" [ngValue]="supervisor.type">{{supervisor.type}}</option>
-            </select>
-          </div>
+      <div class="col-md-8">
+        <div class="row">
+          <!-- Inner settings -->
+          <panel [header]="'Supervisor settings'" [column]="'12'" *ngIf="activeWatcher != undefined">
+            <div class="form-group row">
+              <label for="watcherTypeSelection" class="col-md-2 col-form-label">Type</label>
+              <div class="col-md-10">
+                <select class="form-control" [(ngModel)]="activeWatcher.type" id="watcherTypeSelection">
+                  <option  *ngFor="let supervisor of availableSupervisors" [ngValue]="supervisor.type">{{supervisor.type}}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label for="connectionStringTmpl" class="col-md-2 col-form-label">Connection string template</label>
+              <div class="col-md-10">
+                <input class="form-control" type="text" [(ngModel)]="activeWatcher.connectionStringTemplate" id="connectionStringTmpl">
+              </div>
+            </div>
+
+            <div class="form-group row" *ngIf="activeWatcher.autoScaling">
+              <label for="scalingSizeInput" class="col-md-2 col-form-label">Scaling size</label>
+              <div class="col-md-10">
+                <input class="form-control" type="number" min="0" [attr.max]="activeWatcher.maxClusterSize" [(ngModel)]="activeWatcher.scalingSize" id="scalingSizeInput">
+              </div>
+            </div>
+
+            <div class="form-group row" *ngIf="activeWatcher.autoScaling">
+              <label for="minClusterSizeInput" class="col-md-2 col-form-label">Minimum cluster size</label>
+              <div class="col-md-10">
+                <input class="form-control" type="number" min="0" [(ngModel)]="activeWatcher.minClusterSize" id="minClusterSizeInput">
+              </div>
+            </div>
+
+            <div class="form-group row" *ngIf="activeWatcher.autoScaling">
+              <label for="maxClusterSizeInput" class="col-md-2 col-form-label">Maximum cluster size</label>
+              <div class="col-md-10">
+                <input class="form-control" type="number" [attr.min]="activeWatcher.minClusterSize" [(ngModel)]="activeWatcher.maxClusterSize" id="maxClusterSizeInput">
+              </div>
+            </div>
+
+            <div class="form-group row" *ngIf="activeWatcher.autoScaling">
+              <label for="cooldownTimeInput" class="col-md-2 col-form-label">Cooldown time (ms)</label>
+              <div class="col-md-10">
+                <input class="form-control" type="number" [(ngModel)]="activeWatcher.cooldownTime" id="cooldownTimeInput">
+              </div>
+            </div>
+
+            <div class="form-group row">
+              <label class="col-md-2 col-form-label">Autoscaling</label>
+              <div class="col-md-10">
+                <ui-switch
+                        [(ngModel)]="activeWatcher.autoScaling"
+                        [size]="'small'">
+                </ui-switch>
+              </div>
+            </div>
+          </panel>
         </div>
+        <div class="row">
+          <!-- Set the component -->
+          <panel [header]="'Supervisor group'" [column]="'12'" *ngIf="activeWatcher != undefined">
 
-        <div class="form-group row">
-          <label for="connectionStringTmpl" class="col-md-2 col-form-label">Connection string template</label>
-          <div class="col-md-10">
-            <input class="form-control" type="text" [(ngModel)]="activeWatcher.connectionStringTemplate" id="connectionStringTmpl">
-          </div>
-        </div>
+            <div class="form-group row">
+              <label class="col-md-2 col-form-label">Select group from list</label>
+              <div class="col-md-10">
+                <ui-switch
+                        [(ngModel)]="groupSelection"
+                        [disabled]="!components || components.length == 0"
+                        [size]="'small'">
+                </ui-switch>
+              </div>
+            </div>
 
-        <div class="form-group row" *ngIf="activeWatcher.autoScaling">
-          <label for="scalingSizeInput" class="col-md-2 col-form-label">Scaling size</label>
-          <div class="col-md-10">
-            <input class="form-control" type="number" min="0" [attr.max]="activeWatcher.maxClusterSize" [(ngModel)]="activeWatcher.scalingSize" id="scalingSizeInput">
-          </div>
-        </div>
-
-        <div class="form-group row" *ngIf="activeWatcher.autoScaling">
-          <label for="minClusterSizeInput" class="col-md-2 col-form-label">Minimum cluster size</label>
-          <div class="col-md-10">
-            <input class="form-control" type="number" min="0" [(ngModel)]="activeWatcher.minClusterSize" id="minClusterSizeInput">
-          </div>
-        </div>
-
-        <div class="form-group row" *ngIf="activeWatcher.autoScaling">
-          <label for="maxClusterSizeInput" class="col-md-2 col-form-label">Maximum cluster size</label>
-          <div class="col-md-10">
-            <input class="form-control" type="number" [attr.min]="activeWatcher.minClusterSize" [(ngModel)]="activeWatcher.maxClusterSize" id="maxClusterSizeInput">
-          </div>
-        </div>
-
-        <div class="form-group row" *ngIf="activeWatcher.autoScaling">
-          <label for="cooldownTimeInput" class="col-md-2 col-form-label">Cooldown time (ms)</label>
-          <div class="col-md-10">
-            <input class="form-control" type="number" [(ngModel)]="activeWatcher.cooldownTime" id="cooldownTimeInput">
-          </div>
-        </div>
-
-        <div class="form-group row">
-          <label class="col-md-2 col-form-label">Autoscaling</label>
-          <div class="col-md-10">
-            <ui-switch
-                    [(ngModel)]="activeWatcher.autoScaling"
-                    [size]="'small'">
-            </ui-switch>
-          </div>
-        </div>
-      </panel>
-
-      <panel [header]="getPanelHeader()" [column]="'5'" *ngIf="activeWatcher != undefined">
-
-        <div class="row row-margin-bottom-sm">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12" for="componentSelection" style="margin-top:10px;">
-              Select group <span class="required">*</span>
-          </label>
-          <div class="col-md-9 col-sm-9 col-xs-12">
-            <select class="form-control" [(ngModel)]="selectedComponent" id="componentSelection" (ngModelChange)="selectCurrentComponent($event)">
+            <select
+                    class="form-control"
+                    [(ngModel)]="selectedComponent"
+                    id="componentSelection"
+                    *ngIf="groupSelection && components && components.length > 0"
+                    (ngModelChange)="selectCurrentComponent($event)">
               <option  *ngFor="let component of components" [ngValue]="component">{{component}}</option>
             </select>
+
+            <div class="form-group row" *ngIf="!groupSelection">
+              <label for="manualGroupName" class="col-md-2 col-form-label">Input group name</label>
+              <div class="col-md-10">
+                <div class="input-group">
+                  <input class="form-control"
+                         type="text"
+                         [(ngModel)]="selectedComponent"
+                         (ngModelChange)="triggerGroupNameChanged($event)"
+                         id="manualGroupName"
+                         placeholder="Input group name manually...">
+                  <span class="input-group-btn">
+                     <button class="btn btn-secondary" [class.btn-primary]="groupNameChanged" type="button" (click)="saveManualGroupName()" [disabled]="!groupNameChanged">Save</button>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row row-margin-bottom-sm" *ngIf="!(attributes && attributes.length > 0)">
+              <h5>Selected group does not contain attributes - please select another component or set some attributes</h5>
+            </div>
+
+          </panel>
+        </div>
+      </div>
+
+      <div class="col-md-4" *ngIf="activeWatcher != undefined">
+        <div class="row">
+          <div class="animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="tile-stats">
+              <div class="icon" style="cursor: pointer;" (click)="initTriggerModal()"><i class="fa fa-pencil-square-o"></i></div>
+              <div class="count">1</div>
+              <h3>Trigger</h3>
+              <p>Edit trigger for supervisor</p>
+            </div>
           </div>
         </div>
 
-        <div class="row row-margin-bottom-sm" *ngIf="!(attributes && attributes.length > 0)">
-          <h5>Selected group does not contain attributes - please select another component or set some attributes</h5>
-        </div>
-
-        <div class="row row-margin-bottom-sm">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
-            Trigger
-          </label>
-          <div class="col-md-4 col-sm-4 col-xs-12">
-            <button class="btn btn-primary"
-                    (click)="initTriggerModal()"
-                    aria-hidden="true"> Edit trigger
-            </button>
+        <div class="row">
+          <div class="animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="tile-stats">
+              <div class="icon" style="cursor: pointer;" (click)="initCheckersModal()"><i class="fa fa-pencil-square-o"></i></div>
+              <div class="count">{{activeWatcher.getCheckersCount()}}</div>
+              <h3>Checkers</h3>
+              <p>Edit checkers for supervisor</p>
+            </div>
           </div>
         </div>
 
-        <div class="row row-margin-bottom-sm">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
-            Checkers
-          </label>
-          <div class="col-md-4 col-sm-4 col-xs-12">
-            <button class="btn btn-primary"
-                    [disabled]="!(attributes && attributes.length > 0)"
-                    (click)="initCheckersModal()"
-                    aria-hidden="true"> Edit checkers
-            </button>
+        <div class="row">
+          <div class="animated flipInY col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="tile-stats">
+              <div class="icon" style="cursor: pointer;" (click)="initPoliciesModal()"><i class="fa fa-pencil-square-o"></i></div>
+              <div class="count">{{activeWatcher.getPoliciesCount()}}</div>
+              <h3>Policies</h3>
+              <p>Edit policies for supervisor</p>
+            </div>
           </div>
         </div>
-
-        <div class="row row-margin-bottom-sm">
-          <label class="control-label col-md-3 col-sm-3 col-xs-12" style="margin-top:10px;">
-            Policies
-          </label>
-          <div class="col-md-4 col-sm-4 col-xs-12">
-            <button class="btn btn-primary"
-                    (click)="initPoliciesModal()"
-                    aria-hidden="true"> Edit policies
-            </button>
-          </div>
-        </div>
-      </panel>
-
+      </div>
     </div>
 
+    <!-- Supervisor's parameter table -->
     <div class="row" style="margin-top: 10px">
       <panel [header]="'Supervisor parameters'" [column]="'12'" *ngIf="activeWatcher != undefined">
         <ptable [entity]="activeWatcher"></ptable>
       </panel>
     </div>
 
+    <!-- Save/cancel buttons -->
     <div class="row" style="margin-top: 20px; float:right;" *ngIf="activeWatcher != undefined">
       <hr/>
       <div>
@@ -791,9 +826,10 @@
       </div>
     </div>
 
+    <!-- Supervisors table -->
     <div class="row" style="margin-top: 10px" *ngIf="activeWatcher == undefined">
       <panel [header]="'List of supervisors'" [column]="'12'">
-        <table class="table table-hover table-bordered">
+        <table class="table table-bordered">
           <thead class="thead-inverse">
           <tr>
             <th style="width:90px;">Actions</th>
@@ -852,7 +888,7 @@
               <button
                       style="float:right;"
                       class="btn btn-primary btn-sm"
-                      (click)="addNewWatcher()">+ New watcher</button>
+                      (click)="addNewWatcher()">+ New supervisor</button>
             </td>
           </tr>
           </tbody>
@@ -860,8 +896,5 @@
 
       </panel>
     </div>
-
-
-  </div>
 </div>
 

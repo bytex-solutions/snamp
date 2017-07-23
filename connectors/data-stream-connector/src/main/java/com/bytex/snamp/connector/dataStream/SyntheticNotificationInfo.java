@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Notification;
 import javax.management.NotificationFilter;
@@ -16,12 +15,12 @@ public class SyntheticNotificationInfo extends AbstractNotificationInfo implemen
     private static final long serialVersionUID = -3224023906663012968L;
     private NotificationFilter filter;
 
-    SyntheticNotificationInfo(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
+    SyntheticNotificationInfo(final String notifType, final Class<? extends Notification> notificationType, final String description, final NotificationDescriptor descriptor) {
         super(notifType, description, notificationType, descriptor);
         filter = n -> true;
     }
 
-    public SyntheticNotificationInfo(final String notifType, final NotificationDescriptor descriptor) throws InvalidSyntaxException {
+    public SyntheticNotificationInfo(final String notifType, final NotificationDescriptor descriptor) {
         this(notifType, Notification.class, descriptor.getDescription("Simple proxy notification"), descriptor);
     }
 

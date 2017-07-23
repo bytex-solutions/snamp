@@ -3,7 +3,6 @@ package com.bytex.snamp.management.shell;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -24,7 +23,7 @@ import java.io.PrintWriter;
  * @since 1.0
  * @version 2.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
     name = "read-attributes")
 @Service
 public final class ReadAttributesCommand extends SnampShellCommand  {

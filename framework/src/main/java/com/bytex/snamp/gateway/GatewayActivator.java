@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
@@ -18,6 +17,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,11 +56,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
     protected interface GatewayFactory<G extends Gateway>{
         @Nonnull
         G createInstance(final String gatewayInstance,
-                         final DependencyManager dependencies) throws Exception;
-
-        default Class<? super G>[] extraContracts(){
-            return ArrayUtils.toArray(Gateway.class);
-        }
+                         final DependencyManager dependencies);
     }
 
     private static final class GatewayInstances<G extends Gateway> extends ServiceSubRegistryManager<Gateway, G>{
@@ -103,8 +100,8 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         }
 
         @Override
-        protected G update(final G gatewayInstance,
-                           final Dictionary<String, ?> configuration) throws Exception {
+        protected G updateService(final G gatewayInstance,
+                                  final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
             gatewayInstance.update(newConfig.getValue());
             getLogger().info(String.format("Gateway %s is updated", gatewayInstance));
@@ -112,10 +109,10 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         }
 
         @Override
-        protected G createService(final Map<String, Object> identity,
-                                  final Dictionary<String, ?> configuration) throws Exception {
+        protected G activateService(final BiConsumer<String, Object> identity,
+                                    final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
-            identity.putAll(new GatewayFilterBuilder(newConfig.getValue()).setInstanceName(newConfig.getKey()));
+            new GatewaySelector(newConfig.getValue()).setInstanceName(newConfig.getKey()).forEach(identity);
             final G gatewayInstance = gatewayInstanceFactory.createInstance(newConfig.getKey(), dependencies);
             gatewayInstance.update(newConfig.getValue());
             getLogger().info(String.format("Gateway %s is instantiated", gatewayInstance));
@@ -123,7 +120,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         }
 
         @Override
-        protected void cleanupService(final G gatewayInstance, final Map<String, ?> identity) throws IOException {
+        protected void disposeService(final G gatewayInstance, final Map<String, ?> identity) throws IOException {
             getLogger().info(String.format("Gateway %s is destroyed", gatewayInstance));
             gatewayInstance.close();
         }
@@ -155,17 +152,6 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
     }
 
     /**
-     * Represents activator for support service.
-     * @param <T> Type of support service.
-     * @since 2.0
-     */
-    @FunctionalInterface
-    protected interface SupportServiceFactory<T extends SupportService>{
-        @Nonnull
-        T activateService(final DependencyManager dependencies) throws Exception;
-    }
-
-    /**
      * Represents superclass for all optional gateway-related service factories.
      * You cannot derive from this class directly.
      * @param <S> Type of the gateway-related service contract.
@@ -176,10 +162,10 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      * @see #configurationDescriptor(Supplier)
      */
     protected final static class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{
-        private final SupportServiceFactory<T> activator;
+        private final Function<DependencyManager, T> activator;
 
         private SupportServiceManager(final Class<S> contract,
-                                      final SupportServiceFactory<T> activator,
+                                      final Function<DependencyManager, T> activator,
                                       final RequiredService<?>... dependencies) {
             super(contract, dependencies);
             this.activator = Objects.requireNonNull(activator);
@@ -188,8 +174,8 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         @Override
         @Nonnull
         protected T activateService(final Map<String, Object> identity) throws Exception {
-            identity.putAll(new GatewayFilterBuilder().setGatewayType(getGatewayType()));
-            return activator.activateService(dependencies);
+            identity.putAll(new GatewaySelector().setGatewayType(getGatewayType()));
+            return activator.apply(dependencies);
         }
 
         /**
@@ -237,7 +223,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         };
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceFactory<T> factory,
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Function<DependencyManager, T> factory,
                                                                                                                                                                  final RequiredService<?>... dependencies) {
         return new SupportServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }

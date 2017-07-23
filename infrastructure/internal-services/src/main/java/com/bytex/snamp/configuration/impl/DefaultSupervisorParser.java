@@ -25,7 +25,7 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
     private static final String SUPERVISOR_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String GROUP_NAME_PROPERTY = "$groupName$";
     private static final String HEALTH_CHECK_PROPERTY = "$healthCheck$";
-    private static final String DISCOVERY_PROPERTY = "$discoveryConfig";
+    private static final String DISCOVERY_PROPERTY = "$discoveryConfig$";
     private static final String AUTO_SCALING_PROPERTY = "$autoScaling$";
     private static final String ALL_SUPERVISORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(SUPERVISOR_PID_TEMPLATE, "*"));
     private static final Pattern SUPERVISOR_PID_REPLACEMENT = Pattern.compile(String.format(SUPERVISOR_PID_TEMPLATE, ""), Pattern.LITERAL);

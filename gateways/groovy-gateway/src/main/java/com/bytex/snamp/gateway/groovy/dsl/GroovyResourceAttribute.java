@@ -43,7 +43,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
                         .filter(metadata -> attributeName.equals(metadata.getName()))
                         .map(GroovyFeatureMetadata::new)
                         .findFirst()
-                        .orElseGet(() -> null);
+                        .orElse(null);
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)

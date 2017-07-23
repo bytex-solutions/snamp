@@ -6,7 +6,6 @@ import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
 import javax.management.openmbean.OpenType;
-import java.io.IOException;
 import java.util.Objects;
 
 
@@ -25,7 +24,7 @@ final class GroovyAttribute extends ProcessingAttribute {
         script = Objects.requireNonNull(scriptlet);
     }
 
-    GroovyAttribute(final String name, final ScriptLoader loader, final AttributeDescriptor descriptor) throws ScriptException, ResourceException, AbsentCompositeConfigurationParameterException, IOException {
+    GroovyAttribute(final String name, final ScriptLoader loader, final AttributeDescriptor descriptor) throws ScriptException, ResourceException {
         this(name, loader.createScript(descriptor.getAlternativeName().orElse(name), null), descriptor);
     }
 

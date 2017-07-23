@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp.gateways</groupId>
+    <groupId>io.snamp.gateways</groupId>
     <artifactId>gateways</artifactId>
     <version>2.0.0</version>
   </parent>
@@ -14,7 +14,7 @@
   <description>Gateway that exposes notifications via SMTP protocol</description>
   <dependencies>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>framework</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
@@ -46,13 +46,13 @@
       <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>json-helpers</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.osgi</groupId>
+      <groupId>io.snamp.osgi</groupId>
       <artifactId>stringtemplate4</artifactId>
       <version>4.0.8</version>
       <scope>provided</scope>

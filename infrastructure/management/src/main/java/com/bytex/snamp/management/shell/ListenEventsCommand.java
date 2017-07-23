@@ -6,7 +6,6 @@ import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -27,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Listens event from the specified resource.
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
     name = "listen-events",
     description = "Listen and display events from the managed resources")
 public final class ListenEventsCommand extends SnampShellCommand {

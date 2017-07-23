@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp</groupId>
+    <groupId>io.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>2.0.0</version>
   </parent>
@@ -132,25 +132,25 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>framework</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>internal-services</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.osgi</groupId>
+      <groupId>io.snamp.osgi</groupId>
       <artifactId>snmp4j</artifactId>
       <version>2.5.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.osgi</groupId>
+      <groupId>io.snamp.osgi</groupId>
       <artifactId>sshj</artifactId>
       <version>0.18.0</version>
       <scope>test</scope>
@@ -224,25 +224,25 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.instrumentation</groupId>
+      <groupId>io.snamp.instrumentation</groupId>
       <artifactId>core</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.instrumentation</groupId>
+      <groupId>io.snamp.instrumentation</groupId>
       <artifactId>http-reporter</artifactId>
       <version>1.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.supervisors</groupId>
+      <groupId>io.snamp.supervisors</groupId>
       <artifactId>default</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.connectors</groupId>
+      <groupId>io.snamp.connectors</groupId>
       <artifactId>rshell</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
@@ -266,25 +266,25 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>json-helpers</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>security</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.gateways</groupId>
+      <groupId>io.snamp.gateways</groupId>
       <artifactId>xmpp</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.connectors</groupId>
+      <groupId>io.snamp.connectors</groupId>
       <artifactId>modbus</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
@@ -332,13 +332,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.connectors</groupId>
+      <groupId>io.snamp.connectors</groupId>
       <artifactId>zipkin</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>webconsole</artifactId>
       <version>2.0.0</version>
       <scope>test</scope>

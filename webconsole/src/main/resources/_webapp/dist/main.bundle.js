@@ -16457,6 +16457,9 @@ module.exports = convert;
 /***/ "./node_modules/color-name/index.js":
 /***/ function(module, exports) {
 
+"use strict";
+'use strict'
+
 module.exports = {
 	"aliceblue": [240, 248, 255],
 	"antiquewhite": [250, 235, 215],
@@ -16608,6 +16611,7 @@ module.exports = {
 	"yellowgreen": [154, 205, 50]
 };
 
+
 /***/ },
 
 /***/ "./node_modules/css-loader/index.js!./node_modules/font-awesome/css/font-awesome.min.css":
@@ -16648,7 +16652,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, ".left_col {\r\n  background: #2A3F54;\r\n}\r\n.nav-sm .container.body .col-md-3.left_col {\r\n  min-height: 100%;\r\n  width: 70px;\r\n  padding: 0;\r\n  z-index: 9999;\r\n  position: absolute;\r\n}\r\n.nav-sm .container.body .col-md-3.left_col.menu_fixed {\r\n  position: fixed;\r\n  height: 100%;\r\n}\r\n.nav-sm .container.body .col-md-3.left_col .mCSB_container,\r\n.nav-sm .container.body .col-md-3.left_col .mCustomScrollBox {\r\n  overflow: visible;\r\n}\r\n.nav-sm .hidden-small {\r\n  visibility: hidden;\r\n}\r\n.nav-sm .container.body .right_col {\r\n  padding: 10px 20px;\r\n  margin-left: 70px;\r\n  z-index: 2;\r\n}\r\n.nav-sm .navbar.nav_title {\r\n  width: 70px;\r\n}\r\n.nav-sm .navbar.nav_title a span {\r\n  display: none;\r\n}\r\n.nav-sm .navbar.nav_title a i {\r\n  font-size: 27px;\r\n  margin: 13px 0 0 3px;\r\n}\r\n.site_title i {\r\n  border: 1px solid #EAEAEA;\r\n  padding: 5px 6px;\r\n  border-radius: 50%;\r\n}\r\n.nav-sm .main_container .top_nav {\r\n  display: block;\r\n  margin-left: 70px;\r\n  z-index: 2;\r\n}\r\n.nav-sm .nav.side-menu li a {\r\n  text-align: center !important;\r\n  font-weight: 400;\r\n  font-size: 10px;\r\n  padding: 10px 5px;\r\n}\r\n.nav-sm .nav.child_menu li.active,\r\n.nav-sm .nav.side-menu li.active-sm {\r\n  border-right: 5px solid #1ABB9C;\r\n}\r\n.nav-sm ul.nav.child_menu ul,\r\n.nav-sm .nav.side-menu li.active-sm ul ul {\r\n    position: static;\r\n    width: 200px;\r\n    background: none;\r\n}\r\n.nav-sm > .nav.side-menu > li.active-sm > a {\r\n  color: #1ABB9C !important;\r\n}\r\n.nav-sm .nav.side-menu li a i.toggle-up {\r\n  display: none !important;\r\n}\r\n.nav-sm .nav.side-menu li a i {\r\n  font-size: 25px !important;\r\n  text-align: center;\r\n  width: 100% !important;\r\n  margin-bottom: 5px;\r\n}\r\n.nav-sm ul.nav.child_menu {\r\n  left: 100%;\r\n  position: absolute;\r\n  top: 0;\r\n  width: 210px;\r\n  z-index: 4000;\r\n  background: #3E5367;\r\n  display: none;\r\n}\r\n.nav-sm ul.nav.child_menu li {\r\n  padding: 0 10px;\r\n}\r\n.nav-sm ul.nav.child_menu li a {\r\n  text-align: left !important;\r\n}\r\n.nav-sm .profile {\r\n  display: none;\r\n}\r\n.menu_section {\r\n  margin-bottom: 35px;\r\n}\r\n.menu_section h3 {\r\n  padding-left: 23px;\r\n  color: #fff;\r\n  text-transform: uppercase;\r\n  letter-spacing: .5px;\r\n  font-weight: bold;\r\n  font-size: 11px;\r\n  margin-bottom: 0;\r\n  margin-top: 0;\r\n  text-shadow: 1px 1px #000;\r\n}\r\n.menu_section >ul {\r\n  margin-top: 10px;\r\n}\r\n.profile_pic {\r\n  width: 35%;\r\n  float: left;\r\n}\r\n.img-circle.profile_img {\r\n  width: 70%;\r\n  background: #fff;\r\n  margin-left: 15%;\r\n  z-index: 1000;\r\n  position: inherit;\r\n  margin-top: 20px;\r\n  border: 1px solid rgba(52, 73, 94, 0.44);\r\n  padding: 4px;\r\n}\r\n.profile_info {\r\n  padding: 25px 10px 10px;\r\n  width: 65%;\r\n  float: left;\r\n}\r\n.profile_info span {\r\n  font-size: 13px;\r\n  line-height: 30px;\r\n  color: #BAB8B8;\r\n}\r\n.profile_info h2 {\r\n  font-size: 14px;\r\n  color: #ECF0F1;\r\n  margin: 0;\r\n  font-weight: 300;\r\n}\r\n.profile.img_2 {\r\n  text-align: center;\r\n}\r\n.profile.img_2 .profile_pic {\r\n  width: 100%;\r\n}\r\n.profile.img_2 .profile_pic .img-circle.profile_img {\r\n  width: 50%;\r\n  margin: 10px 0 0;\r\n}\r\n.profile.img_2 .profile_info {\r\n  padding: 15px 10px 0;\r\n  width: 100%;\r\n  margin-bottom: 10px;\r\n  float: left;\r\n}\r\n.main_menu span.fa {\r\n  float: right;\r\n  text-align: center;\r\n  margin-top: 5px;\r\n  font-size: 10px;\r\n  min-width: inherit;\r\n  color: #C4CFDA;\r\n}\r\n.active a span.fa {\r\n  text-align: right !important;\r\n  margin-right: 4px;\r\n}\r\n.nav-sm .menu_section {\r\n  margin: 0;\r\n}\r\n.nav-sm span.fa,\r\n.nav-sm .menu_section h3 {\r\n  display: none;\r\n}\r\n.nav-sm li li span.fa {\r\n  display: inline-block;\r\n}\r\n.nav_menu {\r\n  float: left;\r\n  background: #EDEDED;\r\n  border-bottom: 1px solid #D9DEE4;\r\n  margin-bottom: 10px;\r\n  width: 100%;\r\n  position: relative;\r\n}\r\n@media (min-width: 480px) {\r\n  .nav_menu {\r\n    position: static;\r\n  }\r\n}\r\n.nav-md .container.body .col-md-3.left_col {\r\n  min-height: 100%;\r\n  width: 230px;\r\n  padding: 0;\r\n  position: absolute;\r\n  display: flex;\r\n  z-index: 1;\r\n}\r\n.nav-md .container.body .col-md-3.left_col.menu_fixed {\r\n  height: 100%;\r\n  position: fixed;\r\n}\r\nbody .container.body .right_col {\r\n  background: #F7F7F7;\r\n}\r\n.nav-md .container.body .right_col {\r\n  padding: 10px 20px 0;\r\n  margin-left: 230px;\r\n}\r\n.nav_title {\r\n  width: 230px;\r\n  float: left;\r\n  background: #2A3F54;\r\n  border-radius: 0;\r\n  height: 57px;\r\n}\r\n@media (max-width: 991px) {\r\n  .nav-md .container.body .right_col, .nav-md .container.body .top_nav {\r\n    width: 100%;\r\n    margin: 0;\r\n  }\r\n  .nav-md .container.body .col-md-3.left_col {\r\n    display: none;\r\n  }\r\n  .nav-md .container.body .right_col {\r\n    width: 100%;\r\n    padding-right: 0\r\n  }\r\n  .right_col {\r\n    padding: 10px !important;\r\n  }\r\n}\r\n@media (max-width: 1200px) {\r\n  .x_title h2 {\r\n    width: 62%;\r\n    font-size: 17px;\r\n  }\r\n  .tile, .graph {\r\n    zoom: 85%;\r\n    height: inherit;\r\n  }\r\n}\r\n@media (max-width: 1270px) and (min-width: 192px) {\r\n  .x_title h2 small {\r\n    display: none\r\n  }\r\n}\r\n.left_col .mCSB_scrollTools {\r\n  width: 6px;\r\n}\r\n.left_col .mCSB_dragger {\r\n  max-height: 400px !important;\r\n}\r\n/**  ------------------------------------------  **/\r\n\r\n.blue {\r\n  color: #3498DB;\r\n}\r\n.purple {\r\n  color: #9B59B6;\r\n}\r\n.green {\r\n  color: #1ABB9C;\r\n}\r\n.aero {\r\n  color: #9CC2CB;\r\n}\r\n.red {\r\n  color: #E74C3C;\r\n}\r\n.dark {\r\n  color: #34495E;\r\n}\r\n.border-blue {\r\n  border-color: #3498DB !important;\r\n}\r\n.border-purple {\r\n  border-color: #9B59B6 !important;\r\n}\r\n.border-green {\r\n  border-color: #1ABB9C !important;\r\n}\r\n.border-aero {\r\n  border-color: #9CC2CB !important;\r\n}\r\n.border-red {\r\n  border-color: #E74C3C !important;\r\n}\r\n.border-dark {\r\n  border-color: #34495E !important;\r\n}\r\n.bg-white {\r\n  background: #fff !important;\r\n  border: 1px solid #fff !important;\r\n  color: #73879C;\r\n}\r\n.bg-green {\r\n  background: #1ABB9C !important;\r\n  border: 1px solid #1ABB9C !important;\r\n  color: #fff;\r\n}\r\n.bg-red {\r\n  background: #E74C3C !important;\r\n  border: 1px solid #E74C3C !important;\r\n  color: #fff;\r\n}\r\n.bg-blue {\r\n  background: #3498DB !important;\r\n  border: 1px solid #3498DB !important;\r\n  color: #fff;\r\n}\r\n.bg-orange {\r\n  background: #F39C12 !important;\r\n  border: 1px solid #F39C12 !important;\r\n  color: #fff;\r\n}\r\n.bg-purple {\r\n  background: #9B59B6 !important;\r\n  border: 1px solid #9B59B6 !important;\r\n  color: #fff;\r\n}\r\n.bg-blue-sky {\r\n  background: #50C1CF !important;\r\n  border: 1px solid #50C1CF !important;\r\n  color: #fff;\r\n}\r\n.container {\r\n  width: 100%;\r\n  padding: 0\r\n}\r\n.navbar-nav>li>a, .navbar-brand, .navbar-nav>li>a {\r\n  color: #fff !important;\r\n}\r\n.top_nav .nav>li>a:focus, .top_nav .nav>li>a:hover, .top_nav .nav .open>a, .top_nav .nav .open>a:focus, .top_nav .nav .open>a:hover {\r\n  background: #D9DEE4;\r\n}\r\nbody {\r\n  color: #73879C;\r\n  background: #2A3F54;\r\n  font-family: \"Helvetica Neue\", 'Roboto Condensed', Arial, \"Droid Sans\", sans-serif;\r\n  font-size: 13px;\r\n  font-weight: 400;\r\n  line-height: 1.471;\r\n}\r\n.main_container .top_nav {\r\n  display: block;\r\n  margin-left: 230px;\r\n}\r\n.main_container {}\r\n.no-padding {\r\n  padding: 0 !important;\r\n}\r\n.page-title {\r\n  width: 100%;\r\n  height: 65px;\r\n  padding: 10px 0;\r\n}\r\n.page-title .title_left {\r\n  width: 45%;\r\n  float: left;\r\n  display: block;\r\n}\r\n.page-title .title_left h3 {\r\n  margin: 9px 0;\r\n}\r\n.page-title .title_right {\r\n  width: 55%;\r\n  float: left;\r\n  display: block;\r\n}\r\n.page-title .title_right .pull-right {\r\n  margin: 10px 0;\r\n}\r\n.fixed_height_320 {\r\n  height: 320px;\r\n}\r\n.fixed_height_390 {\r\n  height: 390px;\r\n}\r\n.fixed_height_200 {\r\n  height: 200px;\r\n}\r\n.overflow_hidden {\r\n  overflow: hidden\r\n}\r\n.progress-bar-dark {\r\n  background-color: #34495E !important;\r\n}\r\n.progress-bar-gray {\r\n  background-color: #BDC3C7 !important;\r\n}\r\ntable.no-margin .progress {\r\n  margin-bottom: 0;\r\n}\r\n.main_content {\r\n  padding: 10px 20px;\r\n}\r\n.col-md-55 {\r\n  width: 50%;\r\n  margin-bottom: 10px;\r\n}\r\n@media (min-width: 768px) {\r\n  .col-md-55 {\r\n    width: 20%;\r\n  }\r\n}\r\n@media (min-width: 992px) {\r\n  .col-md-55 {\r\n    width: 20%;\r\n  }\r\n}\r\n@media (min-width: 1200px) {\r\n  .col-md-55 {\r\n    width: 20%;\r\n  }\r\n}\r\n@media (min-width: 192px) and (max-width: 1270px) {\r\n  table.tile_info span.right {\r\n    margin-right: 7px;\r\n    float: left;\r\n  }\r\n}\r\n.center-margin {\r\n  margin: 0 auto;\r\n  float: none!important;\r\n}\r\n.col-md-55, .col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {\r\n  position: relative;\r\n  min-height: 1px;\r\n  float: left;\r\n  padding-right: 10px;\r\n  padding-left: 10px;\r\n}\r\n.row {\r\n  margin-right: -10px;\r\n  margin-left: -10px;\r\n}\r\n.grid_slider .col-md-6 {\r\n  padding: 0 40px;\r\n}\r\nh1, .h1, h2, .h2, h3, .h3 {\r\n  margin-top: 10px;\r\n  margin-bottom: 10px;\r\n}\r\na {\r\n  color: #5A738E;\r\n  text-decoration: none;\r\n}\r\na, a:visited, a:focus, a:active, :visited, :focus, :active, .btn:focus, .btn:active:focus, .btn.active:focus, .btn.focus, .btn:active.focus, .btn.active.focus {\r\n  outline: 0;\r\n}\r\na:hover, a:focus {\r\n  text-decoration: none\r\n}\r\n.navbar {\r\n  margin-bottom: 0\r\n}\r\n.navbar-header {\r\n  background: #34495E;\r\n}\r\n.navbar-right {\r\n  margin-right: -10px;\r\n}\r\n.top_nav .navbar-right {\r\n  margin: 0;\r\n  width: 70%;\r\n  float: right;\r\n}\r\n.top_nav .navbar-right li {\r\n  display: inline-block;\r\n  float: right;\r\n  position: static;\r\n}\r\n@media (min-width: 480px) {\r\n  .top_nav .navbar-right li {\r\n    position: relative;\r\n  }\r\n}\r\n.top_nav .dropdown-menu li {\r\n  width: 100%;\r\n}\r\n.top_nav .dropdown-menu li a {\r\n  width: 100%;\r\n  padding: 12px 20px;\r\n}\r\n.top_nav li a i {\r\n  font-size: 15px\r\n}\r\n.navbar-static-top {\r\n  position: fixed;\r\n  top: 0;\r\n  width: 100%;\r\n}\r\n.sidebar-header {\r\n  border-bottom: 0;\r\n  margin-top: 46px;\r\n}\r\n.sidebar-header:first-of-type {\r\n  margin-top: 0\r\n}\r\n.nav.side-menu> li {\r\n  position: relative;\r\n  display: block;\r\n  cursor: pointer;\r\n}\r\n.nav.side-menu> li > a {\r\n  margin-bottom: 6px;\r\n}\r\n.nav.side-menu> li > a:hover {\r\n  color: #F2F5F7 !important;\r\n}\r\n.nav.side-menu>li>a:hover, .nav>li>a:focus {\r\n  text-decoration: none;\r\n  background: transparent;\r\n}\r\n.nav.child_menu {\r\n  display: none;\r\n}\r\n.nav.child_menu li:hover,\r\n.nav.child_menu li.active {\r\n  background-color: rgba(255, 255, 255, 0.06);\r\n}\r\n.nav.child_menu li {\r\n  padding-left: 36px;\r\n}\r\n\r\n.nav-md ul.nav.child_menu li.activeLi:before {\r\n  background: #009c38;\r\n}\r\n\r\n.nav-sm ul.nav.child_menu li.activeLi {\r\n  background: #009c38;\r\n}\r\n\r\n.nav-md ul.nav.child_menu li:before {\r\n  background: #425668;\r\n  bottom: auto;\r\n  content: \"\";\r\n  height: 8px;\r\n  left: 23px;\r\n  margin-top: 15px;\r\n  position: absolute;\r\n  right: auto;\r\n  width: 8px;\r\n  z-index: 1;\r\n  -webkit-border-radius: 50%;\r\n  -moz-border-radius: 50%;\r\n  border-radius: 50%;\r\n}\r\n.nav-md ul.nav.child_menu li:after {\r\n  border-left: 1px solid #425668;\r\n  bottom: 0;\r\n  content: \"\";\r\n  left: 27px;\r\n  position: absolute;\r\n  top: 0;\r\n}\r\n.nav.side-menu>li>a, .nav.child_menu>li>a {\r\n  color: #E7E7E7;\r\n  font-weight: 500;\r\n}\r\n.nav.child_menu li li:hover,\r\n.nav.child_menu li li.active {\r\n  background: none;\r\n}\r\n.nav.child_menu li li a:hover,\r\n.nav.child_menu li li a.active {\r\n  color: #fff;\r\n}\r\n.nav>li>a {\r\n  position: relative;\r\n  display: block;\r\n  padding: 13px 15px 12px;\r\n}\r\n.nav.side-menu> li.current-page, .nav.side-menu> li.active {\r\n  border-right: 5px solid #1ABB9C;\r\n}\r\n.nav li.current-page {\r\n  background: rgba(255, 255, 255, 0.05);\r\n}\r\n.nav li li li.current-page {\r\n  background: none;\r\n}\r\n.nav li li.current-page a {\r\n  color: #fff;\r\n}\r\n.nav.side-menu> li.active > a {\r\n  text-shadow: rgba(0, 0, 0, 0.25) 0 -1px 0;\r\n  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #5b6479), color-stop(100%, #4c5566)), #686e78;\r\n  background: -webkit-linear-gradient(#334556, #2C4257), #2A3F54;\r\n  background: -moz-linear-gradient(#334556, #2C4257), #2A3F54;\r\n  background: -o-linear-gradient(#334556, #2C4257), #2A3F54;\r\n  background: linear-gradient(#334556, #2C4257), #2A3F54;\r\n  -webkit-box-shadow: rgba(0, 0, 0, 0.25) 0 1px 0, inset rgba(255, 255, 255, 0.16) 0 1px 0;\r\n  -moz-box-shadow: rgba(0, 0, 0, 0.25) 0 1px 0, inset rgba(255, 255, 255, 0.16) 0 1px 0;\r\n  box-shadow: rgba(0, 0, 0, 0.25) 0 1px 0, inset rgba(255, 255, 255, 0.16) 0 1px 0;\r\n}\r\n.navbar-brand, .navbar-nav>li>a {\r\n  font-weight: 500;\r\n  color: #ECF0F1 !important;\r\n  margin-left: 0 !important;\r\n  line-height: 32px;\r\n}\r\n.site_title {\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n  font-weight: 400;\r\n  font-size: 22px;\r\n  width: 100%;\r\n  color: #ECF0F1 !important;\r\n  margin-left: 0 !important;\r\n  line-height: 59px;\r\n  display: block;\r\n  height: 55px;\r\n  margin: 0;\r\n  padding-left: 10px;\r\n}\r\n.site_title:hover, .site_title:focus {\r\n  text-decoration: none\r\n}\r\n.nav.navbar-nav>li>a {\r\n  color: #515356 !important;\r\n}\r\n.nav.top_menu>li>a {\r\n  position: relative;\r\n  display: block;\r\n  padding: 10px 15px;\r\n  color: #34495E !important;\r\n}\r\n.nav>li>a:hover, .nav>li>a:focus {\r\n  background-color: transparent;\r\n}\r\n.top_search {\r\n  padding: 0;\r\n}\r\n.top_search .form-control {\r\n  border-right: 0;\r\n  box-shadow: inset 0 1px 0px rgba(0, 0, 0, 0.075);\r\n  /*border-radius: 25px 0px 0px 25px;*/\r\n  padding-left: 20px;\r\n  border: 1px solid rgba(221, 226, 232, 0.49);\r\n}\r\n.top_search .form-control:focus {\r\n  border: 1px solid rgba(221, 226, 232, 0.49);\r\n  border-right: 0;\r\n}\r\n.top_search .input-group-btn button {\r\n  border-radius: 0px 25px 25px 0px;\r\n  border: 1px solid rgba(221, 226, 232, 0.49);\r\n  border-left: 0;\r\n  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);\r\n  color: #93A2B2;\r\n  margin-bottom: 0 !important;\r\n}\r\n.toggle {\r\n  float: left;\r\n  margin: 0;\r\n  padding-top: 16px;\r\n  width: 70px;\r\n}\r\n.toggle a {\r\n  padding: 15px 15px 0;\r\n  margin: 0;\r\n  cursor: pointer;\r\n}\r\n.toggle a i {\r\n  font-size: 26px;\r\n}\r\n.nav.child_menu > li > a {\r\n  color: rgba(255, 255, 255, 0.75);\r\n  font-size: 12px;\r\n  padding: 9px;\r\n}\r\n.panel_toolbox {\r\n  float: right;\r\n}\r\n.panel_toolbox>li {\r\n  float: left;\r\n  cursor: pointer;\r\n}\r\n.panel_toolbox>li>a {\r\n  padding: 5px;\r\n  color: #C5C7CB !important;\r\n  font-size: 14px !important;\r\n}\r\n.panel_toolbox>li>a:hover {\r\n  background: #F5F7FA;\r\n}\r\n.line_30 {\r\n  line-height: 30px;\r\n}\r\n.main_menu_side {\r\n  padding: 100px 0 0 0;\r\n}\r\n.bs-docs-sidebar .nav>li>a {\r\n  display: block;\r\n  padding: 4px 6px;\r\n}\r\nfooter {\r\n  background: #fff;\r\n  padding: 15px 20px;\r\n  display: block;\r\n}\r\n\r\n.nav-sm footer {\r\n  margin-left: 70px ;\r\n}\r\n.footer_fixed footer {\r\n  position: fixed;\r\n  left: 0px;\r\n  bottom: 0px;\r\n  width: 100%;\r\n}\r\n@media (min-width: 768px) {\r\n  .footer_fixed footer {\r\n    margin-left: 0;\r\n  }\r\n}\r\n@media (min-width: 768px) {\r\n  .footer_fixed .nav-sm footer {\r\n    margin-left: 0;\r\n  }\r\n}\r\n.tile-stats.sparkline {\r\n  padding: 10px;\r\n  text-align: center;\r\n}\r\n.jqstooltip {\r\n  background: #34495E !important;\r\n  width: 30px !important;\r\n  height: 22px !important;\r\n  text-decoration: none;\r\n}\r\n.tooltip {\r\n  display: block !important;\r\n}\r\n.tiles {\r\n  border-top: 1px solid #ccc;\r\n  margin-top: 15px;\r\n  padding-top: 5px;\r\n  margin-bottom: 0;\r\n}\r\n.tile {\r\n  overflow: hidden;\r\n}\r\n.top_tiles {\r\n  margin-bottom: 0;\r\n}\r\n.top_tiles .tile span {}\r\n.top_tiles .tile h2 {\r\n  font-size: 30px;\r\n  line-height: 30px;\r\n  margin: 3px 0 7px;\r\n  font-weight: bold;\r\n}\r\narticle.media {\r\n  width: 100%;\r\n}\r\n\r\n/* *********  custom accordion  **************************** */\r\n\r\n*, *:before, *:after {\r\n  -webkit-box-sizing: border-box;\r\n  -moz-box-sizing: border-box;\r\n  box-sizing: border-box;\r\n}\r\n#integration-list {\r\n  width: 100%;\r\n  margin: 0 auto;\r\n  display: table;\r\n}\r\n#integration-list ul {\r\n  padding: 0;\r\n  margin: 20px 0;\r\n  color: #555;\r\n}\r\n#integration-list ul > li {\r\n  list-style: none;\r\n  border-top: 1px solid #ddd;\r\n  display: block;\r\n  padding: 15px;\r\n  overflow: hidden;\r\n}\r\n#integration-list ul:last-child {\r\n  border-bottom: 1px solid #ddd;\r\n}\r\n#integration-list ul > li:hover {\r\n  background: #efefef;\r\n}\r\n.expand {\r\n  display: block;\r\n  text-decoration: none;\r\n  color: #555;\r\n  cursor: pointer;\r\n}\r\n.expand h2 {\r\n  width: 85%;\r\n  float: left;\r\n}\r\nh2 {\r\n  font-size: 18px;\r\n  font-weight: 400;\r\n}\r\n#left, #right {\r\n  display: table;\r\n}\r\n#sup {\r\n  display: table-cell;\r\n  vertical-align: middle;\r\n  width: 80%;\r\n}\r\n.detail a {\r\n  text-decoration: none;\r\n  color: #C0392B;\r\n  border: 1px solid #C0392B;\r\n  padding: 6px 10px 5px;\r\n  font-size: 13px;\r\n  margin-right: 7px;\r\n}\r\n.detail {\r\n  margin: 10px 0 10px 0px;\r\n  display: none;\r\n  line-height: 22px;\r\n  height: 150px;\r\n}\r\n.detail span {\r\n  margin: 0;\r\n}\r\n.right-arrow {\r\n  width: 10px;\r\n  float: right;\r\n  font-weight: bold;\r\n  font-size: 20px;\r\n}\r\n.accordion .panel {\r\n  margin-bottom: 5px;\r\n  border-radius: 0;\r\n  border-bottom: 1px solid #efefef;\r\n}\r\n.accordion .panel-heading {\r\n  background: #F2F5F7;\r\n  padding: 13px;\r\n  width: 100%;\r\n  display: block;\r\n}\r\n.accordion .panel:hover {\r\n  background: #F2F5F7;\r\n}\r\n.x_panel {\r\n  position: relative;\r\n  width: 100%;\r\n  margin-bottom: 10px;\r\n  padding: 10px 17px;\r\n  display: inline-block;\r\n  background: #fff;\r\n  border: 1px solid #E6E9ED;\r\n  -webkit-column-break-inside: avoid;\r\n  -moz-column-break-inside: avoid;\r\n  column-break-inside: avoid;\r\n  opacity: 1;\r\n  -moz-transition: all .2s ease;\r\n  -o-transition: all .2s ease;\r\n  -webkit-transition: all .2s ease;\r\n  -ms-transition: all .2s ease;\r\n  transition: all .2s ease;\r\n}\r\n.x_title {\r\n  border-bottom: 2px solid #E6E9ED;\r\n  padding: 1px 5px 6px;\r\n  margin-bottom: 10px;\r\n}\r\n.x_title .filter {\r\n  width: 40%;\r\n  float: right;\r\n}\r\n.x_title h2 {\r\n  margin: 5px 0 6px;\r\n  float: left;\r\n  display: block;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n  white-space: nowrap;\r\n}\r\n.x_title h2 small {\r\n  margin-left: 10px;\r\n}\r\n.x_title span {\r\n  color: #BDBDBD;\r\n}\r\n.x_content {\r\n  padding: 0 5px 6px;\r\n  position: relative;\r\n  width: 100%;\r\n  float: left;\r\n  clear: both;\r\n  margin-top: 5px;\r\n}\r\n.x_content h4 {\r\n  font-size: 16px;\r\n  font-weight: 500;\r\n}\r\nlegend {\r\n  padding-bottom: 7px;\r\n}\r\n.demo-placeholder {\r\n  height: 280px;\r\n}\r\n\r\n/** Contacts **/\r\n.profile_details:nth-child(3n){\r\n    clear:both;\r\n}\r\n\r\n.profile_details .profile_view {\r\n  display: inline-block;\r\n  padding: 10px 0 0;\r\n  background: #fff;\r\n}\r\n\r\n.profile_details .profile_view .divider {\r\n  border-top: 1px solid #e5e5e5;\r\n  padding-top: 5px;\r\n  margin-top: 5px;\r\n}\r\n\r\n.profile_details .profile_view .ratings {\r\n  margin-bottom: 0;\r\n}\r\n\r\n.profile_details .profile_view .bottom {\r\n  background: #F2F5F7;\r\n  padding: 9px 0;\r\n  border-top: 1px solid #E6E9ED;\r\n}\r\n\r\n.profile_details .profile_view .left {\r\n  margin-top: 20px;\r\n}\r\n\r\n.profile_details .profile_view .left p {\r\n  margin-bottom: 3px;\r\n}\r\n\r\n.profile_details .profile_view .right {\r\n  margin-top: 0px;\r\n  padding: 10px;\r\n}\r\n\r\n.profile_details .profile_view .img-circle {\r\n  border: 1px solid #E6E9ED;\r\n  padding: 2px;\r\n}\r\n\r\n.profile_details .profile_view h2 {\r\n  margin: 5px 0;\r\n}\r\n\r\n.profile_details .profile_view .ratings {\r\n  text-align: left;\r\n  font-size: 16px;\r\n}\r\n\r\n.profile_details .profile_view .brief {\r\n  margin: 0;\r\n  font-weight: 300;\r\n}\r\n\r\n.profile_details .profile_left {\r\n  background: white;\r\n}\r\n\r\n.pagination.pagination-split li {\r\n  display: inline-block;\r\n  margin-right: 3px;\r\n}\r\n\r\n.pagination.pagination-split li a {\r\n  border-radius: 4px;\r\n  color: #768399;\r\n  -moz-border-radius: 4px;\r\n  -webkit-border-radius: 4px;\r\n}\r\n/** Contacts **/\r\n\r\n\r\n/* *********  /custom accordion  **************************** */\r\n\r\n\r\n/* *********  dashboard widget  **************************** */\r\n\r\ntable.tile h3, table.tile h4, table.tile span {\r\n  font-weight: bold;\r\n  vertical-align: middle !important;\r\n}\r\ntable.tile th, table.tile td {\r\n  text-align: center;\r\n}\r\ntable.tile th {\r\n  border-bottom: 1px solid #E6ECEE;\r\n}\r\ntable.tile td {\r\n  padding: 5px 0;\r\n}\r\ntable.tile td ul {\r\n  text-align: left;\r\n  padding-left: 0\r\n}\r\ntable.tile td ul li {\r\n  list-style: none;\r\n  width: 100%;\r\n}\r\ntable.tile td ul li a {\r\n  width: 100%\r\n}\r\ntable.tile td ul li a big {\r\n  right: 0;\r\n  float: right;\r\n  margin-right: 13px;\r\n}\r\ntable.tile_info {\r\n  width: 100%;\r\n}\r\ntable.tile_info td {\r\n  text-align: left;\r\n  padding: 1px;\r\n  font-size: 15px\r\n}\r\ntable.tile_info td p {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  margin: 0;\r\n  line-height: 28px;\r\n}\r\ntable.tile_info td i {\r\n  margin-right: 8px;\r\n  font-size: 17px;\r\n  float: left;\r\n  width: 18px;\r\n  line-height: 28px\r\n}\r\ntable.tile_info td:first-child {\r\n  width: 83%;\r\n}\r\ntd span {\r\n  line-height: 28px;\r\n}\r\n.sidebar-widget {\r\n  overflow: hidden;\r\n}\r\n.error-number {\r\n  font-size: 90px;\r\n  line-height: 90px;\r\n  margin: 20px 0;\r\n}\r\n.col-middle {\r\n  margin-top: 5%;\r\n}\r\n.mid_center {\r\n  width: 370px;\r\n  margin: 0 auto;\r\n  text-align: center;\r\n  padding: 10px 20px;\r\n}\r\nh3.degrees {\r\n  font-size: 22px;\r\n  font-weight: 400;\r\n  text-align: center;\r\n}\r\n.degrees:after {\r\n  content: \"o\";\r\n  position: relative;\r\n  top: -12px;\r\n  font-size: 13px;\r\n  font-weight: 300;\r\n}\r\n.daily-weather .day {\r\n  font-size: 14px;\r\n  border-top: 2px solid rgba(115, 135, 156, 0.36);\r\n  text-align: center;\r\n  border-bottom: 2px solid rgba(115, 135, 156, 0.36);\r\n  padding: 5px 0;\r\n}\r\n.weather-days .col-sm-2 {\r\n  overflow: hidden;\r\n  width: 16.66666667%;\r\n}\r\n.weather .row {\r\n  margin-bottom: 0\r\n}\r\n\r\n/* *********  tables styling  ******************************* */\r\n\r\n.bulk-actions {\r\n  display: none;\r\n}\r\n\r\ntable.countries_list {\r\n  width: 100%;\r\n}\r\n\r\ntable.countries_list td {\r\n  padding: 0 10px;\r\n  line-height: 30px;\r\n  border-top: 1px solid #eeeeee;\r\n}\r\n\r\n.dataTables_paginate a {\r\n  padding: 6px 9px !important;\r\n  background: #ddd !important;\r\n  border-color: #ddd !important;\r\n}\r\n\r\n.paging_full_numbers a.paginate_active {\r\n  background-color: rgba(38, 185, 154, 0.59) !important;\r\n  border-color: rgba(38, 185, 154, 0.59) !important;\r\n}\r\n\r\nbutton.DTTT_button, div.DTTT_button, a.DTTT_button {\r\n  border: 1px solid #E7E7E7 !important;\r\n  background: #E7E7E7 !important;\r\n  box-shadow: none !important;\r\n}\r\n\r\ntable.jambo_table {\r\n  border: 1px solid rgba(221, 221, 221, 0.78);\r\n}\r\n\r\ntable.jambo_table thead {\r\n  background: rgba(52, 73, 94, 0.94);\r\n  color: #ECF0F1;\r\n}\r\n\r\ntable.jambo_table tbody tr:hover td {\r\n  background: rgba(38, 185, 154, 0.07);\r\n  border-top: 1px solid rgba(38, 185, 154, 0.11);\r\n  border-bottom: 1px solid rgba(38, 185, 154, 0.11);\r\n}\r\n\r\ntable.jambo_table tbody tr.selected {\r\n  background: rgba(38, 185, 154, 0.16);\r\n}\r\n\r\ntable.jambo_table tbody tr.selected td {\r\n  border-top: 1px solid rgba(38, 185, 154, 0.40);\r\n  border-bottom: 1px solid rgba(38, 185, 154, 0.40);\r\n}\r\n\r\n.dataTables_paginate a {\r\n  background: #ff0000;\r\n}\r\n\r\n.dataTables_wrapper {\r\n  position: relative;\r\n  clear: both;\r\n  zoom: 1;\r\n}\r\n\r\n.dataTables_processing {\r\n  position: absolute;\r\n  top: 50%;\r\n  left: 50%;\r\n  width: 250px;\r\n  height: 30px;\r\n  margin-left: -125px;\r\n  margin-top: -15px;\r\n  padding: 14px 0 2px 0;\r\n  border: 1px solid #ddd;\r\n  text-align: center;\r\n  color: #999;\r\n  font-size: 14px;\r\n  background-color: white;\r\n}\r\n\r\n.dataTables_length {\r\n  width: 40%;\r\n  float: left;\r\n}\r\n\r\n.dataTables_filter {\r\n  width: 50%;\r\n  float: right;\r\n  text-align: right;\r\n}\r\n\r\n.dataTables_info {\r\n  width: 60%;\r\n  float: left;\r\n}\r\n\r\n.dataTables_paginate {\r\n  float: right;\r\n  text-align: right;\r\n}\r\n\r\ntable.dataTable th.focus,\r\ntable.dataTable td.focus {\r\n    outline: 2px solid #1ABB9C !important;\r\n    outline-offset: -1px;\r\n}\r\n\r\ntable.display {\r\n  margin: 0 auto;\r\n  clear: both;\r\n  width: 100%;\r\n}\r\n\r\ntable.display thead th {\r\n  padding: 8px 18px 8px 10px;\r\n  border-bottom: 1px solid black;\r\n  font-weight: bold;\r\n  cursor: pointer;\r\n}\r\n\r\ntable.display tfoot th {\r\n  padding: 3px 18px 3px 10px;\r\n  border-top: 1px solid black;\r\n  font-weight: bold;\r\n}\r\n\r\ntable.display tr.heading2 td {\r\n  border-bottom: 1px solid #aaa;\r\n}\r\n\r\ntable.display td {\r\n  padding: 3px 10px;\r\n}\r\n\r\ntable.display td.center {\r\n  text-align: center;\r\n}\r\n\r\ntable.display thead th:active, table.display thead td:active {\r\n  outline: none;\r\n}\r\n\r\n.dataTables_scroll {\r\n  clear: both;\r\n}\r\n\r\n.dataTables_scrollBody {\r\n  *margin-top: -1px;\r\n  -webkit-overflow-scrolling: touch;\r\n}\r\n\r\n.top, .bottom {}\r\n.top .dataTables_info {\r\n  float: none;\r\n}\r\n\r\n.clear {\r\n  clear: both;\r\n}\r\n\r\n.dataTables_empty {\r\n  text-align: center;\r\n}\r\n\r\ntfoot input {\r\n  margin: 0.5em 0;\r\n  width: 100%;\r\n  color: #444;\r\n}\r\n\r\ntfoot input.search_init {\r\n  color: #999;\r\n}\r\n\r\ntd.group {\r\n  background-color: #d1cfd0;\r\n  border-bottom: 2px solid #A19B9E;\r\n  border-top: 2px solid #A19B9E;\r\n}\r\n\r\ntd.details {\r\n  background-color: #d1cfd0;\r\n  border: 2px solid #A19B9E;\r\n}\r\n\r\n.example_alt_pagination div.dataTables_info {\r\n  width: 40%;\r\n}\r\n\r\n.paging_full_numbers {\r\n  width: 400px;\r\n  height: 22px;\r\n  line-height: 22px;\r\n}\r\n\r\n.paging_full_numbers a:active {\r\n  outline: none\r\n}\r\n\r\n.paging_full_numbers a:hover {\r\n  text-decoration: none;\r\n}\r\n\r\n.paging_full_numbers a.paginate_button, .paging_full_numbers a.paginate_active {\r\n  border: 1px solid #aaa;\r\n  -webkit-border-radius: 5px;\r\n  -moz-border-radius: 5px;\r\n  padding: 2px 5px;\r\n  margin: 0 3px;\r\n  cursor: pointer;\r\n}\r\n\r\n.paging_full_numbers a.paginate_button {\r\n  background-color: #ddd;\r\n}\r\n\r\n.paging_full_numbers a.paginate_button:hover {\r\n  background-color: #ccc;\r\n  text-decoration: none !important;\r\n}\r\n\r\n.paging_full_numbers a.paginate_active {\r\n  background-color: #99B3FF;\r\n}\r\n\r\ntable.display tr.even.row_selected td {\r\n  background-color: #B0BED9;\r\n}\r\n\r\ntable.display tr.odd.row_selected td {\r\n  background-color: #9FAFD1;\r\n}\r\n\r\ndiv.box {\r\n  height: 100px;\r\n  padding: 10px;\r\n  overflow: auto;\r\n  border: 1px solid #8080FF;\r\n  background-color: #E5E5FF;\r\n}\r\n/* *********  /tables styling  ****************************** */\r\n\r\n\r\n/* *********  /dashboard widget  **************************** */\r\n\r\n\r\n/* *********  widgets  *************************************** */\r\n\r\nul.msg_list li {\r\n  background: #f7f7f7;\r\n  padding: 5px;\r\n  display: flex;\r\n  margin: 6px 6px 0;\r\n  width: 96% !important;\r\n}\r\nul.msg_list li:last-child {\r\n  margin-bottom: 6px;\r\n  padding: 10px;\r\n}\r\nul.msg_list li a {\r\n  padding: 3px 5px !important;\r\n}\r\nul.msg_list li a .image img {\r\n  border-radius: 2px 2px 2px 2px;\r\n  -webkit-border-radius: 2px 2px 2px 2px;\r\n  float: left;\r\n  margin-right: 10px;\r\n  width: 11%;\r\n}\r\nul.msg_list li a .time {\r\n  font-size: 11px;\r\n  font-style: italic;\r\n  font-weight: bold;\r\n  position: absolute;\r\n  right: 35px;\r\n}\r\n\r\na.exitIcon {\r\n  position: absolute;\r\n  right: 0;\r\n  width: 25px !important;\r\n}\r\n\r\nul.msg_list li a .message {\r\n  display: block !important;\r\n  font-size: 11px;\r\n}\r\n.dropdown-menu.msg_list span {\r\n  white-space: normal;\r\n}\r\n\r\n.dropdown-menu>li>a {\r\n  color: #5A738E;\r\n}\r\n\r\n.navbar-nav .open .dropdown-menu.msg_list {\r\n  width: 322px;\r\n  max-height: 400px;\r\n  overflow-y: scroll;\r\n}\r\n.info-number .badge {\r\n  font-size: 10px;\r\n  font-weight: normal;\r\n  line-height: 13px;\r\n  padding: 2px 6px;\r\n  position: absolute;\r\n  right: 2px;\r\n  top: 8px;\r\n}\r\nul.to_do {\r\n  padding: 0;\r\n}\r\nul.to_do li {\r\n  background: #f3f3f3;\r\n  -webkit-border-radius: 3px;\r\n  -moz-border-radius: 3px;\r\n  border-radius: 3px;\r\n  position: relative;\r\n  padding: 7px;\r\n  margin-bottom: 5px;\r\n  list-style: none;\r\n}\r\nul.to_do p {\r\n  margin: 0;\r\n}\r\n.dashboard-widget {\r\n  background: #f6f6f6;\r\n  border-top: 5px solid #79C3DF;\r\n  border-radius: 3px;\r\n  padding: 5px 10px 10px;\r\n}\r\n.dashboard-widget .dashboard-widget-title {\r\n  font-weight: normal;\r\n  border-bottom: 1px solid #c1cdcd;\r\n  margin: 0 0 10px 0;\r\n  padding-bottom: 5px;\r\n  padding-left: 40px;\r\n  line-height: 30px;\r\n}\r\n.dashboard-widget .dashboard-widget-title i {\r\n  font-size: 100%;\r\n  margin-left: -35px;\r\n  margin-right: 10px;\r\n  color: #33a1c9;\r\n  padding: 3px 6px;\r\n  border: 1px solid #abd9ea;\r\n  border-radius: 5px;\r\n  background: #fff;\r\n}\r\nul.quick-list {\r\n  width: 45%;\r\n  padding-left: 0;\r\n  display: inline-block;\r\n}\r\nul.quick-list li {\r\n  padding-left: 10px;\r\n  list-style: none;\r\n  margin: 0;\r\n  padding-bottom: 6px;\r\n  padding-top: 4px;\r\n  white-space: nowrap;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n}\r\nul.quick-list li i {\r\n  padding-right: 10px;\r\n  color: #757679;\r\n}\r\n.dashboard-widget-content {\r\n  padding-top: 9px;\r\n}\r\n.dashboard-widget-content .sidebar-widget {\r\n  width: 50%;\r\n  display: inline-block;\r\n  vertical-align: top;\r\n  background: #fff;\r\n  border: 1px solid #abd9ea;\r\n  border-radius: 5px;\r\n  text-align: center;\r\n  float: right;\r\n  padding: 2px;\r\n  margin-top: 10px;\r\n}\r\n.widget_summary {\r\n  width: 100%;\r\n  display: inline-flex;\r\n}\r\n.widget_summary .w_left {\r\n  float: left;\r\n  text-align: left;\r\n}\r\n.widget_summary .w_center {\r\n  float: left;\r\n}\r\n.widget_summary .w_right {\r\n  float: left;\r\n  text-align: right;\r\n}\r\n.widget_summary .w_right span {\r\n  font-size: 20px;\r\n}\r\n.w_20 {\r\n  width: 20%\r\n}\r\n.w_25 {\r\n  width: 25%\r\n}\r\n.w_55 {\r\n  width: 55%\r\n}\r\nh5.graph_title {\r\n  text-align: left;\r\n  margin-left: 10px\r\n}\r\nh5.graph_title i {\r\n  margin-right: 10px;\r\n  font-size: 17px\r\n}\r\nspan.right {\r\n  float: right;\r\n  font-size: 14px !important\r\n}\r\n.tile_info a {\r\n  text-overflow: ellipsis;\r\n}\r\n.sidebar-footer {\r\n  bottom: 0px;\r\n  clear: both;\r\n  display: block;\r\n  padding: 5px 0 0 0;\r\n  position: fixed;\r\n  width: 230px;\r\n  background: #2A3F54;\r\n}\r\n.sidebar-footer a {\r\n  padding: 7px 0 3px;\r\n  text-align: center;\r\n  width: 25%;\r\n  font-size: 17px;\r\n  display: block;\r\n  float: left;\r\n  background: #172D44;\r\n}\r\n.sidebar-footer a:hover {\r\n  background: #425567;\r\n}\r\n\r\n/** top tiles  */\r\n.tile_count {\r\n  margin-bottom: 20px;\r\n  margin-top: 20px;\r\n}\r\n.tile_count .tile_stats_count {\r\n  border-bottom: 1px solid #D9DEE4;\r\n  padding: 0 10px 0 20px;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n  white-space: nowrap;\r\n  position: relative;\r\n}\r\n\r\n/*@media (min-width: 992px) {\r\n  footer {\r\n    margin-left: 230px;\r\n  }\r\n}*/\r\n\r\n@media (min-width: 992px) {\r\n  .tile_count .tile_stats_count {\r\n    margin-bottom: 10px;\r\n    border-bottom: 0;\r\n    padding-bottom: 10px;\r\n  }\r\n}\r\n.tile_count .tile_stats_count:before {\r\n  content:\"\";\r\n  position: absolute;\r\n  left: 0;\r\n  height: 65px;\r\n  border-left: 2px solid #ADB2B5;\r\n  margin-top: 10px;\r\n}\r\n@media (min-width:992px) {\r\n  .tile_count .tile_stats_count:first-child:before {\r\n    border-left: 0;\r\n  }\r\n}\r\n.tile_count .tile_stats_count .count {\r\n  font-size: 30px;\r\n  line-height: 47px;\r\n  font-weight: 600;\r\n}\r\n@media (min-width:768px) {\r\n  .tile_count .tile_stats_count .count {\r\n    font-size: 40px;\r\n  }\r\n}\r\n@media (min-width: 992px) and (max-width: 1100px) {\r\n  .tile_count .tile_stats_count .count {\r\n    font-size: 30px;\r\n  }\r\n}\r\n.tile_count .tile_stats_count span {\r\n  font-size: 12px;\r\n}\r\n@media (min-width:768px) {\r\n  .tile_count .tile_stats_count span {\r\n    font-size: 13px;\r\n  }\r\n}\r\n.tile_count .tile_stats_count .count_bottom i {\r\n  width: 12px;\r\n}\r\n/** /top tiles **/\r\n\r\n.dashboard_graph {\r\n  background: #fff;\r\n  padding: 7px 10px;\r\n}\r\n.dashboard_graph .col-md-9, .dashboard_graph .col-md-3 {\r\n  padding: 0;\r\n}\r\na.user-profile {\r\n  color: #5E6974 !important;\r\n}\r\n.user-profile img {\r\n  width: 29px;\r\n  height: 29px;\r\n  border-radius: 50%;\r\n  margin-right: 10px;\r\n}\r\nul.top_profiles {\r\n  height: 330px;\r\n  width: 100%;\r\n}\r\nul.top_profiles li {\r\n  margin: 0;\r\n  padding: 3px 5px;\r\n}\r\nul.top_profiles li:nth-child(odd) {\r\n  background-color: #eee;\r\n}\r\n.media .profile_thumb {\r\n  border: 1px solid;\r\n  width: 50px;\r\n  height: 50px;\r\n  margin: 5px 10px 5px 0;\r\n  border-radius: 50%;\r\n  padding: 9px 12px;\r\n}\r\n.media .profile_thumb i {\r\n  font-size: 30px;\r\n}\r\n.media .date {\r\n  background: #ccc;\r\n  width: 52px;\r\n  margin-right: 10px;\r\n  border-radius: 10px;\r\n  padding: 5px;\r\n}\r\n.media .date .month {\r\n  margin: 0;\r\n  text-align: center;\r\n  color: #fff;\r\n}\r\n.media .date .day {\r\n  text-align: center;\r\n  color: #fff;\r\n  font-size: 27px;\r\n  margin: 0;\r\n  line-height: 27px;\r\n  font-weight: bold;\r\n}\r\n.event .media-body a.title {\r\n  font-weight: bold;\r\n}\r\n.event .media-body p {\r\n  margin-bottom: 0;\r\n}\r\nh4.graph_title {\r\n  margin: 7px;\r\n  text-align: center;\r\n}\r\n\r\n/* *********  /widgets  *************************************** */\r\n\r\n\r\n/* *********  iconts-display  **************************** */\r\n\r\n.fontawesome-icon-list .fa-hover a:hover {\r\n  background-color: #ddd;\r\n  color: #fff;\r\n  text-decoration: none;\r\n}\r\n.fontawesome-icon-list .fa-hover a {\r\n  display: block;\r\n  line-height: 32px;\r\n  height: 32px;\r\n  padding-left: 10px;\r\n  border-radius: 4px;\r\n}\r\n.fontawesome-icon-list .fa-hover a:hover .fa {\r\n  font-size: 28px;\r\n  vertical-align: -6px;\r\n}\r\n.fontawesome-icon-list .fa-hover a .fa {\r\n  width: 32px;\r\n  font-size: 16px;\r\n  display: inline-block;\r\n  text-align: right;\r\n  margin-right: 10px;\r\n}\r\n.main_menu .fa {\r\n  width: 26px;\r\n  opacity: .99;\r\n  display: inline-block;\r\n  font-family: FontAwesome;\r\n  font-style: normal;\r\n  font-weight: normal;\r\n  font-size: 18px;\r\n  -webkit-font-smoothing: antialiased;\r\n  -moz-osx-font-smoothing: grayscale;\r\n}\r\n\r\n/* *********  /iconts-display  **************************** */\r\n\r\n\r\n/** tile stats **/\r\n.tile-stats {\r\n  position: relative;\r\n  display: block;\r\n  margin-bottom: 12px;\r\n  border: 1px solid #E4E4E4;\r\n  -webkit-border-radius: 5px;\r\n  overflow: hidden;\r\n  padding-bottom: 5px;\r\n  -webkit-background-clip: padding-box;\r\n  -moz-border-radius: 5px;\r\n  -moz-background-clip: padding;\r\n  border-radius: 5px;\r\n  background-clip: padding-box;\r\n  background: #FFF;\r\n  -moz-transition: all 300ms ease-in-out;\r\n  -o-transition: all 300ms ease-in-out;\r\n  -webkit-transition: all 300ms ease-in-out;\r\n  transition: all 300ms ease-in-out;\r\n}\r\n\r\n.tile-stats:hover .icon i {\r\n  animation-name: tansformAnimation;\r\n  animation-duration: .5s;\r\n  animation-iteration-count: 1;\r\n  color: rgba(58, 58, 58, 0.41);\r\n  animation-timing-function: ease;\r\n  animation-fill-mode: forwards;\r\n  -webkit-animation-name: tansformAnimation;\r\n  -webkit-animation-duration: .5s;\r\n  -webkit-animation-iteration-count: 1;\r\n  -webkit-animation-timing-function: ease;\r\n  -webkit-animation-fill-mode: forwards;\r\n  -moz-animation-name: tansformAnimation;\r\n  -moz-animation-duration: .5s;\r\n  -moz-animation-iteration-count: 1;\r\n  -moz-animation-timing-function: ease;\r\n  -moz-animation-fill-mode: forwards;\r\n}\r\n\r\n.tile-stats .icon {\r\n  width: 20px;\r\n  height: 20px;\r\n  color: #BAB8B8;\r\n  position: absolute;\r\n  right: 53px;\r\n  top: 22px;\r\n  z-index: 1;\r\n}\r\n\r\n.tile-stats .icon i {\r\n  margin: 0;\r\n  font-size: 60px;\r\n  line-height: 0;\r\n  vertical-align: bottom;\r\n  padding: 0;\r\n}\r\n\r\n.tile-stats .count {\r\n  font-size: 38px;\r\n  font-weight: bold;\r\n  line-height: 1.65857143\r\n}\r\n\r\n.tile-stats .count, .tile-stats h3, .tile-stats p {\r\n  position: relative;\r\n  margin: 0;\r\n  margin-left: 10px;\r\n  z-index: 5;\r\n  padding: 0;\r\n}\r\n\r\n.tile-stats h3 {\r\n  color: #BAB8B8;\r\n}\r\n\r\n.tile-stats p {\r\n  margin-top: 5px;\r\n  font-size: 12px;\r\n}\r\n\r\n.tile-stats > .dash-box-footer {\r\n  position: relative;\r\n  text-align: center;\r\n  margin-top: 5px;\r\n  padding: 3px 0;\r\n  color: #fff;\r\n  color: rgba(255, 255, 255, 0.8);\r\n  display: block;\r\n  z-index: 10;\r\n  background: rgba(0, 0, 0, 0.1);\r\n  text-decoration: none;\r\n}\r\n\r\n.tile-stats > .dash-box-footer:hover {\r\n  color: #fff;\r\n  background: rgba(0, 0, 0, 0.15);\r\n}\r\n\r\n.tile-stats > .dash-box-footer:hover {\r\n  color: #fff;\r\n  background: rgba(0, 0, 0, 0.15);\r\n}\r\n\r\ntable.tile_info {\r\n  padding: 10px 15px;\r\n}\r\n\r\ntable.tile_info span.right {\r\n  margin-right: 0;\r\n  float: right;\r\n  position: absolute;\r\n  right: 4%;\r\n}\r\n\r\n.tile:hover {\r\n  text-decoration: none;\r\n}\r\n\r\n.tile_header {\r\n  border-bottom: transparent;\r\n  padding: 7px 15px;\r\n  margin-bottom: 15px;\r\n  background: #E7E7E7;\r\n}\r\n\r\n.tile_head h4 {\r\n  margin-top: 0;\r\n  margin-bottom: 5px;\r\n}\r\n\r\n.tiles-bottom {\r\n  padding: 5px 10px;\r\n  margin-top: 10px;\r\n  background: rgba(194, 194, 194, 0.3);\r\n  text-align: left;\r\n}\r\n\r\n\r\n/** /tile stats **/\r\n\r\n/** inbox **/\r\na.star {\r\n  color: #428bca !important\r\n}\r\n\r\n.mail_content {\r\n  background: none repeat scroll 0 0 #FFFFFF;\r\n  border-radius: 4px;\r\n  margin-top: 20px;\r\n  min-height: 500px;\r\n  padding: 10px 11px;\r\n  width: 100%;\r\n}\r\n\r\n.list-btn-mail {\r\n  margin-bottom: 15px;\r\n}\r\n\r\n.list-btn-mail.active {\r\n  border-bottom: 1px solid #39B3D7;\r\n  padding: 0 0 14px;\r\n}\r\n\r\n.list-btn-mail > i {\r\n  float: left;\r\n  font-size: 18px;\r\n  font-style: normal;\r\n  width: 33px;\r\n}\r\n\r\n.list-btn-mail > .cn {\r\n  background: none repeat scroll 0 0 #39B3D7;\r\n  border-radius: 12px;\r\n  color: #FFFFFF;\r\n  float: right;\r\n  font-style: normal;\r\n  padding: 0 5px;\r\n}\r\n\r\n.button-mail {\r\n  margin: 0 0 15px !important;\r\n  text-align: left;\r\n  width: 100%;\r\n}\r\n\r\n\r\n.btn-group-vertical .btn, .btn-group .btn {\r\n  margin-bottom: 0;\r\n  margin-right: 0;\r\n}\r\n\r\n.mail_list_column {\r\n  border-left: 1px solid #DBDBDB;\r\n}\r\n\r\n.mail_view {\r\n  border-left: 1px solid #DBDBDB\r\n}\r\n\r\n.mail_list {\r\n  width: 100%;\r\n  border-bottom: 1px solid #DBDBDB;\r\n  margin-bottom: 2px;\r\n  display: inline-block;\r\n}\r\n\r\n.mail_list .left {\r\n  width: 5%;\r\n  float: left;\r\n  margin-right: 3%\r\n}\r\n\r\n.mail_list .right {\r\n  width: 90%;\r\n  float: left\r\n}\r\n\r\n.mail_list h3 {\r\n  font-size: 15px;\r\n  font-weight: bold;\r\n  margin: 0px 0 6px;\r\n}\r\n\r\n.mail_list h3 small {\r\n  float: right;\r\n  color: #ADABAB;\r\n  font-size: 11px;\r\n  line-height: 20px;\r\n}\r\n\r\n.mail_list .badge {\r\n  padding: 3px 6px;\r\n  font-size: 8px;\r\n  background: #BAB7B7\r\n}\r\n\r\n@media (max-width: 767px) {\r\n  .mail_list {\r\n    margin-bottom: 5px;\r\n    display: inline-block;\r\n  }\r\n}\r\n\r\n.mail_heading h4 {\r\n  font-size: 18px;\r\n  border-bottom: 1px solid #ddd;\r\n  padding-bottom: 10px;\r\n  margin-top: 20px;\r\n}\r\n\r\n.attachment {\r\n  margin-top: 30px;\r\n}\r\n\r\n.attachment ul {\r\n  width: 100%;\r\n  list-style: none;\r\n  padding-left: 0;\r\n  display: inline-block;\r\n  margin-bottom: 30px;\r\n}\r\n\r\n.attachment ul li {\r\n  float: left;\r\n  width: 150px;\r\n  margin-right: 10px;\r\n  margin-bottom: 10px;\r\n}\r\n\r\n.attachment ul li img {\r\n  height: 150px;\r\n  border: 1px solid #ddd;\r\n  padding: 5px;\r\n  margin-bottom: 10px;\r\n}\r\n\r\n.attachment ul li span {\r\n  float: right;\r\n}\r\n\r\n.attachment .file-name {\r\n  float: left;\r\n}\r\n\r\n.attachment .links {\r\n  width: 100%;\r\n  display: inline-block;\r\n}\r\n\r\n.compose {\r\n  padding: 0;\r\n  position: fixed;\r\n  bottom: 0;\r\n  right: 0;\r\n  background: #fff;\r\n  border: 1px solid #D9DEE4;\r\n  border-right: 0;\r\n  border-bottom: 0;\r\n  border-top-left-radius: 5px;\r\n  z-index: 9999;\r\n  display: none;\r\n}\r\n\r\n.compose .compose-header {\r\n  padding: 5px;\r\n  background: #169F85;\r\n  color: #fff;\r\n  border-top-left-radius: 5px;\r\n}\r\n\r\n.compose .compose-header .close {\r\n  text-shadow: 0 1px 0 #ffffff;\r\n  line-height: .8;\r\n}\r\n\r\n.compose .compose-body .editor.btn-toolbar {\r\n  margin: 0;\r\n}\r\n\r\n.compose .compose-body .editor-wrapper {\r\n  height: 100%;\r\n  min-height: 50px;\r\n  max-height: 180px;\r\n  border-radius: 0;\r\n  border-left: none;\r\n  border-right: none;\r\n  overflow: auto;\r\n}\r\n\r\n.compose .compose-footer {\r\n  padding: 10px;\r\n}\r\n/** /inbox **/\r\n\r\n/* *********  form design  **************************** */\r\n\r\n.editor.btn-toolbar {\r\n  zoom: 1;\r\n  background: #F7F7F7;\r\n  margin: 5px 2px;\r\n  padding: 3px 0;\r\n  border: 1px solid #EFEFEF;\r\n}\r\n.input-group {\r\n  margin-bottom: 10px;\r\n}\r\n.ln_solid {\r\n  border-top: 1px solid #e5e5e5;\r\n  color: #ffffff;\r\n  background-color: #ffffff;\r\n  height: 1px;\r\n  margin: 20px 0;\r\n}\r\nspan.section {\r\n  display: block;\r\n  width: 100%;\r\n  padding: 0;\r\n  margin-bottom: 20px;\r\n  font-size: 21px;\r\n  line-height: inherit;\r\n  color: #333;\r\n  border: 0;\r\n  border-bottom: 1px solid #e5e5e5;\r\n}\r\n.form-control {\r\n  border-radius: 0;\r\n  width: 100%;\r\n}\r\n.form-horizontal .control-label {\r\n  padding-top: 8px\r\n}\r\n.form-control:focus {\r\n  border-color: #CCD0D7;\r\n  box-shadow: none !important;\r\n}\r\nlegend {\r\n  font-size: 18px;\r\n  color: inherit;\r\n}\r\n.checkbox {}\r\n.form-horizontal .form-group {\r\n  margin-right: 0;\r\n  margin-left: 0;\r\n}\r\n.form-control-feedback {\r\n  margin-top: 8px;\r\n  height: 23px;\r\n  color: #bbb;\r\n  line-height: 24px;\r\n  font-size: 15px;\r\n}\r\n.form-control-feedback.left {\r\n  border-right: 1px solid #ccc;\r\n  left: 13px;\r\n}\r\n.form-control-feedback.right {\r\n  border-left: 1px solid #ccc;\r\n  right: 13px;\r\n}\r\n.form-control.has-feedback-left {\r\n  padding-left: 45px;\r\n}\r\n.form-control.has-feedback-right {\r\n  padding-right: 45px;\r\n}\r\n.form-group {\r\n  margin-bottom: 10px;\r\n}\r\n.validate {\r\n  margin-top: 10px;\r\n}\r\n.invalid-form-error-message {\r\n  margin-top: 10px;\r\n  padding: 5px;\r\n}\r\n.invalid-form-error-message.filled {\r\n  border-left: 2px solid #E74C3C;\r\n}\r\np.parsley-success {\r\n  color: #468847;\r\n  background-color: #DFF0D8;\r\n  border: 1px solid #D6E9C6;\r\n}\r\np.parsley-error {\r\n  color: #B94A48;\r\n  background-color: #F2DEDE;\r\n  border: 1px solid #EED3D7;\r\n}\r\nul.parsley-errors-list {\r\n  list-style: none;\r\n  color: #E74C3C;\r\n  padding-left: 0;\r\n}\r\ninput.parsley-error, textarea.parsley-error, select.parsley-error {\r\n  background: #FAEDEC;\r\n  border: 1px solid #E85445;\r\n}\r\n.btn-group .parsley-errors-list {\r\n  display: none;\r\n}\r\n.bad input, .bad select, .bad textarea {\r\n  border: 1px solid #CE5454;\r\n  box-shadow: 0 0 4px -2px #CE5454;\r\n  position: relative;\r\n  left: 0;\r\n  -moz-animation: .7s 1 shake linear;\r\n  -webkit-animation: 0.7s 1 shake linear;\r\n}\r\n.item input, .item textarea {\r\n  -webkit-transition: 0.42s;\r\n  -moz-transition: 0.42s;\r\n  transition: 0.42s;\r\n}\r\n\r\n/* alerts (when validation fails) */\r\n\r\n.item .alert {\r\n  float: left;\r\n  margin: 0 0 0 20px;\r\n  padding: 3px 10px;\r\n  color: #FFF;\r\n  border-radius: 3px 4px 4px 3px;\r\n  background-color: #CE5454;\r\n  max-width: 170px;\r\n  white-space: pre;\r\n  position: relative;\r\n  left: -15px;\r\n  opacity: 0;\r\n  z-index: 1;\r\n  transition: 0.15s ease-out;\r\n}\r\n.item .alert::after {\r\n  content: '';\r\n  display: block;\r\n  height: 0;\r\n  width: 0;\r\n  border-color: transparent #CE5454 transparent transparent;\r\n  border-style: solid;\r\n  border-width: 11px 7px;\r\n  position: absolute;\r\n  left: -13px;\r\n  top: 1px;\r\n}\r\n.item.bad .alert {\r\n  left: 0;\r\n  opacity: 1;\r\n}\r\n\r\n.inl-bl {\r\n  display: inline-block;\r\n}\r\n.well .markup-heading {}\r\n.well .markup {\r\n  background: #fff;\r\n  color: #777;\r\n  position: relative;\r\n  padding: 45px 15px 15px;\r\n  margin: 15px 0 0 0;\r\n  background-color: #fff;\r\n  border-radius: 0 0 4px 4px;\r\n  box-shadow: none;\r\n}\r\n.well .markup::after {\r\n  content: \"Example\";\r\n  position: absolute;\r\n  top: 15px;\r\n  left: 15px;\r\n  font-size: 12px;\r\n  font-weight: bold;\r\n  color: #bbb;\r\n  text-transform: uppercase;\r\n  letter-spacing: 1px;\r\n}\r\n\r\n/* ***** autocomplete ***** */\r\n\r\n.autocomplete-suggestions {\r\n  border: 1px solid #e4e4e4;\r\n  background: #F4F4F4;\r\n  cursor: default;\r\n  overflow: auto;\r\n}\r\n.autocomplete-suggestion {\r\n  padding: 2px 5px;\r\n  font-size: 1.2em;\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n}\r\n.autocomplete-selected {\r\n  background: #f0f0f0;\r\n}\r\n.autocomplete-suggestions strong {\r\n  font-weight: normal;\r\n  color: #3399ff;\r\n  font-weight: bolder;\r\n}\r\n/* ***** /autocomplete *****/\r\n\r\n/* ***** buttons ********/\r\n.btn {\r\n  border-radius: 3px;\r\n}\r\na.btn-success, a.btn-primary, a.btn-warning, a.btn-danger {\r\n  color: #fff;\r\n}\r\n.btn-success {\r\n  background: #26B99A;\r\n  border: 1px solid #169F85;\r\n}\r\n.btn-success:hover, .btn-success:focus, .btn-success:active, .btn-success.active, .open .dropdown-toggle.btn-success {\r\n  background: #169F85;\r\n}\r\n.btn-dark {\r\n  color: #E9EDEF;\r\n  background-color: #4B5F71;\r\n  border-color: #364B5F;\r\n}\r\n.btn-dark:hover, .btn-dark:focus, .btn-dark:active, .btn-dark.active, .open .dropdown-toggle.btn-dark {\r\n  color: #FFFFFF;\r\n  background-color: #394D5F;\r\n  border-color: #394D5F;\r\n}\r\n.btn-round {\r\n  border-radius: 30px;\r\n}\r\n.btn.btn-app {\r\n  position: relative;\r\n  padding: 15px 5px;\r\n  margin: 0 0 10px 10px;\r\n  min-width: 80px;\r\n  height: 60px;\r\n  -webkit-box-shadow: none;\r\n  -moz-box-shadow: none;\r\n  box-shadow: none;\r\n  -webkit-border-radius: 0;\r\n  -moz-border-radius: 0;\r\n  border-radius: 0;\r\n  text-align: center;\r\n  color: #666;\r\n  border: 1px solid #ddd;\r\n  background-color: #fafafa;\r\n  font-size: 12px;\r\n}\r\n.btn.btn-app > .fa, .btn.btn-app > .glyphicon, .btn.btn-app > .ion {\r\n  font-size: 20px;\r\n  display: block;\r\n}\r\n.btn.btn-app:hover {\r\n  background: #f4f4f4;\r\n  color: #444;\r\n  border-color: #aaa;\r\n}\r\n.btn.btn-app:active, .btn.btn-app:focus {\r\n  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);\r\n  -moz-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);\r\n  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);\r\n}\r\n.btn.btn-app > .badge {\r\n  position: absolute;\r\n  top: -3px;\r\n  right: -10px;\r\n  font-size: 10px;\r\n  font-weight: 400;\r\n}\r\n/* ***** /buttons *******/\r\n\r\n/* *********  /form design  **************************** */\r\n\r\n/* *********  form textarea  **************************** */\r\n\r\ntextarea {\r\n  padding: 10px;\r\n  vertical-align: top;\r\n  width: 200px;\r\n}\r\ntextarea:focus {\r\n  outline-style: solid;\r\n  outline-width: 2px;\r\n}\r\n.btn_ {\r\n  display: inline-block;\r\n  padding: 3px 9px;\r\n  margin-bottom: 0;\r\n  font-size: 14px;\r\n  line-height: 20px;\r\n  text-align: center;\r\n  vertical-align: middle;\r\n  cursor: pointer;\r\n  color: #333333;\r\n  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);\r\n  background-color: #f5f5f5;\r\n  background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);\r\n  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));\r\n  background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);\r\n  background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);\r\n  background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);\r\n  background-repeat: repeat-x;\r\n  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe6e6e6', GradientType=0);\r\n  border-color: #e6e6e6 #e6e6e6 #bfbfbf;\r\n  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);\r\n  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);\r\n  border: 1px solid #cccccc;\r\n  border-bottom-color: #b3b3b3;\r\n  -webkit-border-radius: 4px;\r\n  -moz-border-radius: 4px;\r\n  border-radius: 4px;\r\n  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);\r\n  -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);\r\n  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);\r\n}\r\n\r\n/* *********  /form textarea  **************************** */\r\n\r\n\r\n/* *********  glyphicons  **************************** */\r\n\r\n.bs-glyphicons {\r\n  margin: 0 -10px 20px;\r\n  overflow: hidden\r\n}\r\n.bs-glyphicons-list {\r\n  padding-left: 0;\r\n  list-style: none\r\n}\r\n.bs-glyphicons li {\r\n  float: left;\r\n  width: 25%;\r\n  height: 115px;\r\n  padding: 10px;\r\n  font-size: 10px;\r\n  line-height: 1.4;\r\n  text-align: center;\r\n  background-color: #f9f9f9;\r\n  border: 1px solid #fff\r\n}\r\n.bs-glyphicons .glyphicon {\r\n  margin-top: 5px;\r\n  margin-bottom: 10px;\r\n  font-size: 24px\r\n}\r\n.bs-glyphicons .glyphicon-class {\r\n  display: block;\r\n  text-align: center;\r\n  word-wrap: break-word\r\n}\r\n.bs-glyphicons li:hover {\r\n  color: #fff;\r\n  background-color: #1ABB9C\r\n}\r\n@media (min-width: 768px) {\r\n  .bs-glyphicons {\r\n    margin-right: 0;\r\n    margin-left: 0\r\n  }\r\n  .bs-glyphicons li {\r\n    width: 12.5%;\r\n    font-size: 12px\r\n  }\r\n}\r\n\r\n/* *********  /glyphicons  **************************** */\r\n\r\n\r\n/* *********  form tags input  **************************** */\r\n\r\n.tagsinput {\r\n  border: 1px solid #CCC;\r\n  background: #FFF;\r\n  padding: 6px 6px 0;\r\n  width: 300px;\r\n  overflow-y: auto;\r\n}\r\nspan.tag {\r\n  -moz-border-radius: 2px;\r\n  -webkit-border-radius: 2px;\r\n  display: block;\r\n  float: left;\r\n  padding: 5px 9px;\r\n  text-decoration: none;\r\n  background: #1ABB9C;\r\n  color: #F1F6F7;\r\n  margin-right: 5px;\r\n  font-weight: 500;\r\n  margin-bottom: 5px;\r\n  font-family: helvetica;\r\n}\r\nspan.tag a {\r\n  color: #F1F6F7 !important;\r\n}\r\n.tagsinput span.tag a {\r\n  font-weight: bold;\r\n  color: #82ad2b;\r\n  text-decoration: none;\r\n  font-size: 11px;\r\n}\r\n.tagsinput input {\r\n  width: 80px;\r\n  margin: 0px;\r\n  font-family: helvetica;\r\n  font-size: 13px;\r\n  border: 1px solid transparent;\r\n  padding: 3px;\r\n  background: transparent;\r\n  color: #000;\r\n  outline: 0px;\r\n}\r\n.tagsinput div {\r\n  display: block;\r\n  float: left;\r\n}\r\n.tags_clear {\r\n  clear: both;\r\n  width: 100%;\r\n  height: 0px;\r\n}\r\n.not_valid {\r\n  background: #FBD8DB !important;\r\n  color: #90111A !important;\r\n}\r\n\r\n/* *********  /form tags input  **************************** */\r\n\r\n\r\n/** Tabs **/\r\nul.bar_tabs {\r\n  overflow: visible;\r\n  background: #F5F7FA;\r\n  height: 25px;\r\n  margin: 21px 0 14px;\r\n  padding-left: 14px;\r\n  position: relative;\r\n  z-index: 1;\r\n  width: 100%;\r\n  border-bottom: 1px solid #E6E9ED;\r\n}\r\nul.bar_tabs > li {\r\n  border: 1px solid #E6E9ED;\r\n  color: #333 !important;\r\n  margin-top: -17px;\r\n  margin-left: 8px;\r\n  background: #fff;\r\n  border-bottom: none;\r\n  border-radius: 4px 4px 0 0;\r\n}\r\nul.bar_tabs > li.active {\r\n  border-right: 6px solid #D3D6DA;\r\n  border-top: 0;\r\n  margin-top: -15px;\r\n}\r\nul.bar_tabs > li a {\r\n  padding: 10px 17px;\r\n  background: #F5F7FA;\r\n  margin: 0;\r\n  border-top-right-radius: 0;\r\n}\r\nul.bar_tabs > li a:hover {\r\n  border: 1px solid transparent;\r\n}\r\nul.bar_tabs > li.active a {\r\n  border-bottom: none;\r\n}\r\nul.bar_tabs.right {\r\n  padding-right: 14px;\r\n}\r\nul.bar_tabs.right li {\r\n  float: right\r\n}\r\na:focus {\r\n  outline: none;\r\n}\r\n/** /Tabs **/\r\n\r\n\r\n/* *********  timeline  **************************** */\r\n\r\nul.timeline li {\r\n  position: relative;\r\n  border-bottom: 1px solid #e8e8e8;\r\n  clear: both;\r\n}\r\n.timeline .block {\r\n  margin: 0;\r\n  border-left: 3px solid #e8e8e8;\r\n  overflow: visible;\r\n  padding: 10px 15px;\r\n  margin-left: 105px;\r\n}\r\n.timeline.widget {\r\n  min-width: 0;\r\n  max-width: inherit;\r\n}\r\n.timeline.widget .block {\r\n  margin-left: 5px;\r\n}\r\n.timeline .tags {\r\n  position: absolute;\r\n  top: 15px;\r\n  left: 0;\r\n  width: 84px;\r\n}\r\n.timeline .tag {\r\n  display: block;\r\n  height: 30px;\r\n  font-size: 13px;\r\n  padding: 8px;\r\n}\r\n.timeline .tag span {\r\n  display: block;\r\n  overflow: hidden;\r\n  width: 100%;\r\n  white-space: nowrap;\r\n  text-overflow: ellipsis;\r\n}\r\n.tag {\r\n  line-height: 1;\r\n  background: #1ABB9C;\r\n  color: #fff !important;\r\n}\r\n.tag:after {\r\n  content: \" \";\r\n  height: 30px;\r\n  width: 0;\r\n  position: absolute;\r\n  left: 100%;\r\n  top: 0;\r\n  margin: 0;\r\n  pointer-events: none;\r\n  border-top: 14px solid transparent;\r\n  border-bottom: 14px solid transparent;\r\n  border-left: 11px solid #1ABB9C;\r\n}\r\n.timeline h2.title {\r\n  position: relative;\r\n  font-size: 16px;\r\n  margin: 0;\r\n}\r\n.timeline h2.title:before {\r\n  content: \"\";\r\n  position: absolute;\r\n  left: -23px;\r\n  top: 3px;\r\n  display: block;\r\n  width: 14px;\r\n  height: 14px;\r\n  border: 3px solid #d2d3d2;\r\n  border-radius: 14px;\r\n  background: #f9f9f9;\r\n}\r\n.timeline .byline {\r\n  padding: .25em 0;\r\n}\r\n.byline {\r\n  -webkit-font-smoothing: antialiased;\r\n  font-style: italic;\r\n  font-size: .9375em;\r\n  line-height: 1.3;\r\n  color: #aab6aa;\r\n}\r\nul.social li {\r\n  border: 0;\r\n}\r\n\r\n/* *********  /timeline  **************************** */\r\n\r\n/* *********  profile/social  **************************** */\r\n\r\n.social-sidebar, .social-body {\r\n  float: right;\r\n}\r\n.social-sidebar {\r\n  background: #EDEDED;\r\n  width: 22%;\r\n}\r\n.social-body {\r\n  border: 1px solid #ccc;\r\n  width: 78%;\r\n}\r\n.thumb img {\r\n  width: 50px;\r\n  height: 50px;\r\n  border-radius: 50%;\r\n}\r\n.chat .thumb img {\r\n  width: 27px;\r\n  height: 27px;\r\n  border-radius: 50%;\r\n}\r\n.chat .status {\r\n  float: left;\r\n  margin: 16px 0 0 -16px;\r\n  font-size: 14px;\r\n  font-weight: bold;\r\n  width: 12px;\r\n  height: 12px;\r\n  display: block;\r\n  border: 2px solid #FFF;\r\n  z-index: 12312;\r\n  border-radius: 50%;\r\n}\r\n.chat .status.online {\r\n  background: #1ABB9C;\r\n}\r\n.chat .status.away {\r\n  background: #F39C12;\r\n}\r\n.chat .status.offline {\r\n  background: #ccc;\r\n}\r\n.chat .media-body {\r\n  padding-top: 5px;\r\n}\r\n\r\n/* *********  /profile/social  **************************** */\r\n\r\n\r\n/* *********  widgets  **************************** */\r\n\r\n.dashboard_graph .x_title {\r\n  padding: 5px 5px 7px;\r\n}\r\n.dashboard_graph .x_title h3 {\r\n  margin: 0;\r\n  font-weight: normal;\r\n}\r\n.chart {\r\n  position: relative;\r\n  display: inline-block;\r\n  width: 110px;\r\n  height: 110px;\r\n  margin-top: 5px;\r\n  margin-bottom: 5px;\r\n  text-align: center;\r\n}\r\n.chart canvas {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n}\r\n.percent {\r\n  display: inline-block;\r\n  line-height: 110px;\r\n  z-index: 2;\r\n  font-size: 18px;\r\n}\r\n.percent:after {\r\n  content: '%';\r\n  margin-left: 0.1em;\r\n  font-size: .8em;\r\n}\r\n.angular {\r\n  margin-top: 100px;\r\n}\r\n.angular .chart {\r\n  margin-top: 0;\r\n}\r\n.widget {\r\n  min-width: 250px;\r\n  max-width: 310px;\r\n}\r\n.widget_tally_box .btn-group button {\r\n  text-align: center\r\n}\r\n.widget_tally_box .btn-group button {\r\n  color: inherit;\r\n  font-weight: 500;\r\n  background-color: #f5f5f5;\r\n  border: 1px solid #e7e7e7;\r\n}\r\nul.widget_tally, ul.widget_tally li {\r\n  width: 100%;\r\n}\r\nul.widget_tally li {\r\n  padding: 2px 10px;\r\n  border-bottom: 1px solid #ECECEC;\r\n  padding-bottom: 4px;\r\n}\r\nul.widget_tally .month {\r\n  width: 70%;\r\n  float: left;\r\n}\r\nul.widget_tally .count {\r\n  width: 30%;\r\n  float: left;\r\n  text-align: right\r\n}\r\n.pie_bg {\r\n  border-bottom: 1px solid rgba(101, 204, 182, 0.16);\r\n  padding-bottom: 15px;\r\n  -webkit-border-radius: 4px;\r\n  -moz-border-radius: 4px;\r\n  border-radius: 4px;\r\n  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe6e6e6', GradientType=0);\r\n  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);\r\n  padding-bottom: 10px;\r\n  -webkit-box-shadow: 0 4px 6px -6px #222;\r\n  -moz-box-shadow: 0 4px 6px -6px #222;\r\n  box-shadow: 0 4px 6px -6px #222;\r\n}\r\n.widget_tally_box .flex {\r\n  display: flex;\r\n}\r\nul.widget_profile_box {\r\n  width: 100%;\r\n  height: 42px;\r\n  padding: 3px;\r\n  background: #ececec;\r\n  margin-top: 40px;\r\n  margin-left: 1px;\r\n}\r\nul.widget_profile_box li:first-child {\r\n  width: 25%;\r\n  float: left;\r\n}\r\nul.widget_profile_box li:first-child a {\r\n  float: left;\r\n}\r\nul.widget_profile_box li:last-child {\r\n  width: 25%;\r\n  float: right;\r\n}\r\nul.widget_profile_box li:last-child a {\r\n  float: right;\r\n}\r\nul.widget_profile_box li {}\r\nul.widget_profile_box li a {\r\n  font-size: 22px;\r\n  text-align: center;\r\n  width: 35px;\r\n  height: 35px;\r\n  border: 1px solid rgba(52, 73, 94, 0.44);\r\n  display: block;\r\n  border-radius: 50%;\r\n  padding: 0px;\r\n}\r\nul.widget_profile_box li a:hover {\r\n  color: #1ABB9C !important;\r\n  border: 1px solid rgba(38, 185, 154, 1);\r\n}\r\nul.widget_profile_box li .profile_img {\r\n  width: 85px;\r\n  height: 85px;\r\n  margin: 0;\r\n  margin-top: -28px;\r\n}\r\n.widget_tally_box p, .widget_tally_box span {\r\n  text-align: center;\r\n}\r\n.widget_tally_box .name {\r\n  text-align: center;\r\n  margin: 25px;\r\n}\r\n.widget_tally_box .name_title {\r\n  text-align: center;\r\n  margin: 5px;\r\n}\r\n.widget_tally_box ul.legend {\r\n  margin: 0;\r\n}\r\n.widget_tally_box ul.legend p, .widget_tally_box ul.legend span {\r\n  text-align: left;\r\n}\r\n.widget_tally_box ul.legend li .icon {\r\n  font-size: 20px;\r\n  float: left;\r\n  width: 14px;\r\n}\r\n.widget_tally_box ul.legend li .name {\r\n  font-size: 14px;\r\n  margin: 5px 0 0 14px;\r\n  text-overflow: ellipsis;\r\n  float: left;\r\n}\r\n.widget_tally_box ul.legend p {\r\n  display: inline-block;\r\n  margin: 0;\r\n}\r\n.widget_tally_box ul.verticle_bars li {\r\n  height: 140px;\r\n  width: 23%;\r\n}\r\n.widget .verticle_bars li .progress.vertical.progress_wide {\r\n  width: 65%;\r\n}\r\nul.count2 {\r\n  width: 100%;\r\n  margin-left: 1px;\r\n  border: 1px solid #ddd;\r\n  border-left: 0;\r\n  border-right: 0;\r\n  padding: 10px 0;\r\n}\r\nul.count2 li {\r\n  width: 30%;\r\n  text-align: center;\r\n}\r\nul.count2 li h3 {\r\n  font-weight: 400;\r\n  margin: 0;\r\n}\r\nul.count2 li span {\r\n  font-weight: 300;\r\n}\r\n/* *********  /widgets  **************************** */\r\n\r\n.divider {\r\n  border-bottom: 1px solid #ddd;\r\n  margin: 10px;\r\n}\r\n.divider-dashed {\r\n  border-top: 1px dashed #e7eaec;\r\n  background-color: #ffffff;\r\n  height: 1px;\r\n  margin: 10px 0;\r\n}\r\nul.messages {\r\n  padding: 0;\r\n  list-style: none;\r\n}\r\nul.messages li, .tasks li {\r\n  border-bottom: 1px dotted #e6e6e6;\r\n  padding: 8px 0;\r\n}\r\nul.messages li img.avatar, img.avatar {\r\n  height: 32px;\r\n  width: 32px;\r\n  float: left;\r\n  display: inline-block;\r\n  -webkit-border-radius: 2px;\r\n  -moz-border-radius: 2px;\r\n  border-radius: 2px;\r\n  padding: 2px;\r\n  background: #f7f7f7;\r\n  border: 1px solid #e6e6e6;\r\n}\r\nul.messages li .message_date {\r\n  float: right;\r\n  text-align: right;\r\n}\r\nul.messages li .message_wrapper {\r\n  margin-left: 50px;\r\n  margin-right: 40px;\r\n}\r\nul.messages li .message_wrapper h4.heading {\r\n  font-weight: 600;\r\n  margin: 0;\r\n  cursor: pointer;\r\n  margin-bottom: 10px;\r\n  line-height: 100%;\r\n}\r\nul.messages li .message_wrapper blockquote {\r\n  padding: 0px 10px;\r\n  margin: 0;\r\n  border-left: 5px solid #eee;\r\n}\r\nul.user_data li {\r\n  margin-bottom: 6px;\r\n}\r\nul.user_data li p {\r\n  margin-bottom: 0;\r\n}\r\nul.user_data li .progress {\r\n  width: 90%;\r\n}\r\n.project_progress .progress {\r\n  margin-bottom: 3px !important;\r\n  margin-top: 5px;\r\n}\r\n.projects .list-inline {\r\n  margin: 0;\r\n}\r\n.profile_title {\r\n  background: #F5F7FA;\r\n  border: 0;\r\n  padding: 7px 0;\r\n  display: flex;\r\n}\r\nul.stats-overview {\r\n  border-bottom: 1px solid #e8e8e8;\r\n  padding-bottom: 10px;\r\n  margin-bottom: 10px;\r\n}\r\nul.stats-overview li {\r\n  display: inline-block;\r\n  text-align: center;\r\n  padding: 0 15px;\r\n  width: 30%;\r\n  font-size: 14px;\r\n  border-right: 1px solid #e8e8e8;\r\n}\r\nul.stats-overview li:last-child {\r\n  border-right: 0;\r\n}\r\nul.stats-overview li .name {\r\n  font-size: 12px;\r\n}\r\nul.stats-overview li .value {\r\n  font-size: 14px;\r\n  font-weight: bold;\r\n  display: block;\r\n}\r\nul.stats-overview li:first-child {\r\n  padding-left: 0;\r\n}\r\nul.project_files li {\r\n  margin-bottom: 5px;\r\n}\r\nul.project_files li a i {\r\n  width: 20px;\r\n}\r\n.project_detail p {\r\n  margin-bottom: 10px;\r\n}\r\n.project_detail p.title {\r\n  font-weight: bold;\r\n  margin-bottom: 0\r\n}\r\n.avatar img {\r\n  border-radius: 50%;\r\n  max-width: 45px;\r\n}\r\n\r\n/* *********  pricing  **************************** */\r\n\r\n.pricing {\r\n  background: #fff;\r\n}\r\n.pricing .title {\r\n  background: #1ABB9C;\r\n  height: 110px;\r\n  color: #fff;\r\n  padding: 15px 0 0;\r\n  text-align: center;\r\n}\r\n.pricing .title h2 {\r\n  text-transform: capitalize;\r\n  font-size: 18px;\r\n  border-radius: 5px 5px 0 0;\r\n  margin: 0;\r\n  font-weight: 400;\r\n}\r\n.pricing .title h1 {\r\n  font-size: 30px;\r\n  margin: 12px;\r\n}\r\n.pricing .title span {\r\n  background: rgba(51, 51, 51, 0.28);\r\n  padding: 2px 5px;\r\n}\r\n.pricing_features {\r\n  background: #FAFAFA;\r\n  padding: 20px 15px;\r\n  min-height: 230px;\r\n  font-size: 13.5px;\r\n}\r\n.pricing_features ul li {\r\n  margin-top: 10px;\r\n}\r\n.pricing_footer {\r\n  padding: 10px 15px;\r\n  background-color: #f5f5f5;\r\n  border-top: 1px solid #ddd;\r\n  text-align: center;\r\n  border-bottom-right-radius: 3px;\r\n  border-bottom-left-radius: 3px;\r\n}\r\n.pricing_footer p {\r\n  font-size: 13px;\r\n  padding: 10px 0 2px;\r\n  display: block;\r\n}\r\n.ui-ribbon-container {\r\n  position: relative;\r\n}\r\n.ui-ribbon-container .ui-ribbon-wrapper {\r\n  position: absolute;\r\n  overflow: hidden;\r\n  width: 85px;\r\n  height: 88px;\r\n  top: -3px;\r\n  right: -3px;\r\n}\r\n.ui-ribbon-container.ui-ribbon-primary .ui-ribbon {\r\n  background-color: #5b90bf;\r\n}\r\n.ui-ribbon-container .ui-ribbon {\r\n  position: relative;\r\n  display: block;\r\n  text-align: center;\r\n  font-size: 15px;\r\n  font-weight: 700;\r\n  color: #fff;\r\n  -webkit-transform: rotate(45deg);\r\n  -moz-transform: rotate(45deg);\r\n  -ms-transform: rotate(45deg);\r\n  -o-transform: rotate(45deg);\r\n  transform: rotate(45deg);\r\n  padding: 7px 0;\r\n  left: -5px;\r\n  top: 15px;\r\n  width: 120px;\r\n  line-height: 20px;\r\n  background-color: #555;\r\n  box-shadow: 0 0 3px rgba(0, 0, 0, .3);\r\n}\r\n.ui-ribbon-container.ui-ribbon-primary .ui-ribbon:after, .ui-ribbon-container.ui-ribbon-primary .ui-ribbon:before {\r\n  border-top: 2px solid #5b90bf;\r\n}\r\n.ui-ribbon-container .ui-ribbon:before {\r\n  left: 0;\r\n  bottom: -1px;\r\n}\r\n.ui-ribbon-container .ui-ribbon:before {\r\n  right: 0;\r\n}\r\n.ui-ribbon-container .ui-ribbon:after, .ui-ribbon-container .ui-ribbon:before {\r\n  position: absolute;\r\n  content: \" \";\r\n  line-height: 0;\r\n  border-top: 2px solid #555;\r\n  border-left: 2px solid transparent;\r\n  border-right: 2px solid transparent;\r\n}\r\n\r\n/* *********  /pricing  **************************** */\r\n\r\n\r\n/* *********  media gallery  **************************** */\r\n\r\n.thumbnail .image {\r\n  height: 120px;\r\n  overflow: hidden;\r\n}\r\n.caption {\r\n  padding: 9px 5px;\r\n  background: #F7F7F7;\r\n}\r\n.caption p {\r\n  margin-bottom: 5px;\r\n}\r\n.thumbnail {\r\n  height: 190px;\r\n  overflow: hidden;\r\n}\r\n.view {\r\n  overflow: hidden;\r\n  position: relative;\r\n  text-align: center;\r\n  box-shadow: 1px 1px 2px #e6e6e6;\r\n  cursor: default;\r\n}\r\n.view .mask, .view .content {\r\n  position: absolute;\r\n  width: 100%;\r\n  overflow: hidden;\r\n  top: 0;\r\n  left: 0\r\n}\r\n.view img {\r\n  display: block;\r\n  position: relative\r\n}\r\n.view .tools {\r\n  text-transform: uppercase;\r\n  color: #fff;\r\n  text-align: center;\r\n  position: relative;\r\n  font-size: 17px;\r\n  padding: 3px;\r\n  background: rgba(0, 0, 0, 0.35);\r\n  margin: 43px 0 0 0;\r\n}\r\n.mask.no-caption .tools {\r\n  margin: 90px 0 0 0;\r\n}\r\n.view .tools a {\r\n  display: inline-block;\r\n  color: #FFF;\r\n  font-size: 18px;\r\n  font-weight: 400;\r\n  padding: 0 4px;\r\n}\r\n.view p {\r\n  font-family: Georgia, serif;\r\n  font-style: italic;\r\n  font-size: 12px;\r\n  position: relative;\r\n  color: #fff;\r\n  padding: 10px 20px 20px;\r\n  text-align: center\r\n}\r\n.view a.info {\r\n  display: inline-block;\r\n  text-decoration: none;\r\n  padding: 7px 14px;\r\n  background: #000;\r\n  color: #fff;\r\n  text-transform: uppercase;\r\n  box-shadow: 0 0 1px #000\r\n}\r\n.view-first img {\r\n  transition: all 0.2s linear;\r\n}\r\n.view-first .mask {\r\n  opacity: 0;\r\n  background-color: rgba(0, 0, 0, 0.5);\r\n  transition: all 0.4s ease-in-out;\r\n}\r\n.view-first .tools {\r\n  transform: translateY(-100px);\r\n  opacity: 0;\r\n  transition: all 0.2s ease-in-out;\r\n}\r\n.view-first p {\r\n  transform: translateY(100px);\r\n  opacity: 0;\r\n  transition: all 0.2s linear;\r\n}\r\n.view-first:hover img {\r\n  transform: scale(1.1);\r\n}\r\n.view-first:hover .mask {\r\n  opacity: 1;\r\n}\r\n.view-first:hover .tools, .view-first:hover p {\r\n  opacity: 1;\r\n  transform: translateY(0px);\r\n}\r\n.view-first:hover p {\r\n  transition-delay: 0.1s;\r\n}\r\n\r\n/* *********  /media gallery  **************************** */\r\n\r\n\r\n/* *********  verticle tabs  **************************** */\r\n\r\n\r\n/*!\r\n * bootstrap-vertical-tabs - v1.2.1\r\n * https://dbtek.github.io/bootstrap-vertical-tabs\r\n * 2014-11-07\r\n * Copyright (c) 2014 İsmail Demirbilek\r\n * License: MIT\r\n */\r\n\r\n.tabs-left, .tabs-right {\r\n  border-bottom: none;\r\n  padding-top: 2px;\r\n}\r\n.tabs-left {\r\n  border-right: 1px solid #F7F7F7;\r\n}\r\n.tabs-right {\r\n  border-left: 1px solid #F7F7F7;\r\n}\r\n.tabs-left>li, .tabs-right>li {\r\n  float: none;\r\n  margin-bottom: 2px;\r\n}\r\n.tabs-left>li {\r\n  margin-right: -1px;\r\n}\r\n.tabs-right>li {\r\n  margin-left: -1px;\r\n}\r\n.tabs-left>li.active>a, .tabs-left>li.active>a:hover, .tabs-left>li.active>a:focus {\r\n  border-bottom-color: #F7F7F7;\r\n  border-right-color: transparent;\r\n}\r\n.tabs-right>li.active>a, .tabs-right>li.active>a:hover, .tabs-right>li.active>a:focus {\r\n  border-bottom: 1px solid #F7F7F7;\r\n  border-left-color: transparent;\r\n}\r\n.tabs-left>li>a {\r\n  border-radius: 4px 0 0 4px;\r\n  margin-right: 0;\r\n  display: block;\r\n  background: #F7F7F7;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n}\r\n.tabs-right>li>a {\r\n  border-radius: 0 4px 4px 0;\r\n  margin-right: 0;\r\n  background: #F7F7F7;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n}\r\n.sideways {\r\n  margin-top: 50px;\r\n  border: none;\r\n  position: relative;\r\n}\r\n.sideways>li {\r\n  height: 20px;\r\n  width: 120px;\r\n  margin-bottom: 100px;\r\n}\r\n.sideways>li>a {\r\n  border-bottom: 1px solid #ddd;\r\n  border-right-color: transparent;\r\n  text-align: center;\r\n  border-radius: 4px 4px 0px 0px;\r\n}\r\n.sideways>li.active>a, .sideways>li.active>a:hover, .sideways>li.active>a:focus {\r\n  border-bottom-color: transparent;\r\n  border-right-color: #ddd;\r\n  border-left-color: #ddd;\r\n}\r\n.sideways.tabs-left {\r\n  left: -50px;\r\n}\r\n.sideways.tabs-right {\r\n  right: -50px;\r\n}\r\n.sideways.tabs-right>li {\r\n  -webkit-transform: rotate(90deg);\r\n  -moz-transform: rotate(90deg);\r\n  -ms-transform: rotate(90deg);\r\n  -o-transform: rotate(90deg);\r\n  transform: rotate(90deg);\r\n}\r\n.sideways.tabs-left>li {\r\n  -webkit-transform: rotate(-90deg);\r\n  -moz-transform: rotate(-90deg);\r\n  -ms-transform: rotate(-90deg);\r\n  -o-transform: rotate(-90deg);\r\n  transform: rotate(-90deg);\r\n}\r\n\r\n/* *********  /verticle tabs  **************************** */\r\n\r\n\r\n/* *********  moris  **************************** */\r\n\r\n.morris-hover {\r\n  position: absolute;\r\n  z-index: 1000;\r\n}\r\n.morris-hover.morris-default-style {\r\n  padding: 6px;\r\n  color: #666;\r\n  background: rgba(243, 242, 243, 0.8);\r\n  border: solid 2px rgba(195, 194, 196, 0.8);\r\n  font-family: sans-serif;\r\n  font-size: 12px;\r\n  text-align: center;\r\n}\r\n.morris-hover.morris-default-style .morris-hover-row-label {\r\n  font-weight: bold;\r\n  margin: 0.25em 0;\r\n}\r\n.morris-hover.morris-default-style .morris-hover-point {\r\n  white-space: nowrap;\r\n  margin: 0.1em 0;\r\n}\r\n\r\n/* *********  /moris  **************************** */\r\n\r\n\r\n/* *********  ecommerce  **************************** */\r\n\r\n.price {\r\n  font-size: 40px;\r\n  font-weight: 400;\r\n  color: #26B99A;\r\n  margin: 0;\r\n}\r\n.prod_title {\r\n  border-bottom: 1px solid #DFDFDF;\r\n  padding-bottom: 5px;\r\n  margin: 30px 0;\r\n  font-size: 20px;\r\n  font-weight: 400;\r\n}\r\n.product-image img {\r\n  width: 90%;\r\n}\r\n.prod_color li {\r\n  margin: 0 10px;\r\n}\r\n.prod_color li p {\r\n  margin-bottom: 0;\r\n}\r\n.prod_size li {\r\n  padding: 0;\r\n}\r\n.prod_color .color {\r\n  width: 25px;\r\n  height: 25px;\r\n  border: 2px solid rgba(51, 51, 51, 0.28) !important;\r\n  padding: 2px;\r\n  border-radius: 50px;\r\n}\r\n.product_gallery a {\r\n  width: 100px;\r\n  height: 100px;\r\n  float: left;\r\n  margin: 10px;\r\n  border: 1px solid #e5e5e5;\r\n}\r\n.product_gallery a img {\r\n  width: 100%;\r\n  margin-top: 15px;\r\n}\r\n.product_price {\r\n  margin: 20px 0;\r\n  padding: 5px 10px;\r\n  background-color: #FFFFFF;\r\n  text-align: left;\r\n  border: 2px dashed #E0E0E0;\r\n}\r\n.price-tax {\r\n  font-size: 18px;\r\n}\r\n.product_social {\r\n  margin: 20px 0;\r\n}\r\n.product_social ul li a i {\r\n  font-size: 35px;\r\n}\r\n\r\n/* *********  /ecommerce  **************************** */\r\n\r\n/** login **/\r\n.login {\r\n  background:#F7F7F7;\r\n}\r\n.login .fa-paw {\r\n  font-size: 26px;\r\n}\r\na.hiddenanchor {\r\n  display: none;\r\n}\r\n.login_wrapper {\r\n  right: 0px;\r\n  margin: 0px auto;\r\n  margin-top: 5%;\r\n  max-width: 350px;\r\n  position: relative;\r\n}\r\n.registration_form, .login_form {\r\n  position: absolute;\r\n  top: 0px;\r\n  width: 100%;\r\n}\r\n.registration_form {\r\n  z-index: 21;\r\n  opacity: 0;\r\n  width: 100%;\r\n}\r\n.login_form {\r\n  z-index: 22;\r\n}\r\n#signup:target ~ .login_wrapper .registration_form, #signin:target ~ .login_wrapper .login_form {\r\n  z-index: 22;\r\n  -webkit-animation-name: fadeInLeft;\r\n  -moz-animation-name: fadeInLeft;\r\n  -ms-animation-name: fadeInLeft;\r\n  -o-animation-name: fadeInLeft;\r\n  animation-name: fadeInLeft;\r\n  -webkit-animation-delay: .1s;\r\n  -moz-animation-delay: .1s;\r\n  -o-animation-delay: .1s;\r\n  -ms-animation-delay: .1s;\r\n  animation-delay: .1s;\r\n}\r\n#signup:target ~ .login_wrapper .login_form, #signin:target ~ .login_wrapper .registration_form {\r\n  -webkit-animation-name: fadeOutLeft;\r\n  -moz-animation-name: fadeOutLeft;\r\n  -ms-animation-name: fadeOutLeft;\r\n  -o-animation-name: fadeOutLeft;\r\n  animation-name: fadeOutLeft;\r\n}\r\n.animate {\r\n  -webkit-animation-duration: 0.5s;\r\n  -webkit-animation-timing-function: ease;\r\n  -webkit-animation-fill-mode: both;\r\n  -moz-animation-duration: 0.5s;\r\n  -moz-animation-timing-function: ease;\r\n  -moz-animation-fill-mode: both;\r\n  -o-animation-duration: 0.5s;\r\n  -o-animation-timing-function: ease;\r\n  -o-animation-fill-mode: both;\r\n  -ms-animation-duration: 0.5s;\r\n  -ms-animation-timing-function: ease;\r\n  -ms-animation-fill-mode: both;\r\n  animation-duration: 0.5s;\r\n  animation-timing-function: ease;\r\n  animation-fill-mode: both;\r\n}\r\n/** /login **/\r\n\r\n/** signup **/\r\n.login_box {\r\n  padding: 20px;\r\n  margin: auto;\r\n}\r\n.left {\r\n  float: left;\r\n}\r\n.alignleft {\r\n  float: left;\r\n  margin-right: 15px;\r\n}\r\n.alignright {\r\n  float: right;\r\n  margin-left: 15px;\r\n}\r\n.clearfix:after, form:after {\r\n  content: \".\";\r\n  display: block;\r\n  height: 0;\r\n  clear: both;\r\n  visibility: hidden;\r\n}\r\n.login_content {\r\n  margin: 0 auto;\r\n  padding: 25px 0 0;\r\n  position: relative;\r\n  text-align: center;\r\n  text-shadow: 0 1px 0 #fff;\r\n  min-width: 280px;\r\n}\r\n.login_content a,\r\n.login_content .btn-default:hover {\r\n  text-decoration: none;\r\n}\r\n.login_content a:hover {\r\n  text-decoration: underline;\r\n}\r\n.login_content h1 {\r\n  font: normal 25px Helvetica, Arial, sans-serif;\r\n  letter-spacing: -0.05em;\r\n  line-height: 20px;\r\n  margin: 10px 0 30px;\r\n}\r\n.login_content h1:before, .login_content h1:after {\r\n  content: \"\";\r\n  height: 1px;\r\n  position: absolute;\r\n  top: 10px;\r\n  width: 27%;\r\n}\r\n.login_content h1:after {\r\n  background: rgb(126, 126, 126);\r\n  background: -moz-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -webkit-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -o-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -ms-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  right: 0;\r\n}\r\n.login_content h1:before {\r\n  background: rgb(126, 126, 126);\r\n  background: -moz-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -webkit-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -o-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -ms-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  left: 0;\r\n}\r\n.login_content h1:before, .login_content h1:after {\r\n  content: \"\";\r\n  height: 1px;\r\n  position: absolute;\r\n  top: 10px;\r\n  width: 20%;\r\n}\r\n.login_content h1:after {\r\n  background: rgb(126, 126, 126);\r\n  background: -moz-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -webkit-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -o-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -ms-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  right: 0;\r\n}\r\n.login_content h1:before {\r\n  background: rgb(126, 126, 126);\r\n  background: -moz-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -webkit-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -o-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -ms-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  left: 0;\r\n}\r\n.login_content form {\r\n  margin: 20px 0;\r\n  position: relative\r\n}\r\n.login_content form input[type=\"text\"], .login_content form input[type=\"email\"], .login_content form input[type=\"password\"] {\r\n  -webkit-border-radius: 3px;\r\n  -moz-border-radius: 3px;\r\n  -ms-border-radius: 3px;\r\n  -o-border-radius: 3px;\r\n  border-radius: 3px;\r\n  -webkit-box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  -moz-box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  -ms-box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  -o-box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  border: 1px solid #c8c8c8;\r\n  color: #777;\r\n  margin: 0 0 20px;\r\n  width: 100%;\r\n}\r\n.login_content form input[type=\"text\"]:focus, .login_content form input[type=\"email\"]:focus, .login_content form input[type=\"password\"]:focus {\r\n  -webkit-box-shadow: 0 0 2px #AA77B4 inset;\r\n  -moz-box-shadow: 0 0 2px #ed1c24 inset;\r\n  -ms-box-shadow: 0 0 2px #ed1c24 inset;\r\n  -o-box-shadow: 0 0 2px #ed1c24 inset;\r\n  box-shadow: 0 0 2px #A97AAD inset;\r\n  background-color: #fff;\r\n  border: 1px solid #A878AF;\r\n  outline: none;\r\n}\r\n#username {\r\n  background-position: 10px 10px !important\r\n}\r\n#password {\r\n  background-position: 10px -53px !important\r\n}\r\n.login_content form div a {\r\n  font-size: 12px;\r\n  margin: 10px 15px 0 0;\r\n}\r\n.reset_pass {\r\n  margin-top: 10px !important;\r\n}\r\n.login_content div .reset_pass {\r\n  margin-top: 13px !important;\r\n  margin-right: 39px;\r\n  float: right;\r\n}\r\n.separator {\r\n  border-top: 1px solid #D8D8D8;\r\n  margin-top: 10px;\r\n  padding-top: 10px;\r\n}\r\n.button {\r\n  background: rgb(247, 249, 250);\r\n  background: -moz-linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  background: -webkit-linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  background: -o-linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  background: -ms-linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  background: linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f7f9fa', endColorstr='#f0f0f0', GradientType=0);\r\n  -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  -ms-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  -o-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  -webkit-border-radius: 0 0 5px 5px;\r\n  -moz-border-radius: 0 0 5px 5px;\r\n  -o-border-radius: 0 0 5px 5px;\r\n  -ms-border-radius: 0 0 5px 5px;\r\n  border-radius: 0 0 5px 5px;\r\n  border-top: 1px solid #CFD5D9;\r\n  padding: 15px 0;\r\n}\r\n.login_content form input[type=\"submit\"], #content form .submit {\r\n  float: left;\r\n  margin-left: 38px;\r\n}\r\n.button a {\r\n  background: url(http://cssdeck.com/uploads/media/items/8/8bcLQqF.png) 0 -112px no-repeat;\r\n  color: #7E7E7E;\r\n  font-size: 17px;\r\n  padding: 2px 0 2px 40px;\r\n  text-decoration: none;\r\n  -webkit-transition: all 0.3s ease;\r\n  -moz-transition: all 0.3s ease;\r\n  -ms-transition: all 0.3s ease;\r\n  -o-transition: all 0.3s ease;\r\n  transition: all 0.3s ease;\r\n}\r\n.button a:hover {\r\n  background-position: 0 -135px;\r\n  color: #00aeef;\r\n}\r\nheader {\r\n  width: 100%;\r\n}\r\n/** signup **/\r\n\r\n/** NProgress **/\r\n#nprogress .bar {\r\n  background: #1ABB9C;\r\n}\r\n\r\n#nprogress .peg {\r\n  box-shadow: 0 0 10px #1ABB9C, 0 0 5px #1ABB9C;\r\n}\r\n\r\n#nprogress .spinner-icon {\r\n  border-top-color: #1ABB9C;\r\n  border-left-color: #1ABB9C;\r\n}\r\n/** /NProgress **/\r\n\r\n/** bootstrap-wysiwyg **/\r\n.editor-wrapper {\r\n  min-height: 250px;\r\n  background-color: white;\r\n  border-collapse: separate;\r\n  border: 1px solid rgb(204, 204, 204);\r\n  padding: 4px;\r\n  box-sizing: content-box;\r\n  -webkit-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;\r\n  box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;\r\n  border-top-right-radius: 3px; border-bottom-right-radius: 3px;\r\n  border-bottom-left-radius: 3px; border-top-left-radius: 3px;\r\n  overflow: scroll;\r\n  outline: none;\r\n}\r\n\r\n.voiceBtn {\r\n  width: 20px;\r\n  color: transparent;\r\n  background-color: transparent;\r\n  transform: scale(2.0, 2.0);\r\n  -webkit-transform: scale(2.0, 2.0);\r\n  -moz-transform: scale(2.0, 2.0);\r\n  border: transparent;\r\n  cursor: pointer;\r\n  box-shadow: none;\r\n  -webkit-box-shadow: none;\r\n}\r\n\r\ndiv[data-role=\"editor-toolbar\"] {\r\n  -webkit-user-select: none;\r\n  -moz-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n}\r\n\r\n.dropdown-menu a {\r\n  cursor: pointer;\r\n}\r\n/** /bootstrap-wysiwyg **/\r\n\r\n/** Select2 **/\r\n.select2-container--default .select2-selection--single,\r\n.select2-container--default .select2-selection--multiple {\r\n  background-color: #fff;\r\n  border: 1px solid #ccc;\r\n  border-radius: 0;\r\n  min-height: 38px;\r\n}\r\n\r\n.select2-container--default .select2-selection--single .select2-selection__rendered {\r\n  color: #73879C;\r\n  padding-top: 5px;\r\n}\r\n\r\n.select2-container--default .select2-selection--multiple .select2-selection__rendered {\r\n  padding-top: 3px;\r\n}\r\n\r\n.select2-container--default .select2-selection--single .select2-selection__arrow {\r\n  height: 36px;\r\n}\r\n\r\n.select2-container--default .select2-selection--multiple .select2-selection__choice,\r\n.select2-container--default .select2-selection--multiple .select2-selection__clear {\r\n  margin-top: 2px;\r\n  border: none;\r\n  border-radius: 0;\r\n  padding: 3px 5px;\r\n}\r\n\r\n.select2-container--default.select2-container--focus .select2-selection--multiple {\r\n  border: 1px solid #ccc;\r\n}\r\n/** /Select2 **/\r\n\r\n/** Switchery **/\r\n.switchery {\r\n  width: 32px;\r\n  height: 20px;\r\n}\r\n\r\n.switchery>small {\r\n  width: 20px;\r\n  height: 20px;\r\n}\r\n/** /Switchery **/\r\n\r\n/** Normalize.css **/\r\nfieldset {\r\n  border: none;\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n/** /Normalize.css **/\r\n\r\n/** jQuery Smart Wizard  **/\r\n.form_wizard .stepContainer {\r\n  display: block;\r\n  position: relative;\r\n  margin: 0;\r\n  padding: 0;\r\n  border: 0 solid #CCC;\r\n  overflow-x: hidden;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps {\r\n  display: table;\r\n  list-style: none;\r\n  position: relative;\r\n  width: 100%;\r\n  margin: 0 0 20px;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li {\r\n  display: table-cell;\r\n  text-align: center;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a, .wizard_horizontal ul.wizard_steps li:hover {\r\n  display: block;\r\n  position: relative;\r\n  -moz-opacity: 1;\r\n  filter: alpha(opacity= 100);\r\n  opacity: 1;\r\n  color: #666;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a:before {\r\n  content: \"\";\r\n  position: absolute;\r\n  height: 4px;\r\n  background: #ccc;\r\n  top: 20px;\r\n  width: 100%;\r\n  z-index: 4;\r\n  left: 0;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a.disabled .step_no {\r\n  background: #ccc;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a .step_no {\r\n  width: 40px;\r\n  height: 40px;\r\n  line-height: 40px;\r\n  border-radius: 100px;\r\n  display: block;\r\n  margin: 0 auto 5px;\r\n  font-size: 16px;\r\n  text-align: center;\r\n  position: relative;\r\n  z-index: 5;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a.selected:before, .step_no {\r\n  background: #34495E;\r\n  color: #fff;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a.done:before, .wizard_horizontal ul.wizard_steps li a.done .step_no {\r\n  background: #1ABB9C;\r\n  color: #fff;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li:first-child a:before {\r\n  left: 50%;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li:last-child a:before {\r\n  right: 50%;\r\n  width: 50%;\r\n  left: auto;\r\n}\r\n\r\n.wizard_verticle .stepContainer {\r\n  width: 80%;\r\n  float: left;\r\n  padding: 0 10px;\r\n}\r\n\r\n.actionBar {\r\n  width: 100%;\r\n  border-top: 1px solid #ddd;\r\n  padding: 10px 5px;\r\n  text-align: right;\r\n  margin-top: 10px;\r\n}\r\n\r\n.actionBar .buttonDisabled {\r\n  cursor: not-allowed;\r\n  pointer-events: none;\r\n  opacity: .65;\r\n  filter: alpha(opacity=65);\r\n  -webkit-box-shadow: none;\r\n  box-shadow: none;\r\n}\r\n\r\n.actionBar a {\r\n  margin: 0 3px;\r\n}\r\n\r\n.wizard_verticle .wizard_content {\r\n  width: 80%;\r\n  float: left;\r\n  padding-left: 20px;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps {\r\n  display: table;\r\n  list-style: none;\r\n  position: relative;\r\n  width: 20%;\r\n  float: left;\r\n  margin: 0 0 20px;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li {\r\n  display: list-item;\r\n  text-align: center;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a {\r\n  height: 80px;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a:first-child {\r\n  margin-top: 20px;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a, .wizard_verticle ul.wizard_steps li:hover {\r\n  display: block;\r\n  position: relative;\r\n  -moz-opacity: 1;\r\n  filter: alpha(opacity= 100);\r\n  opacity: 1;\r\n  color: #666;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a:before {\r\n  content: \"\";\r\n  position: absolute;\r\n  height: 100%;\r\n  background: #ccc;\r\n  top: 20px;\r\n  width: 4px;\r\n  z-index: 4;\r\n  left: 49%;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a.disabled .step_no {\r\n  background: #ccc;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a .step_no {\r\n  width: 40px;\r\n  height: 40px;\r\n  line-height: 40px;\r\n  border-radius: 100px;\r\n  display: block;\r\n  margin: 0 auto 5px;\r\n  font-size: 16px;\r\n  text-align: center;\r\n  position: relative;\r\n  z-index: 5;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a.selected:before, .step_no {\r\n  background: #34495E;\r\n  color: #fff;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a.done:before, .wizard_verticle ul.wizard_steps li a.done .step_no {\r\n  background: #1ABB9C;\r\n  color: #fff;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li:first-child a:before {\r\n  left: 49%;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li:last-child a:before {\r\n  left: 49%;\r\n  left: auto;\r\n  width: 0;\r\n}\r\n\r\n.form_wizard .loader {\r\n  display: none;\r\n}\r\n\r\n.form_wizard .msgBox {\r\n  display: none;\r\n}\r\n/** jQuery Smart Wizard  **/\r\n\r\n/** bootstrap-progressbar  **/\r\n.progress {\r\n  border-radius: 0;\r\n}\r\n\r\n.progress-bar-info {\r\n  background-color: #3498DB;\r\n}\r\n\r\n.progress-bar-success {\r\n    background-color: #26B99A;\r\n}\r\n\r\n.progress_summary .progress {\r\n  margin: 5px 0 12px !important;\r\n}\r\n\r\n.progress_summary .row {\r\n  margin-bottom: 5px;\r\n}\r\n\r\n.progress_summary .row .col-xs-2 {\r\n  padding: 0\r\n}\r\n\r\n.progress_summary .more_info span {\r\n  text-align: right;\r\n  float: right;\r\n}\r\n\r\n.progress_summary .data span {\r\n  text-align: right;\r\n  float: right;\r\n}\r\n\r\n.progress_summary p {\r\n  margin-bottom: 3px;\r\n  width: 100%;\r\n}\r\n\r\n.progress_title .left {\r\n  float: left;\r\n  text-align: left;\r\n}\r\n\r\n.progress_title .right {\r\n  float: right;\r\n  text-align: right;\r\n  font-weight: 300;\r\n}\r\n\r\n.progress.progress_sm {\r\n  border-radius: 0;\r\n  margin-bottom: 18px;\r\n  height: 10px !important;\r\n}\r\n\r\n.progress.progress_sm .progress-bar {\r\n  height: 10px !important;\r\n}\r\n\r\n.dashboard_graph p {\r\n  margin: 0 0 4px;\r\n}\r\n\r\nul.verticle_bars {\r\n  width: 100%;\r\n}\r\n\r\nul.verticle_bars li {\r\n  width: 23%;\r\n  height: 200px;\r\n  margin: 0;\r\n}\r\n\r\n.progress.vertical.progress_wide {\r\n  width: 35px;\r\n}\r\n/** bootstrap-progressbar  **/\r\n\r\n/** PNotify **/\r\n.alert-success {\r\n  color: #ffffff;\r\n  background-color: rgba(38, 185, 154, 0.88);\r\n  border-color: rgba(38, 185, 154, 0.88);\r\n}\r\n\r\n.alert-info {\r\n  color: #E9EDEF;\r\n  background-color: rgba(52, 152, 219, 0.88);\r\n  border-color: rgba(52, 152, 219, 0.88);\r\n}\r\n\r\n.alert-warning {\r\n  color: #E9EDEF;\r\n  background-color: rgba(243, 156, 18, 0.88);\r\n  border-color: rgba(243, 156, 18, 0.88);\r\n}\r\n\r\n.alert-danger,\r\n.alert-error {\r\n  color: #E9EDEF;\r\n  background-color: rgba(231, 76, 60, 0.88);\r\n  border-color: rgba(231, 76, 60, 0.88);\r\n}\r\n\r\n.ui-pnotify.dark .ui-pnotify-container {\r\n  color: #E9EDEF;\r\n  background-color: rgba(52, 73, 94, 0.88);\r\n  border-color: rgba(52, 73, 94, 0.88);\r\n}\r\n\r\n.custom-notifications {\r\n  position: fixed;\r\n  margin: 15px;\r\n  right: 0;\r\n  float: right;\r\n  width: 400px;\r\n  z-index: 4000;\r\n  bottom: 0;\r\n}\r\n\r\nul.notifications {\r\n  float: right;\r\n  display: block;\r\n  margin-bottom: 7px;\r\n  padding: 0;\r\n  width: 100%;\r\n}\r\n\r\n.notifications li {\r\n  float: right;\r\n  margin: 3px;\r\n  width: 36px;\r\n  box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.notifications li:last-child {\r\n  margin-left: 0;\r\n}\r\n\r\n.notifications a {\r\n  display: block;\r\n  text-align: center;\r\n  text-decoration: none;\r\n  text-transform: uppercase;\r\n  padding: 9px 8px;\r\n}\r\n\r\n.tabbed_notifications .text {\r\n  padding: 5px 15px;\r\n  height: 140px;\r\n  border-radius: 7px;\r\n  box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.tabbed_notifications div p {\r\n  display: inline-block;\r\n}\r\n\r\n.tabbed_notifications h2 {\r\n  font-weight: bold;\r\n  text-transform: uppercase;\r\n  width: 80%;\r\n  float: left;\r\n  height: 20px;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n  display: block;\r\n}\r\n\r\n.tabbed_notifications .close {\r\n  padding: 5px;\r\n  color: #E9EDEF;\r\n  float: right;\r\n  opacity: 1;\r\n}\r\n/** /PNotify **/\r\n\r\n/** bootstrap-daterangepicker **/\r\n.daterangepicker.dropdown-menu {\r\n  font-size: 13px;\r\n  padding: 0;\r\n  overflow: hidden;\r\n}\r\n\r\n.daterangepicker.picker_1 {\r\n  background: #34495E;\r\n  color: #ECF0F1;\r\n}\r\n\r\n.daterangepicker.picker_1 table.table-condensed thead tr:first-child {\r\n  background: #1ABB9C;\r\n}\r\n\r\n.daterangepicker table.table-condensed thead tr:first-child th {\r\n  line-height: 28px;\r\n  text-align: center;\r\n}\r\n\r\n.daterangepicker.picker_1 table.table-condensed thead tr {\r\n  background: #213345;\r\n}\r\n\r\n.daterangepicker table.table-condensed thead tr {\r\n  line-height: 14px;\r\n}\r\n\r\n.daterangepicker table.table-condensed tbody tr:first-child td {\r\n  padding-top: 10px;\r\n}\r\n\r\n.daterangepicker table.table-condensed th:first-child, .daterangepicker table.table-condensed td:first-child {\r\n  padding-left: 12px\r\n}\r\n\r\n.daterangepicker table.table-condensed th:last-child, .daterangepicker table.table-condensed td:last-child {\r\n  padding-right: 12px\r\n}\r\n\r\n.table-condensed>thead>tr>th, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>td {\r\n  padding: 5px 7px;\r\n  text-align: center;\r\n}\r\n\r\n.daterangepicker table.table-condensed tbody tr:last-child td {\r\n  padding-bottom: 10px;\r\n}\r\n\r\n.daterangepicker.picker_2 table.table-condensed thead tr:first-child {\r\n  color: inherit;\r\n}\r\n\r\n.daterangepicker.picker_2 table.table-condensed thead tr {\r\n  color: #1ABB9C;\r\n}\r\n\r\n.daterangepicker.picker_3 table.table-condensed thead tr:first-child {\r\n  background: #1ABB9C;\r\n  color: #ECF0F1;\r\n}\r\n\r\n.daterangepicker.picker_4 table.table-condensed tbody td {\r\n  background: #ECF0F1;\r\n  color: #34495E;\r\n  border: 1px solid #fff;\r\n  padding: 4px 7px;\r\n}\r\n\r\n.daterangepicker.picker_4 table.table-condensed tbody td.active {\r\n  background: #536A7F;\r\n  color: #fff;\r\n}\r\n\r\n.daterangepicker.picker_4 table.table-condensed thead tr:first-child {\r\n  background: #34495E;\r\n  color: #ECF0F1;\r\n}\r\n\r\n.xdisplay_input {\r\n  width: 240px;\r\n  overflow: hidden;\r\n  padding: 0;\r\n}\r\n\r\n.xdisplay {\r\n  background-color: #fff;\r\n  -webkit-background-clip: padding-box;\r\n  background-clip: padding-box;\r\n  border: 1px solid #ccc;\r\n  margin-bottom: 20px;\r\n  border: 1px solid rgba(0, 0, 0, .15);\r\n  border-radius: 4px;\r\n  width: 230px;\r\n  overflow: hidden;\r\n  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);\r\n  box-shadow: 0 6px 12px rgba(0, 0, 0, .175);\r\n}\r\n\r\n.daterangepicker.opensright .ranges, .daterangepicker.opensright .calendar, .daterangepicker.openscenter .ranges, .daterangepicker.openscenter .calendar {\r\n  float: right;\r\n}\r\n\r\n.daterangepicker.dropdown-menu .calendar {}\r\n.daterangepicker table {\r\n  width: 100%;\r\n  margin: 0;\r\n}\r\n\r\n.daterangepicker td, .daterangepicker th {\r\n  text-align: center;\r\n  width: 20px;\r\n  height: 20px;\r\n  cursor: pointer;\r\n  white-space: nowrap;\r\n}\r\n\r\n.daterangepicker td.off {\r\n  color: #999;\r\n}\r\n\r\n.daterangepicker td.disabled {\r\n  color: #999;\r\n}\r\n\r\n.daterangepicker td.available:hover, .daterangepicker th.available:hover {\r\n  background: #eee;\r\n  color: #34495E;\r\n}\r\n\r\n.daterangepicker td.in-range {\r\n  background: #E4E7EA;\r\n  -webkit-border-radius: 0;\r\n  -moz-border-radius: 0;\r\n  border-radius: 0;\r\n}\r\n\r\n.daterangepicker td.available + td.start-date {\r\n  -webkit-border-radius: 4px 0 0 4px;\r\n  -moz-border-radius: 4px 0 0 4px;\r\n  border-radius: 4px 0 0 4px;\r\n}\r\n\r\n.daterangepicker td.in-range + td.end-date {\r\n  -webkit-border-radius: 0 4px 4px 0;\r\n  -moz-border-radius: 0 4px 4px 0;\r\n  border-radius: 0 4px 4px 0;\r\n}\r\n\r\n.daterangepicker td.start-date.end-date {\r\n  -webkit-border-radius: 4px !important;\r\n  -moz-border-radius: 4px !important;\r\n  border-radius: 4px !important;\r\n}\r\n\r\n.daterangepicker td.active, .daterangepicker td.active:hover {\r\n  background-color: #536A7F;\r\n  color: #fff;\r\n}\r\n\r\n.daterangepicker td.week, .daterangepicker th.week {\r\n  font-size: 80%;\r\n  color: #ccc;\r\n}\r\n\r\n.daterangepicker select.monthselect, .daterangepicker select.yearselect {\r\n  font-size: 12px;\r\n  padding: 1px;\r\n  height: auto;\r\n  margin: 0;\r\n  cursor: default;\r\n  height: 30px;\r\n  border: 1px solid #ADB2B5;\r\n  line-height: 30px;\r\n  border-radius: 0px !important;\r\n}\r\n\r\n.daterangepicker select.monthselect {\r\n  margin-right: 2%;\r\n  width: 56%;\r\n}\r\n\r\n.daterangepicker select.yearselect {\r\n  width: 40%;\r\n}\r\n\r\n.daterangepicker select.hourselect, .daterangepicker select.minuteselect, .daterangepicker select.ampmselect {\r\n  width: 50px;\r\n  margin-bottom: 0;\r\n}\r\n\r\n.daterangepicker_start_input {\r\n  float: left;\r\n}\r\n\r\n.daterangepicker_end_input {\r\n  float: left;\r\n  padding-left: 11px;\r\n}\r\n\r\n.daterangepicker th.month {\r\n  width: auto;\r\n}\r\n\r\n.daterangepicker .daterangepicker_start_input label, .daterangepicker .daterangepicker_end_input label {\r\n  color: #333;\r\n  display: block;\r\n  font-size: 11px;\r\n  font-weight: normal;\r\n  height: 20px;\r\n  line-height: 20px;\r\n  margin-bottom: 2px;\r\n  text-shadow: #fff 1px 1px 0px;\r\n  text-transform: uppercase;\r\n  width: 74px;\r\n}\r\n\r\n.daterangepicker .ranges input {\r\n  font-size: 11px;\r\n}\r\n\r\n.daterangepicker .ranges .input-mini {\r\n  background-color: #eee;\r\n  border: 1px solid #ccc;\r\n  border-radius: 4px;\r\n  color: #555;\r\n  display: block;\r\n  font-size: 11px;\r\n  height: 30px;\r\n  line-height: 30px;\r\n  vertical-align: middle;\r\n  margin: 0 0 10px 0;\r\n  padding: 0 6px;\r\n  width: 74px;\r\n}\r\n\r\n.daterangepicker .ranges .input-mini:hover {\r\n  cursor: pointer;\r\n}\r\n\r\n.daterangepicker .ranges ul {\r\n  list-style: none;\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\n.daterangepicker .ranges li {\r\n  font-size: 13px;\r\n  background: #f5f5f5;\r\n  border: 1px solid #f5f5f5;\r\n  color: #536A7F;\r\n  padding: 3px 12px;\r\n  margin-bottom: 8px;\r\n  -webkit-border-radius: 5px;\r\n  -moz-border-radius: 5px;\r\n  border-radius: 5px;\r\n  cursor: pointer;\r\n}\r\n\r\n.daterangepicker .ranges li.active, .daterangepicker .ranges li:hover {\r\n  background: #536A7F;\r\n  border: 1px solid #536A7F;\r\n  color: #fff;\r\n}\r\n\r\n.daterangepicker .calendar {\r\n  display: none;\r\n  max-width: 270px;\r\n}\r\n\r\n.daterangepicker.show-calendar .calendar {\r\n  display: block;\r\n}\r\n\r\n.daterangepicker .calendar.single .calendar-date {\r\n  border: none;\r\n}\r\n\r\n.daterangepicker.single .ranges, .daterangepicker.single .calendar {\r\n  float: none;\r\n}\r\n\r\n.daterangepicker .ranges {\r\n  width: 160px;\r\n  text-align: left;\r\n  margin: 4px;\r\n}\r\n\r\n.daterangepicker .ranges .range_inputs>div {\r\n  float: left;\r\n}\r\n\r\n.daterangepicker .ranges .range_inputs>div:nth-child(2) {\r\n  padding-left: 11px;\r\n}\r\n\r\n.daterangepicker.opensleft .ranges, .daterangepicker.opensleft .calendar {\r\n  float: left;\r\n  margin: 4px;\r\n}\r\n\r\n.daterangepicker .icon {\r\n  width: 20px;\r\n  height: 20px;\r\n  display: inline-block;\r\n  vertical-align: middle;\r\n}\r\n/** bootstrap-daterangepicker **/\r\n\r\n/** FullCalendar **/\r\n.fc-state-default {\r\n  background: #f5f5f5;\r\n  color: #73879C;\r\n}\r\n\r\n.fc-state-down,\r\n.fc-state-active {\r\n  color: #333;\r\n  background: #ccc;\r\n}\r\n/** /FullCalendar **/\r\n\r\n/** Dropzone.js **/\r\n.dropzone {\r\n  min-height: 300px;\r\n  border: 1px solid #e5e5e5;\r\n}\r\n/** /Dropzone.js **/\r\n.leftAlign {\r\n  text-align: left;\r\n}\r\n\r\n.list-group-item-warning {\r\n  border-left: 1px solid red;\r\n}\r\n\r\n.glyph-icon-appended {\r\n  color: green;\r\n}\r\n\r\n.input-group-addon input[type=\"radio\"], .input-group-addon input[type=\"checkbox\"] {\r\n  cursor: pointer;\r\n}\r\n\r\n.well-sm {\r\n  font-size: small;\r\n}\r\n\r\n.pointerElement {\r\n  cursor: pointer;\r\n}\r\n\r\n.modal-xlg {\r\n  max-height: 90vh;\r\n}\r\n.modal-xlg  .modal-content {\r\n   max-height: 100%;\r\n }\r\n\r\n.modal-xlg .modal-body {\r\n  max-height: calc(100% - 60px);\r\n}\r\n\r\na.details {\r\n  float: right;\r\n  display: block;\r\n  margin: 5px;\r\n  cursor: pointer;\r\n  color: blue;\r\n}\r\n\r\n.ng2-smart-table td, .ng2-smart-table th {\r\n    font-family: inherit !important;\r\n    font-size: 1.25rem !important;\r\n    cursor: pointer;\r\n}\r\n\r\n.select2-result-repository {\r\n    padding-top: 4px;\r\n    padding-bottom: 3px;\r\n}\r\n.select2-result-repository__meta {\r\n    margin-left: 70px;\r\n    font-size: x-small;\r\n}\r\n.select2-result-repository__title {\r\n    color: black !important;\r\n    font-weight: bold !important;\r\n    word-wrap: break-word;\r\n    line-height: 1.1;\r\n    margin-bottom: 4px;\r\n}\r\n.select2-result-repository__forks,\r\n.select2-result-repository__stargazers {\r\n    margin-right: 1em;\r\n    color: red !important;\r\n}\r\n.select2-result-repository__forks,\r\n.select2-result-repository__stargazers,\r\n.select2-result-repository__watchers {\r\n    display: inline-block;\r\n    color: #aaa;\r\n    font-size: 11px;\r\n}\r\n.select2-results__option--highlighted .select2-result-repository__title {\r\n    color: white;\r\n}\r\n.select2-results__option--highlighted .select2-result-repository__forks,\r\n.select2-results__option--highlighted .select2-result-repository__stargazers,\r\n.select2-results__option--highlighted .select2-result-repository__watchers {\r\n    color: #c6dcef;\r\n    display: inline-block;\r\n    margin-right: 3px;\r\n}\r\n\r\n.sw-container {\r\n    height: auto !important;\r\n}\r\n\r\nselect.form-control:not([size]):not([multiple]) {\r\n    height: auto !important;\r\n    cursor: pointer;\r\n}\r\n\r\n.child-table {\r\n  position: absolute !important;\r\n  top: 50% !important;;\r\n  left: 50% !important;;\r\n  transform: translate(-50%, -50%) !important;;\r\n}\r\n\r\n.alert-toggle-button {\r\n  width: 48%;\r\n  display: inline-block;\r\n  border: 1px solid;\r\n  cursor: pointer;\r\n  margin: auto;\r\n  padding: 3px;\r\n  font-size: smaller;\r\n}\r\n\r\n.alert-toggle-button i.fa {\r\n  padding-left: 10px;\r\n}", ""]);
+exports.push([module.i, ".left_col {\r\n  background: #2A3F54;\r\n}\r\n.nav-sm .container.body .col-md-3.left_col {\r\n  min-height: 100%;\r\n  width: 70px;\r\n  padding: 0;\r\n  z-index: 9999;\r\n  position: absolute;\r\n}\r\n.nav-sm .container.body .col-md-3.left_col.menu_fixed {\r\n  position: fixed;\r\n  height: 100%;\r\n}\r\n.nav-sm .container.body .col-md-3.left_col .mCSB_container,\r\n.nav-sm .container.body .col-md-3.left_col .mCustomScrollBox {\r\n  overflow: visible;\r\n}\r\n.nav-sm .hidden-small {\r\n  visibility: hidden;\r\n}\r\n.nav-sm .container.body .right_col {\r\n  padding: 10px 20px;\r\n  margin-left: 70px;\r\n  z-index: 2;\r\n}\r\n.nav-sm .navbar.nav_title {\r\n  width: 70px;\r\n}\r\n.nav-sm .navbar.nav_title a span {\r\n  display: none;\r\n}\r\n.nav-sm .navbar.nav_title a i {\r\n  font-size: 27px;\r\n  margin: 13px 0 0 3px;\r\n}\r\n.site_title i {\r\n  border: 1px solid #EAEAEA;\r\n  padding: 5px 6px;\r\n  border-radius: 50%;\r\n}\r\n.nav-sm .main_container .top_nav {\r\n  display: block;\r\n  margin-left: 70px;\r\n  z-index: 2;\r\n}\r\n.nav-sm .nav.side-menu li a {\r\n  text-align: center !important;\r\n  font-weight: 400;\r\n  font-size: 10px;\r\n  padding: 10px 5px;\r\n}\r\n.nav-sm .nav.child_menu li.active,\r\n.nav-sm .nav.side-menu li.active-sm {\r\n  border-right: 5px solid #1ABB9C;\r\n}\r\n.nav-sm ul.nav.child_menu ul,\r\n.nav-sm .nav.side-menu li.active-sm ul ul {\r\n    position: static;\r\n    width: 200px;\r\n    background: none;\r\n}\r\n.nav-sm > .nav.side-menu > li.active-sm > a {\r\n  color: #1ABB9C !important;\r\n}\r\n.nav-sm .nav.side-menu li a i.toggle-up {\r\n  display: none !important;\r\n}\r\n.nav-sm .nav.side-menu li a i {\r\n  font-size: 25px !important;\r\n  text-align: center;\r\n  width: 100% !important;\r\n  margin-bottom: 5px;\r\n}\r\n.nav-sm ul.nav.child_menu {\r\n  left: 100%;\r\n  position: absolute;\r\n  top: 0;\r\n  width: 210px;\r\n  z-index: 4000;\r\n  background: #3E5367;\r\n  display: none;\r\n}\r\n.nav-sm ul.nav.child_menu li {\r\n  padding: 0 10px;\r\n}\r\n.nav-sm ul.nav.child_menu li a {\r\n  text-align: left !important;\r\n}\r\n.nav-sm .profile {\r\n  display: none;\r\n}\r\n.menu_section {\r\n  margin-bottom: 35px;\r\n}\r\n.menu_section h3 {\r\n  padding-left: 23px;\r\n  color: #fff;\r\n  text-transform: uppercase;\r\n  letter-spacing: .5px;\r\n  font-weight: bold;\r\n  font-size: 11px;\r\n  margin-bottom: 0;\r\n  margin-top: 0;\r\n  text-shadow: 1px 1px #000;\r\n}\r\n.menu_section >ul {\r\n  margin-top: 10px;\r\n}\r\n.profile_pic {\r\n  width: 35%;\r\n  float: left;\r\n}\r\n.img-circle.profile_img {\r\n  width: 70%;\r\n  background: #fff;\r\n  margin-left: 15%;\r\n  z-index: 1000;\r\n  position: inherit;\r\n  margin-top: 20px;\r\n  border: 1px solid rgba(52, 73, 94, 0.44);\r\n  padding: 4px;\r\n}\r\n.profile_info {\r\n  padding: 25px 10px 10px;\r\n  width: 65%;\r\n  float: left;\r\n}\r\n.profile_info span {\r\n  font-size: 13px;\r\n  line-height: 30px;\r\n  color: #BAB8B8;\r\n}\r\n.profile_info h2 {\r\n  font-size: 14px;\r\n  color: #ECF0F1;\r\n  margin: 0;\r\n  font-weight: 300;\r\n}\r\n.profile.img_2 {\r\n  text-align: center;\r\n}\r\n.profile.img_2 .profile_pic {\r\n  width: 100%;\r\n}\r\n.profile.img_2 .profile_pic .img-circle.profile_img {\r\n  width: 50%;\r\n  margin: 10px 0 0;\r\n}\r\n.profile.img_2 .profile_info {\r\n  padding: 15px 10px 0;\r\n  width: 100%;\r\n  margin-bottom: 10px;\r\n  float: left;\r\n}\r\n.main_menu span.fa {\r\n  float: right;\r\n  text-align: center;\r\n  margin-top: 5px;\r\n  font-size: 10px;\r\n  min-width: inherit;\r\n  color: #C4CFDA;\r\n}\r\n.active a span.fa {\r\n  text-align: right !important;\r\n  margin-right: 4px;\r\n}\r\n.nav-sm .menu_section {\r\n  margin: 0;\r\n}\r\n.nav-sm span.fa,\r\n.nav-sm .menu_section h3 {\r\n  display: none;\r\n}\r\n.nav-sm li li span.fa {\r\n  display: inline-block;\r\n}\r\n.nav_menu {\r\n  float: left;\r\n  background: #EDEDED;\r\n  border-bottom: 1px solid #D9DEE4;\r\n  margin-bottom: 10px;\r\n  width: 100%;\r\n  position: relative;\r\n}\r\n@media (min-width: 480px) {\r\n  .nav_menu {\r\n    position: static;\r\n  }\r\n}\r\n.nav-md .container.body .col-md-3.left_col {\r\n  min-height: 100%;\r\n  width: 230px;\r\n  padding: 0;\r\n  position: absolute;\r\n  display: flex;\r\n  z-index: 1;\r\n}\r\n.nav-md .container.body .col-md-3.left_col.menu_fixed {\r\n  height: 100%;\r\n  position: fixed;\r\n}\r\nbody .container.body .right_col {\r\n  background: #F7F7F7;\r\n}\r\n.nav-md .container.body .right_col {\r\n  padding: 10px 20px 0;\r\n  margin-left: 230px;\r\n}\r\n.nav_title {\r\n  width: 230px;\r\n  float: left;\r\n  background: #2A3F54;\r\n  border-radius: 0;\r\n  height: 57px;\r\n}\r\n@media (max-width: 991px) {\r\n  .nav-md .container.body .right_col, .nav-md .container.body .top_nav {\r\n    width: 100%;\r\n    margin: 0;\r\n  }\r\n  .nav-md .container.body .col-md-3.left_col {\r\n    display: none;\r\n  }\r\n  .nav-md .container.body .right_col {\r\n    width: 100%;\r\n    padding-right: 0\r\n  }\r\n  .right_col {\r\n    padding: 10px !important;\r\n  }\r\n}\r\n@media (max-width: 1200px) {\r\n  .x_title h2 {\r\n    width: 62%;\r\n    font-size: 17px;\r\n  }\r\n  .tile, .graph {\r\n    zoom: 85%;\r\n    height: inherit;\r\n  }\r\n}\r\n@media (max-width: 1270px) and (min-width: 192px) {\r\n  .x_title h2 small {\r\n    display: none\r\n  }\r\n}\r\n.left_col .mCSB_scrollTools {\r\n  width: 6px;\r\n}\r\n.left_col .mCSB_dragger {\r\n  max-height: 400px !important;\r\n}\r\n/**  ------------------------------------------  **/\r\n\r\n.blue {\r\n  color: #3498DB;\r\n}\r\n.purple {\r\n  color: #9B59B6;\r\n}\r\n.green {\r\n  color: #1ABB9C;\r\n}\r\n.aero {\r\n  color: #9CC2CB;\r\n}\r\n.red {\r\n  color: #E74C3C;\r\n}\r\n.dark {\r\n  color: #34495E;\r\n}\r\n.border-blue {\r\n  border-color: #3498DB !important;\r\n}\r\n.border-purple {\r\n  border-color: #9B59B6 !important;\r\n}\r\n.border-green {\r\n  border-color: #1ABB9C !important;\r\n}\r\n.border-aero {\r\n  border-color: #9CC2CB !important;\r\n}\r\n.border-red {\r\n  border-color: #E74C3C !important;\r\n}\r\n.border-dark {\r\n  border-color: #34495E !important;\r\n}\r\n.bg-white {\r\n  background: #fff !important;\r\n  border: 1px solid #fff !important;\r\n  color: #73879C;\r\n}\r\n.bg-green {\r\n  background: #1ABB9C !important;\r\n  border: 1px solid #1ABB9C !important;\r\n  color: #fff;\r\n}\r\n.bg-red {\r\n  background: #E74C3C !important;\r\n  border: 1px solid #E74C3C !important;\r\n  color: #fff;\r\n}\r\n.bg-blue {\r\n  background: #3498DB !important;\r\n  border: 1px solid #3498DB !important;\r\n  color: #fff;\r\n}\r\n.bg-orange {\r\n  background: #F39C12 !important;\r\n  border: 1px solid #F39C12 !important;\r\n  color: #fff;\r\n}\r\n.bg-purple {\r\n  background: #9B59B6 !important;\r\n  border: 1px solid #9B59B6 !important;\r\n  color: #fff;\r\n}\r\n.bg-blue-sky {\r\n  background: #50C1CF !important;\r\n  border: 1px solid #50C1CF !important;\r\n  color: #fff;\r\n}\r\n.container {\r\n  width: 100%;\r\n  padding: 0\r\n}\r\n.navbar-nav>li>a, .navbar-brand, .navbar-nav>li>a {\r\n  color: #fff !important;\r\n}\r\n.top_nav .nav>li>a:focus, .top_nav .nav>li>a:hover, .top_nav .nav .open>a, .top_nav .nav .open>a:focus, .top_nav .nav .open>a:hover {\r\n  background: #D9DEE4;\r\n}\r\nbody {\r\n  color: #73879C;\r\n  background: #2A3F54;\r\n  padding-right: 0 !important;\r\n  font-family: \"Helvetica Neue\", 'Roboto Condensed', Arial, \"Droid Sans\", sans-serif;\r\n  font-size: 13px;\r\n  font-weight: 400;\r\n  line-height: 1.471;\r\n}\r\n.main_container .top_nav {\r\n  display: block;\r\n  margin-left: 230px;\r\n}\r\n.main_container {}\r\n.no-padding {\r\n  padding: 0 !important;\r\n}\r\n.page-title {\r\n  width: 100%;\r\n  height: 65px;\r\n  padding: 10px 0;\r\n}\r\n.page-title .title_left {\r\n  width: 45%;\r\n  float: left;\r\n  display: block;\r\n}\r\n.page-title .title_left h3 {\r\n  margin: 9px 0;\r\n}\r\n.page-title .title_right {\r\n  width: 55%;\r\n  float: left;\r\n  display: block;\r\n}\r\n.page-title .title_right .pull-right {\r\n  margin: 10px 0;\r\n}\r\n.fixed_height_320 {\r\n  height: 320px;\r\n}\r\n.fixed_height_390 {\r\n  height: 390px;\r\n}\r\n.fixed_height_200 {\r\n  height: 200px;\r\n}\r\n.overflow_hidden {\r\n  overflow: hidden\r\n}\r\n.progress-bar-dark {\r\n  background-color: #34495E !important;\r\n}\r\n.progress-bar-gray {\r\n  background-color: #BDC3C7 !important;\r\n}\r\ntable.no-margin .progress {\r\n  margin-bottom: 0;\r\n}\r\n.main_content {\r\n  padding: 10px 20px;\r\n}\r\n.col-md-55 {\r\n  width: 50%;\r\n  margin-bottom: 10px;\r\n}\r\n@media (min-width: 768px) {\r\n  .col-md-55 {\r\n    width: 20%;\r\n  }\r\n}\r\n@media (min-width: 992px) {\r\n  .col-md-55 {\r\n    width: 20%;\r\n  }\r\n}\r\n@media (min-width: 1200px) {\r\n  .col-md-55 {\r\n    width: 20%;\r\n  }\r\n}\r\n@media (min-width: 192px) and (max-width: 1270px) {\r\n  table.tile_info span.right {\r\n    margin-right: 7px;\r\n    float: left;\r\n  }\r\n}\r\n.center-margin {\r\n  margin: 0 auto;\r\n  float: none!important;\r\n}\r\n.col-md-55, .col-xs-1, .col-sm-1, .col-md-1, .col-lg-1, .col-xs-2, .col-sm-2, .col-md-2, .col-lg-2, .col-xs-3, .col-sm-3, .col-md-3, .col-lg-3, .col-xs-4, .col-sm-4, .col-md-4, .col-lg-4, .col-xs-5, .col-sm-5, .col-md-5, .col-lg-5, .col-xs-6, .col-sm-6, .col-md-6, .col-lg-6, .col-xs-7, .col-sm-7, .col-md-7, .col-lg-7, .col-xs-8, .col-sm-8, .col-md-8, .col-lg-8, .col-xs-9, .col-sm-9, .col-md-9, .col-lg-9, .col-xs-10, .col-sm-10, .col-md-10, .col-lg-10, .col-xs-11, .col-sm-11, .col-md-11, .col-lg-11, .col-xs-12, .col-sm-12, .col-md-12, .col-lg-12 {\r\n  position: relative;\r\n  min-height: 1px;\r\n  float: left;\r\n  padding-right: 10px;\r\n  padding-left: 10px;\r\n}\r\n.row {\r\n  margin-right: -10px;\r\n  margin-left: -10px;\r\n}\r\n.grid_slider .col-md-6 {\r\n  padding: 0 40px;\r\n}\r\nh1, .h1, h2, .h2, h3, .h3 {\r\n  margin-top: 10px;\r\n  margin-bottom: 10px;\r\n}\r\na {\r\n  color: #5A738E;\r\n  text-decoration: none;\r\n}\r\na, a:visited, a:focus, a:active, :visited, :focus, :active, .btn:focus, .btn:active:focus, .btn.active:focus, .btn.focus, .btn:active.focus, .btn.active.focus {\r\n  outline: 0;\r\n}\r\na:hover, a:focus {\r\n  text-decoration: none\r\n}\r\n.navbar {\r\n  margin-bottom: 0\r\n}\r\n.navbar-header {\r\n  background: #34495E;\r\n}\r\n.navbar-right {\r\n  margin-right: -10px;\r\n}\r\n.top_nav .navbar-right {\r\n  margin: 0;\r\n  width: 70%;\r\n  float: right;\r\n}\r\n.top_nav .navbar-right li {\r\n  display: inline-block;\r\n  float: right;\r\n  position: static;\r\n}\r\n@media (min-width: 480px) {\r\n  .top_nav .navbar-right li {\r\n    position: relative;\r\n  }\r\n}\r\n.top_nav .dropdown-menu li {\r\n  width: 100%;\r\n}\r\n.top_nav .dropdown-menu li a {\r\n  width: 100%;\r\n  padding: 12px 20px;\r\n}\r\n.top_nav li a i {\r\n  font-size: 15px\r\n}\r\n.navbar-static-top {\r\n  position: fixed;\r\n  top: 0;\r\n  width: 100%;\r\n}\r\n.sidebar-header {\r\n  border-bottom: 0;\r\n  margin-top: 46px;\r\n}\r\n.sidebar-header:first-of-type {\r\n  margin-top: 0\r\n}\r\n.nav.side-menu> li {\r\n  position: relative;\r\n  display: block;\r\n  cursor: pointer;\r\n}\r\n.nav.side-menu> li > a {\r\n  margin-bottom: 6px;\r\n}\r\n.nav.side-menu> li > a:hover {\r\n  color: #F2F5F7 !important;\r\n}\r\n.nav.side-menu>li>a:hover, .nav>li>a:focus {\r\n  text-decoration: none;\r\n  background: transparent;\r\n}\r\n.nav.child_menu {\r\n  display: none;\r\n}\r\n.nav.child_menu li:hover,\r\n.nav.child_menu li.active {\r\n  background-color: rgba(255, 255, 255, 0.06);\r\n}\r\n.nav.child_menu li {\r\n  padding-left: 36px;\r\n}\r\n\r\n.nav-md ul.nav.child_menu li.activeLi:before {\r\n  background: #009c38;\r\n}\r\n\r\n.nav-sm ul.nav.child_menu li.activeLi {\r\n  background: #009c38;\r\n}\r\n\r\n.nav-md ul.nav.child_menu li:before {\r\n  background: #425668;\r\n  bottom: auto;\r\n  content: \"\";\r\n  height: 8px;\r\n  left: 23px;\r\n  margin-top: 15px;\r\n  position: absolute;\r\n  right: auto;\r\n  width: 8px;\r\n  z-index: 1;\r\n  -webkit-border-radius: 50%;\r\n  -moz-border-radius: 50%;\r\n  border-radius: 50%;\r\n}\r\n.nav-md ul.nav.child_menu li:after {\r\n  border-left: 1px solid #425668;\r\n  bottom: 0;\r\n  content: \"\";\r\n  left: 27px;\r\n  position: absolute;\r\n  top: 0;\r\n}\r\n.nav.side-menu>li>a, .nav.child_menu>li>a {\r\n  color: #E7E7E7;\r\n  font-weight: 500;\r\n}\r\n.nav.child_menu li li:hover,\r\n.nav.child_menu li li.active {\r\n  background: none;\r\n}\r\n.nav.child_menu li li a:hover,\r\n.nav.child_menu li li a.active {\r\n  color: #fff;\r\n}\r\n.nav>li>a {\r\n  position: relative;\r\n  display: block;\r\n  padding: 13px 15px 12px;\r\n}\r\n.nav.side-menu> li.current-page, .nav.side-menu> li.active {\r\n  border-right: 5px solid #1ABB9C;\r\n}\r\n.nav li.current-page {\r\n  background: rgba(255, 255, 255, 0.05);\r\n}\r\n.nav li li li.current-page {\r\n  background: none;\r\n}\r\n.nav li li.current-page a {\r\n  color: #fff;\r\n}\r\n.nav.side-menu> li.active > a {\r\n  text-shadow: rgba(0, 0, 0, 0.25) 0 -1px 0;\r\n  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #5b6479), color-stop(100%, #4c5566)), #686e78;\r\n  background: -webkit-linear-gradient(#334556, #2C4257), #2A3F54;\r\n  background: -moz-linear-gradient(#334556, #2C4257), #2A3F54;\r\n  background: -o-linear-gradient(#334556, #2C4257), #2A3F54;\r\n  background: linear-gradient(#334556, #2C4257), #2A3F54;\r\n  -webkit-box-shadow: rgba(0, 0, 0, 0.25) 0 1px 0, inset rgba(255, 255, 255, 0.16) 0 1px 0;\r\n  -moz-box-shadow: rgba(0, 0, 0, 0.25) 0 1px 0, inset rgba(255, 255, 255, 0.16) 0 1px 0;\r\n  box-shadow: rgba(0, 0, 0, 0.25) 0 1px 0, inset rgba(255, 255, 255, 0.16) 0 1px 0;\r\n}\r\n.navbar-brand, .navbar-nav>li>a {\r\n  font-weight: 500;\r\n  color: #ECF0F1 !important;\r\n  margin-left: 0 !important;\r\n  line-height: 32px;\r\n}\r\n.site_title {\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n  font-weight: 400;\r\n  font-size: 22px;\r\n  width: 100%;\r\n  color: #ECF0F1 !important;\r\n  margin-left: 0 !important;\r\n  line-height: 59px;\r\n  display: block;\r\n  height: 55px;\r\n  margin: 0;\r\n  padding-left: 10px;\r\n}\r\n.site_title:hover, .site_title:focus {\r\n  text-decoration: none\r\n}\r\n.nav.navbar-nav>li>a {\r\n  color: #515356 !important;\r\n}\r\n.nav.top_menu>li>a {\r\n  position: relative;\r\n  display: block;\r\n  padding: 10px 15px;\r\n  color: #34495E !important;\r\n}\r\n.nav>li>a:hover, .nav>li>a:focus {\r\n  background-color: transparent;\r\n}\r\n.top_search {\r\n  padding: 0;\r\n}\r\n.top_search .form-control {\r\n  border-right: 0;\r\n  box-shadow: inset 0 1px 0px rgba(0, 0, 0, 0.075);\r\n  /*border-radius: 25px 0px 0px 25px;*/\r\n  padding-left: 20px;\r\n  border: 1px solid rgba(221, 226, 232, 0.49);\r\n}\r\n.top_search .form-control:focus {\r\n  border: 1px solid rgba(221, 226, 232, 0.49);\r\n  border-right: 0;\r\n}\r\n.top_search .input-group-btn button {\r\n  border-radius: 0px 25px 25px 0px;\r\n  border: 1px solid rgba(221, 226, 232, 0.49);\r\n  border-left: 0;\r\n  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);\r\n  color: #93A2B2;\r\n  margin-bottom: 0 !important;\r\n}\r\n.toggle {\r\n  float: left;\r\n  margin: 0;\r\n  padding-top: 16px;\r\n  width: 70px;\r\n}\r\n.toggle a {\r\n  padding: 15px 15px 0;\r\n  margin: 0;\r\n  cursor: pointer;\r\n}\r\n.toggle a i {\r\n  font-size: 26px;\r\n}\r\n.nav.child_menu > li > a {\r\n  color: rgba(255, 255, 255, 0.75);\r\n  font-size: 12px;\r\n  padding: 9px;\r\n}\r\n.panel_toolbox {\r\n  float: right;\r\n}\r\n.panel_toolbox>li {\r\n  float: left;\r\n  cursor: pointer;\r\n}\r\n.panel_toolbox>li>a {\r\n  padding: 5px;\r\n  color: #C5C7CB !important;\r\n  font-size: 14px !important;\r\n}\r\n.panel_toolbox>li>a:hover {\r\n  background: #F5F7FA;\r\n}\r\n.line_30 {\r\n  line-height: 30px;\r\n}\r\n.main_menu_side {\r\n  padding: 100px 0 0 0;\r\n}\r\n.bs-docs-sidebar .nav>li>a {\r\n  display: block;\r\n  padding: 4px 6px;\r\n}\r\nfooter {\r\n  background: #fff;\r\n  padding: 15px 20px;\r\n  display: block;\r\n}\r\n\r\n.nav-sm footer {\r\n  margin-left: 70px ;\r\n}\r\n.footer_fixed footer {\r\n  position: fixed;\r\n  left: 0px;\r\n  bottom: 0px;\r\n  width: 100%;\r\n}\r\n@media (min-width: 768px) {\r\n  .footer_fixed footer {\r\n    margin-left: 0;\r\n  }\r\n}\r\n@media (min-width: 768px) {\r\n  .footer_fixed .nav-sm footer {\r\n    margin-left: 0;\r\n  }\r\n}\r\n.tile-stats.sparkline {\r\n  padding: 10px;\r\n  text-align: center;\r\n}\r\n.jqstooltip {\r\n  background: #34495E !important;\r\n  width: 30px !important;\r\n  height: 22px !important;\r\n  text-decoration: none;\r\n}\r\n.tooltip {\r\n  display: block !important;\r\n}\r\n.tiles {\r\n  border-top: 1px solid #ccc;\r\n  margin-top: 15px;\r\n  padding-top: 5px;\r\n  margin-bottom: 0;\r\n}\r\n.tile {\r\n  overflow: hidden;\r\n}\r\n.top_tiles {\r\n  margin-bottom: 0;\r\n}\r\n.top_tiles .tile span {}\r\n.top_tiles .tile h2 {\r\n  font-size: 30px;\r\n  line-height: 30px;\r\n  margin: 3px 0 7px;\r\n  font-weight: bold;\r\n}\r\narticle.media {\r\n  width: 100%;\r\n}\r\n\r\n/* *********  custom accordion  **************************** */\r\n\r\n*, *:before, *:after {\r\n  -webkit-box-sizing: border-box;\r\n  -moz-box-sizing: border-box;\r\n  box-sizing: border-box;\r\n}\r\n#integration-list {\r\n  width: 100%;\r\n  margin: 0 auto;\r\n  display: table;\r\n}\r\n#integration-list ul {\r\n  padding: 0;\r\n  margin: 20px 0;\r\n  color: #555;\r\n}\r\n#integration-list ul > li {\r\n  list-style: none;\r\n  border-top: 1px solid #ddd;\r\n  display: block;\r\n  padding: 15px;\r\n  overflow: hidden;\r\n}\r\n#integration-list ul:last-child {\r\n  border-bottom: 1px solid #ddd;\r\n}\r\n#integration-list ul > li:hover {\r\n  background: #efefef;\r\n}\r\n.expand {\r\n  display: block;\r\n  text-decoration: none;\r\n  color: #555;\r\n  cursor: pointer;\r\n}\r\n.expand h2 {\r\n  width: 85%;\r\n  float: left;\r\n}\r\nh2 {\r\n  font-size: 18px;\r\n  font-weight: 400;\r\n}\r\n#left, #right {\r\n  display: table;\r\n}\r\n#sup {\r\n  display: table-cell;\r\n  vertical-align: middle;\r\n  width: 80%;\r\n}\r\n.detail a {\r\n  text-decoration: none;\r\n  color: #C0392B;\r\n  border: 1px solid #C0392B;\r\n  padding: 6px 10px 5px;\r\n  font-size: 13px;\r\n  margin-right: 7px;\r\n}\r\n.detail {\r\n  margin: 10px 0 10px 0px;\r\n  display: none;\r\n  line-height: 22px;\r\n  height: 150px;\r\n}\r\n.detail span {\r\n  margin: 0;\r\n}\r\n.right-arrow {\r\n  width: 10px;\r\n  float: right;\r\n  font-weight: bold;\r\n  font-size: 20px;\r\n}\r\n.accordion .panel {\r\n  margin-bottom: 5px;\r\n  border-radius: 0;\r\n  border-bottom: 1px solid #efefef;\r\n}\r\n.accordion .panel-heading {\r\n  background: #F2F5F7;\r\n  padding: 13px;\r\n  width: 100%;\r\n  display: block;\r\n}\r\n.accordion .panel:hover {\r\n  background: #F2F5F7;\r\n}\r\n.x_panel {\r\n  position: relative;\r\n  width: 100%;\r\n  margin-bottom: 10px;\r\n  padding: 10px 17px;\r\n  display: inline-block;\r\n  background: #fff;\r\n  border: 1px solid #E6E9ED;\r\n  -webkit-column-break-inside: avoid;\r\n  -moz-column-break-inside: avoid;\r\n  column-break-inside: avoid;\r\n  opacity: 1;\r\n  -moz-transition: all .2s ease;\r\n  -o-transition: all .2s ease;\r\n  -webkit-transition: all .2s ease;\r\n  -ms-transition: all .2s ease;\r\n  transition: all .2s ease;\r\n}\r\n.x_title {\r\n  border-bottom: 2px solid #E6E9ED;\r\n  padding: 1px 5px 6px;\r\n  margin-bottom: 10px;\r\n}\r\n.x_title .filter {\r\n  width: 40%;\r\n  float: right;\r\n}\r\n.x_title h2 {\r\n  margin: 5px 0 6px;\r\n  float: left;\r\n  display: block;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n  white-space: nowrap;\r\n}\r\n.x_title h2 small {\r\n  margin-left: 10px;\r\n}\r\n.x_title span {\r\n  color: #BDBDBD;\r\n}\r\n.x_content {\r\n  padding: 0 5px 6px;\r\n  position: relative;\r\n  width: 100%;\r\n  float: left;\r\n  clear: both;\r\n  margin-top: 5px;\r\n}\r\n.x_content h4 {\r\n  font-size: 16px;\r\n  font-weight: 500;\r\n}\r\nlegend {\r\n  padding-bottom: 7px;\r\n}\r\n.demo-placeholder {\r\n  height: 280px;\r\n}\r\n\r\n/** Contacts **/\r\n.profile_details:nth-child(3n){\r\n    clear:both;\r\n}\r\n\r\n.profile_details .profile_view {\r\n  display: inline-block;\r\n  padding: 10px 0 0;\r\n  background: #fff;\r\n}\r\n\r\n.profile_details .profile_view .divider {\r\n  border-top: 1px solid #e5e5e5;\r\n  padding-top: 5px;\r\n  margin-top: 5px;\r\n}\r\n\r\n.profile_details .profile_view .ratings {\r\n  margin-bottom: 0;\r\n}\r\n\r\n.profile_details .profile_view .bottom {\r\n  background: #F2F5F7;\r\n  padding: 9px 0;\r\n  border-top: 1px solid #E6E9ED;\r\n}\r\n\r\n.profile_details .profile_view .left {\r\n  margin-top: 20px;\r\n}\r\n\r\n.profile_details .profile_view .left p {\r\n  margin-bottom: 3px;\r\n}\r\n\r\n.profile_details .profile_view .right {\r\n  margin-top: 0px;\r\n  padding: 10px;\r\n}\r\n\r\n.profile_details .profile_view .img-circle {\r\n  border: 1px solid #E6E9ED;\r\n  padding: 2px;\r\n}\r\n\r\n.profile_details .profile_view h2 {\r\n  margin: 5px 0;\r\n}\r\n\r\n.profile_details .profile_view .ratings {\r\n  text-align: left;\r\n  font-size: 16px;\r\n}\r\n\r\n.profile_details .profile_view .brief {\r\n  margin: 0;\r\n  font-weight: 300;\r\n}\r\n\r\n.profile_details .profile_left {\r\n  background: white;\r\n}\r\n\r\n.pagination.pagination-split li {\r\n  display: inline-block;\r\n  margin-right: 3px;\r\n}\r\n\r\n.pagination.pagination-split li a {\r\n  border-radius: 4px;\r\n  color: #768399;\r\n  -moz-border-radius: 4px;\r\n  -webkit-border-radius: 4px;\r\n}\r\n/** Contacts **/\r\n\r\n\r\n/* *********  /custom accordion  **************************** */\r\n\r\n\r\n/* *********  dashboard widget  **************************** */\r\n\r\ntable.tile h3, table.tile h4, table.tile span {\r\n  font-weight: bold;\r\n  vertical-align: middle !important;\r\n}\r\ntable.tile th, table.tile td {\r\n  text-align: center;\r\n}\r\ntable.tile th {\r\n  border-bottom: 1px solid #E6ECEE;\r\n}\r\ntable.tile td {\r\n  padding: 5px 0;\r\n}\r\ntable.tile td ul {\r\n  text-align: left;\r\n  padding-left: 0\r\n}\r\ntable.tile td ul li {\r\n  list-style: none;\r\n  width: 100%;\r\n}\r\ntable.tile td ul li a {\r\n  width: 100%\r\n}\r\ntable.tile td ul li a big {\r\n  right: 0;\r\n  float: right;\r\n  margin-right: 13px;\r\n}\r\ntable.tile_info {\r\n  width: 100%;\r\n}\r\ntable.tile_info td {\r\n  text-align: left;\r\n  padding: 1px;\r\n  font-size: 15px\r\n}\r\ntable.tile_info td p {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  margin: 0;\r\n  line-height: 28px;\r\n}\r\ntable.tile_info td i {\r\n  margin-right: 8px;\r\n  font-size: 17px;\r\n  float: left;\r\n  width: 18px;\r\n  line-height: 28px\r\n}\r\ntable.tile_info td:first-child {\r\n  width: 83%;\r\n}\r\ntd span {\r\n  line-height: 28px;\r\n}\r\n.sidebar-widget {\r\n  overflow: hidden;\r\n}\r\n.error-number {\r\n  font-size: 90px;\r\n  line-height: 90px;\r\n  margin: 20px 0;\r\n}\r\n.col-middle {\r\n  margin-top: 5%;\r\n}\r\n.mid_center {\r\n  width: 370px;\r\n  margin: 0 auto;\r\n  text-align: center;\r\n  padding: 10px 20px;\r\n}\r\nh3.degrees {\r\n  font-size: 22px;\r\n  font-weight: 400;\r\n  text-align: center;\r\n}\r\n.degrees:after {\r\n  content: \"o\";\r\n  position: relative;\r\n  top: -12px;\r\n  font-size: 13px;\r\n  font-weight: 300;\r\n}\r\n.daily-weather .day {\r\n  font-size: 14px;\r\n  border-top: 2px solid rgba(115, 135, 156, 0.36);\r\n  text-align: center;\r\n  border-bottom: 2px solid rgba(115, 135, 156, 0.36);\r\n  padding: 5px 0;\r\n}\r\n.weather-days .col-sm-2 {\r\n  overflow: hidden;\r\n  width: 16.66666667%;\r\n}\r\n.weather .row {\r\n  margin-bottom: 0\r\n}\r\n\r\n/* *********  tables styling  ******************************* */\r\n\r\n.bulk-actions {\r\n  display: none;\r\n}\r\n\r\ntable.countries_list {\r\n  width: 100%;\r\n}\r\n\r\ntable.countries_list td {\r\n  padding: 0 10px;\r\n  line-height: 30px;\r\n  border-top: 1px solid #eeeeee;\r\n}\r\n\r\n.dataTables_paginate a {\r\n  padding: 6px 9px !important;\r\n  background: #ddd !important;\r\n  border-color: #ddd !important;\r\n}\r\n\r\n.paging_full_numbers a.paginate_active {\r\n  background-color: rgba(38, 185, 154, 0.59) !important;\r\n  border-color: rgba(38, 185, 154, 0.59) !important;\r\n}\r\n\r\nbutton.DTTT_button, div.DTTT_button, a.DTTT_button {\r\n  border: 1px solid #E7E7E7 !important;\r\n  background: #E7E7E7 !important;\r\n  box-shadow: none !important;\r\n}\r\n\r\ntable.jambo_table {\r\n  border: 1px solid rgba(221, 221, 221, 0.78);\r\n}\r\n\r\ntable.jambo_table thead {\r\n  background: rgba(52, 73, 94, 0.94);\r\n  color: #ECF0F1;\r\n}\r\n\r\ntable.jambo_table tbody tr:hover td {\r\n  background: rgba(38, 185, 154, 0.07);\r\n  border-top: 1px solid rgba(38, 185, 154, 0.11);\r\n  border-bottom: 1px solid rgba(38, 185, 154, 0.11);\r\n}\r\n\r\ntable.jambo_table tbody tr.selected {\r\n  background: rgba(38, 185, 154, 0.16);\r\n}\r\n\r\ntable.jambo_table tbody tr.selected td {\r\n  border-top: 1px solid rgba(38, 185, 154, 0.40);\r\n  border-bottom: 1px solid rgba(38, 185, 154, 0.40);\r\n}\r\n\r\n.dataTables_paginate a {\r\n  background: #ff0000;\r\n}\r\n\r\n.dataTables_wrapper {\r\n  position: relative;\r\n  clear: both;\r\n  zoom: 1;\r\n}\r\n\r\n.dataTables_processing {\r\n  position: absolute;\r\n  top: 50%;\r\n  left: 50%;\r\n  width: 250px;\r\n  height: 30px;\r\n  margin-left: -125px;\r\n  margin-top: -15px;\r\n  padding: 14px 0 2px 0;\r\n  border: 1px solid #ddd;\r\n  text-align: center;\r\n  color: #999;\r\n  font-size: 14px;\r\n  background-color: white;\r\n}\r\n\r\n.dataTables_length {\r\n  width: 40%;\r\n  float: left;\r\n}\r\n\r\n.dataTables_filter {\r\n  width: 50%;\r\n  float: right;\r\n  text-align: right;\r\n}\r\n\r\n.dataTables_info {\r\n  width: 60%;\r\n  float: left;\r\n}\r\n\r\n.dataTables_paginate {\r\n  float: right;\r\n  text-align: right;\r\n}\r\n\r\ntable.dataTable th.focus,\r\ntable.dataTable td.focus {\r\n    outline: 2px solid #1ABB9C !important;\r\n    outline-offset: -1px;\r\n}\r\n\r\ntable.display {\r\n  margin: 0 auto;\r\n  clear: both;\r\n  width: 100%;\r\n}\r\n\r\ntable.display thead th {\r\n  padding: 8px 18px 8px 10px;\r\n  border-bottom: 1px solid black;\r\n  font-weight: bold;\r\n  cursor: pointer;\r\n}\r\n\r\ntable.display tfoot th {\r\n  padding: 3px 18px 3px 10px;\r\n  border-top: 1px solid black;\r\n  font-weight: bold;\r\n}\r\n\r\ntable.display tr.heading2 td {\r\n  border-bottom: 1px solid #aaa;\r\n}\r\n\r\ntable.display td {\r\n  padding: 3px 10px;\r\n}\r\n\r\ntable.display td.center {\r\n  text-align: center;\r\n}\r\n\r\ntable.display thead th:active, table.display thead td:active {\r\n  outline: none;\r\n}\r\n\r\n.dataTables_scroll {\r\n  clear: both;\r\n}\r\n\r\n.dataTables_scrollBody {\r\n  *margin-top: -1px;\r\n  -webkit-overflow-scrolling: touch;\r\n}\r\n\r\n.top, .bottom {}\r\n.top .dataTables_info {\r\n  float: none;\r\n}\r\n\r\n.clear {\r\n  clear: both;\r\n}\r\n\r\n.dataTables_empty {\r\n  text-align: center;\r\n}\r\n\r\ntfoot input {\r\n  margin: 0.5em 0;\r\n  width: 100%;\r\n  color: #444;\r\n}\r\n\r\ntfoot input.search_init {\r\n  color: #999;\r\n}\r\n\r\ntd.group {\r\n  background-color: #d1cfd0;\r\n  border-bottom: 2px solid #A19B9E;\r\n  border-top: 2px solid #A19B9E;\r\n}\r\n\r\ntd.details {\r\n  background-color: #d1cfd0;\r\n  border: 2px solid #A19B9E;\r\n}\r\n\r\n.example_alt_pagination div.dataTables_info {\r\n  width: 40%;\r\n}\r\n\r\n.paging_full_numbers {\r\n  width: 400px;\r\n  height: 22px;\r\n  line-height: 22px;\r\n}\r\n\r\n.paging_full_numbers a:active {\r\n  outline: none\r\n}\r\n\r\n.paging_full_numbers a:hover {\r\n  text-decoration: none;\r\n}\r\n\r\n.paging_full_numbers a.paginate_button, .paging_full_numbers a.paginate_active {\r\n  border: 1px solid #aaa;\r\n  -webkit-border-radius: 5px;\r\n  -moz-border-radius: 5px;\r\n  padding: 2px 5px;\r\n  margin: 0 3px;\r\n  cursor: pointer;\r\n}\r\n\r\n.paging_full_numbers a.paginate_button {\r\n  background-color: #ddd;\r\n}\r\n\r\n.paging_full_numbers a.paginate_button:hover {\r\n  background-color: #ccc;\r\n  text-decoration: none !important;\r\n}\r\n\r\n.paging_full_numbers a.paginate_active {\r\n  background-color: #99B3FF;\r\n}\r\n\r\ntable.display tr.even.row_selected td {\r\n  background-color: #B0BED9;\r\n}\r\n\r\ntable.display tr.odd.row_selected td {\r\n  background-color: #9FAFD1;\r\n}\r\n\r\ndiv.box {\r\n  height: 100px;\r\n  padding: 10px;\r\n  overflow: auto;\r\n  border: 1px solid #8080FF;\r\n  background-color: #E5E5FF;\r\n}\r\n/* *********  /tables styling  ****************************** */\r\n\r\n\r\n/* *********  /dashboard widget  **************************** */\r\n\r\n\r\n/* *********  widgets  *************************************** */\r\n\r\nul.msg_list li {\r\n  background: #f7f7f7;\r\n  padding: 5px;\r\n  display: flex;\r\n  margin: 6px 6px 0;\r\n  width: 96% !important;\r\n}\r\nul.msg_list li:last-child {\r\n  margin-bottom: 6px;\r\n  padding: 10px;\r\n}\r\nul.msg_list li a {\r\n  padding: 3px 5px !important;\r\n}\r\nul.msg_list li a .image img {\r\n  border-radius: 2px 2px 2px 2px;\r\n  -webkit-border-radius: 2px 2px 2px 2px;\r\n  float: left;\r\n  margin-right: 10px;\r\n  width: 11%;\r\n}\r\nul.msg_list li a .time {\r\n  font-size: 11px;\r\n  font-style: italic;\r\n  font-weight: bold;\r\n  position: absolute;\r\n  right: 35px;\r\n}\r\n\r\na.exitIcon {\r\n  position: absolute;\r\n  right: 0;\r\n  width: 25px !important;\r\n}\r\n\r\nul.msg_list li a .message {\r\n  display: block !important;\r\n  font-size: 11px;\r\n}\r\n.dropdown-menu.msg_list span {\r\n  white-space: normal;\r\n}\r\n\r\n.dropdown-menu>li>a {\r\n  color: #5A738E;\r\n}\r\n\r\n.navbar-nav .open .dropdown-menu.msg_list {\r\n  width: 322px;\r\n  max-height: 400px;\r\n  overflow-y: scroll;\r\n}\r\n.info-number .badge {\r\n  font-size: 10px;\r\n  font-weight: normal;\r\n  line-height: 13px;\r\n  padding: 2px 6px;\r\n  position: absolute;\r\n  right: 2px;\r\n  top: 8px;\r\n}\r\nul.to_do {\r\n  padding: 0;\r\n}\r\nul.to_do li {\r\n  background: #f3f3f3;\r\n  -webkit-border-radius: 3px;\r\n  -moz-border-radius: 3px;\r\n  border-radius: 3px;\r\n  position: relative;\r\n  padding: 7px;\r\n  margin-bottom: 5px;\r\n  list-style: none;\r\n}\r\nul.to_do p {\r\n  margin: 0;\r\n}\r\n.dashboard-widget {\r\n  background: #f6f6f6;\r\n  border-top: 5px solid #79C3DF;\r\n  border-radius: 3px;\r\n  padding: 5px 10px 10px;\r\n}\r\n.dashboard-widget .dashboard-widget-title {\r\n  font-weight: normal;\r\n  border-bottom: 1px solid #c1cdcd;\r\n  margin: 0 0 10px 0;\r\n  padding-bottom: 5px;\r\n  padding-left: 40px;\r\n  line-height: 30px;\r\n}\r\n.dashboard-widget .dashboard-widget-title i {\r\n  font-size: 100%;\r\n  margin-left: -35px;\r\n  margin-right: 10px;\r\n  color: #33a1c9;\r\n  padding: 3px 6px;\r\n  border: 1px solid #abd9ea;\r\n  border-radius: 5px;\r\n  background: #fff;\r\n}\r\nul.quick-list {\r\n  width: 45%;\r\n  padding-left: 0;\r\n  display: inline-block;\r\n}\r\nul.quick-list li {\r\n  padding-left: 10px;\r\n  list-style: none;\r\n  margin: 0;\r\n  padding-bottom: 6px;\r\n  padding-top: 4px;\r\n  white-space: nowrap;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n}\r\nul.quick-list li i {\r\n  padding-right: 10px;\r\n  color: #757679;\r\n}\r\n.dashboard-widget-content {\r\n  padding-top: 9px;\r\n}\r\n.dashboard-widget-content .sidebar-widget {\r\n  width: 50%;\r\n  display: inline-block;\r\n  vertical-align: top;\r\n  background: #fff;\r\n  border: 1px solid #abd9ea;\r\n  border-radius: 5px;\r\n  text-align: center;\r\n  float: right;\r\n  padding: 2px;\r\n  margin-top: 10px;\r\n}\r\n.widget_summary {\r\n  width: 100%;\r\n  display: inline-flex;\r\n}\r\n.widget_summary .w_left {\r\n  float: left;\r\n  text-align: left;\r\n}\r\n.widget_summary .w_center {\r\n  float: left;\r\n}\r\n.widget_summary .w_right {\r\n  float: left;\r\n  text-align: right;\r\n}\r\n.widget_summary .w_right span {\r\n  font-size: 20px;\r\n}\r\n.w_20 {\r\n  width: 20%\r\n}\r\n.w_25 {\r\n  width: 25%\r\n}\r\n.w_55 {\r\n  width: 55%\r\n}\r\nh5.graph_title {\r\n  text-align: left;\r\n  margin-left: 10px\r\n}\r\nh5.graph_title i {\r\n  margin-right: 10px;\r\n  font-size: 17px\r\n}\r\nspan.right {\r\n  float: right;\r\n  font-size: 14px !important\r\n}\r\n.tile_info a {\r\n  text-overflow: ellipsis;\r\n}\r\n.sidebar-footer {\r\n  bottom: 0px;\r\n  clear: both;\r\n  display: block;\r\n  padding: 5px 0 0 0;\r\n  position: fixed;\r\n  width: 230px;\r\n  background: #2A3F54;\r\n}\r\n.sidebar-footer a {\r\n  padding: 7px 0 3px;\r\n  text-align: center;\r\n  width: 25%;\r\n  font-size: 17px;\r\n  display: block;\r\n  float: left;\r\n  background: #172D44;\r\n}\r\n.sidebar-footer a:hover {\r\n  background: #425567;\r\n}\r\n\r\n/** top tiles  */\r\n.tile_count {\r\n  margin-bottom: 20px;\r\n  margin-top: 20px;\r\n}\r\n.tile_count .tile_stats_count {\r\n  border-bottom: 1px solid #D9DEE4;\r\n  padding: 0 10px 0 20px;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n  white-space: nowrap;\r\n  position: relative;\r\n}\r\n\r\n/*@media (min-width: 992px) {\r\n  footer {\r\n    margin-left: 230px;\r\n  }\r\n}*/\r\n\r\n@media (min-width: 992px) {\r\n  .tile_count .tile_stats_count {\r\n    margin-bottom: 10px;\r\n    border-bottom: 0;\r\n    padding-bottom: 10px;\r\n  }\r\n}\r\n.tile_count .tile_stats_count:before {\r\n  content:\"\";\r\n  position: absolute;\r\n  left: 0;\r\n  height: 65px;\r\n  border-left: 2px solid #ADB2B5;\r\n  margin-top: 10px;\r\n}\r\n@media (min-width:992px) {\r\n  .tile_count .tile_stats_count:first-child:before {\r\n    border-left: 0;\r\n  }\r\n}\r\n.tile_count .tile_stats_count .count {\r\n  font-size: 30px;\r\n  line-height: 47px;\r\n  font-weight: 600;\r\n}\r\n@media (min-width:768px) {\r\n  .tile_count .tile_stats_count .count {\r\n    font-size: 40px;\r\n  }\r\n}\r\n@media (min-width: 992px) and (max-width: 1100px) {\r\n  .tile_count .tile_stats_count .count {\r\n    font-size: 30px;\r\n  }\r\n}\r\n.tile_count .tile_stats_count span {\r\n  font-size: 12px;\r\n}\r\n@media (min-width:768px) {\r\n  .tile_count .tile_stats_count span {\r\n    font-size: 13px;\r\n  }\r\n}\r\n.tile_count .tile_stats_count .count_bottom i {\r\n  width: 12px;\r\n}\r\n/** /top tiles **/\r\n\r\n.dashboard_graph {\r\n  background: #fff;\r\n  padding: 7px 10px;\r\n}\r\n.dashboard_graph .col-md-9, .dashboard_graph .col-md-3 {\r\n  padding: 0;\r\n}\r\na.user-profile {\r\n  color: #5E6974 !important;\r\n}\r\n.user-profile img {\r\n  width: 29px;\r\n  height: 29px;\r\n  border-radius: 50%;\r\n  margin-right: 10px;\r\n}\r\nul.top_profiles {\r\n  height: 330px;\r\n  width: 100%;\r\n}\r\nul.top_profiles li {\r\n  margin: 0;\r\n  padding: 3px 5px;\r\n}\r\nul.top_profiles li:nth-child(odd) {\r\n  background-color: #eee;\r\n}\r\n.media .profile_thumb {\r\n  border: 1px solid;\r\n  width: 50px;\r\n  height: 50px;\r\n  margin: 5px 10px 5px 0;\r\n  border-radius: 50%;\r\n  padding: 9px 12px;\r\n}\r\n.media .profile_thumb i {\r\n  font-size: 30px;\r\n}\r\n.media .date {\r\n  background: #ccc;\r\n  width: 52px;\r\n  margin-right: 10px;\r\n  border-radius: 10px;\r\n  padding: 5px;\r\n}\r\n.media .date .month {\r\n  margin: 0;\r\n  text-align: center;\r\n  color: #fff;\r\n}\r\n.media .date .day {\r\n  text-align: center;\r\n  color: #fff;\r\n  font-size: 27px;\r\n  margin: 0;\r\n  line-height: 27px;\r\n  font-weight: bold;\r\n}\r\n.event .media-body a.title {\r\n  font-weight: bold;\r\n}\r\n.event .media-body p {\r\n  margin-bottom: 0;\r\n}\r\nh4.graph_title {\r\n  margin: 7px;\r\n  text-align: center;\r\n}\r\n\r\n/* *********  /widgets  *************************************** */\r\n\r\n\r\n/* *********  iconts-display  **************************** */\r\n\r\n.fontawesome-icon-list .fa-hover a:hover {\r\n  background-color: #ddd;\r\n  color: #fff;\r\n  text-decoration: none;\r\n}\r\n.fontawesome-icon-list .fa-hover a {\r\n  display: block;\r\n  line-height: 32px;\r\n  height: 32px;\r\n  padding-left: 10px;\r\n  border-radius: 4px;\r\n}\r\n.fontawesome-icon-list .fa-hover a:hover .fa {\r\n  font-size: 28px;\r\n  vertical-align: -6px;\r\n}\r\n.fontawesome-icon-list .fa-hover a .fa {\r\n  width: 32px;\r\n  font-size: 16px;\r\n  display: inline-block;\r\n  text-align: right;\r\n  margin-right: 10px;\r\n}\r\n.main_menu .fa {\r\n  width: 26px;\r\n  opacity: .99;\r\n  display: inline-block;\r\n  font-family: FontAwesome;\r\n  font-style: normal;\r\n  font-weight: normal;\r\n  font-size: 18px;\r\n  -webkit-font-smoothing: antialiased;\r\n  -moz-osx-font-smoothing: grayscale;\r\n}\r\n\r\n/* *********  /iconts-display  **************************** */\r\n\r\n\r\n/** tile stats **/\r\n.tile-stats {\r\n  position: relative;\r\n  display: block;\r\n  margin-bottom: 12px;\r\n  border: 1px solid #E4E4E4;\r\n  -webkit-border-radius: 5px;\r\n  overflow: hidden;\r\n  padding-bottom: 5px;\r\n  -webkit-background-clip: padding-box;\r\n  -moz-border-radius: 5px;\r\n  -moz-background-clip: padding;\r\n  border-radius: 5px;\r\n  background-clip: padding-box;\r\n  background: #FFF;\r\n  -moz-transition: all 300ms ease-in-out;\r\n  -o-transition: all 300ms ease-in-out;\r\n  -webkit-transition: all 300ms ease-in-out;\r\n  transition: all 300ms ease-in-out;\r\n}\r\n\r\n.tile-stats:hover .icon i {\r\n  animation-name: tansformAnimation;\r\n  animation-duration: .5s;\r\n  animation-iteration-count: 1;\r\n  color: rgba(58, 58, 58, 0.41);\r\n  animation-timing-function: ease;\r\n  animation-fill-mode: forwards;\r\n  -webkit-animation-name: tansformAnimation;\r\n  -webkit-animation-duration: .5s;\r\n  -webkit-animation-iteration-count: 1;\r\n  -webkit-animation-timing-function: ease;\r\n  -webkit-animation-fill-mode: forwards;\r\n  -moz-animation-name: tansformAnimation;\r\n  -moz-animation-duration: .5s;\r\n  -moz-animation-iteration-count: 1;\r\n  -moz-animation-timing-function: ease;\r\n  -moz-animation-fill-mode: forwards;\r\n}\r\n\r\n.tile-stats .icon {\r\n  width: 20px;\r\n  height: 20px;\r\n  color: #BAB8B8;\r\n  position: absolute;\r\n  right: 53px;\r\n  top: 22px;\r\n  z-index: 40;\r\n  cursor: pointer;\r\n}\r\n\r\n.tile-stats .icon:hover {\r\n  color: rgb(34, 5, 183);\r\n}\r\n\r\n.tile-stats .icon i {\r\n  margin: 0;\r\n  font-size: 30px;\r\n  line-height: 0;\r\n  vertical-align: bottom;\r\n  padding: 0;\r\n}\r\n\r\n.tile-stats .count {\r\n  font-size: 38px;\r\n  font-weight: bold;\r\n  line-height: 1.65857143\r\n}\r\n\r\n.tile-stats .count, .tile-stats h3, .tile-stats p {\r\n  position: relative;\r\n  margin: 0;\r\n  margin-left: 10px;\r\n  z-index: 5;\r\n  padding: 0;\r\n}\r\n\r\n.tile-stats h3 {\r\n  color: #BAB8B8;\r\n}\r\n\r\n.tile-stats p {\r\n  margin-top: 5px;\r\n  font-size: 12px;\r\n}\r\n\r\n.tile-stats > .dash-box-footer {\r\n  position: relative;\r\n  text-align: center;\r\n  margin-top: 5px;\r\n  padding: 3px 0;\r\n  color: #fff;\r\n  color: rgba(255, 255, 255, 0.8);\r\n  display: block;\r\n  z-index: 10;\r\n  background: rgba(0, 0, 0, 0.1);\r\n  text-decoration: none;\r\n}\r\n\r\n.tile-stats > .dash-box-footer:hover {\r\n  color: #fff;\r\n  background: rgba(0, 0, 0, 0.15);\r\n}\r\n\r\n.tile-stats > .dash-box-footer:hover {\r\n  color: #fff;\r\n  background: rgba(0, 0, 0, 0.15);\r\n}\r\n\r\ntable.tile_info {\r\n  padding: 10px 15px;\r\n}\r\n\r\ntable.tile_info span.right {\r\n  margin-right: 0;\r\n  float: right;\r\n  position: absolute;\r\n  right: 4%;\r\n}\r\n\r\n.tile:hover {\r\n  text-decoration: none;\r\n}\r\n\r\n.tile_header {\r\n  border-bottom: transparent;\r\n  padding: 7px 15px;\r\n  margin-bottom: 15px;\r\n  background: #E7E7E7;\r\n}\r\n\r\n.tile_head h4 {\r\n  margin-top: 0;\r\n  margin-bottom: 5px;\r\n}\r\n\r\n.tiles-bottom {\r\n  padding: 5px 10px;\r\n  margin-top: 10px;\r\n  background: rgba(194, 194, 194, 0.3);\r\n  text-align: left;\r\n}\r\n\r\n\r\n/** /tile stats **/\r\n\r\n/** inbox **/\r\na.star {\r\n  color: #428bca !important\r\n}\r\n\r\n.mail_content {\r\n  background: none repeat scroll 0 0 #FFFFFF;\r\n  border-radius: 4px;\r\n  margin-top: 20px;\r\n  min-height: 500px;\r\n  padding: 10px 11px;\r\n  width: 100%;\r\n}\r\n\r\n.list-btn-mail {\r\n  margin-bottom: 15px;\r\n}\r\n\r\n.list-btn-mail.active {\r\n  border-bottom: 1px solid #39B3D7;\r\n  padding: 0 0 14px;\r\n}\r\n\r\n.list-btn-mail > i {\r\n  float: left;\r\n  font-size: 18px;\r\n  font-style: normal;\r\n  width: 33px;\r\n}\r\n\r\n.list-btn-mail > .cn {\r\n  background: none repeat scroll 0 0 #39B3D7;\r\n  border-radius: 12px;\r\n  color: #FFFFFF;\r\n  float: right;\r\n  font-style: normal;\r\n  padding: 0 5px;\r\n}\r\n\r\n.button-mail {\r\n  margin: 0 0 15px !important;\r\n  text-align: left;\r\n  width: 100%;\r\n}\r\n\r\n\r\n.btn-group-vertical .btn, .btn-group .btn {\r\n  margin-bottom: 0;\r\n  margin-right: 0;\r\n}\r\n\r\n.mail_list_column {\r\n  border-left: 1px solid #DBDBDB;\r\n}\r\n\r\n.mail_view {\r\n  border-left: 1px solid #DBDBDB\r\n}\r\n\r\n.mail_list {\r\n  width: 100%;\r\n  border-bottom: 1px solid #DBDBDB;\r\n  margin-bottom: 2px;\r\n  display: inline-block;\r\n}\r\n\r\n.mail_list .left {\r\n  width: 5%;\r\n  float: left;\r\n  margin-right: 3%\r\n}\r\n\r\n.mail_list .right {\r\n  width: 90%;\r\n  float: left\r\n}\r\n\r\n.mail_list h3 {\r\n  font-size: 15px;\r\n  font-weight: bold;\r\n  margin: 0px 0 6px;\r\n}\r\n\r\n.mail_list h3 small {\r\n  float: right;\r\n  color: #ADABAB;\r\n  font-size: 11px;\r\n  line-height: 20px;\r\n}\r\n\r\n.mail_list .badge {\r\n  padding: 3px 6px;\r\n  font-size: 8px;\r\n  background: #BAB7B7\r\n}\r\n\r\n@media (max-width: 767px) {\r\n  .mail_list {\r\n    margin-bottom: 5px;\r\n    display: inline-block;\r\n  }\r\n}\r\n\r\n.mail_heading h4 {\r\n  font-size: 18px;\r\n  border-bottom: 1px solid #ddd;\r\n  padding-bottom: 10px;\r\n  margin-top: 20px;\r\n}\r\n\r\n.attachment {\r\n  margin-top: 30px;\r\n}\r\n\r\n.attachment ul {\r\n  width: 100%;\r\n  list-style: none;\r\n  padding-left: 0;\r\n  display: inline-block;\r\n  margin-bottom: 30px;\r\n}\r\n\r\n.attachment ul li {\r\n  float: left;\r\n  width: 150px;\r\n  margin-right: 10px;\r\n  margin-bottom: 10px;\r\n}\r\n\r\n.attachment ul li img {\r\n  height: 150px;\r\n  border: 1px solid #ddd;\r\n  padding: 5px;\r\n  margin-bottom: 10px;\r\n}\r\n\r\n.attachment ul li span {\r\n  float: right;\r\n}\r\n\r\n.attachment .file-name {\r\n  float: left;\r\n}\r\n\r\n.attachment .links {\r\n  width: 100%;\r\n  display: inline-block;\r\n}\r\n\r\n.compose {\r\n  padding: 0;\r\n  position: fixed;\r\n  bottom: 0;\r\n  right: 0;\r\n  background: #fff;\r\n  border: 1px solid #D9DEE4;\r\n  border-right: 0;\r\n  border-bottom: 0;\r\n  border-top-left-radius: 5px;\r\n  z-index: 9999;\r\n  display: none;\r\n}\r\n\r\n.compose .compose-header {\r\n  padding: 5px;\r\n  background: #169F85;\r\n  color: #fff;\r\n  border-top-left-radius: 5px;\r\n}\r\n\r\n.compose .compose-header .close {\r\n  text-shadow: 0 1px 0 #ffffff;\r\n  line-height: .8;\r\n}\r\n\r\n.compose .compose-body .editor.btn-toolbar {\r\n  margin: 0;\r\n}\r\n\r\n.compose .compose-body .editor-wrapper {\r\n  height: 100%;\r\n  min-height: 50px;\r\n  max-height: 180px;\r\n  border-radius: 0;\r\n  border-left: none;\r\n  border-right: none;\r\n  overflow: auto;\r\n}\r\n\r\n.compose .compose-footer {\r\n  padding: 10px;\r\n}\r\n/** /inbox **/\r\n\r\n/* *********  form design  **************************** */\r\n\r\n.editor.btn-toolbar {\r\n  zoom: 1;\r\n  background: #F7F7F7;\r\n  margin: 5px 2px;\r\n  padding: 3px 0;\r\n  border: 1px solid #EFEFEF;\r\n}\r\n.input-group {\r\n  margin-bottom: 10px;\r\n}\r\n.ln_solid {\r\n  border-top: 1px solid #e5e5e5;\r\n  color: #ffffff;\r\n  background-color: #ffffff;\r\n  height: 1px;\r\n  margin: 20px 0;\r\n}\r\nspan.section {\r\n  display: block;\r\n  width: 100%;\r\n  padding: 0;\r\n  margin-bottom: 20px;\r\n  font-size: 21px;\r\n  line-height: inherit;\r\n  color: #333;\r\n  border: 0;\r\n  border-bottom: 1px solid #e5e5e5;\r\n}\r\n.form-control {\r\n  border-radius: 0;\r\n  width: 100%;\r\n}\r\n.form-horizontal .control-label {\r\n  padding-top: 8px\r\n}\r\n.form-control:focus {\r\n  border-color: #CCD0D7;\r\n  box-shadow: none !important;\r\n}\r\nlegend {\r\n  font-size: 18px;\r\n  color: inherit;\r\n}\r\n.checkbox {}\r\n.form-horizontal .form-group {\r\n  margin-right: 0;\r\n  margin-left: 0;\r\n}\r\n.form-control-feedback {\r\n  margin-top: 8px;\r\n  height: 23px;\r\n  color: #bbb;\r\n  line-height: 24px;\r\n  font-size: 15px;\r\n}\r\n.form-control-feedback.left {\r\n  border-right: 1px solid #ccc;\r\n  left: 13px;\r\n}\r\n.form-control-feedback.right {\r\n  border-left: 1px solid #ccc;\r\n  right: 13px;\r\n}\r\n.form-control.has-feedback-left {\r\n  padding-left: 45px;\r\n}\r\n.form-control.has-feedback-right {\r\n  padding-right: 45px;\r\n}\r\n.form-group {\r\n  margin-bottom: 10px;\r\n}\r\n.validate {\r\n  margin-top: 10px;\r\n}\r\n.invalid-form-error-message {\r\n  margin-top: 10px;\r\n  padding: 5px;\r\n}\r\n.invalid-form-error-message.filled {\r\n  border-left: 2px solid #E74C3C;\r\n}\r\np.parsley-success {\r\n  color: #468847;\r\n  background-color: #DFF0D8;\r\n  border: 1px solid #D6E9C6;\r\n}\r\np.parsley-error {\r\n  color: #B94A48;\r\n  background-color: #F2DEDE;\r\n  border: 1px solid #EED3D7;\r\n}\r\nul.parsley-errors-list {\r\n  list-style: none;\r\n  color: #E74C3C;\r\n  padding-left: 0;\r\n}\r\ninput.parsley-error, textarea.parsley-error, select.parsley-error {\r\n  background: #FAEDEC;\r\n  border: 1px solid #E85445;\r\n}\r\n.btn-group .parsley-errors-list {\r\n  display: none;\r\n}\r\n.bad input, .bad select, .bad textarea {\r\n  border: 1px solid #CE5454;\r\n  box-shadow: 0 0 4px -2px #CE5454;\r\n  position: relative;\r\n  left: 0;\r\n  -moz-animation: .7s 1 shake linear;\r\n  -webkit-animation: 0.7s 1 shake linear;\r\n}\r\n.item input, .item textarea {\r\n  -webkit-transition: 0.42s;\r\n  -moz-transition: 0.42s;\r\n  transition: 0.42s;\r\n}\r\n\r\n/* alerts (when validation fails) */\r\n\r\n.item .alert {\r\n  float: left;\r\n  margin: 0 0 0 20px;\r\n  padding: 3px 10px;\r\n  color: #FFF;\r\n  border-radius: 3px 4px 4px 3px;\r\n  background-color: #CE5454;\r\n  max-width: 170px;\r\n  white-space: pre;\r\n  position: relative;\r\n  left: -15px;\r\n  opacity: 0;\r\n  z-index: 1;\r\n  transition: 0.15s ease-out;\r\n}\r\n.item .alert::after {\r\n  content: '';\r\n  display: block;\r\n  height: 0;\r\n  width: 0;\r\n  border-color: transparent #CE5454 transparent transparent;\r\n  border-style: solid;\r\n  border-width: 11px 7px;\r\n  position: absolute;\r\n  left: -13px;\r\n  top: 1px;\r\n}\r\n.item.bad .alert {\r\n  left: 0;\r\n  opacity: 1;\r\n}\r\n\r\n.inl-bl {\r\n  display: inline-block;\r\n}\r\n.well .markup-heading {}\r\n.well .markup {\r\n  background: #fff;\r\n  color: #777;\r\n  position: relative;\r\n  padding: 45px 15px 15px;\r\n  margin: 15px 0 0 0;\r\n  background-color: #fff;\r\n  border-radius: 0 0 4px 4px;\r\n  box-shadow: none;\r\n}\r\n.well .markup::after {\r\n  content: \"Example\";\r\n  position: absolute;\r\n  top: 15px;\r\n  left: 15px;\r\n  font-size: 12px;\r\n  font-weight: bold;\r\n  color: #bbb;\r\n  text-transform: uppercase;\r\n  letter-spacing: 1px;\r\n}\r\n\r\n/* ***** autocomplete ***** */\r\n\r\n.autocomplete-suggestions {\r\n  border: 1px solid #e4e4e4;\r\n  background: #F4F4F4;\r\n  cursor: default;\r\n  overflow: auto;\r\n}\r\n.autocomplete-suggestion {\r\n  padding: 2px 5px;\r\n  font-size: 1.2em;\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n}\r\n.autocomplete-selected {\r\n  background: #f0f0f0;\r\n}\r\n.autocomplete-suggestions strong {\r\n  font-weight: normal;\r\n  color: #3399ff;\r\n  font-weight: bolder;\r\n}\r\n/* ***** /autocomplete *****/\r\n\r\n/* ***** buttons ********/\r\n.btn {\r\n  border-radius: 3px;\r\n}\r\na.btn-success, a.btn-primary, a.btn-warning, a.btn-danger {\r\n  color: #fff;\r\n}\r\n.btn-success {\r\n  background: #26B99A;\r\n  border: 1px solid #169F85;\r\n}\r\n.btn-success:hover, .btn-success:focus, .btn-success:active, .btn-success.active, .open .dropdown-toggle.btn-success {\r\n  background: #169F85;\r\n}\r\n.btn-dark {\r\n  color: #E9EDEF;\r\n  background-color: #4B5F71;\r\n  border-color: #364B5F;\r\n}\r\n.btn-dark:hover, .btn-dark:focus, .btn-dark:active, .btn-dark.active, .open .dropdown-toggle.btn-dark {\r\n  color: #FFFFFF;\r\n  background-color: #394D5F;\r\n  border-color: #394D5F;\r\n}\r\n.btn-round {\r\n  border-radius: 30px;\r\n}\r\n.btn.btn-app {\r\n  position: relative;\r\n  padding: 15px 5px;\r\n  margin: 0 0 10px 10px;\r\n  min-width: 80px;\r\n  height: 60px;\r\n  -webkit-box-shadow: none;\r\n  -moz-box-shadow: none;\r\n  box-shadow: none;\r\n  -webkit-border-radius: 0;\r\n  -moz-border-radius: 0;\r\n  border-radius: 0;\r\n  text-align: center;\r\n  color: #666;\r\n  border: 1px solid #ddd;\r\n  background-color: #fafafa;\r\n  font-size: 12px;\r\n}\r\n.btn.btn-app > .fa, .btn.btn-app > .glyphicon, .btn.btn-app > .ion {\r\n  font-size: 20px;\r\n  display: block;\r\n}\r\n.btn.btn-app:hover {\r\n  background: #f4f4f4;\r\n  color: #444;\r\n  border-color: #aaa;\r\n}\r\n.btn.btn-app:active, .btn.btn-app:focus {\r\n  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);\r\n  -moz-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);\r\n  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);\r\n}\r\n.btn.btn-app > .badge {\r\n  position: absolute;\r\n  top: -3px;\r\n  right: -10px;\r\n  font-size: 10px;\r\n  font-weight: 400;\r\n}\r\n/* ***** /buttons *******/\r\n\r\n/* *********  /form design  **************************** */\r\n\r\n/* *********  form textarea  **************************** */\r\n\r\ntextarea {\r\n  padding: 10px;\r\n  vertical-align: top;\r\n  width: 200px;\r\n}\r\ntextarea:focus {\r\n  outline-style: solid;\r\n  outline-width: 2px;\r\n}\r\n.btn_ {\r\n  display: inline-block;\r\n  padding: 3px 9px;\r\n  margin-bottom: 0;\r\n  font-size: 14px;\r\n  line-height: 20px;\r\n  text-align: center;\r\n  vertical-align: middle;\r\n  cursor: pointer;\r\n  color: #333333;\r\n  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.75);\r\n  background-color: #f5f5f5;\r\n  background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);\r\n  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));\r\n  background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);\r\n  background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);\r\n  background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);\r\n  background-repeat: repeat-x;\r\n  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe6e6e6', GradientType=0);\r\n  border-color: #e6e6e6 #e6e6e6 #bfbfbf;\r\n  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);\r\n  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);\r\n  border: 1px solid #cccccc;\r\n  border-bottom-color: #b3b3b3;\r\n  -webkit-border-radius: 4px;\r\n  -moz-border-radius: 4px;\r\n  border-radius: 4px;\r\n  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);\r\n  -moz-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);\r\n  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 1px 2px rgba(0, 0, 0, .05);\r\n}\r\n\r\n/* *********  /form textarea  **************************** */\r\n\r\n\r\n/* *********  glyphicons  **************************** */\r\n\r\n.bs-glyphicons {\r\n  margin: 0 -10px 20px;\r\n  overflow: hidden\r\n}\r\n.bs-glyphicons-list {\r\n  padding-left: 0;\r\n  list-style: none\r\n}\r\n.bs-glyphicons li {\r\n  float: left;\r\n  width: 25%;\r\n  height: 115px;\r\n  padding: 10px;\r\n  font-size: 10px;\r\n  line-height: 1.4;\r\n  text-align: center;\r\n  background-color: #f9f9f9;\r\n  border: 1px solid #fff\r\n}\r\n.bs-glyphicons .glyphicon {\r\n  margin-top: 5px;\r\n  margin-bottom: 10px;\r\n  font-size: 24px\r\n}\r\n.bs-glyphicons .glyphicon-class {\r\n  display: block;\r\n  text-align: center;\r\n  word-wrap: break-word\r\n}\r\n.bs-glyphicons li:hover {\r\n  color: #fff;\r\n  background-color: #1ABB9C\r\n}\r\n@media (min-width: 768px) {\r\n  .bs-glyphicons {\r\n    margin-right: 0;\r\n    margin-left: 0\r\n  }\r\n  .bs-glyphicons li {\r\n    width: 12.5%;\r\n    font-size: 12px\r\n  }\r\n}\r\n\r\n/* *********  /glyphicons  **************************** */\r\n\r\n\r\n/* *********  form tags input  **************************** */\r\n\r\n.tagsinput {\r\n  border: 1px solid #CCC;\r\n  background: #FFF;\r\n  padding: 6px 6px 0;\r\n  width: 300px;\r\n  overflow-y: auto;\r\n}\r\nspan.tag {\r\n  -moz-border-radius: 2px;\r\n  -webkit-border-radius: 2px;\r\n  display: block;\r\n  float: left;\r\n  padding: 5px 9px;\r\n  text-decoration: none;\r\n  background: #1ABB9C;\r\n  color: #F1F6F7;\r\n  margin-right: 5px;\r\n  font-weight: 500;\r\n  margin-bottom: 5px;\r\n  font-family: helvetica;\r\n}\r\nspan.tag a {\r\n  color: #F1F6F7 !important;\r\n}\r\n.tagsinput span.tag a {\r\n  font-weight: bold;\r\n  color: #82ad2b;\r\n  text-decoration: none;\r\n  font-size: 11px;\r\n}\r\n.tagsinput input {\r\n  width: 80px;\r\n  margin: 0px;\r\n  font-family: helvetica;\r\n  font-size: 13px;\r\n  border: 1px solid transparent;\r\n  padding: 3px;\r\n  background: transparent;\r\n  color: #000;\r\n  outline: 0px;\r\n}\r\n.tagsinput div {\r\n  display: block;\r\n  float: left;\r\n}\r\n.tags_clear {\r\n  clear: both;\r\n  width: 100%;\r\n  height: 0px;\r\n}\r\n.not_valid {\r\n  background: #FBD8DB !important;\r\n  color: #90111A !important;\r\n}\r\n\r\n/* *********  /form tags input  **************************** */\r\n\r\n\r\n/** Tabs **/\r\nul.bar_tabs {\r\n  overflow: visible;\r\n  background: #F5F7FA;\r\n  height: 25px;\r\n  margin: 21px 0 14px;\r\n  padding-left: 14px;\r\n  position: relative;\r\n  z-index: 1;\r\n  width: 100%;\r\n  border-bottom: 1px solid #E6E9ED;\r\n}\r\nul.bar_tabs > li {\r\n  border: 1px solid #E6E9ED;\r\n  color: #333 !important;\r\n  margin-top: -17px;\r\n  margin-left: 8px;\r\n  background: #fff;\r\n  border-bottom: none;\r\n  border-radius: 4px 4px 0 0;\r\n}\r\nul.bar_tabs > li.active {\r\n  border-right: 6px solid #D3D6DA;\r\n  border-top: 0;\r\n  margin-top: -15px;\r\n}\r\nul.bar_tabs > li a {\r\n  padding: 10px 17px;\r\n  background: #F5F7FA;\r\n  margin: 0;\r\n  border-top-right-radius: 0;\r\n}\r\nul.bar_tabs > li a:hover {\r\n  border: 1px solid transparent;\r\n}\r\nul.bar_tabs > li.active a {\r\n  border-bottom: none;\r\n}\r\nul.bar_tabs.right {\r\n  padding-right: 14px;\r\n}\r\nul.bar_tabs.right li {\r\n  float: right\r\n}\r\na:focus {\r\n  outline: none;\r\n}\r\n/** /Tabs **/\r\n\r\n\r\n/* *********  timeline  **************************** */\r\n\r\nul.timeline li {\r\n  position: relative;\r\n  border-bottom: 1px solid #e8e8e8;\r\n  clear: both;\r\n}\r\n.timeline .block {\r\n  margin: 0;\r\n  border-left: 3px solid #e8e8e8;\r\n  overflow: visible;\r\n  padding: 10px 15px;\r\n  margin-left: 105px;\r\n}\r\n.timeline.widget {\r\n  min-width: 0;\r\n  max-width: inherit;\r\n}\r\n.timeline.widget .block {\r\n  margin-left: 5px;\r\n}\r\n.timeline .tags {\r\n  position: absolute;\r\n  top: 15px;\r\n  left: 0;\r\n  width: 84px;\r\n}\r\n.timeline .tag {\r\n  display: block;\r\n  height: 30px;\r\n  font-size: 13px;\r\n  padding: 8px;\r\n}\r\n.timeline .tag span {\r\n  display: block;\r\n  overflow: hidden;\r\n  width: 100%;\r\n  white-space: nowrap;\r\n  text-overflow: ellipsis;\r\n}\r\n.tag {\r\n  line-height: 1;\r\n  background: #1ABB9C;\r\n  color: #fff !important;\r\n}\r\n.tag:after {\r\n  content: \" \";\r\n  height: 30px;\r\n  width: 0;\r\n  position: absolute;\r\n  left: 100%;\r\n  top: 0;\r\n  margin: 0;\r\n  pointer-events: none;\r\n  border-top: 14px solid transparent;\r\n  border-bottom: 14px solid transparent;\r\n  border-left: 11px solid #1ABB9C;\r\n}\r\n.timeline h2.title {\r\n  position: relative;\r\n  font-size: 16px;\r\n  margin: 0;\r\n}\r\n.timeline h2.title:before {\r\n  content: \"\";\r\n  position: absolute;\r\n  left: -23px;\r\n  top: 3px;\r\n  display: block;\r\n  width: 14px;\r\n  height: 14px;\r\n  border: 3px solid #d2d3d2;\r\n  border-radius: 14px;\r\n  background: #f9f9f9;\r\n}\r\n.timeline .byline {\r\n  padding: .25em 0;\r\n}\r\n.byline {\r\n  -webkit-font-smoothing: antialiased;\r\n  font-style: italic;\r\n  font-size: .9375em;\r\n  line-height: 1.3;\r\n  color: #aab6aa;\r\n}\r\nul.social li {\r\n  border: 0;\r\n}\r\n\r\n/* *********  /timeline  **************************** */\r\n\r\n/* *********  profile/social  **************************** */\r\n\r\n.social-sidebar, .social-body {\r\n  float: right;\r\n}\r\n.social-sidebar {\r\n  background: #EDEDED;\r\n  width: 22%;\r\n}\r\n.social-body {\r\n  border: 1px solid #ccc;\r\n  width: 78%;\r\n}\r\n.thumb img {\r\n  width: 50px;\r\n  height: 50px;\r\n  border-radius: 50%;\r\n}\r\n.chat .thumb img {\r\n  width: 27px;\r\n  height: 27px;\r\n  border-radius: 50%;\r\n}\r\n.chat .status {\r\n  float: left;\r\n  margin: 16px 0 0 -16px;\r\n  font-size: 14px;\r\n  font-weight: bold;\r\n  width: 12px;\r\n  height: 12px;\r\n  display: block;\r\n  border: 2px solid #FFF;\r\n  z-index: 12312;\r\n  border-radius: 50%;\r\n}\r\n.chat .status.online {\r\n  background: #1ABB9C;\r\n}\r\n.chat .status.away {\r\n  background: #F39C12;\r\n}\r\n.chat .status.offline {\r\n  background: #ccc;\r\n}\r\n.chat .media-body {\r\n  padding-top: 5px;\r\n}\r\n\r\n/* *********  /profile/social  **************************** */\r\n\r\n\r\n/* *********  widgets  **************************** */\r\n\r\n.dashboard_graph .x_title {\r\n  padding: 5px 5px 7px;\r\n}\r\n.dashboard_graph .x_title h3 {\r\n  margin: 0;\r\n  font-weight: normal;\r\n}\r\n.chart {\r\n  position: relative;\r\n  display: inline-block;\r\n  width: 110px;\r\n  height: 110px;\r\n  margin-top: 5px;\r\n  margin-bottom: 5px;\r\n  text-align: center;\r\n}\r\n.chart canvas {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n}\r\n.percent {\r\n  display: inline-block;\r\n  line-height: 110px;\r\n  z-index: 2;\r\n  font-size: 18px;\r\n}\r\n.percent:after {\r\n  content: '%';\r\n  margin-left: 0.1em;\r\n  font-size: .8em;\r\n}\r\n.angular {\r\n  margin-top: 100px;\r\n}\r\n.angular .chart {\r\n  margin-top: 0;\r\n}\r\n.widget {\r\n  min-width: 250px;\r\n  max-width: 310px;\r\n}\r\n.widget_tally_box .btn-group button {\r\n  text-align: center\r\n}\r\n.widget_tally_box .btn-group button {\r\n  color: inherit;\r\n  font-weight: 500;\r\n  background-color: #f5f5f5;\r\n  border: 1px solid #e7e7e7;\r\n}\r\nul.widget_tally, ul.widget_tally li {\r\n  width: 100%;\r\n}\r\nul.widget_tally li {\r\n  padding: 2px 10px;\r\n  border-bottom: 1px solid #ECECEC;\r\n  padding-bottom: 4px;\r\n}\r\nul.widget_tally .month {\r\n  width: 70%;\r\n  float: left;\r\n}\r\nul.widget_tally .count {\r\n  width: 30%;\r\n  float: left;\r\n  text-align: right\r\n}\r\n.pie_bg {\r\n  border-bottom: 1px solid rgba(101, 204, 182, 0.16);\r\n  padding-bottom: 15px;\r\n  -webkit-border-radius: 4px;\r\n  -moz-border-radius: 4px;\r\n  border-radius: 4px;\r\n  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffffff', endColorstr='#ffe6e6e6', GradientType=0);\r\n  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);\r\n  padding-bottom: 10px;\r\n  -webkit-box-shadow: 0 4px 6px -6px #222;\r\n  -moz-box-shadow: 0 4px 6px -6px #222;\r\n  box-shadow: 0 4px 6px -6px #222;\r\n}\r\n.widget_tally_box .flex {\r\n  display: flex;\r\n}\r\nul.widget_profile_box {\r\n  width: 100%;\r\n  height: 42px;\r\n  padding: 3px;\r\n  background: #ececec;\r\n  margin-top: 40px;\r\n  margin-left: 1px;\r\n}\r\nul.widget_profile_box li:first-child {\r\n  width: 25%;\r\n  float: left;\r\n}\r\nul.widget_profile_box li:first-child a {\r\n  float: left;\r\n}\r\nul.widget_profile_box li:last-child {\r\n  width: 25%;\r\n  float: right;\r\n}\r\nul.widget_profile_box li:last-child a {\r\n  float: right;\r\n}\r\nul.widget_profile_box li {}\r\nul.widget_profile_box li a {\r\n  font-size: 22px;\r\n  text-align: center;\r\n  width: 35px;\r\n  height: 35px;\r\n  border: 1px solid rgba(52, 73, 94, 0.44);\r\n  display: block;\r\n  border-radius: 50%;\r\n  padding: 0px;\r\n}\r\nul.widget_profile_box li a:hover {\r\n  color: #1ABB9C !important;\r\n  border: 1px solid rgba(38, 185, 154, 1);\r\n}\r\nul.widget_profile_box li .profile_img {\r\n  width: 85px;\r\n  height: 85px;\r\n  margin: 0;\r\n  margin-top: -28px;\r\n}\r\n.widget_tally_box p, .widget_tally_box span {\r\n  text-align: center;\r\n}\r\n.widget_tally_box .name {\r\n  text-align: center;\r\n  margin: 25px;\r\n}\r\n.widget_tally_box .name_title {\r\n  text-align: center;\r\n  margin: 5px;\r\n}\r\n.widget_tally_box ul.legend {\r\n  margin: 0;\r\n}\r\n.widget_tally_box ul.legend p, .widget_tally_box ul.legend span {\r\n  text-align: left;\r\n}\r\n.widget_tally_box ul.legend li .icon {\r\n  font-size: 20px;\r\n  float: left;\r\n  width: 14px;\r\n}\r\n.widget_tally_box ul.legend li .name {\r\n  font-size: 14px;\r\n  margin: 5px 0 0 14px;\r\n  text-overflow: ellipsis;\r\n  float: left;\r\n}\r\n.widget_tally_box ul.legend p {\r\n  display: inline-block;\r\n  margin: 0;\r\n}\r\n.widget_tally_box ul.verticle_bars li {\r\n  height: 140px;\r\n  width: 23%;\r\n}\r\n.widget .verticle_bars li .progress.vertical.progress_wide {\r\n  width: 65%;\r\n}\r\nul.count2 {\r\n  width: 100%;\r\n  margin-left: 1px;\r\n  border: 1px solid #ddd;\r\n  border-left: 0;\r\n  border-right: 0;\r\n  padding: 10px 0;\r\n}\r\nul.count2 li {\r\n  width: 30%;\r\n  text-align: center;\r\n}\r\nul.count2 li h3 {\r\n  font-weight: 400;\r\n  margin: 0;\r\n}\r\nul.count2 li span {\r\n  font-weight: 300;\r\n}\r\n/* *********  /widgets  **************************** */\r\n\r\n.divider {\r\n  border-bottom: 1px solid #ddd;\r\n  margin: 10px;\r\n}\r\n.divider-dashed {\r\n  border-top: 1px dashed #e7eaec;\r\n  background-color: #ffffff;\r\n  height: 1px;\r\n  margin: 10px 0;\r\n}\r\nul.messages {\r\n  padding: 0;\r\n  list-style: none;\r\n}\r\nul.messages li, .tasks li {\r\n  border-bottom: 1px dotted #e6e6e6;\r\n  padding: 8px 0;\r\n}\r\nul.messages li img.avatar, img.avatar {\r\n  height: 32px;\r\n  width: 32px;\r\n  float: left;\r\n  display: inline-block;\r\n  -webkit-border-radius: 2px;\r\n  -moz-border-radius: 2px;\r\n  border-radius: 2px;\r\n  padding: 2px;\r\n  background: #f7f7f7;\r\n  border: 1px solid #e6e6e6;\r\n}\r\nul.messages li .message_date {\r\n  float: right;\r\n  text-align: right;\r\n}\r\nul.messages li .message_wrapper {\r\n  margin-left: 50px;\r\n  margin-right: 40px;\r\n}\r\nul.messages li .message_wrapper h4.heading {\r\n  font-weight: 600;\r\n  margin: 0;\r\n  cursor: pointer;\r\n  margin-bottom: 10px;\r\n  line-height: 100%;\r\n}\r\nul.messages li .message_wrapper blockquote {\r\n  padding: 0px 10px;\r\n  margin: 0;\r\n  border-left: 5px solid #eee;\r\n}\r\nul.user_data li {\r\n  margin-bottom: 6px;\r\n}\r\nul.user_data li p {\r\n  margin-bottom: 0;\r\n}\r\nul.user_data li .progress {\r\n  width: 90%;\r\n}\r\n.project_progress .progress {\r\n  margin-bottom: 3px !important;\r\n  margin-top: 5px;\r\n}\r\n.projects .list-inline {\r\n  margin: 0;\r\n}\r\n.profile_title {\r\n  background: #F5F7FA;\r\n  border: 0;\r\n  padding: 7px 0;\r\n  display: flex;\r\n}\r\nul.stats-overview {\r\n  border-bottom: 1px solid #e8e8e8;\r\n  padding-bottom: 10px;\r\n  margin-bottom: 10px;\r\n}\r\nul.stats-overview li {\r\n  display: inline-block;\r\n  text-align: center;\r\n  padding: 0 15px;\r\n  width: 30%;\r\n  font-size: 14px;\r\n  border-right: 1px solid #e8e8e8;\r\n}\r\nul.stats-overview li:last-child {\r\n  border-right: 0;\r\n}\r\nul.stats-overview li .name {\r\n  font-size: 12px;\r\n}\r\nul.stats-overview li .value {\r\n  font-size: 14px;\r\n  font-weight: bold;\r\n  display: block;\r\n}\r\nul.stats-overview li:first-child {\r\n  padding-left: 0;\r\n}\r\nul.project_files li {\r\n  margin-bottom: 5px;\r\n}\r\nul.project_files li a i {\r\n  width: 20px;\r\n}\r\n.project_detail p {\r\n  margin-bottom: 10px;\r\n}\r\n.project_detail p.title {\r\n  font-weight: bold;\r\n  margin-bottom: 0\r\n}\r\n.avatar img {\r\n  border-radius: 50%;\r\n  max-width: 45px;\r\n}\r\n\r\n/* *********  pricing  **************************** */\r\n\r\n.pricing {\r\n  background: #fff;\r\n}\r\n.pricing .title {\r\n  background: #1ABB9C;\r\n  height: 110px;\r\n  color: #fff;\r\n  padding: 15px 0 0;\r\n  text-align: center;\r\n}\r\n.pricing .title h2 {\r\n  text-transform: capitalize;\r\n  font-size: 18px;\r\n  border-radius: 5px 5px 0 0;\r\n  margin: 0;\r\n  font-weight: 400;\r\n}\r\n.pricing .title h1 {\r\n  font-size: 30px;\r\n  margin: 12px;\r\n}\r\n.pricing .title span {\r\n  background: rgba(51, 51, 51, 0.28);\r\n  padding: 2px 5px;\r\n}\r\n.pricing_features {\r\n  background: #FAFAFA;\r\n  padding: 20px 15px;\r\n  min-height: 230px;\r\n  font-size: 13.5px;\r\n}\r\n.pricing_features ul li {\r\n  margin-top: 10px;\r\n}\r\n.pricing_footer {\r\n  padding: 10px 15px;\r\n  background-color: #f5f5f5;\r\n  border-top: 1px solid #ddd;\r\n  text-align: center;\r\n  border-bottom-right-radius: 3px;\r\n  border-bottom-left-radius: 3px;\r\n}\r\n.pricing_footer p {\r\n  font-size: 13px;\r\n  padding: 10px 0 2px;\r\n  display: block;\r\n}\r\n.ui-ribbon-container {\r\n  position: relative;\r\n}\r\n.ui-ribbon-container .ui-ribbon-wrapper {\r\n  position: absolute;\r\n  overflow: hidden;\r\n  width: 85px;\r\n  height: 88px;\r\n  top: -3px;\r\n  right: -3px;\r\n}\r\n.ui-ribbon-container.ui-ribbon-primary .ui-ribbon {\r\n  background-color: #5b90bf;\r\n}\r\n.ui-ribbon-container .ui-ribbon {\r\n  position: relative;\r\n  display: block;\r\n  text-align: center;\r\n  font-size: 15px;\r\n  font-weight: 700;\r\n  color: #fff;\r\n  -webkit-transform: rotate(45deg);\r\n  -moz-transform: rotate(45deg);\r\n  -ms-transform: rotate(45deg);\r\n  -o-transform: rotate(45deg);\r\n  transform: rotate(45deg);\r\n  padding: 7px 0;\r\n  left: -5px;\r\n  top: 15px;\r\n  width: 120px;\r\n  line-height: 20px;\r\n  background-color: #555;\r\n  box-shadow: 0 0 3px rgba(0, 0, 0, .3);\r\n}\r\n.ui-ribbon-container.ui-ribbon-primary .ui-ribbon:after, .ui-ribbon-container.ui-ribbon-primary .ui-ribbon:before {\r\n  border-top: 2px solid #5b90bf;\r\n}\r\n.ui-ribbon-container .ui-ribbon:before {\r\n  left: 0;\r\n  bottom: -1px;\r\n}\r\n.ui-ribbon-container .ui-ribbon:before {\r\n  right: 0;\r\n}\r\n.ui-ribbon-container .ui-ribbon:after, .ui-ribbon-container .ui-ribbon:before {\r\n  position: absolute;\r\n  content: \" \";\r\n  line-height: 0;\r\n  border-top: 2px solid #555;\r\n  border-left: 2px solid transparent;\r\n  border-right: 2px solid transparent;\r\n}\r\n\r\n/* *********  /pricing  **************************** */\r\n\r\n\r\n/* *********  media gallery  **************************** */\r\n\r\n.thumbnail .image {\r\n  height: 120px;\r\n  overflow: hidden;\r\n}\r\n.caption {\r\n  padding: 9px 5px;\r\n  background: #F7F7F7;\r\n}\r\n.caption p {\r\n  margin-bottom: 5px;\r\n}\r\n.thumbnail {\r\n  height: 190px;\r\n  overflow: hidden;\r\n}\r\n.view {\r\n  overflow: hidden;\r\n  position: relative;\r\n  text-align: center;\r\n  box-shadow: 1px 1px 2px #e6e6e6;\r\n  cursor: default;\r\n}\r\n.view .mask, .view .content {\r\n  position: absolute;\r\n  width: 100%;\r\n  overflow: hidden;\r\n  top: 0;\r\n  left: 0\r\n}\r\n.view img {\r\n  display: block;\r\n  position: relative\r\n}\r\n.view .tools {\r\n  text-transform: uppercase;\r\n  color: #fff;\r\n  text-align: center;\r\n  position: relative;\r\n  font-size: 17px;\r\n  padding: 3px;\r\n  background: rgba(0, 0, 0, 0.35);\r\n  margin: 43px 0 0 0;\r\n}\r\n.mask.no-caption .tools {\r\n  margin: 90px 0 0 0;\r\n}\r\n.view .tools a {\r\n  display: inline-block;\r\n  color: #FFF;\r\n  font-size: 18px;\r\n  font-weight: 400;\r\n  padding: 0 4px;\r\n}\r\n.view p {\r\n  font-family: Georgia, serif;\r\n  font-style: italic;\r\n  font-size: 12px;\r\n  position: relative;\r\n  color: #fff;\r\n  padding: 10px 20px 20px;\r\n  text-align: center\r\n}\r\n.view a.info {\r\n  display: inline-block;\r\n  text-decoration: none;\r\n  padding: 7px 14px;\r\n  background: #000;\r\n  color: #fff;\r\n  text-transform: uppercase;\r\n  box-shadow: 0 0 1px #000\r\n}\r\n.view-first img {\r\n  transition: all 0.2s linear;\r\n}\r\n.view-first .mask {\r\n  opacity: 0;\r\n  background-color: rgba(0, 0, 0, 0.5);\r\n  transition: all 0.4s ease-in-out;\r\n}\r\n.view-first .tools {\r\n  transform: translateY(-100px);\r\n  opacity: 0;\r\n  transition: all 0.2s ease-in-out;\r\n}\r\n.view-first p {\r\n  transform: translateY(100px);\r\n  opacity: 0;\r\n  transition: all 0.2s linear;\r\n}\r\n.view-first:hover img {\r\n  transform: scale(1.1);\r\n}\r\n.view-first:hover .mask {\r\n  opacity: 1;\r\n}\r\n.view-first:hover .tools, .view-first:hover p {\r\n  opacity: 1;\r\n  transform: translateY(0px);\r\n}\r\n.view-first:hover p {\r\n  transition-delay: 0.1s;\r\n}\r\n\r\n/* *********  /media gallery  **************************** */\r\n\r\n\r\n/* *********  verticle tabs  **************************** */\r\n\r\n\r\n/*!\r\n * bootstrap-vertical-tabs - v1.2.1\r\n * https://dbtek.github.io/bootstrap-vertical-tabs\r\n * 2014-11-07\r\n * Copyright (c) 2014 İsmail Demirbilek\r\n * License: MIT\r\n */\r\n\r\n.tabs-left, .tabs-right {\r\n  border-bottom: none;\r\n  padding-top: 2px;\r\n}\r\n.tabs-left {\r\n  border-right: 1px solid #F7F7F7;\r\n}\r\n.tabs-right {\r\n  border-left: 1px solid #F7F7F7;\r\n}\r\n.tabs-left>li, .tabs-right>li {\r\n  float: none;\r\n  margin-bottom: 2px;\r\n}\r\n.tabs-left>li {\r\n  margin-right: -1px;\r\n}\r\n.tabs-right>li {\r\n  margin-left: -1px;\r\n}\r\n.tabs-left>li.active>a, .tabs-left>li.active>a:hover, .tabs-left>li.active>a:focus {\r\n  border-bottom-color: #F7F7F7;\r\n  border-right-color: transparent;\r\n}\r\n.tabs-right>li.active>a, .tabs-right>li.active>a:hover, .tabs-right>li.active>a:focus {\r\n  border-bottom: 1px solid #F7F7F7;\r\n  border-left-color: transparent;\r\n}\r\n.tabs-left>li>a {\r\n  border-radius: 4px 0 0 4px;\r\n  margin-right: 0;\r\n  display: block;\r\n  background: #F7F7F7;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n}\r\n.tabs-right>li>a {\r\n  border-radius: 0 4px 4px 0;\r\n  margin-right: 0;\r\n  background: #F7F7F7;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n}\r\n.sideways {\r\n  margin-top: 50px;\r\n  border: none;\r\n  position: relative;\r\n}\r\n.sideways>li {\r\n  height: 20px;\r\n  width: 120px;\r\n  margin-bottom: 100px;\r\n}\r\n.sideways>li>a {\r\n  border-bottom: 1px solid #ddd;\r\n  border-right-color: transparent;\r\n  text-align: center;\r\n  border-radius: 4px 4px 0px 0px;\r\n}\r\n.sideways>li.active>a, .sideways>li.active>a:hover, .sideways>li.active>a:focus {\r\n  border-bottom-color: transparent;\r\n  border-right-color: #ddd;\r\n  border-left-color: #ddd;\r\n}\r\n.sideways.tabs-left {\r\n  left: -50px;\r\n}\r\n.sideways.tabs-right {\r\n  right: -50px;\r\n}\r\n.sideways.tabs-right>li {\r\n  -webkit-transform: rotate(90deg);\r\n  -moz-transform: rotate(90deg);\r\n  -ms-transform: rotate(90deg);\r\n  -o-transform: rotate(90deg);\r\n  transform: rotate(90deg);\r\n}\r\n.sideways.tabs-left>li {\r\n  -webkit-transform: rotate(-90deg);\r\n  -moz-transform: rotate(-90deg);\r\n  -ms-transform: rotate(-90deg);\r\n  -o-transform: rotate(-90deg);\r\n  transform: rotate(-90deg);\r\n}\r\n\r\n/* *********  /verticle tabs  **************************** */\r\n\r\n\r\n/* *********  moris  **************************** */\r\n\r\n.morris-hover {\r\n  position: absolute;\r\n  z-index: 1000;\r\n}\r\n.morris-hover.morris-default-style {\r\n  padding: 6px;\r\n  color: #666;\r\n  background: rgba(243, 242, 243, 0.8);\r\n  border: solid 2px rgba(195, 194, 196, 0.8);\r\n  font-family: sans-serif;\r\n  font-size: 12px;\r\n  text-align: center;\r\n}\r\n.morris-hover.morris-default-style .morris-hover-row-label {\r\n  font-weight: bold;\r\n  margin: 0.25em 0;\r\n}\r\n.morris-hover.morris-default-style .morris-hover-point {\r\n  white-space: nowrap;\r\n  margin: 0.1em 0;\r\n}\r\n\r\n/* *********  /moris  **************************** */\r\n\r\n\r\n/* *********  ecommerce  **************************** */\r\n\r\n.price {\r\n  font-size: 40px;\r\n  font-weight: 400;\r\n  color: #26B99A;\r\n  margin: 0;\r\n}\r\n.prod_title {\r\n  border-bottom: 1px solid #DFDFDF;\r\n  padding-bottom: 5px;\r\n  margin: 30px 0;\r\n  font-size: 20px;\r\n  font-weight: 400;\r\n}\r\n.product-image img {\r\n  width: 90%;\r\n}\r\n.prod_color li {\r\n  margin: 0 10px;\r\n}\r\n.prod_color li p {\r\n  margin-bottom: 0;\r\n}\r\n.prod_size li {\r\n  padding: 0;\r\n}\r\n.prod_color .color {\r\n  width: 25px;\r\n  height: 25px;\r\n  border: 2px solid rgba(51, 51, 51, 0.28) !important;\r\n  padding: 2px;\r\n  border-radius: 50px;\r\n}\r\n.product_gallery a {\r\n  width: 100px;\r\n  height: 100px;\r\n  float: left;\r\n  margin: 10px;\r\n  border: 1px solid #e5e5e5;\r\n}\r\n.product_gallery a img {\r\n  width: 100%;\r\n  margin-top: 15px;\r\n}\r\n.product_price {\r\n  margin: 20px 0;\r\n  padding: 5px 10px;\r\n  background-color: #FFFFFF;\r\n  text-align: left;\r\n  border: 2px dashed #E0E0E0;\r\n}\r\n.price-tax {\r\n  font-size: 18px;\r\n}\r\n.product_social {\r\n  margin: 20px 0;\r\n}\r\n.product_social ul li a i {\r\n  font-size: 35px;\r\n}\r\n\r\n/* *********  /ecommerce  **************************** */\r\n\r\n/** login **/\r\n.login {\r\n  background:#F7F7F7;\r\n}\r\n.login .fa-paw {\r\n  font-size: 26px;\r\n}\r\na.hiddenanchor {\r\n  display: none;\r\n}\r\n.login_wrapper {\r\n  right: 0px;\r\n  margin: 0px auto;\r\n  margin-top: 5%;\r\n  max-width: 350px;\r\n  position: relative;\r\n}\r\n.registration_form, .login_form {\r\n  position: absolute;\r\n  top: 0px;\r\n  width: 100%;\r\n}\r\n.registration_form {\r\n  z-index: 21;\r\n  opacity: 0;\r\n  width: 100%;\r\n}\r\n.login_form {\r\n  z-index: 22;\r\n}\r\n#signup:target ~ .login_wrapper .registration_form, #signin:target ~ .login_wrapper .login_form {\r\n  z-index: 22;\r\n  -webkit-animation-name: fadeInLeft;\r\n  -moz-animation-name: fadeInLeft;\r\n  -ms-animation-name: fadeInLeft;\r\n  -o-animation-name: fadeInLeft;\r\n  animation-name: fadeInLeft;\r\n  -webkit-animation-delay: .1s;\r\n  -moz-animation-delay: .1s;\r\n  -o-animation-delay: .1s;\r\n  -ms-animation-delay: .1s;\r\n  animation-delay: .1s;\r\n}\r\n#signup:target ~ .login_wrapper .login_form, #signin:target ~ .login_wrapper .registration_form {\r\n  -webkit-animation-name: fadeOutLeft;\r\n  -moz-animation-name: fadeOutLeft;\r\n  -ms-animation-name: fadeOutLeft;\r\n  -o-animation-name: fadeOutLeft;\r\n  animation-name: fadeOutLeft;\r\n}\r\n.animate {\r\n  -webkit-animation-duration: 0.5s;\r\n  -webkit-animation-timing-function: ease;\r\n  -webkit-animation-fill-mode: both;\r\n  -moz-animation-duration: 0.5s;\r\n  -moz-animation-timing-function: ease;\r\n  -moz-animation-fill-mode: both;\r\n  -o-animation-duration: 0.5s;\r\n  -o-animation-timing-function: ease;\r\n  -o-animation-fill-mode: both;\r\n  -ms-animation-duration: 0.5s;\r\n  -ms-animation-timing-function: ease;\r\n  -ms-animation-fill-mode: both;\r\n  animation-duration: 0.5s;\r\n  animation-timing-function: ease;\r\n  animation-fill-mode: both;\r\n}\r\n/** /login **/\r\n\r\n/** signup **/\r\n.login_box {\r\n  padding: 20px;\r\n  margin: auto;\r\n}\r\n.left {\r\n  float: left;\r\n}\r\n.alignleft {\r\n  float: left;\r\n  margin-right: 15px;\r\n}\r\n.alignright {\r\n  float: right;\r\n  margin-left: 15px;\r\n}\r\n.clearfix:after, form:after {\r\n  content: \".\";\r\n  display: block;\r\n  height: 0;\r\n  clear: both;\r\n  visibility: hidden;\r\n}\r\n.login_content {\r\n  margin: 0 auto;\r\n  padding: 25px 0 0;\r\n  position: relative;\r\n  text-align: center;\r\n  text-shadow: 0 1px 0 #fff;\r\n  min-width: 280px;\r\n}\r\n.login_content a,\r\n.login_content .btn-default:hover {\r\n  text-decoration: none;\r\n}\r\n.login_content a:hover {\r\n  text-decoration: underline;\r\n}\r\n.login_content h1 {\r\n  font: normal 25px Helvetica, Arial, sans-serif;\r\n  letter-spacing: -0.05em;\r\n  line-height: 20px;\r\n  margin: 10px 0 30px;\r\n}\r\n.login_content h1:before, .login_content h1:after {\r\n  content: \"\";\r\n  height: 1px;\r\n  position: absolute;\r\n  top: 10px;\r\n  width: 27%;\r\n}\r\n.login_content h1:after {\r\n  background: rgb(126, 126, 126);\r\n  background: -moz-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -webkit-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -o-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -ms-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  right: 0;\r\n}\r\n.login_content h1:before {\r\n  background: rgb(126, 126, 126);\r\n  background: -moz-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -webkit-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -o-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -ms-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  left: 0;\r\n}\r\n.login_content h1:before, .login_content h1:after {\r\n  content: \"\";\r\n  height: 1px;\r\n  position: absolute;\r\n  top: 10px;\r\n  width: 20%;\r\n}\r\n.login_content h1:after {\r\n  background: rgb(126, 126, 126);\r\n  background: -moz-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -webkit-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -o-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -ms-linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: linear-gradient(left, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  right: 0;\r\n}\r\n.login_content h1:before {\r\n  background: rgb(126, 126, 126);\r\n  background: -moz-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -webkit-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -o-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: -ms-linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  background: linear-gradient(right, rgba(126, 126, 126, 1) 0%, rgba(255, 255, 255, 1) 100%);\r\n  left: 0;\r\n}\r\n.login_content form {\r\n  margin: 20px 0;\r\n  position: relative\r\n}\r\n.login_content form input[type=\"text\"], .login_content form input[type=\"email\"], .login_content form input[type=\"password\"] {\r\n  -webkit-border-radius: 3px;\r\n  -moz-border-radius: 3px;\r\n  -ms-border-radius: 3px;\r\n  -o-border-radius: 3px;\r\n  border-radius: 3px;\r\n  -webkit-box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  -moz-box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  -ms-box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  -o-box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  box-shadow: 0 1px 0 #fff, 0 -2px 5px rgba(0, 0, 0, 0.08) inset;\r\n  border: 1px solid #c8c8c8;\r\n  color: #777;\r\n  margin: 0 0 20px;\r\n  width: 100%;\r\n}\r\n.login_content form input[type=\"text\"]:focus, .login_content form input[type=\"email\"]:focus, .login_content form input[type=\"password\"]:focus {\r\n  -webkit-box-shadow: 0 0 2px #AA77B4 inset;\r\n  -moz-box-shadow: 0 0 2px #ed1c24 inset;\r\n  -ms-box-shadow: 0 0 2px #ed1c24 inset;\r\n  -o-box-shadow: 0 0 2px #ed1c24 inset;\r\n  box-shadow: 0 0 2px #A97AAD inset;\r\n  background-color: #fff;\r\n  border: 1px solid #A878AF;\r\n  outline: none;\r\n}\r\n#username {\r\n  background-position: 10px 10px !important\r\n}\r\n#password {\r\n  background-position: 10px -53px !important\r\n}\r\n.login_content form div a {\r\n  font-size: 12px;\r\n  margin: 10px 15px 0 0;\r\n}\r\n.reset_pass {\r\n  margin-top: 10px !important;\r\n}\r\n.login_content div .reset_pass {\r\n  margin-top: 13px !important;\r\n  margin-right: 39px;\r\n  float: right;\r\n}\r\n.separator {\r\n  border-top: 1px solid #D8D8D8;\r\n  margin-top: 10px;\r\n  padding-top: 10px;\r\n}\r\n.button {\r\n  background: rgb(247, 249, 250);\r\n  background: -moz-linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  background: -webkit-linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  background: -o-linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  background: -ms-linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  background: linear-gradient(top, rgba(247, 249, 250, 1) 0%, rgba(240, 240, 240, 1) 100%);\r\n  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f7f9fa', endColorstr='#f0f0f0', GradientType=0);\r\n  -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  -moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  -ms-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  -o-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) inset;\r\n  -webkit-border-radius: 0 0 5px 5px;\r\n  -moz-border-radius: 0 0 5px 5px;\r\n  -o-border-radius: 0 0 5px 5px;\r\n  -ms-border-radius: 0 0 5px 5px;\r\n  border-radius: 0 0 5px 5px;\r\n  border-top: 1px solid #CFD5D9;\r\n  padding: 15px 0;\r\n}\r\n.login_content form input[type=\"submit\"], #content form .submit {\r\n  float: left;\r\n  margin-left: 38px;\r\n}\r\n.button a {\r\n  background: url(http://cssdeck.com/uploads/media/items/8/8bcLQqF.png) 0 -112px no-repeat;\r\n  color: #7E7E7E;\r\n  font-size: 17px;\r\n  padding: 2px 0 2px 40px;\r\n  text-decoration: none;\r\n  -webkit-transition: all 0.3s ease;\r\n  -moz-transition: all 0.3s ease;\r\n  -ms-transition: all 0.3s ease;\r\n  -o-transition: all 0.3s ease;\r\n  transition: all 0.3s ease;\r\n}\r\n.button a:hover {\r\n  background-position: 0 -135px;\r\n  color: #00aeef;\r\n}\r\nheader {\r\n  width: 100%;\r\n}\r\n/** signup **/\r\n\r\n/** NProgress **/\r\n#nprogress .bar {\r\n  background: #1ABB9C;\r\n}\r\n\r\n#nprogress .peg {\r\n  box-shadow: 0 0 10px #1ABB9C, 0 0 5px #1ABB9C;\r\n}\r\n\r\n#nprogress .spinner-icon {\r\n  border-top-color: #1ABB9C;\r\n  border-left-color: #1ABB9C;\r\n}\r\n/** /NProgress **/\r\n\r\n/** bootstrap-wysiwyg **/\r\n.editor-wrapper {\r\n  min-height: 250px;\r\n  background-color: white;\r\n  border-collapse: separate;\r\n  border: 1px solid rgb(204, 204, 204);\r\n  padding: 4px;\r\n  box-sizing: content-box;\r\n  -webkit-box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;\r\n  box-shadow: rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset;\r\n  border-top-right-radius: 3px; border-bottom-right-radius: 3px;\r\n  border-bottom-left-radius: 3px; border-top-left-radius: 3px;\r\n  overflow: scroll;\r\n  outline: none;\r\n}\r\n\r\n.voiceBtn {\r\n  width: 20px;\r\n  color: transparent;\r\n  background-color: transparent;\r\n  transform: scale(2.0, 2.0);\r\n  -webkit-transform: scale(2.0, 2.0);\r\n  -moz-transform: scale(2.0, 2.0);\r\n  border: transparent;\r\n  cursor: pointer;\r\n  box-shadow: none;\r\n  -webkit-box-shadow: none;\r\n}\r\n\r\ndiv[data-role=\"editor-toolbar\"] {\r\n  -webkit-user-select: none;\r\n  -moz-user-select: none;\r\n  -ms-user-select: none;\r\n  user-select: none;\r\n}\r\n\r\n.dropdown-menu a {\r\n  cursor: pointer;\r\n}\r\n/** /bootstrap-wysiwyg **/\r\n\r\n/** Select2 **/\r\n.select2-container--default .select2-selection--single,\r\n.select2-container--default .select2-selection--multiple {\r\n  background-color: #fff;\r\n  border: 1px solid #ccc;\r\n  border-radius: 0;\r\n  min-height: 38px;\r\n}\r\n\r\n.select2-container--default .select2-selection--single .select2-selection__rendered {\r\n  color: #73879C;\r\n  padding-top: 5px;\r\n}\r\n\r\n.select2-container--default .select2-selection--multiple .select2-selection__rendered {\r\n  padding-top: 3px;\r\n}\r\n\r\n.select2-container--default .select2-selection--single .select2-selection__arrow {\r\n  height: 36px;\r\n}\r\n\r\n.select2-container--default .select2-selection--multiple .select2-selection__choice,\r\n.select2-container--default .select2-selection--multiple .select2-selection__clear {\r\n  margin-top: 2px;\r\n  border: none;\r\n  border-radius: 0;\r\n  padding: 3px 5px;\r\n}\r\n\r\n.select2-container--default.select2-container--focus .select2-selection--multiple {\r\n  border: 1px solid #ccc;\r\n}\r\n/** /Select2 **/\r\n\r\n/** Switchery **/\r\n.switchery {\r\n  width: 32px;\r\n  height: 20px;\r\n}\r\n\r\n.switchery>small {\r\n  width: 20px;\r\n  height: 20px;\r\n}\r\n/** /Switchery **/\r\n\r\n/** Normalize.css **/\r\nfieldset {\r\n  border: none;\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n/** /Normalize.css **/\r\n\r\n/** jQuery Smart Wizard  **/\r\n.form_wizard .stepContainer {\r\n  display: block;\r\n  position: relative;\r\n  margin: 0;\r\n  padding: 0;\r\n  border: 0 solid #CCC;\r\n  overflow-x: hidden;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps {\r\n  display: table;\r\n  list-style: none;\r\n  position: relative;\r\n  width: 100%;\r\n  margin: 0 0 20px;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li {\r\n  display: table-cell;\r\n  text-align: center;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a, .wizard_horizontal ul.wizard_steps li:hover {\r\n  display: block;\r\n  position: relative;\r\n  -moz-opacity: 1;\r\n  filter: alpha(opacity= 100);\r\n  opacity: 1;\r\n  color: #666;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a:before {\r\n  content: \"\";\r\n  position: absolute;\r\n  height: 4px;\r\n  background: #ccc;\r\n  top: 20px;\r\n  width: 100%;\r\n  z-index: 4;\r\n  left: 0;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a.disabled .step_no {\r\n  background: #ccc;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a .step_no {\r\n  width: 40px;\r\n  height: 40px;\r\n  line-height: 40px;\r\n  border-radius: 100px;\r\n  display: block;\r\n  margin: 0 auto 5px;\r\n  font-size: 16px;\r\n  text-align: center;\r\n  position: relative;\r\n  z-index: 5;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a.selected:before, .step_no {\r\n  background: #34495E;\r\n  color: #fff;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li a.done:before, .wizard_horizontal ul.wizard_steps li a.done .step_no {\r\n  background: #1ABB9C;\r\n  color: #fff;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li:first-child a:before {\r\n  left: 50%;\r\n}\r\n\r\n.wizard_horizontal ul.wizard_steps li:last-child a:before {\r\n  right: 50%;\r\n  width: 50%;\r\n  left: auto;\r\n}\r\n\r\n.wizard_verticle .stepContainer {\r\n  width: 80%;\r\n  float: left;\r\n  padding: 0 10px;\r\n}\r\n\r\n.actionBar {\r\n  width: 100%;\r\n  border-top: 1px solid #ddd;\r\n  padding: 10px 5px;\r\n  text-align: right;\r\n  margin-top: 10px;\r\n}\r\n\r\n.actionBar .buttonDisabled {\r\n  cursor: not-allowed;\r\n  pointer-events: none;\r\n  opacity: .65;\r\n  filter: alpha(opacity=65);\r\n  -webkit-box-shadow: none;\r\n  box-shadow: none;\r\n}\r\n\r\n.actionBar a {\r\n  margin: 0 3px;\r\n}\r\n\r\n.wizard_verticle .wizard_content {\r\n  width: 80%;\r\n  float: left;\r\n  padding-left: 20px;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps {\r\n  display: table;\r\n  list-style: none;\r\n  position: relative;\r\n  width: 20%;\r\n  float: left;\r\n  margin: 0 0 20px;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li {\r\n  display: list-item;\r\n  text-align: center;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a {\r\n  height: 80px;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a:first-child {\r\n  margin-top: 20px;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a, .wizard_verticle ul.wizard_steps li:hover {\r\n  display: block;\r\n  position: relative;\r\n  -moz-opacity: 1;\r\n  filter: alpha(opacity= 100);\r\n  opacity: 1;\r\n  color: #666;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a:before {\r\n  content: \"\";\r\n  position: absolute;\r\n  height: 100%;\r\n  background: #ccc;\r\n  top: 20px;\r\n  width: 4px;\r\n  z-index: 4;\r\n  left: 49%;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a.disabled .step_no {\r\n  background: #ccc;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a .step_no {\r\n  width: 40px;\r\n  height: 40px;\r\n  line-height: 40px;\r\n  border-radius: 100px;\r\n  display: block;\r\n  margin: 0 auto 5px;\r\n  font-size: 16px;\r\n  text-align: center;\r\n  position: relative;\r\n  z-index: 5;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a.selected:before, .step_no {\r\n  background: #34495E;\r\n  color: #fff;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li a.done:before, .wizard_verticle ul.wizard_steps li a.done .step_no {\r\n  background: #1ABB9C;\r\n  color: #fff;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li:first-child a:before {\r\n  left: 49%;\r\n}\r\n\r\n.wizard_verticle ul.wizard_steps li:last-child a:before {\r\n  left: 49%;\r\n  left: auto;\r\n  width: 0;\r\n}\r\n\r\n.form_wizard .loader {\r\n  display: none;\r\n}\r\n\r\n.form_wizard .msgBox {\r\n  display: none;\r\n}\r\n/** jQuery Smart Wizard  **/\r\n\r\n/** bootstrap-progressbar  **/\r\n.progress {\r\n  border-radius: 0;\r\n}\r\n\r\n.progress-bar-info {\r\n  background-color: #3498DB;\r\n}\r\n\r\n.progress-bar-success {\r\n    background-color: #26B99A;\r\n}\r\n\r\n.progress_summary .progress {\r\n  margin: 5px 0 12px !important;\r\n}\r\n\r\n.progress_summary .row {\r\n  margin-bottom: 5px;\r\n}\r\n\r\n.progress_summary .row .col-xs-2 {\r\n  padding: 0\r\n}\r\n\r\n.progress_summary .more_info span {\r\n  text-align: right;\r\n  float: right;\r\n}\r\n\r\n.progress_summary .data span {\r\n  text-align: right;\r\n  float: right;\r\n}\r\n\r\n.progress_summary p {\r\n  margin-bottom: 3px;\r\n  width: 100%;\r\n}\r\n\r\n.progress_title .left {\r\n  float: left;\r\n  text-align: left;\r\n}\r\n\r\n.progress_title .right {\r\n  float: right;\r\n  text-align: right;\r\n  font-weight: 300;\r\n}\r\n\r\n.progress.progress_sm {\r\n  border-radius: 0;\r\n  margin-bottom: 18px;\r\n  height: 10px !important;\r\n}\r\n\r\n.progress.progress_sm .progress-bar {\r\n  height: 10px !important;\r\n}\r\n\r\n.dashboard_graph p {\r\n  margin: 0 0 4px;\r\n}\r\n\r\nul.verticle_bars {\r\n  width: 100%;\r\n}\r\n\r\nul.verticle_bars li {\r\n  width: 23%;\r\n  height: 200px;\r\n  margin: 0;\r\n}\r\n\r\n.progress.vertical.progress_wide {\r\n  width: 35px;\r\n}\r\n/** bootstrap-progressbar  **/\r\n\r\n/** PNotify **/\r\n.alert-success {\r\n  color: #ffffff;\r\n  background-color: rgba(38, 185, 154, 0.88);\r\n  border-color: rgba(38, 185, 154, 0.88);\r\n}\r\n\r\n.alert-info {\r\n  color: #E9EDEF;\r\n  background-color: rgba(52, 152, 219, 0.88);\r\n  border-color: rgba(52, 152, 219, 0.88);\r\n}\r\n\r\n.alert-warning {\r\n  color: #E9EDEF;\r\n  background-color: rgba(243, 156, 18, 0.88);\r\n  border-color: rgba(243, 156, 18, 0.88);\r\n}\r\n\r\n.alert-danger,\r\n.alert-error {\r\n  color: #E9EDEF;\r\n  background-color: rgba(231, 76, 60, 0.88);\r\n  border-color: rgba(231, 76, 60, 0.88);\r\n}\r\n\r\n.ui-pnotify.dark .ui-pnotify-container {\r\n  color: #E9EDEF;\r\n  background-color: rgba(52, 73, 94, 0.88);\r\n  border-color: rgba(52, 73, 94, 0.88);\r\n}\r\n\r\n.custom-notifications {\r\n  position: fixed;\r\n  margin: 15px;\r\n  right: 0;\r\n  float: right;\r\n  width: 400px;\r\n  z-index: 4000;\r\n  bottom: 0;\r\n}\r\n\r\nul.notifications {\r\n  float: right;\r\n  display: block;\r\n  margin-bottom: 7px;\r\n  padding: 0;\r\n  width: 100%;\r\n}\r\n\r\n.notifications li {\r\n  float: right;\r\n  margin: 3px;\r\n  width: 36px;\r\n  box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.notifications li:last-child {\r\n  margin-left: 0;\r\n}\r\n\r\n.notifications a {\r\n  display: block;\r\n  text-align: center;\r\n  text-decoration: none;\r\n  text-transform: uppercase;\r\n  padding: 9px 8px;\r\n}\r\n\r\n.tabbed_notifications .text {\r\n  padding: 5px 15px;\r\n  height: 140px;\r\n  border-radius: 7px;\r\n  box-shadow: 6px 6px 6px rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.tabbed_notifications div p {\r\n  display: inline-block;\r\n}\r\n\r\n.tabbed_notifications h2 {\r\n  font-weight: bold;\r\n  text-transform: uppercase;\r\n  width: 80%;\r\n  float: left;\r\n  height: 20px;\r\n  text-overflow: ellipsis;\r\n  overflow: hidden;\r\n  display: block;\r\n}\r\n\r\n.tabbed_notifications .close {\r\n  padding: 5px;\r\n  color: #E9EDEF;\r\n  float: right;\r\n  opacity: 1;\r\n}\r\n/** /PNotify **/\r\n\r\n/** bootstrap-daterangepicker **/\r\n.daterangepicker.dropdown-menu {\r\n  font-size: 13px;\r\n  padding: 0;\r\n  overflow: hidden;\r\n}\r\n\r\n.daterangepicker.picker_1 {\r\n  background: #34495E;\r\n  color: #ECF0F1;\r\n}\r\n\r\n.daterangepicker.picker_1 table.table-condensed thead tr:first-child {\r\n  background: #1ABB9C;\r\n}\r\n\r\n.daterangepicker table.table-condensed thead tr:first-child th {\r\n  line-height: 28px;\r\n  text-align: center;\r\n}\r\n\r\n.daterangepicker.picker_1 table.table-condensed thead tr {\r\n  background: #213345;\r\n}\r\n\r\n.daterangepicker table.table-condensed thead tr {\r\n  line-height: 14px;\r\n}\r\n\r\n.daterangepicker table.table-condensed tbody tr:first-child td {\r\n  padding-top: 10px;\r\n}\r\n\r\n.daterangepicker table.table-condensed th:first-child, .daterangepicker table.table-condensed td:first-child {\r\n  padding-left: 12px\r\n}\r\n\r\n.daterangepicker table.table-condensed th:last-child, .daterangepicker table.table-condensed td:last-child {\r\n  padding-right: 12px\r\n}\r\n\r\n.table-condensed>thead>tr>th, .table-condensed>tbody>tr>th, .table-condensed>tfoot>tr>th, .table-condensed>thead>tr>td, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>td {\r\n  padding: 5px 7px;\r\n  text-align: center;\r\n}\r\n\r\n.daterangepicker table.table-condensed tbody tr:last-child td {\r\n  padding-bottom: 10px;\r\n}\r\n\r\n.daterangepicker.picker_2 table.table-condensed thead tr:first-child {\r\n  color: inherit;\r\n}\r\n\r\n.daterangepicker.picker_2 table.table-condensed thead tr {\r\n  color: #1ABB9C;\r\n}\r\n\r\n.daterangepicker.picker_3 table.table-condensed thead tr:first-child {\r\n  background: #1ABB9C;\r\n  color: #ECF0F1;\r\n}\r\n\r\n.daterangepicker.picker_4 table.table-condensed tbody td {\r\n  background: #ECF0F1;\r\n  color: #34495E;\r\n  border: 1px solid #fff;\r\n  padding: 4px 7px;\r\n}\r\n\r\n.daterangepicker.picker_4 table.table-condensed tbody td.active {\r\n  background: #536A7F;\r\n  color: #fff;\r\n}\r\n\r\n.daterangepicker.picker_4 table.table-condensed thead tr:first-child {\r\n  background: #34495E;\r\n  color: #ECF0F1;\r\n}\r\n\r\n.xdisplay_input {\r\n  width: 240px;\r\n  overflow: hidden;\r\n  padding: 0;\r\n}\r\n\r\n.xdisplay {\r\n  background-color: #fff;\r\n  -webkit-background-clip: padding-box;\r\n  background-clip: padding-box;\r\n  border: 1px solid #ccc;\r\n  margin-bottom: 20px;\r\n  border: 1px solid rgba(0, 0, 0, .15);\r\n  border-radius: 4px;\r\n  width: 230px;\r\n  overflow: hidden;\r\n  -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);\r\n  box-shadow: 0 6px 12px rgba(0, 0, 0, .175);\r\n}\r\n\r\n.daterangepicker.opensright .ranges, .daterangepicker.opensright .calendar, .daterangepicker.openscenter .ranges, .daterangepicker.openscenter .calendar {\r\n  float: right;\r\n}\r\n\r\n.daterangepicker.dropdown-menu .calendar {}\r\n.daterangepicker table {\r\n  width: 100%;\r\n  margin: 0;\r\n}\r\n\r\n.daterangepicker td, .daterangepicker th {\r\n  text-align: center;\r\n  width: 20px;\r\n  height: 20px;\r\n  cursor: pointer;\r\n  white-space: nowrap;\r\n}\r\n\r\n.daterangepicker td.off {\r\n  color: #999;\r\n}\r\n\r\n.daterangepicker td.disabled {\r\n  color: #999;\r\n}\r\n\r\n.daterangepicker td.available:hover, .daterangepicker th.available:hover {\r\n  background: #eee;\r\n  color: #34495E;\r\n}\r\n\r\n.daterangepicker td.in-range {\r\n  background: #E4E7EA;\r\n  -webkit-border-radius: 0;\r\n  -moz-border-radius: 0;\r\n  border-radius: 0;\r\n}\r\n\r\n.daterangepicker td.available + td.start-date {\r\n  -webkit-border-radius: 4px 0 0 4px;\r\n  -moz-border-radius: 4px 0 0 4px;\r\n  border-radius: 4px 0 0 4px;\r\n}\r\n\r\n.daterangepicker td.in-range + td.end-date {\r\n  -webkit-border-radius: 0 4px 4px 0;\r\n  -moz-border-radius: 0 4px 4px 0;\r\n  border-radius: 0 4px 4px 0;\r\n}\r\n\r\n.daterangepicker td.start-date.end-date {\r\n  -webkit-border-radius: 4px !important;\r\n  -moz-border-radius: 4px !important;\r\n  border-radius: 4px !important;\r\n}\r\n\r\n.daterangepicker td.active, .daterangepicker td.active:hover {\r\n  background-color: #536A7F;\r\n  color: #fff;\r\n}\r\n\r\n.daterangepicker td.week, .daterangepicker th.week {\r\n  font-size: 80%;\r\n  color: #ccc;\r\n}\r\n\r\n.daterangepicker select.monthselect, .daterangepicker select.yearselect {\r\n  font-size: 12px;\r\n  padding: 1px;\r\n  height: auto;\r\n  margin: 0;\r\n  cursor: default;\r\n  height: 30px;\r\n  border: 1px solid #ADB2B5;\r\n  line-height: 30px;\r\n  border-radius: 0px !important;\r\n}\r\n\r\n.daterangepicker select.monthselect {\r\n  margin-right: 2%;\r\n  width: 56%;\r\n}\r\n\r\n.daterangepicker select.yearselect {\r\n  width: 40%;\r\n}\r\n\r\n.daterangepicker select.hourselect, .daterangepicker select.minuteselect, .daterangepicker select.ampmselect {\r\n  width: 50px;\r\n  margin-bottom: 0;\r\n}\r\n\r\n.daterangepicker_start_input {\r\n  float: left;\r\n}\r\n\r\n.daterangepicker_end_input {\r\n  float: left;\r\n  padding-left: 11px;\r\n}\r\n\r\n.daterangepicker th.month {\r\n  width: auto;\r\n}\r\n\r\n.daterangepicker .daterangepicker_start_input label, .daterangepicker .daterangepicker_end_input label {\r\n  color: #333;\r\n  display: block;\r\n  font-size: 11px;\r\n  font-weight: normal;\r\n  height: 20px;\r\n  line-height: 20px;\r\n  margin-bottom: 2px;\r\n  text-shadow: #fff 1px 1px 0px;\r\n  text-transform: uppercase;\r\n  width: 74px;\r\n}\r\n\r\n.daterangepicker .ranges input {\r\n  font-size: 11px;\r\n}\r\n\r\n.daterangepicker .ranges .input-mini {\r\n  background-color: #eee;\r\n  border: 1px solid #ccc;\r\n  border-radius: 4px;\r\n  color: #555;\r\n  display: block;\r\n  font-size: 11px;\r\n  height: 30px;\r\n  line-height: 30px;\r\n  vertical-align: middle;\r\n  margin: 0 0 10px 0;\r\n  padding: 0 6px;\r\n  width: 74px;\r\n}\r\n\r\n.daterangepicker .ranges .input-mini:hover {\r\n  cursor: pointer;\r\n}\r\n\r\n.daterangepicker .ranges ul {\r\n  list-style: none;\r\n  margin: 0;\r\n  padding: 0;\r\n}\r\n\r\n.daterangepicker .ranges li {\r\n  font-size: 13px;\r\n  background: #f5f5f5;\r\n  border: 1px solid #f5f5f5;\r\n  color: #536A7F;\r\n  padding: 3px 12px;\r\n  margin-bottom: 8px;\r\n  -webkit-border-radius: 5px;\r\n  -moz-border-radius: 5px;\r\n  border-radius: 5px;\r\n  cursor: pointer;\r\n}\r\n\r\n.daterangepicker .ranges li.active, .daterangepicker .ranges li:hover {\r\n  background: #536A7F;\r\n  border: 1px solid #536A7F;\r\n  color: #fff;\r\n}\r\n\r\n.daterangepicker .calendar {\r\n  display: none;\r\n  max-width: 270px;\r\n}\r\n\r\n.daterangepicker.show-calendar .calendar {\r\n  display: block;\r\n}\r\n\r\n.daterangepicker .calendar.single .calendar-date {\r\n  border: none;\r\n}\r\n\r\n.daterangepicker.single .ranges, .daterangepicker.single .calendar {\r\n  float: none;\r\n}\r\n\r\n.daterangepicker .ranges {\r\n  width: 160px;\r\n  text-align: left;\r\n  margin: 4px;\r\n}\r\n\r\n.daterangepicker .ranges .range_inputs>div {\r\n  float: left;\r\n}\r\n\r\n.daterangepicker .ranges .range_inputs>div:nth-child(2) {\r\n  padding-left: 11px;\r\n}\r\n\r\n.daterangepicker.opensleft .ranges, .daterangepicker.opensleft .calendar {\r\n  float: left;\r\n  margin: 4px;\r\n}\r\n\r\n.daterangepicker .icon {\r\n  width: 20px;\r\n  height: 20px;\r\n  display: inline-block;\r\n  vertical-align: middle;\r\n}\r\n/** bootstrap-daterangepicker **/\r\n\r\n/** FullCalendar **/\r\n.fc-state-default {\r\n  background: #f5f5f5;\r\n  color: #73879C;\r\n}\r\n\r\n.fc-state-down,\r\n.fc-state-active {\r\n  color: #333;\r\n  background: #ccc;\r\n}\r\n/** /FullCalendar **/\r\n\r\n/** Dropzone.js **/\r\n.dropzone {\r\n  min-height: 300px;\r\n  border: 1px solid #e5e5e5;\r\n}\r\n/** /Dropzone.js **/\r\n.leftAlign {\r\n  text-align: left;\r\n}\r\n\r\n.list-group-item-warning {\r\n  border-left: 1px solid red;\r\n}\r\n\r\n.glyph-icon-appended {\r\n  color: green;\r\n}\r\n\r\n.input-group-addon input[type=\"radio\"], .input-group-addon input[type=\"checkbox\"] {\r\n  cursor: pointer;\r\n}\r\n\r\n.well-sm {\r\n  font-size: small;\r\n}\r\n\r\n.pointerElement {\r\n  cursor: pointer;\r\n}\r\n\r\n.modal-xlg {\r\n  max-height: 90vh;\r\n}\r\n.modal-xlg  .modal-content {\r\n   max-height: 100%;\r\n }\r\n\r\n.modal-xlg .modal-body {\r\n  max-height: calc(100% - 60px);\r\n}\r\n\r\na.details {\r\n  float: right;\r\n  display: block;\r\n  margin: 5px;\r\n  cursor: pointer;\r\n  color: blue;\r\n}\r\n\r\n.ng2-smart-table td, .ng2-smart-table th {\r\n    font-family: inherit !important;\r\n    font-size: 1.25rem !important;\r\n    cursor: pointer;\r\n}\r\n\r\n.select2-result-repository {\r\n    padding-top: 4px;\r\n    padding-bottom: 3px;\r\n}\r\n.select2-result-repository__meta {\r\n    margin-left: 70px;\r\n    font-size: x-small;\r\n}\r\n.select2-result-repository__title {\r\n    color: black !important;\r\n    font-weight: bold !important;\r\n    word-wrap: break-word;\r\n    line-height: 1.1;\r\n    margin-bottom: 4px;\r\n}\r\n.select2-result-repository__forks,\r\n.select2-result-repository__stargazers {\r\n    margin-right: 1em;\r\n    color: red !important;\r\n}\r\n.select2-result-repository__forks,\r\n.select2-result-repository__stargazers,\r\n.select2-result-repository__watchers {\r\n    display: inline-block;\r\n    color: #aaa;\r\n    font-size: 11px;\r\n}\r\n.select2-results__option--highlighted .select2-result-repository__title {\r\n    color: white;\r\n}\r\n.select2-results__option--highlighted .select2-result-repository__forks,\r\n.select2-results__option--highlighted .select2-result-repository__stargazers,\r\n.select2-results__option--highlighted .select2-result-repository__watchers {\r\n    color: #c6dcef;\r\n    display: inline-block;\r\n    margin-right: 3px;\r\n}\r\n\r\n.sw-container {\r\n    height: auto !important;\r\n}\r\n\r\nselect.form-control:not([size]):not([multiple]) {\r\n    height: auto !important;\r\n    cursor: pointer;\r\n}\r\n\r\n.child-table {\r\n  position: absolute !important;\r\n  top: 50% !important;;\r\n  left: 50% !important;;\r\n  transform: translate(-50%, -50%) !important;;\r\n}\r\n\r\n.alert-toggle-button {\r\n  width: 48%;\r\n  display: inline-block;\r\n  border: 1px solid;\r\n  cursor: pointer;\r\n  margin: auto;\r\n  padding: 3px;\r\n  font-size: smaller;\r\n}\r\n\r\n.alert-toggle-button i.fa {\r\n  padding-left: 10px;\r\n}", ""]);
 
 // exports
 
@@ -44469,7 +44473,7 @@ module.exports = util;
 /***/ "./node_modules/cytoscape/src/version.json":
 /***/ function(module, exports) {
 
-module.exports = "2.7.14";
+module.exports = "2.7.14"
 
 /***/ },
 
@@ -103305,13 +103309,18 @@ exports.AbstractComponentSpecificView = AbstractComponentSpecificView;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-"use strict";
+/* WEBPACK VAR INJECTION */(function($) {"use strict";
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var cytoscape = __webpack_require__("./node_modules/cytoscape/src/index.js");
 var E2EView = (function () {
     function E2EView() {
         this._cy = undefined;
         this.preferences = {};
         this.id = "e2eview" + GUID.newGuid();
+        this.shelfLife = 0;
+        this.isShelfLifeSet = false;
+        this.verticesCount = 0;
+        this.arrivalsCount = 0;
     }
     // checkboxes for setting which data aspects to display
     E2EView.prototype.getDisplayedMetadata = function () {
@@ -103404,7 +103413,7 @@ var E2EView = (function () {
     };
     E2EView.prototype.draw = function (initialData) {
         var _layout = this.getLayout();
-        console.log("id element for find: ", document.getElementById(this.id));
+        console.debug("id element for find: ", document.getElementById(this.id));
         var cy = cytoscape({
             container: document.getElementById(this.id),
             elements: this.getData(initialData),
@@ -103466,21 +103475,46 @@ var E2EView = (function () {
                 }
             ]
         });
-        console.log(cy);
         this._cy = cy;
         return cy;
     };
-    E2EView.prototype.toFixed = function (value, precision) {
-        var power = Math.pow(10, precision || 0);
-        return String(Math.round(value * power) / power);
+    E2EView.toFixed = function (fieldName, value, precision) {
+        switch (fieldName) {
+            case "responseTime90":
+            case "responseTime95":
+            case "responseTime98":
+            case "responseTimeStdDev":
+            case "maxResponseTime":
+            case "meanResponseTime":
+                return fieldName + "(ms): " + value / Math.pow(10, 6);
+            default:
+                var power = Math.pow(10, precision || 5);
+                return fieldName + ": " + Math.round(value * power) / power;
+        }
     };
     E2EView.prototype.updateData = function (currentData) {
+        if (document.hidden || !$('#' + this.id).length)
+            return; // do not update
+        var originalData = currentData;
         currentData = JSON.parse(JSON.stringify(currentData).replace(/\//g, E2EView.DELIMITER));
-        console.log(currentData);
-        var result = [];
+        console.debug(currentData);
         var arrivals = [];
-        if (currentData["arrivals"] != undefined) {
+        console.debug("Arriviles count: ", Object.keys(currentData["arrivals"]).length, " saved count: ", this.arrivalsCount);
+        if (!util_1.isNullOrUndefined(currentData["arrivals"])) {
             arrivals = currentData["arrivals"];
+            if (Object.keys(arrivals).length != this.arrivalsCount) {
+                //  this._cy.json({elements: this.getData(originalData)});
+                this._cy.load(this.getData(originalData));
+                return;
+            }
+        }
+        console.debug("vertices count: ", Object.keys(currentData["vertices"]).length, " saved count: ", this.verticesCount);
+        if (!util_1.isNullOrUndefined(currentData["vertices"])) {
+            if (Object.keys(currentData["vertices"]).length != this.verticesCount) {
+                // this._cy.json({elements: this.getData(originalData)});
+                this._cy.load(this.getData(originalData));
+                return;
+            }
         }
         for (var key in arrivals) {
             var _node = this._cy.$("#" + key);
@@ -103500,11 +103534,13 @@ var E2EView = (function () {
         var result = [];
         var vertices = [];
         var arrivals = [];
-        if (currentData["vertices"] != undefined) {
+        if (!util_1.isNullOrUndefined(currentData["vertices"])) {
             vertices = currentData["vertices"];
+            this.verticesCount = Object.keys(vertices).length;
         }
-        if (currentData["arrivals"] != undefined) {
+        if (!util_1.isNullOrUndefined(currentData["arrivals"])) {
             arrivals = currentData["arrivals"];
+            this.arrivalsCount = Object.keys(arrivals).length;
         }
         // add all plain vertices
         for (var key in arrivals) {
@@ -103582,11 +103618,10 @@ var E2EView = (function () {
         for (var i = 0; i < _md.length; i++) {
             if (data != undefined) {
                 if (_md[i].indexOf("/") > 0) {
-                    result += "\n" + _md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")" + ": "
-                        + this.toFixed(data[_md[i].split("/")[0]][_md[i].split("/")[1]], 5);
+                    result += "\n" + E2EView.toFixed(_md[i].split("/")[0] + "(" + _md[i].split("/")[1] + ")", data[_md[i].split("/")[0]][_md[i].split("/")[1]]);
                 }
                 else {
-                    result += "\n" + _md[i] + ": " + this.toFixed(data[_md[i]], 5);
+                    result += "\n" + E2EView.toFixed(_md[i], data[_md[i]]);
                 }
             }
         }
@@ -103611,6 +103646,7 @@ var GUID = (function () {
     return GUID;
 }());
 
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -103621,6 +103657,7 @@ var GUID = (function () {
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_component_specific_view_1 = __webpack_require__("./src/app/analysis/model/abstract.component.specific.view.ts");
 var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var ChildComponentsView = (function (_super) {
     __extends(ChildComponentsView, _super);
     function ChildComponentsView() {
@@ -103634,6 +103671,9 @@ var ChildComponentsView = (function (_super) {
         _value["rootComponent"] = this.rootComponent;
         if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
+        }
+        if (this.isShelfLifeSet) {
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife, 1000);
         }
         return _value;
     };
@@ -103652,6 +103692,7 @@ exports.ChildComponentsView = ChildComponentsView;
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_component_specific_view_1 = __webpack_require__("./src/app/analysis/model/abstract.component.specific.view.ts");
 var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var ComponentModulesView = (function (_super) {
     __extends(ComponentModulesView, _super);
     function ComponentModulesView() {
@@ -103665,6 +103706,9 @@ var ComponentModulesView = (function (_super) {
         _value["rootComponent"] = this.rootComponent;
         if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
+        }
+        if (this.isShelfLifeSet) {
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife, 1000);
         }
         return _value;
     };
@@ -103710,6 +103754,7 @@ exports.Dashboard = Dashboard;
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
 var abstract_e2e_view_1 = __webpack_require__("./src/app/analysis/model/abstract.e2e.view.ts");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var LandscapeView = (function (_super) {
     __extends(LandscapeView, _super);
     function LandscapeView() {
@@ -103722,6 +103767,9 @@ var LandscapeView = (function (_super) {
         _value["name"] = this.name;
         if (!$.isEmptyObject(this.preferences)) {
             _value["preferences"] = this.preferences;
+        }
+        if (this.isShelfLifeSet) {
+            _value["shelfLife"] = app_utils_1.SnampUtils.toDurationString(this.shelfLife, 1000);
         }
         return _value;
     };
@@ -103743,11 +103791,13 @@ var abstract_component_specific_view_1 = __webpack_require__("./src/app/analysis
 var child_components_view_1 = __webpack_require__("./src/app/analysis/model/child.components.view.ts");
 var component_modules_view_1 = __webpack_require__("./src/app/analysis/model/component.modules.view.ts");
 var landscape_view_1 = __webpack_require__("./src/app/analysis/model/landscape.view.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
     }
-    Factory.createView = function (viewName, viewType, rootComponent) {
+    Factory.createView = function (viewName, viewType, rootComponent, shelfLife) {
         var _view;
         switch (viewType) {
             case abstract_e2e_view_1.E2EView.CHILD_COMPONENT:
@@ -103763,13 +103813,17 @@ var Factory = (function () {
                 throw new Error("Type " + viewType + " is unknown and cannot be parsed correctly");
         }
         _view.name = viewName;
-        if (rootComponent) {
+        if (!util_1.isNullOrUndefined(rootComponent)) {
             if (_view instanceof abstract_component_specific_view_1.AbstractComponentSpecificView) {
                 _view.rootComponent = rootComponent;
             }
             else {
-                console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
+                console.debug("Attempt to set rootComponent for non component specific view. Will be ignored");
             }
+        }
+        if (!util_1.isNullOrUndefined(shelfLife)) {
+            _view.shelfLife = shelfLife;
+            _view.isShelfLifeSet = true;
         }
         // default values for the view
         _view.setDisplayedMetadata([]);
@@ -103812,13 +103866,17 @@ var Factory = (function () {
                     _view.rootComponent = _json["rootComponent"];
                 }
             }
+            if (_json["shelfLife"] != undefined) {
+                _view.shelfLife = app_utils_1.SnampUtils.parseDuration(_json["shelfLife"]) / 1000;
+                _view.isShelfLifeSet = true;
+            }
             if (_json["name"] != undefined) {
                 _view.name = _json["name"];
             }
             if (_json["preferences"] != undefined) {
                 _view.preferences = _json["preferences"];
             }
-            console.log("New view has been instantiated from the json data object: ", _view);
+            console.debug("New view has been instantiated from the json data object: ", _view);
             return _view;
         }
     };
@@ -103845,11 +103903,9 @@ __webpack_require__("./node_modules/style-loader/index.js!./node_modules/css-loa
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
 var platform_browser_1 = __webpack_require__("./node_modules/@angular/platform-browser/index.js");
-var angular2_websocket_1 = __webpack_require__("./node_modules/angular2-websocket/angular2-websocket.js");
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var bootstrap_1 = __webpack_require__("./node_modules/angular2-modal/plugins/bootstrap/index.js");
-var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var PNotify = __webpack_require__("./node_modules/pnotify/src/pnotify.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.mobile.js");
 __webpack_require__("./node_modules/pnotify/src/pnotify.buttons.js");
@@ -103864,27 +103920,9 @@ var App = (function () {
         title.setTitle("SNAMP web console");
         overlay.defaultViewContainer = vcRef;
     }
-    App.prototype.getWsAddress = function () {
-        var loc = window.location, new_uri;
-        if (loc.protocol === "https:") {
-            new_uri = "wss:";
-        }
-        else {
-            new_uri = "ws:";
-        }
-        new_uri += "//" + loc.host;
-        new_uri += loc.pathname + "console/events";
-        return new_uri;
-    };
     App.prototype.ngAfterViewInit = function () {
         var _this = this;
-        this.ws = new angular2_websocket_1.$WebSocket(this.getWsAddress(), [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
-        this.ws.getDataStream()
-            .map(function (msg) { return JSON.parse(msg.data); })
-            .subscribe(function (msg) {
-            var _log = factory_1.NotificationFactory.makeFromJson(msg);
-            _this._snampLogService.pushLog(_log);
-            // do not show notifications in case we are inside of snamp configuration (there is a table with notifications)
+        this._snampLogService.getLogObs().subscribe(function (log) {
             if (_this._router.url.indexOf('/logview') < 0) {
                 // limit the notifications maximum count
                 if (_this.notificationCount > 3) {
@@ -103893,9 +103931,9 @@ var App = (function () {
                 }
                 if (!document.hidden && _this._snampLogService.displayAlerts) {
                     var notice = new PNotify({
-                        title: _log.level,
-                        text: _log.shortDescription() + "<a class='details'>Details</a>",
-                        type: _log.level,
+                        title: log.level,
+                        text: log.shortDescription() + "<a class='details'>Details</a>",
+                        type: log.level,
                         hide: false,
                         styling: 'bootstrap3',
                         addclass: "stack-bottomright",
@@ -103907,7 +103945,7 @@ var App = (function () {
                         _thisReference_1.modal.alert()
                             .size('lg')
                             .title("Details for notification")
-                            .body(_log.htmlDetails())
+                            .body(log.htmlDetails())
                             .isBlocking(false)
                             .keyboard(27)
                             .open();
@@ -103915,10 +103953,6 @@ var App = (function () {
                     _this.notificationCount++;
                 }
             }
-        }, function (msg) {
-            console.log("Error occurred while listening to the socket: ", msg);
-        }, function () {
-            console.log("Socket connection has been completed");
         });
     };
     App = __decorate([
@@ -104190,12 +104224,13 @@ exports.ChartOfAttributeValues = ChartOfAttributeValues;
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function($) {"use strict";
-var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var AbstractChart = (function () {
     function AbstractChart() {
         this.preferences = {};
         this.id = "chart" + GUID.newGuid();
         this.chartData = [];
+        this.initialized = false;
+        this.subscriber = undefined;
         this.preferences["gridcfg"] = {};
         this.preferences["gridcfg"]['dragHandle'] = '.handle';
         this.setCol(1);
@@ -104204,7 +104239,6 @@ var AbstractChart = (function () {
         this.setSizeY(2);
         this._stopUpdate = false;
         this.pausedTime = new Date();
-        Chart.defaults.global.maintainAspectRatio = false;
     }
     AbstractChart.prototype.getGroupName = function () {
         return this.preferences["groupName"];
@@ -104257,12 +104291,13 @@ var AbstractChart = (function () {
     };
     AbstractChart.prototype.subscribeToSubject = function (_obs) {
         var _this = this;
-        _obs.subscribe(function (data) {
+        this.subscriber = _obs.subscribe(function (data) {
             if (_this.isUpdateRequired()) {
                 _this.newValues(data); // if the chart is visible - update
             }
         });
     };
+    AbstractChart.prototype.reinitialize = function () { };
     AbstractChart.VBAR = "verticalBarChartOfAttributeValues";
     AbstractChart.PIE = "pieChartOfAttributeValues";
     AbstractChart.HBAR = "horizontalBarChartOfAttributeValues";
@@ -104273,19 +104308,6 @@ var AbstractChart = (function () {
     AbstractChart.SCALE_IN = "scaleIn";
     AbstractChart.SCALE_OUT = "scaleOut";
     AbstractChart.VOTING = "votesForScaling";
-    // map chartjs types to current hierarchy types
-    AbstractChart.TYPE_MAPPING = {
-        'doughnut': AbstractChart.PIE,
-        'horizontalBar': AbstractChart.HBAR,
-        'bar': AbstractChart.VBAR,
-        'line': AbstractChart.LINE,
-        'panel': AbstractChart.PANEL,
-        'statuses': AbstractChart.HEALTH_STATUS,
-        'resources': AbstractChart.RESOURCE_COUNT,
-        'scaleIn': AbstractChart.SCALE_IN,
-        'scaleOut': AbstractChart.SCALE_OUT,
-        'voting': AbstractChart.VOTING
-    };
     return AbstractChart;
 }());
 exports.AbstractChart = AbstractChart;
@@ -104311,20 +104333,24 @@ var GUID = (function () {
 "use strict";
 "use strict";
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var Chart = __webpack_require__("./node_modules/chart.js/src/chart.js");
 var ChartJsChart = (function (_super) {
     __extends(ChartJsChart, _super);
     function ChartJsChart() {
-        _super.apply(this, arguments);
+        _super.call(this);
         // for chartJS purposes
         this._borderColorData = [];
         this._backgroundColors = [];
         this._backgroundHoverColors = [];
         this._chartObject = undefined;
+        Chart.defaults.global.maintainAspectRatio = false;
+        Chart.defaults.global.animation.duration = 100;
     }
     // for chartJS purposes
     ChartJsChart.hslFromValue = function (i, count, opacity) {
         var clr = 360 * i / count;
-        return 'hsla(' + clr + ', 100%, 50%, ' + opacity + ')';
+        return 'hsl(' + clr + ', 100%, 50%)';
     };
     // for chartJS purposes
     ChartJsChart.prototype.updateColors = function () {
@@ -104334,31 +104360,40 @@ var ChartJsChart = (function (_super) {
         this._backgroundHoverColors = this.chartData.map(function (data, i) { return ChartJsChart.hslFromValue(i, _this.chartData.length, 0.85); });
     };
     ChartJsChart.prototype.newValues = function (_data) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(_data))
             return;
-        for (var i = 0; i < _data.length; i++) {
-            var _index = -1;
-            for (var j = 0; j < this.chartData.length; j++) {
-                if (this.chartData[j].resourceName == _data[i].resourceName) {
-                    _index = j; // remember the index
-                    this.chartData[j] = _data[i]; // change the data
-                    break;
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
+            for (var i = 0; i < _data.length; i++) {
+                var _index = -1;
+                for (var j = 0; j < this.chartData.length; j++) {
+                    if (this.chartData[j].resourceName == _data[i].resourceName) {
+                        _index = j; // remember the index
+                        this.chartData[j] = _data[i]; // change the data
+                        break;
+                    }
+                }
+                if (_index == -1) {
+                    if (this._chartObject != undefined) {
+                        this._chartObject.destroy();
+                    }
+                    this.chartData = _data;
+                    this.draw();
+                    return;
+                }
+                else if (this._chartObject != undefined) {
+                    this._chartObject.data.datasets[0].data[_index] = _data[i].attributeValue;
                 }
             }
-            if (_index == -1) {
-                if (this._chartObject != undefined) {
-                    this._chartObject.destroy();
-                }
-                this.chartData = _data;
-                this.draw();
-                return;
-            }
-            else if (this._chartObject != undefined) {
-                this._chartObject.data.datasets[0].data[_index] = _data[i].attributeValue;
-            }
-        }
-        if (this._chartObject != undefined) {
             this._chartObject.update();
+        }
+        else {
+            this.draw();
+        }
+    };
+    ChartJsChart.prototype.reinitialize = function () {
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
+            this._chartObject.destroy();
+            this._chartObject = undefined;
         }
     };
     // for chartJS purposes
@@ -104675,6 +104710,9 @@ var HorizontalBarChartOfAttributeValues = (function (_super) {
                         borderWidth: 1
                     }],
                 options: {
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     title: {
                         display: true,
@@ -104714,6 +104752,7 @@ var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var LineChartOfAttributeValues = (function (_super) {
@@ -104738,28 +104777,25 @@ var LineChartOfAttributeValues = (function (_super) {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
     LineChartOfAttributeValues.prototype.prepareDatasets = function () {
-        var _value = [];
-        for (var i = 0; i < this.resources.length; i++) {
-            var _currentValue = {};
-            _currentValue.key = this.resources[i];
-            _currentValue.values = [];
-            for (var j = 0; j < this.chartData.length; j++) {
-                if (this.resources[i] == this.chartData[j].resourceName) {
-                    _currentValue.values.push({ x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue });
-                }
+        var _value = {};
+        for (var j = 0; j < this.chartData.length; j++) {
+            if (util_1.isNullOrUndefined(_value[this.chartData[j].resourceName])) {
+                _value[this.chartData[j].resourceName] = [];
             }
-            _value.push(_currentValue);
+            _value[this.chartData[j].resourceName].push({ x: this.chartData[j].timestamp, y: this.chartData[j].attributeValue });
         }
-        return _value;
+        return Object.keys(_value).map(function (_key) {
+            return { key: _key, values: _value[_key] };
+        });
     };
     LineChartOfAttributeValues.prototype.newValues = function (allData) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(allData))
             return;
         (_a = this.chartData).push.apply(_a, allData);
-        if (this._chartObject != undefined) {
+        if (!util_1.isNullOrUndefined(this._chartObject) && !util_1.isNullOrUndefined(d3.select('#' + this.id).datum())) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
-                _ds = this.prepareDatasets();
+                d3.select('#' + this.id).datum(this.prepareDatasets()).transition().call(this._chartObject);
             }
             else {
                 for (var i = 0; i < _ds.length; i++) {
@@ -104773,17 +104809,23 @@ var LineChartOfAttributeValues = (function (_super) {
                         }
                     }
                 }
+                this._chartObject.update();
             }
-            this._chartObject.update();
+        }
+        else {
+            this.draw();
         }
         var _a;
     };
     LineChartOfAttributeValues.prototype.draw = function () {
+        if (this._chartObject != undefined) {
+            d3.selectAll('#' + this.id + " > svg > *").remove();
+        }
         var _thisReference = this;
         nv.addGraph(function () {
             var chart = nv.models.lineWithFocusChart();
             chart.interactiveUpdateDelay(0);
-            d3.rebind('clipVoronoi');
+            chart.tooltip.enabled(false);
             chart.clipVoronoi(false);
             chart.xAxis.tickFormat(function (d) {
                 return d3.time.format('%X')(new Date(d));
@@ -104793,8 +104835,7 @@ var LineChartOfAttributeValues = (function (_super) {
                 .tickFormat(d3.format('d'))
                 .axisLabel(_thisReference.getAxisY().sourceAttribute.unitOfMeasurement);
             chart.x2Axis.tickFormat(function (d) { return ''; });
-            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
-                .transition().call(chart);
+            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets()).transition().call(chart);
             nv.utils.windowResize(chart.update);
             _thisReference._chartObject = chart;
             return chart;
@@ -104830,6 +104871,7 @@ var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.char
 var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis.ts");
 var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
 var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var NumberOfResourcesChart = (function (_super) {
@@ -104898,21 +104940,24 @@ var NumberOfResourcesChart = (function (_super) {
         return _value;
     };
     NumberOfResourcesChart.prototype.newValues = function (_data) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(_data))
             return;
         this.chartData.push(_data[0]);
-        if (this._chartObject != undefined) {
+        if (!util_1.isNullOrUndefined(this._chartObject) && !util_1.isNullOrUndefined(d3.select('#' + this.id).datum())) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length == 0) {
                 _ds = this.prepareDatasets();
             }
             else {
                 _ds[0].values.push({ x: _data[0].timestamp, y: _data[0].count });
-                if ((new Date().getTime() - _ds[0].values[0].x.getTime()) > this.preferences["interval"] * 60 * 1000) {
+                if (!util_1.isNullOrUndefined(_ds[0].values[0].x) && (new Date().getTime() - _ds[0].values[0].x.getTime()) > this.preferences["interval"] * 60 * 1000) {
                     _ds[0].values.shift(); // remove first element in case it's out of interval range
                 }
             }
             this._chartObject.update();
+        }
+        else {
+            this.draw();
         }
     };
     return NumberOfResourcesChart;
@@ -104932,12 +104977,13 @@ var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/chart
 var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/resource.name.axis.ts");
 var attribute_value_axis_1 = __webpack_require__("./src/app/charts/model/axis/attribute.value.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var PanelOfAttributeValues = (function (_super) {
     __extends(PanelOfAttributeValues, _super);
     function PanelOfAttributeValues() {
         _super.call(this);
         this.setSizeX(10);
-        this.setSizeY(10);
+        this.setSizeY(5);
     }
     Object.defineProperty(PanelOfAttributeValues.prototype, "type", {
         get: function () {
@@ -104953,24 +104999,22 @@ var PanelOfAttributeValues = (function (_super) {
         return new attribute_value_axis_1.AttributeValueAxis();
     };
     PanelOfAttributeValues.prototype.newValues = function (data) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(data))
             return;
-        for (var i = 0; i < data.length; i++) {
-            var _data = data[i];
-            var _index = -1;
-            for (var j = 0; j < this.chartData.length; j++) {
-                if (this.chartData[j].resourceName == _data.resourceName) {
-                    _index = j; // remember the index
-                    this.chartData[j] = _data; // change the data
-                    break;
+        var _table = $("#" + this.id + " table");
+        if (!util_1.isNullOrUndefined(_table) && _table.length > 0) {
+            for (var i = 0; i < data.length; i++) {
+                var _data = data[i];
+                var _index = -1;
+                for (var j = 0; j < this.chartData.length; j++) {
+                    if (this.chartData[j].resourceName == _data.resourceName) {
+                        _index = j; // remember the index
+                        this.chartData[j] = _data; // change the data
+                        break;
+                    }
                 }
-            }
-            if (_index < 0) {
-                this.chartData.push(_data); // if no data with this instance is found - append it to array
-            }
-            var _table = $("#" + this.id + " table");
-            if (_table != undefined) {
                 if (_index < 0) {
+                    this.chartData.push(_data); // if no data with this instance is found - append it to array
                     var _tr = $("<tr/>");
                     _tr.append("<td>" + _data.resourceName + "</td>");
                     _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
@@ -104980,6 +105024,9 @@ var PanelOfAttributeValues = (function (_super) {
                     _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
                 }
             }
+        }
+        else {
+            this.draw();
         }
     };
     PanelOfAttributeValues.prototype.draw = function () {
@@ -105064,6 +105111,9 @@ var PieChartOfAttributeValues = (function (_super) {
                         borderWidth: 1
                     }],
                 options: {
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     cutoutPercentage: 40,
                     rotation: Math.PI,
@@ -105107,6 +105157,7 @@ var resource_name_axis_1 = __webpack_require__("./src/app/charts/model/axis/reso
 var health_status_axis_1 = __webpack_require__("./src/app/charts/model/axis/health.status.axis.ts");
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 __webpack_require__("./node_modules/jstree/dist/jstree.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var ResourceGroupHealthStatusChart = (function (_super) {
     __extends(ResourceGroupHealthStatusChart, _super);
     function ResourceGroupHealthStatusChart() {
@@ -105144,41 +105195,43 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         return input.replace(/[&\/\\#,+()$~%.'":*?<>{}]/g, '_');
     };
     ResourceGroupHealthStatusChart.prototype.draw = function () {
-        var _thisReference = this;
-        $("#" + this.id).jstree({
-            "core": {
-                'data': [],
-                "check_callback": true
-            },
-            "types": {
-                "#": {
-                    "max_children": 1,
-                    "max_depth": 5,
-                    "valid_children": ["summary"]
+        var _selection = $("#" + this.id);
+        if (_selection.length) {
+            _selection.jstree({
+                "core": {
+                    'data': [],
+                    "check_callback": true
                 },
-                "summary": {
-                    "icon": "glyphicon glyphicon-certificate",
-                    "valid_children": ["instance"]
+                "types": {
+                    "#": {
+                        "max_children": 1,
+                        "max_depth": 5,
+                        "valid_children": ["summary"]
+                    },
+                    "summary": {
+                        "icon": "glyphicon glyphicon-certificate",
+                        "valid_children": ["instance"]
+                    },
+                    "instance": {
+                        "icon": "glyphicon glyphicon-leaf",
+                        "valid_children": ["healthStatus", "timestamp"]
+                    },
+                    "healthStatus": {
+                        "icon": "glyphicon glyphicon-list-alt",
+                        "valid_children": ["additional"]
+                    },
+                    "timestamp": {
+                        "icon": "glyphicon glyphicon-time",
+                        "valid_children": []
+                    },
+                    "additional": {
+                        "icon": false
+                    }
                 },
-                "instance": {
-                    "icon": "glyphicon glyphicon-leaf",
-                    "valid_children": ["healthStatus", "timestamp"]
-                },
-                "healthStatus": {
-                    "icon": "glyphicon glyphicon-list-alt",
-                    "valid_children": ["additional"]
-                },
-                "timestamp": {
-                    "icon": "glyphicon glyphicon-time",
-                    "valid_children": []
-                },
-                "additional": {
-                    "icon": false
-                }
-            },
-            "plugins": ["state", "types"]
-        });
-        this._chartObject = $("#" + this.id).jstree(true);
+                "plugins": ["state", "types"]
+            });
+            this._chartObject = _selection.jstree(true);
+        }
     };
     ResourceGroupHealthStatusChart.prototype.prepareDatasets = function () {
         var _value = [];
@@ -105254,31 +105307,23 @@ var ResourceGroupHealthStatusChart = (function (_super) {
         return _value;
     };
     ResourceGroupHealthStatusChart.prototype.newValues = function (_data) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(_data))
             return;
         this.chartData = _data;
-        if (this._chartObject != undefined) {
+        this.chartData.sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+        });
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
             this._chartObject.settings.core.data = this.prepareDatasets();
             this._chartObject.refresh(true);
+        }
+        else {
+            this.draw();
         }
     };
-    ResourceGroupHealthStatusChart.prototype.newValue = function (_data) {
-        if (document.hidden)
-            return;
-        var _index = -1;
-        for (var i = 0; i < this.chartData.length; i++) {
-            if (this.chartData[i].name == _data.name) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
-        if (this._chartObject != undefined) {
-            this._chartObject.settings.core.data = this.prepareDatasets();
-            this._chartObject.refresh(true);
+    ResourceGroupHealthStatusChart.prototype.reinitialize = function () {
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
+            this._chartObject = undefined;
         }
     };
     return ResourceGroupHealthStatusChart;
@@ -105398,6 +105443,9 @@ var VerticalBarChartOfAttributeValues = (function (_super) {
                         borderWidth: 1
                     }],
                 options: {
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     title: {
                         display: true,
@@ -105436,6 +105484,7 @@ exports.VerticalBarChartOfAttributeValues = VerticalBarChartOfAttributeValues;
 var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
 var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
 var canvas_gauges_1 = __webpack_require__("./node_modules/canvas-gauges/gauge.min.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var VotingResultChart = (function (_super) {
     __extends(VotingResultChart, _super);
     function VotingResultChart() {
@@ -105452,7 +105501,7 @@ var VotingResultChart = (function (_super) {
         configurable: true
     });
     VotingResultChart.prototype.draw = function () {
-        if (this.chartData == undefined || this.chartData.length == 0)
+        if (util_1.isNullOrUndefined(this.chartData) || this.chartData.length == 0)
             return;
         var _voteIntervalTick = this.chartData[0].castingVote;
         var _currentValue = this.chartData[0].votingResult;
@@ -105480,7 +105529,7 @@ var VotingResultChart = (function (_super) {
     };
     VotingResultChart.prototype.newValues = function (_data) {
         this.chartData = _data;
-        if (this._chart != undefined && !document.hidden) {
+        if (!util_1.isNullOrUndefined(this._chart) && !document.hidden) {
             this._chart.value = _data[0].votingResult;
         }
         else {
@@ -105517,6 +105566,12 @@ var VotingResultChart = (function (_super) {
             _value["preferences"] = this.preferences;
         }
         return _value;
+    };
+    VotingResultChart.prototype.reinitialize = function () {
+        if (!util_1.isNullOrUndefined(this._chart)) {
+            this._chart.destroy();
+            this._chart = undefined;
+        }
     };
     return VotingResultChart;
 }(abstract_chart_1.AbstractChart));
@@ -105926,6 +105981,7 @@ var scale_in_chart_1 = __webpack_require__("./src/app/charts/model/charts/scale.
 var scale_out_chart_1 = __webpack_require__("./src/app/charts/model/charts/scale.out.chart.ts");
 var scaling_rate_chart_1 = __webpack_require__("./src/app/charts/model/scaling.rate.chart.ts");
 var voting_result_chart_1 = __webpack_require__("./src/app/charts/model/charts/voting.result.chart.ts");
+var utils_1 = __webpack_require__("./src/app/charts/model/utils.ts");
 // Factory to create appropriate objects from json
 var Factory = (function () {
     function Factory() {
@@ -105992,6 +106048,7 @@ var Factory = (function () {
                     break;
                 case abstract_chart_1.AbstractChart.HEALTH_STATUS:
                     _chart = new resource_group_health_status_1.ResourceGroupHealthStatusChart();
+                    _chart.group = _json["group"];
                     break;
                 case abstract_chart_1.AbstractChart.RESOURCE_COUNT:
                     _chart = new number_of_resources_1.NumberOfResourcesChart();
@@ -106040,12 +106097,14 @@ var Factory = (function () {
             if (_json["preferences"] != undefined) {
                 _chart.preferences = _json["preferences"];
             }
+            _chart.chartData = [];
+            _chart.initialized = false;
             return _chart;
         }
     };
     Factory.create2dChart = function (type, name, groupName, component, instances, sourceAttribute) {
         var _chart;
-        type = abstract_chart_1.AbstractChart.TYPE_MAPPING[type];
+        type = Factory.TYPES.find(function (_type) { return _type.consoleSpecificName == type; }).mappedTypeName;
         switch (type) {
             case abstract_chart_1.AbstractChart.VBAR:
                 _chart = new vbar_chart_attributes_values_1.VerticalBarChartOfAttributeValues();
@@ -106103,8 +106162,11 @@ var Factory = (function () {
                 _chart.setSourceAttribute(sourceAttribute);
             }
         }
+        _chart.chartData = [];
+        _chart.initialized = false;
         return _chart;
     };
+    Factory.TYPES = utils_1.ChartTypeDescription.generateType();
     return Factory;
 }());
 exports.Factory = Factory;
@@ -106121,6 +106183,7 @@ var chrono_axis_1 = __webpack_require__("./src/app/charts/model/axis/chrono.axis
 var numeric_axis_1 = __webpack_require__("./src/app/charts/model/axis/numeric.axis.ts");
 var two_dimensional_chart_1 = __webpack_require__("./src/app/charts/model/two.dimensional.chart.ts");
 var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var d3 = __webpack_require__("./node_modules/d3/index.js");
 var nv = __webpack_require__("./node_modules/nvd3/build/nv.d3.js");
 var ScalingRateChart = (function (_super) {
@@ -106169,10 +106232,10 @@ var ScalingRateChart = (function (_super) {
         return _value;
     };
     ScalingRateChart.prototype.newValues = function (allData) {
-        if (document.hidden)
+        if (document.hidden || util_1.isNullOrUndefined(allData))
             return;
         (_a = this.chartData).push.apply(_a, allData);
-        if (this._chartObject != undefined) {
+        if (!util_1.isNullOrUndefined(this._chartObject) && !util_1.isNullOrUndefined(d3.select('#' + this.id).datum())) {
             var _ds = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
                 _ds = this.prepareDatasets();
@@ -106191,6 +106254,9 @@ var ScalingRateChart = (function (_super) {
                 }
             }
             this._chartObject.update();
+        }
+        else {
+            this.draw();
         }
         var _a;
     };
@@ -106274,6 +106340,39 @@ exports.TwoDimensionalChart = TwoDimensionalChart;
 
 /***/ },
 
+/***/ "./src/app/charts/model/utils.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_chart_1 = __webpack_require__("./src/app/charts/model/abstract.chart.ts");
+var ChartTypeDescription = (function () {
+    function ChartTypeDescription(csm, mtn, is) {
+        this.consoleSpecificName = csm;
+        this.mappedTypeName = mtn;
+        this.instancesSupport = is;
+    }
+    ChartTypeDescription.generateType = function () {
+        return [
+            new ChartTypeDescription('doughnut', abstract_chart_1.AbstractChart.PIE, true),
+            new ChartTypeDescription('horizontalBar', abstract_chart_1.AbstractChart.HBAR, true),
+            new ChartTypeDescription('bar', abstract_chart_1.AbstractChart.VBAR, true),
+            new ChartTypeDescription('line', abstract_chart_1.AbstractChart.LINE, true),
+            new ChartTypeDescription('panel', abstract_chart_1.AbstractChart.PANEL, true),
+            new ChartTypeDescription('statuses', abstract_chart_1.AbstractChart.HEALTH_STATUS, false),
+            new ChartTypeDescription('resources', abstract_chart_1.AbstractChart.RESOURCE_COUNT, false),
+            new ChartTypeDescription('scaleIn', abstract_chart_1.AbstractChart.SCALE_IN, false),
+            new ChartTypeDescription('scaleOut', abstract_chart_1.AbstractChart.SCALE_OUT, false),
+            new ChartTypeDescription('voting', abstract_chart_1.AbstractChart.VOTING, false)
+        ];
+    };
+    return ChartTypeDescription;
+}());
+exports.ChartTypeDescription = ChartTypeDescription;
+
+
+/***/ },
+
 /***/ "./src/app/configuration/components/add-entity.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -106290,6 +106389,7 @@ __webpack_require__("./node_modules/rxjs/add/operator/map.js");
 __webpack_require__("./node_modules/rxjs/add/operator/do.js");
 __webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
 var model_resourceGroup_1 = __webpack_require__("./src/app/configuration/model/model.resourceGroup.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var AddEntity = (function () {
     function AddEntity(http) {
         this.http = http;
@@ -106321,7 +106421,12 @@ var AddEntity = (function () {
         });
     };
     AddEntity.prototype.nameSelected = function () {
-        return this.selectedName != undefined && this.selectedName.length > 3;
+        var _this = this;
+        return this.selectedName != undefined && this.selectedName.length > 3 && util_1.isNullOrUndefined(this.entities.find(function (entity) { return entity.name == _this.selectedName; }));
+    };
+    AddEntity.prototype.isNameNotUnique = function () {
+        var _this = this;
+        return !util_1.isNullOrUndefined(this.entities.find(function (entity) { return entity.name == _this.selectedName; }));
     };
     AddEntity.prototype.selectType = function (selected) {
         var _this = this;
@@ -106593,7 +106698,7 @@ var ParametersTable = (function () {
             if (_this.selectedParam == undefined && _this.paramDescriptors.length > 0) {
                 _this.selectedParam = _this.paramDescriptors[0];
             }
-            console.log("After all we got: ", _this.paramDescriptors, _this.containsRequired, _this.containsOptional);
+            console.debug("After all we got: ", _this.paramDescriptors, _this.containsRequired, _this.containsOptional);
             _this.cd.detectChanges();
             $("#addParam").modal("show");
         });
@@ -106608,7 +106713,7 @@ var ParametersTable = (function () {
         this.http.put(app_restClient_1.REST.OVERRIDES_BY_NAME(this.entity.name), this.entity.overriddenProperties)
             .map(function (res) { return res.text(); })
             .subscribe(function () {
-            console.log("Saved overrides");
+            console.debug("Saved overrides");
         });
     };
     ParametersTable.prototype.isOverridden = function (paramName) {
@@ -106678,9 +106783,7 @@ var ResourceEntitiesTable = (function () {
         this.modal = modal;
         this.cd = cd;
         this.readyForSave = false;
-        this.paramDescriptors = [];
         this.currentNewParam = new model_entity_1.KeyValue("", "");
-        this.customKey = "";
         this.discoveredEntities = undefined;
         this.selectedEntity = undefined;
         this.selectedEntityName = "";
@@ -106768,8 +106871,8 @@ var ResourceEntitiesTable = (function () {
     };
     ResourceEntitiesTable.prototype.addNewParameter = function () {
         var _thisReference = this;
-        $(_thisReference.PARAM_TABLE_DIV()).slideToggle("fast", function () {
-            $(_thisReference.PARAM_APPEND_DIV()).slideToggle("fast");
+        $(_thisReference.PARAM_TABLE_DIV()).toggle("fast", function () {
+            $(_thisReference.PARAM_APPEND_DIV()).toggle("fast");
         });
         this.currentNewParam = new model_entity_1.KeyValue("", "");
         $(this.PARAM_SELECT_ID()).select2({
@@ -106782,8 +106885,6 @@ var ResourceEntitiesTable = (function () {
                 if (param.loading)
                     return param.text;
                 if (param.element.nodeName == "OPTGROUP")
-                    return param.text;
-                if (param.id == "custom")
                     return param.text;
                 var markup = "<div class='select2-result-repository clearfix'>" +
                     "<div class='select2-result-repository__meta'>" +
@@ -106827,23 +106928,28 @@ var ResourceEntitiesTable = (function () {
     };
     ResourceEntitiesTable.prototype.cancelAppendingParam = function () {
         var _thisReference = this;
-        $(_thisReference.PARAM_TABLE_DIV()).slideToggle("fast", function () {
-            $(_thisReference.PARAM_APPEND_DIV()).slideToggle("fast");
+        $(_thisReference.PARAM_TABLE_DIV()).toggle("fast", function () {
+            $(_thisReference.PARAM_APPEND_DIV()).toggle("fast");
         });
         $(this.PARAM_SELECT_ID()).select2("destroy");
     };
     ResourceEntitiesTable.prototype.appendParameter = function () {
-        var key = "";
-        var value = this.currentNewParam.value;
-        if (this.currentNewParam.key == "custom") {
-            key = this.customKey;
-        }
-        else {
-            key = this.currentNewParam.key;
-        }
-        var finalValue = new model_entity_1.KeyValue(key, value);
-        this.saveParameter(finalValue);
+        this.saveParameter(new model_entity_1.KeyValue(this.currentNewParam.key, this.currentNewParam.value));
         this.cancelAppendingParam();
+    };
+    ResourceEntitiesTable.prototype.addNewParameterManually = function () {
+        var _this = this;
+        this.modal.prompt()
+            .className('default')
+            .message('New manual parameter')
+            .placeholder('Please set the name for a new parameter')
+            .open()
+            .then(function (dialog) { return dialog.result; })
+            .then(function (result) {
+            _this.saveParameter(new model_entity_1.KeyValue(result, "value"));
+            _this.cd.markForCheck();
+        })
+            .catch(function () { });
     };
     ResourceEntitiesTable.prototype.htmlViewForEntity = function () {
         return Prism.highlight(this.activeEntity.stringifyFullObject(), Prism.languages.javascript);
@@ -106858,8 +106964,8 @@ var ResourceEntitiesTable = (function () {
             .open()
             .then(function (resultPromise) {
             return resultPromise.result
-                .then(function (response) {
-                _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME(entity.getName() + "s", _this.resource.name, entity.name))
+                .then(function () {
+                _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(_this.resource.getName(), _this.resource.name, _this.entityType + "s", entity.name))
                     .subscribe(function () {
                     for (var i = 0; i < _this.entities.length; i++) {
                         if (_this.entities[i].name == entity.name) {
@@ -106905,16 +107011,20 @@ var ResourceEntitiesTable = (function () {
         var _this = this;
         this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map(function (res) { return res.text(); })
-            .subscribe(function (data) {
-            console.log("Entity " + _this.activeEntity.name + " has been saved");
+            .subscribe(function () {
+            console.debug("Entity " + _this.activeEntity.name + " has been saved");
             switch (_this.entityType) {
                 case "attribute":
                     if (_this.isNewEntity) {
-                        _this.resource.attributes.push(_this.selectedEntity);
+                        _this.resource.attributes.push(_this.activeEntity);
                     }
                     else {
                         for (var i = 0; i < _this.resource.attributes.length; i++) {
-                            if (_this.resource.attributes[i].name == _this.activeEntity.name) {
+                            if (_this.resource.attributes[i].guid == _this.activeEntity.guid) {
+                                if (_this.resource.attributes[i].name != _this.activeEntity.name) {
+                                    // if we rename the entity - remove the original one
+                                    _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(_this.resource.getName(), _this.resource.name, _this.entityType + "s", _this.resource.attributes[i].name)).subscribe(function () { });
+                                }
                                 _this.resource.attributes[i] = _this.activeEntity;
                                 break;
                             }
@@ -106923,11 +107033,15 @@ var ResourceEntitiesTable = (function () {
                     break;
                 case "event":
                     if (_this.isNewEntity) {
-                        _this.resource.events.push(_this.selectedEntity);
+                        _this.resource.events.push(_this.activeEntity);
                     }
                     else {
                         for (var i = 0; i < _this.resource.events.length; i++) {
-                            if (_this.resource.events[i].name == _this.activeEntity.name) {
+                            if (_this.resource.events[i].guid == _this.activeEntity.guid) {
+                                if (_this.resource.events[i].name != _this.activeEntity.name) {
+                                    // if we rename the entity - remove the original one
+                                    _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(_this.resource.getName(), _this.resource.name, _this.entityType + "s", _this.resource.events[i].name)).subscribe(function () { });
+                                }
                                 _this.resource.events[i] = _this.activeEntity;
                                 break;
                             }
@@ -106936,11 +107050,15 @@ var ResourceEntitiesTable = (function () {
                     break;
                 case "operation":
                     if (_this.isNewEntity) {
-                        _this.resource.operations.push(_this.selectedEntity);
+                        _this.resource.operations.push(_this.activeEntity);
                     }
                     else {
                         for (var i = 0; i < _this.resource.operations.length; i++) {
-                            if (_this.resource.operations[i].name == _this.activeEntity.name) {
+                            if (_this.resource.operations[i].guid == _this.activeEntity.guid) {
+                                if (_this.resource.operations[i].name != _this.activeEntity.name) {
+                                    // if we rename the entity - remove the original one
+                                    _this.http.delete(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(_this.resource.getName(), _this.resource.name, _this.entityType + "s", _this.resource.operations[i].name)).subscribe(function () { });
+                                }
                                 _this.resource.operations[i] = _this.activeEntity;
                                 break;
                             }
@@ -107024,7 +107142,7 @@ var ResourceEntitiesTable = (function () {
         this.selectedEntity.name = this.selectedEntityName;
         this.http.put(app_restClient_1.REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
             .map(function (res) { return res.text(); })
-            .subscribe(function (data) {
+            .subscribe(function () {
             switch (_this.entityType) {
                 case "attribute":
                     _this.resource.attributes.push(_this.selectedEntity);
@@ -107041,6 +107159,7 @@ var ResourceEntitiesTable = (function () {
             _this.cd.detectChanges();
             $('#addExistentEntity' + _this.entityType).modal("hide");
             _this.selectedEntity.override = true;
+            _this.isNewEntity = false;
             _this.prepareEditEntityModal(_this.selectedEntity);
         });
     };
@@ -107082,7 +107201,7 @@ exports.ResourceEntitiesTable = ResourceEntitiesTable;
 /***/ "./src/app/configuration/components/templates/add-entity.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"addEntity\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Create new entity</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n\r\n                <div class=\"form-group row\">\r\n                    <label for=\"inputComponentName\" class=\"col-md-2 col-form-label\">Input {{type}} name</label>\r\n                    <div class=\"col-md-10\">\r\n                        <input\r\n                                type=\"text\"\r\n                                id=\"inputComponentName\"\r\n                                class=\"form-control\"\r\n                                [tooltip]=\"'Input at least 4 symbols please'\"\r\n                                [(ngModel)]=\"selectedName\">\r\n                    </div>\r\n                </div>\r\n\r\n                <div class=\"form-group row\" *ngIf=\"type == 'resource'\">\r\n                    <label for=\"inputConnectionString\" class=\"col-md-2 col-form-label\">Connection string</label>\r\n                    <div class=\"col-md-10\">\r\n                        <input\r\n                                type=\"text\"\r\n                                id=\"inputConnectionString\"\r\n                                class=\"form-control\"\r\n                                [tooltip]=\"'Connection string is optional, but in almost all cases should be prefilled'\"\r\n                                [(ngModel)]=\"selectedConnectionString\">\r\n                    </div>\r\n                </div>\r\n\r\n                <div class=\"panel-group group-accordeon\" id=\"entityAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"nameSelected()\">\r\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                            <h4 class=\"panel-title\">\r\n                                <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#entityAccordion\" href=\"#collapseType\" [attr.aria-expanded]=\"!typeSelected()\" aria-controls=\"collapseRequired\">\r\n                                    Select type of new entity\r\n                                </a>\r\n                            </h4>\r\n                        </div>\r\n                        <div id=\"collapseType\" class=\"panel-collapse collapse\" [class.in]=\"!typeSelected()\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                            <div class=\"panel-body\">\r\n                                    <a *ngFor=\"let entity of availableEntities\"\r\n                                           class=\"grid-item-link pointerElement\"\r\n                                           (click)=\"selectType(entity)\"\r\n                                           [class.active]=\"selectedType == entity\"\r\n                                           [tooltip]=\"entity.description\">\r\n                                        <div [class.activeBundle]=\"entity.isActive\" class=\"grid-item\">\r\n                                                <h5 class=\"name\">{{entity.name}}</h5>\r\n                                                <p class=\"symbol\">{{entity.type}}</p>\r\n                                                <p class=\"weight\">v.{{entity.version}}</p>\r\n                                        </div>\r\n                                    </a>\r\n                                </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"typeSelected()\">\r\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                            <h4 class=\"panel-title\">\r\n                                <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseParameters\" [attr.aria-expanded]=\"typeSelected()\" aria-controls=\"collapseOptional\">\r\n                                    Required parameters\r\n                                </a>\r\n                            </h4>\r\n                        </div>\r\n                        <div id=\"collapseParameters\" class=\"panel-collapse collapse\" [class.in]=\"typeSelected()\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                            <div class=\"panel-body\">\r\n                                <table class=\"table\">\r\n                                    <thead>\r\n                                    <tr>\r\n                                        <th>Key</th>\r\n                                        <th>Value</th>\r\n                                    </tr>\r\n                                    </thead>\r\n                                    <tbody>\r\n                                    <tr *ngFor=\"let param of params\">\r\n                                        <td>{{param.key}}</td>\r\n                                        <td>\r\n                                            <inline-edit [(ngModel)]=\"param.value\"\r\n                                                         [ngModelOptions]=\"{standalone: true}\"\r\n                                                         (onSave)=\"saveParameter(param)\"\r\n                                                         [uniqueKey]=\"param.key\">\r\n                                            </inline-edit>\r\n                                        </td>\r\n                                    </tr>\r\n                                    </tbody>\r\n                                </table>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                <button\r\n                        type=\"button\"\r\n                        class=\"btn btn-primary\"\r\n                        data-dismiss=\"modal\"\r\n                        [disabled]=\"readyForSave == false\"\r\n                        (click)=\"addEntity()\">\r\n                    Save changes\r\n                </button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n  <button\r\n          class=\"center-block btn btn-primary\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"clear()\"\r\n          [attr.data-target]=\"'#addEntity'\">\r\n    <i class=\"fa fa-plus\"></i>\r\n  </button>\r\n</div>\r\n"
+module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"addEntity\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"addEntityLabel\">\r\n    <div class=\"modal-dialog modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"addEntityLabel\">Create new entity</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n\r\n                <div class=\"form-group row\" *ngIf=\"isNameNotUnique()\" style=\"text-align: center; color: red;\">\r\n                    <strong>{{type}} with name already exists</strong>\r\n                </div>\r\n\r\n                <div class=\"form-group row\">\r\n                    <label for=\"inputComponentName\" class=\"col-md-2 col-form-label\">Input {{type}} name</label>\r\n                    <div class=\"col-md-10\">\r\n                        <input\r\n                                type=\"text\"\r\n                                id=\"inputComponentName\"\r\n                                class=\"form-control\"\r\n                                [tooltip]=\"'Input at least 4 symbols please'\"\r\n                                [(ngModel)]=\"selectedName\">\r\n                    </div>\r\n                </div>\r\n\r\n                <div class=\"form-group row\" *ngIf=\"type == 'resource'\">\r\n                    <label for=\"inputConnectionString\" class=\"col-md-2 col-form-label\">Connection string</label>\r\n                    <div class=\"col-md-10\">\r\n                        <input\r\n                                type=\"text\"\r\n                                id=\"inputConnectionString\"\r\n                                class=\"form-control\"\r\n                                [tooltip]=\"'Connection string is optional, but in almost all cases should be prefilled'\"\r\n                                [(ngModel)]=\"selectedConnectionString\">\r\n                    </div>\r\n                </div>\r\n\r\n                <div class=\"panel-group group-accordeon\" id=\"entityAccordion\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"nameSelected()\">\r\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                            <h4 class=\"panel-title\">\r\n                                <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#entityAccordion\" href=\"#collapseType\" [attr.aria-expanded]=\"!typeSelected()\" aria-controls=\"collapseRequired\">\r\n                                    Select type of new entity\r\n                                </a>\r\n                            </h4>\r\n                        </div>\r\n                        <div id=\"collapseType\" class=\"panel-collapse collapse\" [class.in]=\"!typeSelected()\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                            <div class=\"panel-body\">\r\n                                    <a *ngFor=\"let entity of availableEntities\"\r\n                                           class=\"grid-item-link pointerElement\"\r\n                                           (click)=\"selectType(entity)\"\r\n                                           [class.active]=\"selectedType == entity\"\r\n                                           [tooltip]=\"entity.description\">\r\n                                        <div [class.activeBundle]=\"entity.isActive\" class=\"grid-item\">\r\n                                                <h5 class=\"name\">{{entity.name}}</h5>\r\n                                                <p class=\"symbol\">{{entity.type}}</p>\r\n                                                <p class=\"weight\">v.{{entity.version}}</p>\r\n                                        </div>\r\n                                    </a>\r\n                                </div>\r\n                        </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default leftAlign\" *ngIf=\"typeSelected()\">\r\n                        <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                            <h4 class=\"panel-title\">\r\n                                <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#paramAccordion\" href=\"#collapseParameters\" [attr.aria-expanded]=\"typeSelected()\" aria-controls=\"collapseOptional\">\r\n                                    Required parameters\r\n                                </a>\r\n                            </h4>\r\n                        </div>\r\n                        <div id=\"collapseParameters\" class=\"panel-collapse collapse\" [class.in]=\"typeSelected()\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                            <div class=\"panel-body\">\r\n                                <table class=\"table\">\r\n                                    <thead>\r\n                                    <tr>\r\n                                        <th>Key</th>\r\n                                        <th>Value</th>\r\n                                    </tr>\r\n                                    </thead>\r\n                                    <tbody>\r\n                                    <tr *ngFor=\"let param of params\">\r\n                                        <td>{{param.key}}</td>\r\n                                        <td>\r\n                                            <inline-edit [(ngModel)]=\"param.value\"\r\n                                                         [ngModelOptions]=\"{standalone: true}\"\r\n                                                         (onSave)=\"saveParameter(param)\"\r\n                                                         [uniqueKey]=\"param.key\">\r\n                                            </inline-edit>\r\n                                        </td>\r\n                                    </tr>\r\n                                    </tbody>\r\n                                </table>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n            <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n                <button\r\n                        type=\"button\"\r\n                        class=\"btn btn-primary\"\r\n                        data-dismiss=\"modal\"\r\n                        [disabled]=\"readyForSave == false\"\r\n                        (click)=\"addEntity()\">\r\n                    Save changes\r\n                </button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<div class=\"row\">\r\n  <button\r\n          class=\"center-block btn btn-primary\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"clear()\"\r\n          [attr.data-target]=\"'#addEntity'\">\r\n    <i class=\"fa fa-plus\"></i>\r\n  </button>\r\n</div>\r\n"
 
 /***/ },
 
@@ -107141,7 +107260,7 @@ module.exports = "<!-- Modal for parameter appending -->\r\n<div class=\"modal f
 /***/ "./src/app/configuration/components/templates/resource-subentities-table.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"editEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"editEntityLabel\">\r\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"editEntityLabel\">Edit {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n              <div id=\"smartwizard{{entityType}}\" style=\"height: 95%\">\r\n                <ul>\r\n                      <li>\r\n                        <a [attr.href]=\"'#name'\">\r\n                          Name<br />\r\n                          <small>Name of {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#additional'\">\r\n                          Additional<br />\r\n                          <small>Additional {{activeEntity.getName()}}-related members</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#parameters'\">\r\n                          Parameters<br />\r\n                          <small>Parameters for {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                      <li>\r\n                        <a [attr.href]=\"'#save'\">\r\n                          Save<br />\r\n                          <small>Saving the {{activeEntity.getName()}}</small>\r\n                        </a>\r\n                      </li>\r\n                </ul>\r\n\r\n                <div style=\"height:100%\">\r\n                  <div id=\"name\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <div class=\"item form-group\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"nameInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Name <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"nameInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          [tooltip]=\"'At least 4 symbols'\"\r\n                          placeholder=\"input the name of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.name\">\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                  <div id=\"additional\" class=\"row\" style=\"margin-top: 100px;\">\r\n                    <!-- input for operation -->\r\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'operation'\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"invtoInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Invocation timeout (ms)<span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"invtoInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          placeholder=\"input the invocation timeout of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.invokto\">\r\n                      </div>\r\n                    </div>\r\n\r\n                      <div class=\"item form-group\" *ngIf=\"isResourceType()\">\r\n                          <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">\r\n                              Override group entity\r\n                          </label>\r\n                          <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                              <ui-switch\r\n                                      [(ngModel)]=\"activeEntity.override\"\r\n                                      [size]=\"'small'\">\r\n                              </ui-switch>\r\n                          </div>\r\n                      </div>\r\n\r\n                    <!-- input for attribute -->\r\n                    <div class=\"item form-group\" *ngIf=\"entityType == 'attribute'\">\r\n                      <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"rwtoInput\"\r\n                        style=\"margin-top: 7px;\">\r\n                          Read/write timeout (ms) <span class=\"required\">*</span>\r\n                      </label>\r\n                      <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                        <input\r\n                          id=\"rwtoInput\"\r\n                          class=\"form-control col-md-7 col-xs-12\"\r\n                          placeholder=\"input the read/write timeout of {{activeEntity.getName()}}\"\r\n                          [(ngModel)]=\"activeEntity.rwto\">\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n\r\n\r\n                  <!-- PARAMETERS -->\r\n                  <div id=\"parameters\" class=\"row\" style=\"margin-top: 10px;\">\r\n                    <div class=\"col-md-12\" id=\"tableParamsRow{{entityType}}\">\r\n                       <table class=\"table\">\r\n                          <thead>\r\n                          <tr>\r\n                            <th>#</th>\r\n                            <th>Key</th>\r\n                            <th>Value</th>\r\n                          </tr>\r\n                          </thead>\r\n                          <tbody>\r\n                          <tr *ngFor=\"let param of activeEntity.parameters\">\r\n                            <td>\r\n                              <span\r\n                                class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                (click)=\"checkAndRemoveParameter(param)\"\r\n                                aria-hidden=\"true\">\r\n                              </span>\r\n                            </td>\r\n                            <td>{{param.key}}</td>\r\n                            <td>\r\n                              <inline-edit [(ngModel)]=\"param.value\"\r\n                                           [ngModelOptions]=\"{standalone: true}\"\r\n                                           (onSave)=\"saveParameter(param)\"\r\n                                           [uniqueKey]=\"param.key\">\r\n                              </inline-edit>\r\n                            </td>\r\n                          </tr>\r\n                          <tr>\r\n                            <td></td>\r\n                            <td></td>\r\n                            <td align=\"right\">\r\n                              <button\r\n                                type=\"button\"\r\n                                class=\"btn btn-primary btn-sm\"\r\n                                (click)=\"addNewParameter()\">\r\n                                Add new <i class=\"fa fa-caret-down\" aria-hidden=\"true\"></i>\r\n                              </button>\r\n                            </td>\r\n                          </tr>\r\n                          </tbody>\r\n                      </table>\r\n                    </div>\r\n\r\n                    <div class=\"col-md-12\" style=\"display: none; margin-top: 15px\" id=\"newParamRow{{entityType}}\">\r\n                      <div class=\"row\">\r\n                        <div class=\"col-md-5 col-md-offset-3\" *ngIf=\"currentNewParam\">\r\n                          <select\r\n                                  style=\"width: 350px\"\r\n                                  id=\"newParamSelect{{entityType}}\"\r\n                                  [(ngModel)]=\"currentNewParam.key\"\r\n                                  class=\"select2_group form-control\">\r\n                            <optgroup label=\"Custom parameter\">\r\n                              <option value=\"custom\">Append your own param</option>\r\n                            </optgroup>\r\n                            <optgroup label=\"Suggested parameter\" *ngIf=\"activeEntity.paramDescriptors | async\">\r\n                              <option\r\n                                *ngFor=\"let descriptor of activeEntity.paramDescriptors | async\"\r\n                                [attr.required]=\"descriptor.required\"\r\n                                [attr.pattern]=\"descriptor.pattern\"\r\n                                [attr.defaultValue]=\"descriptor.defaultValue\"\r\n                                [value]=\"descriptor.name\">\r\n                                {{descriptor.name}}\r\n                              </option>\r\n                            </optgroup>\r\n                          </select>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"row\" style=\"margin: 10px 0;\">\r\n                        <div class=\"col-md-4 col-md-offset-4\">\r\n                          <div class=\"form-group row\" *ngIf=\"currentNewParam.key == 'custom'\">\r\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Parameter name</label>\r\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the name\" [(ngModel)]=\"customKey\">\r\n                            </div>\r\n                          </div>\r\n                          <div class=\"form-group row\">\r\n                            <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">Value</label>\r\n                            <div class=\"col-md-9 col-sm-9 col-xs-12\">\r\n                              <input type=\"text\" class=\"form-control\" placeholder=\"Input the value\" [(ngModel)]=\"currentNewParam.value\">\r\n                            </div>\r\n                          </div>\r\n                        </div>\r\n                      </div>\r\n                      <div class=\"row\" style=\"margin-top:15px;\">\r\n                        <div class=\"col-md-4 col-md-offset-4\">\r\n                          <button class=\"btn\" (click)=\"cancelAppendingParam()\">\r\n                             Cancel\r\n                          </button>\r\n                          <button class=\"btn btn-primary\"  (click)=\"appendParameter()\" style=\"margin-left:10px\">\r\n                            Append parameter\r\n                          </button>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n\r\n                  </div>\r\n                  <!-- PARAMETERS -->\r\n\r\n\r\n                  <div id=\"save\" class=\"row\" style=\"margin-top: 20px;\">\r\n                    <pre class=\"line-numbers\"><code class=\"language-javascript\" [innerHTML]=\"htmlViewForEntity()\"></code></pre>\r\n                    <button\r\n                      type=\"button\"\r\n                      class=\"btn btn-primary\"\r\n                      (click)=\"saveEntity()\">\r\n                      Save changes\r\n                    </button>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n           <!-- <div class=\"modal-footer\">\r\n                <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\r\n            </div>-->\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n\r\n<div class=\"modal fade\" id=\"addExistentEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"discoveryLabel\" *ngIf=\"discoveredEntities != undefined && discoveredEntities.length > 0\">\r\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"discoveryLabel\">Automatic discovered {{entityType}}s for  {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n\r\n                <div id=\"discoveredEntityId\" class=\"row\" *ngIf=\"selectedEntity != undefined\">\r\n                    <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                for=\"discoveredEntityId\"\r\n                                style=\"margin-top: 7px;\">\r\n                            Name <span class=\"required\">*</span>\r\n                        </label>\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input\r\n                                    id=\"discoveredEntityIdInput\"\r\n                                    class=\"form-control col-md-7 col-xs-12\"\r\n                                    [tooltip]=\"'At least 4 symbols'\"\r\n                                    placeholder=\"input the name of new entity\"\r\n                                    [(ngModel)]=\"selectedEntityName\">\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n                <div class=\"table-wrapper row\">\r\n                    <table class=\"table table-hover table-bordered\" *ngIf=\"entityType == 'attribute'\">\r\n                        <thead class=\"thead-inverse\">\r\n                        <tr>\r\n                            <th>Attribute name</th>\r\n                            <th>Already set</th>\r\n                            <th>Read/write timeout</th>\r\n                            <th>Parameters</th>\r\n                        </tr>\r\n                        </thead>\r\n                        <tbody>\r\n                        <tr *ngFor=\"let attribute of discoveredEntities\" class=\"clickableTr\" [class.activeTr]=\"((selectedEntity != undefined) && (selectedEntity.name == attribute.name))\" (click)=\"setActiveEntity(attribute)\">\r\n                            <th scope=\"row\">{{attribute.name}}</th>\r\n                            <td>\r\n                                    <span class=\"discovery-set\"  *ngIf=\"isAttributeSet(attribute.name)\">\r\n                                          <span class=\"glyphicon glyphicon-ok glyph-icon-appended\" aria-hidden=\"true\"></span>\r\n                                     </span>\r\n                            </td>\r\n                            <td>{{attribute.rwto}}</td>\r\n                            <td [innerHTML]=\"formatParams(attribute)\"></td>\r\n                        </tr>\r\n                        </tbody>\r\n                    </table>\r\n                </div>\r\n                <button\r\n                        type=\"button\"\r\n                        (click)=\"cancelEntitySelection()\"\r\n                        [disabled]=\"selectedEntity == undefined\"\r\n                        class=\"btn btn-primary\">\r\n                    Cancel\r\n                </button>\r\n                <button\r\n                        type=\"button\"\r\n                        style=\"float:right;\"\r\n                        [disabled]=\"((selectedEntity != undefined) && isAttributeSet(selectedEntity.name))\"\r\n                        (click)=\"addSelectedEntityToResource()\"\r\n                        class=\"btn btn-default\">\r\n                    Add\r\n                </button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        <th>Name</th>\r\n        <th>Actions</th>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr *ngFor=\"let entity of entities\">\r\n\r\n        <td>{{entity.name}}</td>\r\n        <td>\r\n            <div class=\"btn-group\" role=\"group\">\r\n                <button\r\n                        type=\"button\"\r\n                        (click)=\"setEntity(entity)\"\r\n                        class=\"btn btn-default btn-xs\">\r\n                    Edit\r\n                </button>\r\n                <button type=\"button\" class=\"btn btn-default btn-xs\" (click)=\"remove(entity)\">Remove</button>\r\n            </div>\r\n        </td>\r\n    </tr>\r\n    <tr>\r\n      <td></td>\r\n      <td>\r\n        <button\r\n          type=\"button\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"addNewEntity()\"\r\n          class=\"btn btn-default btn-xs\">\r\n               Add new\r\n        </button>\r\n\r\n        <button\r\n          *ngIf=\"isResourceType()\"\r\n          type=\"button\"\r\n          data-toggle=\"modal\"\r\n          (click)=\"addEntityFromList()\"\r\n          class=\"btn btn-default btn-xs\">\r\n             Add from the list\r\n        </button>\r\n      </td>\r\n    </tr>\r\n    </tbody>\r\n</table>\r\n"
+module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"editEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"editEntityLabel\">\r\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span>\r\n                </button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"editEntityLabel\">Edit {{activeEntity.getName()}}\r\n                    {{activeEntity.name}} for resource {{resourceName}}</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n                <div id=\"smartwizard{{entityType}}\" style=\"height: 95%\">\r\n                    <ul>\r\n                        <li>\r\n                            <a [attr.href]=\"'#name'\">\r\n                                Name<br/>\r\n                                <small>Name of {{activeEntity.getName()}}</small>\r\n                            </a>\r\n                        </li>\r\n                        <li>\r\n                            <a [attr.href]=\"'#additional'\">\r\n                                Additional<br/>\r\n                                <small>Additional {{activeEntity.getName()}}-related members</small>\r\n                            </a>\r\n                        </li>\r\n                        <li>\r\n                            <a [attr.href]=\"'#parameters'\">\r\n                                Parameters<br/>\r\n                                <small>Parameters for {{activeEntity.getName()}}</small>\r\n                            </a>\r\n                        </li>\r\n                        <li>\r\n                            <a [attr.href]=\"'#save'\">\r\n                                Save<br/>\r\n                                <small>Saving the {{activeEntity.getName()}}</small>\r\n                            </a>\r\n                        </li>\r\n                    </ul>\r\n\r\n                    <div style=\"height:100%\">\r\n                        <div id=\"name\" class=\"row\" style=\"margin-top: 100px;\">\r\n                            <div class=\"item form-group\">\r\n                                <label\r\n                                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                        for=\"nameInput\"\r\n                                        style=\"margin-top: 7px;\">\r\n                                    Name <span class=\"required\">*</span>\r\n                                </label>\r\n                                <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                    <input\r\n                                            id=\"nameInput\"\r\n                                            class=\"form-control col-md-7 col-xs-12\"\r\n                                            [tooltip]=\"'At least 4 symbols'\"\r\n                                            placeholder=\"input the name of {{activeEntity.getName()}}\"\r\n                                            [(ngModel)]=\"activeEntity.name\">\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n\r\n\r\n                        <div id=\"additional\" class=\"row\" style=\"margin-top: 100px;\">\r\n\r\n                            <div *ngIf=\"entityType == 'operation'\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                            style=\"margin-top: 7px;\">\r\n                                        Infinite invocation timeout\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <ui-switch\r\n                                                [(ngModel)]=\"activeEntity.isInfiniteDuration\"\r\n                                                [size]=\"'small'\">\r\n                                        </ui-switch>\r\n                                    </div>\r\n                                </div>\r\n\r\n                                <div class=\"item form-group\" *ngIf=\"!activeEntity.isInfiniteDuration\"\r\n                                     style=\"margin-top: 15px;\">\r\n                                    <label\r\n                                            class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                            for=\"invtoInput\"\r\n                                            style=\"margin-top: 7px;\">\r\n                                        Invocation timeout (ms)<span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                id=\"invtoInput\"\r\n                                                class=\"form-control col-md-7 col-xs-12\"\r\n                                                placeholder=\"input the invocation timeout of {{activeEntity.getName()}}\"\r\n                                                [(ngModel)]=\"activeEntity.invokto\">\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div *ngIf=\"entityType == 'attribute'\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                            style=\"margin-top: 7px;\">\r\n                                        Infinite read/write timeout\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <ui-switch\r\n                                                [(ngModel)]=\"activeEntity.isInfiniteDuration\"\r\n                                                [size]=\"'small'\">\r\n                                        </ui-switch>\r\n                                    </div>\r\n                                </div>\r\n\r\n                                <div class=\"item form-group\" *ngIf=\"!activeEntity.isInfiniteDuration\"\r\n                                     style=\"margin-top: 15px;\">\r\n                                    <label\r\n                                            class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                            for=\"rwtoInput\"\r\n                                            style=\"margin-top: 7px;\">\r\n                                        Read/write timeout (ms) <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                id=\"rwtoInput\"\r\n                                                class=\"form-control col-md-7 col-xs-12\"\r\n                                                placeholder=\"input the read/write timeout of {{activeEntity.getName()}} (ms)\"\r\n                                                [(ngModel)]=\"activeEntity.rwto\">\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"item form-group\" *ngIf=\"isResourceType()\">\r\n                                <label class=\"control-label col-md-3 col-sm-3 col-xs-12\">\r\n                                    Override group entity\r\n                                </label>\r\n                                <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                    <ui-switch\r\n                                            [(ngModel)]=\"activeEntity.override\"\r\n                                            [size]=\"'small'\">\r\n                                    </ui-switch>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n\r\n\r\n                        <!-- PARAMETERS -->\r\n                        <div id=\"parameters\" class=\"row\" style=\"margin-top: 10px;\">\r\n                            <div class=\"col-md-12\" id=\"tableParamsRow{{entityType}}\">\r\n                                <table class=\"table\" *ngIf=\"activeEntity.parameters && activeEntity.parameters.length > 0\">\r\n                                    <thead>\r\n                                    <tr>\r\n                                        <th>#</th>\r\n                                        <th>Key</th>\r\n                                        <th>Value</th>\r\n                                    </tr>\r\n                                    </thead>\r\n                                    <tbody>\r\n                                    <tr *ngFor=\"let param of activeEntity.parameters\">\r\n                                        <td>\r\n                                              <span\r\n                                                      class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                                      (click)=\"checkAndRemoveParameter(param)\"\r\n                                                      aria-hidden=\"true\">\r\n                                              </span>\r\n                                        </td>\r\n                                        <td>{{param.key}}</td>\r\n                                        <td>\r\n                                            <inline-edit [(ngModel)]=\"param.value\"\r\n                                                         [ngModelOptions]=\"{standalone: true}\"\r\n                                                         (onSave)=\"saveParameter(param)\"\r\n                                                         [uniqueKey]=\"param.key\">\r\n                                            </inline-edit>\r\n                                        </td>\r\n                                    </tr>\r\n                                    <tr>\r\n                                        <td></td>\r\n                                        <td>\r\n                                        </td>\r\n                                        <td align=\"right\">\r\n\r\n                                        </td>\r\n                                    </tr>\r\n                                    </tbody>\r\n                                </table>\r\n\r\n                                <div style=\"height: 100px;\" *ngIf=\"!activeEntity.parameters || activeEntity.parameters.length == 0\"></div>\r\n                                <div class=\"row\">\r\n                                    <div class=\"col-md-2 col-md-offset-2\">\r\n                                        <button type=\"button\" class=\"btn btn-sm btn-primary\" (click)=\"addNewParameterManually()\">\r\n                                            Add manually\r\n                                        </button>\r\n                                    </div>\r\n                                    <div class=\"col-md-2\">\r\n                                        <button\r\n                                                *ngIf=\"(activeEntity.paramDescriptors | async)?.length > 0\"\r\n                                                type=\"button\"\r\n                                                class=\"btn btn-primary btn-sm\"\r\n                                                (click)=\"addNewParameter()\">\r\n                                            Add suggested <i class=\"fa fa-caret-down\" aria-hidden=\"true\"></i>\r\n                                        </button>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"col-md-12\" style=\"display: none; margin-top: 15px\" id=\"newParamRow{{entityType}}\">\r\n                                <div class=\"row\" *ngIf=\"currentNewParam\">\r\n\r\n                                    <div class=\"item form-group\" style=\"margin-top: 15px;\">\r\n                                        <label\r\n                                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                                for=\"invtoInput\"\r\n                                                style=\"margin-top: 7px;\">\r\n                                            Select parameter\r\n                                        </label>\r\n                                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                            <select\r\n                                                    style=\"width: 350px\"\r\n                                                    id=\"newParamSelect{{entityType}}\"\r\n                                                    [(ngModel)]=\"currentNewParam.key\"\r\n                                                    class=\"select2_group form-control\">\r\n                                                <optgroup label=\"Suggested parameter\"\r\n                                                          *ngIf=\"activeEntity.paramDescriptors | async\">\r\n                                                    <option\r\n                                                            *ngFor=\"let descriptor of activeEntity.paramDescriptors | async\"\r\n                                                            [attr.required]=\"descriptor.required\"\r\n                                                            [attr.pattern]=\"descriptor.pattern\"\r\n                                                            [attr.defaultValue]=\"descriptor.defaultValue\"\r\n                                                            [value]=\"descriptor.name\">\r\n                                                        {{descriptor.name}}\r\n                                                    </option>\r\n                                                </optgroup>\r\n                                            </select>\r\n                                         </div>\r\n                                      </div>\r\n\r\n                                      <div class=\"item form-group\" style=\"margin-top: 15px;\">\r\n                                            <label\r\n                                                    class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                                    style=\"margin-top: 7px;\">\r\n                                               Set parameter's value\r\n                                            </label>\r\n                                            <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                                <input type=\"text\" class=\"form-control\" placeholder=\"Input the value\" [(ngModel)]=\"currentNewParam.value\">\r\n                                            </div>\r\n                                      </div>\r\n                                </div>\r\n\r\n                                <div class=\"row\" style=\"margin-top:15px;\">\r\n                                    <div class=\"col-md-4 col-md-offset-4\">\r\n                                        <button class=\"btn\" (click)=\"cancelAppendingParam()\">\r\n                                            Cancel\r\n                                        </button>\r\n                                        <button class=\"btn btn-primary\" (click)=\"appendParameter()\"\r\n                                                style=\"margin-left:10px\">\r\n                                            Append parameter\r\n                                        </button>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                        </div>\r\n\r\n                        <div id=\"save\" class=\"row\" style=\"margin-top: 20px;\">\r\n                            <pre class=\"line-numbers\"><code class=\"language-javascript\" [innerHTML]=\"htmlViewForEntity()\"></code></pre>\r\n                            <button\r\n                                    type=\"button\"\r\n                                    class=\"btn btn-primary\"\r\n                                    (click)=\"saveEntity()\">\r\n                                Save changes\r\n                            </button>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n\r\n<div class=\"modal fade\" id=\"addExistentEntity{{entityType}}\" role=\"dialog\" aria-labelledby=\"discoveryLabel\"\r\n     *ngIf=\"discoveredEntities != undefined && discoveredEntities.length > 0\">\r\n    <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n        <div class=\"modal-content\">\r\n            <div class=\"modal-header\">\r\n                <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span>\r\n                </button>\r\n                <h4 class=\"modal-title leftAlign\" id=\"discoveryLabel\">Automatic discovered {{entityType}}s for\r\n                    {{activeEntity.getName()}} {{activeEntity.name}} for resource {{resourceName}}</h4>\r\n            </div>\r\n            <br/>\r\n            <div class=\"modal-body\">\r\n\r\n                <div id=\"discoveredEntityId\" class=\"row\" *ngIf=\"selectedEntity != undefined\">\r\n                    <div class=\"item form-group\">\r\n                        <label\r\n                                class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                                for=\"discoveredEntityId\"\r\n                                style=\"margin-top: 7px;\">\r\n                            Name <span class=\"required\">*</span>\r\n                        </label>\r\n                        <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                            <input\r\n                                    id=\"discoveredEntityIdInput\"\r\n                                    class=\"form-control col-md-7 col-xs-12\"\r\n                                    [tooltip]=\"'At least 4 symbols'\"\r\n                                    placeholder=\"input the name of new entity\"\r\n                                    [(ngModel)]=\"selectedEntityName\">\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n                <div class=\"table-wrapper row\">\r\n                    <table class=\"table table-hover table-bordered\" *ngIf=\"entityType == 'attribute'\">\r\n                        <thead class=\"thead-inverse\">\r\n                        <tr>\r\n                            <th>Attribute name</th>\r\n                            <th>Already set</th>\r\n                            <th>Read/write timeout</th>\r\n                            <th>Parameters</th>\r\n                        </tr>\r\n                        </thead>\r\n                        <tbody>\r\n                        <tr *ngFor=\"let attribute of discoveredEntities\" class=\"clickableTr\"\r\n                            [class.activeTr]=\"((selectedEntity != undefined) && (selectedEntity.name == attribute.name))\"\r\n                            (click)=\"setActiveEntity(attribute)\">\r\n                            <th scope=\"row\">{{attribute.name}}</th>\r\n                            <td>\r\n                                    <span class=\"discovery-set\" *ngIf=\"isAttributeSet(attribute.name)\">\r\n                                          <span class=\"glyphicon glyphicon-ok glyph-icon-appended\"\r\n                                                aria-hidden=\"true\"></span>\r\n                                     </span>\r\n                            </td>\r\n                            <td>{{attribute.rwto}}</td>\r\n                            <td [innerHTML]=\"formatParams(attribute)\"></td>\r\n                        </tr>\r\n                        </tbody>\r\n                    </table>\r\n                </div>\r\n                <button\r\n                        type=\"button\"\r\n                        (click)=\"cancelEntitySelection()\"\r\n                        [disabled]=\"selectedEntity == undefined\"\r\n                        class=\"btn btn-primary\">\r\n                    Cancel\r\n                </button>\r\n                <button\r\n                        type=\"button\"\r\n                        style=\"float:right;\"\r\n                        [disabled]=\"((selectedEntity != undefined) && isAttributeSet(selectedEntity.name))\"\r\n                        (click)=\"addSelectedEntityToResource()\"\r\n                        class=\"btn btn-default\">\r\n                    Add\r\n                </button>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</div>\r\n\r\n<table class=\"table\" *ngIf=\"entities && entities.length > 0\">\r\n    <thead>\r\n    <tr>\r\n        <th>Name</th>\r\n        <th>Actions</th>\r\n    </tr>\r\n    </thead>\r\n    <tbody>\r\n    <tr *ngFor=\"let entity of entities\">\r\n\r\n        <td>{{entity.name}}</td>\r\n        <td>\r\n            <div class=\"btn-group\" role=\"group\">\r\n                <button\r\n                        type=\"button\"\r\n                        (click)=\"setEntity(entity)\"\r\n                        class=\"btn btn-default btn-xs\">\r\n                    Edit\r\n                </button>\r\n                <button type=\"button\" class=\"btn btn-default btn-xs\" (click)=\"remove(entity)\">Remove</button>\r\n            </div>\r\n        </td>\r\n    </tr>\r\n    </tbody>\r\n</table>\r\n\r\n<button\r\n        type=\"button\"\r\n        data-toggle=\"modal\"\r\n        (click)=\"addNewEntity()\"\r\n        class=\"btn btn-default btn-xs\">\r\n    Add new\r\n</button>\r\n\r\n<button\r\n        *ngIf=\"isResourceType()\"\r\n        type=\"button\"\r\n        data-toggle=\"modal\"\r\n        (click)=\"addEntityFromList()\"\r\n        class=\"btn btn-default btn-xs\">\r\n    Add from the list\r\n</button>"
 
 /***/ },
 
@@ -107220,22 +107339,27 @@ exports.OptionalParametersFilter = OptionalParametersFilter;
 "use strict";
 "use strict";
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var Attribute = (function (_super) {
     __extends(Attribute, _super);
     function Attribute(http, resourceType, name, rwto, override, jsonObject) {
         _super.call(this, http, name, resourceType, override, jsonObject);
         this.rwto = 0; // read/write timeout
-        // if we pass there number - we should recognize it as a number (ms)
-        // otherwise - we parse it as a duration ISO8601
-        this.rwto = (!isNaN(parseFloat(rwto)) && isFinite(rwto)) ? rwto : moment.duration(rwto).asMilliseconds();
-        //console.log("Rwto for attribute " + name + ": " + rwto + " and " + this.rwto,  moment.duration(rwto));
+        this.isInfiniteDuration = true;
+        if (util_1.isNullOrUndefined(rwto)) {
+            this.rwto = 0;
+            this.isInfiniteDuration = true;
+        }
+        else {
+            this.rwto = app_utils_1.SnampUtils.parseDuration(rwto);
+        }
     }
     Attribute.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        // see https://momentjs.com/docs/#/durations/as-json/
-        //console.log("Here! ", this.rwto, moment.duration({ milliseconds: this.rwto}));
-        resultValue["readWriteTimeout"] = moment.duration({ milliseconds: this.rwto }).toISOString();
+        if (!this.isInfiniteDuration) {
+            resultValue["readWriteTimeout"] = app_utils_1.SnampUtils.toDurationString(this.rwto);
+        }
         resultValue["override"] = this.override;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
@@ -107401,7 +107525,7 @@ var EntityWithSub = (function (_super) {
         if (parameters["attributes"] != undefined) {
             var attrs = parameters["attributes"];
             for (var key in attrs) {
-                var rwto = 0;
+                var rwto = null;
                 var override = false;
                 if (attrs[key]["readWriteTimeout"] != undefined) {
                     rwto = attrs[key]["readWriteTimeout"];
@@ -107427,7 +107551,7 @@ var EntityWithSub = (function (_super) {
         if (parameters["operations"] != undefined) {
             var operations = parameters["operations"];
             for (var key in operations) {
-                var rwto = 0;
+                var rwto = null;
                 var override = false;
                 if (operations[key]["invocationTimeout"] != undefined) {
                     rwto = operations[key]["invocationTimeout"];
@@ -107538,19 +107662,27 @@ exports.Gateway = Gateway;
 "use strict";
 "use strict";
 var model_subEntity_1 = __webpack_require__("./src/app/configuration/model/model.subEntity.ts");
-var moment = __webpack_require__("./node_modules/moment/moment.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var app_utils_1 = __webpack_require__("./src/app/services/app.utils.ts");
 var Operation = (function (_super) {
     __extends(Operation, _super);
     function Operation(http, resourceType, name, invokto, override, jsonObject) {
         _super.call(this, http, name, resourceType, override, jsonObject);
         this.invokto = 0; // invocation timeout
-        // if we pass there number - we should recognize it as a number (ms)
-        // otherwise - we parse it as a duration ISO8601
-        this.invokto = (!isNaN(parseFloat(invokto)) && isFinite(invokto)) ? invokto : moment.duration(invokto).asMilliseconds();
+        this.isInfiniteDuration = true;
+        if (util_1.isNullOrUndefined(invokto)) {
+            this.invokto = 0;
+            this.isInfiniteDuration = true;
+        }
+        else {
+            this.invokto = app_utils_1.SnampUtils.parseDuration(invokto);
+        }
     }
     Operation.prototype.stringifyFullObject = function () {
         var resultValue = {};
-        resultValue["invocationTimeout"] = moment.duration({ milliseconds: this.invokto }).toISOString();
+        if (!this.isInfiniteDuration) {
+            resultValue["invocationTimeout"] = app_utils_1.SnampUtils.toDurationString(this.invokto);
+        }
         resultValue["override"] = this.override;
         resultValue["parameters"] = this.stringifyParameters();
         return JSON.stringify(resultValue, null, 4);
@@ -107644,9 +107776,8 @@ var Resource = (function (_super) {
             this.removeParameter("smartMode");
         }
         // set the group
-        if (this.contains("group")) {
-            this.groupName = this.getParameter("group").value;
-            this.removeParameter("group");
+        if (parameters["groupName"] != undefined && parameters["groupName"].length > 0) {
+            this.groupName = parameters["groupName"];
         }
         // set the group
         if (this.contains("threadPool")) {
@@ -107680,7 +107811,7 @@ var Resource = (function (_super) {
         else {
             this.overriddenProperties.push(value);
         }
-        console.log("Overriddens for resource " + this.name + " are " + this.overriddenProperties);
+        console.debug("Overriddens for resource " + this.name + " are " + this.overriddenProperties);
     };
     return Resource;
 }(model_entityWithSub_1.EntityWithSub));
@@ -108288,7 +108419,7 @@ __export(__webpack_require__("./src/app/app.module.ts"));
 /***/ "./src/app/menu/sidebar/sidebar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <profile></profile><br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" class=\"clickableAnchor\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" class=\"clickableAnchor\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"thread-pools\" routerLinkActive=\"active\">Thread pools</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisor - Health statuses</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" class=\"clickableAnchor\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" class=\"clickableAnchor\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <!--<li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Health statuses</a></li>-->\r\n              <li *ngFor=\"let _view of views\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"col-md-3 left_col\">\r\n  <div class=\"left_col scroll-view\">\r\n    <div class=\"navbar nav_title\" style=\"border: 0;\">\r\n      <a href=\"index.html\" class=\"site_title\"><img src=\"assets/img/snmp.png\"/> <span>SNAMP UI</span></a>\r\n    </div>\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <profile></profile><br />\r\n\r\n    <!-- sidebar menu -->\r\n    <div id=\"sidebar-menu\" class=\"main_menu_side hidden-print main_menu\">\r\n      <div class=\"menu_section\">\r\n        <h3>General</h3>\r\n        <ul class=\"nav side-menu\">\r\n          <li><a id=\"chartli\" class=\"clickableAnchor\"><i class=\"fa fa-newspaper-o\"></i> Charts<span id=\"chartchevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li *ngFor=\"let name of groupNames | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['charts', name]\" routerLinkActive=\"active\">\r\n                  {{name}}\r\n                </a>\r\n              </li>\r\n              <li *ngIf=\"isAllowed()\"><a (click)=\"newDashboard()\">+ New dashboard</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"homeli\" class=\"clickableAnchor\"><i class=\"fa fa-home\"></i> Configure<span id=\"homechevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"gateways\" routerLinkActive=\"active\">Gateways</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"resources\" routerLinkActive=\"active\">Resources</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"rgroups\" routerLinkActive=\"active\">Resource groups</a></li>\r\n              <li routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Supervisors</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"snampcfg\" routerLinkActive=\"active\">SNAMP components</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"thread-pools\" routerLinkActive=\"active\">Thread pools</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"configuration\" routerLinkActive=\"active\">Save/restore</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"logsli\" class=\"clickableAnchor\"><i class=\"fa fa-commenting-o\"></i> Notifications<span id=\"logschevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"logview\" routerLinkActive=\"active\">Log view</a></li>\r\n              <li routerLinkActive=\"activeLi\"><a routerLink=\"notification-setup\" routerLinkActive=\"active\">Settings</a></li>\r\n            </ul>\r\n          </li>\r\n          <li><a id=\"analysisli\" class=\"clickableAnchor\"><i class=\"fa fa-search \"></i> Analysis<span id=\"analysischevron\" class=\"fa fa-chevron-down\"></span></a>\r\n            <ul class=\"nav child_menu\">\r\n              <!--<li routerLinkActive=\"activeLi\"  [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"watchers/dashboard\" routerLinkActive=\"active\" [routerLinkActiveOptions]=\"{exact: true}\">Health statuses</a></li>-->\r\n              <li *ngFor=\"let _view of views | async\"\r\n                  routerLinkActive=\"activeLi\">\r\n                <a [routerLink]=\"['view', _view]\" routerLinkActive=\"active\">\r\n                  {{_view}}\r\n                </a>\r\n              </li>\r\n              <li *ngIf=\"isAllowed()\" routerLinkActive=\"activeLi\" [routerLinkActiveOptions]=\"{exact: true}\"><a routerLink=\"view\" [routerLinkActiveOptions]=\"{exact: true}\" routerLinkActive=\"active\">+ Add view</a></li>\r\n            </ul>\r\n          </li>\r\n        </ul>\r\n      </div>\r\n    </div>\r\n    <!-- /sidebar menu -->\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
@@ -108303,23 +108434,18 @@ var app_chartService_1 = __webpack_require__("./src/app/services/app.chartServic
 var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var app_user_profile_1 = __webpack_require__("./src/app/services/app.user.profile.ts");
 var Sidebar = (function () {
-    function Sidebar(_viewService, _chartService, modal, _router) {
+    function Sidebar(_viewService, _chartService, modal, _router, ups) {
         this._viewService = _viewService;
         this._chartService = _chartService;
         this.modal = modal;
         this._router = _router;
-        this.views = [];
-        this.groupNames = [];
+        this.ups = ups;
     }
     Sidebar.prototype.ngOnInit = function () {
-        var _this = this;
-        this._viewService.getViewNames().subscribe(function (data) {
-            _this.views = data;
-        });
-        this._chartService.getGroups().subscribe(function (data) {
-            _this.groupNames = data;
-        });
+        this.views = this._viewService.getViewNames();
+        this.groupNames = this._chartService.getGroups();
     };
     Sidebar.prototype.ngAfterViewInit = function () {
         $(document).ready(function () {
@@ -108351,6 +108477,7 @@ var Sidebar = (function () {
         this.modal.prompt()
             .className('default')
             .message('New dashboard')
+            .isBlocking(true)
             .placeholder('Please set the name for a new dashboard')
             .open()
             .then(function (dialog) { return dialog.result; })
@@ -108359,6 +108486,9 @@ var Sidebar = (function () {
             _this._router.navigateByUrl('/charts/' + result);
         })
             .catch(function () { });
+    };
+    Sidebar.prototype.isAllowed = function () {
+        return this.ups.isUserHasManagerOrAdminRole();
     };
     Sidebar = __decorate([
         core_1.Component({
@@ -108369,10 +108499,10 @@ var Sidebar = (function () {
                 vex_1.DialogFormModal
             ]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _a) || Object, (typeof (_b = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_viewService_1.ViewService !== 'undefined' && app_viewService_1.ViewService) === 'function' && _a) || Object, (typeof (_b = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _b) || Object, (typeof (_c = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _c) || Object, (typeof (_d = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _d) || Object, (typeof (_e = typeof app_user_profile_1.UserProfileService !== 'undefined' && app_user_profile_1.UserProfileService) === 'function' && _e) || Object])
     ], Sidebar);
     return Sidebar;
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
 }());
 exports.Sidebar = Sidebar;
 
@@ -108383,7 +108513,7 @@ exports.Sidebar = Sidebar;
 /***/ "./src/app/menu/topbar/topnavbar.component.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            {{getUserName()}}\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"javascript:;\">Profile</a></li>\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{getLogsCountLabel()}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center alert-toggle-button\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n              <div class=\"text-center alert-toggle-button\">\r\n                <a (click)=\"toggleAlerts()\">\r\n                  <strong>Toggle alerts</strong>\r\n                  <i class=\"fa fa-pause\" id=\"togglableAlertIcon\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.shortDescription()}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"top_nav\">\r\n  <div class=\"nav_menu\">\r\n    <nav>\r\n      <div class=\"nav toggle\">\r\n        <a id=\"menu_toggle\" (click)=\"toggleClicked($event)\"><i fa [icon]=\"'bars'\"></i></a>\r\n      </div>\r\n      <ul class=\"nav navbar-nav navbar-right\">\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"user-profile dropdown-toggle\" dropdown-open id=\"userProfileDropdown\">\r\n            <img src=\"assets/img/anyUser.png\" alt=\"\">\r\n            {{getUserName()}}\r\n          </a>\r\n          <ul class=\"dropdown-menu dropdown-usermenu pull-right\" aria-labelledby=\"userProfileDropdown\">\r\n            <li><a href=\"https://snamp.bytex.solutions/docs/latest/main.md.html\" target=\"_blank\">Help</a></li>\r\n            <li><a href=\"login.html\" (click)=\"clearCookie()\"><i class=\"fa fa-sign-out pull-right\"></i> Log Out</a></li>\r\n          </ul>\r\n        </li>\r\n\r\n        <li dropdown>\r\n          <a href=\"javascript:;\" class=\"dropdown-toggle info-number\" dropdown-open id=\"userNotificaion\">\r\n            <i class=\"fa fa-envelope-o\"></i>\r\n            <span class=\"badge bg-green\">{{getLogsCountLabel()}}</span>\r\n          </a>\r\n          <ul id=\"menu1\" class=\"dropdown-menu list-unstyled msg_list\" dropdown-not-closable-zone>\r\n            <li *ngIf=\"logs && logs.length > 0\">\r\n              <div class=\"text-center alert-toggle-button\">\r\n                <a (click)=\"clearAlerts()\">\r\n                  <strong>Clear alerts</strong>\r\n                  <i class=\"fa fa-remove\"></i>\r\n                </a>\r\n              </div>\r\n              <div class=\"text-center alert-toggle-button\">\r\n                <a (click)=\"toggleAlerts()\">\r\n                  <strong>Toggle alerts</strong>\r\n                  <i class=\"fa fa-pause\" id=\"togglableAlertIcon\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n            <li *ngFor=\"let log of logs\" [attr.id]=\"log.id\">\r\n              <a class=\"exitIcon\" (click)=\"removeMessage(log)\"><i class=\"glyphicon glyphicon-remove-circle\"></i></a>\r\n              <a (click)=\"clickDetails(log)\">\r\n                <span class=\"image\"><i class=\"fa fa-info fa-3\" aria-hidden=\"true\"></i></span>\r\n                <span>\r\n                  <span style=\"text-transform: uppercase;\">{{log.level}}</span>\r\n\r\n                  <span class=\"time\">{{log.localTime | amTimeAgo}}</span>\r\n                </span>\r\n                <span class=\"message\">\r\n                  {{log.shortDescription()}}\r\n                </span>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <div class=\"text-center\">\r\n                <a href=\"/snamp/#/snamplogview\">\r\n                  <strong>See All Alerts</strong>\r\n                  <i class=\"fa fa-angle-right\"></i>\r\n                </a>\r\n              </div>\r\n            </li>\r\n          </ul>\r\n        </li>\r\n      </ul>\r\n    </nav>\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
@@ -108409,6 +108539,8 @@ var TopNavBar = (function () {
         overlay.defaultViewContainer = vcRef;
     }
     TopNavBar.prototype.clearCookie = function () {
+        // make sure it works on remote server
+        document.cookie = "snamp-auth-token=; expires=" + +new Date() + "; domain=" + window.location.hostname + "; path=/";
         this._cookieService.removeAll();
         this._snampLogService.clear();
     };
@@ -108495,80 +108627,146 @@ exports.TopNavBar = TopNavBar;
 "use strict";
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
-var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var dashboard_1 = __webpack_require__("./src/app/charts/model/dashboard.ts");
 var objectFactory_1 = __webpack_require__("./src/app/charts/model/objectFactory.ts");
+var fabric_1 = __webpack_require__("./src/app/charts/model/data/fabric.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
+var BehaviorSubject_1 = __webpack_require__("./node_modules/rxjs/BehaviorSubject.js");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
 __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
-var fabric_1 = __webpack_require__("./src/app/charts/model/data/fabric.ts");
 var ChartService = (function () {
-    function ChartService(localStorageService, _http) {
-        this.localStorageService = localStorageService;
+    function ChartService(_http) {
         this._http = _http;
-        this.KEY_DATA = "snampChartData";
+        this.activeSubscriber = undefined;
         this.chartSubjects = {};
+        this.computeSubscriber = undefined;
+        this.saveSubscriber = undefined;
+        this.groups = new Subject_1.Subject();
+        this.groupSubjects = {};
+        this.groupTimers = {};
         this.loadDashboard();
-        if (this.localStorageService.get(this.KEY_DATA) == undefined) {
-            this.localStorageService.set(this.KEY_DATA, {});
-        }
     }
-    ChartService.prototype.getCharts = function () {
-        return this._dashboard.charts;
+    ChartService.prototype.beforeunloadHandler = function (event) {
+        var _this = this;
+        if (!util_1.isNullOrUndefined(this._dashboard) && !util_1.isNullOrUndefined(this._dashboard.groups)
+            && !util_1.isNullOrUndefined(this.groupTimers)) {
+            this._dashboard.groups.forEach(function (gn) {
+                if (!util_1.isNullOrUndefined(_this.groupTimers[gn])) {
+                    clearInterval(_this.groupTimers[gn]);
+                }
+            });
+        }
+    };
+    ChartService.prototype.getSimpleGroupName = function () {
+        return this._dashboard.groups;
     };
     ChartService.prototype.getChartsByGroupName = function (groupName) {
-        return this._dashboard.charts.filter(function (_ch) { return (_ch.getGroupName() == groupName); });
+        return this.groupSubjects[groupName].asObservable();
+    };
+    ChartService.prototype.removeChartsByGroupName = function (groupName) {
+        for (var i = 0; i < this._dashboard.groups.length; i++) {
+            if (this._dashboard.groups[i] == groupName) {
+                this._dashboard.groups.splice(i, 1);
+                break;
+            }
+        }
+        for (var i = 0; i < this._dashboard.charts.length; i++) {
+            if (this._dashboard.charts[i].getGroupName() == groupName) {
+                if (!util_1.isNullOrUndefined(this._dashboard.charts[i].subscriber)) {
+                    this._dashboard.charts[i].subscriber.unsubscribe();
+                    this._dashboard.charts[i].subscriber = undefined;
+                }
+                if (!util_1.isNullOrUndefined(this.chartSubjects[this._dashboard.charts[i].name])) {
+                    this.chartSubjects[this._dashboard.charts[i].name].unsubscribe();
+                    this.chartSubjects[this._dashboard.charts[i].name] = undefined;
+                }
+                this._dashboard.charts.splice(i, 1);
+            }
+        }
+        this.groupSubjects[groupName].unsubscribe();
+        this.groupSubjects[groupName] = undefined;
+        this.saveDashboard();
     };
     ChartService.prototype.getChartByName = function (chartName) {
-        return this._dashboard.charts.filter(function (_ch) { return (_ch.name == chartName); })[0];
+        return this._dashboard.charts.find(function (_ch) { return (_ch.name == chartName); });
     };
     ChartService.prototype.getGroups = function () {
-        return this.groups;
+        return this.groups.asObservable().share();
     };
     ChartService.prototype.addNewGroup = function (groupName) {
         this._dashboard.groups.push(groupName);
+        this.groupSubjects[groupName] = new BehaviorSubject_1.BehaviorSubject([]);
         this.saveDashboard();
     };
-    ChartService.prototype.receiveChartDataForCharts = function (_chs) {
-        var _this = this;
+    ChartService.stringifyArray = function (_chs) {
         var _chArrJson = [];
         for (var i = 0; i < _chs.length; i++) {
             _chArrJson.push(_chs[i].toJSON());
         }
-        this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, _chArrJson)
+        return _chArrJson;
+    };
+    ChartService.prototype.saveChartsPreferences = function (chartName, preferences) {
+        this.getChartByName(chartName).preferences["gridcfg"] = preferences;
+        this.saveDashboard();
+    };
+    ChartService.prototype.receiveDataForCharts = function (_chs) {
+        var _this = this;
+        this.computeSubscriber = this._http.post(app_restClient_1.REST.CHARTS_COMPUTE, ChartService.stringifyArray(_chs))
             .map(function (res) { return res.json(); })
             .subscribe(function (data) {
             _this.pushNewChartData(data);
         });
     };
-    ChartService.prototype.receiveChartDataForGroupName = function (gn) {
-        this.receiveChartDataForCharts(this.getChartsByGroupName(gn));
-    };
     ChartService.prototype.loadDashboard = function () {
         var _this = this;
-        var _res = this._http.get(app_restClient_1.REST.CHART_DASHBOARD).map(function (res) { return res.json(); }).publishLast().refCount();
-        this.groups = _res.map(function (data) { return ((data["groups"] == undefined) ? [] : data["groups"]); });
-        _res.subscribe(function (data) {
+        this._http.get(app_restClient_1.REST.CHART_DASHBOARD).map(function (res) { return res.json(); }).subscribe(function (data) {
+            _this.groups.next(util_1.isNullOrUndefined(data["groups"]) ? [] : data["groups"]);
             _this._dashboard = new dashboard_1.Dashboard();
             _this.chartSubjects = {};
             if (data.charts.length > 0) {
                 for (var i = 0; i < data.charts.length; i++) {
                     var _currentChart = objectFactory_1.Factory.chartFromJSON(data.charts[i]);
-                    _this.chartSubjects[_currentChart.name] = new Subject_1.Subject();
+                    _this.chartSubjects[_currentChart.name] = new BehaviorSubject_1.BehaviorSubject([]);
                     _currentChart.subscribeToSubject(_this.chartSubjects[_currentChart.name]);
                     _this._dashboard.charts.push(_currentChart);
                 }
+                _this.charts = new BehaviorSubject_1.BehaviorSubject(_this._dashboard.charts);
+            }
+            else {
+                _this.charts = new BehaviorSubject_1.BehaviorSubject([]);
             }
             _this._dashboard.groups = data.groups;
+            if (!util_1.isNullOrUndefined(data["groups"]) && data.groups.length > 0) {
+                _this._dashboard.groups.forEach(function (element) {
+                    var _groupCharts = [];
+                    _this._dashboard.charts.forEach(function (chart) {
+                        if (chart.getGroupName() == element) {
+                            _groupCharts.push(chart);
+                        }
+                    });
+                    _this.groupSubjects[element] = new BehaviorSubject_1.BehaviorSubject(_groupCharts);
+                });
+            }
         });
     };
     ChartService.prototype.saveDashboard = function () {
-        this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(function () { return console.log("Dashboard has been saved successfully"); });
+        var _this = this;
+        console.debug("Saving chart dashboard: ", app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()));
+        this.saveSubscriber = this._http.put(app_restClient_1.REST.CHART_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
+            .subscribe(function () {
+            console.debug("Dashboard has been saved successfully");
+            _this.groups.next(_this._dashboard.groups);
+            _this.charts.next(_this._dashboard.charts);
+            _this._dashboard.groups.forEach(function (element) {
+                _this.groupSubjects[element].next(_this._dashboard.charts.filter(function (chart) { return (chart.getGroupName() == element); }));
+            });
+        });
     };
     ChartService.prototype.pushNewChartData = function (_data) {
         // loop through all the data we have received
@@ -108577,24 +108775,7 @@ var ChartService = (function () {
             var _d = _data[_currentChartName];
             var _allChartData = [];
             for (var i = 0; i < _d.length; i++) {
-                var _chartData = fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]);
-                _allChartData.push(_chartData);
-                // append this data for this data array
-                if (1 < 0) {
-                    // load data from localStorage, create one if no data exists
-                    var _dataNow = this.getEntireChartData();
-                    if (_dataNow == undefined) {
-                        _dataNow = {};
-                    }
-                    // check if our localStorage contains the data for this chart
-                    if (_dataNow[_currentChartName] == undefined) {
-                        _dataNow[_currentChartName] = [];
-                    }
-                    // in case of line - we just push the value
-                    _dataNow[_currentChartName].push(_chartData);
-                    // save data back to localStorage
-                    this.localStorageService.set(this.KEY_DATA, _dataNow);
-                }
+                _allChartData.push(fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_currentChartName).type, _d[i]));
             }
             // notify all the components that something has changed
             if (this.chartSubjects[_currentChartName] != undefined) {
@@ -108618,75 +108799,62 @@ var ChartService = (function () {
         }
         else {
             this._dashboard.charts.push(chart);
-            this.chartSubjects[chart.name] = new Subject_1.Subject();
+            this.chartSubjects[chart.name] = new BehaviorSubject_1.BehaviorSubject([]);
             chart.subscribeToSubject(this.chartSubjects[chart.name]);
             this.saveDashboard();
         }
     };
-    ChartService.prototype.modifyChart = function (chart) {
-        if (!this.hasChartWithName(chart.name)) {
-            throw new Error("Trying to modify chart that does not exist within the active dashboard");
-        }
-        else {
-            for (var i = 0; i < this._dashboard.charts.length; i++) {
-                if (this._dashboard.charts[i].name == chart.name) {
-                    this._dashboard.charts[i] = chart;
-                    break;
-                }
-            }
-            this.saveDashboard();
-        }
-    };
-    ChartService.prototype.removeChart = function (chartName) {
+    ChartService.prototype.removeChart = function (chartName, update) {
         for (var i = 0; i < this._dashboard.charts.length; i++) {
             if (this._dashboard.charts[i].name == chartName) {
+                if (!util_1.isNullOrUndefined(this._dashboard.charts[i].subscriber)) {
+                    this._dashboard.charts[i].subscriber.unsubscribe();
+                    this._dashboard.charts[i].subscriber = undefined;
+                }
                 // remove the chart from the dashboard
                 this._dashboard.charts.splice(i, 1);
                 // nullify the corresppnding subject
                 this.chartSubjects[chartName] = undefined;
-                // remove localStorage data for this chart
-                var _dataLC = this.localStorageService.get(this.KEY_DATA);
-                if (_dataLC != undefined && _dataLC[chartName] != undefined) {
-                    _dataLC[chartName] = undefined;
-                    this.localStorageService.set(this.KEY_DATA, _dataLC);
-                }
                 // save the dashboard
-                this.saveDashboard();
+                if (update)
+                    this.saveDashboard();
                 return;
             }
         }
         throw new Error("Could not find a chart " + chartName);
     };
-    ChartService.prototype.getObservableForChart = function (name) {
-        if (this.chartSubjects[name] != undefined) {
-            return this.chartSubjects[name].asObservable().share();
-        }
-        else {
-            throw new Error("Cannot find any subject for chart " + name);
-        }
+    ChartService.prototype.resetChart = function (chart) {
+        console.debug("reseting the chart: ", chart.group); // @todo replace instance of to enum
+        this._http.post(app_restClient_1.REST.RESET_ELASTICITY(chart.group, chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart ? "groupStatus" : "elasticity"))
+            .subscribe(function () { return console.debug("Elasticity state has been reset for ", chart.group); });
     };
-    ChartService.prototype.getEntireChartData = function () {
-        var _object = this.localStorageService.get(this.KEY_DATA);
-        var _value = {};
-        if (_object != undefined) {
-            for (var _element in _object) {
-                var _newChartDataArray = [];
-                if (_object[_element] instanceof Array) {
-                    for (var i = 0; i < _object[_element].length; i++) {
-                        _newChartDataArray.push(fabric_1.ChartDataFabric.chartDataFromJSON(this.getChartByName(_object).type, _object[_element][i]));
-                    }
+    ChartService.prototype.ngOnDestroy = function () {
+        this.charts.subscribe(function (data) {
+            for (var i = 0; i < data.length; i++) {
+                if (!util_1.isNullOrUndefined(data[i].subscriber)) {
+                    data[i].subscriber.unsubscribe();
                 }
-                _value[_element] = _newChartDataArray;
             }
+        }).unsubscribe();
+        if (!util_1.isNullOrUndefined(this.computeSubscriber)) {
+            this.computeSubscriber.unsubscribe();
         }
-        return _value;
+        if (!util_1.isNullOrUndefined(this.saveSubscriber)) {
+            this.saveSubscriber.unsubscribe();
+        }
     };
+    __decorate([
+        core_1.HostListener('window:beforeunload', ['$event']), 
+        __metadata('design:type', Function), 
+        __metadata('design:paramtypes', [Object]), 
+        __metadata('design:returntype', void 0)
+    ], ChartService.prototype, "beforeunloadHandler", null);
     ChartService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof angular_2_local_storage_1.LocalStorageService !== 'undefined' && angular_2_local_storage_1.LocalStorageService) === 'function' && _a) || Object, (typeof (_b = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object])
     ], ChartService);
     return ChartService;
-    var _a, _b;
+    var _a;
 }());
 exports.ChartService = ChartService;
 
@@ -108701,11 +108869,14 @@ exports.ChartService = ChartService;
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var angular_2_local_storage_1 = __webpack_require__("./node_modules/angular-2-local-storage/dist/index.js");
 var Subject_1 = __webpack_require__("./node_modules/rxjs/Subject.js");
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
 var log_notification_1 = __webpack_require__("./src/app/services/model/notifications/log.notification.ts");
 var factory_1 = __webpack_require__("./src/app/services/model/notifications/factory.ts");
 var util_1 = __webpack_require__("./node_modules/util/util.js");
+var angular2_websocket_1 = __webpack_require__("./node_modules/angular2-websocket/angular2-websocket.js");
 var SnampLogService = (function () {
     function SnampLogService(localStorageService) {
+        var _this = this;
         this.localStorageService = localStorageService;
         this.MAX_SIZE = 500;
         this.SPLICE_COUNT = 30; // how many elements will we delete from the end of the array
@@ -108723,10 +108894,26 @@ var SnampLogService = (function () {
         else {
             this.displayAlerts = (_tmp == 'true');
         }
+        this.ws = new angular2_websocket_1.$WebSocket(SnampLogService.getWsAddress(), [], { initialTimeout: 500, maxTimeout: 300000, reconnectIfNotNormalClose: true });
+        this.ws.getDataStream()
+            .map(function (msg) { return JSON.parse(msg.data); })
+            .subscribe(function (msg) { return _this.pushLog(factory_1.NotificationFactory.makeFromJson(msg)); }, function (msg) { return console.debug("Error occurred while listening to the socket: ", msg); }, function () { return console.debug("Socket connection has been completed"); });
     }
     // Flush the buffer if the user is closing browser
     SnampLogService.prototype.beforeunloadHandler = function (event) {
         this.flushBuffer();
+    };
+    SnampLogService.getWsAddress = function () {
+        var loc = window.location, new_uri;
+        if (loc.protocol === "https:") {
+            new_uri = "wss:";
+        }
+        else {
+            new_uri = "ws:";
+        }
+        new_uri += "//" + loc.host;
+        new_uri += loc.pathname + "console/events";
+        return new_uri;
     };
     Object.defineProperty(SnampLogService.prototype, "displayAlerts", {
         get: function () {
@@ -108760,7 +108947,11 @@ var SnampLogService = (function () {
         // we should make real js object from its json representation, because local storage contains serialized data
         var _retArray = [];
         for (var i = 0; i < logArray.length; i++) {
-            _retArray.push(factory_1.NotificationFactory.makeFromInnerObject(logArray[i]));
+            if (!util_1.isNullOrUndefined(logArray[i]["_type"]) && logArray[i]["_type"] == abstract_notification_1.AbstractNotification.REST) {
+            }
+            else {
+                _retArray.push(factory_1.NotificationFactory.makeFromInnerObject(logArray[i]));
+            }
         }
         return _retArray;
     };
@@ -108829,10 +109020,13 @@ var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
 __webpack_require__("./node_modules/rxjs/add/observable/throw.js");
 __webpack_require__("./node_modules/rxjs/add/observable/empty.js");
 __webpack_require__("./node_modules/rxjs/add/operator/catch.js");
+var app_logService_1 = __webpack_require__("./src/app/services/app.logService.ts");
+var rest_client_notification_1 = __webpack_require__("./src/app/services/model/notifications/rest.client.notification.ts");
 var ApiClient = (function () {
-    function ApiClient(http, _cookieService) {
+    function ApiClient(http, _cookieService, _snampLogService) {
         this.http = http;
         this._cookieService = _cookieService;
+        this._snampLogService = _snampLogService;
     }
     ApiClient.prototype.createAuthorizationHeader = function () {
         var headers = new http_1.Headers();
@@ -108841,59 +109035,66 @@ var ApiClient = (function () {
         return headers;
     };
     // Functional part of code to log and doing some actions
-    ApiClient.attachProcessing = function (response, emptyfyIfError) {
+    ApiClient.prototype.attachProcessing = function (response, emptyfyIfError, pushError) {
+        var _this = this;
         return response
             .catch(function (error) {
             if (error instanceof http_1.Response && error.status == 401) {
-                console.log("Auth is not working.", error);
+                console.debug("Auth is not working.", error);
                 window.location.href = "login.html?tokenExpired=true";
+            }
+            if (pushError) {
+                _this._snampLogService.pushLog(new rest_client_notification_1.RestClientNotification(response));
             }
             return emptyfyIfError ? Observable_1.Observable.empty() : error;
         }).do((function (data) {
             console.debug("Received data: ", data);
         }), (function (error) {
-            console.log("Error occurred: ", error);
+            console.debug("Error occurred: ", error);
             $("#overlay").fadeOut();
+            if (pushError) {
+                _this._snampLogService.pushLog(new rest_client_notification_1.RestClientNotification(response));
+            }
         }), (function () {
             $("#overlay").fadeOut();
         }));
     };
     ApiClient.prototype.get = function (url) {
-        return ApiClient.attachProcessing(this.http.get(url, {
+        return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
         }), true);
     };
     ApiClient.prototype.put = function (url, data) {
-        return ApiClient.attachProcessing(this.http.put(url, data, {
+        return this.attachProcessing(this.http.put(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, true);
     };
     ApiClient.prototype.post = function (url, data) {
-        return ApiClient.attachProcessing(this.http.post(url, data, {
+        return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, true);
     };
     ApiClient.prototype.delete = function (url) {
-        return ApiClient.attachProcessing(this.http.delete(url, {
+        return this.attachProcessing(this.http.delete(url, {
             headers: this.createAuthorizationHeader()
-        }), true);
+        }), true, true);
     };
     ApiClient.prototype.getWithErrors = function (url) {
-        return ApiClient.attachProcessing(this.http.get(url, {
+        return this.attachProcessing(this.http.get(url, {
             headers: this.createAuthorizationHeader()
-        }));
+        }), false);
     };
     ApiClient.prototype.postWithErrors = function (url, data) {
-        return ApiClient.attachProcessing(this.http.post(url, data, {
+        return this.attachProcessing(this.http.post(url, data, {
             headers: this.createAuthorizationHeader()
-        }));
+        }), false, true);
     };
     ApiClient = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof http_1.Http !== 'undefined' && http_1.Http) === 'function' && _a) || Object, (typeof (_b = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _b) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof http_1.Http !== 'undefined' && http_1.Http) === 'function' && _a) || Object, (typeof (_b = typeof core_2.CookieService !== 'undefined' && core_2.CookieService) === 'function' && _b) || Object, (typeof (_c = typeof app_logService_1.SnampLogService !== 'undefined' && app_logService_1.SnampLogService) === 'function' && _c) || Object])
     ], ApiClient);
     return ApiClient;
-    var _a, _b;
+    var _a, _b, _c;
 }());
 exports.ApiClient = ApiClient;
 var REST = (function () {
@@ -108946,7 +109147,7 @@ var REST = (function () {
     };
     // save/remove entity(attribute|event|operation) from the resource|resourceGroup by resource name and entity name
     REST.RESOURCE_ENTITY_BY_NAME = function (type, resourceName, entityType, entityName) {
-        console.log("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
+        console.debug("Trying to make it work on path: ", REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName));
         return REST.CFG_PATH + "/" + type + "/" + encodeURIComponent(resourceName) + "/" + entityType + "/" + encodeURIComponent(entityName);
     };
     REST.RESOURCE_GROUP = function (name) {
@@ -108973,8 +109174,9 @@ var REST = (function () {
     REST.CHART_METRICS_BY_COMPONENT = function (componentName) {
         return REST.GROUPS_WEB_API + "/" + encodeURIComponent(componentName) + "/attributes";
     };
-    REST.CHART_METRICS_BY_INSTANCE = function (instanceName) {
-        return REST.GROUPS_WEB_API + "/resources/" + encodeURIComponent(instanceName) + "/attributes";
+    // reset chart view
+    REST.RESET_ELASTICITY = function (name, classifier) {
+        return REST.ROOT_WEB_API_PATH + "/resource-group-watcher/" + encodeURIComponent(name) + "/" + classifier + "/reset";
     };
     // endpoint for certain supervisor
     REST.SUPERVISOR_BY_NAME = function (name) {
@@ -109008,6 +109210,8 @@ var REST = (function () {
     REST.GROUPS_WEB_API = REST.ROOT_WEB_API_PATH + "/groups";
     // receiving all the available resources
     REST.GROUPS_RESOURCES = REST.GROUPS_WEB_API + "/resources/";
+    // attributes for resource list
+    REST.CHART_METRICS_BY_INSTANCES = REST.GROUPS_WEB_API + "/resources/attributes";
     // web console api (view related and others)
     REST.VIEWS_DASHBOARD = REST.ROOT_WEB_API_PATH + "/e2e/settings";
     // compute e2e view
@@ -109051,6 +109255,10 @@ var UserProfileService = (function () {
     UserProfileService.prototype.isUserHasAdminRole = function () {
         return this.decodeProfile()["roles"].indexOf("admin") >= 0;
     };
+    UserProfileService.prototype.isUserHasManagerOrAdminRole = function () {
+        return (this.decodeProfile()["roles"].indexOf("admin") >= 0)
+            || (this.decodeProfile()["roles"].indexOf("manager") >= 0);
+    };
     UserProfileService.prototype.getUserName = function () {
         return this.decodeProfile()["sub"];
     };
@@ -109062,6 +109270,46 @@ var UserProfileService = (function () {
     var _a;
 }());
 exports.UserProfileService = UserProfileService;
+
+
+/***/ },
+
+/***/ "./src/app/services/app.utils.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var moment = __webpack_require__("./node_modules/moment/moment.js");
+var SnampUtils = (function () {
+    function SnampUtils() {
+    }
+    /**
+     * Returns the number of milliseconds for source.
+     * @param source - number (is being returned untouched) or string (duration notation).
+     */
+    SnampUtils.parseDuration = function (source) {
+        return (!isNaN(parseFloat(source)) && isFinite(source))
+            ? source : moment.duration(source).asMilliseconds();
+    };
+    /**
+     * Returns duration string notation for milliseconds.
+     * @param source - number of milliseconds.
+     * @returns {string} - duration string notation.
+     */
+    SnampUtils.toDurationString = function (source, multiplier) {
+        return moment.duration({ milliseconds: source * (multiplier || 1) }).toISOString();
+    };
+    /**
+     * Humanize the duration.
+     * @param source - milliseconds number.
+     * @returns {string} - humanized duration string notation.
+     */
+    SnampUtils.toHumanizedDuration = function (source) {
+        return moment.duration({ milliseconds: source }).humanize();
+    };
+    return SnampUtils;
+}());
+exports.SnampUtils = SnampUtils;
 
 
 /***/ },
@@ -109095,10 +109343,10 @@ var ViewService = (function () {
     };
     ViewService.prototype.loadDashboard = function () {
         var _this = this;
-        console.log("Loading some dashboard for views...");
+        console.debug("Loading some dashboard for views...");
         var _res = this._http.get(app_restClient_1.REST.VIEWS_DASHBOARD)
             .map(function (res) {
-            console.log("Result of dashboard request is: ", res);
+            console.debug("Result of dashboard request is: ", res);
             return res.json();
         }).publishLast().refCount();
         _res.subscribe(function (data) {
@@ -109110,14 +109358,15 @@ var ViewService = (function () {
                     _this._dashboard.views.push(_currentView);
                 }
             }
-            console.log(_this._dashboard);
         });
     };
     ViewService.prototype.saveDashboard = function () {
-        console.log("Saving some dashboard... ");
+        var _this = this;
+        console.debug("Saving the dashboard: ", JSON.stringify(this._dashboard.toJSON()));
         this._http.put(app_restClient_1.REST.VIEWS_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(function (data) {
-            console.log("Dashboard has been saved successfully");
+            .subscribe(function () {
+            console.debug("Dashboard has been saved successfully");
+            _this.viewNames.next(_this._dashboard.views.map(function (_d) { return _d.name; }));
         });
     };
     ViewService.prototype.newView = function (view) {
@@ -109125,7 +109374,7 @@ var ViewService = (function () {
             throw new Error("View with that name already exists!");
         }
         else {
-            console.log("New created view is: ", view);
+            console.debug("New created view is: ", view);
             this._dashboard.views.push(view);
             this.viewNames.next(this._dashboard.views.map(function (data) { return data.name; }));
             this.saveDashboard();
@@ -109644,6 +109893,7 @@ var AbstractNotification = (function () {
     AbstractNotification.RESOURCE = "resourceNotification";
     AbstractNotification.COMPOSITION = "groupCompositionChanged";
     AbstractNotification.SCALING = "scalingHappens";
+    AbstractNotification.REST = "rest";
     return AbstractNotification;
 }());
 exports.AbstractNotification = AbstractNotification;
@@ -109685,7 +109935,7 @@ var NotificationFactory = (function () {
                 _notification = new scaling_happened_1.ScalingNotification();
                 break;
             default:
-                console.log("Whole the json object is: ", _json);
+                console.debug("Whole the json object is: ", _json);
                 throw new Error("Could not recognize notification of type: " + _json['@messageType']);
         }
         _notification.fillFromJson(_json);
@@ -109714,7 +109964,7 @@ var NotificationFactory = (function () {
                 _notification = Object.assign(new scaling_happened_1.ScalingNotification(), _json);
                 break;
             default:
-                console.log("Whole the json object is: ", _json);
+                console.debug("Whole the json object is: ", _json);
                 throw new Error("Could not recognize notification of type: " + _json['_type']);
         }
         // restoring Date object from its string representation
@@ -110010,6 +110260,51 @@ var ResourceNotification = (function (_super) {
 exports.ResourceNotification = ResourceNotification;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+
+/***/ },
+
+/***/ "./src/app/services/model/notifications/rest.client.notification.ts":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var abstract_notification_1 = __webpack_require__("./src/app/services/model/notifications/abstract.notification.ts");
+var http_1 = __webpack_require__("./node_modules/@angular/http/index.js");
+var RestClientNotification = (function (_super) {
+    __extends(RestClientNotification, _super);
+    function RestClientNotification(error) {
+        _super.call(this);
+        this.error = undefined;
+        this.error = error;
+        this.type = abstract_notification_1.AbstractNotification.REST;
+        this.level = "error";
+    }
+    RestClientNotification.prototype.htmlDetails = function () {
+        var _details = "";
+        _details += "<strong>Error type: </strong>server request error<br/>";
+        _details += "<strong>Timestamp: </strong>" + this.timestamp + "<br/>";
+        if (this.error != undefined) {
+            if (this.error instanceof http_1.Response) {
+                _details += "<strong>Path:</strong>" + this.error.url + "<br/>";
+                _details += "<strong>Status code:</strong>" + this.error.status + "<br/>";
+                _details += "<strong>Status text:</strong>" + this.error.statusText + "<br/>";
+            }
+            else {
+                _details += "<strong>Error (json representation):</strong>" + JSON.stringify(this.error) + "<br/>";
+            }
+        }
+        return _details;
+    };
+    RestClientNotification.prototype.shortDescription = function () {
+        return "Rest request failed";
+    };
+    RestClientNotification.prototype.fillFromJson = function (json) {
+        // do nothing
+    };
+    return RestClientNotification;
+}(abstract_notification_1.AbstractNotification));
+exports.RestClientNotification = RestClientNotification;
+
 
 /***/ },
 

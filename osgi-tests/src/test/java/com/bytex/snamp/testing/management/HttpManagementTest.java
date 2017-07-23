@@ -145,14 +145,25 @@ public final class HttpManagementTest extends AbstractJmxConnectorTest<TestOpenM
 
         // Get full configuration
         final URL query = new URL("http://localhost:8181/snamp/management/configuration/");
-        final HttpURLConnection connection = (HttpURLConnection) query.openConnection();
+        HttpURLConnection connection = (HttpURLConnection) query.openConnection();
         connection.setRequestMethod("GET");
         connection.setInstanceFollowRedirects(false);
         connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
         connection.connect();
+        final String configuration;
         try {
-            final String configuration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
+            configuration = IOUtils.toString(connection.getInputStream(), Charset.defaultCharset());
             assertNotEquals("{}", configuration);
+        } finally {
+            connection.disconnect();
+        }
+        connection = (HttpURLConnection) query.openConnection();
+        connection.setDoOutput(true);
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Authorization", String.format("Bearer %s", cookie.getValue()));
+        connection.connect();
+        try {
+            IOUtils.writeString(configuration, connection.getOutputStream(), IOUtils.DEFAULT_CHARSET);
         } finally {
             connection.disconnect();
         }

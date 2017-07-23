@@ -1,5 +1,6 @@
 import { AbstractPolicy } from "./abstract.policy";
-import * as moment from 'moment/moment';
+import { SnampUtils } from "../../../services/app.utils";
+import {isNullOrUndefined} from "util";
 
 export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
 
@@ -38,10 +39,10 @@ export abstract class AbstractWeightedScalingPolicy extends AbstractPolicy {
     }
 
     formatObservationTime():string {
-        return moment.duration({ milliseconds: this.observationTime}).humanize();
+        return SnampUtils.toHumanizedDuration(this.observationTime);
     }
 
     public getPolicyWeight():string {
-        return this.voteWeight.toString();
+        return isNullOrUndefined(this.voteWeight) ? "N/A" : this.voteWeight.toString();
     }
 }

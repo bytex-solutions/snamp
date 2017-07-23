@@ -255,9 +255,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
             super(attributeName);
             this.openType = openType;
             final ClassLoader loader = getClass().getClassLoader();
-            @SuppressWarnings("unchecked")
-            final Class<V> jt= (Class<V>) callUnchecked(() -> OpenTypeBuilder.getUnderlyingJavaClass(openType, loader));
-            this.javaType = jt;
+            this.javaType = OpenTypes.getType(openType);
             owner = new ThreadLocal<>();
         }
 

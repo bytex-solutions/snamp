@@ -7,6 +7,7 @@ import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.EvaluationContext;
 import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.jmx.OpenTypes;
 import com.bytex.snamp.jmx.WellKnownType;
 
 import javax.management.*;
@@ -101,7 +102,7 @@ final class AttributeComposition extends DistributedAttributeRepository<Abstract
 
     @Override
     public <T> T resolveName(final String name, final SimpleType<T> expectedType) throws Exception {
-        return Convert.toType(resolveAs(name, WellKnownType.getType(expectedType)), expectedType).orElseThrow(OpenDataException::new);
+        return OpenTypes.convert(resolveAs(name, WellKnownType.getType(expectedType)), expectedType).orElseThrow(OpenDataException::new);
     }
 
     /**

@@ -8,6 +8,7 @@ import com.bytex.snamp.security.web.JWTAuthenticator;
 import javax.security.auth.login.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.net.HttpCookie;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -46,6 +47,17 @@ public final class WebAuthenticator extends JWTAuthenticator {
         return LoggerProvider.getLoggerForObject(this);
     }
 
+    private static NewCookie newCookie(final HttpCookie cookie) {
+        return new NewCookie(cookie.getName(),
+                cookie.getValue(),
+                cookie.getPath(),
+                cookie.getDomain(),
+                cookie.getVersion(),
+                cookie.getComment(),
+                Math.toIntExact(cookie.getMaxAge()),
+                cookie.getSecure());
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response authenticate(@FormParam("username") final String userName,
@@ -60,10 +72,10 @@ public final class WebAuthenticator extends JWTAuthenticator {
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         getLogger().fine(() -> String.format("Trying to authenticate... Username is %s", userName));
-        final String jwToken;
+        final HttpCookie authCookie;
         //login and issue new JWT token
         try {
-            jwToken = authenticate(context);
+            authCookie = authenticate(context, AUTH_COOKIE);
         } catch (final FailedLoginException | AccountException | CredentialException e) {
             getLogger().log(Level.WARNING, "Cannot login", e);
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
@@ -72,15 +84,13 @@ public final class WebAuthenticator extends JWTAuthenticator {
             throw new WebApplicationException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
         getLogger().fine(() -> String.format("Successful authentication of user %s", userName));
-        final int COOKIE_AGE = 30 * 24 * 60 * 60;   //30 days
         final Matcher m = HOST_NAME_PATTERN.matcher(hostName);
-        if(m.matches())
-            return Response
-                    .noContent()
-                    .cookie(new NewCookie(AUTH_COOKIE, jwToken, "/", m.group(1),
-                            "SNAMP JWT authentication token", COOKIE_AGE, security.isSecure()))
-                    .build();
-        else
+        if (m.matches()) {
+            authCookie.setPath("/");
+            authCookie.setDomain(m.group(1));
+            authCookie.setSecure(security.isSecure());
+            return Response.noContent().cookie(newCookie(authCookie)).build();
+        } else
             throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Invalid host name " + hostName).build());
     }
 

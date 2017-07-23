@@ -34,10 +34,10 @@ export class ViewService {
     }
 
     private loadDashboard():void {
-        console.log("Loading some dashboard for views...");
+        console.debug("Loading some dashboard for views...");
         let _res:any = this._http.get(REST.VIEWS_DASHBOARD)
             .map((res:Response) => {
-                console.log("Result of dashboard request is: ", res);
+                console.debug("Result of dashboard request is: ", res);
                 return res.json();
             }).publishLast().refCount();
 
@@ -50,15 +50,15 @@ export class ViewService {
                     this._dashboard.views.push(_currentView);
                 }
             }
-            console.log(this._dashboard);
         });
     }
 
     public saveDashboard():void {
-        console.log("Saving some dashboard... ");
+        console.debug("Saving the dashboard: ", JSON.stringify(this._dashboard.toJSON()));
          this._http.put(REST.VIEWS_DASHBOARD, JSON.stringify(this._dashboard.toJSON()))
-            .subscribe(data => {
-                console.log("Dashboard has been saved successfully");
+            .subscribe(() => {
+                console.debug("Dashboard has been saved successfully");
+                this.viewNames.next(this._dashboard.views.map(_d => _d.name));
             });
     }
 
@@ -66,7 +66,7 @@ export class ViewService {
         if (this.hasViewWithName(view.name)) {
             throw new Error("View with that name already exists!");
         } else {
-            console.log("New created view is: ", view);
+            console.debug("New created view is: ", view);
             this._dashboard.views.push(view);
             this.viewNames.next(this._dashboard.views.map(data => data.name));
             this.saveDashboard();

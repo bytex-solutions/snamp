@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp.osgi</groupId>
+    <groupId>io.snamp.osgi</groupId>
     <artifactId>bundlized-libs</artifactId>
     <version>2.0.0</version>
   </parent>
@@ -63,6 +63,19 @@
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>none</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
             </goals>
           </execution>
         </executions>

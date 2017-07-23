@@ -33,6 +33,7 @@ public abstract class AdjacencyMatrix implements Acceptor<ComponentVertex, Excep
         return matrix.containsEntry(source.getIdentity(), destination.getIdentity());
     }
 
+
     @Override
     public abstract void accept(final ComponentVertex vertex);
 

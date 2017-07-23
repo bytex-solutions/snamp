@@ -16,7 +16,7 @@ import org.snmp4j.security.SecurityLevel;
 import org.snmp4j.security.SecurityModel;
 import org.snmp4j.security.USM;
 import org.snmp4j.smi.*;
-import org.snmp4j.transport.*;
+import org.snmp4j.transport.TransportMappings;
 import org.snmp4j.util.ConcurrentMessageDispatcher;
 
 import java.io.Closeable;
@@ -50,7 +50,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Gat
             final String hostName,
             final SecurityConfiguration securityOptions,
             final int socketTimeout,
-            final ExecutorService threadPool) throws IOException {
+            final ExecutorService threadPool) {
 		// These files does not exist and are not used but has to be specified
 		// Read snmp4j docs for more info
 		super(new File("conf.agent"), null,

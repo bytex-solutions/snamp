@@ -37,7 +37,7 @@ public final class SummaryMetrics extends ImmutableMetrics {
         public abstract SummaryMetric<M> clone();
 
         final <O> Stream<O> toStream(final Function<? super M, ? extends O> reader) {
-            return ManagedResourceConnectorClient.filterBuilder().getResources(context).stream()
+            return ManagedResourceConnectorClient.selector().getResources(context).stream()
                     .map(resourceName -> {
                         final Optional<ManagedResourceConnectorClient> connector = ManagedResourceConnectorClient.tryCreate(context, resourceName);
                         if (connector.isPresent())

@@ -1,8 +1,8 @@
 import { Entity } from './entity';
 import { ScriptletDataObject } from './scriptlet.data.object';
-import * as moment from 'moment/moment';
-import {isNullOrUndefined} from "util";
-import {AbstractWeightedScalingPolicy} from "./policy/abstract.weighted.scaling.policy";
+import { isNullOrUndefined } from "util";
+import { AbstractWeightedScalingPolicy } from "./policy/abstract.weighted.scaling.policy";
+import { SnampUtils } from "../../services/app.utils";
 
 export class Watcher extends Entity {
 
@@ -20,7 +20,7 @@ export class Watcher extends Entity {
     public votingStrategy:string = "all";
 
     public toJSON():any {
-        // console.log("JSONify the watcher from the watcher class: ", this);
+        // console.debug("JSONify the watcher from the watcher class: ", this);
          let _value:any = {};
         _value["attributeCheckers"] = {};
         for (let key in this.attributeCheckers) {
@@ -34,11 +34,13 @@ export class Watcher extends Entity {
         _value["parameters"] = this.stringifyParameters();
         _value["parameters"]["$strategy$"] = this.votingStrategy;
         _value["connectionStringTemplate"] = this.connectionStringTemplate;
-        _value["cooldownTime"] = moment.duration({ milliseconds: this.cooldownTime}).toISOString();
         _value["autoScaling"] = this.autoScaling;
-        _value["scalingSize"] = this.scalingSize;
-        _value["minClusterSize"] = this.minClusterSize;
-        _value["maxClusterSize"] = this.maxClusterSize;
+        if (this.autoScaling) {
+            _value["cooldownTime"] = SnampUtils.toDurationString(this.cooldownTime);
+            _value["scalingSize"] = this.scalingSize;
+            _value["minClusterSize"] = this.minClusterSize;
+            _value["maxClusterSize"] = this.maxClusterSize;
+        }
         _value["type"] = this.type;
         return _value;
     }
@@ -53,7 +55,7 @@ export class Watcher extends Entity {
 
     recalculateVotes():void {
         let _voteWeight:number = 0;
-        let _count:number = Object.keys(this.scalingPolicies).length;
+        let _count:number = this.getPoliciesCount();
         switch(this.votingStrategy) {
             case "all":
                 _voteWeight = 0.5 + Number.EPSILON;
@@ -65,7 +67,7 @@ export class Watcher extends Entity {
                 _voteWeight = 1;
                 break;
             default:
-                console.log("Do nothing - custom type is used");
+                console.debug("Do nothing - custom type is used");
                 return;
         }
         for (let key in this.scalingPolicies) {
@@ -73,5 +75,13 @@ export class Watcher extends Entity {
                 (<AbstractWeightedScalingPolicy>this.scalingPolicies[key].policyObject).voteWeight = _voteWeight;
             }
         }
+    }
+
+    getCheckersCount():number {
+        return Object.keys(this.attributeCheckers).length
+    }
+
+    getPoliciesCount():number {
+        return Object.keys(this.scalingPolicies).length;
     }
 }

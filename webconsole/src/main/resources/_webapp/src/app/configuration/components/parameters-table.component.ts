@@ -152,7 +152,7 @@ export class ParametersTable implements OnInit {
                 if (this.selectedParam == undefined && this.paramDescriptors.length > 0) {
                     this.selectedParam = this.paramDescriptors[0];
                 }
-                console.log("After all we got: ", this.paramDescriptors, this.containsRequired, this.containsOptional);
+                console.debug("After all we got: ", this.paramDescriptors, this.containsRequired, this.containsOptional);
                 this.cd.detectChanges();
                 $("#addParam").modal("show");
             });
@@ -169,7 +169,7 @@ export class ParametersTable implements OnInit {
         this.http.put(REST.OVERRIDES_BY_NAME(this.entity.name), (<Resource>this.entity).overriddenProperties)
             .map((res:Response) => res.text())
             .subscribe(()=> {
-                console.log("Saved overrides")
+                console.debug("Saved overrides")
             });
     }
 

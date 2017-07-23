@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import org.osgi.framework.InvalidSyntaxException;
 
 import javax.management.Notification;
 import javax.management.openmbean.OpenType;
@@ -24,7 +23,7 @@ abstract class TypedSyntheticAttribute<N extends Notification> extends Synthetic
                             final OpenType<?> type,
                             final String description,
                             final AttributeSpecifier specifier,
-                            final AttributeDescriptor descriptor) throws InvalidSyntaxException {
+                            final AttributeDescriptor descriptor) {
         super(name, type, description, specifier, descriptor);
         expectedType = Objects.requireNonNull(notificationType);
     }

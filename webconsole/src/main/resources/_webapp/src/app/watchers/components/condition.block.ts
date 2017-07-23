@@ -60,7 +60,7 @@ export class ColoredCondition {
     }
 
     ngAfterViewInit():void {
-        console.log("Entity: ", this.entity, ", entityType: ", this.entityType);
+        console.debug("Entity: ", this.entity, ", entityType: ", this.entityType);
     }
 
 }

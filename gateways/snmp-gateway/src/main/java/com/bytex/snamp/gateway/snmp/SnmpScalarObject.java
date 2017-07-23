@@ -18,7 +18,6 @@ import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.ReflectionException;
 import java.lang.reflect.Type;
-import java.text.ParseException;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -178,11 +177,7 @@ abstract class SnmpScalarObject<T extends Variable> extends MOScalar<T> implemen
 
     @Override
     public final boolean equals(final MBeanAttributeInfo metadata) {
-        try {
-            return Objects.equals(getID(), parseOID(metadata, getOidGenerator()));
-        } catch (final ParseException ignored) {
-            return false;
-        }
+        return Objects.equals(getID(), parseOID(metadata, getOidGenerator()));
     }
 
     @Override

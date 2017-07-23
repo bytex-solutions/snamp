@@ -2,8 +2,8 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.core.DefaultServiceSelector;
 import com.bytex.snamp.core.LoggerProvider;
-import com.bytex.snamp.core.SimpleFilterBuilder;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.JWTAuthFilter;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
@@ -28,16 +28,16 @@ import java.util.logging.Logger;
  * @version 2.0
  * @since 2.0
  */
-final class WebConsoleEngineImpl extends WebSocketServlet implements WebConsoleEngine, WebSocketCreator {
+final class DefaultWebConsoleEngine extends WebSocketServlet implements WebConsoleEngine, WebSocketCreator {
     static final String CONTEXT = "/snamp/console/events";
     private transient final JWTAuthFilter securityFilter;
 
-    WebConsoleEngineImpl(final ClusterMember clusterMember) {
+    DefaultWebConsoleEngine(final ClusterMember clusterMember) {
         securityFilter = WebConsoleSecurityFilter.forWebSocket(clusterMember);
     }
 
     private ServiceReference<WebConsoleService>[] getServices() {
-        return new SimpleFilterBuilder()
+        return new DefaultServiceSelector()
                 .setServiceType(WebConsoleService.class)
                 .getServiceReferences(getBundleContext(), WebConsoleService.class);
     }

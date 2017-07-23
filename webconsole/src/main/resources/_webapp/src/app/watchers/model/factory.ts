@@ -1,16 +1,16 @@
 import { Watcher } from './watcher';
 import { ScriptletDataObject } from './scriptlet.data.object';
-import * as moment from 'moment/moment';
 import { isNullOrUndefined } from "util";
+import { SnampUtils } from "../../services/app.utils";
 
 export class Factory {
 
     public static watcherFromJSON(name:string, json:any):Watcher {
-        console.log("Watcher: ", JSON.stringify(json));
+        console.debug("Watcher: ", JSON.stringify(json));
         let _pType:string = "all";
         if (!isNullOrUndefined(json["parameters"]) && !isNullOrUndefined(json["parameters"]["$strategy$"])) {
             _pType = json["parameters"]["$strategy$"];
-            json["parameters"]["$strategy$"] = null;
+            delete json["parameters"]["$strategy$"];
         }
         let _watcher:Watcher = new Watcher(name, json["parameters"]);
         _watcher.votingStrategy = _pType;
@@ -50,8 +50,7 @@ export class Factory {
             _watcher.minClusterSize = json["minClusterSize"];
         }
         if (json["cooldownTime"] != undefined) {
-            _watcher.cooldownTime =  (!isNaN(parseFloat(json["cooldownTime"])) && isFinite(json["cooldownTime"]))
-                ? json["cooldownTime"] :  moment.duration(json["cooldownTime"]).asMilliseconds();
+            _watcher.cooldownTime =  SnampUtils.parseDuration(json["cooldownTime"]);
         }
         if (json["type"] != undefined) {
             _watcher.type = json["type"];

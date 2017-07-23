@@ -15,7 +15,6 @@ import com.orientechnologies.orient.server.plugin.OServerPluginInfo;
 import org.osgi.framework.BundleContext;
 
 import javax.management.JMException;
-import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -58,7 +57,7 @@ final class DatabaseNode extends OServer {
     private final File databaseConfigFile;
     private SnampDatabase snampDatabase;
 
-    DatabaseNode(final HazelcastInstance hazelcast) throws ReflectiveOperationException, JMException, JAXBException, IOException {
+    DatabaseNode(final HazelcastInstance hazelcast) throws ClassNotFoundException, JMException, IOException {
         super(true);
         databaseConfigFile = DatabaseConfigurationFile.EMBEDDED_CONFIG.toFile(true);
         updateConfig();

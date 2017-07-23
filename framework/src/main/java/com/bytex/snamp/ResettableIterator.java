@@ -92,7 +92,7 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
     /**
      * Initializes a new iterator with reset support.
      */
-    protected ResettableIterator(){
+    private ResettableIterator(){
     }
 
     /**

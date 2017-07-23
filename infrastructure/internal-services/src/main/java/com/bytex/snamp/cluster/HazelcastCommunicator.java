@@ -2,6 +2,7 @@ package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.Communicator;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
@@ -13,8 +14,6 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  *
@@ -202,7 +201,11 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
     public <V> V receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         try(final MessageReceiver<V> receiver = receiveMessage(filter, messageParser)) {
             final Callable<V> callable = timeout == null ? receiver::get : () -> receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-            return callUnchecked(callable);
+            return callable.call();
+        } catch (final InterruptedException | TimeoutException e){
+            throw e;
+        } catch (final Exception e){
+            throw new UncheckedExecutionException(e);
         }
     }
 
@@ -232,12 +235,16 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
         try (final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser)) {
             sendMessage(request, MessageType.REQUEST, messageID);
             final Callable<V> callable = timeout == null ? receiver::get : () -> receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-            return callUnchecked(callable);
+            return callable.call();
+        } catch (final InterruptedException | TimeoutException e){
+            throw e;
+        } catch (final Exception e){
+            throw new UncheckedExecutionException(e);
         }
     }
 
     @Override
-    public <V> MessageReceiver<V> sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser) throws InterruptedException {
+    public <V> MessageReceiver<V> sendRequest(final Serializable request, final Function<? super MessageEvent, ? extends V> messageParser) {
         final long messageID = newMessageID();
         final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser);
         sendMessage(request, MessageType.REQUEST, messageID);

@@ -256,17 +256,16 @@ public abstract class RateChart extends AbstractChart implements TwoDimensionalC
         }
     }
 
-    protected abstract Rate extractDataSource(final BundleContext context) throws Exception;
+    protected abstract Rate extractDataSource(final BundleContext context);
 
     /**
      * Collects chart data.
      *
      * @param context Bundle context. Cannot be {@literal null}.
      * @return Chart data series.
-     * @throws Exception The data cannot be collected.
      */
     @Override
-    public final Iterable<? extends ChartData> collectChartData(final BundleContext context) throws Exception {
+    public final Iterable<? extends ChartData> collectChartData(final BundleContext context) {
         final Rate rate = extractDataSource(context);
         return metrics.stream().map(metric -> new ChartData(rate, getInterval(), metric)).collect(Collectors.toList());
     }

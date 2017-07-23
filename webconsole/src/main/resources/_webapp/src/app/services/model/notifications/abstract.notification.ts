@@ -5,6 +5,7 @@ export abstract class AbstractNotification {
     public static RESOURCE:string = "resourceNotification";
     public static COMPOSITION:string = "groupCompositionChanged";
     public static SCALING:string = "scalingHappens";
+    public static REST:string = "rest";
 
     private _level:string;
     private _timestamp:Date;

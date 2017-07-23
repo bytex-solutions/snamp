@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.bytex.snamp</groupId>
+  <groupId>io.snamp</groupId>
   <artifactId>snamp</artifactId>
 
   <packaging>pom</packaging>
   <name>SNAMP</name>
+  <description>SNAMP is monitoring, distributed tracing and elasticity management software</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -19,7 +20,7 @@
     <jetty.version>9.2.19.v20160908</jetty.version>
     <guava.version>19.0</guava.version>
     <jersey.version>1.19.3</jersey.version>
-    <groovy.version>2.4.11</groovy.version>
+    <groovy.version>2.4.12</groovy.version>
     <apache.ivy.version>2.4.0</apache.ivy.version>
     <cellar.version>4.0.3</cellar.version>
     <jline.version>2.14.1</jline.version>
@@ -34,7 +35,7 @@
     <sshj.version>0.18.0</sshj.version>
     <netty.version>3.10.6.Final</netty.version>
     <orientdb.version>2.2.21</orientdb.version>
-    <openstack4j.version>3.0.3</openstack4j.version>
+    <openstack4j.version>3.0.4</openstack4j.version>
     <jsr305.version>3.0.1</jsr305.version>
     <concurrentlinkedhashmap.version>1.4.2</concurrentlinkedhashmap.version>
     <stringtemplate.version>4.0.8</stringtemplate.version>
@@ -82,9 +83,39 @@
   </properties>
   <version>${snamp.version}</version>
   <organization>
-        <name>Bytex</name>
-        <url>http://www.bytex.solutions/</url>
+        <name>Bytex Solutions</name>
+        <url>https://www.bytex.solutions/</url>
   </organization>
+  <developers>
+      <developer>
+          <name>Roman Sakno</name>
+          <email>roman.sakno@bytex.solutions</email>
+          <organization>Bytex Solutions</organization>
+      </developer>
+      <developer>
+          <name>Evgeniy Kirichenko</name>
+          <email>evgeniy.kirichenko@bytex.solutions</email>
+          <organization>Bytex Solutions</organization>
+      </developer>
+  </developers>
+  <inceptionYear>2015</inceptionYear>
+  <url>https://snamp.io</url>
+  <licenses>
+      <license>
+          <name>Apache 2</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+          <distribution>repo</distribution>
+      </license>
+  </licenses>
+  <scm>
+      <url>https://bitbucket.org/bytex-solutions/snamp.git</url>
+      <tag>${snamp.version}</tag>
+      <connection>scm:git:https://bitbucket.org/bytex-solutions/snamp.git</connection>
+  </scm>
+  <issueManagement>
+      <url>https://bitbucket.org/bytex-solutions/snamp/issues</url>
+      <system>jira</system>
+  </issueManagement>
   <build>
         <pluginManagement>
             <plugins>
@@ -326,7 +357,6 @@
     <module>integration</module>
     <module>webconsole</module>
     <module>features</module>
-    <module>osgi-tests</module>
   </modules>
     <repositories>
         <repository>
@@ -348,6 +378,90 @@
 
     <profiles>
         <profile>
+            <id>Maven Central</id>
+            <distributionManagement>
+                <repository>
+                    <id>central</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+            <properties>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <keyname>1220CC2BF55B0FFDF7395690C79BB724EBBAF567</keyname>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.1</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>src/test/*</exclude>
+                            </excludes>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <stylesheet>java</stylesheet>
+                            <doctitle>${project.name} ${project.version}</doctitle>
+                            <footer>Copyright 2015-2017 Bytex Solutions</footer>
+                            <windowtitle>${project.name} ${project.version}</windowtitle>
+                            <excludePackageNames>com.bytex.snamp.testing</excludePackageNames>
+                            <show>protected</show>
+                            <version/>
+                            <author/>
+                            <encoding>UTF-8</encoding>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.3</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>Development</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
@@ -356,6 +470,9 @@
                 <!-- skip tests -->
                 <maven.test.skip>true</maven.test.skip>
             </properties>
+            <modules>
+                <module>osgi-tests</module>
+            </modules>
         </profile>
         <profile>
             <id>Release</id>

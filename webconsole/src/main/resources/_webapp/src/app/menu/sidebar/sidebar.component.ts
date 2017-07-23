@@ -8,6 +8,8 @@ import {
   Modal,
   DialogFormModal
 } from 'angular2-modal/plugins/vex';
+import { Observable } from "rxjs/Observable";
+import {UserProfileService} from "../../services/app.user.profile";
 
 @Component({
   selector: 'side-bar',
@@ -20,19 +22,14 @@ import {
 
 export class Sidebar {
     constructor(private _viewService:ViewService, private _chartService:ChartService,
-        private modal: Modal, private _router: Router) {}
+        private modal: Modal, private _router: Router, private ups:UserProfileService) {}
 
-    private views:string[] = [];
-    private groupNames:string[] = [];
+    private views:Observable<Array<string>>;
+    private groupNames:Observable<Array<string>>;
 
     ngOnInit() {
-        this._viewService.getViewNames().subscribe((data:string[]) => {
-            this.views = data;
-        });
-
-        this._chartService.getGroups().subscribe((data:string[]) => {
-            this.groupNames = data;
-        });
+        this.views = this._viewService.getViewNames();
+        this.groupNames = this._chartService.getGroups();
     }
 
     ngAfterViewInit() {
@@ -67,6 +64,7 @@ export class Sidebar {
         this.modal.prompt()
             .className(<VEXBuiltInThemes>'default')
             .message('New dashboard')
+            .isBlocking(true)
             .placeholder('Please set the name for a new dashboard')
             .open()
              .then(dialog => dialog.result)
@@ -75,5 +73,9 @@ export class Sidebar {
                 this._router.navigateByUrl('/charts/' + result);
              })
             .catch(() => {});
+    }
+
+    isAllowed():boolean {
+        return this.ups.isUserHasManagerOrAdminRole();
     }
 }

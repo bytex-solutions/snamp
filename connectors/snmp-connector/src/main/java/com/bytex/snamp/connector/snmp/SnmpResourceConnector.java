@@ -47,7 +47,8 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.*;
+import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.MESSAGE_OID_PARAM;
+import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
 import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
@@ -201,18 +202,15 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         private static Function<MBeanNotificationInfo, SnmpNotification> notificationFactory(final String message,
                                                                                              final Map<OID, Variable> bindings,
                                                                                              final SharedCounter sequenceNumberGenerator) {
-            return holder -> {
-                for (final String notifType : holder.getNotifTypes()) {
-                    final SnmpNotification notification = new SnmpNotification(notifType,
-                            notifType,   //will be rewritten in repository
-                            sequenceNumberGenerator.getAsLong(),
-                            message,
-                            bindings);
-                    notification.setUserData(createAttachment(bindings));
-                    return notification;
-                }
-                return null;
-            };
+            return holder -> ArrayUtils.getFirst(holder.getNotifTypes()).map(notifType -> {
+                final SnmpNotification notification = new SnmpNotification(notifType,
+                        notifType,   //will be rewritten in repository
+                        sequenceNumberGenerator.getAsLong(),
+                        message,
+                        bindings);
+                notification.setUserData(createAttachment(bindings));
+                return notification;
+            }).orElse(null);
         }
 
         private void fire(final String category,
@@ -644,7 +642,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             return getAttributesParallel(executor, BATCH_READ_WRITE_TIMEOUT);
         }
 
-        private Map<String, AttributeDescriptor> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException, OpenDataException {
+        private Map<String, AttributeDescriptor> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException {
             final Map<String, AttributeDescriptor> result = new HashMap<>();
             for (final VariableBinding binding : client.walk(discoveryTimeout)) {
                 final AttributeDescriptor descriptor = createDescriptor(config -> {

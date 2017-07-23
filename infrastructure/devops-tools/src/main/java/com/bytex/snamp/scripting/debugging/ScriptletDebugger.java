@@ -3,6 +3,7 @@ package com.bytex.snamp.scripting.debugging;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.core.ScriptletCompilationException;
 import com.bytex.snamp.core.ScriptletCompiler;
+import com.bytex.snamp.shell.SnampShellCommand;
 import org.apache.karaf.shell.api.action.Action;
 
 import java.util.Collections;
@@ -13,7 +14,7 @@ import java.util.Map;
  * @version 2.0
  * @since 2.0
  */
-abstract class ScriptletDebugger<S> implements Action {
+abstract class ScriptletDebugger<S> extends SnampShellCommand implements Action {
     private static final class GroovyScriptletConfiguration implements ScriptletConfiguration{
         private String scriptLocation;
         private String language;

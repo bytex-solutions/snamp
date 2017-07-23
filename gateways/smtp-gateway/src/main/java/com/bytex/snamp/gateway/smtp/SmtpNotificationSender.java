@@ -15,7 +15,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import java.io.IOException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -60,7 +59,7 @@ final class SmtpNotificationSender extends NotificationAccessor {
                 .add("severity", NotificationDescriptor.getSeverity(metadata));
     }
 
-    private void sendNotificationToMail(final Notification notification) throws MessagingException, IOException {
+    private void sendNotificationToMail(final Notification notification) throws MessagingException {
         final MailMessageFactory messageFactory = this.messageFactory;
         final CompiledST mailTemplate = this.mailTemplate;
         if (messageFactory == null || mailTemplate == null)
@@ -94,9 +93,10 @@ final class SmtpNotificationSender extends NotificationAccessor {
      */
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
+
         try {
             sendNotificationToMail(notification);
-        } catch (final MessagingException | IOException e) {
+        } catch (final MessagingException e) {
             logger.log(Level.SEVERE, "Unable to send e-mail", e);
         }
     }

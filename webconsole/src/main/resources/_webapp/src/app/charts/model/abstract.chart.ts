@@ -1,8 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import { ChartData } from "./data/abstract.data";
 
-const Chart = require('chart.js');
-
 export abstract class AbstractChart {
     public static VBAR:string = "verticalBarChartOfAttributeValues";
     public static PIE:string = "pieChartOfAttributeValues";
@@ -15,25 +13,13 @@ export abstract class AbstractChart {
     public static SCALE_OUT:string = "scaleOut";
     public static VOTING:string = "votesForScaling";
 
-    // map chartjs types to current hierarchy types
-    public static TYPE_MAPPING:{[key:string]:string} = {
-        'doughnut':         AbstractChart.PIE,
-        'horizontalBar':    AbstractChart.HBAR,
-        'bar':              AbstractChart.VBAR,
-        'line':             AbstractChart.LINE,
-        'panel':            AbstractChart.PANEL,
-        'statuses':         AbstractChart.HEALTH_STATUS,
-        'resources':        AbstractChart.RESOURCE_COUNT,
-        'scaleIn':          AbstractChart.SCALE_IN,
-        'scaleOut':         AbstractChart.SCALE_OUT,
-        'voting':           AbstractChart.VOTING
-    };
-
     public name:string;
     public preferences:{ [key: string]: any } = { };
     public id:string = "chart" + GUID.newGuid();
     public chartData: ChartData[] = [];
     public abstract toJSON():any;
+    public initialized:boolean = false;
+    public subscriber:any = undefined;
 
     private _stopUpdate:boolean;
 
@@ -93,7 +79,6 @@ export abstract class AbstractChart {
         this.setSizeY(2);
         this._stopUpdate = false;
         this.pausedTime = new Date();
-        Chart.defaults.global.maintainAspectRatio = false;
     }
 
     // different types of charts should be rendered in different ways
@@ -107,12 +92,14 @@ export abstract class AbstractChart {
     }
 
     public subscribeToSubject(_obs:Observable<ChartData[]>):void {
-        _obs.subscribe((data:ChartData[]) => {
+        this. subscriber = _obs.subscribe((data:ChartData[]) => {
             if(this.isUpdateRequired()) {
                 this.newValues(data); // if the chart is visible - update
             }
         });
     }
+
+    public reinitialize():void {}
 }
 
 class GUID {

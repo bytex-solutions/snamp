@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.core.SimpleFilterBuilder;
+import com.bytex.snamp.core.DefaultServiceSelector;
 import org.osgi.framework.ServiceReference;
 
 import static com.bytex.snamp.gateway.Gateway.CATEGORY_PROPERTY;
@@ -14,21 +14,21 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.0
  * @since 2.0
  */
-public final class GatewayFilterBuilder extends SimpleFilterBuilder {
+public final class GatewaySelector extends DefaultServiceSelector {
     private static final String CATEGORY = "gateway";
     private static final String NAME_PROPERTY = "instanceName";
     private static final long serialVersionUID = -7919619948002475215L;
 
-    GatewayFilterBuilder(){
+    GatewaySelector(){
         put(CATEGORY_PROPERTY, CATEGORY);
     }
 
-    GatewayFilterBuilder(final GatewayConfiguration configuration) {
+    GatewaySelector(final GatewayConfiguration configuration) {
         super(configuration);
         setGatewayType(configuration.getType()).put(CATEGORY_PROPERTY, CATEGORY);
     }
 
-    public GatewayFilterBuilder setInstanceName(final String value) {
+    public GatewaySelector setInstanceName(final String value) {
         if (isNullOrEmpty(value))
             remove(NAME_PROPERTY);
         else
@@ -36,7 +36,7 @@ public final class GatewayFilterBuilder extends SimpleFilterBuilder {
         return this;
     }
 
-    public GatewayFilterBuilder setGatewayType(final String value){
+    public GatewaySelector setGatewayType(final String value){
         if(isNullOrEmpty(value))
             remove(TYPE_CAPABILITY_ATTRIBUTE);
         else

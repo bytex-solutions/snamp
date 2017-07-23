@@ -58,7 +58,7 @@ public final class AttributeInformation {
     }
 
     public void setName(final String value){
-        name = Objects.requireNonNull(value);
+        name = nullToEmpty(value);
     }
 
     @JsonProperty("unitOfMeasurement")
@@ -67,7 +67,7 @@ public final class AttributeInformation {
     }
 
     public void setUOM(final String value){
-        unitOfMeasurement = Objects.requireNonNull(value);
+        unitOfMeasurement = nullToEmpty(value);
     }
 
     @JsonProperty
@@ -76,7 +76,7 @@ public final class AttributeInformation {
     }
 
     public void setDescription(final String value){
-        description = Objects.requireNonNull(value);
+        description = nullToEmpty(value);
     }
 
     @JsonProperty("type")
@@ -88,5 +88,25 @@ public final class AttributeInformation {
 
     public void setType(final WellKnownType value){
         type = Objects.requireNonNull(value);
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, type);
+    }
+
+    private boolean equals(final AttributeInformation other){
+        return Objects.equals(getName(), other.getName()) &&
+                Objects.equals(getType(), other.getType());
+    }
+
+    @Override
+    public boolean equals(final Object other) {
+        return other instanceof AttributeInformation && equals((AttributeInformation) other);
     }
 }

@@ -2,14 +2,20 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.*;
+import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.concurrent.GroupedThreadFactory;
+import com.bytex.snamp.concurrent.LazyReference;
+import com.bytex.snamp.concurrent.LockDecorator;
+import com.bytex.snamp.concurrent.ThreadPoolRepository;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.osgi.framework.BundleContext;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
@@ -17,7 +23,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
@@ -78,14 +83,17 @@ final class InMemoryCommunicator implements Communicator {
     /**
      * Represents position of the listener node in the listener chain.
      */
-    private static class NodePosition extends AtomicReference<LockDecorator> implements Predicate<MessageEvent>{
-        private static final long serialVersionUID = -7984543206192783148L;
+    private static class NodePosition implements Predicate<MessageEvent>{
+        private static final AtomicReferenceFieldUpdater<NodePosition, LockDecorator> WRITE_LOCK_UPDATER =
+                AtomicReferenceFieldUpdater.newUpdater(NodePosition.class, LockDecorator.class, "writeLock");
         private final Predicate<? super MessageEvent> filter;
-        private MessageListenerNode previous;
+        private WeakReference<MessageListenerNode> previous; //no need to store strong reference to the previous node
         private MessageListenerNode next;
+        @SpecialUse(SpecialUse.Case.JVM)
+        private volatile LockDecorator writeLock;
 
         private NodePosition(final LockDecorator writeLock, final Predicate<? super MessageEvent> filter){
-            super(Objects.requireNonNull(writeLock));
+            this.writeLock = Objects.requireNonNull(writeLock);
             this.filter = Objects.requireNonNull(filter);
         }
 
@@ -93,12 +101,17 @@ final class InMemoryCommunicator implements Communicator {
             next = value;
         }
 
-        public final void setPrevious(final MessageListenerNode value){
-            previous = value;
+        public final void setPrevious(final MessageListenerNode value) {
+            if (value == null) {
+                if (previous != null)
+                    previous.clear();
+                previous = null;
+            } else
+                previous = new WeakReference<>(value);
         }
 
-        public final MessageListenerNode getPrevious(){
-            return previous;
+        public final MessageListenerNode getPrevious() {
+            return previous == null ? null : previous.get();
         }
 
         public final MessageListenerNode getNext(){
@@ -111,16 +124,18 @@ final class InMemoryCommunicator implements Communicator {
         }
 
         final void removeNode() {
-            final LockDecorator writeLock = getAndSet(null);
+            final LockDecorator writeLock = WRITE_LOCK_UPDATER.getAndSet(this, null);
             if (writeLock != null)
                 try (final SafeCloseable ignored = writeLock.acquireLock()) {
                     //remove this node from the chain
+                    final MessageListenerNode previous = getPrevious(), next = getNext();
                     if (next != null)
                         next.setPrevious(previous);
                     if (previous != null)
                         previous.setNext(next);
                 } finally {
-                    previous = next = null;
+                    setNext(null);
+                    setPrevious(null);
                 }
         }
     }
@@ -291,7 +306,7 @@ final class InMemoryCommunicator implements Communicator {
     }
 
     private static final class HeadMessageListenerNode extends TerminalListenerNode{
-        private volatile MessageListenerNode next;
+        private MessageListenerNode next;
 
         private HeadMessageListenerNode() {
         }
@@ -319,7 +334,7 @@ final class InMemoryCommunicator implements Communicator {
     }
 
     private static final class TailMessageListenerNode extends TerminalListenerNode{
-        private volatile MessageListenerNode previous;
+        private MessageListenerNode previous;
 
         @Override
         public MessageListenerNode getPrevious() {
@@ -337,6 +352,13 @@ final class InMemoryCommunicator implements Communicator {
 
         }
 
+        void addNode(final MessageListenerNode node) {
+            node.setPrevious(previous);
+            node.setNext(this);
+            previous.setNext(node);
+            previous = node;
+        }
+
         @Override
         public void setPrevious(final MessageListenerNode value) {
             previous = value;
@@ -344,7 +366,6 @@ final class InMemoryCommunicator implements Communicator {
     }
 
     private static final class MessageListenerHolder extends NodePosition implements MessageListenerNode{
-        private static final long serialVersionUID = 3125562524096198824L;
         private final Consumer<? super MessageEvent> listener;
 
         private MessageListenerHolder(final LockDecorator writeLock, final MessageListener listener, final Predicate<? super MessageEvent> filter){
@@ -430,7 +451,11 @@ final class InMemoryCommunicator implements Communicator {
     public <V> V receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser, final Duration timeout) throws InterruptedException, TimeoutException {
         try (final MessageFuture<V> future = receiveMessage(filter, messageParser, false)) {
             final Callable<V> callable = timeout == null ? future::get : () -> future.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-            return callUnchecked(callable);
+            return callable.call();
+        } catch (final InterruptedException | TimeoutException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new UncheckedExecutionException(e);
         }
     }
 
@@ -448,13 +473,7 @@ final class InMemoryCommunicator implements Communicator {
 
     private <N extends MessageListenerNode> N addMessageListenerImpl(final Function<? super LockDecorator, ? extends N> nodeFactory){
         final N node = nodeFactory.apply(writeLock);
-        final MessageListenerNode oldPrevious = lastNode.getPrevious();
-        //link last node
-        node.setNext(lastNode);
-        lastNode.setPrevious(node);
-        //link old previous node
-        node.setPrevious(oldPrevious);
-        oldPrevious.setNext(node);
+        lastNode.addNode(node);
         return node;
     }
 
@@ -483,12 +502,16 @@ final class InMemoryCommunicator implements Communicator {
         try (final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, false)) {
             sendMessage(message, MessageType.REQUEST, messageID);
             final Callable<V> callable = timeout == null ? receiver::get : () -> receiver.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
-            return callUnchecked(callable);
+            return callable.call();
+        } catch (final InterruptedException | TimeoutException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new UncheckedExecutionException(e);
         }
     }
 
     @Override
-    public <V> MessageFuture<V> sendRequest(final Serializable message, final Function<? super MessageEvent, ? extends V> messageParser) throws InterruptedException {
+    public <V> MessageFuture<V> sendRequest(final Serializable message, final Function<? super MessageEvent, ? extends V> messageParser) {
         final long messageID = newMessageID();
         final MessageFuture<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser, true);
         sendMessage(message, MessageType.REQUEST, messageID);

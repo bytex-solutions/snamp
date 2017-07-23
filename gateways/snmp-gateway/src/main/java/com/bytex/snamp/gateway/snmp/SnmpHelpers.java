@@ -1,10 +1,10 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.io.IOUtils;
+import com.bytex.snamp.jmx.OpenTypes;
 import com.google.common.primitives.Shorts;
 import org.osgi.framework.BundleContext;
 import org.snmp4j.agent.MOAccess;
@@ -333,7 +333,7 @@ final class SnmpHelpers {
     }
 
     static Object toArray(final List<?> lst, final ArrayType<?> arrayType) {
-        final Object result = ArrayUtils.newArray(arrayType, lst.size());
+        final Object result = OpenTypes.newArray(arrayType, lst.size());
         assert result != null;
         for(int i = 0; i < lst.size(); i++)
             Array.set(result, i, lst.get(i));

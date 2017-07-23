@@ -20,6 +20,7 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
     private final Map<String, ResourceGroupDataObject> groups;
     private final Map<String, GatewayDataObject> gateways;
     private final Map<String, ThreadPoolDataObject> threadPools;
+    private final Map<String, SupervisorDataObject> supervisors;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public AgentDataObject(){
@@ -27,6 +28,7 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
         groups = new HashMap<>();
         gateways = new HashMap<>();
         threadPools = new HashMap<>();
+        supervisors = new HashMap<>();
     }
 
     public AgentDataObject(final AgentConfiguration configuration){
@@ -35,6 +37,7 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
         groups = Exportable.importEntities(configuration.getResourceGroups(), ResourceGroupDataObject::new);
         gateways = Exportable.importEntities(configuration.getGateways(), GatewayDataObject::new);
         threadPools = Exportable.importEntities(configuration.getThreadPools(), ThreadPoolDataObject::new);
+        supervisors = Exportable.importEntities(configuration.getSupervisors(), SupervisorDataObject::new);
     }
 
     /**
@@ -49,6 +52,7 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
         Exportable.exportEntities(groups, entity.getResourceGroups());
         Exportable.exportEntities(gateways, entity.getGateways());
         Exportable.exportEntities(threadPools, entity.getThreadPools());
+        Exportable.exportEntities(supervisors, entity.getSupervisors());
     }
 
     @JsonProperty("threadPools")
@@ -69,5 +73,10 @@ public final class AgentDataObject extends AbstractDataObject<AgentConfiguration
     @JsonProperty("gateways")
     public Map<String, GatewayDataObject> getGateways(){
         return gateways;
+    }
+
+    @JsonProperty("supervisors")
+    public Map<String, SupervisorDataObject> getSupervisors(){
+        return supervisors;
     }
 }

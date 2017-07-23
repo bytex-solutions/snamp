@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp.supervisors</groupId>
+    <groupId>io.snamp.supervisors</groupId>
     <artifactId>supervisors</artifactId>
     <version>2.0.0</version>
   </parent>
@@ -14,7 +14,7 @@
   <description>Elasticity Manager for OpenStack</description>
   <dependencies>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>framework</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
@@ -26,7 +26,7 @@
     <dependency>
       <groupId>org.pacesys</groupId>
       <artifactId>openstack4j-core</artifactId>
-      <version>3.0.3</version>
+      <version>3.0.4</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -38,7 +38,7 @@
       <artifactId>jsr305</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.supervisors</groupId>
+      <groupId>io.snamp.supervisors</groupId>
       <artifactId>default</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
@@ -48,13 +48,13 @@
       <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>json-helpers</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp.osgi</groupId>
+      <groupId>io.snamp.osgi</groupId>
       <artifactId>stringtemplate4</artifactId>
       <version>4.0.8</version>
       <scope>provided</scope>

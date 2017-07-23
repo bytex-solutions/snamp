@@ -2,7 +2,6 @@ package com.bytex.snamp.testing.web;
 
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
-import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.bytex.snamp.testing.PropagateSystemProperties;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -34,13 +33,12 @@ import java.util.concurrent.TimeoutException;
         SnampFeature.STUB_CONNECTOR,
         SnampFeature.HTTP_ACCEPTOR
 })
-@PropagateSystemProperties("com.bytex.snamp.testing.webconsole.dummy.test")
-public final class EmptyWebConsoleTest extends AbstractSnampIntegrationTest {
+@PropagateSystemProperties(AbstractWebTest.DUMMY_TEST_PROPERTY)
+public final class EmptyWebConsoleTest extends AbstractWebTest {
 
     @Test
     public void emptyDummyTest() throws InterruptedException, URISyntaxException, IOException, ResourceDiscoveryException, TimeoutException {
-        Assume.assumeTrue("Dummy test for webconsole is disabled. Please check the profile if needed",
-                Boolean.getBoolean("com.bytex.snamp.testing.webconsole.dummy.test"));
+        Assume.assumeTrue("Dummy test for webconsole is disabled. Please check the profile if needed", isDummyTestEnabled());
         Thread.sleep(100000000000L);
     }
 

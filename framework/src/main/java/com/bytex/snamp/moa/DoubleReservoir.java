@@ -324,8 +324,8 @@ public final class DoubleReservoir  implements DoubleConsumer, Reservoir, Serial
             return values[actualSize - 1];
         else {
             final int fpos = (int) index;   //no need to use Math.floor because index is always positive value
-            final double lower = values[(int)fpos - 1];
-            final double upper = values[(int)fpos];
+            final double lower = values[fpos - 1];
+            final double upper = values[fpos];
             return lower + (index - fpos) * (upper - lower);
         }
     }

@@ -14,6 +14,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/toPromise';
 import { ResourceGroup } from "../model/model.resourceGroup";
+import { isNullOrUndefined } from "util";
 
 @Component({
     moduleId: module.id,
@@ -51,8 +52,13 @@ export class AddEntity implements OnInit {
                 }
             });
     }
+
     nameSelected():boolean {
-        return this.selectedName != undefined && this.selectedName.length > 3;
+        return this.selectedName != undefined && this.selectedName.length > 3 && isNullOrUndefined(this.entities.find(entity => entity.name == this.selectedName));
+    }
+
+    isNameNotUnique():boolean {
+        return !isNullOrUndefined(this.entities.find(entity => entity.name == this.selectedName));
     }
 
     selectType(selected:EntityDescriptor):void {
@@ -85,8 +91,6 @@ export class AddEntity implements OnInit {
                 this.readyForSave = TypedEntity.checkForRequiredFilled(this.params, res)
                     && this.nameSelected() && this.selectedType != undefined;
             });
-
-
     }
 
     typeSelected():boolean {

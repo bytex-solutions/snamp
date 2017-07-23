@@ -126,7 +126,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
     public Set<String> getAvailableNotifications() {
         final NotificationTypeAggregator notificationTypes = new NotificationTypeAggregator();
         final BundleContext context = getBundleContext();
-        for (final String resourceName : ManagedResourceConnectorClient.filterBuilder().getResources(context))
+        for (final String resourceName : ManagedResourceConnectorClient.selector().getResources(context))
             ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
                 try {
                     client.queryObject(NotificationSupport.class).ifPresent(notificationTypes);

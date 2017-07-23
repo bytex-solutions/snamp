@@ -3,6 +3,7 @@ import { ResourceNameAxis } from '../axis/resource.name.axis';
 import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
 import { AttributeChartData } from "../data/attribute.chart.data";
+import { isNullOrUndefined } from "util";
 
 export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues {
     get type():string {
@@ -20,27 +21,25 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
     constructor() {
         super();
         this.setSizeX(10);
-        this.setSizeY(10);
+        this.setSizeY(5);
     }
 
     public newValues(data:AttributeChartData[]):void {
-        if (document.hidden) return;
-        for (let i = 0; i < data.length; i++) {
-            let _data = data[i];
-            let _index:number = -1;
-            for (let j = 0; j < this.chartData.length; j++) {
-                if ((<AttributeChartData>this.chartData[j]).resourceName == _data.resourceName) {
-                    _index = j; // remember the index
-                    this.chartData[j] = _data; // change the data
-                    break;
+        if (document.hidden || isNullOrUndefined(data)) return;
+        let _table = $("#" + this.id + " table");
+        if (!isNullOrUndefined(_table) && _table.length > 0) {
+            for (let i = 0; i < data.length; i++) {
+                let _data = data[i];
+                let _index: number = -1;
+                for (let j = 0; j < this.chartData.length; j++) {
+                    if ((<AttributeChartData>this.chartData[j]).resourceName == _data.resourceName) {
+                        _index = j; // remember the index
+                        this.chartData[j] = _data; // change the data
+                        break;
+                    }
                 }
-            }
-            if (_index < 0) {
-                this.chartData.push(_data); // if no data with this instance is found - append it to array
-            }
-            let _table = $("#" + this.id + " table");
-            if (_table != undefined) {
                 if (_index < 0) {
+                    this.chartData.push(_data); // if no data with this instance is found - append it to array
                     let _tr = $("<tr/>");
                     _tr.append("<td>" + _data.resourceName + "</td>");
                     _tr.append("<td instance-binding='" + _data.resourceName + "'>" + _data.attributeValue + "</td>");
@@ -49,6 +48,8 @@ export class PanelOfAttributeValues extends TwoDimensionalChartOfAttributeValues
                     _table.find("[instance-binding='" + _data.resourceName + "']").html(_data.attributeValue);
                 }
             }
+        } else {
+            this.draw();
         }
     }
 

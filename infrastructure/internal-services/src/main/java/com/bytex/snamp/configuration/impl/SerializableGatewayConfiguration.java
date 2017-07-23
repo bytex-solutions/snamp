@@ -9,7 +9,7 @@ import java.io.ObjectOutput;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Represents gateway instance settings. This class cannot be inherited.
@@ -42,12 +42,13 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     /**
      * Sets the gateway type.
      *
-     * @param gatewayType Type of gateway.
+     * @param value Type of gateway.
      */
     @Override
-    public void setType(final String gatewayType) {
-        markAsModified();
-        this.gatewayType = firstNonNull(gatewayType, "");
+    public void setType(String value) {
+        value = nullToEmpty(value);
+        markAsModified(!value.equals(gatewayType));
+        gatewayType = value;
     }
 
     private void loadParameters(final Map<String, String> parameters){
@@ -56,7 +57,7 @@ final class SerializableGatewayConfiguration extends AbstractEntityConfiguration
     }
 
     private void load(final GatewayConfiguration configuration){
-        gatewayType = configuration.getType();
+        setType(configuration.getType());
         loadParameters(configuration);
     }
 

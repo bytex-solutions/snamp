@@ -21,14 +21,14 @@ public final class GroovyNotificationParserLoader extends OSGiGroovyScriptEngine
 
     //constructor for tests
     GroovyNotificationParserLoader(final ClassLoader classLoader,
-                                   final URL... paths) throws IOException {
+                                   final URL... paths) {
         super(classLoader, new Properties(), GroovyNotificationParser.class, paths);
     }
 
     public GroovyNotificationParserLoader(final DataStreamConnector connector,
                                           final Map<String, String> connectionParams,
                                           final boolean includeClassLoaderResources,
-                                          final URL... paths) throws IOException {
+                                          final URL... paths) {
         super(connector.getClass().getClassLoader(),
                 toProperties(connectionParams),
                 GroovyNotificationParser.class,

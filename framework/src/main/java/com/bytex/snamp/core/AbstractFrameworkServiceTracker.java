@@ -105,6 +105,10 @@ public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService
                             trackedServices.remove(serviceId);
                         }
                         return;
+                    case ServiceEvent.MODIFIED:
+                        removeService(client);
+                        addService(client);
+                        return;
                     case ServiceEvent.REGISTERED:
                         addService(client);
                         trackedServices.add(serviceId);

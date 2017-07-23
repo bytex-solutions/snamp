@@ -10,6 +10,7 @@ import com.bytex.snamp.instrumentation.measurements.Health;
  */
 public final class HealthNotification extends MeasurementNotification<Health> {
     public static final String TYPE = "com.bytex.snamp.measurement.health";
+    private static final long serialVersionUID = 6031081350393997539L;
     private final Health healthCheck;
 
     HealthNotification(final Object source, final Health health) {

@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
@@ -14,7 +13,7 @@ import java.io.PrintWriter;
  * @since 2.0
  * @version 2.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         name = "supervisors",
         description = "List of configured resource groups")
 @Service

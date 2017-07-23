@@ -15,7 +15,7 @@
 
           <div class="form-group row">
             <label class="col-sm-2 col-form-label" for="viewName">
-              1. View name <span class="required">*</span>
+              View name <span class="required">*</span>
             </label>
             <div class="col-sm-10">
               <input type="text" id="viewName" [(ngModel)]="viewName" required="required" class="form-control" placeholder="Input view name"/>
@@ -24,7 +24,7 @@
 
           <div class="form-group row">
             <label class="col-sm-2 col-form-label" for="viewType">
-              2. Type of view <span class="required">*</span>
+              Type of view <span class="required">*</span>
             </label>
             <div class="col-sm-10">
               <select class="form-control" [(ngModel)]="viewType" id="viewType">
@@ -35,12 +35,61 @@
 
           <div class="form-group row" *ngIf="viewType && viewType.id != 'landscape'">
             <label class="col-sm-2 col-form-label" for="viewType">
-              3. Component to analysis <span class="required">*</span>
+              Component to analysis <span class="required">*</span>
             </label>
             <div class="col-sm-10">
               <select class="form-control" [(ngModel)]="chosenComponent" id="component">
                 <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
               </select>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <div class="item form-group">
+              <label
+                      class="control-label col-md-3 col-sm-3 col-xs-12"
+                      style="margin-top: 7px;">
+                Use shelf life period
+              </label>
+
+              <div class="col-md-6 col-sm-6 col-xs-12" >
+                <ui-switch
+                        [(ngModel)]="useShelfLife"
+                        [size]="'small'">
+                </ui-switch>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <div class="item form-group" *ngIf="useShelfLife">
+              <label
+                      class="control-label col-md-3 col-sm-3 col-xs-12"
+                      for="shelfLifeInputSelect"
+                      style="margin-top: 7px;">
+                Set shelf life duration (pick from list)
+              </label>
+
+              <div class="col-md-6 col-sm-6 col-xs-12" >
+                <select class="form-control" [(ngModel)]="shelfLife" id="shelfLifeInputSelect">
+                  <option *ngFor="let period of periods" [ngValue]="period.period">{{period.description}}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group row">
+            <div class="item form-group" *ngIf="useShelfLife">
+              <label
+                      class="control-label col-md-3 col-sm-3 col-xs-12"
+                      for="shelfLifeInputText"
+                      style="margin-top: 7px;">
+                Set shelf life duration (set manually in seconds)
+              </label>
+
+              <div class="col-md-6 col-sm-6 col-xs-12" >
+                <input type="number" id="shelfLifeInputText" [(ngModel)]="shelfLife" class="form-control" placeholder="Input shelf life in seconds"/>
+              </div>
             </div>
           </div>
 

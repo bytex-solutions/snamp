@@ -4,10 +4,13 @@ import { ResourceNameAxis } from "../axis/resource.name.axis";
 import { HealthStatusAxis } from "../axis/health.status.axis";
 import { AbstractChart } from "../abstract.chart";
 import { HealthStatusChartData } from "../data/health.status.chart.data";
+import { ChartWithGroupName } from "./group.name.based.chart";
 
 import 'jstree';
+import { isNullOrUndefined } from "util";
 
-export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
+
+export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implements ChartWithGroupName {
     get type():string {
         return AbstractChart.HEALTH_STATUS;
     }
@@ -48,42 +51,44 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
     }
 
     public draw(): void {
-        let _thisReference:any = this;
-        $("#" + this.id).jstree({
-            "core" : {
-                'data' : [],
-                "check_callback" : true
-            },
-            "types" : {
-                "#" : {
-                    "max_children" : 1,
-                    "max_depth" : 5,
-                    "valid_children" : ["summary"]
+        let _selection = $("#" + this.id);
+        if (_selection.length) {
+            _selection.jstree({
+                "core": {
+                    'data': [],
+                    "check_callback": true
                 },
-                "summary" : {
-                    "icon" : "glyphicon glyphicon-certificate",
-                    "valid_children" : ["instance"]
+                "types": {
+                    "#": {
+                        "max_children": 1,
+                        "max_depth": 5,
+                        "valid_children": ["summary"]
+                    },
+                    "summary": {
+                        "icon": "glyphicon glyphicon-certificate",
+                        "valid_children": ["instance"]
+                    },
+                    "instance": {
+                        "icon": "glyphicon glyphicon-leaf",
+                        "valid_children": ["healthStatus", "timestamp"]
+                    },
+                    "healthStatus": {
+                        "icon": "glyphicon glyphicon-list-alt",
+                        "valid_children": ["additional"]
+                    },
+                    "timestamp": {
+                        "icon": "glyphicon glyphicon-time",
+                        "valid_children": []
+                    },
+                    "additional": {
+                        "icon": false
+                    }
                 },
-                "instance" : {
-                    "icon" : "glyphicon glyphicon-leaf",
-                    "valid_children" : ["healthStatus", "timestamp"]
-                },
-                "healthStatus" : {
-                    "icon" : "glyphicon glyphicon-list-alt",
-                    "valid_children" : ["additional"]
-                },
-                "timestamp" : {
-                    "icon" : "glyphicon glyphicon-time",
-                    "valid_children" : []
-                },
-                "additional": {
-                    "icon": false
-                }
-            },
-            "plugins" : [ "state", "types" ]
-        });
+                "plugins": ["state", "types"]
+            });
 
-        this._chartObject = $("#" + this.id).jstree(true);
+            this._chartObject = _selection.jstree(true);
+        }
     }
 
     private prepareDatasets():any {
@@ -177,31 +182,22 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart {
     }
 
     public newValues(_data:HealthStatusChartData[]):void {
-        if (document.hidden) return;
+        if (document.hidden || isNullOrUndefined(_data)) return;
         this.chartData = _data;
-        if (this._chartObject != undefined) {
+        this.chartData.sort((a:HealthStatusChartData, b:HealthStatusChartData) => {
+            return a.name.localeCompare(b.name);
+        });
+        if (!isNullOrUndefined(this._chartObject)) {
             this._chartObject.settings.core.data = this.prepareDatasets();
             this._chartObject.refresh(true);
+        } else {
+            this.draw();
         }
     }
 
-    public newValue(_data:HealthStatusChartData):void {
-        if (document.hidden) return;
-
-        let _index:number = -1;
-        for (let i = 0; i < this.chartData.length; i++) {
-            if ((<HealthStatusChartData>this.chartData[i]).name == _data.name) {
-                _index = i; // remember the index
-                this.chartData[i] = _data; // change the data
-                break;
-            }
-        }
-        if (_index == -1) {
-            this.chartData.push(_data); // if no data with this instance is found - append it to array
-        }
-        if (this._chartObject != undefined) {
-            this._chartObject.settings.core.data = this.prepareDatasets();
-            this._chartObject.refresh(true);
+    public reinitialize() {
+        if (!isNullOrUndefined(this._chartObject)) {
+            this._chartObject = undefined;
         }
     }
 }

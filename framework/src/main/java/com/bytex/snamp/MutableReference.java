@@ -2,7 +2,8 @@ package com.bytex.snamp;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
-import java.util.*;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.*;
 
 /**

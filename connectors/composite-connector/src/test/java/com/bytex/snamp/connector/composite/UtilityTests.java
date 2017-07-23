@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.configuration.ManagedResourceInfo;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,9 +12,11 @@ import java.util.Map;
  * @since 1.0
  */
 public final class UtilityTests extends Assert {
+
     @Test
     public void parseConnectionString(){
-        final Map<String, ManagedResourceInfo> strings = ComposedConfiguration.parse("jmx:= service:jmx:rmi:///jndi/rmi://localhost:5657/karaf-root; snmp:=192.168.0.1", ImmutableMap.of(), ";");
+        final ManagedResourceInfo source = ComposedConfiguration.createResourceInfo("jmx:= service:jmx:rmi:///jndi/rmi://localhost:5657/karaf-root; snmp:=192.168.0.1", "");
+        final Map<String, ManagedResourceInfo> strings = ComposedConfiguration.parse(source, ";");
         assertEquals(2, strings.size());
         assertEquals("service:jmx:rmi:///jndi/rmi://localhost:5657/karaf-root", strings.get("jmx").getConnectionString());
         assertEquals("192.168.0.1", strings.get("snmp").getConnectionString());
@@ -23,13 +24,12 @@ public final class UtilityTests extends Assert {
 
     @Test
     public void parseParameters() {
-        final Map<String, String> parameters = ImmutableMap.of(
-                "param1", "value1",
-                "jmx:param2", "value2",
-                "jmx:param3", "value3",
-                "snmp:param4", "value3"
-        );
-        final Map<String, ManagedResourceInfo> parsedParams = ComposedConfiguration.parse("", parameters, ";");
+        final ManagedResourceInfo source = ComposedConfiguration.createResourceInfo("jmx:= service:jmx:rmi:///jndi/rmi://localhost:5657/karaf-root; snmp:=192.168.0.1", "");
+        source.put("param1", "value1");
+        source.put("jmx:param2", "value2");
+        source.put("jmx:param3", "value3");
+        source.put("snmp:param4", "value3");
+        final Map<String, ManagedResourceInfo> parsedParams = ComposedConfiguration.parse(source, ";");
         final Map<String, String> jmxParams = parsedParams.get("jmx");
         assertEquals(2, jmxParams.size());
         assertEquals("value2", jmxParams.get("param2"));

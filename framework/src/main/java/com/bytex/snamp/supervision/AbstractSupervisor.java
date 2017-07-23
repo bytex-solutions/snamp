@@ -5,7 +5,7 @@ import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
+import com.bytex.snamp.connector.ManagedResourceSelector;
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.supervision.elasticity.ScalingEvent;
@@ -101,8 +101,8 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
      */
     @Nonnull
     @Override
-    protected final ManagedResourceFilterBuilder createServiceFilter() {
-        return ManagedResourceConnectorClient.filterBuilder().setGroupName(groupName);
+    protected final ManagedResourceSelector createServiceFilter() {
+        return ManagedResourceConnectorClient.selector().setGroupName(groupName);
     }
 
     @Nonnull

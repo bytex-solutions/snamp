@@ -16,9 +16,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.getValueAsInt;
-import static com.bytex.snamp.MapUtils.getValueAsLong;
+import static com.bytex.snamp.MapUtils.*;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.SMART_MODE_KEY;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;

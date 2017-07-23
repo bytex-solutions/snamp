@@ -6,15 +6,15 @@ import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
+import com.bytex.snamp.connector.ManagedResourceSelector;
 import com.bytex.snamp.gateway.Gateway;
 import com.bytex.snamp.gateway.GatewayActivator;
 import com.bytex.snamp.gateway.GatewayClient;
-import com.bytex.snamp.gateway.GatewayFilterBuilder;
+import com.bytex.snamp.gateway.GatewaySelector;
 import com.bytex.snamp.supervision.Supervisor;
 import com.bytex.snamp.supervision.SupervisorActivator;
 import com.bytex.snamp.supervision.SupervisorClient;
-import com.bytex.snamp.supervision.SupervisorFilterBuilder;
+import com.bytex.snamp.supervision.SupervisorSelector;
 import org.osgi.framework.*;
 
 import javax.annotation.Nonnull;
@@ -160,7 +160,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
             return getBundleContextOfObject(this);
         }
 
-        abstract FilterBuilder filterBuilder();
+        abstract ServiceSelector filterBuilder();
 
         /**
          * Gets SNAMP component management service and pass it to the user-defined action.
@@ -170,7 +170,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
          */
         @Override
         public final  <S extends SupportService, E extends Exception> boolean invokeSupportService(final Class<S> serviceType, final Acceptor<S, E> serviceInvoker) throws E {
-            final FilterBuilder filter = filterBuilder().setServiceType(serviceType);
+            final ServiceSelector filter = filterBuilder().setServiceType(serviceType);
             ServiceReference<S> ref = null;
             try {
                 ref = filter.getServiceReference(getItselfContext(), serviceType).orElse(null);
@@ -200,8 +200,8 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         @Override
-        SupervisorFilterBuilder filterBuilder() {
-            return SupervisorClient.filterBuilder();
+        SupervisorSelector filterBuilder() {
+            return SupervisorClient.selector();
         }
 
         /**
@@ -269,8 +269,8 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         @Override
-        GatewayFilterBuilder filterBuilder() {
-            return GatewayClient.filterBuilder().setGatewayType(getType());
+        GatewaySelector filterBuilder() {
+            return GatewayClient.selector().setGatewayType(getType());
         }
 
         /**
@@ -338,8 +338,8 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
         }
 
         @Override
-        ManagedResourceFilterBuilder filterBuilder() {
-            return ManagedResourceConnectorClient.filterBuilder().setConnectorType(getType());
+        ManagedResourceSelector filterBuilder() {
+            return ManagedResourceConnectorClient.selector().setConnectorType(getType());
         }
 
         /**

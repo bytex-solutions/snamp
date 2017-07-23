@@ -17,6 +17,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,7 +42,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     @FunctionalInterface
     protected interface SupervisorFactory<S extends Supervisor>{
         @Nonnull
-        S createSupervisor(final String groupName, final DependencyManager dependencies) throws Exception;
+        S createSupervisor(final String groupName, final DependencyManager dependencies);
     }
 
     private static final class SupervisorInstances<S extends Supervisor> extends ServiceSubRegistryManager<Supervisor ,S>{
@@ -84,7 +86,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
 
         @Override
-        protected S update(final S supervisor, final Dictionary<String, ?> configuration) throws Exception {
+        protected S updateService(final S supervisor, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
             supervisor.update(newConfig.getValue());
             getLogger().info(String.format("Supervisor %s is updated", supervisor));
@@ -92,17 +94,17 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
         
         @Override
-        protected S createService(final Map<String, Object> identity, final Dictionary<String, ?> configuration) throws Exception {
+        protected S activateService(final BiConsumer<String, Object> identity, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
             final S supervisor = factory.createSupervisor(newConfig.getKey(), dependencies);
-            identity.putAll(new SupervisorFilterBuilder(newConfig.getValue()).setGroupName(newConfig.getKey()));
+            new SupervisorSelector(newConfig.getValue()).setGroupName(newConfig.getKey()).forEach(identity);
             supervisor.update(newConfig.getValue());
             getLogger().info(String.format("Supervisor %s is instantiated", supervisor));
             return supervisor;
         }
 
         @Override
-        protected void cleanupService(final S supervisor, final Map<String, ?> identity) throws Exception {
+        protected void disposeService(final S supervisor, final Map<String, ?> identity) throws Exception {
             getLogger().info(String.format("Supervisor %s is destroyed", supervisor));
             supervisor.close();
         }
@@ -129,17 +131,6 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     }
 
     /**
-     * Represents activator for support service.
-     * @param <T> Type of support service.
-     * @since 2.0
-     */
-    @FunctionalInterface
-    protected interface SupportServiceFactory<T extends SupportService>{
-        @Nonnull
-        T activateService(final DependencyManager dependencies) throws Exception;
-    }
-
-    /**
      * Represents superclass for all optional supervisor-related service factories.
      * You cannot derive from this class directly.
      * @param <S> Type of the supervisor-related service contract.
@@ -150,10 +141,10 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
      * @see #configurationDescriptor(Supplier)
      */
     protected final static class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{
-        private final SupportServiceFactory<T> activator;
+        private final Function<DependencyManager, T> activator;
 
         private SupportServiceManager(final Class<S> contract,
-                                      final SupportServiceFactory<T> activator,
+                                      final Function<DependencyManager, T> activator,
                                       final RequiredService<?>... dependencies) {
             super(contract, dependencies);
             this.activator = Objects.requireNonNull(activator);
@@ -162,8 +153,8 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         @Override
         @Nonnull
         protected T activateService(final Map<String, Object> identity) throws Exception {
-            identity.putAll(new SupervisorFilterBuilder().setSupervisorType(getSupervisorType()));
-            return activator.activateService(dependencies);
+            identity.putAll(new SupervisorSelector().setSupervisorType(getSupervisorType()));
+            return activator.apply(dependencies);
         }
 
         private String getSupervisorType(){
@@ -171,7 +162,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceFactory<T> factory,
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Function<DependencyManager, T> factory,
                                                                                                                                                                  final RequiredService<?>... dependencies) {
         return new SupportServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }

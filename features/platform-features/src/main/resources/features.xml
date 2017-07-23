@@ -12,7 +12,7 @@
     <feature name="snamp-json-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${snamp.json.version}">
         <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${jackson.version}</bundle>
         <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${jackson.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/json-helpers/${snamp.json.version}</bundle>
+        <bundle>mvn:io.snamp/json-helpers/${snamp.json.version}</bundle>
     </feature>
 
     <feature name="orientdb-server" description="OrientDB NoSQL Database" version="${orientdb.version}">
@@ -27,7 +27,7 @@
     <feature name="snamp-framework" description="SNAMP framework" version="${project.version}">
         <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
         <bundle>mvn:com.google.code.findbugs/jsr305/${jsr305.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/framework/${project.version}</bundle>
+        <bundle>mvn:io.snamp/framework/${project.version}</bundle>
     </feature>
 
     <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
@@ -39,8 +39,8 @@
         <feature>snamp-framework</feature>
         <!--Required bundles-->
         <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
-        <bundle start="true">mvn:com.bytex.snamp/security/${snamp.security.version}</bundle>
-        <bundle start="true">mvn:com.bytex.snamp/internal-services/${snamp.services.version}</bundle>
+        <bundle start="true">mvn:io.snamp/security/${snamp.security.version}</bundle>
+        <bundle start="true">mvn:io.snamp/internal-services/${snamp.services.version}</bundle>
     </feature>
 
     <feature name="snamp-security" description="SNAMP security layer" version="${project.version}">
@@ -67,25 +67,25 @@
         <bundle>mvn:org.codehaus.groovy/groovy-xml/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.codehaus.groovy/groovy-json/${groovy.version}/jar/indy</bundle>
         <bundle>mvn:org.apache.ivy/ivy/${apache.ivy.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/scripting/${snamp.scripting.version}</bundle>
-        <bundle>mvn:com.bytex.snamp/groovy-xml-bridge/${snamp.scripting.version}</bundle>
+        <bundle>mvn:io.snamp/scripting/${snamp.scripting.version}</bundle>
+        <bundle>mvn:io.snamp/groovy-xml-bridge/${snamp.scripting.version}</bundle>
     </feature>
 
     <feature name="snamp-ssh-support" description="Set of Java libraries for SSH" version="${project.version}">
         <feature>snamp-security</feature>
         <bundle>mvn:net.i2p.crypto/eddsa/${eddsa.version}</bundle>
-        <bundle>mvn:com.bytex.snamp.osgi/sshj/${sshj.version}</bundle>
+        <bundle>mvn:io.snamp.osgi/sshj/${sshj.version}</bundle>
     </feature>
 
     <feature name="snamp-snmp-support" description="Set of Java libraries for SNMPv2/SNMPv3" version="${snmp4j.version}">
-        <bundle>mvn:com.bytex.snamp.osgi/snmp4j/${snmp4j.version}</bundle>
+        <bundle>mvn:io.snamp.osgi/snmp4j/${snmp4j.version}</bundle>
     </feature>
 
     <feature name="snamp-instrumentation" description="SNAMP instrumentation library" version="${snamp.instrumentation.version}">
-        <bundle>mvn:com.bytex.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
+        <bundle>mvn:io.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
     </feature>
 
     <feature name="snamp-text-support" description="SNAMP support bundles for working with text templates" version="${project.version}">
-        <bundle>mvn:com.bytex.snamp.osgi/stringtemplate4/${stringtemplate.version}</bundle>
+        <bundle>mvn:io.snamp.osgi/stringtemplate4/${stringtemplate.version}</bundle>
     </feature>
 </features>

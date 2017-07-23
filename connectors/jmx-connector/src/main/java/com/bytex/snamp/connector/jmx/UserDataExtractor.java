@@ -48,7 +48,7 @@ final class UserDataExtractor {
                 .build();
     }
 
-    private static Integer getUserData(final TimerNotification n) throws OpenDataException{
+    private static Integer getUserData(final TimerNotification n){
         return n.getNotificationID();
     }
 

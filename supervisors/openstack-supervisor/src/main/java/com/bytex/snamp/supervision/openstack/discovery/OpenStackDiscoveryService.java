@@ -15,9 +15,9 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
 
+import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.compileTemplate;
 import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.createRenderer;
-import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * Represents discovery service based on Senlin.
@@ -65,7 +65,7 @@ public final class OpenStackDiscoveryService extends DefaultResourceDiscoverySer
         //add resource if is not present as a node
         for (Node node : nodes.values()) {
             if (!existingResources.contains(node.getName())) {
-                node = nodeService.get(node.getId());//obtain detailed information about node
+                node = nodeService.get(node.getId(), true);//obtain detailed information about node
                 if (node == null || node.getDetails() == null) continue;
                 final String connectionString = createConnectionString(node);
                 registerResource(node.getName(), connectionString, JsonUtils.toPlainMap(node.getMetadata(), '.'));

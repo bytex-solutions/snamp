@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>connectors</artifactId>
-        <groupId>com.bytex.snamp.connectors</groupId>
+        <groupId>io.snamp.connectors</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -38,19 +38,19 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp.connectors</groupId>
+            <groupId>io.snamp.connectors</groupId>
             <artifactId>data-stream</artifactId>
             <version>${snamp.connector.stream.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp.instrumentation</groupId>
+            <groupId>io.snamp.instrumentation</groupId>
             <artifactId>core</artifactId>
             <version>${snamp.instrumentation.version}</version>
             <scope>provided</scope>
@@ -92,7 +92,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>groovy-xml-bridge</artifactId>
             <version>${snamp.scripting.version}</version>
             <scope>provided</scope>

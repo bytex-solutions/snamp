@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>snamp</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>io.snamp</groupId>
         <version>2.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
@@ -63,7 +63,7 @@
             <artifactId>jsr305</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
             <scope>provided</scope>
@@ -73,7 +73,7 @@
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>security</artifactId>
             <version>${snamp.security.version}</version>
             <scope>provided</scope>

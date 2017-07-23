@@ -3,6 +3,7 @@ import { AttributeValueAxis } from '../axis/attribute.value.axis';
 import { AbstractChart } from '../abstract.chart';
 import { AttributeChartData } from "../data/attribute.chart.data";
 import { SeriesBasedChart } from "../abstract.line.based.chart";
+import { isNullOrUndefined } from "util";
 
 const d3 = require('d3');
 const nv = require('nvd3');
@@ -29,28 +30,27 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
     }
 
     private prepareDatasets():any {
-        let _value:any[] = [];
-        for (let i = 0; i < this.resources.length; i++) {
-            let _currentValue:any = {};
-            _currentValue.key = this.resources[i];
-            _currentValue.values = [];
-            for (let j = 0; j < this.chartData.length; j++) {
-                if (this.resources[i] == (<AttributeChartData>this.chartData[j]).resourceName) {
-                    _currentValue.values.push({x: this.chartData[j].timestamp, y: (<AttributeChartData>this.chartData[j]).attributeValue});
-                }
+        let _value:any = {};
+        for (let j = 0; j < this.chartData.length; j++) {
+            if (isNullOrUndefined(_value[(<AttributeChartData>this.chartData[j]).resourceName])) {
+                _value[(<AttributeChartData>this.chartData[j]).resourceName] = [];
             }
-            _value.push(_currentValue);
+            _value[(<AttributeChartData>this.chartData[j]).resourceName].push({x: this.chartData[j].timestamp, y: (<AttributeChartData>this.chartData[j]).attributeValue});
         }
-        return _value;
+
+        return Object.keys(_value).map((_key) => {
+            return { key: _key, values: _value[_key]}
+        });
     }
 
+
     public newValues(allData:AttributeChartData[]):void {
-        if (document.hidden) return;
+        if (document.hidden || isNullOrUndefined(allData)) return;
         this.chartData.push(...allData);
-        if (this._chartObject != undefined) {
+        if (!isNullOrUndefined(this._chartObject) && !isNullOrUndefined(d3.select('#' + this.id).datum())) {
             let _ds:any[] = d3.select('#' + this.id).datum();
             if (_ds.length != allData.length) {
-                _ds = this.prepareDatasets();
+                d3.select('#' + this.id).datum(this.prepareDatasets()).transition().call(this._chartObject);
             } else {
                 for (let i = 0; i < _ds.length; i++) {
                     for (let j = 0; j < allData.length; j++) {
@@ -63,17 +63,22 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
                         }
                     }
                 }
+                this._chartObject.update();
             }
-            this._chartObject.update();
+        } else {
+            this.draw();
         }
     }
 
     public draw():void {
+        if (this._chartObject != undefined) {
+            d3.selectAll('#' + this.id + " > svg > *").remove();
+        }
         let _thisReference = this;
         nv.addGraph(function() {
             let chart = nv.models.lineWithFocusChart();
             chart.interactiveUpdateDelay(0);
-            d3.rebind('clipVoronoi');
+            chart.tooltip.enabled(false);
             chart.clipVoronoi(false);
 
             chart.xAxis.tickFormat(function(d){
@@ -88,8 +93,7 @@ export class LineChartOfAttributeValues extends SeriesBasedChart {
 
             chart.x2Axis.tickFormat(function (d) { return ''; });
 
-            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets())
-                .transition().call(chart);
+            d3.select('#' + _thisReference.id).datum(_thisReference.prepareDatasets()).transition().call(chart);
 
                 nv.utils.windowResize(chart.update);
             _thisReference._chartObject = chart;

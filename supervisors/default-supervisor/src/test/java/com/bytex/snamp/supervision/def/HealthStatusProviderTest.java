@@ -1,5 +1,6 @@
 package com.bytex.snamp.supervision.def;
 
+import com.bytex.snamp.BooleanBox;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
@@ -53,7 +54,7 @@ public class HealthStatusProviderTest extends Assert {
             cpu = memory = 0L;
         }
 
-        final void setNotAvailable(final boolean value){
+        void setNotAvailable(final boolean value){
             notAvailable = value;
         }
 
@@ -73,13 +74,31 @@ public class HealthStatusProviderTest extends Assert {
             return memory;
         }
 
-        public void setMemory(final long value){
+        void setMemory(final long value){
             memory = value;
         }
     }
 
     @Test
-    public void updateComponentWatcherTest() throws ScriptletCompilationException, IntrospectionException {
+    public void changeCompositionTest() throws Exception {
+        try(final TestHealthStatusProvider watcher = new TestHealthStatusProvider()) {
+            watcher.statusBuilder()
+                    .updateResourceStatus("resource1", new OkStatus())
+                    .updateResourceStatus("resource2", new OkStatus())
+                    .build(HealthStatusTrigger.NO_OP)
+                    .close();
+            final BooleanBox triggered = BooleanBox.of(false);
+            watcher.statusBuilder()
+                    .updateResourceStatus("resource3", new OkStatus())
+                    .updateResourceStatus("resource1", new OkStatus())
+                    .build((prev, fresh) -> triggered.set(true))
+                    .close();
+            assertFalse(triggered.get());
+        }
+    }
+
+    @Test
+    public void updateComponentWatcherTest() throws Exception {
         final SupervisorConfiguration watcherConfiguration = ConfigurationManager.createEntityConfiguration(getClass().getClassLoader(), SupervisorConfiguration.class);
         assertNotNull(watcherConfiguration);
         watcherConfiguration.getHealthCheckConfig().getAttributeCheckers().addAndConsume("memory", scriptlet -> {
@@ -88,64 +107,65 @@ public class HealthStatusProviderTest extends Assert {
             checker.setYellowPredicate(new IsInRangePredicate(1000D, true, 2000D, true));
             checker.configureScriptlet(scriptlet);
         });
-        final TestHealthStatusProvider watcher = new TestHealthStatusProvider();
-        final HealthStatusTrigger trigger = watcher.setupHealthCheck(watcherConfiguration.getHealthCheckConfig());
-        //setup first resource
-        final String FIRST_RESOURCE_NAME = "resource1";
-        final TestResourceConnector connector1 = new TestResourceConnector(FIRST_RESOURCE_NAME);
-        connector1.queryObject(AttributeSupport.class).ifPresent(attributes -> {
-            attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
-            attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
-        });
-        //setup second resource
-        final String SECOND_RESOURCE_NAME = "resource2";
-        final TestResourceConnector connector2 = new TestResourceConnector(SECOND_RESOURCE_NAME);
-        connector1.queryObject(AttributeSupport.class).ifPresent(attributes -> {
-            attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
-            attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
-        });
-        //
-        connector1.setMemory(500);
-        connector2.setMemory(0);
-        watcher.statusBuilder()
-                .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
-                .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build(trigger)
-                .close();
-        assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
-        connector1.setCPU(100500);
-        connector2.setCPU(0);
-        watcher.statusBuilder()
-                .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
-                .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build(trigger)
-                .close();
-        assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
-        connector1.setMemory(1000);
-        connector2.setMemory(500);
-        watcher.statusBuilder()
-                .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
-                .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build(trigger)
-                .close();
-        assertTrue(watcher.getStatus().getSummaryStatus() instanceof InvalidAttributeValue);
-        assertTrue(watcher.getStatus().get(FIRST_RESOURCE_NAME) instanceof InvalidAttributeValue);
-        connector1.setMemory(50);
-        watcher.statusBuilder()
-                .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
-                .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build(trigger)
-                .close();
-        assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
-        connector1.setNotAvailable(true);
-        watcher.statusBuilder()
-                .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
-                .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
-                .build(trigger)
-                .close();
-        connector1.setNotAvailable(false);
-        assertTrue(watcher.getStatus().getSummaryStatus() instanceof ResourceConnectorMalfunction);
-        watcher.removeResource(FIRST_RESOURCE_NAME);
-        assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
+        try(final TestHealthStatusProvider watcher = new TestHealthStatusProvider()) {
+            final HealthStatusTrigger trigger = watcher.setupHealthCheck(watcherConfiguration.getHealthCheckConfig());
+            //setup first resource
+            final String FIRST_RESOURCE_NAME = "resource1";
+            final TestResourceConnector connector1 = new TestResourceConnector(FIRST_RESOURCE_NAME);
+            connector1.queryObject(AttributeSupport.class).ifPresent(attributes -> {
+                attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
+                attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
+            });
+            //setup second resource
+            final String SECOND_RESOURCE_NAME = "resource2";
+            final TestResourceConnector connector2 = new TestResourceConnector(SECOND_RESOURCE_NAME);
+            connector1.queryObject(AttributeSupport.class).ifPresent(attributes -> {
+                attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
+                attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
+            });
+            //
+            connector1.setMemory(500);
+            connector2.setMemory(0);
+            watcher.statusBuilder()
+                    .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
+                    .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
+                    .build(trigger)
+                    .close();
+            assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
+            connector1.setCPU(100500);
+            connector2.setCPU(0);
+            watcher.statusBuilder()
+                    .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
+                    .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
+                    .build(trigger)
+                    .close();
+            assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
+            connector1.setMemory(1000);
+            connector2.setMemory(500);
+            watcher.statusBuilder()
+                    .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
+                    .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
+                    .build(trigger)
+                    .close();
+            assertTrue(watcher.getStatus().getSummaryStatus() instanceof InvalidAttributeValue);
+            assertTrue(watcher.getStatus().get(FIRST_RESOURCE_NAME) instanceof InvalidAttributeValue);
+            connector1.setMemory(50);
+            watcher.statusBuilder()
+                    .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
+                    .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
+                    .build(trigger)
+                    .close();
+            assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
+            connector1.setNotAvailable(true);
+            watcher.statusBuilder()
+                    .updateResourceStatus(FIRST_RESOURCE_NAME, connector1)
+                    .updateResourceStatus(SECOND_RESOURCE_NAME, connector2)
+                    .build(trigger)
+                    .close();
+            connector1.setNotAvailable(false);
+            assertTrue(watcher.getStatus().getSummaryStatus() instanceof ResourceConnectorMalfunction);
+            watcher.removeResource(FIRST_RESOURCE_NAME);
+            assertTrue(watcher.getStatus().getSummaryStatus() instanceof OkStatus);
+        }
     }
 }

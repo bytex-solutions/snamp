@@ -6,7 +6,6 @@ import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceTemplate;
-import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -23,7 +22,7 @@ import java.util.Arrays;
  * @version 2.0
  * @since 1.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
     name = "configure-event",
     description = "Configure resource event")
 @Service

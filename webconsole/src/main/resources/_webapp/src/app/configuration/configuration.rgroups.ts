@@ -55,7 +55,7 @@ export class RGroupsComponent implements OnInit {
                     .queryParams
                     .subscribe(params => {
                         // Defaults to 0 if no query param provided.
-                        let resourceName:string = params['rg'] || "";
+                        let resourceName:string = decodeURIComponent(params['rg'] || "");
                         if (!isNullOrUndefined(this.activeResource) && resourceName.length > 0
                             && resourceName != this.activeResource.name && this.resources.length > 0) {
                             for (let i = 0; i < this.resources.length; i++) {
@@ -88,8 +88,7 @@ export class RGroupsComponent implements OnInit {
 
             $(RGroupsComponent.select2ElementId).select2({
                 placeholder: "Select resource group",
-                width: '100%',
-                allowClear: true
+                width: '100%'
             });
             $(RGroupsComponent.select2ElementId).on('change', (e) => {
                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
@@ -102,8 +101,9 @@ export class RGroupsComponent implements OnInit {
     private setActiveResourceGroup(resource:ResourceGroup, setURL?:boolean):void {
         this.activeResource = resource;
         this.oldTypeValue = resource.type;
+        this.cd.detectChanges();
         if (history.pushState && setURL) {
-            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?rg=" + resource.name;
+            let newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?rg=" + encodeURIComponent(resource.name);
             window.history.pushState({path:newurl},'',newurl);
         }
         $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
@@ -137,8 +137,7 @@ export class RGroupsComponent implements OnInit {
 
                                             $(RGroupsComponent.select2ElementId).select2({
                                                 placeholder: "Select resource group",
-                                                width: '100%',
-                                                allowClear: true
+                                                width: '100%'
                                             });
                                             $(RGroupsComponent.select2ElementId).on('change', (e) => {
                                                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
