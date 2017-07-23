@@ -16,7 +16,8 @@ import java.util.function.Function;
  *     <ul>
  *         <li>{@link SharedCounter} for generating unique identifiers</li>
  *         <li>{@link KeyValueStorage} for accessing data collections</li>
- *         <li>{@link SharedObject} for accessing single object</li>
+ *         <li>{@link SharedBox} for accessing single object</li>
+ *         <li>{@link Communicator} for sending messages between actors</li>
  *     </ul>
  * @author Roman Sakno
  * @version 2.0
