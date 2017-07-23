@@ -30,7 +30,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  */
 public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestFilter {
-
+    public static final String FORWARDED_HOST_HEADER = "X-Forwarded-Host";
     private static final String PRINCIPAL_ATTRIBUTE = "principal";
 
     /**
@@ -127,11 +127,9 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
     private HttpCookie refreshToken(JwtPrincipal principal,
                                        final ContainerRequest containerRequest) {
         principal = principal.refresh();
-        final HttpCookie authCookie = new HttpCookie(authCookieName, principal.createJwtToken(getTokenSecret()));
+        final HttpCookie authCookie = principal.createCookie(authCookieName, getTokenSecret());
         authCookie.setPath(securedPath);
         authCookie.setSecure(containerRequest.isSecure());
-        authCookie.setMaxAge(principal.getLifetime().getSeconds());
-        final String FORWARDED_HOST_HEADER = "X-Forwarded-Host";
         final String originalHost = containerRequest.getHeaderValue(FORWARDED_HOST_HEADER);
         if (!isNullOrEmpty(originalHost))
             authCookie.setDomain(originalHost);

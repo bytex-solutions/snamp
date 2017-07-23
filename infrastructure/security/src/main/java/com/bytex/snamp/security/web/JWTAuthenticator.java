@@ -8,6 +8,7 @@ import javax.security.auth.login.AccountException;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.security.GeneralSecurityException;
 import java.security.Principal;
 import java.time.Duration;
@@ -39,16 +40,6 @@ public class JWTAuthenticator {
         this.tokenLifetime = Duration.parse(tokenLifetime);
     }
 
-    /**
-     * Issue auth token string.
-     *
-     * @param user the user
-     * @return the string
-     */
-    private String issueAuthToken(final Subject user) {
-        return new JwtPrincipal(user, getTokenLifetime()).createJwtToken(getTokenSecret());
-    }
-
     protected Duration getTokenLifetime() {
         return tokenLifetime;
     }
@@ -70,6 +61,16 @@ public class JWTAuthenticator {
             return principal;
     }
 
+    private JwtPrincipal authenticateImpl(final LoginContext context) throws LoginException {
+        //login and issue new JWT token
+        context.login();
+        final Subject user = context.getSubject();
+        if (user == null || user.getPrincipals().isEmpty())
+            throw new AccountException("Cannot get any subject from login context");
+        else
+            return new JwtPrincipal(user, getTokenLifetime());
+    }
+
     /**
      * Provides authentication using login and password.
      * @param context Login context.
@@ -77,12 +78,10 @@ public class JWTAuthenticator {
      * @throws LoginException Unable to authenticate user.
      */
     public final String authenticate(final LoginContext context) throws LoginException {
-        //login and issue new JWT token
-        context.login();
-        final Subject user = context.getSubject();
-        if (user == null || user.getPrincipals().isEmpty())
-            throw new AccountException("Cannot get any subject from login context");
-        else
-            return issueAuthToken(user);
+        return authenticateImpl(context).createJwtToken(getTokenSecret());
+    }
+
+    protected final HttpCookie authenticate(final LoginContext context, final String cookieName) throws LoginException {
+        return authenticateImpl(context).createCookie(cookieName, getTokenSecret());
     }
 }

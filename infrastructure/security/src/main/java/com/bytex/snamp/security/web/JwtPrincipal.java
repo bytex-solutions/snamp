@@ -17,6 +17,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.Subject;
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -69,11 +71,11 @@ final class JwtPrincipal implements Principal {
      *
      * @param userName the user name
      * @param roles    the roles
-     * @param lifeTime Token lifetime. Cannot be {@literal null}.
+     * @param lifeTime Token lifetime in milliseconds.
      */
-    private JwtPrincipal(final String userName, final Collection<String> roles, final Duration lifeTime){
+    JwtPrincipal(final String userName, final Collection<String> roles, final long lifeTime) {
         createdAt = System.currentTimeMillis();
-        expiredAt = createdAt + lifeTime.toMillis();
+        expiredAt = createdAt + lifeTime;
         name = Objects.requireNonNull(userName);
         this.roles = ImmutableSet.copyOf(roles);
     }
@@ -84,7 +86,7 @@ final class JwtPrincipal implements Principal {
      * @param lifeTime Token lifetime. Cannot be {@literal null}.
      */
     JwtPrincipal(final Subject subj, final Duration lifeTime){
-        this(getUserName(subj), getRoles(subj), lifeTime);
+        this(getUserName(subj), getRoles(subj), lifeTime.toMillis());
     }
 
     private static String getUserName(final Subject subj){
@@ -184,8 +186,15 @@ final class JwtPrincipal implements Principal {
         return new JWTSigner(secret).sign(claims);
     }
 
-    Duration getLifetime(){
-        return Duration.ofMillis(expiredAt - createdAt);
+    private long getLifetime(){
+        return expiredAt - createdAt;
+    }
+
+    HttpCookie createCookie(final String cookieName, final String secret) {
+        final HttpCookie cookie = new HttpCookie(cookieName, createJwtToken(secret));
+        cookie.setMaxAge(TimeUnit.MILLISECONDS.toSeconds(getLifetime()));
+        cookie.setComment("SNAMP JWT authentication token");
+        return cookie;
     }
 
     @Override
