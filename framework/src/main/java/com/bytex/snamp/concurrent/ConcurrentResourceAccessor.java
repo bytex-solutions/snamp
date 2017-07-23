@@ -15,8 +15,8 @@ import javax.annotation.concurrent.ThreadSafe;
  *     <b>Example:</b><br/>
  *     <pre>{@code
  *     final class Container{
- *         private final ConcurrentResourceAccessorImpl<Map<String, String>> map =
- *           new ConcurrentResourceAccessorImpl<>(new HashMap<>());
+ *         private final ConcurrentResourceAccessorImpl&lt;Map&lt;String, String&gt;&gt; map =
+ *           new ConcurrentResourceAccessorImpl&lt;&gt;(new HashMap&lt;&gt;());
  *
  *         public String get(final String key){
  *           return map.read(map -&gt; map.get(key));
