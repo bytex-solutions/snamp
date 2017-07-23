@@ -1,8 +1,7 @@
 package com.bytex.snamp.concurrent.impl;
 
-import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.ExceptionPlaceholder;
-import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.configuration.ThreadPoolConfiguration;
@@ -13,7 +12,6 @@ import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationException;
 
 import javax.annotation.Nonnull;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -21,21 +19,21 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor.Action;
-
 /**
  * Provides default implementation of {@link ThreadPoolRepository} system service.
  * @author Roman Sakno
  * @since 1.0
  * @version 1.0
  */
-public final class ThreadPoolRepositoryImpl extends AbstractAggregator implements ThreadPoolRepository, Closeable {
+public final class ThreadPoolRepositoryImpl extends ConcurrentResourceAccessor<Map<String, ConfiguredThreadPool>> implements ThreadPoolRepository, SafeCloseable {
     public static final String PID = DefaultThreadPoolParser.PID;
 
-    private final AbstractConcurrentResourceAccessor<Map<String, ConfiguredThreadPool>> threadPools =
-            new ConcurrentResourceAccessor<>(new HashMap<>());
+    private final ExecutorService defaultThreadPool;
 
-    private final ExecutorService defaultThreadPool = new ConfiguredThreadPool();
+    public ThreadPoolRepositoryImpl() {
+        super(new HashMap<>());
+        defaultThreadPool = new ConfiguredThreadPool();
+    }
 
     @Override
     public ExecutorService getThreadPool(final String name, final boolean useDefaultIfNotExists) {
@@ -43,7 +41,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractAggregator implement
             case DEFAULT_POOL:
                 return defaultThreadPool;
             default:
-                return threadPools.read(services -> {
+                return read(services -> {
                     if (services.containsKey(name))
                         return services.get(name);
                     else if (useDefaultIfNotExists)
@@ -57,7 +55,7 @@ public final class ThreadPoolRepositoryImpl extends AbstractAggregator implement
     @Override
     @Nonnull
     public Iterator<String> iterator() {
-        return threadPools.read(services -> ImmutableSet.copyOf(services.keySet()).iterator());
+        return read(services -> ImmutableSet.copyOf(services.keySet()).iterator());
     }
 
     private static Action<Map<String, ConfiguredThreadPool>, Void, ExceptionPlaceholder> createThreadPoolMerger(final Dictionary<String, ?> properties, final Logger logger){
@@ -119,9 +117,9 @@ public final class ThreadPoolRepositoryImpl extends AbstractAggregator implement
     @Override
     public void updated(final Dictionary<String, ?> properties) throws ConfigurationException {
         if (properties == null) //remove all
-            threadPools.write(ThreadPoolRepositoryImpl::destroyThreadPools);
+            write(ThreadPoolRepositoryImpl::destroyThreadPools);
         else    //merge with runtime collection of thread pools
-            threadPools.write(createThreadPoolMerger(properties, getLogger()));
+            write(createThreadPoolMerger(properties, getLogger()));
     }
 
     private Logger getLogger(){
@@ -131,14 +129,30 @@ public final class ThreadPoolRepositoryImpl extends AbstractAggregator implement
     @Override
     public void close() {
         defaultThreadPool.shutdown();
-        threadPools.write(ThreadPoolRepositoryImpl::destroyThreadPools);
+        write(ThreadPoolRepositoryImpl::destroyThreadPools);
     }
 
     @Override
     public void forEach(final Consumer<? super String> action) {
-        threadPools.read(pools -> {
+        read(pools -> {
             pools.keySet().forEach(action);
             return null;
         });
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object.
+     */
+    @Override
+    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        Object result;
+        if (objectType.isInstance(defaultThreadPool))
+            result = defaultThreadPool;
+        else
+            result = null;
+        return Optional.ofNullable(result).map(objectType::cast);
     }
 }
