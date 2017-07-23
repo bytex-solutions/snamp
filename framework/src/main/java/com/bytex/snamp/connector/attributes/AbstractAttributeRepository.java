@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.attributes;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.EntryReader;
 import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.AttributeMetrics;
@@ -24,6 +25,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -96,6 +99,8 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     private final KeyedObjects<String, M> attributes;
     private final AttributeMetricsRecorder metrics;
+    private final LockDecorator readLock;
+    private final LockDecorator writeLock;
 
     /**
      * Initializes a new support of management attributes.
@@ -108,6 +113,9 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         super(resourceName, attributeMetadataType);
         attributes = AbstractKeyedObjects.create(MBeanAttributeInfo::getName);
         metrics = new AttributeMetricsRecorder();
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     //this method should be called AFTER registering attribute in this manager
@@ -127,7 +135,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final int size() {
-        return readLock.supplyInt(SingleResourceGroup.INSTANCE, attributes::size);
+        return readLock.supplyInt(attributes::size);
     }
 
     /**
@@ -137,7 +145,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final M[] getAttributeInfo() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, attributes.values(), this::toArray);
+        return readLock.apply(this, attributes.values(), AbstractAttributeRepository<M>::toArray);
     }
 
     /**
@@ -148,7 +156,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final Optional<M> getAttributeInfo(final String attributeName) {
-        return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributeName, Map::get));
+        return Optional.ofNullable(readLock.apply(attributes, attributeName, Map::get));
     }
 
     private static AttributeList toAttributeList(final Collection<Future<Attribute>> completedTasks) throws MBeanException {
@@ -167,7 +175,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     protected final AttributeList getAttributesParallel(final ExecutorService executor, final Duration timeout) throws MBeanException {
         final Collection<Future<Attribute>> completedTasks;
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, timeout)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(timeout)) {
             switch (attributes.size()) {
                 case 0:
                     return new AttributeList();
@@ -193,7 +201,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
 
     @Override
     public AttributeList getAttributes() throws MBeanException, ReflectionException {
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(null)) {
             if(attributes.isEmpty())
                 return new AttributeList();
             final AttributeList result = new AttributeList();
@@ -227,7 +235,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         if(ArrayUtils.isNullOrEmpty(attributes))
             return new AttributeList();
         final List<Future<Attribute>> completedTasks;
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+        try (final SafeCloseable ignored = readLock.acquireLock()) {
             switch (this.attributes.size()) {
                 case 1:
                     final Map.Entry<String, M> attribute = Iterables.getFirst(this.attributes.entrySet(), null);
@@ -294,7 +302,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         if (attributes.isEmpty())
             return attributes;
         final Collection<Future<Attribute>> completedTasks;
-        try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, timeout)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(timeout)) {
             switch (attributes.size()) {
                 case 1:
                     final Map.Entry<String, M> attribute = Iterables.getFirst(this.attributes.entrySet(), null);
@@ -414,7 +422,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                                 final AttributeDescriptor descriptor) {
         M result;
         try {
-            result = writeLock.call(SingleResourceGroup.INSTANCE, () -> addAttributeImpl(attributeName, descriptor), null);
+            result = writeLock.call(() -> addAttributeImpl(attributeName, descriptor), null);
         } catch (final Exception e) {
             getLogger().log(Level.SEVERE, String.format("Failed to connect attribute '%s'", attributeName), e);
             result = null;
@@ -450,7 +458,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
-        try(final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE, null)) {
+        try(final SafeCloseable ignored = readLock.acquireLock(null)) {
             return getAttributeImpl(attributeName);
         } catch (final AttributeNotFoundException e) {
             throw e;
@@ -505,7 +513,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
         try {
-            readLock.accept(SingleResourceGroup.INSTANCE, attribute, this::setAttributeImpl, (Duration) null);
+            readLock.accept(attribute, this::setAttributeImpl, (Duration) null);
         } catch (final AttributeNotFoundException e) {
             throw e;
         } catch (final InvalidAttributeValueException | MBeanException | ReflectionException e) {
@@ -553,7 +561,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final Optional<M> remove(final String attributeID) {
-        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, attributeID, AbstractAttributeRepository<M>::removeImpl);
+        final M metadata = writeLock.apply(this, attributeID, AbstractAttributeRepository<M>::removeImpl);
         if (metadata == null)
             return Optional.empty();
         else {
@@ -598,7 +606,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final void clear() {
-        writeLock.run(SingleResourceGroup.INSTANCE, this::clearImpl);
+        writeLock.run(this::clearImpl);
     }
 
     /**
@@ -608,7 +616,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
+        return readLock.apply(attributes, attrs -> ImmutableSet.copyOf(attrs.keySet()));
     }
 
     /**
@@ -629,12 +637,12 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     @Override
     @Nonnull
     public final Iterator<M> iterator() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, attributes, attributes -> ImmutableList.copyOf(attributes.values()).iterator());
+        return readLock.apply(attributes, attributes -> ImmutableList.copyOf(attributes.values()).iterator());
     }
 
     @Override
     public final void forEach(final Consumer<? super M> action) {
-        readLock.accept(SingleResourceGroup.INSTANCE, attributes, action, (attributes, act) -> attributes.values().forEach(act));
+        readLock.accept(attributes, action, (attributes, act) -> attributes.values().forEach(act));
     }
 
     protected final void failedToExpand(final Level level, final Exception e){

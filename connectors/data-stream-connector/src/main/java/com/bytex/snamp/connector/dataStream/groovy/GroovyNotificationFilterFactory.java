@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.dataStream.groovy;
 
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -11,7 +10,7 @@ import java.util.Properties;
  * @since 2.0
  */
 public final class GroovyNotificationFilterFactory extends OSGiGroovyScriptEngine<GroovyNotificationFilter> {
-    public GroovyNotificationFilterFactory(final ClassLoader rootClassLoader) throws IOException {
+    public GroovyNotificationFilterFactory(final ClassLoader rootClassLoader) {
         super(rootClassLoader, new Properties(), GroovyNotificationFilter.class);
     }
 

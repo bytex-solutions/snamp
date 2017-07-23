@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-standard">
+    <repository>mvn:org.apache.karaf.features/framework/${karaf.version}/xml/features</repository>
     <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
-    <repository>mvn:com.bytex.snamp.features/core/${snamp.version}/xml/features</repository>
-    <repository>mvn:com.bytex.snamp.features/connectors/${snamp.connectors.version}/xml/features</repository>
+    <repository>mvn:io.snamp.features/platform/${project.version}/xml/features</repository>
+    <repository>mvn:io.snamp.features/connectors/${project.version}/xml/features</repository>
 
-    <feature name="snamp-devops-tools" description="SNAMP command-line tools for DevOps" version="${snamp.version}" install="manual">
-        <feature version="${snamp.supervisors.version}">snamp-default-supervisor</feature>
-        <bundle start="true">mvn:com.bytex.snamp/devops-tools/${snamp.version}</bundle>
+    <feature name="snamp-devops-tools" description="SNAMP command-line tools for DevOps" version="${snamp.devops.tools.version}">
+        <feature version="${snamp.supervisor.default.version}">snamp-default-supervisor</feature>
+        <bundle start="true">mvn:io.snamp/devops-tools/${snamp.devops.tools.version}</bundle>
     </feature>
 
     <feature name="snamp-management" description="SNAMP management tools" version="${snamp.management.version}" install="auto">
-        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-web-support</feature>
-        <bundle start="true">mvn:com.bytex.snamp/management/${snamp.management.version}</bundle>
+        <feature version="[2, 3)">snamp-core</feature>
+        <feature version="[2, 3)">snamp-web-support</feature>
+        <bundle start="true">mvn:io.snamp/management/${snamp.management.version}</bundle>
     </feature>
 
     <feature name="snamp-e2e-analyzer" description="Data Analysis services" version="${snamp.e2e_analyzer.version}" install="auto">
-        <feature version="[${snamp.version}, ${snamp.maxVersion})">snamp-core</feature>
+        <feature version="[2, 3)">snamp-core</feature>
         <feature version="${snamp.instrumentation.version}">snamp-instrumentation</feature>
         <bundle>mvn:com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru/${concurrentlinkedhashmap.version}</bundle>
-        <bundle start="true">mvn:com.bytex.snamp/e2e-analyzer/${snamp.e2e_analyzer.version}</bundle>
+        <bundle start="true">mvn:io.snamp/e2e-analyzer/${snamp.e2e_analyzer.version}</bundle>
     </feature>
 
     <feature name="snamp-web-console" description="SNAMP Web Console" version="${snamp.webconsole.version}" install="auto" >
-        <feature version="[${karaf.version}, ${karaf.maxVersion})">war</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" prerequisite="true">snamp-core</feature>
-        <feature version="[${snamp.version}, ${snamp.maxVersion})" >snamp-web-support</feature>
+        <feature>war</feature>
+        <feature>framework</feature>
+        <feature version="[2, 3)" prerequisite="true">snamp-core</feature>
+        <feature version="[2, 3)" >snamp-web-support</feature>
         <feature version="${snamp.e2e_analyzer.version}">snamp-e2e-analyzer</feature>
-        <bundle>mvn:org.ops4j.pax.logging/pax-logging-api/1.8.5</bundle>
-        <bundle start="true">mvn:com.bytex.snamp/webconsole/${snamp.webconsole.version}</bundle>
+        <bundle start="true">mvn:io.snamp/webconsole/${snamp.webconsole.version}</bundle>
     </feature>
 </features>

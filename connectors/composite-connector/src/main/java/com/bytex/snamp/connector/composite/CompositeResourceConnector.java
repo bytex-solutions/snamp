@@ -9,7 +9,6 @@ import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Map;
@@ -33,7 +32,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     private CompositeResourceConnector(final String resourceName,
                                final ExecutorService threadPool,
                                final Duration syncPeriod,
-                               final URL[] groovyPath) throws IOException {
+                               final URL[] groovyPath) {
         connectors = new Composition(resourceName);
         final ScriptLoader scriptLoader = new ScriptLoader(getClass().getClassLoader(), groovyPath);
         attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, scriptLoader);
@@ -45,7 +44,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
 
     CompositeResourceConnector(final String resourceName,
                                final ManagedResourceInfo configuration,
-                               final CompositeResourceConfigurationDescriptor parser) throws IOException {
+                               final CompositeResourceConfigurationDescriptor parser) {
         this(resourceName, parser.parseThreadPool(configuration),
                 parser.parseSyncPeriod(configuration),
                 parser.parseGroovyPath(configuration));

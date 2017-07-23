@@ -1,5 +1,5 @@
 import { AbstractWeightedScalingPolicy } from "./abstract.weighted.scaling.policy";
-import * as moment from 'moment/moment';
+import { SnampUtils } from "../../../services/app.utils";
 
 export class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolicy {
 
@@ -9,7 +9,6 @@ export class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolic
         super();
         this.level = "CRITICAL";
     }
-
 
     get level(): string {
         return this._level;
@@ -23,7 +22,7 @@ export class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolic
         let _value:any = {};
         _value["voteWeight"] = this.voteWeight;
         _value["incrementalWeight"] = this.incrementalWeight;
-        _value["observationTime"] = moment.duration({ milliseconds: this.observationTime}).toISOString();
+        _value["observationTime"] = SnampUtils.toDurationString(this.observationTime);
 
         _value["level"] = this.level;
         return _value;
@@ -32,6 +31,4 @@ export class HealthStatusBasedScalingPolicy extends AbstractWeightedScalingPolic
     public getPoliticType():string {
         return "Health status based scaling policy";
     }
-
-
 }

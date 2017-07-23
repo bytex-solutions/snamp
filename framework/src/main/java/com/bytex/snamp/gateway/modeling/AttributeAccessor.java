@@ -2,7 +2,7 @@ package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
+import static com.bytex.snamp.internal.Utils.wrapException;
 
 /**
  * Exposes access to individual management attribute.
@@ -50,8 +51,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     }
 
     private AttributeSupport attributeSupport;
-    private final LazyStrongReference<WellKnownType> wellKnownType;
-    private final LazyStrongReference<OpenType<?>> openType;
+    private final LazyReference<WellKnownType> wellKnownType;
+    private final LazyReference<OpenType<?>> openType;
 
     /**
      * Initializes a new attribute accessor.
@@ -60,8 +61,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeSupport = null;
-        wellKnownType = new LazyStrongReference<>();
-        openType = new LazyStrongReference<>();
+        wellKnownType = LazyReference.strong();
+        openType = LazyReference.strong();
     }
 
     public AttributeAccessor(final String attributeName, final AttributeSupport support) throws AttributeNotFoundException{
@@ -218,13 +219,11 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @throws javax.management.ReflectionException Internal connector error.
      * @throws javax.management.InvalidAttributeValueException Attribute type mismatch.
      */
-    public final Object getValue(final WellKnownType valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException{
+    public final Object getValue(final WellKnownType valueType) throws MBeanException, AttributeNotFoundException, ReflectionException, InvalidAttributeValueException {
         try {
             return valueType.convert(getValue());
-        } catch (final ClassCastException e){
-            final InvalidAttributeValueException invalidValue = new InvalidAttributeValueException(e.getMessage());
-            invalidValue.initCause(e);
-            throw invalidValue;
+        } catch (final ClassCastException e) {
+            throw wrapException(e.getMessage(), e, InvalidAttributeValueException::new);
         }
     }
 
@@ -296,7 +295,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     public final Class<?> getRawType() throws ReflectionException {
         final String type = getMetadata().getType();
         final ClassLoader loader = getClass().getClassLoader();
-        return callAndWrapException(() -> Class.forName(type, true, loader), ReflectionException::new);
+        return callAndWrapException(() -> Class.forName(type, false, loader), ReflectionException::new);
     }
 
     /**

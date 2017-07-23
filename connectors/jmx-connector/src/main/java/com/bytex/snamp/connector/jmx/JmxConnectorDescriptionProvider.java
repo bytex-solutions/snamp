@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.SelectableConnectorParameterDescriptor;
@@ -115,7 +115,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
         }
     }
 
-    private static final LazySoftReference<JmxConnectorDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<JmxConnectorDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private JmxConnectorDescriptionProvider(){
         super(new AttributeConfigurationInfo(), new ConnectorConfigurationInfo(), new EventConfigurationInfo());

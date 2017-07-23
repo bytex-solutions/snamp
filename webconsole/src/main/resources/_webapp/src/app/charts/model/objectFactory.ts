@@ -23,9 +23,12 @@ import { ScaleInChart } from "./charts/scale.in.chart";
 import { ScaleOutChart } from "./charts/scale.out.chart";
 import { ScalingRateChart } from "./scaling.rate.chart";
 import { VotingResultChart } from "./charts/voting.result.chart";
+import { ChartTypeDescription } from "./utils";
 
 // Factory to create appropriate objects from json
 export class Factory {
+
+    static TYPES:ChartTypeDescription[] = ChartTypeDescription.generateType();
 
     // method for creating axis
     public static axisFromJSON(_json:any):Axis {
@@ -88,6 +91,7 @@ export class Factory {
                     break;
                 case AbstractChart.HEALTH_STATUS:
                     _chart = new ResourceGroupHealthStatusChart();
+                    (<ResourceGroupHealthStatusChart>_chart).group = _json["group"];
                     break;
                 case AbstractChart.RESOURCE_COUNT:
                     _chart = new NumberOfResourcesChart();
@@ -140,6 +144,8 @@ export class Factory {
             if (_json["preferences"] != undefined) {
                 _chart.preferences = _json["preferences"];
             }
+            _chart.chartData = [];
+            _chart.initialized = false;
             return _chart;
         }
     }
@@ -147,7 +153,7 @@ export class Factory {
     public static create2dChart(type:string, name:string, groupName:string, component?:string, instances?:string[],
         sourceAttribute?:AttributeInformation):AbstractChart {
             let _chart:AbstractChart;
-            type = AbstractChart.TYPE_MAPPING[type];
+            type = Factory.TYPES.find((_type:ChartTypeDescription) => _type.consoleSpecificName == type).mappedTypeName;
             switch(type) {
                 case AbstractChart.VBAR:
                     _chart = new VerticalBarChartOfAttributeValues();
@@ -210,6 +216,8 @@ export class Factory {
                     _chart.setSourceAttribute(sourceAttribute);
                 }
             }
+            _chart.chartData = [];
+            _chart.initialized = false;
             return _chart;
     }
 }

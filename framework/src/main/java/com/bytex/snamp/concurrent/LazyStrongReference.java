@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @see LazySoftReference
  */
 @ThreadSafe
-public final class LazyStrongReference<V> extends AtomicReference<V> implements LazyReference<V> {
+final class LazyStrongReference<V> extends AtomicReference<V> implements LazyReference<V> {
     private static final long serialVersionUID = 813414681121113370L;
 
     /**

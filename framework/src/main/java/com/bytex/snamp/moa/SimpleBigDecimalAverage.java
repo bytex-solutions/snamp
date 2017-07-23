@@ -1,5 +1,6 @@
 package com.bytex.snamp.moa;
 
+import javax.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.Duration;
@@ -40,6 +41,7 @@ public final class SimpleBigDecimalAverage extends SimpleAverage implements BigD
     }
 
     @Override
+    @Nonnull
     public SimpleBigDecimalAverage clone() {
         return new SimpleBigDecimalAverage(this);
     }

@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
@@ -16,7 +16,6 @@ import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
-import java.time.Duration;
 import java.util.*;
 
 /**
@@ -25,17 +24,16 @@ import java.util.*;
  * @version 2.0
  * @since 2.0
  */
-final class Composition extends ThreadSafeObject implements AttributeSupportProvider, NotificationSupportProvider, OperationSupportProvider, HealthCheckSupport, AutoCloseable {
-    private final Map<String, ManagedResourceConnector> connectors;
+final class Composition extends ConcurrentResourceAccessor<Map<String, ManagedResourceConnector>> implements AttributeSupportProvider, NotificationSupportProvider, OperationSupportProvider, HealthCheckSupport, AutoCloseable {
+    private static final long serialVersionUID = 6877959325451075556L;
     private final String resourceName;
 
     Composition(final String resourceName){
-        super(SingleResourceGroup.class);
-        connectors = new HashMap<>();
+        super(new HashMap<>());
         this.resourceName = Objects.requireNonNull(resourceName);
     }
 
-    private static void updateConnector(final Map<String, ManagedResourceConnector> connectors,
+    private static Void updateConnector(final Map<String, ManagedResourceConnector> connectors,
                                         final String connectorType,
                                         final String resourceName,
                                         final ManagedResourceInfo configuration,
@@ -44,7 +42,7 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
         if (connector != null) {  //update existing connector
             try {
                 connector.update(configuration);
-                return;
+                return null;
             } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException e) {
                 //connector cannot be updated. We dispose this connector and create a new one
                 connector = connectors.remove(connectorType);
@@ -54,20 +52,22 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
         //create new connector
         connector = ManagedResourceConnectorClient.createConnector(context, connectorType, resourceName, configuration);
         connectors.put(connectorType, connector);
+        return null;
     }
 
     void updateConnector(final String connectorType, final ManagedResourceInfo configuration) throws Exception {
         final String resourceName = this.resourceName;
         final BundleContext context = Utils.getBundleContextOfObject(this);
-        writeLock.accept(SingleResourceGroup.INSTANCE, connectors, connectors -> updateConnector(connectors, connectorType, resourceName, configuration, context), (Duration) null);
+        write(connectors -> updateConnector(connectors, connectorType, resourceName, configuration, context), null);
     }
 
-    private static void retainConnectors(final Map<String, ManagedResourceConnector> connectors, final Set<String> set) throws Exception {
+    private static Void retainConnectors(final Map<String, ManagedResourceConnector> connectors, final Set<String> set) throws Exception {
         Acceptor.forEachAccept(Sets.difference(connectors.keySet(), set), connectorTypeToDispose -> {
             final ManagedResourceConnector connector = connectors.remove(connectorTypeToDispose);
             if (connector != null)
                 connector.close();
         });
+        return null;
     }
 
     /**
@@ -76,11 +76,11 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
      * @throws Exception Unable to dispose one or more connectors.
      */
     void retainConnectors(final Set<String> set) throws Exception {
-        writeLock.accept(SingleResourceGroup.INSTANCE, connectors, connectors -> retainConnectors(connectors, set), (Duration) null);
+        write(connectors -> retainConnectors(connectors, set), null);
     }
 
     private <T> Optional<T> queryObject(final String connectorType, final Class<T> objectType) {
-        return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, connectors, connectorType, Map::get))
+        return read(connectors -> Optional.ofNullable(connectors.get(connectorType)))
                 .flatMap(connector -> connector.queryObject(objectType));
     }
 
@@ -102,7 +102,7 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
     @Override
     @Nonnull
     public HealthStatus getStatus() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, connectors, connectors -> getStatus(connectors.values()));
+        return read(connectors -> getStatus(connectors.values()));
     }
 
     @Override
@@ -120,9 +120,10 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
         return queryObject(connectorType, OperationSupport.class);
     }
 
-    private static void releaseConnectors(final Map<String, ManagedResourceConnector> connectors) throws Exception{
+    private static Void releaseConnectors(final Map<String, ManagedResourceConnector> connectors) throws Exception{
         Acceptor.forEachAccept(connectors.values(), ManagedResourceConnector::close);
         connectors.clear();
+        return null;
     }
 
     /**
@@ -131,6 +132,6 @@ final class Composition extends ThreadSafeObject implements AttributeSupportProv
      */
     @Override
     public void close() throws Exception {
-        writeLock.accept(SingleResourceGroup.INSTANCE, connectors, Composition::releaseConnectors, (Duration) null);
+        write(Composition::releaseConnectors, null);
     }
 }

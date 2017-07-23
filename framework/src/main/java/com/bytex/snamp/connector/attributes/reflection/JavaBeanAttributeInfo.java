@@ -14,6 +14,7 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 import static com.bytex.snamp.internal.Utils.callAndWrapException;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents an attribute declared as a Java property.
@@ -137,7 +138,7 @@ public class JavaBeanAttributeInfo extends AbstractAttributeInfo implements Attr
     private static String getDescription(final PropertyDescriptor property,
                                          final AttributeDescriptor descriptor) {
         String description = descriptor.getDescription();
-        if (description == null || description.isEmpty()) {
+        if (isNullOrEmpty(description)) {
             final ManagementAttribute attr = getAdditionalInfo(property.getReadMethod(), property.getWriteMethod());
             description = attr != null ? attr.description() : null;
             if (description == null || description.isEmpty())

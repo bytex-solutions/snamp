@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>gateways</artifactId>
-        <groupId>com.bytex.snamp.gateways</groupId>
+        <groupId>io.snamp.gateways</groupId>
         <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -24,9 +24,7 @@
                     <instructions>
                         <Bundle-SymbolicName>snamp-${project.artifactId}-gateway</Bundle-SymbolicName>
                         <Bundle-Activator>com.bytex.snamp.gateway.groovy.impl.GroovyGatewayActivator</Bundle-Activator>
-                        <Export-Package>
-                            com.bytex.snamp.gateway.groovy
-                        </Export-Package>
+                        <Export-Package>com.bytex.snamp.gateway.groovy</Export-Package>
                         <DynamicImport-Package>
                             *
                         </DynamicImport-Package>
@@ -39,12 +37,12 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>scripting</artifactId>
             <version>${snamp.scripting.version}</version>
         </dependency>

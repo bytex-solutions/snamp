@@ -14,6 +14,19 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0
  */
 public abstract class TraceScope implements RuntimeScope {
+    /**
+     * Functional interface for headers importer.
+     */
+    //@FunctionalInterface
+    public interface ProtocolHeaderImporter {
+        /**
+         * Imports headers.
+         * @param headerName Header name.
+         * @param headerValue Header value.
+         */
+        void importHeader(final String headerName, final String headerValue);
+    }
+
     private static final ThreadLocal<TraceScope> CURRENT_SCOPE = new ThreadLocal<>();
 
     private final long startTime;
@@ -122,6 +135,24 @@ public abstract class TraceScope implements RuntimeScope {
      */
     public static TraceScope current(){
         return CURRENT_SCOPE.get();
+    }
+
+    private static void exportHeader(final String headerName,
+                              final Identifier headerValue,
+                              final ProtocolHeaderImporter importer){
+        if(!headerValue.isEmpty())
+            importer.importHeader(headerName, headerValue.toString());
+    }
+
+    /**
+     * Exports headers for HTTP protocol.
+     * @param importer Functional interface used for import headers.
+     * @see Span#SPAN_HTTP_HEADER
+     * @see Span#CORRELATION_HTTP_HEADER
+     */
+    public final void exportHttpHeaders(final ProtocolHeaderImporter importer){
+        exportHeader(Span.SPAN_HTTP_HEADER, getSpanID(), importer);
+        exportHeader(Span.CORRELATION_HTTP_HEADER, getCorrelationID(), importer);
     }
 
     protected abstract void report(final Span s);

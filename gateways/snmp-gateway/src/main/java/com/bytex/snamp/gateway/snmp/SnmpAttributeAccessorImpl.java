@@ -5,7 +5,6 @@ import org.snmp4j.agent.*;
 import org.snmp4j.smi.OID;
 
 import javax.management.MBeanAttributeInfo;
-import java.text.ParseException;
 
 
 /**
@@ -16,7 +15,7 @@ import java.text.ParseException;
 final class SnmpAttributeAccessorImpl extends SnmpAttributeAccessor {
     private final OID attributeID;
 
-    SnmpAttributeAccessorImpl(final MBeanAttributeInfo metadata) throws ParseException {
+    SnmpAttributeAccessorImpl(final MBeanAttributeInfo metadata) {
         super(metadata);
         attributeID = SnmpGatewayDescriptionProvider.parseOID(metadata, SnmpHelpers.getOidGenerator(Utils.getBundleContextOfObject(this)));
     }

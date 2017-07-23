@@ -39,22 +39,22 @@ function placeHoldersCount (b64) {
 
 function byteLength (b64) {
   // base64 is 4/3 + up to two characters of the original data
-  return b64.length * 3 / 4 - placeHoldersCount(b64)
+  return (b64.length * 3 / 4) - placeHoldersCount(b64)
 }
 
 function toByteArray (b64) {
-  var i, j, l, tmp, placeHolders, arr
+  var i, l, tmp, placeHolders, arr
   var len = b64.length
   placeHolders = placeHoldersCount(b64)
 
-  arr = new Arr(len * 3 / 4 - placeHolders)
+  arr = new Arr((len * 3 / 4) - placeHolders)
 
   // if there are placeholders, only get up to the last complete 4 chars
   l = placeHolders > 0 ? len - 4 : len
 
   var L = 0
 
-  for (i = 0, j = 0; i < l; i += 4, j += 3) {
+  for (i = 0; i < l; i += 4) {
     tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
     arr[L++] = (tmp >> 16) & 0xFF
     arr[L++] = (tmp >> 8) & 0xFF
@@ -1928,7 +1928,7 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, "@charset \"UTF-8\";\r\n/*\r\n* CSS TOGGLE SWITCH\r\n*\r\n* Ionuț Colceriu - ghinda.net\r\n* https://github.com/ghinda/css-toggle-switch\r\n*\r\n*/\r\n/* supported values are px, rem-calc, em-calc\r\n */\r\n/* imports\r\n */\r\n/* Functions\r\n */\r\n/* Shared\r\n */\r\n/* Hide by default\r\n */\r\n.switch-toggle a, .switch-light span span {\r\n  display: none; }\r\n\r\n/* We can't test for a specific feature,\r\n * so we only target browsers with support for media queries.\r\n */\r\n@media only screen {\r\n  /* Checkbox\r\n */\r\n  .switch-light {\r\n    position: relative;\r\n    color: black;\r\n    display: block;\r\n    /* simulate default browser focus outlines on the switch,\r\n   * when the inputs are focused.\r\n   */ }\r\n    .switch-light::after {\r\n      clear: both;\r\n      content: \"\";\r\n      display: table; }\r\n    .switch-light *, .switch-light *:before, .switch-light *:after {\r\n      box-sizing: border-box; }\r\n    .switch-light a {\r\n      display: block;\r\n      -webkit-transition: all 0.2s ease-out;\r\n      -moz-transition: all 0.2s ease-out;\r\n      transition: all 0.2s ease-out; }\r\n    .switch-light label, .switch-light > span {\r\n      /* breathing room for bootstrap/foundation classes.\r\n     */\r\n      line-height: 2em;\r\n      vertical-align: middle; }\r\n    .switch-light input:focus ~ span a, .switch-light input:focus + label {\r\n      outline-width: 2px;\r\n      outline-style: solid;\r\n      outline-color: Highlight;\r\n      /* Chrome/Opera gets its native focus styles.\r\n     */ }\r\n      @media (-webkit-min-device-pixel-ratio: 0) {\r\n        .switch-light input:focus ~ span a, .switch-light input:focus + label {\r\n          outline-color: -webkit-focus-ring-color;\r\n          outline-style: auto; } }\r\n  /* don't hide the input from screen-readers and keyboard access\r\n */\r\n  .switch-light input {\r\n    position: absolute;\r\n    opacity: 0;\r\n    z-index: 3; }\r\n  .switch-light input:checked ~ span a {\r\n    right: 0%; }\r\n  /* inherit from label\r\n */\r\n  .switch-light strong {\r\n    font-weight: inherit; }\r\n  .switch-light > span {\r\n    position: relative;\r\n    overflow: hidden;\r\n    display: block;\r\n    min-height: 2em;\r\n    /* overwrite 3rd party classes padding\r\n   * eg. bootstrap .well\r\n   */\r\n    padding: 0;\r\n    text-align: left; }\r\n  .switch-light span span {\r\n    position: relative;\r\n    z-index: 2;\r\n    display: block;\r\n    float: left;\r\n    width: 50%;\r\n    text-align: center;\r\n    -webkit-user-select: none;\r\n    -moz-user-select: none;\r\n    -ms-user-select: none;\r\n    user-select: none; }\r\n  .switch-light a {\r\n    position: absolute;\r\n    right: 50%;\r\n    top: 0;\r\n    z-index: 1;\r\n    display: block;\r\n    width: 50%;\r\n    height: 100%;\r\n    padding: 0; }\r\n  /* Radio Switch\r\n */\r\n  .switch-toggle {\r\n    position: relative;\r\n    display: block;\r\n    /* simulate default browser focus outlines on the switch,\r\n   * when the inputs are focused.\r\n   */\r\n    /* For callout panels in foundation\r\n  */\r\n    padding: 0 !important;\r\n    /* 2 items\r\n   */\r\n    /* 3 items\r\n   */\r\n    /* 4 items\r\n   */\r\n    /* 5 items\r\n   */\r\n    /* 6 items\r\n   */ }\r\n    .switch-toggle::after {\r\n      clear: both;\r\n      content: \"\";\r\n      display: table; }\r\n    .switch-toggle *, .switch-toggle *:before, .switch-toggle *:after {\r\n      box-sizing: border-box; }\r\n    .switch-toggle a {\r\n      display: block;\r\n      -webkit-transition: all 0.2s ease-out;\r\n      -moz-transition: all 0.2s ease-out;\r\n      transition: all 0.2s ease-out; }\r\n    .switch-toggle label, .switch-toggle > span {\r\n      /* breathing room for bootstrap/foundation classes.\r\n     */\r\n      line-height: 2em;\r\n      vertical-align: middle; }\r\n    .switch-toggle input:focus ~ span a, .switch-toggle input:focus + label {\r\n      outline-width: 2px;\r\n      outline-style: solid;\r\n      outline-color: Highlight;\r\n      /* Chrome/Opera gets its native focus styles.\r\n     */ }\r\n      @media (-webkit-min-device-pixel-ratio: 0) {\r\n        .switch-toggle input:focus ~ span a, .switch-toggle input:focus + label {\r\n          outline-color: -webkit-focus-ring-color;\r\n          outline-style: auto; } }\r\n    .switch-toggle input {\r\n      position: absolute;\r\n      left: 0;\r\n      opacity: 0; }\r\n    .switch-toggle input + label {\r\n      position: relative;\r\n      z-index: 2;\r\n      display: block;\r\n      float: left;\r\n      padding: 0 0.5em;\r\n      margin: 0;\r\n      text-align: center; }\r\n    .switch-toggle a {\r\n      position: absolute;\r\n      top: 0;\r\n      left: 0;\r\n      padding: 0;\r\n      z-index: 1;\r\n      width: 10px;\r\n      height: 100%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(4), .switch-toggle label:nth-child(2):nth-last-child(4) ~ label, .switch-toggle label:nth-child(2):nth-last-child(4) ~ a {\r\n      width: 50%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(4) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 50%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(6), .switch-toggle label:nth-child(2):nth-last-child(6) ~ label, .switch-toggle label:nth-child(2):nth-last-child(6) ~ a {\r\n      width: 33.33%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(6) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 33.33%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(6) ~ input:checked:nth-child(5) + label ~ a {\r\n      left: 66.66%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(8), .switch-toggle label:nth-child(2):nth-last-child(8) ~ label, .switch-toggle label:nth-child(2):nth-last-child(8) ~ a {\r\n      width: 25%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(8) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 25%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(8) ~ input:checked:nth-child(5) + label ~ a {\r\n      left: 50%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(8) ~ input:checked:nth-child(7) + label ~ a {\r\n      left: 75%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10), .switch-toggle label:nth-child(2):nth-last-child(10) ~ label, .switch-toggle label:nth-child(2):nth-last-child(10) ~ a {\r\n      width: 20%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 20%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10) ~ input:checked:nth-child(5) + label ~ a {\r\n      left: 40%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10) ~ input:checked:nth-child(7) + label ~ a {\r\n      left: 60%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10) ~ input:checked:nth-child(9) + label ~ a {\r\n      left: 80%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12), .switch-toggle label:nth-child(2):nth-last-child(12) ~ label, .switch-toggle label:nth-child(2):nth-last-child(12) ~ a {\r\n      width: 16.6%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 16.6%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(5) + label ~ a {\r\n      left: 33.2%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(7) + label ~ a {\r\n      left: 49.8%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(9) + label ~ a {\r\n      left: 66.4%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(11) + label ~ a {\r\n      left: 83%; }\r\n  /* Candy Theme\r\n * Based on the \"Sort Switches / Toggles (PSD)\" by Ormal Clarck\r\n * http://www.premiumpixels.com/freebies/sort-switches-toggles-psd/\r\n */\r\n  .switch-toggle.switch-candy, .switch-light.switch-candy > span {\r\n    background-color: #2d3035;\r\n    border-radius: 3px;\r\n    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.2); }\r\n  .switch-light.switch-candy span span, .switch-light.switch-candy input:checked ~ span span:first-child, .switch-toggle.switch-candy label {\r\n    color: #fff;\r\n    font-weight: bold;\r\n    text-align: center;\r\n    text-shadow: 1px 1px 1px #191b1e; }\r\n  .switch-light.switch-candy input ~ span span:first-child, .switch-light.switch-candy input:checked ~ span span:nth-child(2), .switch-candy input:checked + label {\r\n    color: #333;\r\n    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5); }\r\n  .switch-candy a {\r\n    border: 1px solid #333;\r\n    border-radius: 3px;\r\n    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.45);\r\n    background-color: #70c66b;\r\n    background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.2), transparent);\r\n    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent); }\r\n  .switch-candy-blue a {\r\n    background-color: #38a3d4; }\r\n  .switch-candy-yellow a {\r\n    background-color: #f5e560; }\r\n  /* iOS Theme\r\n*/\r\n  .switch-ios.switch-light span span {\r\n    color: #888b92; }\r\n  .switch-ios.switch-light a {\r\n    left: 0;\r\n    top: 0;\r\n    width: 2em;\r\n    height: 2em;\r\n    background-color: #fff;\r\n    border-radius: 100%;\r\n    border: 0.25em solid #D8D9DB;\r\n    -webkit-transition: all .2s ease-out;\r\n    -moz-transition: all .2s ease-out;\r\n    transition: all .2s ease-out; }\r\n  .switch-ios.switch-light > span {\r\n    display: block;\r\n    width: 100%;\r\n    height: 2em;\r\n    background-color: #D8D9DB;\r\n    border-radius: 1.75em;\r\n    -webkit-transition: all .4s ease-out;\r\n    -moz-transition: all .4s ease-out;\r\n    transition: all .4s ease-out; }\r\n  .switch-ios.switch-light > span span {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100%;\r\n    opacity: 0;\r\n    line-height: 1.875em;\r\n    vertical-align: middle;\r\n    -webkit-transition: all .2s ease-out;\r\n    -moz-transition: all .2s ease-out;\r\n    transition: all .2s ease-out; }\r\n    .switch-ios.switch-light > span span:first-of-type {\r\n      opacity: 1;\r\n      padding-left: 1.875em; }\r\n    .switch-ios.switch-light > span span:last-of-type {\r\n      padding-right: 1.875em; }\r\n  .switch-ios.switch-light input:checked ~ span a {\r\n    left: 100%;\r\n    border-color: #4BD865;\r\n    margin-left: -2em; }\r\n  .switch-ios.switch-light input:checked ~ span {\r\n    border-color: #4BD865;\r\n    box-shadow: inset 0 0 0 30px #4BD865; }\r\n  .switch-ios.switch-light input:checked ~ span span:first-of-type {\r\n    opacity: 0; }\r\n  .switch-ios.switch-light input:checked ~ span span:last-of-type {\r\n    opacity: 1;\r\n    color: #fff; }\r\n  .switch-ios.switch-toggle {\r\n    background-color: #D8D9DB;\r\n    border-radius: 30px;\r\n    box-shadow: inset rgba(0, 0, 0, 0.1) 0 1px 0; }\r\n    .switch-ios.switch-toggle a {\r\n      background-color: #4BD865;\r\n      border: 0.125em solid #D8D9DB;\r\n      border-radius: 1.75em;\r\n      -webkit-transition: all 0.12s ease-out;\r\n      -moz-transition: all 0.12s ease-out;\r\n      transition: all 0.12s ease-out; }\r\n    .switch-ios.switch-toggle label {\r\n      height: 2.4em;\r\n      color: #888b92;\r\n      line-height: 2.4em;\r\n      vertical-align: middle; }\r\n  .switch-ios input:checked + label {\r\n    color: #3e4043; }\r\n  /* Holo Theme\r\n */\r\n  .switch-toggle.switch-holo, .switch-light.switch-holo > span {\r\n    background-color: #464747;\r\n    border-radius: 1px;\r\n    box-shadow: inset rgba(0, 0, 0, 0.1) 0 1px 0;\r\n    color: #fff;\r\n    text-transform: uppercase; }\r\n  .switch-holo label {\r\n    color: #fff; }\r\n  .switch-holo > span span {\r\n    opacity: 0;\r\n    -webkit-transition: all 0.1s;\r\n    -moz-transition: all 0.1s;\r\n    transition: all 0.1s; }\r\n    .switch-holo > span span:first-of-type {\r\n      opacity: 1; }\r\n  .switch-holo > span span, .switch-holo label {\r\n    font-size: 85%;\r\n    line-height: 2.15625em; }\r\n  .switch-holo a {\r\n    background-color: #666;\r\n    border-radius: 1px;\r\n    box-shadow: inset rgba(255, 255, 255, 0.2) 0 1px 0, inset rgba(0, 0, 0, 0.3) 0 -1px 0; }\r\n  /* Selected ON switch-light\r\n*/\r\n  .switch-holo.switch-light input:checked ~ span a {\r\n    background-color: #0E88B1; }\r\n  .switch-holo.switch-light input:checked ~ span span:first-of-type {\r\n    opacity: 0; }\r\n  .switch-holo.switch-light input:checked ~ span span:last-of-type {\r\n    opacity: 1; }\r\n  /* Material Theme\r\n */\r\n  /* switch-light\r\n */\r\n  .switch-light.switch-material a {\r\n    top: -0.1875em;\r\n    width: 1.75em;\r\n    height: 1.75em;\r\n    border-radius: 50%;\r\n    background: #fafafa;\r\n    box-shadow: 0 0.125em 0.125em 0 rgba(0, 0, 0, 0.14), 0 0.1875em 0.125em -0.125em rgba(0, 0, 0, 0.2), 0 0.125em 0.25em 0 rgba(0, 0, 0, 0.12);\r\n    -webkit-transition: right .28s cubic-bezier(.4, 0, .2, 1);\r\n    -moz-transition: right .28s cubic-bezier(.4, 0, .2, 1);\r\n    transition: right .28s cubic-bezier(.4, 0, .2, 1); }\r\n  .switch-material.switch-light {\r\n    overflow: visible; }\r\n    .switch-material.switch-light::after {\r\n      clear: both;\r\n      content: \"\";\r\n      display: table; }\r\n  .switch-material.switch-light > span {\r\n    overflow: visible;\r\n    position: relative;\r\n    top: 0.1875em;\r\n    width: 3.25em;\r\n    height: 1.5em;\r\n    min-height: auto;\r\n    border-radius: 1em;\r\n    background: rgba(0, 0, 0, 0.26); }\r\n  .switch-material.switch-light span span {\r\n    position: absolute;\r\n    clip: rect(0 0 0 0); }\r\n  .switch-material.switch-light input:checked ~ span a {\r\n    right: 0;\r\n    background: #3f51b5;\r\n    box-shadow: 0 0.1875em 0.25em 0 rgba(0, 0, 0, 0.14), 0 0.1875em 0.1875em -0.125em rgba(0, 0, 0, 0.2), 0 0.0625em 0.375em 0 rgba(0, 0, 0, 0.12); }\r\n  .switch-material.switch-light input:checked ~ span {\r\n    background: rgba(63, 81, 181, 0.5); }\r\n  /* switch-toggle\r\n */\r\n  .switch-toggle.switch-material {\r\n    overflow: visible; }\r\n    .switch-toggle.switch-material::after {\r\n      clear: both;\r\n      content: \"\";\r\n      display: table; }\r\n  .switch-toggle.switch-material a {\r\n    top: 48%;\r\n    width: 0.375em !important;\r\n    height: 0.375em;\r\n    margin-left: 0.25em;\r\n    background: #3f51b5;\r\n    border-radius: 100%;\r\n    -webkit-transform: translateY(-50%);\r\n    -moz-transform: translateY(-50%);\r\n    -ms-transform: translateY(-50%);\r\n    -o-transform: translateY(-50%);\r\n    transform: translateY(-50%);\r\n    -webkit-transition: -webkit-transform 0.4s ease-in;\r\n    -moz-transition: -moz-transform 0.4s ease-in;\r\n    transition: transform 0.4s ease-in; }\r\n  .switch-toggle.switch-material label {\r\n    color: rgba(0, 0, 0, 0.54);\r\n    font-size: 1em; }\r\n  .switch-toggle.switch-material label:before {\r\n    content: '';\r\n    position: absolute;\r\n    top: 48%;\r\n    left: 0;\r\n    display: block;\r\n    width: 0.875em;\r\n    height: 0.875em;\r\n    border-radius: 100%;\r\n    border: 0.125em solid rgba(0, 0, 0, 0.54);\r\n    -webkit-transform: translateY(-50%);\r\n    -moz-transform: translateY(-50%);\r\n    -ms-transform: translateY(-50%);\r\n    -o-transform: translateY(-50%);\r\n    transform: translateY(-50%); }\r\n  .switch-toggle.switch-material input:checked + label:before {\r\n    border-color: #3f51b5; }\r\n  /* ripple\r\n */\r\n  .switch-light.switch-material > span:before, .switch-light.switch-material > span:after, .switch-toggle.switch-material label:after {\r\n    content: '';\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    z-index: 3;\r\n    display: block;\r\n    width: 4em;\r\n    height: 4em;\r\n    border-radius: 100%;\r\n    background: #3f51b5;\r\n    opacity: .4;\r\n    margin-left: -1.25em;\r\n    margin-top: -1.25em;\r\n    -webkit-transform: scale(0);\r\n    -moz-transform: scale(0);\r\n    -ms-transform: scale(0);\r\n    -o-transform: scale(0);\r\n    transform: scale(0);\r\n    -webkit-transition: opacity .4s ease-in;\r\n    -moz-transition: opacity .4s ease-in;\r\n    transition: opacity .4s ease-in; }\r\n  .switch-light.switch-material > span:after {\r\n    left: auto;\r\n    right: 0;\r\n    margin-left: 0;\r\n    margin-right: -1.25em; }\r\n  .switch-toggle.switch-material label:after {\r\n    width: 3.25em;\r\n    height: 3.25em;\r\n    margin-top: -0.75em; }\r\n  @-webkit-keyframes materialRipple {\r\n    0% {\r\n      -webkit-transform: scale(0); }\r\n\r\n    20% {\r\n      -webkit-transform: scale(1); }\r\n\r\n    100% {\r\n      opacity: 0;\r\n      -webkit-transform: scale(1); } }\r\n\r\n  @-moz-keyframes materialRipple {\r\n    0% {\r\n      -moz-transform: scale(0); }\r\n\r\n    20% {\r\n      -moz-transform: scale(1); }\r\n\r\n    100% {\r\n      opacity: 0;\r\n      -moz-transform: scale(1); } }\r\n\r\n  @keyframes materialRipple {\r\n    0% {\r\n      -webkit-transform: scale(0);\r\n      -moz-transform: scale(0);\r\n      -ms-transform: scale(0);\r\n      -o-transform: scale(0);\r\n      transform: scale(0); }\r\n\r\n    20% {\r\n      -webkit-transform: scale(1);\r\n      -moz-transform: scale(1);\r\n      -ms-transform: scale(1);\r\n      -o-transform: scale(1);\r\n      transform: scale(1); }\r\n\r\n    100% {\r\n      opacity: 0;\r\n      -webkit-transform: scale(1);\r\n      -moz-transform: scale(1);\r\n      -ms-transform: scale(1);\r\n      -o-transform: scale(1);\r\n      transform: scale(1); } }\r\n\r\n  .switch-material.switch-light input:not(:checked) ~ span:after, .switch-material.switch-light input:checked ~ span:before, .switch-toggle.switch-material input:checked + label:after {\r\n    -webkit-animation: materialRipple .4s ease-in;\r\n    -moz-animation: materialRipple .4s ease-in;\r\n    animation: materialRipple .4s ease-in; }\r\n  /* trick to prevent the default checked ripple animation from showing\r\n * when the page loads.\r\n * the ripples are hidden by default, and shown only when the input is focused.\r\n */\r\n  .switch-light.switch-material.switch-light input ~ span:before, .switch-light.switch-material.switch-light input ~ span:after, .switch-material.switch-toggle input + label:after {\r\n    visibility: hidden; }\r\n  .switch-light.switch-material.switch-light input:focus:checked ~ span:before, .switch-light.switch-material.switch-light input:focus:not(:checked) ~ span:after, .switch-material.switch-toggle input:focus:checked + label:after {\r\n    visibility: visible; } }\r\n\r\n/* Bugfix for older Webkit, including mobile Webkit. Adapted from\r\n * http://css-tricks.com/webkit-sibling-bug/\r\n */\r\n@media only screen and (-webkit-max-device-pixel-ratio: 2) and (max-device-width: 80em) {\r\n  .switch-light, .switch-toggle {\r\n    -webkit-animation: webkitSiblingBugfix infinite 1s; } }\r\n\r\n@-webkit-keyframes webkitSiblingBugfix {\r\n  from {\r\n    -webkit-transform: translate3d(0, 0, 0); }\r\n\r\n  to {\r\n    -webkit-transform: translate3d(0, 0, 0); } }\r\n\r\n/*# sourceMappingURL=toggle-switch.css.map */", ""]);
+exports.push([module.i, "@charset \"UTF-8\";\r\n/*\r\n* CSS TOGGLE SWITCH\r\n*\r\n* Ionuț Colceriu - ghinda.net\r\n* https://github.com/ghinda/css-toggle-switch\r\n*\r\n*/\r\n/* supported values are px, rem-calc, em-calc\r\n */\r\n/* imports\r\n */\r\n/* Functions\r\n */\r\n/* Shared\r\n */\r\n/* Hide by default\r\n */\r\n.switch-toggle a, .switch-light span span {\r\n  display: none; }\r\n\r\n/* We can't test for a specific feature,\r\n * so we only target browsers with support for media queries.\r\n */\r\n@media only screen {\r\n  /* Checkbox\r\n */\r\n  .switch-light {\r\n    position: relative;\r\n    color: black;\r\n    display: block;\r\n    /* simulate default browser focus outlines on the switch,\r\n   * when the inputs are focused.\r\n   */ }\r\n    .switch-light::after {\r\n      clear: both;\r\n      content: \"\";\r\n      display: table; }\r\n    .switch-light *, .switch-light *:before, .switch-light *:after {\r\n      box-sizing: border-box; }\r\n    .switch-light a {\r\n      display: block;\r\n      -webkit-transition: all 0.2s ease-out;\r\n      -moz-transition: all 0.2s ease-out;\r\n      transition: all 0.2s ease-out; }\r\n    .switch-light label, .switch-light > span {\r\n      /* breathing room for bootstrap/foundation classes.\r\n     */\r\n      line-height: 2em;\r\n      vertical-align: middle; }\r\n    .switch-light input:focus ~ span a, .switch-light input:focus + label {\r\n      outline-width: 2px;\r\n      outline-style: solid;\r\n      outline-color: Highlight;\r\n      /* Chrome/Opera gets its native focus styles.\r\n     */ }\r\n      @media (-webkit-min-device-pixel-ratio: 0) {\r\n        .switch-light input:focus ~ span a, .switch-light input:focus + label {\r\n          outline-color: -webkit-focus-ring-color;\r\n          outline-style: auto; } }\r\n  /* don't hide the input from screen-readers and keyboard access\r\n */\r\n  .switch-light input {\r\n    position: absolute;\r\n    opacity: 0;\r\n    z-index: 3; }\r\n  .switch-light input:checked ~ span a {\r\n    right: 0%; }\r\n  /* inherit from label\r\n */\r\n  .switch-light strong {\r\n    font-weight: inherit; }\r\n  .switch-light > span {\r\n    position: relative;\r\n    overflow: hidden;\r\n    display: block;\r\n    min-height: 2em;\r\n    /* overwrite 3rd party classes padding\r\n   * eg. bootstrap .well\r\n   */\r\n    padding: 0;\r\n    text-align: left; }\r\n  .switch-light span span {\r\n    position: relative;\r\n    z-index: 2;\r\n    display: block;\r\n    float: left;\r\n    width: 50%;\r\n    text-align: center;\r\n    -webkit-user-select: none;\r\n    -moz-user-select: none;\r\n    -ms-user-select: none;\r\n    user-select: none; }\r\n  .switch-light a {\r\n    position: absolute;\r\n    right: 50%;\r\n    top: 0;\r\n    z-index: 1;\r\n    display: block;\r\n    width: 50%;\r\n    height: 100%;\r\n    padding: 0; }\r\n  /* Radio Switch\r\n */\r\n  .switch-toggle {\r\n    position: relative;\r\n    display: block;\r\n    /* simulate default browser focus outlines on the switch,\r\n   * when the inputs are focused.\r\n   */\r\n    /* For callout panels in foundation\r\n  */\r\n    padding: 0 !important;\r\n    /* 2 items\r\n   */\r\n    /* 3 items\r\n   */\r\n    /* 4 items\r\n   */\r\n    /* 5 items\r\n   */\r\n    /* 6 items\r\n   */ }\r\n    .switch-toggle::after {\r\n      clear: both;\r\n      content: \"\";\r\n      display: table; }\r\n    .switch-toggle *, .switch-toggle *:before, .switch-toggle *:after {\r\n      box-sizing: border-box; }\r\n    .switch-toggle a {\r\n      display: block;\r\n      -webkit-transition: all 0.2s ease-out;\r\n      -moz-transition: all 0.2s ease-out;\r\n      transition: all 0.2s ease-out; }\r\n    .switch-toggle label, .switch-toggle > span {\r\n      /* breathing room for bootstrap/foundation classes.\r\n     */\r\n      line-height: 2em;\r\n      vertical-align: middle; }\r\n    .switch-toggle input:focus ~ span a, .switch-toggle input:focus + label {\r\n      outline-width: 2px;\r\n      outline-style: solid;\r\n      outline-color: Highlight;\r\n      /* Chrome/Opera gets its native focus styles.\r\n     */ }\r\n      @media (-webkit-min-device-pixel-ratio: 0) {\r\n        .switch-toggle input:focus ~ span a, .switch-toggle input:focus + label {\r\n          outline-color: -webkit-focus-ring-color;\r\n          outline-style: auto; } }\r\n    .switch-toggle input {\r\n      position: absolute;\r\n      left: 0;\r\n      opacity: 0; }\r\n    .switch-toggle input + label {\r\n      position: relative;\r\n      z-index: 2;\r\n      display: block;\r\n      float: left;\r\n      padding: 0 0.5em;\r\n      margin: 0;\r\n      text-align: center; }\r\n    .switch-toggle a {\r\n      position: absolute;\r\n      top: 0;\r\n      left: 0;\r\n      padding: 0;\r\n      z-index: 1;\r\n      width: 10px;\r\n      height: 100%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(4), .switch-toggle label:nth-child(2):nth-last-child(4) ~ label, .switch-toggle label:nth-child(2):nth-last-child(4) ~ a {\r\n      width: 50%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(4) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 50%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(6), .switch-toggle label:nth-child(2):nth-last-child(6) ~ label, .switch-toggle label:nth-child(2):nth-last-child(6) ~ a {\r\n      width: 33.33%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(6) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 33.33%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(6) ~ input:checked:nth-child(5) + label ~ a {\r\n      left: 66.66%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(8), .switch-toggle label:nth-child(2):nth-last-child(8) ~ label, .switch-toggle label:nth-child(2):nth-last-child(8) ~ a {\r\n      width: 25%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(8) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 25%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(8) ~ input:checked:nth-child(5) + label ~ a {\r\n      left: 50%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(8) ~ input:checked:nth-child(7) + label ~ a {\r\n      left: 75%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10), .switch-toggle label:nth-child(2):nth-last-child(10) ~ label, .switch-toggle label:nth-child(2):nth-last-child(10) ~ a {\r\n      width: 20%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 20%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10) ~ input:checked:nth-child(5) + label ~ a {\r\n      left: 40%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10) ~ input:checked:nth-child(7) + label ~ a {\r\n      left: 60%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(10) ~ input:checked:nth-child(9) + label ~ a {\r\n      left: 80%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12), .switch-toggle label:nth-child(2):nth-last-child(12) ~ label, .switch-toggle label:nth-child(2):nth-last-child(12) ~ a {\r\n      width: 16.6%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(3) + label ~ a {\r\n      left: 16.6%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(5) + label ~ a {\r\n      left: 33.2%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(7) + label ~ a {\r\n      left: 49.8%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(9) + label ~ a {\r\n      left: 66.4%; }\r\n    .switch-toggle label:nth-child(2):nth-last-child(12) ~ input:checked:nth-child(11) + label ~ a {\r\n      left: 83%; }\r\n  /* Candy Theme\r\n * Based on the \"Sort Switches / Toggles (PSD)\" by Ormal Clarck\r\n * http://www.premiumpixels.com/freebies/sort-switches-toggles-psd/\r\n */\r\n  .switch-toggle.switch-candy, .switch-light.switch-candy > span {\r\n    background-color: #2d3035;\r\n    border-radius: 3px;\r\n    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.2); }\r\n  .switch-light.switch-candy span span, .switch-light.switch-candy input:checked ~ span span:first-child, .switch-toggle.switch-candy label {\r\n    color: #fff;\r\n    font-weight: bold;\r\n    text-align: center;\r\n    text-shadow: 1px 1px 1px #191b1e; }\r\n  .switch-light.switch-candy input ~ span span:first-child, .switch-light.switch-candy input:checked ~ span span:nth-child(2), .switch-candy input:checked + label {\r\n    color: #333;\r\n    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5); }\r\n  .switch-candy a {\r\n    border: 1px solid #333;\r\n    border-radius: 3px;\r\n    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.45);\r\n    background-color: #70c66b;\r\n    background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.2), transparent);\r\n    background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent); }\r\n  .switch-candy-blue a {\r\n    background-color: #38a3d4; }\r\n  .switch-candy-yellow a {\r\n    background-color: #f5e560; }\r\n  /* iOS Theme\r\n*/\r\n  .switch-ios.switch-light span span {\r\n    color: #888b92; }\r\n  .switch-ios.switch-light a {\r\n    left: 0;\r\n    top: 0;\r\n    width: 2em;\r\n    height: 2em;\r\n    background-color: #fff;\r\n    border-radius: 100%;\r\n    border: 0.25em solid #D8D9DB;\r\n    -webkit-transition: all .2s ease-out;\r\n    -moz-transition: all .2s ease-out;\r\n    transition: all .2s ease-out; }\r\n  .switch-ios.switch-light > span {\r\n    display: block;\r\n    width: 100%;\r\n    height: 2em;\r\n    background-color: #D8D9DB;\r\n    border-radius: 1.75em;\r\n    -webkit-transition: all .4s ease-out;\r\n    -moz-transition: all .4s ease-out;\r\n    transition: all .4s ease-out; }\r\n  .switch-ios.switch-light > span span {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100%;\r\n    opacity: 0;\r\n    line-height: 1.875em;\r\n    vertical-align: middle;\r\n    -webkit-transition: all .2s ease-out;\r\n    -moz-transition: all .2s ease-out;\r\n    transition: all .2s ease-out; }\r\n    .switch-ios.switch-light > span span:first-of-type {\r\n      opacity: 1;\r\n      padding-left: 1.875em; }\r\n    .switch-ios.switch-light > span span:last-of-type {\r\n      padding-right: 1.875em; }\r\n  .switch-ios.switch-light input:checked ~ span a {\r\n    left: 100%;\r\n    border-color: #4BD865;\r\n    margin-left: -2em; }\r\n  .switch-ios.switch-light input:checked ~ span {\r\n    border-color: #4BD865;\r\n    box-shadow: inset 0 0 0 30px #4BD865; }\r\n  .switch-ios.switch-light input:checked ~ span span:first-of-type {\r\n    opacity: 0; }\r\n  .switch-ios.switch-light input:checked ~ span span:last-of-type {\r\n    opacity: 1;\r\n    color: #fff; }\r\n  .switch-ios.switch-toggle {\r\n    background-color: #D8D9DB;\r\n    border-radius: 30px;\r\n    box-shadow: inset rgba(0, 0, 0, 0.1) 0 1px 0; }\r\n    .switch-ios.switch-toggle a {\r\n      background-color: #4BD865;\r\n      border: 0.125em solid #D8D9DB;\r\n      border-radius: 1.75em;\r\n      -webkit-transition: all 0.12s ease-out;\r\n      -moz-transition: all 0.12s ease-out;\r\n      transition: all 0.12s ease-out; }\r\n    .switch-ios.switch-toggle label {\r\n      height: 2.4em;\r\n      color: #888b92;\r\n      line-height: 2.4em;\r\n      vertical-align: middle; }\r\n  .switch-ios input:checked + label {\r\n    color: #3e4043; }\r\n  /* Holo Theme\r\n */\r\n  .switch-toggle.switch-holo, .switch-light.switch-holo > span {\r\n    background-color: #464747;\r\n    border-radius: 1px;\r\n    box-shadow: inset rgba(0, 0, 0, 0.1) 0 1px 0;\r\n    color: #fff;\r\n    text-transform: uppercase; }\r\n  .switch-holo label {\r\n    color: #fff; }\r\n  .switch-holo > span span {\r\n    opacity: 0;\r\n    -webkit-transition: all 0.1s;\r\n    -moz-transition: all 0.1s;\r\n    transition: all 0.1s; }\r\n    .switch-holo > span span:first-of-type {\r\n      opacity: 1; }\r\n  .switch-holo > span span, .switch-holo label {\r\n    font-size: 85%;\r\n    line-height: 2.15625em; }\r\n  .switch-holo a {\r\n    background-color: #666;\r\n    border-radius: 1px;\r\n    box-shadow: inset rgba(255, 255, 255, 0.2) 0 1px 0, inset rgba(0, 0, 0, 0.3) 0 -1px 0; }\r\n  /* Selected ON switch-light\r\n*/\r\n  .switch-holo.switch-light input:checked ~ span a {\r\n    background-color: #0E88B1; }\r\n  .switch-holo.switch-light input:checked ~ span span:first-of-type {\r\n    opacity: 0; }\r\n  .switch-holo.switch-light input:checked ~ span span:last-of-type {\r\n    opacity: 1; }\r\n  /* Material Theme\r\n */\r\n  /* switch-light\r\n */\r\n  .switch-light.switch-material a {\r\n    top: -0.1875em;\r\n    width: 1.75em;\r\n    height: 1.75em;\r\n    border-radius: 50%;\r\n    background: #fafafa;\r\n    box-shadow: 0 0.125em 0.125em 0 rgba(0, 0, 0, 0.14), 0 0.1875em 0.125em -0.125em rgba(0, 0, 0, 0.2), 0 0.125em 0.25em 0 rgba(0, 0, 0, 0.12);\r\n    -webkit-transition: right .28s cubic-bezier(.4, 0, .2, 1);\r\n    -moz-transition: right .28s cubic-bezier(.4, 0, .2, 1);\r\n    transition: right .28s cubic-bezier(.4, 0, .2, 1); }\r\n  .switch-material.switch-light {\r\n    overflow: visible; }\r\n    .switch-material.switch-light::after {\r\n      clear: both;\r\n      content: \"\";\r\n      display: table; }\r\n  .switch-material.switch-light > span {\r\n    overflow: visible;\r\n    position: relative;\r\n    top: 0.1875em;\r\n    width: 3.25em;\r\n    height: 1.5em;\r\n    min-height: auto;\r\n    border-radius: 1em;\r\n    background: rgba(0, 0, 0, 0.26); }\r\n  .switch-material.switch-light span span {\r\n    position: absolute;\r\n    clip: rect(0 0 0 0); }\r\n  .switch-material.switch-light input:checked ~ span a {\r\n    right: 0;\r\n    background: #3f51b5;\r\n    box-shadow: 0 0.1875em 0.25em 0 rgba(0, 0, 0, 0.14), 0 0.1875em 0.1875em -0.125em rgba(0, 0, 0, 0.2), 0 0.0625em 0.375em 0 rgba(0, 0, 0, 0.12); }\r\n  .switch-material.switch-light input:checked ~ span {\r\n    background: rgba(63, 81, 181, 0.5); }\r\n  /* switch-toggle\r\n */\r\n  .switch-toggle.switch-material {\r\n    overflow: visible; }\r\n    .switch-toggle.switch-material::after {\r\n      clear: both;\r\n      content: \"\";\r\n      display: table; }\r\n  .switch-toggle.switch-material a {\r\n    top: 48%;\r\n    width: 0.375em !important;\r\n    height: 0.375em;\r\n    margin-left: 0.25em;\r\n    background: #3f51b5;\r\n    border-radius: 100%;\r\n    -webkit-transform: translateY(-50%);\r\n    -moz-transform: translateY(-50%);\r\n    -ms-transform: translateY(-50%);\r\n    -o-transform: translateY(-50%);\r\n    transform: translateY(-50%);\r\n    -webkit-transition: -webkit-transform 0.4s ease-in;\r\n    -moz-transition: -moz-transform 0.4s ease-in;\r\n    transition: transform 0.4s ease-in; }\r\n  .switch-toggle.switch-material label {\r\n    color: rgba(0, 0, 0, 0.54);\r\n    font-size: 1em; }\r\n  .switch-toggle.switch-material label:before {\r\n    content: '';\r\n    position: absolute;\r\n    top: 48%;\r\n    left: 0;\r\n    display: block;\r\n    width: 0.875em;\r\n    height: 0.875em;\r\n    border-radius: 100%;\r\n    border: 0.125em solid rgba(0, 0, 0, 0.54);\r\n    -webkit-transform: translateY(-50%);\r\n    -moz-transform: translateY(-50%);\r\n    -ms-transform: translateY(-50%);\r\n    -o-transform: translateY(-50%);\r\n    transform: translateY(-50%); }\r\n  .switch-toggle.switch-material input:checked + label:before {\r\n    border-color: #3f51b5; }\r\n  /* ripple\r\n */\r\n  .switch-light.switch-material > span:before, .switch-light.switch-material > span:after, .switch-toggle.switch-material label:after {\r\n    content: '';\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    z-index: 3;\r\n    display: block;\r\n    width: 4em;\r\n    height: 4em;\r\n    border-radius: 100%;\r\n    background: #3f51b5;\r\n    opacity: .4;\r\n    margin-left: -1.25em;\r\n    margin-top: -1.25em;\r\n    -webkit-transform: scale(0);\r\n    -moz-transform: scale(0);\r\n    -ms-transform: scale(0);\r\n    -o-transform: scale(0);\r\n    transform: scale(0);\r\n    -webkit-transition: opacity .4s ease-in;\r\n    -moz-transition: opacity .4s ease-in;\r\n    transition: opacity .4s ease-in; }\r\n  .switch-light.switch-material > span:after {\r\n    left: auto;\r\n    right: 0;\r\n    margin-left: 0;\r\n    margin-right: -1.25em; }\r\n  .switch-toggle.switch-material label:after {\r\n    width: 3.25em;\r\n    height: 3.25em;\r\n    margin-top: -0.75em; }\r\n  @-webkit-keyframes materialRipple {\r\n    0% {\r\n      -webkit-transform: scale(0); }\r\n\r\n    20% {\r\n      -webkit-transform: scale(1); }\r\n\r\n    100% {\r\n      opacity: 0;\r\n      -webkit-transform: scale(1); } }\r\n\r\n  @-moz-keyframes materialRipple {\r\n    0% {\r\n      -moz-transform: scale(0); }\r\n\r\n    20% {\r\n      -moz-transform: scale(1); }\r\n\r\n    100% {\r\n      opacity: 0;\r\n      -moz-transform: scale(1); } }\r\n\r\n  @keyframes materialRipple {\r\n    0% {\r\n      -webkit-transform: scale(0);\r\n      -moz-transform: scale(0);\r\n      -ms-transform: scale(0);\r\n      -o-transform: scale(0);\r\n      transform: scale(0); }\r\n\r\n    20% {\r\n      -webkit-transform: scale(1);\r\n      -moz-transform: scale(1);\r\n      -ms-transform: scale(1);\r\n      -o-transform: scale(1);\r\n      transform: scale(1); }\r\n\r\n    100% {\r\n      opacity: 0;\r\n      -webkit-transform: scale(1);\r\n      -moz-transform: scale(1);\r\n      -ms-transform: scale(1);\r\n      -o-transform: scale(1);\r\n      transform: scale(1); } }\r\n\r\n  .switch-material.switch-light input:not(:checked) ~ span:after, .switch-material.switch-light input:checked ~ span:before, .switch-toggle.switch-material input:checked + label:after {\r\n    -webkit-animation: materialRipple .4s ease-in;\r\n    -moz-animation: materialRipple .4s ease-in;\r\n    animation: materialRipple .4s ease-in; }\r\n  /* trick to prevent the default checked ripple animation from showing\r\n * when the page loads.\r\n * the ripples are hidden by default, and shown only when the input is focused.\r\n */\r\n  .switch-light.switch-material.switch-light input ~ span:before, .switch-light.switch-material.switch-light input ~ span:after, .switch-material.switch-toggle input + label:after {\r\n    visibility: hidden; }\r\n  .switch-light.switch-material.switch-light input:focus:checked ~ span:before, .switch-light.switch-material.switch-light input:focus:not(:checked) ~ span:after, .switch-material.switch-toggle input:focus:checked + label:after {\r\n    visibility: visible; } }\r\n\r\n/* Bugfix for older Webkit, including mobile Webkit. Adapted from\r\n * http://css-tricks.com/webkit-sibling-bug/\r\n */\r\n@media only screen and (-webkit-max-device-pixel-ratio: 2) and (max-device-width: 80em) {\r\n  .switch-light, .switch-toggle {\r\n    -webkit-animation: webkitSiblingBugfix infinite 1s; } }\r\n\r\n@-webkit-keyframes webkitSiblingBugfix {\r\n  from {\r\n    -webkit-transform: translate3d(0, 0, 0); }\r\n\r\n  to {\r\n    -webkit-transform: translate3d(0, 0, 0); } }\r\n\r\n/*# sourceMappingURL=toggle-switch.css.map */\r\n\r\n.top-right-block-control {\r\n  display: inline-block;\r\n  margin-left: 7px;\r\n}\r\n\r\n.top-right-parent {\r\n  width: auto !important;\r\n  float: right !important;\r\n  margin-right: 15px !important;\r\n}", ""]);
 
 // exports
 
@@ -1976,6 +1976,201 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 exports.push([module.i, ".activeTr {\r\n    border: 1px solid #2f9c0a;\r\n}\r\n\r\n#editThreadPoolModal .row {\r\n    margin-top: 15px;\r\n}", ""]);
 
 // exports
+
+
+/***/ },
+
+/***/ "./node_modules/file-saver/FileSaver.js":
+/***/ function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* FileSaver.js
+ * A saveAs() FileSaver implementation.
+ * 1.3.2
+ * 2016-06-16 18:25:19
+ *
+ * By Eli Grey, http://eligrey.com
+ * License: MIT
+ *   See https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md
+ */
+
+/*global self */
+/*jslint bitwise: true, indent: 4, laxbreak: true, laxcomma: true, smarttabs: true, plusplus: true */
+
+/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+
+var saveAs = saveAs || (function(view) {
+	"use strict";
+	// IE <10 is explicitly unsupported
+	if (typeof view === "undefined" || typeof navigator !== "undefined" && /MSIE [1-9]\./.test(navigator.userAgent)) {
+		return;
+	}
+	var
+		  doc = view.document
+		  // only get URL when necessary in case Blob.js hasn't overridden it yet
+		, get_URL = function() {
+			return view.URL || view.webkitURL || view;
+		}
+		, save_link = doc.createElementNS("http://www.w3.org/1999/xhtml", "a")
+		, can_use_save_link = "download" in save_link
+		, click = function(node) {
+			var event = new MouseEvent("click");
+			node.dispatchEvent(event);
+		}
+		, is_safari = /constructor/i.test(view.HTMLElement)
+		, is_chrome_ios =/CriOS\/[\d]+/.test(navigator.userAgent)
+		, throw_outside = function(ex) {
+			(view.setImmediate || view.setTimeout)(function() {
+				throw ex;
+			}, 0);
+		}
+		, force_saveable_type = "application/octet-stream"
+		// the Blob API is fundamentally broken as there is no "downloadfinished" event to subscribe to
+		, arbitrary_revoke_timeout = 1000 * 40 // in ms
+		, revoke = function(file) {
+			var revoker = function() {
+				if (typeof file === "string") { // file is an object URL
+					get_URL().revokeObjectURL(file);
+				} else { // file is a File
+					file.remove();
+				}
+			};
+			setTimeout(revoker, arbitrary_revoke_timeout);
+		}
+		, dispatch = function(filesaver, event_types, event) {
+			event_types = [].concat(event_types);
+			var i = event_types.length;
+			while (i--) {
+				var listener = filesaver["on" + event_types[i]];
+				if (typeof listener === "function") {
+					try {
+						listener.call(filesaver, event || filesaver);
+					} catch (ex) {
+						throw_outside(ex);
+					}
+				}
+			}
+		}
+		, auto_bom = function(blob) {
+			// prepend BOM for UTF-8 XML and text/* types (including HTML)
+			// note: your browser will automatically convert UTF-16 U+FEFF to EF BB BF
+			if (/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+				return new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});
+			}
+			return blob;
+		}
+		, FileSaver = function(blob, name, no_auto_bom) {
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			// First try a.download, then web filesystem, then object URLs
+			var
+				  filesaver = this
+				, type = blob.type
+				, force = type === force_saveable_type
+				, object_url
+				, dispatch_all = function() {
+					dispatch(filesaver, "writestart progress write writeend".split(" "));
+				}
+				// on any filesys errors revert to saving with object URLs
+				, fs_error = function() {
+					if ((is_chrome_ios || (force && is_safari)) && view.FileReader) {
+						// Safari doesn't allow downloading of blob urls
+						var reader = new FileReader();
+						reader.onloadend = function() {
+							var url = is_chrome_ios ? reader.result : reader.result.replace(/^data:[^;]*;/, 'data:attachment/file;');
+							var popup = view.open(url, '_blank');
+							if(!popup) view.location.href = url;
+							url=undefined; // release reference before dispatching
+							filesaver.readyState = filesaver.DONE;
+							dispatch_all();
+						};
+						reader.readAsDataURL(blob);
+						filesaver.readyState = filesaver.INIT;
+						return;
+					}
+					// don't create more object URLs than needed
+					if (!object_url) {
+						object_url = get_URL().createObjectURL(blob);
+					}
+					if (force) {
+						view.location.href = object_url;
+					} else {
+						var opened = view.open(object_url, "_blank");
+						if (!opened) {
+							// Apple does not allow window.open, see https://developer.apple.com/library/safari/documentation/Tools/Conceptual/SafariExtensionGuide/WorkingwithWindowsandTabs/WorkingwithWindowsandTabs.html
+							view.location.href = object_url;
+						}
+					}
+					filesaver.readyState = filesaver.DONE;
+					dispatch_all();
+					revoke(object_url);
+				}
+			;
+			filesaver.readyState = filesaver.INIT;
+
+			if (can_use_save_link) {
+				object_url = get_URL().createObjectURL(blob);
+				setTimeout(function() {
+					save_link.href = object_url;
+					save_link.download = name;
+					click(save_link);
+					dispatch_all();
+					revoke(object_url);
+					filesaver.readyState = filesaver.DONE;
+				});
+				return;
+			}
+
+			fs_error();
+		}
+		, FS_proto = FileSaver.prototype
+		, saveAs = function(blob, name, no_auto_bom) {
+			return new FileSaver(blob, name || blob.name || "download", no_auto_bom);
+		}
+	;
+	// IE 10+ (native saveAs)
+	if (typeof navigator !== "undefined" && navigator.msSaveOrOpenBlob) {
+		return function(blob, name, no_auto_bom) {
+			name = name || blob.name || "download";
+
+			if (!no_auto_bom) {
+				blob = auto_bom(blob);
+			}
+			return navigator.msSaveOrOpenBlob(blob, name);
+		};
+	}
+
+	FS_proto.abort = function(){};
+	FS_proto.readyState = FS_proto.INIT = 0;
+	FS_proto.WRITING = 1;
+	FS_proto.DONE = 2;
+
+	FS_proto.error =
+	FS_proto.onwritestart =
+	FS_proto.onprogress =
+	FS_proto.onwrite =
+	FS_proto.onabort =
+	FS_proto.onerror =
+	FS_proto.onwriteend =
+		null;
+
+	return saveAs;
+}(
+	   typeof self !== "undefined" && self
+	|| typeof window !== "undefined" && window
+	|| this.content
+));
+// `self` is undefined in Firefox for Android content script context
+// while `this` is nsIContentFrameMessageManager
+// with an attribute `content` that corresponds to the window
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports.saveAs = saveAs;
+} else if (("function" !== "undefined" && __webpack_require__("./node_modules/webpack/buildin/amd-define.js") !== null) && (__webpack_require__("./node_modules/webpack/buildin/amd-options.js") !== null)) {
+  !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function() {
+    return saveAs;
+  }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+}
 
 
 /***/ },
@@ -37218,6 +37413,23 @@ exports.not = not;
 
 /***/ },
 
+/***/ "./node_modules/webpack/buildin/amd-define.js":
+/***/ function(module, exports) {
+
+module.exports = function() { throw new Error("define cannot be used indirect"); };
+
+
+/***/ },
+
+/***/ "./node_modules/webpack/buildin/amd-options.js":
+/***/ function(module, exports) {
+
+/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+/* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+
 /***/ "./src/app/configuration/components/binding-table.component.ts":
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37260,10 +37472,11 @@ module.exports = "<table class=\"table\">\r\n    <thead>\r\n    <tr>\r\n        
 "use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
+var fileSaver = __webpack_require__("./node_modules/file-saver/FileSaver.js");
 __webpack_require__("./node_modules/rxjs/Rx.js");
 var FullSaveComponent = (function () {
-    function FullSaveComponent(apiClient) {
-        this.http = apiClient;
+    function FullSaveComponent(http) {
+        this.http = http;
     }
     FullSaveComponent.prototype.ngOnInit = function () {
         var _this = this;
@@ -37275,10 +37488,11 @@ var FullSaveComponent = (function () {
     };
     FullSaveComponent.prototype.save = function () {
         var blob = new Blob([this.currentConfiguration], { type: 'application/json' });
-        var url = window.URL.createObjectURL(blob);
-        window.open(url);
+        var filename = 'configuration.json';
+        fileSaver.saveAs(blob, filename);
     };
     FullSaveComponent.prototype.load = function (event) {
+        var _thisReference = this;
         var fileList = event.target.files;
         if (fileList.length > 0) {
             var file = fileList[0];
@@ -37286,21 +37500,19 @@ var FullSaveComponent = (function () {
             // Read file into memory as UTF-8
             reader.readAsText(file, "UTF-8");
             // Handle progress, success, and errors
-            reader.onload = this.loaded;
-            reader.onerror = this.errorHandler;
+            reader.onload = function (evt) {
+                var fileString = evt.target.result;
+                _thisReference.http.put(app_restClient_1.REST.CURRENT_CONFIG, fileString)
+                    .map(function (response) { return response.text(); })
+                    .subscribe(function (data) {
+                    console.debug("configuration has been upload successfully", data);
+                    location.reload();
+                });
+            };
+            reader.onerror = function (evt) {
+                console.debug("Error occured while loading file: ", evt);
+            };
         }
-    };
-    FullSaveComponent.prototype.loaded = function (evt) {
-        var fileString = evt.target.result;
-        this.http.post(app_restClient_1.REST.CURRENT_CONFIG, fileString)
-            .map(function (response) { return response.text(); })
-            .subscribe(function (data) {
-            console.log("configuration has been upload successfully", data);
-            location.reload();
-        });
-    };
-    FullSaveComponent.prototype.errorHandler = function (evt) {
-        console.log("Error occured while loading file: ", evt);
     };
     FullSaveComponent = __decorate([
         core_1.Component({
@@ -37332,13 +37544,18 @@ __webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 __webpack_require__("./node_modules/select2/dist/js/select2.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var GatewaysComponent = (function () {
-    function GatewaysComponent(apiClient, overlay, vcRef, modal) {
+    function GatewaysComponent(http, overlay, vcRef, modal, cd, route) {
+        this.http = http;
         this.modal = modal;
+        this.cd = cd;
+        this.route = route;
         this.gateways = [];
+        this.activeGateway = undefined;
         this.oldTypeValue = "";
         this.availableGateways = [];
-        this.http = apiClient;
         overlay.defaultViewContainer = vcRef;
     }
     GatewaysComponent.prototype.ngOnInit = function () {
@@ -37353,25 +37570,109 @@ var GatewaysComponent = (function () {
             if (_this.gateways.length > 0) {
                 _this.activeGateway = _this.gateways[0];
                 // dirty hack to make select element work
-                $("#select2-gatewaySelection-container").html(_this.activeGateway.name);
+                var _thisReference_1 = _this;
+                $(document).ready(function () {
+                    $(GatewaysComponent.select2Id).select2();
+                    $(GatewaysComponent.select2Id).on('change', function (e) {
+                        _thisReference_1.selectCurrentlyActiveGateway($(e.target).val());
+                    });
+                });
+                $(GatewaysComponent.select2Id).val(_this.activeGateway.name).trigger('change.select2');
+                _this.oldTypeValue = _this.activeGateway.type;
             }
-            _this.oldTypeValue = _this.activeGateway.type;
+            _this.route
+                .queryParams
+                .subscribe(function (params) {
+                // Defaults to 0 if no query param provided.
+                var gatewayName = decodeURIComponent(params['gateway'] || "");
+                if (!util_1.isNullOrUndefined(_this.activeGateway) && gatewayName.length > 0
+                    && gatewayName != _this.activeGateway.name && _this.gateways.length > 0) {
+                    for (var i = 0; i < _this.gateways.length; i++) {
+                        if (_this.gateways[i].name == gatewayName) {
+                            _this.setActiveGateway(_this.gateways[i]);
+                            break;
+                        }
+                    }
+                }
+            });
         });
         // Get all the available bundles that belong to Gateways
         this.http.get(app_restClient_1.REST.AVAILABLE_GATEWAY_LIST)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) { return _this.availableGateways = data; });
     };
-    GatewaysComponent.prototype.initSelectionComponent = function () {
-        $("#gatewaySelection").select2('destroy');
-        $("#gatewaySelection").select2();
+    GatewaysComponent.prototype.dispatchNewGateway = function (newGateway) {
+        var _thisReference = this;
+        if ($(GatewaysComponent.select2Id).data('select2')) {
+            $(GatewaysComponent.select2Id).select2('destroy');
+        }
+        if (this.gateways.length > 0) {
+            this.setActiveGateway(newGateway, true);
+            this.cd.detectChanges(); // draw my select pls!
+            $(GatewaysComponent.select2Id).select2({
+                placeholder: "Select gateway",
+                width: '100%'
+            });
+            $(GatewaysComponent.select2Id).on('change', function (e) {
+                _thisReference.selectCurrentlyActiveGateway($(e.target).val());
+            });
+            $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
+        }
     };
-    GatewaysComponent.prototype.ngAfterViewInit = function () {
+    GatewaysComponent.prototype.setActiveGateway = function (gateway, setURL) {
+        this.activeGateway = gateway;
+        this.oldTypeValue = gateway.type;
+        this.cd.detectChanges();
+        if (history.pushState && setURL) {
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?gateway=" + encodeURIComponent(gateway.name);
+            window.history.pushState({ path: newurl }, '', newurl);
+        }
+        $(GatewaysComponent.select2Id).val(this.activeGateway.name).trigger('change.select2');
+    };
+    GatewaysComponent.prototype.removeGateway = function () {
         var _this = this;
-        $(document).ready(function () {
-            $("#gatewaySelection").select2();
-            $("#gatewaySelection").on('change', function (e) {
-                _this.selectCurrentlyActiveGateway($(e.target).val());
+        this.modal.confirm()
+            .isBlocking(true)
+            .className('default')
+            .keyboard(27)
+            .message("Gateway " + this.activeGateway.name + " is being deleted. Are You sure?")
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this.http.delete(app_restClient_1.REST.GATEWAY_BY_NAME(_this.activeGateway.name))
+                    .subscribe(function () {
+                    var _loop_1 = function(i) {
+                        if (_this.gateways[i].name == _this.activeGateway.name) {
+                            _this.gateways.splice(i, 1);
+                            if (_this.gateways.length > 0) {
+                                _this.setActiveGateway(_this.gateways[0], true);
+                                if ($(GatewaysComponent.select2Id).data('select2')) {
+                                    $(GatewaysComponent.select2Id).select2('destroy');
+                                }
+                                _this.cd.detectChanges(); // draw my select pls!
+                                $(GatewaysComponent.select2Id).select2({
+                                    placeholder: "Select gateway",
+                                    width: '100%'
+                                });
+                                var _thisReference_2 = _this;
+                                $(GatewaysComponent.select2Id).on('change', function (e) {
+                                    _thisReference_2.selectCurrentlyActiveGateway($(e.target).val());
+                                });
+                                $(GatewaysComponent.select2Id).val(_this.activeGateway.name).trigger('change.select2');
+                            }
+                            return "break";
+                        }
+                    };
+                    for (var i = 0; i < _this.gateways.length; i++) {
+                        var state_1 = _loop_1(i);
+                        if (state_1 === "break") break;
+                    }
+                });
+                return response;
+            })
+                .catch(function () {
+                return false;
             });
         });
     };
@@ -37383,7 +37684,9 @@ var GatewaysComponent = (function () {
             }
         }
         this.activeGateway = selection;
-        this.oldTypeValue = selection.type;
+        if (!util_1.isNullOrUndefined(selection)) {
+            this.oldTypeValue = selection.type;
+        }
     };
     GatewaysComponent.prototype.changeType = function (event) {
         var _this = this;
@@ -37405,15 +37708,16 @@ var GatewaysComponent = (function () {
             });
         });
     };
+    GatewaysComponent.select2Id = "#gatewaySelection";
     GatewaysComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
             template: __webpack_require__("./src/app/configuration/templates/gateways.html")
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _f) || Object])
     ], GatewaysComponent);
     return GatewaysComponent;
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
 }());
 exports.GatewaysComponent = GatewaysComponent;
 
@@ -37498,7 +37802,7 @@ var SnampLogSettingsComponent = (function () {
         this.http.put(app_restClient_1.REST.NOTIFICATIONS_SETTINGS, _settings)
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("Notification settings has been stored: ", data);
+            console.debug("Notification settings has been stored: ", data);
         });
     };
     SnampLogSettingsComponent.prototype.isSelected = function (type) {
@@ -37770,12 +38074,17 @@ var model_resource_1 = __webpack_require__("./src/app/configuration/model/model.
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 var model_thread_pool_1 = __webpack_require__("./src/app/configuration/model/model.thread.pool.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var ResourcesComponent = (function () {
-    function ResourcesComponent(http, overlay, vcRef, modal) {
+    function ResourcesComponent(http, overlay, vcRef, modal, route, cd) {
         this.http = http;
         this.overlay = overlay;
         this.vcRef = vcRef;
         this.modal = modal;
+        this.route = route;
+        this.cd = cd;
         this.resources = [];
         this.oldTypeValue = "";
         this.oldGroupValue = "";
@@ -37783,59 +38092,175 @@ var ResourcesComponent = (function () {
         this.availableGroups = [];
         this.availableThreadPools = [];
         this.oldSmartMode = false;
+        this.groupSelection = false;
+        this.groupNameChanged = false;
         overlay.defaultViewContainer = vcRef;
     }
     ResourcesComponent.prototype.ngOnInit = function () {
         var _this = this;
         // Get all configured resources from the server
-        this.http.get(app_restClient_1.REST.RESOURCE_CONFIG)
-            .map(function (res) { return res.json(); })
-            .subscribe(function (data) {
-            for (var key in data) {
-                _this.resources.push(new model_resource_1.Resource(_this.http, key, data[key]));
+        Observable_1.Observable.forkJoin(this.http.get(app_restClient_1.REST.RESOURCE_CONFIG).map(function (res) { return res.json(); }), this.http.get(app_restClient_1.REST.RGROUP_LIST).map(function (res) { return res.json(); })).subscribe(function (data) {
+            // filling the resources
+            var resData = data[0];
+            for (var key in resData) {
+                _this.resources.push(new model_resource_1.Resource(_this.http, key, resData[key]));
             }
-            _this.activeResource = (_this.resources.length > 0) ? _this.resources[0] : _this.activeResource;
-            _this.oldTypeValue = _this.activeResource.type;
-            _this.oldGroupValue = _this.activeResource.groupName;
-            _this.oldSmartMode = _this.activeResource.smartMode;
+            if (_this.resources.length > 0) {
+                _this.setActiveResource(_this.resources[0], true);
+                $(document).ready(function () {
+                    $(ResourcesComponent.select2ElementId).select2();
+                    $(ResourcesComponent.select2ElementId).on('change', function (e) {
+                        _this.selectCurrentlyActiveResource($(e.target).val());
+                    });
+                });
+            }
+            // filling the available rgroups
+            _this.availableGroups = data[1];
+            // making the selectionGroup decision after all actions before were performed
+            _this.groupSelection = _this.getGroupSelectionForActiveResource();
+            _this.route
+                .queryParams
+                .subscribe(function (params) {
+                // Defaults to 0 if no query param provided.
+                var resourceName = decodeURIComponent(params['resource'] || "");
+                console.debug("Passed parameter: ", params['resource'], " resource name is ", resourceName);
+                if (!util_1.isNullOrUndefined(_this.activeResource) && resourceName.length > 0
+                    && resourceName != _this.activeResource.name && _this.resources.length > 0) {
+                    for (var i = 0; i < _this.resources.length; i++) {
+                        if (_this.resources[i].name == resourceName) {
+                            _this.setActiveResource(_this.resources[i], true);
+                            _this.groupSelection = _this.getGroupSelectionForActiveResource();
+                            break;
+                        }
+                    }
+                }
+            });
         });
         // Get all the available bundles that belong to Resources
         this.http.get(app_restClient_1.REST.AVAILABLE_RESOURCE_LIST)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) { return _this.availableResources = data; });
-        // Get available group names for listing in the select element
-        this.http.get(app_restClient_1.REST.RGROUP_LIST)
-            .map(function (res) { return res.json(); })
-            .subscribe(function (data) { return _this.availableGroups = data; });
         // Get available thread pools
         this.http.get(app_restClient_1.REST.THREAD_POOL_CONFIG)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) { return _this.availableThreadPools = model_thread_pool_1.ThreadPool.makeBunchFromJson(data); });
     };
-    ResourcesComponent.prototype.initSelectionComponent = function () {
-        $(ResourcesComponent.select2ElementId).select2('destroy');
-        $(ResourcesComponent.select2ElementId).select2();
-    };
-    ResourcesComponent.prototype.ngAfterViewInit = function () {
+    ResourcesComponent.prototype.dispatchNewResource = function (newResource) {
         var _thisReference = this;
-        $(document).ready(function () {
-            $(ResourcesComponent.select2ElementId).select2();
+        if ($(ResourcesComponent.select2ElementId).data('select2')) {
+            $(ResourcesComponent.select2ElementId).select2('destroy');
+        }
+        if (this.resources.length > 0) {
+            this.setActiveResource(newResource, true);
+            this.groupSelection = this.getGroupSelectionForActiveResource();
+            this.cd.detectChanges(); // draw my select pls!
+            $(ResourcesComponent.select2ElementId).select2({
+                placeholder: "Select resource",
+                width: '100%'
+            });
             $(ResourcesComponent.select2ElementId).on('change', function (e) {
                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
             });
-        });
+            $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
+        }
+    };
+    ResourcesComponent.prototype.setActiveResource = function (resource, setURL) {
+        this.activeResource = resource;
+        this.oldTypeValue = resource.type;
+        this.oldGroupValue = resource.groupName;
+        this.oldSmartMode = resource.smartMode;
+        this.cd.detectChanges();
+        if (history.pushState && setURL) {
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?resource=" + encodeURIComponent(resource.name);
+            window.history.pushState({ path: newurl }, '', newurl);
+        }
+        $(ResourcesComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
     };
     ResourcesComponent.prototype.selectCurrentlyActiveResource = function (resourceName) {
-        var selection;
         for (var i = 0; i < this.resources.length; i++) {
             if (this.resources[i].name == resourceName) {
-                selection = this.resources[i];
+                this.setActiveResource(this.resources[i], true);
+                this.groupSelection = this.getGroupSelectionForActiveResource();
+                break;
             }
         }
-        this.activeResource = selection;
-        this.oldTypeValue = selection.type;
-        this.oldGroupValue = selection.groupName;
-        this.oldSmartMode = selection.smartMode;
+    };
+    ResourcesComponent.prototype.removeResource = function () {
+        var _this = this;
+        this.modal.confirm()
+            .isBlocking(true)
+            .className('default')
+            .keyboard(27)
+            .message("Resource " + this.activeResource.name + " is being deleted. Are You sure?")
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this.http.delete(app_restClient_1.REST.RESOURCE_BY_NAME(_this.activeResource.name))
+                    .subscribe(function () {
+                    var _loop_1 = function(i) {
+                        if (_this.resources[i].name == _this.activeResource.name) {
+                            _this.resources.splice(i, 1);
+                            if (_this.resources.length > 0) {
+                                _this.setActiveResource(_this.resources[0], true);
+                                _this.groupSelection = _this.getGroupSelectionForActiveResource();
+                                var _thisReference_1 = _this;
+                                if ($(ResourcesComponent.select2ElementId).data('select2')) {
+                                    $(ResourcesComponent.select2ElementId).select2('destroy');
+                                }
+                                // refresh select2
+                                _this.groupSelection = _this.getGroupSelectionForActiveResource();
+                                _this.cd.detectChanges(); // draw my select pls!
+                                $(ResourcesComponent.select2ElementId).select2({
+                                    placeholder: "Select resource",
+                                    width: '100%'
+                                });
+                                $(ResourcesComponent.select2ElementId).on('change', function (e) {
+                                    _thisReference_1.selectCurrentlyActiveResource($(e.target).val());
+                                });
+                                $(ResourcesComponent.select2ElementId).val(_this.activeResource.name).trigger('change.select2');
+                            }
+                            return "break";
+                        }
+                    };
+                    for (var i = 0; i < _this.resources.length; i++) {
+                        var state_1 = _loop_1(i);
+                        if (state_1 === "break") break;
+                    }
+                });
+                return response;
+            })
+                .catch(function () {
+                return false;
+            });
+        });
+    };
+    ResourcesComponent.prototype.getGroupSelectionForActiveResource = function () {
+        if (this.availableGroups.length == 0) {
+            return false;
+        }
+        else if (!util_1.isNullOrUndefined(this.activeResource)
+            && !util_1.isNullOrUndefined(this.activeResource.groupName)
+            && this.activeResource.groupName.length > 0) {
+            for (var i = 0; i < this.availableGroups.length; i++) {
+                if (this.availableGroups[i] == this.activeResource.groupName) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else {
+            return true;
+        }
+    };
+    ResourcesComponent.prototype.saveManualGroupName = function () {
+        var _this = this;
+        this.http.put(app_restClient_1.REST.RESOURCE_GROUP(this.activeResource.name), this.activeResource.groupName)
+            .subscribe(function () {
+            console.debug("Manual group name has been saved, no reload is required");
+            _this.oldGroupValue = _this.activeResource.groupName;
+            _this.groupNameChanged = false;
+        });
     };
     ResourcesComponent.prototype.changeType = function (event) {
         var _this = this;
@@ -37873,21 +38298,23 @@ var ResourcesComponent = (function () {
                 _this.oldGroupValue = event.target.value;
                 _this.http.put(app_restClient_1.REST.RESOURCE_GROUP(_this.activeResource.name), event.target.value)
                     .subscribe(function () { return location.reload(); });
+                _this.groupNameChanged = false;
                 return response;
             })
                 .catch(function () {
                 _this.activeResource.groupName = _this.oldGroupValue;
+                _this.groupSelection = _this.getGroupSelectionForActiveResource();
                 return false;
             });
         });
     };
     ResourcesComponent.prototype.changeThreadPool = function (event) {
         this.http.put(app_restClient_1.REST.RESOURCE_THREAD_POOL(this.activeResource.name), event.target.value)
-            .subscribe(function () { return console.log("Resource thread pool has been changed to " + event.target.value); });
+            .subscribe(function () { return console.debug("Resource thread pool has been changed to " + event.target.value); });
     };
     ResourcesComponent.prototype.triggerSmartMode = function () {
         var _this = this;
-        console.log("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
+        console.debug("current state of smart mode is ", this.activeResource.smartMode, " old one is ", this.oldSmartMode);
         if (!this.oldSmartMode) {
             this.modal.confirm()
                 .className('default')
@@ -37900,7 +38327,7 @@ var ResourcesComponent = (function () {
                     .then(function (response) {
                     _this.http.put(app_restClient_1.REST.ENTITY_PARAMETERS("resource", _this.activeResource.name, "smartMode"), true)
                         .subscribe(function (data) {
-                        console.log("setting to true result is ", data);
+                        console.debug("setting to true result is ", data);
                         _this.oldSmartMode = true;
                         _this.activeResource.smartMode = true;
                         location.reload();
@@ -37921,8 +38348,11 @@ var ResourcesComponent = (function () {
     ResourcesComponent.prototype.saveConnectionString = function () {
         var _this = this;
         this.http.put(app_restClient_1.REST.RESOURCE_CONNECTION_STRING(this.activeResource.name), this.activeResource.connectionString)
-            .subscribe(function (res) { return console.log("connection string for " + _this.activeResource.name +
+            .subscribe(function (res) { return console.debug("connection string for " + _this.activeResource.name +
             " has been changed to " + _this.activeResource.connectionString + " with result " + res); });
+    };
+    ResourcesComponent.prototype.triggerGroupNameChanged = function (value) {
+        this.groupNameChanged = (this.oldGroupValue != value);
     };
     ResourcesComponent.select2ElementId = "#resourceSelection";
     ResourcesComponent = __decorate([
@@ -37931,10 +38361,10 @@ var ResourcesComponent = (function () {
             template: __webpack_require__("./src/app/configuration/templates/resources.html"),
             styles: [__webpack_require__("./src/app/configuration/templates/css/checkbox.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _e) || Object, (typeof (_f = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _f) || Object])
     ], ResourcesComponent);
     return ResourcesComponent;
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
 }());
 exports.ResourcesComponent = ResourcesComponent;
 
@@ -37955,10 +38385,14 @@ __webpack_require__("./node_modules/rxjs/add/operator/do.js");
 __webpack_require__("./node_modules/rxjs/add/operator/toPromise.js");
 var angular2_modal_1 = __webpack_require__("./node_modules/angular2-modal/esm/index.js");
 var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
+var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
 var RGroupsComponent = (function () {
-    function RGroupsComponent(http, overlay, vcRef, modal) {
+    function RGroupsComponent(http, overlay, vcRef, modal, route, cd) {
         this.http = http;
         this.modal = modal;
+        this.route = route;
+        this.cd = cd;
         this.resources = [];
         this.oldTypeValue = "";
         this.availableResources = [];
@@ -37974,37 +38408,120 @@ var RGroupsComponent = (function () {
                 _this.resources.push(new model_resourceGroup_1.ResourceGroup(_this.http, key, data[key]));
             }
             if (_this.resources.length > 0) {
-                _this.activeResource = _this.resources[0];
-                _this.oldTypeValue = _this.activeResource.type;
+                _this.setActiveResourceGroup(_this.resources[0], true);
+                var _thisReference_1 = _this;
+                $(document).ready(function () {
+                    $(RGroupsComponent.select2ElementId).select2();
+                    $(RGroupsComponent.select2ElementId).on('change', function (e) {
+                        _thisReference_1.selectCurrentlyActiveResource($(e.target).val());
+                    });
+                });
             }
+            _this.route
+                .queryParams
+                .subscribe(function (params) {
+                // Defaults to 0 if no query param provided.
+                var resourceName = decodeURIComponent(params['rg'] || "");
+                if (!util_1.isNullOrUndefined(_this.activeResource) && resourceName.length > 0
+                    && resourceName != _this.activeResource.name && _this.resources.length > 0) {
+                    for (var i = 0; i < _this.resources.length; i++) {
+                        if (_this.resources[i].name == resourceName) {
+                            _this.setActiveResourceGroup(_this.resources[i], true);
+                            break;
+                        }
+                    }
+                }
+            });
         });
         // Get all the available bundles that belong to Resources
         this.http.get(app_restClient_1.REST.AVAILABLE_RESOURCE_LIST)
             .map(function (res) { return res.json(); })
             .subscribe(function (data) { return _this.availableResources = data; });
     };
-    RGroupsComponent.prototype.initSelectionComponent = function () {
-        $("#resourceSelection").select2('destroy');
-        $("#resourceSelection").select2();
-    };
-    RGroupsComponent.prototype.ngAfterViewInit = function () {
+    RGroupsComponent.prototype.dispatchNewResourceGroup = function (newResource) {
         var _thisReference = this;
-        $(document).ready(function () {
-            $("#resourceSelection").select2();
-            $("#resourceSelection").on('change', function (e) {
+        if ($(RGroupsComponent.select2ElementId).data('select2')) {
+            $(RGroupsComponent.select2ElementId).select2('destroy');
+        }
+        if (this.resources.length > 0) {
+            this.setActiveResourceGroup(newResource, true);
+            this.cd.detectChanges(); // draw my select pls!
+            $(RGroupsComponent.select2ElementId).select2({
+                placeholder: "Select resource group",
+                width: '100%'
+            });
+            $(RGroupsComponent.select2ElementId).on('change', function (e) {
                 _thisReference.selectCurrentlyActiveResource($(e.target).val());
+            });
+            $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
+        }
+    };
+    RGroupsComponent.prototype.setActiveResourceGroup = function (resource, setURL) {
+        this.activeResource = resource;
+        this.oldTypeValue = resource.type;
+        this.cd.detectChanges();
+        if (history.pushState && setURL) {
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + window.location.hash.split("?")[0] + "?rg=" + encodeURIComponent(resource.name);
+            window.history.pushState({ path: newurl }, '', newurl);
+        }
+        $(RGroupsComponent.select2ElementId).val(this.activeResource.name).trigger('change.select2');
+    };
+    RGroupsComponent.prototype.removeResourceGroup = function () {
+        var _this = this;
+        this.modal.confirm()
+            .isBlocking(true)
+            .className('default')
+            .keyboard(27)
+            .message("Resource " + this.activeResource.name + " is being deleted. Are You sure?")
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this.http.delete(app_restClient_1.REST.RGROUP_BY_NAME(_this.activeResource.name))
+                    .subscribe(function () {
+                    var _loop_1 = function(i) {
+                        if (_this.resources[i].name == _this.activeResource.name) {
+                            _this.resources.splice(i, 1);
+                            if (_this.resources.length > 0) {
+                                _this.setActiveResourceGroup(_this.resources[0], true);
+                                var _thisReference_2 = _this;
+                                if ($(RGroupsComponent.select2ElementId).data('select2')) {
+                                    $(RGroupsComponent.select2ElementId).select2('destroy');
+                                }
+                                // refresh select2
+                                _this.cd.detectChanges(); // draw my select pls!
+                                $(RGroupsComponent.select2ElementId).select2({
+                                    placeholder: "Select resource group",
+                                    width: '100%'
+                                });
+                                $(RGroupsComponent.select2ElementId).on('change', function (e) {
+                                    _thisReference_2.selectCurrentlyActiveResource($(e.target).val());
+                                });
+                                $(RGroupsComponent.select2ElementId).val(_this.activeResource.name).trigger('change.select2');
+                            }
+                            return "break";
+                        }
+                    };
+                    for (var i = 0; i < _this.resources.length; i++) {
+                        var state_1 = _loop_1(i);
+                        if (state_1 === "break") break;
+                    }
+                });
+                return response;
+            })
+                .catch(function () {
+                return false;
             });
         });
     };
     RGroupsComponent.prototype.selectCurrentlyActiveResource = function (resourceName) {
-        var selection;
         for (var i = 0; i < this.resources.length; i++) {
             if (this.resources[i].name == resourceName) {
-                selection = this.resources[i];
+                this.activeResource = this.resources[i];
+                this.oldTypeValue = this.resources[i].type;
+                break;
             }
         }
-        this.activeResource = selection;
-        this.oldTypeValue = selection.type;
     };
     RGroupsComponent.prototype.changeType = function (event) {
         var _this = this;
@@ -38027,16 +38544,17 @@ var RGroupsComponent = (function () {
             });
         }).catch(function () { });
     };
+    RGroupsComponent.select2ElementId = "#resourceSelection";
     RGroupsComponent = __decorate([
         core_1.Component({
             moduleId: module.i,
             template: __webpack_require__("./src/app/configuration/templates/rgroups.html"),
             styles: [__webpack_require__("./src/app/configuration/templates/css/checkbox.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _d) || Object, (typeof (_e = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _e) || Object, (typeof (_f = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _f) || Object])
     ], RGroupsComponent);
     return RGroupsComponent;
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
 }());
 exports.RGroupsComponent = RGroupsComponent;
 
@@ -38082,7 +38600,7 @@ var SnampCfgComponent = (function () {
         this.http.postWithErrors(app_restClient_1.REST.ENABLE_COMPONENT(selected._class, selected.type), "")
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("Started " + selected.type + " " + selected._class + " component. Result from server is " + data);
+            console.debug("Started " + selected.type + " " + selected._class + " component. Result from server is " + data);
             if (data == "true") {
                 selected.state = "ACTIVE";
                 for (var i = 0; i < _this.components.length; i++) {
@@ -38093,7 +38611,7 @@ var SnampCfgComponent = (function () {
                 }
             }
             else {
-                console.log("Could not start component " + selected.type + " - server responded false");
+                console.debug("Could not start component " + selected.type + " - server responded false");
             }
             $('#overlay').fadeOut();
         }, function (err) {
@@ -38110,7 +38628,7 @@ var SnampCfgComponent = (function () {
         this.http.postWithErrors(app_restClient_1.REST.DISABLE_COMPONENT(selected._class, selected.type), "")
             .map(function (res) { return res.text(); })
             .subscribe(function (data) {
-            console.log("Stopped " + selected.type + " " + selected._class + " component. Result from server is " + data);
+            console.debug("Stopped " + selected.type + " " + selected._class + " component. Result from server is " + data);
             if (data == "true") {
                 selected.state = "RESOLVED";
                 for (var i = 0; i < _this.components.length; i++) {
@@ -38121,7 +38639,7 @@ var SnampCfgComponent = (function () {
                 }
             }
             else {
-                console.log("Could not stop component " + selected.type + " - server responded false");
+                console.debug("Could not stop component " + selected.type + " - server responded false");
             }
             $('#overlay').fadeOut();
         }, function (err) {
@@ -38229,7 +38747,7 @@ var ThreadPoolsComponent = (function () {
                 if (this.threadPools.length > 0) {
                     this.setActiveThreadPool(this.threadPools[0]);
                 }
-                console.log("Thread pool has been removed");
+                console.debug("Thread pool has been removed");
                 break;
             }
         }
@@ -38288,7 +38806,7 @@ var ThreadPoolsComponent = (function () {
                 return response;
             })
                 .catch(function () {
-                console.log("User preferred to decline thread pool removing");
+                console.debug("User preferred to decline thread pool removing");
             });
         });
     };
@@ -38330,7 +38848,7 @@ var ThreadPoolsComponent = (function () {
                     return response;
                 })
                     .catch(function () {
-                    console.log("User preferred to decline thread pool saving");
+                    console.debug("User preferred to decline thread pool saving");
                 });
             });
         }
@@ -38562,14 +39080,14 @@ exports.ThreadPool = ThreadPool;
 /***/ "./src/app/configuration/templates/fullsave.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Save/restore configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Configuration'\" [column]=\"'12'\">\r\n          <pre class=\"row limitedCodeBlock\"><code>{{currentConfiguration}}</code></pre>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <button class=\"btn\" (click)=\"save()\">Download current configuration as JSON file</button>\r\n          </div>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <label class=\"btn btn-default btn-file\">\r\n              Upload configuration from your JSON file<input type=\"file\" (change)=\"load($event)\" style=\"display: none;\">\r\n            </label>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 1400px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Save/restore configuration</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n        <panel [header]=\"'Configuration'\" [column]=\"'12'\">\r\n          <pre class=\"row limitedCodeBlock normalspace\" ><code [innerHtml]=\"currentConfiguration\"></code></pre>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <button class=\"btn btn-primary\" (click)=\"save()\">Download current configuration as JSON file</button>\r\n          </div>\r\n          <br/>\r\n          <div class=\"row\">\r\n            <label class=\"btn btn-default btn-file\">\r\n              Upload configuration from your JSON file<input type=\"file\" (change)=\"load($event)\" style=\"display: none;\">\r\n            </label>\r\n          </div>\r\n        </panel>\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n"
 
 /***/ },
 
 /***/ "./src/app/configuration/templates/gateways.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Gateways configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"title_right\">\r\n        <div class=\"col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search\">\r\n            <div class=\"row\">\r\n              <div class=\"col-md-3\">\r\n                <h5>Choose gateway</h5>\r\n              </div>\r\n              <div class=\"col-md-6\">\r\n                <select\r\n                  id=\"gatewaySelection\"\r\n                  class=\"select2_group form-control\">\r\n                  <optgroup label=\"Gateways\" *ngIf=\"gateways.length > 0\">\r\n                    <option\r\n                      *ngFor=\"let gateway of gateways\"\r\n                      [value]=\"gateway.name\">\r\n                      {{gateway.name}}\r\n                    </option>\r\n                  </optgroup>\r\n                </select>\r\n              </div>\r\n              <div class=\"col-md-2\">\r\n                <newEntity\r\n                  [entities]=\"gateways\"\r\n                  (onSave)=\"initSelectionComponent()\"\r\n                  [type]=\"'gateway'\">\r\n                </newEntity>\r\n              </div>\r\n            </div>\r\n        </div>\r\n      </div>\r\n\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"gateways && gateways.length > 0\">\r\n\r\n        <div class=\"col-md-8 leftAlign\">\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Gateway type'\" [column]=\"'12'\">\r\n                <select disabled\r\n                        id=\"entityType\"\r\n                        [(ngModel)]=\"activeGateway.type\"\r\n                        (change)=\"changeType($event)\"\r\n                        style=\"height: auto;\"\r\n                        class=\"form-control\">\r\n                  <option\r\n                    *ngFor=\"let gateway of availableGateways\"\r\n                    [value]=\"gateway.type\">\r\n                    {{gateway.name}}\r\n                  </option>\r\n                </select>\r\n              </panel>\r\n            </div>\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n                  <parameters [entity]=\"activeGateway\"></parameters>\r\n              </panel>\r\n            </div>\r\n\r\n        </div>\r\n\r\n        <panel [header]=\"'Binding information'\" [column]=\"'4'\">\r\n                  <div class=\"panel-group group-accordeon\" id=\"accordionBindings\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                      <div class=\"panel panel-default\"  *ngIf=\"activeGateway.attributes.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                                      Attributes\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.attributes\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.events.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                                      Events\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.events\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.operations.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                                      Operations\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.operations\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                  </div>\r\n              </panel>\r\n\r\n    </div>\r\n\r\n  </div>\r\n</div>\r\n\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n    <div class=\"row\" style=\"padding-right: 10px;\">\r\n\r\n        <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n            <h3>Gateway configuration</h3>\r\n        </div>\r\n\r\n        <div class=\"col-md-4\"></div>\r\n\r\n        <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n            <div class=\"row\" *ngIf=\"gateways && gateways.length > 0\">\r\n                <div class=\"col-md-3\">\r\n                    <h5>Select gateway</h5>\r\n                </div>\r\n                <div class=\"col-md-6\">\r\n                    <select\r\n                            id=\"gatewaySelection\"\r\n                            class=\"select2_group form-control\">\r\n                        <optgroup label=\"Gateways\" >\r\n                            <option\r\n                                    *ngFor=\"let gateway of gateways\"\r\n                                    [value]=\"gateway.name\">\r\n                                {{gateway.name}}\r\n                            </option>\r\n                        </optgroup>\r\n                    </select>\r\n                </div>\r\n                <div class=\"col-md-1\">\r\n                    <newEntity\r\n                            [entities]=\"gateways\"\r\n                            (onSave)=\"dispatchNewGateway($event)\"\r\n                            [type]=\"'gateway'\">\r\n                    </newEntity>\r\n                </div>\r\n                <div class=\"col-md-1\">\r\n                    <button class=\"btn btn-danger\" (click)=\"removeGateway()\"><i class=\"fa fa-trash\"></i></button>\r\n                </div>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <hr/>\r\n\r\n    <div style=\"float: left !important;\" *ngIf=\"!gateways || gateways.length == 0\">\r\n        <div>\r\n            <h5>Add new gateway</h5>\r\n            <newEntity\r\n                    [entities]=\"gateways\"\r\n                    (onSave)=\"dispatchNewGateway($event)\"\r\n                    [type]=\"'gateway'\">\r\n            </newEntity>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"gateways && gateways.length > 0\">\r\n\r\n        <div class=\"col-md-8 leftAlign\">\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Gateway type'\" [column]=\"'12'\">\r\n                <select disabled\r\n                        id=\"entityType\"\r\n                        [(ngModel)]=\"activeGateway.type\"\r\n                        (change)=\"changeType($event)\"\r\n                        style=\"height: auto;\"\r\n                        class=\"form-control\">\r\n                  <option\r\n                    *ngFor=\"let gateway of availableGateways\"\r\n                    [value]=\"gateway.type\">\r\n                    {{gateway.name}}\r\n                  </option>\r\n                </select>\r\n              </panel>\r\n            </div>\r\n\r\n            <div class=\"row\">\r\n              <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n                  <parameters [entity]=\"activeGateway\"></parameters>\r\n              </panel>\r\n            </div>\r\n\r\n        </div>\r\n\r\n        <panel [header]=\"'Binding information'\" [column]=\"'4'\">\r\n                  <div class=\"panel-group group-accordeon\" id=\"accordionBindings\" role=\"tablist\" aria-multiselectable=\"true\">\r\n                      <div class=\"panel panel-default\"  *ngIf=\"activeGateway.attributes.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                                      Attributes\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.attributes\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.events.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                                      Events\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.events\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                      <div class=\"panel panel-default\" *ngIf=\"activeGateway.operations.length > 0\">\r\n                          <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                              <h4 class=\"panel-title\">\r\n                                  <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                                      Operations\r\n                                  </a>\r\n                              </h4>\r\n                          </div>\r\n                          <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                              <div class=\"panel-body\">\r\n                                  <bindings [bindings]=\"activeGateway.operations\"></bindings>\r\n                              </div>\r\n                          </div>\r\n                      </div>\r\n                  </div>\r\n              </panel>\r\n\r\n    </div>\r\n</div>\r\n\r\n"
 
 /***/ },
 
@@ -38583,14 +39101,14 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 140
 /***/ "./src/app/configuration/templates/resources.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Resource configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"title_right\">\r\n        <div class=\"col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search\">\r\n          <div class=\"row\">\r\n            <div class=\"col-md-3\">\r\n              <h5>Choose resource</h5>\r\n            </div>\r\n            <div class=\"col-md-6\">\r\n              <select\r\n                      id=\"resourceSelection\"\r\n                      class=\"select2_group form-control\">\r\n                <optgroup label=\"Resources\" *ngIf=\"resources.length > 0\">\r\n                  <option\r\n                          *ngFor=\"let resource of resources\"\r\n                          [value]=\"resource.name\">\r\n                    {{resource.name}}\r\n                  </option>\r\n                </optgroup>\r\n              </select>\r\n            </div>\r\n            <div class=\"col-md-2\">\r\n              <newEntity\r\n                      [entities]=\"connectors\"\r\n                      (onSave)=\"initSelectionComponent()\"\r\n                      [type]=\"'connector'\">\r\n              </newEntity>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"resources && resources.length > 0\">\r\n\r\n      <div class=\"col-md-8 leftAlign\">\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Resource type'\" [column]=\"'6'\">\r\n            <select disabled\r\n                    id=\"entityType\"\r\n                    [(ngModel)]=\"activeResource.type\"\r\n                    (change)=\"changeType($event)\"\r\n                    style=\"height: auto;\"\r\n                    class=\"form-control\">\r\n              <option\r\n                      *ngFor=\"let resource of availableResources\"\r\n                      [value]=\"resource.type\">\r\n                {{resource.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n\r\n          <panel [header]=\"'Connection string'\" [column]=\"'6'\">\r\n            <inline-edit [(ngModel)]=\"activeResource.connectionString\"\r\n                         (onSave)=\"saveConnectionString()\">\r\n            </inline-edit>\r\n          </panel>\r\n        </div>\r\n\r\n        <div class=\"row\" *ngIf=\"availableGroups && availableGroups.length > 0\">\r\n          <panel [header]=\"'Resource group'\" [column]=\"'12'\" >\r\n            <select\r\n                    id=\"resourceGroup\"\r\n                    [(ngModel)]=\"activeResource.groupName\"\r\n                    (change)=\"changeGroup($event)\"\r\n                    class=\"form-control\">\r\n              <option\r\n                      *ngFor=\"let name of availableGroups\"\r\n                      [value]=\"name\">\r\n                {{name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n        </div>\r\n\r\n        <div class=\"row\" *ngIf=\"availableGroups && availableGroups.length > 0\">\r\n          <panel [header]=\"'Thread pool settings'\" [column]=\"'12'\" >\r\n            <select\r\n                    id=\"threadPoolInput\"\r\n                    [(ngModel)]=\"activeResource.threadPool\"\r\n                    (change)=\"changeThreadPool($event)\"\r\n                    class=\"form-control\">\r\n              <option value=\"\">Default thread pool</option>\r\n              <option\r\n                      *ngFor=\"let threadPool of availableThreadPools\"\r\n                      [value]=\"threadPool.name\">\r\n                {{threadPool.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n            <parameters [entity]=\"activeResource\"></parameters>\r\n          </panel>\r\n        </div>\r\n\r\n      </div>\r\n\r\n      <div class=\"col-md-4\">\r\n        <div class=\"row\">\r\n\r\n          <div class=\"col-md-12\">\r\n            <panel [header]=\"'Entities'\" [column]=\"'12'\">\r\n              <div class=\"row\" style=\"min-height: 80px;\">\r\n\r\n                <div class=\"col-md-4 col-md-offset-8\"  [tooltip]=\"'Enable for auto wiring entities to ' + activeResource.name\">\r\n                  <div class=\"count\" style=\"display:inline-block; font-size: large;\">Smart mode</div>\r\n                  <div style=\"display: inline-block;\">\r\n                    <ui-switch\r\n                            [(ngModel)]=\"activeResource.smartMode\"\r\n                            (change)=\"triggerSmartMode($event)\"\r\n                            [size]=\"'small'\">\r\n                    </ui-switch>\r\n                  </div>\r\n                  <p></p>\r\n                </div>\r\n\r\n                <div class=\"col-md-12\" *ngIf=\"!activeResource.smartMode\">\r\n                  <div\r\n                          class=\"panel-group group-accordeon\"\r\n                          id=\"accordionBindings\"\r\n                          role=\"tablist\"\r\n                          aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                            Attributes\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                                  [entities]=\"activeResource.attributes\"\r\n                                  [entityType]=\"'attribute'\"\r\n                                  [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                            Events\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                                  [entities]=\"activeResource.events\"\r\n                                  [entityType]=\"'event'\"\r\n                                  [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                            Operations\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                                  [entities]=\"activeResource.operations\"\r\n                                  [entityType]=\"'operation'\"\r\n                                  [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </panel>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"row\" style=\"padding-right: 10px;\">\r\n\r\n      <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n        <h3>Resource configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"col-md-4\"></div>\r\n\r\n      <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n          <div class=\"row\" *ngIf=\"resources && resources.length > 0\">\r\n            <div class=\"col-md-3\">\r\n              <h5>Select resource</h5>\r\n            </div>\r\n            <div class=\"col-md-6\">\r\n              <select\r\n                      id=\"resourceSelection\"\r\n                      class=\"select2_group form-control\">\r\n                <optgroup label=\"Resources\" >\r\n                  <option\r\n                          *ngFor=\"let resource of resources\"\r\n                          [value]=\"resource.name\">\r\n                    {{resource.name}}\r\n                  </option>\r\n                </optgroup>\r\n              </select>\r\n            </div>\r\n            <div class=\"col-md-1\">\r\n              <newEntity\r\n                      [entities]=\"resources\"\r\n                      (onSave)=\"dispatchNewResource($event)\"\r\n                      [type]=\"'connector'\">\r\n              </newEntity>\r\n            </div>\r\n            <div class=\"col-md-1\">\r\n              <button class=\"btn btn-danger\" (click)=\"removeResource()\"><i class=\"fa fa-trash\"></i></button>\r\n            </div>\r\n          </div>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <hr/>\r\n\r\n    <div style=\"float: left !important;\" *ngIf=\"!resources || resources.length == 0\">\r\n      <div>\r\n        <h5>Add new connector</h5>\r\n        <newEntity\r\n                [entities]=\"resources\"\r\n                (onSave)=\"dispatchNewResource($event)\"\r\n                [type]=\"'connector'\">\r\n        </newEntity>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"resources && resources.length > 0\">\r\n\r\n      <div class=\"col-md-8 leftAlign\">\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Resource type'\" [column]=\"'6'\">\r\n            <select disabled\r\n                    id=\"entityType\"\r\n                    [(ngModel)]=\"activeResource.type\"\r\n                    (change)=\"changeType($event)\"\r\n                    style=\"height: auto;\"\r\n                    class=\"form-control\">\r\n              <option\r\n                      *ngFor=\"let resource of availableResources\"\r\n                      [value]=\"resource.type\">\r\n                {{resource.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n\r\n          <panel [header]=\"'Connection string'\" [column]=\"'6'\">\r\n            <inline-edit [(ngModel)]=\"activeResource.connectionString\"\r\n                         (onSave)=\"saveConnectionString()\">\r\n            </inline-edit>\r\n          </panel>\r\n        </div>\r\n\r\n        <div class=\"row\" >\r\n          <panel [header]=\"'Resource group'\" [column]=\"'12'\" >\r\n\r\n            <div class=\"form-group row\">\r\n              <label class=\"col-md-2 col-form-label\">Select group from list</label>\r\n              <div class=\"col-md-10\">\r\n                <ui-switch\r\n                        [(ngModel)]=\"groupSelection\"\r\n                        [disabled]=\"!availableGroups || availableGroups.length == 0\"\r\n                        [size]=\"'small'\">\r\n                </ui-switch>\r\n              </div>\r\n            </div>\r\n\r\n            <select\r\n                    *ngIf=\"groupSelection && availableGroups && availableGroups.length > 0\"\r\n                    id=\"resourceGroup\"\r\n                    [(ngModel)]=\"activeResource.groupName\"\r\n                    (change)=\"changeGroup($event)\"\r\n                    class=\"form-control\">\r\n              <option\r\n                      *ngFor=\"let name of availableGroups\"\r\n                      [value]=\"name\">\r\n                {{name}}\r\n              </option>\r\n            </select>\r\n\r\n            <div class=\"form-group row\" *ngIf=\"!groupSelection\">\r\n              <label for=\"manualGroupName\" class=\"col-md-2 col-form-label\">Input group name</label>\r\n              <div class=\"col-md-10\">\r\n                <div class=\"input-group\">\r\n                  <input class=\"form-control\"\r\n                         type=\"text\"\r\n                         [(ngModel)]=\"activeResource.groupName\"\r\n                         (ngModelChange)=\"triggerGroupNameChanged($event)\"\r\n                         id=\"manualGroupName\"\r\n                         placeholder=\"Input group name manually...\">\r\n                  <span class=\"input-group-btn\">\r\n                     <button class=\"btn btn-secondary\" [class.btn-primary]=\"groupNameChanged\" type=\"button\" (click)=\"saveManualGroupName()\" [disabled]=\"!groupNameChanged\">Save</button>\r\n                  </span>\r\n                </div>\r\n              </div>\r\n            </div>\r\n          </panel>\r\n        </div>\r\n\r\n        <div class=\"row\" *ngIf=\"availableThreadPools && availableThreadPools.length > 0\">\r\n          <panel [header]=\"'Thread pool settings'\" [column]=\"'12'\" >\r\n            <select\r\n                    id=\"threadPoolInput\"\r\n                    [(ngModel)]=\"activeResource.threadPool\"\r\n                    (change)=\"changeThreadPool($event)\"\r\n                    class=\"form-control\">\r\n              <option value=\"\">Default thread pool</option>\r\n              <option\r\n                      *ngFor=\"let threadPool of availableThreadPools\"\r\n                      [value]=\"threadPool.name\">\r\n                {{threadPool.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n            <parameters [entity]=\"activeResource\"></parameters>\r\n          </panel>\r\n        </div>\r\n\r\n      </div>\r\n\r\n      <div class=\"col-md-4\">\r\n        <div class=\"row\">\r\n\r\n          <div class=\"col-md-12\">\r\n            <panel [header]=\"'Entities'\" [column]=\"'12'\">\r\n              <div class=\"row\" style=\"min-height: 80px;\">\r\n\r\n                <div class=\"col-md-4 col-md-offset-8\"  [tooltip]=\"'Enable for auto wiring entities to ' + activeResource.name\">\r\n                  <div class=\"count\" style=\"display:inline-block; font-size: large;\">Smart mode</div>\r\n                  <div style=\"display: inline-block;\">\r\n                    <ui-switch\r\n                            [(ngModel)]=\"activeResource.smartMode\"\r\n                            (change)=\"triggerSmartMode($event)\"\r\n                            [size]=\"'small'\">\r\n                    </ui-switch>\r\n                  </div>\r\n                  <p></p>\r\n                </div>\r\n\r\n                <div class=\"col-md-12\" *ngIf=\"!activeResource.smartMode\">\r\n                  <div\r\n                          class=\"panel-group group-accordeon\"\r\n                          id=\"accordionBindings\"\r\n                          role=\"tablist\"\r\n                          aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                            Attributes\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                                  [entities]=\"activeResource.attributes\"\r\n                                  [entityType]=\"'attribute'\"\r\n                                  [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                            Events\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                                  [entities]=\"activeResource.events\"\r\n                                  [entityType]=\"'event'\"\r\n                                  [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                            Operations\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                                  [entities]=\"activeResource.operations\"\r\n                                  [entityType]=\"'operation'\"\r\n                                  [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </panel>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n</div>"
 
 /***/ },
 
 /***/ "./src/app/configuration/templates/rgroups.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>Resource group configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"title_right\">\r\n        <div class=\"col-md-8 col-sm-8 col-xs-12 form-group pull-right top_search\">\r\n          <div class=\"row\">\r\n            <div class=\"col-md-3\">\r\n              <h5>Choose group</h5>\r\n            </div>\r\n            <div class=\"col-md-6\">\r\n              <select\r\n                id=\"resourceSelection\"\r\n                class=\"select2_group form-control\">\r\n                <optgroup label=\"Resources\" *ngIf=\"resources.length > 0\">\r\n                  <option\r\n                    *ngFor=\"let resource of resources\"\r\n                    [value]=\"resource.name\">\r\n                    {{resource.name}}\r\n                  </option>\r\n                </optgroup>\r\n              </select>\r\n            </div>\r\n            <div class=\"col-md-2\">\r\n              <newEntity\r\n                [entities]=\"resources\"\r\n                (onSave)=\"initSelectionComponent()\"\r\n                [type]=\"'resourceGroup'\">\r\n              </newEntity>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"resources && resources.length > 0 && activeResource != undefined\">\r\n\r\n      <div class=\"col-md-8 leftAlign\">\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Resource type'\" [column]=\"'6'\">\r\n            <select disabled\r\n                    id=\"entityType\"\r\n                    [(ngModel)]=\"activeResource.type\"\r\n                    (change)=\"changeType($event)\"\r\n                    style=\"height: auto;\"\r\n                    class=\"form-control\">\r\n              <option\r\n                *ngFor=\"let resource of availableResources\"\r\n                [value]=\"resource.type\">\r\n                {{resource.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n            <parameters [entity]=\"activeResource\"></parameters>\r\n          </panel>\r\n        </div>\r\n\r\n      </div>\r\n\r\n      <div class=\"col-md-4\">\r\n        <div class=\"row\">\r\n\r\n          <div class=\"col-md-12\">\r\n            <panel [header]=\"'Entities'\" [column]=\"'12'\">\r\n              <div class=\"row\">\r\n                <div class=\"col-md-12\">\r\n                  <div\r\n                    class=\"panel-group group-accordeon\"\r\n                    id=\"accordionBindings\"\r\n                    role=\"tablist\"\r\n                    aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                            Attributes\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.attributes\"\r\n                            [entityType]=\"'attribute'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                            Events\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.events\"\r\n                            [entityType]=\"'event'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                            Operations\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.operations\"\r\n                            [entityType]=\"'operation'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </panel>\r\n          </div>\r\n        </div>\r\n\r\n      </div>\r\n\r\n    </div>\r\n  </div>\r\n\r\n</div>\r\n"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n    <div class=\"row\" style=\"padding-right: 10px;\">\r\n\r\n      <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n        <h3>Resource group configuration</h3>\r\n      </div>\r\n\r\n      <div class=\"col-md-4\"></div>\r\n\r\n      <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n        <div class=\"row\" *ngIf=\"resources && resources.length > 0\">\r\n          <div class=\"col-md-3\">\r\n            <h5>Select group</h5>\r\n          </div>\r\n          <div class=\"col-md-6\">\r\n            <select\r\n                    id=\"resourceSelection\"\r\n                    class=\"select2_group form-control\">\r\n              <optgroup label=\"Resources\" >\r\n                <option\r\n                        *ngFor=\"let resource of resources\"\r\n                        [value]=\"resource.name\">\r\n                  {{resource.name}}\r\n                </option>\r\n              </optgroup>\r\n            </select>\r\n          </div>\r\n          <div class=\"col-md-1\">\r\n            <newEntity\r\n                    [entities]=\"resources\"\r\n                    (onSave)=\"dispatchNewResourceGroup($event)\"\r\n                    [type]=\"'resourceGroup'\">\r\n            </newEntity>\r\n          </div>\r\n          <div class=\"col-md-1\">\r\n            <button class=\"btn btn-danger\" (click)=\"removeResourceGroup()\"><i class=\"fa fa-trash\"></i></button>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <hr/>\r\n\r\n    <div style=\"float: left !important;\" *ngIf=\"!resources || resources.length == 0\">\r\n      <div>\r\n        <h5>Add new resource group</h5>\r\n        <newEntity\r\n                [entities]=\"resources\"\r\n                (onSave)=\"dispatchNewResourceGroup($event)\"\r\n                [type]=\"'resourceGroup'\">\r\n        </newEntity>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\" *ngIf=\"resources && resources.length > 0 && activeResource != undefined\">\r\n\r\n      <div class=\"col-md-8 leftAlign\">\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Parameters'\" [column]=\"'12'\">\r\n            <parameters [entity]=\"activeResource\"></parameters>\r\n          </panel>\r\n        </div>\r\n\r\n        <div class=\"row\">\r\n          <panel [header]=\"'Resource type'\" [column]=\"'6'\">\r\n            <select disabled\r\n                    id=\"entityType\"\r\n                    [(ngModel)]=\"activeResource.type\"\r\n                    (change)=\"changeType($event)\"\r\n                    style=\"height: auto;\"\r\n                    class=\"form-control\">\r\n              <option\r\n                *ngFor=\"let resource of availableResources\"\r\n                [value]=\"resource.type\">\r\n                {{resource.name}}\r\n              </option>\r\n            </select>\r\n          </panel>\r\n        </div>\r\n      </div>\r\n\r\n      <div class=\"col-md-4\">\r\n        <div class=\"row\">\r\n\r\n          <div class=\"col-md-12\">\r\n            <panel [header]=\"'Entities'\" [column]=\"'12'\">\r\n              <div class=\"row\">\r\n                <div class=\"col-md-12\">\r\n                  <div\r\n                    class=\"panel-group group-accordeon\"\r\n                    id=\"accordionBindings\"\r\n                    role=\"tablist\"\r\n                    aria-multiselectable=\"true\">\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingOne\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseAttributes\" aria-expanded=\"true\" aria-controls=\"collapseAttributes\">\r\n                            Attributes\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseAttributes\" class=\"panel-collapse collapse in\" role=\"tabpanel\" aria-labelledby=\"headingOne\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.attributes\"\r\n                            [entityType]=\"'attribute'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingTwo\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseEvents\" aria-expanded=\"false\" aria-controls=\"collapseEvents\">\r\n                            Events\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseEvents\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingTwo\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.events\"\r\n                            [entityType]=\"'event'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                    <div class=\"panel panel-default\">\r\n                      <div class=\"panel-heading\" role=\"tab\" id=\"headingThree\">\r\n                        <h4 class=\"panel-title\">\r\n                          <a class=\"collapsed\" role=\"button\" data-toggle=\"collapse\" data-parent=\"#accordionBindings\" href=\"#collapseOperations\" aria-expanded=\"false\" aria-controls=\"collapseOperations\">\r\n                            Operations\r\n                          </a>\r\n                        </h4>\r\n                      </div>\r\n                      <div id=\"collapseOperations\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"headingThree\">\r\n                        <div class=\"panel-body\">\r\n                          <resourceEntity\r\n                            [entities]=\"activeResource.operations\"\r\n                            [entityType]=\"'operation'\"\r\n                            [resource]=\"activeResource\">\r\n                          </resourceEntity>\r\n                        </div>\r\n                      </div>\r\n                    </div>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </panel>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n</div>\r\n"
 
 /***/ },
 
@@ -38611,7 +39129,7 @@ module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 140
 /***/ "./src/app/configuration/templates/threadpools.html":
 /***/ function(module, exports) {
 
-module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n    <div>\r\n        <div class=\"page-title\">\r\n            <div class=\"title_left\">\r\n                <h3>Setup thread pools</h3>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"clearfix\"></div>\r\n\r\n        <!-- Modal for edit the selected (or new) thread pool -->\r\n        <div class=\"modal fade\" id=\"editThreadPoolModal\" role=\"dialog\" aria-labelledby=\"editThreadPoolLabel\"\r\n             *ngIf=\"selectedThreadPool != undefined\">\r\n            <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n                <div class=\"modal-content\">\r\n                    <div class=\"modal-header\">\r\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span\r\n                                aria-hidden=\"true\">&times;</span></button>\r\n                        <h4 class=\"modal-title leftAlign\" id=\"editThreadPoolLabel\">Edit thread pool {{selectedThreadPool.name}}</h4>\r\n                        <br/>\r\n                        <div class=\"modal-body\">\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"poolNameInput\">\r\n                                        Thread pool name <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"text\"\r\n                                                class=\"form-control\"\r\n                                                id=\"poolNameInput\"\r\n                                                placeholder=\"Input the name for thread pool\"\r\n                                                [(ngModel)]=\"threadPool.name\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"threadPrioritiesInput\">\r\n                                        Thread priorities <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                min=\"1\"\r\n                                                max=\"10\"\r\n                                                class=\"form-control\"\r\n                                                id=\"threadPrioritiesInput\"\r\n                                                placeholder=\"Input thread priority for thread pool\"\r\n                                                [(ngModel)]=\"threadPool.threadPriority\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"minPoolSizeInput\">\r\n                                        Minimum pool size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"minPoolSizeInput\"\r\n                                                placeholder=\"Input minimal pool size\"\r\n                                                [(ngModel)]=\"threadPool.minPoolSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"maxPoolSizeInput\">\r\n                                        Maximum pool size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"maxPoolSizeInput\"\r\n                                                placeholder=\"Input maximal pool size\"\r\n                                                [(ngModel)]=\"threadPool.maxPoolSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"keepAliveTimeInput\">\r\n                                        Keep alive time <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"keepAliveTimeInput\"\r\n                                                placeholder=\"Input time to keep thread alive\"\r\n                                                [(ngModel)]=\"threadPool.keepAliveTime\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label class=\"control-label col-md-5 col-sm-5 col-xs-12\">\r\n                                        Infinite queue size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <ui-switch\r\n                                                [(ngModel)]=\"threadPool.useInfiniteQueue\"\r\n                                                [size]=\"'small'\">\r\n                                        </ui-switch>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\" *ngIf=\"!threadPool.useInfiniteQueue\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"queueSizeInput\">\r\n                                        Queue size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"queueSizeInput\"\r\n                                                placeholder=\"Input queue size\"\r\n                                                [(ngModel)]=\"threadPool.queueSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n                                    <button class=\"btn\" (click)=\"cancelThreadDialog()\">\r\n                                        Cancel\r\n                                    </button>\r\n                                </div>\r\n                                <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n                                    <button class=\"btn btn-primary\" (click)=\"saveThreadDialog()\">\r\n                                        Save\r\n                                    </button>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"row\" style=\"margin-top: 30px\">\r\n            <panel [header]=\"'List of available thread pools'\" [column]=\"'12'\">\r\n                <table class=\"table table-hover table-bordered\">\r\n                    <thead class=\"thead-inverse\">\r\n                    <tr>\r\n                        <th>Actions</th>\r\n                        <th>Name</th>\r\n                        <th>Thread Priority</th>\r\n                        <th>Max pool size</th>\r\n                        <th>Min pool size</th>\r\n                        <th>Queue size</th>\r\n                        <th>Keep alive time</th>\r\n                    </tr>\r\n                    </thead>\r\n                    <tbody>\r\n                    <tr *ngFor=\"let pool of threadPools\" [class.activeTr]=\"isActivePool(pool)\">\r\n                        <td>\r\n                              <span\r\n                                      class=\"glyphicon glyphicon-copy btn btn-xs btn-primary\"\r\n                                      (click)=\"cloneThreadPool(pool)\"\r\n                                      [tooltip]=\"'Clone thread pool'\"\r\n                                      aria-hidden=\"true\">\r\n                              </span>\r\n                              <span\r\n                                    class=\"glyphicon glyphicon-pencil btn btn-xs btn-primary\"\r\n                                    (click)=\"editThreadPool(pool)\"\r\n                                    [tooltip]=\"'Modify thread pool'\"\r\n                                    aria-hidden=\"true\">\r\n                              </span>\r\n                              <span\r\n                                    class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                    (click)=\"removeThreadPool(pool)\"\r\n                                    [tooltip]=\"'Remove thread pool'\"\r\n                                    aria-hidden=\"true\">\r\n                              </span>\r\n                        </td>\r\n                        <th scope=\"row\">{{pool.name}}</th>\r\n                        <td>{{pool.threadPriority}}</td>\r\n                        <td>{{pool.minPoolSize}}</td>\r\n                        <td>{{pool.maxPoolSize}}</td>\r\n                        <td>{{pool.queueSizeRepresentation()}}</td>\r\n                        <td>{{pool.keepAliveTime}}</td>\r\n                    </tr>\r\n                    <tr>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td>\r\n                            <button\r\n                                    style=\"float:right;\"\r\n                                    class=\"btn btn-primary btn-sm\"\r\n                                    (click)=\"addNewThreadPool()\">+ New thread pool\r\n                            </button>\r\n                        </td>\r\n                    </tr>\r\n                    </tbody>\r\n                </table>\r\n            </panel>\r\n        </div>\r\n    </div>\r\n</div>"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n    <div>\r\n        <div class=\"page-title\">\r\n            <div class=\"title_left\">\r\n                <h3>Setup thread pools</h3>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"clearfix\"></div>\r\n\r\n        <!-- Modal for edit the selected (or new) thread pool -->\r\n        <div class=\"modal fade\" id=\"editThreadPoolModal\" role=\"dialog\" aria-labelledby=\"editThreadPoolLabel\"\r\n             *ngIf=\"selectedThreadPool != undefined\">\r\n            <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n                <div class=\"modal-content\">\r\n                    <div class=\"modal-header\">\r\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span\r\n                                aria-hidden=\"true\">&times;</span></button>\r\n                        <h4 class=\"modal-title leftAlign\" id=\"editThreadPoolLabel\">Edit thread pool {{selectedThreadPool.name}}</h4>\r\n                        <br/>\r\n                        <div class=\"modal-body\">\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"poolNameInput\">\r\n                                        Thread pool name <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"text\"\r\n                                                class=\"form-control\"\r\n                                                id=\"poolNameInput\"\r\n                                                placeholder=\"Input the name for thread pool\"\r\n                                                [(ngModel)]=\"threadPool.name\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"threadPrioritiesInput\">\r\n                                        Thread priorities <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                min=\"1\"\r\n                                                max=\"10\"\r\n                                                class=\"form-control\"\r\n                                                id=\"threadPrioritiesInput\"\r\n                                                placeholder=\"Input thread priority for thread pool\"\r\n                                                [(ngModel)]=\"threadPool.threadPriority\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"minPoolSizeInput\">\r\n                                        Minimum pool size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"minPoolSizeInput\"\r\n                                                placeholder=\"Input minimal pool size\"\r\n                                                [(ngModel)]=\"threadPool.minPoolSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"maxPoolSizeInput\">\r\n                                        Maximum pool size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"maxPoolSizeInput\"\r\n                                                placeholder=\"Input maximal pool size\"\r\n                                                [(ngModel)]=\"threadPool.maxPoolSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"keepAliveTimeInput\">\r\n                                        Keep alive time (ms) <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"keepAliveTimeInput\"\r\n                                                placeholder=\"Input time to keep thread alive\"\r\n                                                [(ngModel)]=\"threadPool.keepAliveTime\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"item form-group\">\r\n                                    <label class=\"control-label col-md-5 col-sm-5 col-xs-12\">\r\n                                        Infinite queue size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <ui-switch\r\n                                                [(ngModel)]=\"threadPool.useInfiniteQueue\"\r\n                                                [size]=\"'small'\">\r\n                                        </ui-switch>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\" *ngIf=\"!threadPool.useInfiniteQueue\">\r\n                                <div class=\"item form-group\">\r\n                                    <label\r\n                                            class=\"control-label col-md-5 col-sm-5 col-xs-12\"\r\n                                            for=\"queueSizeInput\">\r\n                                        Queue size <span class=\"required\">*</span>\r\n                                    </label>\r\n                                    <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                                        <input\r\n                                                type=\"number\"\r\n                                                class=\"form-control\"\r\n                                                id=\"queueSizeInput\"\r\n                                                placeholder=\"Input queue size\"\r\n                                                [(ngModel)]=\"threadPool.queueSize\"/>\r\n                                    </div>\r\n                                </div>\r\n                            </div>\r\n\r\n                            <div class=\"row\">\r\n                                <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n                                    <button class=\"btn\" (click)=\"cancelThreadDialog()\">\r\n                                        Cancel\r\n                                    </button>\r\n                                </div>\r\n                                <div class=\"col-md-4 col-sm-4 col-xs-12\">\r\n                                    <button class=\"btn btn-primary\" (click)=\"saveThreadDialog()\">\r\n                                        Save\r\n                                    </button>\r\n                                </div>\r\n                            </div>\r\n                        </div>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"row\" style=\"margin-top: 30px\">\r\n            <panel [header]=\"'List of available thread pools'\" [column]=\"'12'\">\r\n                <table class=\"table table-hover table-bordered\">\r\n                    <thead class=\"thead-inverse\">\r\n                    <tr>\r\n                        <th>Actions</th>\r\n                        <th>Name</th>\r\n                        <th>Thread Priority</th>\r\n                        <th>Max pool size</th>\r\n                        <th>Min pool size</th>\r\n                        <th>Queue size</th>\r\n                        <th>Keep alive time</th>\r\n                    </tr>\r\n                    </thead>\r\n                    <tbody>\r\n                    <tr *ngFor=\"let pool of threadPools\" [class.activeTr]=\"isActivePool(pool)\">\r\n                        <td>\r\n                              <span\r\n                                      class=\"glyphicon glyphicon-copy btn btn-xs btn-primary\"\r\n                                      (click)=\"cloneThreadPool(pool)\"\r\n                                      [tooltip]=\"'Clone thread pool'\"\r\n                                      aria-hidden=\"true\">\r\n                              </span>\r\n                              <span\r\n                                    class=\"glyphicon glyphicon-pencil btn btn-xs btn-primary\"\r\n                                    (click)=\"editThreadPool(pool)\"\r\n                                    [tooltip]=\"'Modify thread pool'\"\r\n                                    aria-hidden=\"true\">\r\n                              </span>\r\n                              <span\r\n                                    class=\"glyphicon glyphicon-remove-circle btn btn-xs btn-danger\"\r\n                                    (click)=\"removeThreadPool(pool)\"\r\n                                    [tooltip]=\"'Remove thread pool'\"\r\n                                    aria-hidden=\"true\">\r\n                              </span>\r\n                        </td>\r\n                        <th scope=\"row\">{{pool.name}}</th>\r\n                        <td>{{pool.threadPriority}}</td>\r\n                        <td>{{pool.minPoolSize}}</td>\r\n                        <td>{{pool.maxPoolSize}}</td>\r\n                        <td>{{pool.queueSizeRepresentation()}}</td>\r\n                        <td>{{pool.keepAliveTime}}</td>\r\n                    </tr>\r\n                    <tr>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td></td>\r\n                        <td>\r\n                            <button\r\n                                    style=\"float:right;\"\r\n                                    class=\"btn btn-primary btn-sm\"\r\n                                    (click)=\"addNewThreadPool()\">+ New thread pool\r\n                            </button>\r\n                        </td>\r\n                    </tr>\r\n                    </tbody>\r\n                </table>\r\n            </panel>\r\n        </div>\r\n    </div>\r\n</div>"
 
 /***/ }
 

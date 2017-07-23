@@ -4,14 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>supervisors</artifactId>
-        <groupId>com.bytex.snamp.supervisors</groupId>
+        <groupId>io.snamp.supervisors</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>Default Supervisor</name>
     <description>A framework for building custom supervisors</description>
     <artifactId>default</artifactId>
-    <version>${snamp.supervisors.version}</version>
+    <version>${snamp.supervisor.default.version}</version>
     <packaging>bundle</packaging>
     <build>
         <resources>
@@ -51,7 +51,7 @@
     <dependencies>
         <dependency>
             <scope>provided</scope>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
         </dependency>
@@ -73,12 +73,12 @@
             <classifier>indy</classifier>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>scripting</artifactId>
             <version>${snamp.scripting.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>json-helpers</artifactId>
             <version>${snamp.json.version}</version>
             <scope>provided</scope>
@@ -97,7 +97,7 @@
             <artifactId>junit</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>internal-services</artifactId>
             <version>${snamp.services.version}</version>
             <scope>test</scope>

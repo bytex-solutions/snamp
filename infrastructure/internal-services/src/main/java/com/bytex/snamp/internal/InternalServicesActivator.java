@@ -77,7 +77,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
 
         @Override
-        protected void cleanupService(final ThreadPoolRepositoryImpl repository, boolean stopBundle) {
+        protected void cleanupService(final ThreadPoolRepositoryImpl repository, boolean stopBundle) throws Exception {
             if (stopBundle) repository.close();
         }
     }

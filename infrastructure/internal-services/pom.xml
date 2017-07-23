@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.bytex.snamp</groupId>
+    <groupId>io.snamp</groupId>
     <artifactId>snamp</artifactId>
     <version>2.0.0</version>
     <relativePath>../../pom.xml</relativePath>
@@ -45,7 +45,7 @@
       <artifactId>jsr305</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>framework</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>
@@ -55,7 +55,7 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.bytex.snamp</groupId>
+      <groupId>io.snamp</groupId>
       <artifactId>security</artifactId>
       <version>2.0.0</version>
       <scope>provided</scope>

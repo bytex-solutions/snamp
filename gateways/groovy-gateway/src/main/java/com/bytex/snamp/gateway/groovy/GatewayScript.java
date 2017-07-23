@@ -7,7 +7,6 @@ import com.bytex.snamp.gateway.groovy.dsl.GroovyManagementModel;
 import com.bytex.snamp.scripting.groovy.Scriptlet;
 import groovy.lang.Closure;
 
-import javax.management.JMException;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -29,7 +28,7 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
                 .flatMap(model -> model.queryObject(objectType));
     }
 
-    private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) throws JMException {
+    private static void processAttributes(final AttributesRootAPI model, final Closure<?> closure) {
         model.processAttributes((resourceName, accessor) -> {
             switch (closure.getMaximumNumberOfParameters()) {
                 case 0:
@@ -48,13 +47,11 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
-    protected final void processAttributes(final Closure<?> closure) throws JMException {
-        final Optional<AttributesRootAPI> model = queryModelObject(AttributesRootAPI.class);
-        if (model.isPresent())
-            processAttributes(model.get(), closure);
+    protected final void processAttributes(final Closure<?> closure) {
+        queryModelObject(AttributesRootAPI.class).ifPresent(attributesRootAPI -> processAttributes(attributesRootAPI, closure));
     }
 
-    private static void processEvents(final EventsRootAPI model, final Closure<?> closure) throws JMException {
+    private static void processEvents(final EventsRootAPI model, final Closure<?> closure) {
         model.processEvents((resourceName, accessor) -> {
             switch (closure.getMaximumNumberOfParameters()) {
                 case 0:
@@ -73,10 +70,8 @@ public abstract class GatewayScript extends Scriptlet implements AutoCloseable, 
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
-    protected final void processEvents(final Closure<?> closure) throws JMException {
-        final Optional<EventsRootAPI> model = queryModelObject(EventsRootAPI.class);
-        if(model.isPresent())
-            processEvents(model.get(), closure);
+    protected final void processEvents(final Closure<?> closure) {
+        queryModelObject(EventsRootAPI.class).ifPresent(eventsRootAPI -> processEvents(eventsRootAPI, closure));
     }
 
     /**

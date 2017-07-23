@@ -1,7 +1,6 @@
 package com.bytex.snamp.json;
 
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.SerializerProvider;
 
@@ -24,7 +23,7 @@ public final class OpenTypeSerializer extends JsonSerializer<OpenType> {
      * @param provider Provider that can be used to get serializers for
      */
     @Override
-    public void serialize(final OpenType value, final JsonGenerator jgen, final SerializerProvider provider) throws IOException, JsonProcessingException {
+    public void serialize(final OpenType value, final JsonGenerator jgen, final SerializerProvider provider) throws IOException {
         OpenTypeFormatter.serialize(value).serialize(jgen, provider);
     }
 }

@@ -3,23 +3,18 @@ package com.bytex.snamp;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.primitives.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.management.ObjectName;
-import javax.management.openmbean.*;
 import java.io.Serializable;
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.*;
-
-import static com.bytex.snamp.internal.Utils.callAndWrapException;
 
 /**
  * Represents advanced routines to work with arrays.
@@ -34,15 +29,6 @@ public final class ArrayUtils {
         byte[] convert(final T array, final int index);
     }
 
-    private static final ImmutableSet<SimpleType<?>> PRIMITIVE_TYPES = ImmutableSet.of(SimpleType.BOOLEAN,
-            SimpleType.CHARACTER,
-            SimpleType.BYTE,
-            SimpleType.SHORT,
-            SimpleType.INTEGER,
-            SimpleType.LONG,
-            SimpleType.FLOAT,
-            SimpleType.DOUBLE);
-
     private static final LoadingCache<Class<?>, Object> EMPTY_ARRAYS = CacheBuilder
             .newBuilder()
             .softValues()
@@ -52,41 +38,6 @@ public final class ArrayUtils {
                     return Array.newInstance(componentType, 0);
                 }
             });
-
-    private static final LoadingCache<OpenType<?>, Class<?>> OPEN_TYPE_MAPPING =
-            CacheBuilder.newBuilder()
-                    .maximumSize(20)
-                    .softValues()
-                    .build(new CacheLoader<OpenType<?>, Class<?>>() {
-                        private final Map<OpenType<?>, Class<?>> simpleTypeMapping = ImmutableMap.<OpenType<?>, Class<?>>builder()
-                                .put(SimpleType.BYTE, Byte.class)
-                                .put(SimpleType.CHARACTER, Character.class)
-                                .put(SimpleType.SHORT, Short.class)
-                                .put(SimpleType.INTEGER, Integer.class)
-                                .put(SimpleType.LONG, Long.class)
-                                .put(SimpleType.BOOLEAN, Boolean.class)
-                                .put(SimpleType.FLOAT, Float.class)
-                                .put(SimpleType.DOUBLE, Double.class)
-                                .put(SimpleType.VOID, Void.class)
-                                .put(SimpleType.STRING, String.class)
-                                .put(SimpleType.BIGDECIMAL, BigDecimal.class)
-                                .put(SimpleType.BIGINTEGER, BigInteger.class)
-                                .put(SimpleType.OBJECTNAME, ObjectName.class)
-                                .put(SimpleType.DATE, Date.class)
-                                .build();
-
-                        @Override
-                        public Class<?> load(@Nonnull final OpenType<?> elementType) throws ClassNotFoundException {
-                            if(elementType instanceof CompositeType)
-                                return CompositeData.class;
-                            else if(elementType instanceof TabularType)
-                                return TabularData.class;
-                            else {
-                                final Class<?> result = simpleTypeMapping.get(elementType);
-                                return result == null ? Class.forName(elementType.getClassName()) : result;
-                            }
-                        }
-                    });
 
     private ArrayUtils(){
         throw new InstantiationError();
@@ -101,6 +52,12 @@ public final class ArrayUtils {
 
     private static Object emptyArrayImpl(final Class<?> componentType){
         return EMPTY_ARRAYS.getUnchecked(componentType);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T[] emptyObjectArray(final Class<T> componentType){
+        assert !componentType.isPrimitive();
+        return (T[]) emptyArrayImpl(componentType);
     }
 
     /**
@@ -145,32 +102,29 @@ public final class ArrayUtils {
      */
     @SuppressWarnings("unchecked")
     public static <T> T[] remove(final T[] array, final int index) {
-        return (T[]) removeImpl(array, index);
-    }
-
-    private static IndexOutOfBoundsException createIndexOutOfBoundsException(final int index, final int length){
-        return new IndexOutOfBoundsException(String.format("Index: %s, Length: %s", index, length));
-    }
-
-    private static Object[] removeImpl(final Object[] array, final int index) throws IndexOutOfBoundsException {
-        if (array == null) return null;
+        if (array == null)
+            return null;
         final int length = array.length;
         if (index < 0 || index >= length)
             throw createIndexOutOfBoundsException(index, length);
-        final Object[] result = ObjectArrays.newArray(array.getClass().getComponentType(), length - 1);
+        final T[] result = ObjectArrays.newArray(array, length - 1);
         System.arraycopy(array, 0, result, 0, index);
         if (index < length - 1)
             System.arraycopy(array, index + 1, result, index, length - index - 1);
         return result;
     }
 
+    private static IndexOutOfBoundsException createIndexOutOfBoundsException(final int index, final int length){
+        return new IndexOutOfBoundsException(String.format("Index: %s, Length: %s", index, length));
+    }
+
     public static boolean contains(final Object[] array, final Object element) {
         return find(array, element::equals).isPresent();
     }
 
-    private static Object[] wrapArrayImpl(final Object primitiveArray) {
-        final Object[] result = ObjectArrays.newArray(Primitives.wrap(primitiveArray.getClass().getComponentType()),
-                Array.getLength(primitiveArray));
+    private static Object wrapArrayImpl(final Object primitiveArray) {
+        final Object[] result = arrayConstructor(Primitives.wrap(primitiveArray.getClass().getComponentType()))
+                .apply(Array.getLength(primitiveArray));
         for (int i = 0; i < result.length; i++)
             result[i] = Array.get(primitiveArray, i);
         return result;
@@ -208,11 +162,17 @@ public final class ArrayUtils {
         return (Boolean[]) wrapArrayImpl(value);
     }
 
-    private static Object unwrapArrayImpl(final Object[] array){
-        final Object result = Array.newInstance(Primitives.unwrap(array.getClass().getComponentType()), array.length);
-        for(int i = 0; i < array.length; i++)
-            Array.set(result, i, array[i]);
-        return result;
+    private static Object unwrapArrayImpl(final Object[] array) {
+        final Class<?> elementType = Primitives.unwrap(array.getClass().getComponentType());
+        switch (array.length) {
+            case 0:
+                return emptyArrayImpl(elementType);
+            default:
+                final Object result = Array.newInstance(elementType, array.length);
+                for (int i = 0; i < array.length; i++)
+                    Array.set(result, i, array[i]);
+                return result;
+        }
     }
 
     public static byte[] unwrapArray(final Byte[] value) {
@@ -253,29 +213,6 @@ public final class ArrayUtils {
         return Optional.empty();
     }
 
-    private static Object newArray(final OpenType<?> elementType,
-                                   final int[] dimensions,
-                                   final boolean isPrimitive) {
-        final Class<?> itemType = OPEN_TYPE_MAPPING.getUnchecked(elementType);
-        return Array.newInstance(isPrimitive ? Primitives.unwrap(itemType) : itemType, dimensions);
-    }
-
-    /**
-     * Creates a new instance of the array.
-     * @param arrayType An array type definition.
-     * @param dimensions An array of length of each dimension.
-     * @return A new empty array.
-     * @throws java.lang.IllegalArgumentException The specified number of dimensions doesn't match to the number of dimensions
-     * in the array definition.
-     */
-    public static Object newArray(final ArrayType<?> arrayType, final int... dimensions) {
-        if(arrayType == null || dimensions == null)
-            return null;
-        else if(dimensions.length != arrayType.getDimension())
-            throw new IllegalArgumentException("Actual number of dimensions doesn't match to the array type");
-        else return newArray(arrayType.getElementOpenType(), dimensions, arrayType.isPrimitiveArray());
-    }
-
     public static boolean equals(final Object array1, final Object array2){
         return equals(array1, array2, false);
     }
@@ -293,34 +230,6 @@ public final class ArrayUtils {
             return true;
         } else
             return false;
-    }
-
-    private static <T> ArrayType<T[]> createArrayType(final SimpleType<T> elementType) throws OpenDataException{
-        return new ArrayType<>(elementType, PRIMITIVE_TYPES.contains(elementType));
-    }
-
-    public static <T> ArrayType<T[]> createArrayType(final OpenType<T> elementType) throws OpenDataException {
-        if(elementType instanceof SimpleType<?>)
-            return createArrayType((SimpleType<T>)elementType);
-        else return ArrayType.getArrayType(elementType);
-    }
-
-    /**
-     * Gets empty array of the specified type.
-     * @param arrayType An array type. Must be single-dimensional. Cannot be {@literal null}.
-     * @param loader Class loader used to resolve component type of array. May be {@literal null}.
-     * @param <T> Type of elements in the array.
-     * @return Empty array.
-     * @throws IllegalArgumentException Incorrect array type.
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T emptyArray(final ArrayType<T> arrayType, final ClassLoader loader) {
-        if (arrayType.getDimension() > 1)
-            throw new IllegalArgumentException("Wrong number of dimensions: " + arrayType.getDimension());
-        final Class<?> elementType = callAndWrapException(
-                () -> Class.forName(arrayType.getClassName(), true, loader).getComponentType(),
-                IllegalArgumentException::new);
-        return (T) emptyArrayImpl(elementType);
     }
 
     public static <T> Optional<T> getLast(final T[] array){
@@ -354,18 +263,24 @@ public final class ArrayUtils {
                                                                            final Function<byte[], T> converter,
                                                                            final int componentSize,
                                                                            final boolean primitive) {
-        if (primitive) newElementType = Primitives.unwrap(newElementType);
-        final Object result = Array.newInstance(newElementType, array.length / componentSize);
-        for (int sourcePosition = 0, destPosition = 0; sourcePosition < array.length; sourcePosition += componentSize, destPosition += 1) {
-            final byte[] subbuffer = new byte[componentSize];
-            if (array.length - sourcePosition < componentSize)
+        if (primitive)
+            newElementType = Primitives.unwrap(newElementType);
+        switch (array.length) {
+            case 0:
+                return emptyArrayImpl(newElementType);
+            default:
+                final Object result = Array.newInstance(newElementType, array.length / componentSize);
+                for (int sourcePosition = 0, destPosition = 0; sourcePosition < array.length; sourcePosition += componentSize, destPosition += 1) {
+                    final byte[] subbuffer = new byte[componentSize];
+                    if (array.length - sourcePosition < componentSize)
+                        return result;
+                    else {
+                        System.arraycopy(array, sourcePosition, subbuffer, 0, componentSize);
+                        Array.set(result, destPosition, converter.apply(subbuffer));
+                    }
+                }
                 return result;
-            else {
-                System.arraycopy(array, sourcePosition, subbuffer, 0, componentSize);
-                Array.set(result, destPosition, converter.apply(subbuffer));
-            }
         }
-        return result;
     }
 
     private static Object toShortArray(final byte[] array, final boolean primitive){
@@ -446,34 +361,45 @@ public final class ArrayUtils {
         return (Character[])toCharArray(array, false);
     }
 
-    private static Object toBoolArray(final byte[] array, final boolean primitive){
-        final BitSet bits = BitSet.valueOf(array);
-        final Object result = Array.newInstance(primitive ? boolean.class : Boolean.class, bits.length());
-        for(int i = 0; i < bits.length(); i++)
-            Array.set(result, i, bits.get(i));
-        return result;
+    private static Object toBoolArray(final byte[] array, final boolean primitive) {
+        final Class<?> componentType = primitive ? boolean.class : Boolean.class;
+        switch (array.length) {
+            case 0:
+                return emptyArrayImpl(componentType);
+            default:
+                final BitSet bits = BitSet.valueOf(array);
+                final Object result = Array.newInstance(componentType, bits.length());
+                for (int i = 0; i < bits.length(); i++)
+                    Array.set(result, i, bits.get(i));
+                return result;
+        }
     }
 
     public static boolean[] toBoolArray(final byte[] array){
         return (boolean[])toBoolArray(array, true);
     }
 
-    public static Boolean[] toWrappedBoolArray(final byte[] array){
-        return (Boolean[])toBoolArray(array, false);
+    public static Boolean[] toWrappedBoolArray(final byte[] array) {
+        return (Boolean[]) toBoolArray(array, false);
     }
 
     private static <T> byte[] toByteArray(final T array,
                                           final ToByteArrayConverter<T> converter,
                                           final int componentSize) {
         final int arrayLen = Array.getLength(array);
-        final byte[] result = new byte[arrayLen * componentSize];
-        for (int sourcePosition = 0, destPosition = 0; sourcePosition < arrayLen; sourcePosition++) {
-            final byte[] subArray = converter.convert(array, sourcePosition);
-            assert subArray.length == componentSize;
-            System.arraycopy(subArray, 0, result, destPosition, subArray.length);
-            destPosition += subArray.length;
+        switch (arrayLen) {
+            case 0:
+                return emptyByteArray();
+            default:
+                final byte[] result = new byte[arrayLen * componentSize];
+                for (int sourcePosition = 0, destPosition = 0; sourcePosition < arrayLen; sourcePosition++) {
+                    final byte[] subArray = converter.convert(array, sourcePosition);
+                    assert subArray.length == componentSize;
+                    System.arraycopy(subArray, 0, result, destPosition, subArray.length);
+                    destPosition += subArray.length;
+                }
+                return result;
         }
-        return result;
     }
 
     public static byte[] toByteArray(final short[] value) {
@@ -525,88 +451,79 @@ public final class ArrayUtils {
     }
 
     public static byte[] toByteArray(final boolean[] value) {
-        final BitSet result = new BitSet(value.length);
-        for(int index = 0; index < value.length; index++)
-            result.set(index, value[index]);
-        return result.toByteArray();
-    }
-
-    public static byte[] toByteArray(final Boolean[] value) {
-        final BitSet result = new BitSet(value.length);
-        for(int index = 0; index < value.length; index++)
-            result.set(index, value[index]);
-        return result.toByteArray();
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType) {
-        return length -> length == 0 ? (T[]) emptyArrayImpl(elementType) : ObjectArrays.newArray(elementType, length);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <I, O> O[] transform(final I[] array, final Class<O> elementType, final Function<? super I, ? extends O> transformer) {
-        switch (array.length) {
+        switch (value.length) {
             case 0:
-                return (O[]) emptyArrayImpl(elementType);
+                return emptyByteArray();
             default:
-                final O[] result = ObjectArrays.newArray(elementType, array.length);
-                for (int index = 0; index < array.length; index++)
-                    result[index] = transformer.apply(array[index]);
-                return result;
+                final BitSet result = new BitSet(value.length);
+                for (int index = 0; index < value.length; index++)
+                    result.set(index, value[index]);
+                return result.toByteArray();
         }
     }
 
+    public static byte[] toByteArray(final Boolean[] value) {
+        switch (value.length) {
+            case 0:
+                return emptyByteArray();
+            default:
+                final BitSet result = new BitSet(value.length);
+                for (int index = 0; index < value.length; index++)
+                    result.set(index, value[index]);
+                return result.toByteArray();
+        }
+    }
+
+    public static <T> IntFunction<T[]> arrayConstructor(final Class<T> elementType) {
+        return length -> length == 0 ? emptyObjectArray(elementType) : ObjectArrays.newArray(elementType, length);
+    }
+
+    public static <I, O> O[] transform(final I[] array, final Class<O> elementType, final Function<? super I, ? extends O> transformer) {
+        return Arrays.stream(array).map(transformer).toArray(arrayConstructor(elementType));
+    }
+
     public static <T> T[] transformByteArray(final byte[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
-        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        final T[] result = arrayConstructor(elementType).apply(array.length);
         for(int index = 0; index < array.length; index++)
             result[index] = transformer.apply(array[index]);
         return result;
     }
 
-    public static <T> T[] transformShortArray(final short[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
-        final T[] result = ObjectArrays.newArray(elementType, array.length);
-        for(int index = 0; index < array.length; index++)
+    public static <T> T[] transformShortArray(final short[] array, final Class<T> elementType, final IntFunction<? extends T> transformer) {
+        final T[] result = arrayConstructor(elementType).apply(array.length);
+        for (int index = 0; index < array.length; index++)
             result[index] = transformer.apply(array[index]);
         return result;
     }
 
     public static <T> T[] transformIntArray(final int[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
-        final T[] result = ObjectArrays.newArray(elementType, array.length);
-        for(int index = 0; index < array.length; index++)
-            result[index] = transformer.apply(array[index]);
-        return result;
+        return Arrays.stream(array).mapToObj(transformer).toArray(arrayConstructor(elementType));
     }
 
-    public static <T> T[] transformCharArray(final char[] array, final Class<T> elementType, final IntFunction<? extends T> transformer){
-        final T[] result = ObjectArrays.newArray(elementType, array.length);
-        for(int index = 0; index < array.length; index++)
+    public static <T> T[] transformCharArray(final char[] array, final Class<T> elementType, final IntFunction<? extends T> transformer) {
+        final T[] result = arrayConstructor(elementType).apply(array.length);
+        for (int index = 0; index < array.length; index++)
             result[index] = transformer.apply(array[index]);
         return result;
     }
 
     public static <T> T[] transformLongArray(final long[] array, final Class<T> elementType, final LongFunction<? extends T> transformer){
-        final T[] result = ObjectArrays.newArray(elementType, array.length);
-        for(int index = 0; index < array.length; index++)
-            result[index] = transformer.apply(array[index]);
-        return result;
+        return Arrays.stream(array).mapToObj(transformer).toArray(arrayConstructor(elementType));
     }
 
     public static <T> T[] transformFloatArray(final float[] array, final Class<T> elementType, final DoubleFunction<? extends T> transformer){
-        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        final T[] result = arrayConstructor(elementType).apply(array.length);
         for(int index = 0; index < array.length; index++)
             result[index] = transformer.apply(array[index]);
         return result;
     }
 
     public static <T> T[] transformDoubleArray(final double[] array, final Class<T> elementType, final DoubleFunction<? extends T> transformer){
-        final T[] result = ObjectArrays.newArray(elementType, array.length);
-        for(int index = 0; index < array.length; index++)
-            result[index] = transformer.apply(array[index]);
-        return result;
+        return Arrays.stream(array).mapToObj(transformer).toArray(arrayConstructor(elementType));
     }
 
     public static <T> T[] transformBooleanArray(final boolean[] array, final Class<T> elementType, final Function<? super Boolean, ? extends T> transformer){
-        final T[] result = ObjectArrays.newArray(elementType, array.length);
+        final T[] result = arrayConstructor(elementType).apply(array.length);
         for(int index = 0; index < array.length; index++)
             result[index] = transformer.apply(array[index]);
         return result;

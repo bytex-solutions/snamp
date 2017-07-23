@@ -1,21 +1,20 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.configuration.ThreadPoolConfigurationSupport;
-import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * @author Roman Sakno
@@ -26,9 +25,12 @@ final class ComposedConfiguration extends HashMap<String, ManagedResourceInfo> {
     private static final class ComposedManagedResourceInfo extends HashMap<String, String> implements ManagedResourceInfo, ThreadPoolConfigurationSupport {
         private static final long serialVersionUID = -3185159768725211394L;
         private final String connectionString;
+        private final String groupName;
 
-        private ComposedManagedResourceInfo(final String connectionString) {
-            this.connectionString = Strings.nullToEmpty(connectionString);
+        private ComposedManagedResourceInfo(final String connectionString,
+                                            final String groupName) {
+            this.connectionString = nullToEmpty(connectionString);
+            this.groupName = nullToEmpty(groupName);
         }
 
         @Override
@@ -38,7 +40,7 @@ final class ComposedConfiguration extends HashMap<String, ManagedResourceInfo> {
 
         @Override
         public String getGroupName() {
-            return get(ManagedResourceConfiguration.GROUP_NAME_PROPERTY);
+            return groupName;
         }
 
         private boolean equals(final ManagedResourceInfo other){
@@ -96,7 +98,7 @@ final class ComposedConfiguration extends HashMap<String, ManagedResourceInfo> {
             if (match.matches()) {
                 final String connectorType = match.group("connectorType");
                 connectionString = match.group("connectionString");
-                put(connectorType, new ComposedManagedResourceInfo(connectionString));
+                put(connectorType, new ComposedManagedResourceInfo(connectionString, parameters.getGroupName()));
             }
         }
         //parse parameters of each managed resource connector
@@ -109,9 +111,8 @@ final class ComposedConfiguration extends HashMap<String, ManagedResourceInfo> {
         return result;
     }
 
-    static ComposedConfiguration parse(final String connectionString, final Map<String, String> parameters, final String splitter){
-        final ComposedManagedResourceInfo resourceInfo = new ComposedManagedResourceInfo(connectionString);
-        resourceInfo.putAll(parameters);
-        return parse(resourceInfo, splitter);
+    static ManagedResourceInfo createResourceInfo(final String connectionString,
+                                                  final String groupName){
+        return new ComposedManagedResourceInfo(connectionString, groupName);
     }
 }

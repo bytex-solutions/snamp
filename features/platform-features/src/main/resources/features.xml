@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.4.0" name="snamp-platform">
+    <repository>mvn:org.apache.karaf.features/standard/${karaf.version}/xml/features</repository>
+    
+    <feature name="jersey-server" description="Jersey 1.x server-side libraries" version="${jersey.version}">
+        <bundle>mvn:javax.ws.rs/jsr311-api/1.1.1</bundle>
+        <bundle start="true">mvn:com.sun.jersey/jersey-core/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-servlet/${jersey.version}</bundle>
+        <bundle start="true">mvn:com.sun.jersey/jersey-server/${jersey.version}</bundle>
+    </feature>
+
+    <feature name="snamp-json-support" description="Various JMX helpers and JMX-to-JSON serialization" version="${snamp.json.version}">
+        <bundle>mvn:org.codehaus.jackson/jackson-core-asl/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/${jackson.version}</bundle>
+        <bundle>mvn:io.snamp/json-helpers/${snamp.json.version}</bundle>
+    </feature>
+
+    <feature name="orientdb-server" description="OrientDB NoSQL Database" version="${orientdb.version}">
+        <bundle>mvn:com.googlecode.concurrentlinkedhashmap/concurrentlinkedhashmap-lru/${concurrentlinkedhashmap.version}</bundle>
+        <bundle>mvn:com.orientechnologies/orientdb-core/${orientdb.version}</bundle>
+        <bundle>mvn:com.orientechnologies/orientdb-tools/${orientdb.version}</bundle>
+        <bundle>mvn:com.orientechnologies/orientdb-client/${orientdb.version}</bundle>
+        <bundle>mvn:com.orientechnologies/orientdb-server/${orientdb.version}</bundle>
+        <bundle>mvn:com.orientechnologies/orientdb-distributed/${orientdb.version}</bundle>
+    </feature>
+
+    <feature name="snamp-framework" description="SNAMP framework" version="${project.version}">
+        <bundle>mvn:com.google.guava/guava/${guava.version}</bundle>
+        <bundle>mvn:com.google.code.findbugs/jsr305/${jsr305.version}</bundle>
+        <bundle>mvn:io.snamp/framework/${project.version}</bundle>
+    </feature>
+
+    <feature name="snamp-core" description="Core SNAMP bundles" version="${project.version}">
+        <!-- Required features -->
+        <feature>http-whiteboard</feature>
+        <feature>jersey-server</feature>
+        <feature>orientdb-server</feature>
+        <feature>snamp-json-support</feature>
+        <feature>snamp-framework</feature>
+        <!--Required bundles-->
+        <bundle start="true">mvn:com.hazelcast/hazelcast/${hazelcast.version}</bundle>
+        <bundle start="true">mvn:io.snamp/security/${snamp.security.version}</bundle>
+        <bundle start="true">mvn:io.snamp/internal-services/${snamp.services.version}</bundle>
+    </feature>
+
+    <feature name="snamp-security" description="SNAMP security layer" version="${project.version}">
+        <bundle>mvn:org.bouncycastle/bcpg-jdk15on/${bouncycastle.version}</bundle>
+        <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/${bouncycastle.version}</bundle>
+        <bundle>mvn:org.bouncycastle/bcprov-jdk15on/${bouncycastle.version}</bundle>
+    </feature>
+
+    <feature name="snamp-web-support" description="SNAMP support bundles for Web" version="${project.version}">
+        <details>SNAMP support bundles for Web</details>
+        <feature>snamp-json-support</feature>
+        <feature>jersey-server</feature>
+        <bundle>mvn:io.netty/netty/${netty.version}</bundle>
+        <bundle>mvn:org.codehaus.jettison/jettison/${jettison.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-jaxrs/${jackson.version}</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-xc/${jackson.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-json/${jersey.version}</bundle>
+        <bundle>mvn:com.sun.jersey/jersey-client/${jersey.version}</bundle>
+    </feature>
+
+    <feature name="snamp-scripting-support" description="SNAMP support bundles for scripting" version="${project.version}">
+        <feature>snamp-framework</feature>
+        <bundle>mvn:org.codehaus.groovy/groovy/${groovy.version}/jar/indy</bundle>
+        <bundle>mvn:org.codehaus.groovy/groovy-xml/${groovy.version}/jar/indy</bundle>
+        <bundle>mvn:org.codehaus.groovy/groovy-json/${groovy.version}/jar/indy</bundle>
+        <bundle>mvn:org.apache.ivy/ivy/${apache.ivy.version}</bundle>
+        <bundle>mvn:io.snamp/scripting/${snamp.scripting.version}</bundle>
+        <bundle>mvn:io.snamp/groovy-xml-bridge/${snamp.scripting.version}</bundle>
+    </feature>
+
+    <feature name="snamp-ssh-support" description="Set of Java libraries for SSH" version="${project.version}">
+        <feature>snamp-security</feature>
+        <bundle>mvn:net.i2p.crypto/eddsa/${eddsa.version}</bundle>
+        <bundle>mvn:io.snamp.osgi/sshj/${sshj.version}</bundle>
+    </feature>
+
+    <feature name="snamp-snmp-support" description="Set of Java libraries for SNMPv2/SNMPv3" version="${snmp4j.version}">
+        <bundle>mvn:io.snamp.osgi/snmp4j/${snmp4j.version}</bundle>
+    </feature>
+
+    <feature name="snamp-instrumentation" description="SNAMP instrumentation library" version="${snamp.instrumentation.version}">
+        <bundle>mvn:io.snamp.instrumentation/core/${snamp.instrumentation.version}</bundle>
+    </feature>
+
+    <feature name="snamp-text-support" description="SNAMP support bundles for working with text templates" version="${project.version}">
+        <bundle>mvn:io.snamp.osgi/stringtemplate4/${stringtemplate.version}</bundle>
+    </feature>
+</features>

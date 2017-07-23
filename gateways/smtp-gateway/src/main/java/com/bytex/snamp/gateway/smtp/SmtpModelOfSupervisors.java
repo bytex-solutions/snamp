@@ -188,8 +188,8 @@ final class SmtpModelOfSupervisors extends AbstractStatefulFrameworkServiceTrack
      */
     @Nonnull
     @Override
-    protected SupervisorFilterBuilder createServiceFilter() {
-        return SupervisorClient.filterBuilder();
+    protected SupervisorSelector createServiceFilter() {
+        return SupervisorClient.selector();
     }
 
     @Override
@@ -203,6 +203,7 @@ final class SmtpModelOfSupervisors extends AbstractStatefulFrameworkServiceTrack
     }
 
     @Override
+    @Nonnull
     protected SupervisorClient createClient(final ServiceReference<Supervisor> serviceRef) throws InstanceNotFoundException {
         return new SupervisorClient(getBundleContext(), serviceRef);
     }

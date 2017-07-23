@@ -95,10 +95,8 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
         @Override
         public final void setOverridden(final boolean value) {
-            if(value != overridden){
-                overridden = value;
-                markAsModified();
-            }
+            markAsModified(value != overridden);
+            overridden = value;
         }
 
         @Override
@@ -184,7 +182,8 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
 
         private void load(final OperationConfiguration configuration){
-            invocationTimeout = configuration.getInvocationTimeout();
+            setInvocationTimeout(configuration.getInvocationTimeout());
+            setOverridden(configuration.isOverridden());
             super.load(configuration);
         }
 
@@ -203,10 +202,8 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
 
         @Override
         public void setInvocationTimeout(final Duration value) {
-            if (!Objects.equals(invocationTimeout, value)) {
-                invocationTimeout = value;
-                markAsModified();
-            }
+            markAsModified(!Objects.equals(invocationTimeout, value));
+            invocationTimeout = value;
         }
 
         private boolean equals(final OperationConfiguration other){
@@ -237,6 +234,19 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         @SpecialUse(SpecialUse.Case.SERIALIZATION)
         public SerializableEventConfiguration() {
 
+        }
+
+        private void load(final EventConfiguration other){
+            super.load(other);
+            setOverridden(other.isOverridden());
+        }
+
+        @Override
+        public void load(final Map<String, String> parameters) {
+            if(parameters instanceof EventConfiguration)
+                load((EventConfiguration) parameters);
+            else
+                super.load(parameters);
         }
 
         @Override
@@ -297,7 +307,8 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
         }
 
         private void load(final AttributeConfiguration configuration){
-            readWriteTimeout = configuration.getReadWriteTimeout();
+            setReadWriteTimeout(configuration.getReadWriteTimeout());
+            setOverridden(configuration.isOverridden());
             super.load(configuration);
         }
 
@@ -325,10 +336,8 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
          */
         @Override
         public void setReadWriteTimeout(final Duration timeout) {
-            if (!Objects.equals(readWriteTimeout, timeout)) {
-                markAsModified();
-                this.readWriteTimeout = timeout;
-            }
+            markAsModified(!Objects.equals(readWriteTimeout, timeout));
+            readWriteTimeout = timeout;
         }
 
         private boolean equals(final AttributeConfiguration other){
@@ -366,9 +375,10 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     }
 
     @Override
-    public final void setType(final String value){
-        type = nullToEmpty(value);
-        markAsModified();
+    public final void setType(String value){
+        value = nullToEmpty(value);
+        markAsModified(!value.equals(type));
+        type = value;
     }
 
     @Override
@@ -443,7 +453,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     }
 
     private void load(final ManagedResourceTemplate template) {
-        type = template.getType();
+        setType(template.getType());
         attributes.load(template.getAttributes());
         events.load(template.getEvents());
         operations.load(template.getOperations());

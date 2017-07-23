@@ -2,7 +2,6 @@ package com.bytex.snamp.supervision.health.triggers;
 
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -12,7 +11,7 @@ import java.util.Properties;
  * @since 2.0
  */
 final class GroovyTriggerFactory extends OSGiGroovyScriptEngine<GroovyTrigger> {
-    GroovyTriggerFactory(final ClassLoader rootClassLoader) throws IOException {
+    GroovyTriggerFactory(final ClassLoader rootClassLoader) {
         super(rootClassLoader, new Properties(), GroovyTrigger.class);
     }
 

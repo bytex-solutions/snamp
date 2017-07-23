@@ -11,6 +11,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 
@@ -27,28 +28,28 @@ abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizab
     @Override
     public final V remove(@Nonnull final Object key) {
         final V removedValue = super.remove(key);
-        modified |= removedValue != null;
+        markAsModified(removedValue != null);
         return removedValue;
     }
 
     @Override
     public final boolean remove(final Object key, final Object value) {
         final boolean removed = super.remove(key, value);
-        modified |= removed;
+        markAsModified(removed);
         return removed;
     }
 
     @Override
     public final boolean replace(final K key, final V oldValue, final V newValue) {
         final boolean replaced = super.replace(key, oldValue, newValue);
-        modified |= replaced;
+        markAsModified(replaced);
         return replaced;
     }
 
     @Override
     public final V replace(final K key, final V value) {
         final V replaced = super.replace(key, value);
-        modified |= replaced != null;
+        markAsModified(replaced != null);
         return replaced;
     }
 
@@ -62,23 +63,29 @@ abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizab
         modified = true;
     }
 
+    final void markAsModified(final boolean value) {
+        modified |= value;
+    }
+
     @Override
     public void clear() {
-        markAsModified();
+        final boolean isNotEmpty = !isEmpty();
         super.clear();
+        markAsModified(isNotEmpty);
     }
 
     @Override
     public final V putIfAbsent(final K key, final V value) {
         final V result = super.putIfAbsent(key, value);
-        modified |= result == null;
+        markAsModified(result == null);
         return result;
     }
 
     @Override
     public final V put(@Nonnull final K key, @Nonnull final V value) {
-        markAsModified();
-        return super.put(key, value);
+        final V previousValue = super.put(key, value);
+        markAsModified(!Objects.equals(value, previousValue));
+        return previousValue;
     }
 
     @Override
@@ -94,7 +101,7 @@ abstract class ModifiableMap<K, V> extends HashMap<K, V> implements Externalizab
         final V oldValue = get(key);
         final V newValue = super.merge(key, value, remappingFunction);
         //If value was changed after merge then mark this map as modified
-        modified |= oldValue != newValue;
+        markAsModified(!Objects.equals(oldValue, newValue));
         return newValue;
     }
 

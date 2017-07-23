@@ -2,6 +2,7 @@ package com.bytex.snamp.moa;
 
 import com.google.common.util.concurrent.AtomicDouble;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 
 /**
@@ -25,6 +26,7 @@ public final class SimpleDoubleAverage extends SimpleAverage {
     }
 
     @Override
+    @Nonnull
     public SimpleDoubleAverage clone() {
         return new SimpleDoubleAverage(this);
     }

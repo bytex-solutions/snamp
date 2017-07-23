@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * @version 2.0
  * @since 2.0
  */
-interface LazyReference<V> extends Consumer<V>, Stateful {
+public interface LazyReference<V> extends Consumer<V>, Stateful {
     default V lazyGet(final Supplier<? extends V> initializer){
         V result = getValue();
         if(result == null)
@@ -61,5 +61,36 @@ interface LazyReference<V> extends Consumer<V>, Stateful {
         return result;
     }
 
+    /**
+     * Gets value stored in this container.
+     * @return A value stored in this container.
+     */
     V getValue();
+
+    /**
+     * Creates a new container with lazy initialization which stores strong reference to the object in container.
+     * @param <V> Type of object in container.
+     * @return A new instance of container.
+     */
+    static <V> LazyReference<V> strong(){
+        return new LazyStrongReference<>();
+    }
+
+    /**
+     * Creates a new container with lazy initialization which stores soft reference to the object in container.
+     * @param <V> Type of object in container.
+     * @return A new instance of container.
+     */
+    static <V> LazyReference<V> soft(){
+        return new LazySoftReference<>();
+    }
+
+    /**
+     * Creates a new container with lazy initialization which stores weak reference to the object in container.
+     * @param <V> Type of object in container.
+     * @return A new instance of container.
+     */
+    static <V> LazyReference<V> weak(){
+        return new LazyWeakReference<>();
+    }
 }

@@ -46,11 +46,11 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         output.put(ATTRIBUTES_WRITES_FIELD, fromRate(attributeWrites));
     }
 
-    private static void collectMetrics(final NotificationMetric metrics, final Map<String, CompositeData> output) throws OpenDataException {
+    private static void collectMetrics(final NotificationMetric metrics, final Map<String, CompositeData> output) {
         output.put(NOTIFICATIONS_FIELD, fromRate(metrics == null ? Rate.EMPTY : metrics.notifications()));
     }
 
-    private static void collectMetrics(final OperationMetric metrics, final Map<String, CompositeData> output) throws OpenDataException {
+    private static void collectMetrics(final OperationMetric metrics, final Map<String, CompositeData> output) {
         output.put(INVOCATIONS_FIELD, fromRate(metrics == null ? Rate.EMPTY : metrics.invocations()));
     }
 

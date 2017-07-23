@@ -43,6 +43,9 @@ export class HorizontalBarChartOfAttributeValues extends ChartJsChart {
                     borderWidth: 1
                 }],
                 options: {
+                    animation: {
+                        duration: 0
+                    },
                     responsive: true,
                     title: {
                         display: true,

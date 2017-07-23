@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.core.SnampComponentDescriptor;
 import com.bytex.snamp.core.SnampManager;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.management.DefaultSnampManager;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
@@ -22,7 +21,7 @@ import static com.bytex.snamp.management.shell.InstalledSupervisorsCommand.write
  * @version 2.0
  * @since 1.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         name = "installed-components",
         description = "List of installed components")
 @Service

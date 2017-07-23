@@ -46,7 +46,7 @@ public abstract class SyntheticAttribute extends AbstractOpenAttributeInfo {
     }
 
     private static final long serialVersionUID = -2361230399455752656L;
-    private static NotificationProcessingResult IGNORED = new NotificationProcessingResult() {
+    private static final NotificationProcessingResult IGNORED = new NotificationProcessingResult() {
         @Override
         public boolean isProcessed() {
             return false;

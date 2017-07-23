@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.zipkin;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.connector.dataStream.DataStreamConnectorConfigurationDescriptionProvider;
 import com.google.common.base.Splitter;
 import zipkin.collector.CollectorComponent;
@@ -30,7 +30,7 @@ final class ZipkinConnectorConfigurationDescriptionProvider extends DataStreamCo
     private static final String PARSER_SCRIPT_NAME_PARAM = "parserScript";
     private static final String USE_SERVICE_NAME_AS_INSTANCE = "useServiceNameAsInstance";
 
-    private static final LazySoftReference<ZipkinConnectorConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<ZipkinConnectorConfigurationDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private static final class ZipkinConnectorConfigurationDescription extends ConnectorConfigurationDescription{
         private ZipkinConnectorConfigurationDescription(){

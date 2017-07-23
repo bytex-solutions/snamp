@@ -1,8 +1,7 @@
 package com.bytex.snamp.gateway.groovy.impl;
 
 import com.bytex.snamp.EntryReader;
-import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.groovy.AttributesRootAPI;
@@ -42,32 +41,32 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         }
     }
 
-    private static final class ScriptNotificationsModelOfNotifications extends ThreadSafeObject implements NotificationSet<ScriptNotificationAccessor> {
-        private final Map<String, ResourceNotificationList<ScriptNotificationAccessor>> notifications;
+    private static final class ScriptNotificationsModelOfNotifications extends ConcurrentResourceAccessor<Map<String, ResourceNotificationList<ScriptNotificationAccessor>>> implements NotificationSet<ScriptNotificationAccessor> {
+        private static final long serialVersionUID = 2676129486894143278L;
 
         private ScriptNotificationsModelOfNotifications(){
-            super(SingleResourceGroup.class);
-            notifications = new HashMap<>();
+            super(new HashMap<>());
         }
 
         private Collection<ScriptNotificationAccessor> clear(final String resourceName) {
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
-                final ResourceNotificationList<ScriptNotificationAccessor> list = notifs.remove(resName);
+            return write(notifications -> {
+                final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.remove(resourceName);
                 return list != null ? list.values() : ImmutableList.of();
             });
         }
 
         private void clear() {
-            writeLock.accept(SingleResourceGroup.INSTANCE, notifications, notifs -> {
-                notifs.values().forEach(ResourceFeatureList::clear);
-                notifs.clear();
+            write(notifications -> {
+                notifications.values().forEach(ResourceFeatureList::clear);
+                notifications.clear();
+                return null;
             });
         }
 
         private NotificationRouter put(final String resourceName,
                                               final MBeanNotificationInfo metadata,
                                               final NotificationListener listener) {
-            try(final SafeCloseable ignored = writeLock.acquireLock(SingleResourceGroup.INSTANCE)){
+            return write(notifications -> {
                 final ResourceNotificationList<ScriptNotificationAccessor> list;
                 if (notifications.containsKey(resourceName))
                     list = notifications.get(resourceName);
@@ -75,26 +74,23 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
                 final ScriptNotificationAccessor result = new ScriptNotificationAccessor(resourceName, metadata, listener);
                 list.put(result);
                 return result;
-            }
-        }
-
-        private ScriptNotificationAccessor removeImpl(final String resourceName,
-                                                  final MBeanNotificationInfo metadata){
-            final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.get(resourceName);
-            if (list == null) return null;
-            final ScriptNotificationAccessor result = list.remove(metadata);
-            if (list.isEmpty()) notifications.remove(resourceName);
-            return result;
+            });
         }
 
         private ScriptNotificationAccessor remove(final String resourceName,
                                                   final MBeanNotificationInfo metadata) {
-            return writeLock.apply(SingleResourceGroup.INSTANCE, resourceName, metadata, this::removeImpl);
+            return write(notifications -> {
+                final ResourceNotificationList<ScriptNotificationAccessor> list = notifications.get(resourceName);
+                if (list == null) return null;
+                final ScriptNotificationAccessor result = list.remove(metadata);
+                if (list.isEmpty()) notifications.remove(resourceName);
+                return result;
+            });
         }
 
-        private Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
-            return readLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
-                final ResourceNotificationList<?> list = notifs.get(resName);
+        Collection<MBeanNotificationInfo> getNotifications(final String resourceName) {
+            return read(notifications -> {
+                final ResourceNotificationList<?> list = notifications.get(resourceName);
                 if (list != null) {
                     return list.values().stream()
                             .map(FeatureAccessor::getMetadata)
@@ -105,10 +101,10 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
         }
 
         private Set<String> getResourceEvents(final String resourceName) {
-            return readLock.apply(SingleResourceGroup.INSTANCE, resourceName, notifications, (resName, notifs) -> {
-                if (notifs.containsKey(resName)) {
+            return read(notifications -> {
+                if (notifications.containsKey(resourceName)) {
                     final Set<String> result = new HashSet<>(20);
-                    for (final FeatureAccessor<MBeanNotificationInfo> accessor : notifs.get(resName).values())
+                    for (final FeatureAccessor<MBeanNotificationInfo> accessor : notifications.get(resourceName).values())
                         Collections.addAll(result, accessor.getMetadata().getNotifTypes());
                     return result;
                 } else
@@ -118,12 +114,12 @@ final class ManagementInformationRepository extends GroovyManagementModel implem
 
         @Override
         public <E extends Throwable> boolean forEachNotification(final EntryReader<String, ? super ScriptNotificationAccessor, E> notificationReader) throws E {
-            try (final SafeCloseable ignored = readLock.acquireLock(SingleResourceGroup.INSTANCE)) {
+            return read(notifications -> {
                 for (final ResourceNotificationList<ScriptNotificationAccessor> notifs : notifications.values())
                     for (final ScriptNotificationAccessor accessor : notifs.values())
                         if (!notificationReader.accept(accessor.getResourceName(), accessor)) return false;
-            }
-            return true;
+                return true;
+            });
         }
     }
 

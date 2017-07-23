@@ -28,7 +28,7 @@ final class SshNotificationAccessor extends NotificationRouter implements SshNot
                 return filterParams.entrySet().stream()
                         .map(entry -> String.format(LISTEN_COMMAND_PATTERN, String.format("(%s=%s)", entry.getKey(), entry.getValue())))
                         .findFirst()
-                        .orElseGet(() -> null);
+                        .orElse(null);
             default:
                 final StringBuilder filter = new StringBuilder(512);
                 for (final Map.Entry<String, ?> entry : filterParams.entrySet())

@@ -20,10 +20,27 @@ $(document).ready(function() {
     });
 
     if ($.urlParam("tokenExpired") == "true") {
-        invalidCredentials("Token has been expired", "", "Token has been expired. Please re-login")
+        if (getCookie("snamp-auth-token") == null) {
+            invalidCredentials("No token", "", "No authentication token is provided. Please login");
+        } else {
+            invalidCredentials("Token has been expired", "", "Token has been expired. Please re-login");
+        }
+    }
 
+
+    if ($.urlParam("isDemo") == "true") {
+        $.getJSON("/snamp/assets/demo.json").then(function(data) {
+            $("#usernameInput").val(data["username"]);
+            $("#passwordInput").val(data["password"]);
+        });
     }
 });
+
+function getCookie(name) {
+    function escape(s) { return s.replace(/([.*+?\^${}()|\[\]\/\\])/g, '\\$1'); };
+    var match = document.cookie.match(RegExp('(?:^|;\\s*)' + escape(name) + '=([^;]*)'));
+    return match ? match[1] : null;
+}
 
 $.urlParam = function(name){
     var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
@@ -43,6 +60,7 @@ function showRequest(formData, jqForm, options) {
 // post-submit callback
 function redirect(data)  {
     $('.errorBlock').css("display", "none");
+    $('.passBlock').css("display", "none");
     console.log("Success!")
     window.location.href = "."
 }

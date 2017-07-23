@@ -4,6 +4,8 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Roman Sakno
  * @version 1.0
@@ -17,6 +19,7 @@ public final class CompositeResourceActivator extends ManagedResourceActivator<C
                 configurationDescriptor(CompositeResourceConfigurationDescriptor::getInstance));
     }
 
+    @Nonnull
     private static CompositeResourceConnector newResourceConnector(final String resourceName,
                                                                    final ManagedResourceInfo configuration,
                                                                    final DependencyManager dependencies) throws Exception{

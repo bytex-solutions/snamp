@@ -6,7 +6,6 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import javax.annotation.Nonnull;
 import javax.servlet.Servlet;
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -41,7 +40,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
 
     private static HttpAcceptor newResourceConnector(final String resourceName,
                                                      final ManagedResourceInfo configuration,
-                                              final DependencyManager dependencies) throws IOException{
+                                              final DependencyManager dependencies) {
         return new HttpAcceptor(resourceName, configuration);
     }
 }

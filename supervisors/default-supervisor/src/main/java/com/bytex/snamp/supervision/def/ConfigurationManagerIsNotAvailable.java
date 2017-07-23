@@ -9,6 +9,8 @@ import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
  * @since 2.0
  */
 final class ConfigurationManagerIsNotAvailable extends ResourceDiscoveryException {
+    private static final long serialVersionUID = -8863535799528067877L;
+
     ConfigurationManagerIsNotAvailable(){
         super("ConfigurationManager is not available through OSGi Service Registry");
     }

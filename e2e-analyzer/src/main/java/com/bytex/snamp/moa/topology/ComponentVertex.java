@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 /**
@@ -23,6 +24,7 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
     private final ComponentVertexIdentity id;
     private final Set<String> instances;
     private final ArrivalsRecorder arrivals;
+    private final AtomicLong lastUpdate; //time since last update
 
     ComponentVertex(final Span span) {
         id = new ComponentVertexIdentity(span);
@@ -33,14 +35,34 @@ public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex
                 .maximumWeightedCapacity(100)
                 .build();
         this.instances = Collections.newSetFromMap(instances);
-        this.instances.add(span.getInstanceName());
         this.arrivals = new ArrivalsRecorder(id.toString());
+        this.lastUpdate = new AtomicLong(0L);
+        handleSpan(span);
     }
 
     private void handleSpan(final Span span) {
+        lastUpdate.set(System.nanoTime());
         instances.add(span.getInstanceName());
         arrivals.accept(span.convertTo(Duration.class));
         arrivals.setChannels(instances.size());
+    }
+
+    /**
+     * Gets age of the last measurement saved to this vertex.
+     * @return Age of the last measurement.
+     */
+    public Duration getAge() {
+        return Duration.ofNanos(System.nanoTime() - lastUpdate.get());
+    }
+
+    /**
+     * Checks time of last measurement associated with this vertex and
+     * specified shelf time.
+     * @param shelfLife Shelf time.
+     * @return {@literal true}, if age of the last measurement is not greater than specified shelf time; otherwise, {@literal false}.
+     */
+    public boolean checkAge(final Duration shelfLife) {
+        return shelfLife == null || getAge().compareTo(shelfLife) <= 0;
     }
 
     @Override

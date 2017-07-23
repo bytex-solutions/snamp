@@ -10,7 +10,6 @@ import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
-import java.io.IOException;
 import java.net.URL;
 
 import static com.bytex.snamp.internal.Utils.callUnchecked;
@@ -29,7 +28,7 @@ final class HttpAcceptor extends UnicastDataStreamConnector {
         super(resourceName, configuration, HttpConnectorConfigurationDescriptionProvider.getInstance());
     }
 
-    private GroovyNotificationParser createNotificationGroovyParser() throws ResourceException, ScriptException, IOException {
+    private GroovyNotificationParser createNotificationGroovyParser() throws ResourceException, ScriptException {
         final URL[] path = HttpConnectorConfigurationDescriptionProvider.getInstance().parseScriptPath(getConfiguration());
         //load standard HTTP parser for measurements
         GroovyNotificationParserLoader loader = new GroovyNotificationParserLoader(this, getConfiguration(), true, path);

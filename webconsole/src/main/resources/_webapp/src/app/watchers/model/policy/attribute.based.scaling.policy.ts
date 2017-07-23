@@ -1,6 +1,6 @@
 import { AbstractWeightedScalingPolicy } from "./abstract.weighted.scaling.policy";
-import * as moment from 'moment/moment';
 import { OpRange } from "./operational.range";
+import { SnampUtils } from "../../../services/app.utils";
 
 export class AttributeBasedScalingPolicy extends AbstractWeightedScalingPolicy {
 
@@ -50,18 +50,18 @@ export class AttributeBasedScalingPolicy extends AbstractWeightedScalingPolicy {
     }
 
     formatAnalysisDepth():string {
-        return moment.duration({ milliseconds: this.analysisDepth}).humanize();
+        return SnampUtils.toHumanizedDuration(this.analysisDepth);
     }
 
     toJSON(): any {
         let _value:any = {};
         _value["voteWeight"] = this.voteWeight;
         _value["incrementalWeight"] = this.incrementalWeight;
-        _value["observationTime"] = moment.duration({ milliseconds: this.observationTime}).toISOString();
+        _value["observationTime"] = SnampUtils.toDurationString(this.observationTime);
 
         _value["attributeName"] = this.attributeName;
         _value["operationalRange"] = this.operationalRange.toString();
-        _value["analysisDepth"] = moment.duration({ milliseconds: this.analysisDepth}).toISOString();
+        _value["analysisDepth"] = SnampUtils.toDurationString(this.analysisDepth);
         _value["aggregation"] = this.aggregation;
         return _value;
     }

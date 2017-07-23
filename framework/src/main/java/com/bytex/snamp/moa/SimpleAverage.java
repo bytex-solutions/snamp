@@ -3,6 +3,7 @@ package com.bytex.snamp.moa;
 import com.bytex.snamp.concurrent.Timeout;
 import com.google.common.util.concurrent.AtomicDouble;
 
+import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -81,6 +82,7 @@ abstract class SimpleAverage extends Average {
     }
 
     @Override
+    @Nonnull
     public abstract SimpleAverage clone();
 
     final void mark(){

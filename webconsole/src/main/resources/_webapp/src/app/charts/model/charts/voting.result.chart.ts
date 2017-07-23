@@ -4,8 +4,10 @@ import { Axis } from "../axis/abstract.axis";
 import { VotingData } from "../data/voting.data";
 
 import { RadialGauge } from 'canvas-gauges';
+import { ChartWithGroupName } from "./group.name.based.chart";
+import { isNullOrUndefined } from "util";
 
-export class VotingResultChart extends AbstractChart {
+export class VotingResultChart extends AbstractChart implements ChartWithGroupName {
 
     get type(): string {
         return AbstractChart.VOTING;
@@ -23,7 +25,7 @@ export class VotingResultChart extends AbstractChart {
     }
 
     draw(): void {
-        if (this.chartData == undefined || this.chartData.length == 0) return;
+        if (isNullOrUndefined(this.chartData) || this.chartData.length == 0) return;
         let _voteIntervalTick:any = (<VotingData>this.chartData[0]).castingVote;
         let _currentValue:any = (<VotingData>this.chartData[0]).votingResult;
 
@@ -53,8 +55,8 @@ export class VotingResultChart extends AbstractChart {
 
     newValues(_data: VotingData[]) {
         this.chartData = _data;
-        if (this._chart != undefined && !document.hidden) {
-           this._chart.value = _data[0].votingResult;
+        if (!isNullOrUndefined(this._chart) && !document.hidden) {
+            this._chart.value = _data[0].votingResult;
         } else {
             this.draw();
         }
@@ -62,7 +64,7 @@ export class VotingResultChart extends AbstractChart {
 
     public resize():void {
         let _thisReference = this;
-        setTimeout(function(){
+        setTimeout(() => {
             let _parent = $("#" + _thisReference.id).parent();
             let _width = _parent.width();
             let _height = _parent.height();
@@ -93,5 +95,12 @@ export class VotingResultChart extends AbstractChart {
             _value["preferences"] = this.preferences;
         }
         return _value;
+    }
+
+    public reinitialize() {
+        if (!isNullOrUndefined(this._chart)) {
+            this._chart.destroy();
+            this._chart = undefined;
+        }
     }
 }

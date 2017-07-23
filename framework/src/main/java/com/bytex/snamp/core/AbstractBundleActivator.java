@@ -245,7 +245,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
 
         final ServiceReference<S>[] getCandidates(final BundleContext context) {
-            return new SimpleFilterBuilder()
+            return new DefaultServiceSelector()
                     .setServiceType(dependencyContract)
                     .getServiceReferences(context, dependencyContract);
         }
@@ -543,7 +543,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * Returns empty or array of required services.
      * @return Empty array of required services.
      */
-    public static RequiredService<?>[] noRequiredServices(){
+    protected static RequiredService<?>[] noRequiredServices(){
         return ArrayUtils.emptyArray(RequiredServiceAccessor[].class);
     }
 
@@ -556,7 +556,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param context Bundle context for each dependency.
      * @return Builder of required services.
      */
-    public static SimpleDependencyBuilder requiredBy(final BundleContext context){
+    protected static SimpleDependencyBuilder requiredBy(final BundleContext context){
         return serviceTypes -> requiredServices(context, serviceTypes);
     }
 
@@ -565,7 +565,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param declaringClass Class in the bundle which declares required services.
      * @return Builder of required services.
      */
-    public static SimpleDependencyBuilder requiredBy(@Nonnull final Class<?> declaringClass){
+    protected static SimpleDependencyBuilder requiredBy(@Nonnull final Class<?> declaringClass){
         return requiredBy(Utils.getBundleContext(declaringClass));
     }
 

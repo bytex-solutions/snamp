@@ -8,32 +8,45 @@
             </div>
             <br/>
             <div class="modal-body">
-                <div class="input-group" style="margin-bottom: 20px;">
-                    <span class="input-group-addon">Name</span>
-                    <input
-                            type="text"
-                            class="form-control"
-                            [tooltip]="'Input at least 4 symbols please'"
-                            [(ngModel)]="selectedName">
+
+                <div class="form-group row" *ngIf="isNameNotUnique()" style="text-align: center; color: red;">
+                    <strong>{{type}} with name already exists</strong>
                 </div>
-                <div class="input-group" style="margin-bottom: 20px;" *ngIf="type == 'resource'">
-                    <span class="input-group-addon">Connection string</span>
-                    <input
-                            type="text"
-                            class="form-control"
-                            [tooltip]="'Connection string is optional, but in almost all cases should be prefilled'"
-                            [(ngModel)]="selectedConnectionString">
+
+                <div class="form-group row">
+                    <label for="inputComponentName" class="col-md-2 col-form-label">Input {{type}} name</label>
+                    <div class="col-md-10">
+                        <input
+                                type="text"
+                                id="inputComponentName"
+                                class="form-control"
+                                [tooltip]="'Input at least 4 symbols please'"
+                                [(ngModel)]="selectedName">
+                    </div>
                 </div>
+
+                <div class="form-group row" *ngIf="type == 'resource'">
+                    <label for="inputConnectionString" class="col-md-2 col-form-label">Connection string</label>
+                    <div class="col-md-10">
+                        <input
+                                type="text"
+                                id="inputConnectionString"
+                                class="form-control"
+                                [tooltip]="'Connection string is optional, but in almost all cases should be prefilled'"
+                                [(ngModel)]="selectedConnectionString">
+                    </div>
+                </div>
+
                 <div class="panel-group group-accordeon" id="entityAccordion" role="tablist" aria-multiselectable="true">
                     <div class="panel panel-default leftAlign" *ngIf="nameSelected()">
                         <div class="panel-heading" role="tab" id="headingOne">
                             <h4 class="panel-title">
-                                <a role="button" data-toggle="collapse" data-parent="#entityAccordion" href="#collapseType" aria-expanded="true" aria-controls="collapseRequired">
+                                <a role="button" data-toggle="collapse" data-parent="#entityAccordion" href="#collapseType" [attr.aria-expanded]="!typeSelected()" aria-controls="collapseRequired">
                                     Select type of new entity
                                 </a>
                             </h4>
                         </div>
-                        <div id="collapseType" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                        <div id="collapseType" class="panel-collapse collapse" [class.in]="!typeSelected()" role="tabpanel" aria-labelledby="headingOne">
                             <div class="panel-body">
                                     <a *ngFor="let entity of availableEntities"
                                            class="grid-item-link pointerElement"
@@ -52,12 +65,12 @@
                     <div class="panel panel-default leftAlign" *ngIf="typeSelected()">
                         <div class="panel-heading" role="tab" id="headingTwo">
                             <h4 class="panel-title">
-                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseParameters" aria-expanded="true" aria-controls="collapseOptional">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#paramAccordion" href="#collapseParameters" [attr.aria-expanded]="typeSelected()" aria-controls="collapseOptional">
                                     Required parameters
                                 </a>
                             </h4>
                         </div>
-                        <div id="collapseParameters" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                        <div id="collapseParameters" class="panel-collapse collapse" [class.in]="typeSelected()" role="tabpanel" aria-labelledby="headingTwo">
                             <div class="panel-body">
                                 <table class="table">
                                     <thead>
@@ -105,6 +118,6 @@
           data-toggle="modal"
           (click)="clear()"
           [attr.data-target]="'#addEntity'">
-    <i class="fa fa-plus"></i> Add new
+    <i class="fa fa-plus"></i>
   </button>
 </div>

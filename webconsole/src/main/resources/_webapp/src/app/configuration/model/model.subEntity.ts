@@ -1,11 +1,10 @@
-import { Entity, KeyValue } from './model.entity';
+import { Entity } from './model.entity';
 import { TypedEntity } from './model.typedEntity';
 import { ApiClient, REST } from '../../services/app.restClient';
 import { Response } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { Binding } from './model.binding';
 import { ParamDescriptor } from './model.paramDescriptor';
-import {isNullOrUndefined} from "util";
+import { isNullOrUndefined } from "util";
 
 export abstract class SubEntity extends Entity {
     public type:string;

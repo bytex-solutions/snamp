@@ -3,20 +3,20 @@ package com.bytex.snamp.scripting.debugging;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
-import com.bytex.snamp.core.ScriptletCompilationException;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.shell.SnampShellCommand;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import javax.management.Attribute;
+import java.io.PrintWriter;
 
 /**
  * @author Roman Sakno
  * @version 2.0
  * @since 2.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = SnampShellCommand.SCOPE,
         description = "Executes attribute checker for debugging purposes",
         name = "debug-attribute-checker")
 @Service
@@ -39,7 +39,7 @@ public final class DebugAttributeCheckerCommand extends ScriptletDebugger<Attrib
     }
 
     @Override
-    public Object execute() throws ScriptletCompilationException {
-        return compile(language, scriptLocation).getStatus(new Attribute(attributeName, value));
+    protected void execute(final PrintWriter writer) throws Exception {
+        writer.println(compile(language, scriptLocation).getStatus(new Attribute(attributeName, value)));
     }
 }

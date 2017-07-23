@@ -12,14 +12,8 @@
           <ul>
             <li>
               <a [attr.href]="'#component'">
-                Group<br />
-                <small>Select group</small>
-              </a>
-            </li>
-            <li>
-              <a [attr.href]="'#instances'">
-                Resources<br />
-                <small>Mark resources</small>
+                Chart data object<br />
+                <small>Select group or instances</small>
               </a>
             </li>
             <li>
@@ -37,49 +31,59 @@
           </ul>
 
           <div style="height:100%">
-            <div id="component" class="row" style="margin-top: 100px;">
-              <div class="item form-group">
-                <label
-                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                        for="componentSelect"
-                        style="margin-top: 7px;">
-                  Group
-                </label>
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                  <select class="form-control" [(ngModel)]="selectedComponent" (ngModelChange)="onComponentSelect($event)" id="componentSelect">
-                    <option value="" *ngIf="selectedChartType != 'statuses' && selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut' && selectedChartType != 'voting' ">NO GROUP</option>
-                    <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
-                  </select>
+            <div id="component" class="row" style="margin-top: 70px;">
+              <div class="row" *ngIf="isInstancesSupported && (instances | async)?.length > 0">
+                <div class="item form-group">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="componentSelect"
+                          style="margin-top: 7px;">
+                    Build chart on resource group
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <ui-switch
+                            [(ngModel)]="useGroup"
+                            (ngModelChange)="triggerUseGroup($event)"
+                            [disabled]="isInstancesSupported && (components | async)?.length == 0"
+                            [size]="'small'">
+                    </ui-switch>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div id="instances" class="row" style="margin-top: 100px;">
-              <div class="col-md-12 col-sm-12 col-xs-12 text-center" *ngIf="(instances | async) == undefined">
-                <strong>No resources are found - cannot proceed</strong>
-              </div>
-
-              <div class="item form-group" *ngIf="instances | async">
-                <label
-                        class="control-label col-md-3 col-sm-3 col-xs-12"
-                        for="instancesSelect"
-                        style="margin-top: 7px;">
-                  Resources
-                </label>
-
-                <div class="col-md-6 col-sm-6 col-xs-12" >
-                  Select all
-                  <ui-switch
-                          [(ngModel)]="selectedAllInstances"
-                          (change)="triggerShowInstances($event)"
-                          [size]="'small'">
-                  </ui-switch>
-                  <br/>
-                  <select class="select2_multiple form-control" id="instancesSelect" style="display: none;" multiple="multiple">
-                    <option *ngFor="let instance of instances | async" [attr.selected]="isInstanceSelected(instance) ? true : null">{{instance}}</option>
-                  </select>
+              <div class="row" *ngIf="useGroup" style="margin-top: 15px;">
+                <div class="item form-group">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="componentSelect"
+                          style="margin-top: 7px;">
+                    Group
+                  </label>
+                  <div class="col-md-6 col-sm-6 col-xs-12">
+                    <select class="form-control" [(ngModel)]="selectedComponent" id="componentSelect">
+                      <option *ngFor="let component of components | async" [ngValue]="component">{{component}}</option>
+                    </select>
+                  </div>
                 </div>
               </div>
+
+              <div class="row" *ngIf="!useGroup" style="margin-top: 15px;">
+                <div class="item form-group">
+                  <label
+                          class="control-label col-md-3 col-sm-3 col-xs-12"
+                          for="instancesSelect"
+                          style="margin-top: 7px;">
+                    Instances
+                  </label>
+
+                  <div class="col-md-6 col-sm-6 col-xs-12" >
+                    <select class="select2_multiple form-control" id="instancesSelect" multiple="multiple">
+                      <option *ngFor="let instance of instances | async" [attr.selected]="isInstanceSelected(instance) ? true : null">{{instance}}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             <div id="metric" class="row" style="margin-top: 10px;">
@@ -113,7 +117,7 @@
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12">
                     <select class="form-control" [(ngModel)]="selectedMetric" id="metricSelect">
-                      <option [tooltip]="metric.type" *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric.name}}</option>
+                      <option *ngFor="let metric of metrics | async" [ngValue]="metric">{{metric.name}}</option>
                     </select>
                   </div>
                 </div>
@@ -148,7 +152,7 @@
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12">
                     <select class="form-control" [(ngModel)]="timeInterval" id="lineChartIntervalSelect">
-                      <option *ngFor="let interval of intervals" [ngValue]="interval">{{interval.description}}</option>
+                      <option *ngFor="let interval of intervals" [ngValue]="interval.id">{{interval.description}}</option>
                     </select>
                   </div>
                 </div>
@@ -164,7 +168,7 @@
                   </label>
                   <div class="col-md-6 col-sm-6 col-xs-12">
                     <select class="form-control" [(ngModel)]="rateInterval" id="rateIntervalSelect">
-                      <option *ngFor="let interval of rateIntervals" [ngValue]="interval">{{interval.description}}</option>
+                      <option *ngFor="let interval of rateIntervals" [ngValue]="interval.additionalId">{{interval.description}}</option>
                     </select>
                   </div>
                 </div>
@@ -211,27 +215,41 @@
   </div>
 </div>
 
-<img src="/snamp/assets/img/add.png" *ngIf="!_charts || _charts.length == 0" class="chartMenuImage"/>
-<ul id="chartMenu">
-  <li [tooltip]="'Pie chart'" (click)="appendChartClicked('doughnut')"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
-  <li [tooltip]="'Horizontal bar chart'" (click)="appendChartClicked('horizontalBar')"><i class="fa fa-align-left " aria-hidden="true"></i></li>
-  <li [tooltip]="'Vertical bar chart'" (click)="appendChartClicked('bar')"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
-  <li [tooltip]="'Simple line chart'" (click)="appendChartClicked('line')"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
-  <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
-  <li [tooltip]="'Resource group health status'" (click)="appendChartClicked('statuses')"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></li>
-  <li [tooltip]="'Resources count in a group'" (click)="appendChartClicked('resources')"><i class="fa fa-sitemap" aria-hidden="true"></i></li>
-  <li [tooltip]="'Rate of downscale'" (click)="appendChartClicked('scaleIn')"><i class="fa fa-arrow-circle-down" aria-hidden="true"></i></li>
-  <li [tooltip]="'Rate of upscale'" (click)="appendChartClicked('scaleOut')"><i class="fa fa-arrow-circle-up" aria-hidden="true"></i></li>
-  <li [tooltip]="'Voting chart'" (click)="appendChartClicked('voting')"><i class="fa fa-arrows-v" aria-hidden="true"></i></li>
-</ul>
+<div *ngIf="isAllowed() && ((components | async)?.length > 0 || (instances | async)?.length > 0)">
+  <img src="/snamp/assets/img/add.png" *ngIf="!allCharts || allCharts.length == 0" class="chartMenuImage"/>
+  <ul id="chartMenu" *ngIf="isAllowed()">
+    <li [tooltip]="'Pie chart'" (click)="appendChartClicked('doughnut')"><i class="fa fa-pie-chart" aria-hidden="true"></i></li>
+    <li [tooltip]="'Horizontal bar chart'" (click)="appendChartClicked('horizontalBar')"><i class="fa fa-align-left " aria-hidden="true"></i></li>
+    <li [tooltip]="'Vertical bar chart'" (click)="appendChartClicked('bar')"><i class="fa fa-bar-chart" aria-hidden="true"></i></li>
+    <li [tooltip]="'Simple line chart'" (click)="appendChartClicked('line')"><i class="fa fa-line-chart" aria-hidden="true"></i></li>
+    <li [tooltip]="'Panel with values'" (click)="appendChartClicked('panel')"><i class="fa fa-columns" aria-hidden="true"></i></li>
+    <li [tooltip]="'Resource group health status'" (click)="appendChartClicked('statuses')"><i class="fa fa-lightbulb-o" aria-hidden="true"></i></li>
+    <li [tooltip]="'Resources count in a group'" (click)="appendChartClicked('resources')"><i class="fa fa-sitemap" aria-hidden="true"></i></li>
+    <li [tooltip]="'Rate of downscale'" (click)="appendChartClicked('scaleIn')"><i class="fa fa-arrow-circle-down" aria-hidden="true"></i></li>
+    <li [tooltip]="'Rate of upscale'" (click)="appendChartClicked('scaleOut')"><i class="fa fa-arrow-circle-up" aria-hidden="true"></i></li>
+    <li [tooltip]="'Voting chart'" (click)="appendChartClicked('voting')"><i class="fa fa-arrows-v" aria-hidden="true"></i></li>
+  </ul>
+</div>
 
 <div class="right_col" role="main" style="min-height: 949px;">
-  <div class="">
-    <div class="page-title">
-      <div class="title_left">
+
+    <div class="row" style="padding-right: 10px;">
+      <div class="col-md-4" style="padding-top: 20px;">
         <h3>{{groupName}}</h3>
       </div>
+
+      <div class="col-md-6"></div>
+
+      <div class="col-md-2" style="padding-top: 20px;">
+
+        <div class="row" style="float: right" *ngIf="isAllowed()">
+          <button class="btn btn-danger" (click)="removeDashboard()"><i class="fa fa-trash"></i></button>
+        </div>
+      </div>
     </div>
+
+    <hr/>
+
 
     <div class="clearfix"></div>
 
@@ -240,7 +258,7 @@
       <div class='container col-md-12' [ngGrid]="gridConfig"  style="min-height: 900px; width: calc(100% - 45px) !important;">
 
           <div class="x_panel"
-               *ngFor="let chart of _charts; let i = index"
+               *ngFor="let chart of allCharts; let i = index;"
                [(ngGridItem)]="chart.preferences['gridcfg']"
                (onChangeStop)="onChangeStop(i, $event)"
                [attr.chartPanelId]="chart.id">
@@ -250,9 +268,10 @@
                 <h5 *ngIf="chart.updateStopped">(Paused at {{chart.pausedTime | date:'dd/MM/y HH:mm:ss'}})</h5>
                 <ul class="nav navbar-right panel_toolbox">
                   <li>
-                    <a (click)="modifyChart(chart)"><i class="fa fa-wrench"></i></a>
+                    <a (click)="resetChart(chart)" *ngIf="isAllowed() && isResetable(chart)"><i class="fa fa-refresh"></i></a>
+                    <a (click)="modifyChart(chart)" *ngIf="isAllowed()"><i class="fa fa-wrench"></i></a>
                     <a [attr.id]="'toggleDraw' + chart.id" class="toggle-link" (click)="toggleDrawingChart(chart)"><i class="fa fa-pause-circle-o"></i></a>
-                    <a class="close-link" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
+                    <a class="close-link" *ngIf="isAllowed()" (click)="removeChart(chart.name)"><i class="fa fa-close"></i></a>
                   </li>
                 </ul>
                 <div class="clearfix"></div>
@@ -275,5 +294,4 @@
             </div>
       </div>
     </div>
-  </div>
 </div>

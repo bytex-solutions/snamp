@@ -82,7 +82,7 @@ export class SnampLogSettingsComponent implements OnInit {
         this.http.put(REST.NOTIFICATIONS_SETTINGS, _settings)
             .map((res:Response) => res.text())
             .subscribe((data) => {
-                console.log("Notification settings has been stored: ", data);
+                console.debug("Notification settings has been stored: ", data);
             })
     }
 

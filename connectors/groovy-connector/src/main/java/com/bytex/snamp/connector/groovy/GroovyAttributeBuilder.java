@@ -23,7 +23,7 @@ public final class GroovyAttributeBuilder extends GroovyFeatureBuilder<Attribute
     private OpenType<?> attributeType;
     private String description;
     private String name;
-    private Map<String, String> parameters;
+    private final Map<String, String> parameters;
     private boolean isIs;
 
     GroovyAttributeBuilder(){

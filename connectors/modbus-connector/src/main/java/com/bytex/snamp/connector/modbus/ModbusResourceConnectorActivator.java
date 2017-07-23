@@ -4,6 +4,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -18,6 +19,7 @@ public final class ModbusResourceConnectorActivator extends ManagedResourceActiv
         super(ModbusResourceConnectorActivator::createConnector, configurationDescriptor(ModbusResourceConnectorConfigurationDescriptor::new));
     }
 
+    @Nonnull
     private static ModbusResourceConnector createConnector(final String resourceName,
                                                            final ManagedResourceInfo configuration,
                                                            final DependencyManager dependencies) throws URISyntaxException, IOException {

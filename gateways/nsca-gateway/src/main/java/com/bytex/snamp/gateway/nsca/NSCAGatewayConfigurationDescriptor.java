@@ -1,6 +1,6 @@
 package com.bytex.snamp.gateway.nsca;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -72,7 +72,7 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
                     PASSIVE_CHECK_SEND_PERIOD_PARAM);
         }
     }
-    private static final LazySoftReference<NSCAGatewayConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<NSCAGatewayConfigurationDescriptor> INSTANCE = LazyReference.soft();
 
     private NSCAGatewayConfigurationDescriptor() {
         super(new GatewayConfigurationInfo(),

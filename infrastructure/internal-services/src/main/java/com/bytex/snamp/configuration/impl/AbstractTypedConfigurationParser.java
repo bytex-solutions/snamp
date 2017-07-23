@@ -60,14 +60,15 @@ abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConf
         output.update(configuration);
     }
 
-    private String createIdentityFilter(final String identityName){
-        return String.format("(%s=%s)", identityHolderName, identityName);
+    private String createIdentityFilter(final String identityName, final E entity){
+        final String factoryPID = getFactoryPersistentID(entity);
+        return String.format("(&(%s=%s)(%s=%s))", identityHolderName, identityName, ConfigurationAdmin.SERVICE_FACTORYPID, factoryPID);
     }
 
     private void serialize(final String identityName, final E entity, final ConfigurationAdmin admin) throws IOException {
         //find existing configuration of gateway
         final BooleanBox updated = BooleanBox.of(false);
-        forEachConfiguration(admin, createIdentityFilter(identityName), config -> {
+        forEachConfiguration(admin, createIdentityFilter(identityName, entity), config -> {
             serialize(identityName, entity, config);
             updated.set(true);
         });

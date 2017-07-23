@@ -2,7 +2,6 @@ package com.bytex.snamp.connector;
 
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.WeakEventListenerList;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.FeatureConfiguration;
 import com.bytex.snamp.connector.metrics.Metric;
@@ -30,7 +29,7 @@ import static com.bytex.snamp.ArrayUtils.arrayConstructor;
  * @version 2.0
  */
 @ThreadSafe
-public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> extends ThreadSafeObject implements Iterable<F>, SafeCloseable {
+public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> implements Iterable<F>, SafeCloseable {
     /**
      * Metadata of the resource feature stored in repository.
      */
@@ -38,18 +37,11 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> exte
     private final WeakEventListenerList<ResourceEventListener, ResourceEvent> resourceEventListeners;
     private final String resourceName;
 
-    protected <G extends Enum<G>> AbstractFeatureRepository(final String resourceName,
-                                                            @Nonnull final Class<F> metadataType,
-                                                            final Class<G> resourceGroupDef) {
-        super(resourceGroupDef);
+    protected AbstractFeatureRepository(final String resourceName,
+                                                            @Nonnull final Class<F> metadataType) {
         this.metadataType = Objects.requireNonNull(metadataType);
         this.resourceEventListeners = new WeakEventListenerList<>(ResourceEventListener::resourceModified);
         this.resourceName = resourceName;
-    }
-
-    protected AbstractFeatureRepository(final String resourceName,
-                                        final Class<F> metadataType){
-        this(resourceName, metadataType, SingleResourceGroup.class);
     }
 
     /**

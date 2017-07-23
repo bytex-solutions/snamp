@@ -110,6 +110,7 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
      * @param parameters Additional parameters to be associated with the resource.
      * @throws ResourceDiscoveryException Unable to register resource using discovery service.
      */
+    @Override
     public final void registerResource(@Nonnull final String resourceName,
                                        @Nonnull final String connectionString,
                                        @Nonnull final Map<String, String> parameters) throws ResourceDiscoveryException {
@@ -134,6 +135,7 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
      * @param resourceName Name of the resource to remove.
      * @throws ResourceDiscoveryException Unable to remove resource.
      */
+    @Override
     public final boolean removeResource(@Nonnull final String resourceName) throws ResourceDiscoveryException {
         final BooleanBox result = BooleanBox.of(false);
         processConfiguration(config -> {
@@ -155,6 +157,7 @@ public class DefaultResourceDiscoveryService implements ResourceDiscoveryService
      * Removes all resources from the group.
      * @throws ResourceDiscoveryException Unable to remove resources.
      */
+    @Override
     public final void removeAllResources() throws ResourceDiscoveryException {
         processConfiguration(config -> {
             final Set<String> resourcesToRemove = new HashSet<>(10);

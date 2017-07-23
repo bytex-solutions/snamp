@@ -3,6 +3,8 @@ package com.bytex.snamp.web.serviceModel.e2e;
 import com.bytex.snamp.moa.topology.ComponentVertex;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
+import java.time.Duration;
+
 /**
  * Represents E2E of child components.
  * @author Roman Sakno
@@ -13,9 +15,11 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 public final class ChildComponentsView extends AbstractComponentSpecificView {
     public static final class ViewData extends AdjacencyMatrixWithArrivals{
         private final String componentName;
+        private final Duration shelfLife;
 
-        private ViewData(final String componentName){
+        private ViewData(final String componentName, final Duration shelfLife){
             this.componentName = componentName;
+            this.shelfLife = shelfLife;
         }
 
         private void accept(final ComponentVertex source, final ComponentVertex destination) {
@@ -29,7 +33,7 @@ public final class ChildComponentsView extends AbstractComponentSpecificView {
 
         @Override
         public void accept(final ComponentVertex vertex) {
-            if (vertex.getName().equals(componentName)) { //analyze child components only for the specified component
+            if (vertex.getName().equals(componentName) && vertex.checkAge(shelfLife)) { //analyze child components only for the specified component
                 computeArrivals(vertex);
                 vertex.forEach(child -> accept(vertex, child));
             }
@@ -38,6 +42,6 @@ public final class ChildComponentsView extends AbstractComponentSpecificView {
 
     @Override
     ViewData createMatrix() {
-        return new ViewData(getTargetComponent());
+        return new ViewData(getTargetComponent(), getShelfLife());
     }
 }

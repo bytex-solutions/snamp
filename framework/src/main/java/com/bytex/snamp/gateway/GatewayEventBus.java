@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway;
 
 import com.bytex.snamp.concurrent.GroupedThreadFactory;
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.HashMultimap;
@@ -23,7 +23,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
  * @since 1.0
  */
 final class GatewayEventBus {
-    private static final LazySoftReference<ExecutorService> LOCAL_EVENT_EXECUTOR = new LazySoftReference<>();
+    private static final LazyReference<ExecutorService> LOCAL_EVENT_EXECUTOR = LazyReference.soft();
 
     private static final Multimap<String, WeakReference<GatewayEventListener>> listeners =
             HashMultimap.create(10, 3);

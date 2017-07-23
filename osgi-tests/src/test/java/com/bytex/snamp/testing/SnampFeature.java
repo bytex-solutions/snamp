@@ -9,7 +9,7 @@ import java.util.Objects;
  * @since 1.0
  */
 public enum SnampFeature {
-    PLATFORM("core", "2.0.0", "snamp-core", "snamp-web-support"),
+    PLATFORM("platform", "2.0.0", "snamp-core", "snamp-web-support"),
     OS_SUPERVISOR("connectors", "2.0.0", "snamp-openstack-supervisor"),
     STUB_CONNECTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stub-connector"),
     HTTP_ACCEPTOR("connectors", "2.0.0", "snamp-default-supervisor", "snamp-stream-connector", "snamp-http-acceptor"),

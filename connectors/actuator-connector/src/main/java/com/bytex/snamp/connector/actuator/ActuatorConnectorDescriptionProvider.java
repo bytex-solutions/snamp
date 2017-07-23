@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.actuator;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
@@ -22,7 +22,7 @@ final class ActuatorConnectorDescriptionProvider extends ConfigurationEntityDesc
     private static final String PASSWORD_PARAM = "password";
     private static final String METRICS_PATH_PARAM = "metricsPath";
     private static final String HEALTH_PATH_PARAM = "healthPath";
-    private static final LazySoftReference<ActuatorConnectorDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<ActuatorConnectorDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private static final class ConnectorConfigurationDescriptor extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorParameters";

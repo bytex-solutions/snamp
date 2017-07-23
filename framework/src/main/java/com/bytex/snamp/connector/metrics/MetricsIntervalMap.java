@@ -24,7 +24,7 @@ final class MetricsIntervalMap<V> extends EnumMap<MetricsInterval, V> {
 
     MetricsIntervalMap(final MetricsIntervalMap<V> source, final UnaryOperator<V> cloneFn) {
         super(MetricsInterval.class);
-        source.entrySet().forEach(entry -> put(entry.getKey(), cloneFn.apply(entry.getValue())));
+        source.forEach((key, value) -> put(key, cloneFn.apply(value)));
     }
 
     double getAsDouble(final MetricsInterval interval, final ToDoubleFunction<? super V> converter){

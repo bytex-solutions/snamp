@@ -3,6 +3,8 @@ package com.bytex.snamp.web.serviceModel.e2e;
 import com.bytex.snamp.moa.topology.ComponentVertex;
 import org.codehaus.jackson.annotate.JsonTypeName;
 
+import java.time.Duration;
+
 /**
  * Represents communications scheme between modules in the component.
  * @author Roman Sakno
@@ -13,9 +15,11 @@ import org.codehaus.jackson.annotate.JsonTypeName;
 public final class ComponentModulesView extends AbstractComponentSpecificView {
     public static final class ViewData extends AdjacencyMatrixWithArrivals{
         private final String componentName;
+        private final Duration shelfTime;
 
-        private ViewData(final String componentName){
+        private ViewData(final String componentName, final Duration shelfTime){
             this.componentName = componentName;
+            this.shelfTime = shelfTime;
         }
 
         private void accept(final ComponentVertex source, final ComponentVertex destination) {
@@ -30,7 +34,7 @@ public final class ComponentModulesView extends AbstractComponentSpecificView {
 
         @Override
         public void accept(final ComponentVertex vertex) {
-            if (vertex.getName().equals(componentName)) { //analyze child components only for the specified component
+            if (vertex.getName().equals(componentName) && vertex.checkAge(shelfTime)) { //analyze child components only for the specified component
                 computeArrivals(vertex);
                 vertex.forEach(child -> accept(vertex, child));
             }
@@ -39,6 +43,6 @@ public final class ComponentModulesView extends AbstractComponentSpecificView {
 
     @Override
     ViewData createMatrix() {
-        return new ViewData(getTargetComponent());
+        return new ViewData(getTargetComponent(), getShelfLife());
     }
 }

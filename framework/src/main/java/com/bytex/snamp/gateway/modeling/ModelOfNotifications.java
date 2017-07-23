@@ -14,19 +14,9 @@ import java.util.Collection;
 public abstract class ModelOfNotifications<TAccessor extends NotificationAccessor> extends ModelOfFeatures<MBeanNotificationInfo, TAccessor, ResourceNotificationList<TAccessor>> implements NotificationSet<TAccessor> {
     /**
      * Initializes a new thread-safe object.
-     *
-     * @param resourceGroupDef The type of the enum which represents a set of field groups.
-     * @param <G> Enum definition.
-     */
-    protected <G extends Enum<G>> ModelOfNotifications(final Class<G> resourceGroupDef, final Enum<G> listGroup) {
-        super(ResourceNotificationList::new, resourceGroupDef, listGroup);
-    }
-
-    /**
-     * Initializes a new thread-safe object in which all fields represents the single resource.
      */
     protected ModelOfNotifications() {
-        this(SingleResourceGroup.class, SingleResourceGroup.INSTANCE);
+        super(ResourceNotificationList::new);
     }
 
     public final TAccessor addNotification(final String resourceName,

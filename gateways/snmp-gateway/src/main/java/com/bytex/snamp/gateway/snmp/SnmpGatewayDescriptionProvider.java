@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.snmp;
 
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
 import org.snmp4j.mp.MPv3;
@@ -10,7 +10,6 @@ import org.snmp4j.smi.OctetString;
 
 import javax.management.DescriptorRead;
 import javax.naming.NamingException;
-import java.text.ParseException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -127,7 +126,7 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
         }
     }
 
-    private static final LazySoftReference<SnmpGatewayDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<SnmpGatewayDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private SnmpGatewayDescriptionProvider(){
         super(new GatewayConfigurationInfo(), new AttributeConfigurationInfo(), new EventConfigurationInfo());
@@ -141,7 +140,7 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
         return getValue(parameters, CONTEXT_PARAM_NAME, OID::new).orElseThrow(() -> new SnmpGatewayAbsentParameterException(CONTEXT_PARAM_NAME));
     }
 
-    static OID parseOID(final DescriptorRead info, final Supplier<OID> oidGenerator) throws ParseException {
+    static OID parseOID(final DescriptorRead info, final Supplier<OID> oidGenerator) {
         return parseStringField(info.getDescriptor(), OID_PARAM_NAME, OID::new).orElseGet(oidGenerator);
     }
 

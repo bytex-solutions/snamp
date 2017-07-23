@@ -17,11 +17,11 @@ import java.util.function.Consumer;
  * @since 1.0
  */
 public final class TabularDataUtils {
-    private static final class RowList<R extends CompositeDataBean> extends ArrayList<R>{
+    public static final class RowList<R extends CompositeDataBean> extends ArrayList<R>{
         private static final long serialVersionUID = 2584942280684733271L;
         private final TabularType type;
 
-        RowList(final int size, final TabularType type){
+        private RowList(final int size, final TabularType type){
             super(size + 5);
             this.type = Objects.requireNonNull(type);
         }
@@ -50,17 +50,11 @@ public final class TabularDataUtils {
         return result;
     }
 
-    private static TabularData convert(final RowList<?> rows) throws OpenDataException, ReflectiveOperationException {
+    public static TabularData convert(final RowList<?> rows) throws OpenDataException, ReflectiveOperationException {
         final TabularDataSupport result = new TabularDataSupport(rows.type);
         for(final CompositeDataBean row: rows)
             result.put(CompositeDataUtils.convert(row, rows.type.getRowType()));
         return result;
-    }
-
-    public static TabularData convert(final List<? extends CompositeDataBean> rows) throws IllegalArgumentException, ReflectiveOperationException, OpenDataException {
-        if(rows instanceof RowList<?>)
-            return convert((RowList<?>)rows);
-        else throw new IllegalArgumentException("rows are invalid.");
     }
 
     public static TabularData convert(final TabularDataBean<?> table,

@@ -91,7 +91,7 @@ class GaugeImpl<V extends Comparable<V> & Serializable> extends AbstractMetric i
             return current.compareTo(provided) < 0 ? current : provided;
     }
 
-    protected void writeValue(final V value){
+    void writeValue(final V value){
         maxValue.accumulateAndGet(value, GaugeImpl::maxValue);
         minValue.accumulateAndGet(value, GaugeImpl::minValue);
         lastMaxValues.forEachAccept(value, TimeLimitedObject::accept);

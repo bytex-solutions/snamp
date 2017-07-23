@@ -2,7 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.*;
-import com.bytex.snamp.internal.Utils;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -13,14 +12,13 @@ import java.util.Map;
 
 import static com.bytex.snamp.management.shell.ResourceInfoCommand.*;
 
-;
 /**
  * Displays full information about managed resource group.
  * @author Roman Sakno
  * @since 2.0
  * @version 2.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         name = "resource-group",
         description = "Display configuration of the managed resource group")
 @Service

@@ -3,7 +3,7 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -26,10 +26,7 @@ import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -77,13 +74,13 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
         private final ManagedResourceConnectorFactory<TConnector> factory;
-        private final LazyStrongReference<Logger> logger;
+        private final LazyReference<Logger> logger;
 
         private ManagedResourceConnectorRegistry(@Nonnull final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
             super(ManagedResourceConnector.class, dependencies);
             this.factory = controller;
-            this.logger = new LazyStrongReference<>();
+            this.logger = LazyReference.strong();
         }
 
         private Logger getLoggerImpl(){
@@ -153,7 +150,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         private static void updateFeatures(final ManagedResourceConnector connector,
-                            final ManagedResourceConfiguration configuration) throws Exception {
+                            final ManagedResourceConfiguration configuration) {
             connector.queryObject(AttributeSupport.class)
                     .ifPresent(attributeSupport -> updateAttributes(attributeSupport, configuration.getAttributes()));
             connector.queryObject(NotificationSupport.class)
@@ -183,8 +180,8 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
-        protected TConnector update(TConnector connector,
-                                    final Dictionary<String, ?> configuration) throws Exception {
+        protected TConnector updateService(TConnector connector,
+                                           final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
             //we should not update resource connector if connection parameters was not changed
             if (!connector.getConfiguration().equals(newConfig.getValue())) {
@@ -221,7 +218,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         /**
-         * Logs error details when {@link #dispose(Object, boolean)} failed.
+         * Logs error details when {@link #disposeService(Object, boolean)} failed.
          * @param logger
          * @param servicePID The persistent identifier of the service to dispose.
          * @param e          An exception occurred when disposing service.
@@ -243,10 +240,10 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
         @Override
-        protected TConnector createService(final Map<String, Object> identity,
-                                           final Dictionary<String, ?> configuration) throws Exception {
+        protected TConnector activateService(final BiConsumer<String, Object> identity,
+                                             final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
-            identity.putAll(new ManagedResourceFilterBuilder(newConfig.getValue()).setResourceName(newConfig.getKey()));
+            new ManagedResourceSelector(newConfig.getValue()).setResourceName(newConfig.getKey()).forEach(identity);
             final TConnector connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
             updateFeatures(connector, newConfig.getValue());
             getLogger().info(String.format("Connector %s for resource %s is instantiated", getConnectorType(), newConfig.getKey()));
@@ -254,9 +251,9 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         @Override
-        protected void cleanupService(final TConnector service,
+        protected void disposeService(final TConnector service,
                                       final Map<String, ?> identity) throws Exception {
-            getLogger().info(String.format("Connector %s is destroyed", ManagedResourceFilterBuilder.getManagedResourceName(identity)));
+            getLogger().info(String.format("Connector %s is destroyed", ManagedResourceSelector.getManagedResourceName(identity)));
             service.close();
         }
 
@@ -267,17 +264,6 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
     }
 
     /**
-     * Represents activator for support service.
-     * @param <T> Type of support service.
-     * @since 2.0
-     */
-    @FunctionalInterface
-    protected interface SupportServiceFactory<T extends SupportService>{
-        @Nonnull
-        T activateService(final DependencyManager dependencies) throws Exception;
-    }
-
-    /**
      * Represents superclass for all-optional resource connector service providers.
      * You cannot derive from this class directly.
      * @param <S> Type of the gateway-related service contract.
@@ -285,7 +271,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @author Roman Sakno
      * @since 1.0
      * @version 2.0
-     * @see #configurationDescriptor(SupportServiceFactory, RequiredService[])
+     * @see #configurationDescriptor(Function, RequiredService[])
      */
     protected static abstract class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T> {
 
@@ -306,7 +292,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         @Override
         @Nonnull
         protected final T activateService(final Map<String, Object> identity) throws Exception {
-            identity.putAll(new ManagedResourceFilterBuilder().setConnectorType(getConnectorType()));
+            identity.putAll(new ManagedResourceSelector().setConnectorType(getConnectorType()));
             return createService(identity);
         }
 
@@ -324,19 +310,19 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         static <S extends SupportService, T extends S> SupportServiceManager<S, T> create(final Class<S> contract,
-                                                                                                  final SupportServiceFactory<T> activator,
+                                                                                                  final Function<DependencyManager, T> activator,
                                                                                                   final RequiredService<?>... dependencies){
             return new SupportServiceManager<S, T>(contract, dependencies) {
                 @Nonnull
                 @Override
                 protected T createService(final Map<String, Object> identity) throws Exception {
-                    return activator.activateService(super.dependencies);
+                    return activator.apply(super.dependencies);
                 }
             };
         }
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final SupportServiceFactory<T> factory,
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Function<DependencyManager, T> factory,
                                                                                                                                                                  final RequiredService<?>... dependencies) {
         return SupportServiceManager.create(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }

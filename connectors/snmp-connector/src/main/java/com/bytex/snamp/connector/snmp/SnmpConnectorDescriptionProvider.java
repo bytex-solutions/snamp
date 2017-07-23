@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.snmp;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceDescriptionProvider;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
@@ -16,9 +16,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.getValueAsInt;
-import static com.bytex.snamp.MapUtils.getValueAsLong;
+import static com.bytex.snamp.MapUtils.*;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.SMART_MODE_KEY;
 import static com.bytex.snamp.configuration.ManagedResourceConfiguration.THREAD_POOL_KEY;
 import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
@@ -93,7 +91,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
         }
     }
 
-    private static final LazySoftReference<SnmpConnectorDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<SnmpConnectorDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private SnmpConnectorDescriptionProvider(){
         super(new ConnectorConfigurationDescriptor(),

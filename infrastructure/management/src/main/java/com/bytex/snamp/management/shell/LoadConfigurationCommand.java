@@ -4,7 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.core.ServiceHolder;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.io.IOUtils;
 import com.bytex.snamp.management.http.model.AgentDataObject;
 import org.apache.karaf.shell.api.action.Argument;
@@ -21,7 +20,7 @@ import java.util.Optional;
  * @version 2.0
  * @since 2.0
  */
-@Command(scope = Utils.SHELL_COMMAND_SCOPE,
+@Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         name = "load-configuration",
         description = "Load configuration from file")
 @Service

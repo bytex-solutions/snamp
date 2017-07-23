@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>snamp</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>io.snamp</groupId>
         <version>2.0.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
@@ -44,7 +44,7 @@
     <artifactId>management</artifactId>
     <dependencies>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
             <scope>provided</scope>
@@ -70,13 +70,13 @@
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>security</artifactId>
             <version>${snamp.security.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>json-helpers</artifactId>
             <version>${snamp.json.version}</version>
             <scope>provided</scope>
@@ -90,7 +90,7 @@
             <artifactId>junit</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>internal-services</artifactId>
             <version>${snamp.services.version}</version>
             <scope>test</scope>
@@ -98,6 +98,7 @@
         <dependency>
             <groupId>org.apache.karaf.shell</groupId>
             <artifactId>org.apache.karaf.shell.console</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>

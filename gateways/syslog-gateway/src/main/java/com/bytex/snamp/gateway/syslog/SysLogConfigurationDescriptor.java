@@ -1,6 +1,6 @@
 package com.bytex.snamp.gateway.syslog;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.gateway.GatewayDescriptionProvider;
@@ -73,7 +73,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
         }
     }
 
-    private static final LazySoftReference<SysLogConfigurationDescriptor> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<SysLogConfigurationDescriptor> INSTANCE = LazyReference.soft();
 
     private SysLogConfigurationDescriptor(){
         super(new GatewayConfigurationInfo(),

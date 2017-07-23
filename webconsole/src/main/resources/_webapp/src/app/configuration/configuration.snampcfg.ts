@@ -44,7 +44,7 @@ export class SnampCfgComponent implements OnInit {
             .map((res:Response) => res.text())
             //.catch((error:any) => Observable.throw(new Error(error.status)))
             .subscribe(data => {
-                    console.log("Started " + selected.type + " " + selected._class + " component. Result from server is " + data);
+                    console.debug("Started " + selected.type + " " + selected._class + " component. Result from server is " + data);
                     if (data == "true") {
                         selected.state = "ACTIVE";
                         for (let i = 0; i < this.components.length; i++) {
@@ -54,7 +54,7 @@ export class SnampCfgComponent implements OnInit {
                             }
                         }
                     } else {
-                        console.log("Could not start component " + selected.type + " - server responded false");
+                        console.debug("Could not start component " + selected.type + " - server responded false");
                     }
                     $('#overlay').fadeOut();
                 },
@@ -73,7 +73,7 @@ export class SnampCfgComponent implements OnInit {
             .map((res:Response) => res.text())
             //.catch((error:any) => Observable.throw(new Error(error.status)))
             .subscribe(data => {
-                    console.log("Stopped " + selected.type + " " + selected._class + " component. Result from server is " + data);
+                    console.debug("Stopped " + selected.type + " " + selected._class + " component. Result from server is " + data);
                     if (data == "true") {
                         selected.state = "RESOLVED";
                         for (let i = 0; i < this.components.length; i++) {
@@ -83,7 +83,7 @@ export class SnampCfgComponent implements OnInit {
                             }
                         }
                     } else {
-                        console.log("Could not stop component " + selected.type + " - server responded false");
+                        console.debug("Could not stop component " + selected.type + " - server responded false");
                     }
                     $('#overlay').fadeOut();
                 },

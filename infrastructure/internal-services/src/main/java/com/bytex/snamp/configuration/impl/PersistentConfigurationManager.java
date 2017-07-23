@@ -3,8 +3,7 @@ package com.bytex.snamp.configuration.impl;
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Box;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.LockManager;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.AgentConfiguration;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.google.common.collect.ImmutableMap;
@@ -17,8 +16,13 @@ import java.io.InterruptedIOException;
 import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
+
+import static com.bytex.snamp.internal.Utils.wrapException;
 
 /**
  * Represents SNAMP configuration manager that uses {@link ConfigurationAdmin}
@@ -29,29 +33,35 @@ import java.util.function.Function;
  * @since 1.0
  */
 @ThreadSafe
-public final class PersistentConfigurationManager extends ThreadSafeObject implements ConfigurationManager {
-    private enum ResourceGroup{
-        CONFIGURATION
-    }
-
+public final class PersistentConfigurationManager implements ConfigurationManager {
     private final ConfigurationAdmin admin;
+    private final LockDecorator readLock, writeLock;
 
     /**
      * Initializes a new configuration manager.
      * @param configAdmin OSGi configuration admin. Cannot be {@literal null}.
      */
     public PersistentConfigurationManager(final ConfigurationAdmin configAdmin){
-        super(ResourceGroup.class);
         admin = Objects.requireNonNull(configAdmin, "configAdmin is null.");
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     private static void mergeResourcesWithGroups(final SerializableEntityMap<SerializableManagedResourceConfiguration> resources,
                                           final SerializableEntityMap<SerializableManagedResourceGroupConfiguration> groups) {
         //migrate attributes, events, operations and properties from modified groups into resources
-        groups.modifiedEntries((groupName, groupConfig) -> {
+        final Set<String> modifiedGroups = groups.modifiedEntries((groupName, groupConfig) -> {
             resources.values().stream()
                     .filter(resource -> resource.getGroupName().equals(groupName))
                     .forEach(groupConfig::fillResourceConfig);
+            return true;
+        });
+        //migrate attributes, events, operations and properties from groups into modified resources
+        resources.modifiedEntries((resourceName, resourceConfig) -> {
+            final String groupName = resourceConfig.getGroupName();
+            if (!modifiedGroups.contains(groupName))
+                groups.getIfPresent(groupName).ifPresent(groupConfig -> groupConfig.fillResourceConfig(resourceConfig));
             return true;
         });
     }
@@ -75,17 +85,11 @@ public final class PersistentConfigurationManager extends ThreadSafeObject imple
         DefaultAgentParser.saveParameters(admin, config);
     }
 
-    private static InterruptedIOException interruptedIOException(final Exception e){
-        final InterruptedIOException result = new InterruptedIOException("Unable to acquire synchronization lock");
-        result.initCause(e);
-        return result;
-    }
-
     private static  <E extends Throwable> void processConfiguration(final ConfigurationProcessor<E> handler,
                                                             final ConfigurationAdmin admin,
-                                                            final LockManager synchronizer) throws E, IOException {
+                                                            final LockDecorator synchronizer) throws E, IOException {
         //TODO: Write lock on configuration should be distributed across cluster nodes
-        try (final SafeCloseable lock = synchronizer.acquireLock(ResourceGroup.CONFIGURATION, null)) {
+        try (final SafeCloseable lock = synchronizer.acquireLock(null)) {
             final SerializableAgentConfiguration config = new SerializableAgentConfiguration();
             DefaultGatewayParser.getInstance().populateRepository(admin, config);
             DefaultManagedResourceParser.getInstance().populateRepository(admin, config);
@@ -97,9 +101,7 @@ public final class PersistentConfigurationManager extends ThreadSafeObject imple
             if (handler.process(config) && config.isModified())
                 save(config, admin);
         } catch (final InterruptedException | TimeoutException e) {
-            final InterruptedIOException ioError = new InterruptedIOException("Unable to acquire synchronization lock");
-            ioError.initCause(e);
-            throw ioError;
+            throw wrapException("Unable to acquire synchronization lock", e, InterruptedIOException::new);
         }
     }
 

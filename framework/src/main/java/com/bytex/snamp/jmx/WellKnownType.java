@@ -8,7 +8,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
 
 import javax.annotation.Nonnull;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.openmbean.*;
 import java.io.Serializable;
@@ -16,16 +15,13 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.*;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.bytex.snamp.internal.Utils.*;
 
 /**
  * Describes a well-known type that should be supported by
@@ -34,7 +30,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @version 2.0
  * @since 1.0
  */
-public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Supplier<Class<?>> {
+public enum  WellKnownType implements Serializable, Type, Predicate<Object> {
     /**
      * Represents {@link java.lang.Void} data type.
      */
@@ -563,14 +559,14 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
 
     <T> WellKnownType(final String name, final SimpleType<T> openType){
         this.openType = Objects.requireNonNull(openType, "openType is null.");
-        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
+        this.javaType = OpenTypes.getType(openType);
         this.displayName = name;
     }
 
     <A> WellKnownType(final String name, final SimpleType<?> componentType,
                       final boolean primitive){
         this.openType = callUnchecked(() -> new ArrayType<A>(componentType, primitive));
-        this.javaType = callUnchecked(() -> Class.forName(openType.getClassName()));
+        this.javaType = OpenTypes.getType(openType);
         this.displayName = name;
     }
 
@@ -580,14 +576,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
         this.displayName = name;
     }
 
-    private static ObjectName parseObjectName(final String value) throws ClassCastException{
-        try {
-            return new ObjectName(value);
-        } catch (final MalformedObjectNameException e) {
-            final ClassCastException error = new ClassCastException(e.getMessage());
-            error.initCause(e);
-            throw error;
-        }
+    private static ObjectName parseObjectName(final String value) throws ClassCastException {
+        return callAndWrapException(() -> new ObjectName(value), e -> wrapException(e.getMessage(), e, ClassCastException::new));
     }
 
     /**
@@ -649,18 +639,21 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     }
 
     public final boolean isPrimitiveArray(){
-        return openType instanceof ArrayType<?> && ((ArrayType<?>)openType).isPrimitiveArray();
+        return Convert.toType(openType, ArrayType.class)
+                .map(ArrayType::isPrimitiveArray)
+                .orElse(Boolean.FALSE);
     }
 
-    public final boolean isSimpleArray(){
-        return openType instanceof ArrayType<?> &&
-                ((ArrayType<?>)openType).getElementOpenType() instanceof SimpleType<?>;
+    public final boolean isSimpleArray() {
+        return Convert.toType(openType, ArrayType.class)
+                .map(type -> type.getElementOpenType() instanceof SimpleType<?>)
+                .orElse(Boolean.FALSE);
     }
 
     /**
-     * Determines whether this type is primitive.
+     * Determines whether this type is scalar.
      * <p>
-     *  The following enum values recognized as array:
+     *  The following enum values recognized as simple types:
      *     <ul>
      *         <li>{@link #BYTE}</li>
      *         <li>{@link #CHAR}</li>
@@ -675,9 +668,9 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
      *         <li>{@link #FLOAT}</li>
      *         <li>{@link #DOUBLE}</li>
      *     </ul>
-     * @return {@literal true}, if this type is primitive; otherwise, {@literal false}.
+     * @return {@literal true}, if this type is simple type; otherwise, {@literal false}.
      */
-    public final boolean isPrimitive(){
+    public final boolean isSimple(){
         return openType instanceof SimpleType<?>;
     }
 
@@ -715,19 +708,9 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
      * @return {@literal true}, if the specified object is an instance of this type;
      *      otherwise, {@literal false}.
      */
-    public final boolean isInstance(final Object value){
-        return openType != null ? openType.isValue(value) : javaType.isInstance(value);
-    }
-
-    /**
-     * Determines whether the specified object is an instance of this well-known type.
-     * @param value The value to check.
-     * @return {@literal true}, if the specified object is an instance of this type;
-     *      otherwise, {@literal false}.
-     */
     @Override
-    public final boolean test(final Object value){
-        return isInstance(value);
+    public final boolean test(final Object value) {
+        return openType == null ? javaType.isInstance(value) : openType.isValue(value);
     }
 
     /**
@@ -817,7 +800,7 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     public static WellKnownType fromValue(final Object value) {
         if(value != null)
             for(final WellKnownType type: values())
-                if(type.isInstance(value))
+                if(type.test(value))
                     return type;
         return null;
     }
@@ -836,41 +819,42 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
         }
     }
 
-    private static EnumSet<WellKnownType> filterTypes(final Predicate<WellKnownType> filter){
-        return EnumSet.copyOf(Arrays.stream(values())
+    private static Set<WellKnownType> filterTypes(final Predicate<WellKnownType> filter) {
+        return Collections.unmodifiableSet(Arrays.stream(values())
                 .filter(filter)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
     }
 
-    public static EnumSet<WellKnownType> getPrimitiveTypes(){
-        return filterTypes(WellKnownType::isPrimitive);
+    public static Set<WellKnownType> getSimpleTypes(){
+        return filterTypes(WellKnownType::isSimple);
     }
 
-    public static EnumSet<WellKnownType> getOpenTypes(){
+    public static Set<WellKnownType> getOpenTypes(){
         return filterTypes(WellKnownType::isOpenType);
     }
 
-    public static EnumSet<WellKnownType> getArrayTypes(){
+    public static Set<WellKnownType> getArrayTypes(){
         return filterTypes(WellKnownType::isArray);
     }
 
-    public static EnumSet<WellKnownType> getArrayOpenTypes(){
+    public static Set<WellKnownType> getArrayOpenTypes(){
         return filterTypes(input -> input.isOpenType() && input.isArray());
     }
 
-    public static EnumSet<WellKnownType> getBufferTypes(){
+    public static Set<WellKnownType> getBufferTypes(){
         return filterTypes(WellKnownType::isBuffer);
     }
 
-    public static WellKnownType getType(final Type t){
-        if(t == null) return null;
-        else if(t instanceof WellKnownType)
-            return (WellKnownType)t;
-        else if(t instanceof Class<?>)
-            return getType((Class<?>)t);
-        else if(t instanceof TypeToken<?>)
-            return getType((TypeToken<?>)t);
-        else return null;
+    public static WellKnownType getType(final Type t) {
+        if (t == null) return null;
+        else if (t instanceof WellKnownType)
+            return (WellKnownType) t;
+        else if (t instanceof Class<?>)
+            return getType((Class<?>) t);
+        else if (t instanceof TypeToken<?>)
+            return getType((TypeToken<?>) t);
+        else
+            return null;
     }
 
     public static WellKnownType getArrayElementType(final ArrayType<?> arrayType){
@@ -891,8 +875,8 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
      * @return Cast result
      * @throws ClassCastException Unable to cast value.
      */
-    public final Object cast(final Object value) throws ClassCastException{
-        return getJavaType().cast(value);
+    public final Object cast(final Object value) throws ClassCastException {
+        return javaType.cast(value);
     }
 
     /**
@@ -906,14 +890,5 @@ public enum  WellKnownType implements Serializable, Type, Predicate<Object>, Sup
     @Override
     public final String toString() {
         return javaType.getCanonicalName();
-    }
-
-    /**
-     * Gets underlying Java type that represents this SNAMP well-known type.
-     * @return The underlying Java type.
-     */
-    @Override
-    public final Class<?> get() {
-        return getJavaType();
     }
 }

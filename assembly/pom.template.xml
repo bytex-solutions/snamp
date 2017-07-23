@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>snamp</artifactId>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>io.snamp</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -50,6 +50,13 @@
                         <feature>wrapper</feature>
                         <!--SNAMP Features-->
                         <feature>snamp-core</feature>
+                        <feature>snamp-security</feature>
+                        <feature>snamp-web-support</feature>
+                        <feature>snamp-scripting-support</feature>
+                        <feature>snamp-ssh-support</feature>
+                        <feature>snamp-snmp-support</feature>
+                        <feature>snamp-instrumentation</feature>
+                        <feature>snamp-text-support</feature>
                     </installedFeatures>
                 </configuration>
             </plugin>
@@ -82,23 +89,23 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>com.bytex.snamp.features</groupId>
+                                    <groupId>io.snamp.features</groupId>
                                     <artifactId>connectors</artifactId>
-                                    <version>${snamp.connectors.version}</version>
+                                    <version>${snamp.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.bytex.snamp.features</groupId>
+                                    <groupId>io.snamp.features</groupId>
                                     <artifactId>gateways</artifactId>
-                                    <version>${snamp.gateways.version}</version>
+                                    <version>${snamp.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.bytex.snamp.features</groupId>
+                                    <groupId>io.snamp.features</groupId>
                                     <artifactId>standard</artifactId>
                                     <version>${snamp.version}</version>
                                     <type>kar</type>
@@ -106,9 +113,9 @@
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>com.bytex.snamp.features</groupId>
+                                    <groupId>io.snamp.features</groupId>
                                     <artifactId>integration</artifactId>
-                                    <version>${snamp.integration.version}</version>
+                                    <version>${snamp.version}</version>
                                     <type>kar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${karaf.folder.deploy}</outputDirectory>
@@ -131,15 +138,15 @@
         </dependency>
         <dependency>
             <groupId>org.apache.karaf.features</groupId>
-            <artifactId>framework</artifactId>
+            <artifactId>standard</artifactId>
+            <classifier>features</classifier>
             <version>${karaf.version}</version>
             <type>xml</type>
-            <classifier>features</classifier>
-            <scope>runtime</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp.features</groupId>
-            <artifactId>core</artifactId>
+            <groupId>io.snamp.features</groupId>
+            <artifactId>platform</artifactId>
             <version>${snamp.version}</version>
             <type>xml</type>
             <classifier>features</classifier>
@@ -153,13 +160,7 @@
             <classifier>features</classifier>
             <scope>runtime</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.karaf.features</groupId>
-            <artifactId>standard</artifactId>
-            <classifier>features</classifier>
-            <version>${karaf.version}</version>
-            <type>xml</type>
-        </dependency>
+
         <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>enterprise</artifactId>

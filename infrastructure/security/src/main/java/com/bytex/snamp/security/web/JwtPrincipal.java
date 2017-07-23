@@ -17,6 +17,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.security.auth.Subject;
 import java.io.IOException;
+import java.net.HttpCookie;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
@@ -26,6 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -35,14 +37,10 @@ import java.util.stream.Collectors;
  */
 @ImportClass({Mac.class, SecretKeySpec.class})
 final class JwtPrincipal implements Principal {
-    private static final String ROLE_SPLITTER_STR = ";";
+    private static final char ROLE_SPLITTER_STR = ';';
     private static final Joiner ROLE_JOINER = Joiner.on(ROLE_SPLITTER_STR).skipNulls();
     private static final Splitter ROLE_SPLITTER = Splitter.on(ROLE_SPLITTER_STR).trimResults();
 
-    /**
-     * The Token lifetime.
-     */
-    private static final Duration TOKEN_LIFETIME = Duration.ofDays(7);
     private static final String SUBJECT_FIELD = "sub";
     private static final String ROLES_FIELD = "roles";
     private static final String ISSUED_AT_FIELD = "iat";
@@ -73,10 +71,11 @@ final class JwtPrincipal implements Principal {
      *
      * @param userName the user name
      * @param roles    the roles
+     * @param lifeTime Token lifetime in milliseconds.
      */
-    private JwtPrincipal(final String userName, final Collection<String> roles){
+    JwtPrincipal(final String userName, final Collection<String> roles, final long lifeTime) {
         createdAt = System.currentTimeMillis();
-        expiredAt = createdAt + TOKEN_LIFETIME.toMillis();
+        expiredAt = createdAt + lifeTime;
         name = Objects.requireNonNull(userName);
         this.roles = ImmutableSet.copyOf(roles);
     }
@@ -84,9 +83,10 @@ final class JwtPrincipal implements Principal {
     /**
      * Reconstructs JWT principal using authenticated subject.
      * @param subj Authenticated subject. Cannot be {@literal null}.
+     * @param lifeTime Token lifetime. Cannot be {@literal null}.
      */
-    JwtPrincipal(final Subject subj){
-        this(getUserName(subj), getRoles(subj));
+    JwtPrincipal(final Subject subj, final Duration lifeTime){
+        this(getUserName(subj), getRoles(subj), lifeTime.toMillis());
     }
 
     private static String getUserName(final Subject subj){
@@ -145,7 +145,7 @@ final class JwtPrincipal implements Principal {
      * Refresh if required.
      */
     JwtPrincipal refresh() {
-        return new JwtPrincipal(name, roles);
+        return new JwtPrincipal(name, roles, getLifetime());
     }
 
     /**
@@ -184,6 +184,17 @@ final class JwtPrincipal implements Principal {
                 ROLES_FIELD, ROLE_JOINER.join(roles)
         );
         return new JWTSigner(secret).sign(claims);
+    }
+
+    private long getLifetime(){
+        return expiredAt - createdAt;
+    }
+
+    HttpCookie createCookie(final String cookieName, final String secret) {
+        final HttpCookie cookie = new HttpCookie(cookieName, createJwtToken(secret));
+        cookie.setMaxAge(TimeUnit.MILLISECONDS.toSeconds(getLifetime()));
+        cookie.setComment("SNAMP JWT authentication token");
+        return cookie;
     }
 
     @Override

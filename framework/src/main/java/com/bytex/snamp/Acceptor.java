@@ -29,8 +29,4 @@ public interface Acceptor<T, E extends Throwable> {
         for(final T item: c)
             acceptor.accept(item);
     }
-
-    static <T, E extends Throwable> Acceptor<T, E> nop(){
-        return value -> { };
-    }
 }

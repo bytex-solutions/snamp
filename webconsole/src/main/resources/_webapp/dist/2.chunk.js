@@ -8,10 +8,168 @@ exports = module.exports = __webpack_require__("./node_modules/css-loader/lib/cs
 
 
 // module
-exports.push([module.i, ".thumbnail.with-caption {\r\n    display: inline-block;\r\n    background: #f5f5f5;\r\n}\r\n.thumbnail.with-caption p {\r\n    margin: 0;\r\n    padding-top: 0.5em;\r\n    text-align: center;\r\n    font-size: large;\r\n}\r\n.thumbnail.with-caption small:before {\r\n    content: '\\2014   \\A0';\r\n}\r\n.thumbnail {\r\n    height: auto;\r\n    margin: 10px;\r\n    max-height: 190px;\r\n}\r\n.thumbnail.with-caption small {\r\n    width: 100%;\r\n    text-align: right;\r\n    display: inline-block;\r\n    color: #999;\r\n}\r\n\r\nselect.form-control:not([size]):not([multiple]) {\r\n    height: auto;\r\n    cursor: pointer;\r\n}\r\n\r\n.chartMenuImage {\r\n  position: fixed;\r\n  right: 80px;\r\n  top: 50%;\r\n  margin-top: -9em !important;\r\n  z-index: 3;\r\n}\r\n\r\n#chartMenu {\r\n  background: #536980;\r\n  color: rgba(255,255,255,0.95);\r\n  position: fixed;\r\n  right: 0;\r\n  top: 50%;\r\n  margin-top: -10em !important;\r\n  list-style-type: none;\r\n  z-index: 3;\r\n  padding: 9px 0 9px 9px;\r\n  border-top-left-radius: 5px;\r\n  border-bottom-left-radius: 5px;\r\n}\r\n\r\n#chartMenu li {\r\n    cursor: pointer;\r\n    margin-bottom: 15px;\r\n    margin-right: 5px;\r\n}\r\n\r\n#chartMenu li i {\r\n    padding: 7px;\r\n    border-radius: 5px;\r\n    font-size: 1.5em;\r\n}\r\n\r\n#chartMenu li:hover i {\r\n    background: #1ABB9C;\r\n}\r\n\r\n#chartMenu li:last-child {\r\n    margin-bottom: 0;\r\n}\r\n\r\n.jumbotron {\r\n    padding: 15px !important;\r\n}\r\n\r\n.jumbotron p {\r\n    font-size: 17px !important;\r\n}\r\n\r\n.grid {\r\n\ttransform-origin: top center;\r\n\ttransition: transform 0.5s;\r\n\tposition: relative;\r\n}\r\n\r\n.grid-item {\r\n\tbackground-color: #ffffff;\r\n\t-webkit-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\t-moz-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\t-o-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\ttransition: width 0.25s, height 0.25s, transform 0.5s;\r\n\toverflow: hidden;\r\n\tposition: absolute;\r\n\tbox-shadow: 3px 3px 3px rgba(0,0,0,0.4);\r\n\tborder: 1px solid rgb(42, 63, 84);\r\n    border-radius: 5px;\r\n}\r\n\r\n.grid-item:active, .grid-item.moving {\r\n\tz-index: 2;\r\n\t-webkit-transition: none;\r\n\t-moz-transition: none;\r\n\t-o-transition: none;\r\n\ttransition: none;\r\n}\r\n\r\n.grid-placeholder {\r\n\tbackground-color: rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.grid-item.moving {\r\n    z-index: z-index + 1;\r\n}\r\n\r\n.placeholder {\r\n    position: absolute;\r\n}\r\n\r\n.nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {\r\n    opacity: 0.4;\r\n    fill: rgba(224, 116, 76, 0.91);\r\n}\r\n\r\n.x_title h2 {\r\n    font-size: inherit !important;\r\n    color: black;\r\n    display: inline;\r\n    max-width: calc(100% - 65px);\r\n}\r\n\r\n.x_title h5 {\r\n    display: inline;\r\n    margin-left: 15px;\r\n}\r\n\r\n.x_title {\r\n    border-bottom: 2px solid #E6E9ED;\r\n    padding: 0 0 7px 0 !important;\r\n    margin-bottom: 0 !important;\r\n    font-style: italic;\r\n}\r\n\r\n.panel_toolbox > li >a {\r\n    display: inline;\r\n}\r\n\r\nul.panel_toolbox i.fa-pause-circle-o {\r\n    color:#ffa3a3;\r\n}\r\n\r\nul.panel_toolbox i.fa-play-circle-o {\r\n    color:#639863;\r\n}\r\n\r\n.tableWrapper {\r\n    position: relative;\r\n    height: 100%;\r\n    overflow: hidden;\r\n}", ""]);
+exports.push([module.i, ".thumbnail.with-caption {\r\n    display: inline-block;\r\n    background: #f5f5f5;\r\n}\r\n.thumbnail.with-caption p {\r\n    margin: 0;\r\n    padding-top: 0.5em;\r\n    text-align: center;\r\n    font-size: large;\r\n}\r\n.thumbnail.with-caption small:before {\r\n    content: '\\2014   \\A0';\r\n}\r\n.thumbnail {\r\n    height: auto;\r\n    margin: 10px;\r\n    max-height: 190px;\r\n}\r\n.thumbnail.with-caption small {\r\n    width: 100%;\r\n    text-align: right;\r\n    display: inline-block;\r\n    color: #999;\r\n}\r\n\r\nselect.form-control:not([size]):not([multiple]) {\r\n    height: auto;\r\n    cursor: pointer;\r\n}\r\n\r\n.chartMenuImage {\r\n  position: fixed;\r\n  right: 80px;\r\n  top: 50%;\r\n  margin-top: -9em !important;\r\n  z-index: 3;\r\n}\r\n\r\n#chartMenu {\r\n  background: #536980;\r\n  color: rgba(255,255,255,0.95);\r\n  position: fixed;\r\n  right: 0;\r\n  top: 50%;\r\n  margin-top: -10em !important;\r\n  list-style-type: none;\r\n  z-index: 3;\r\n  padding: 9px 0 9px 9px;\r\n  border-top-left-radius: 5px;\r\n  border-bottom-left-radius: 5px;\r\n}\r\n\r\n#chartMenu li {\r\n    cursor: pointer;\r\n    margin-bottom: 15px;\r\n    margin-right: 5px;\r\n}\r\n\r\n#chartMenu li i {\r\n    padding: 7px;\r\n    border-radius: 5px;\r\n    font-size: 1.5em;\r\n}\r\n\r\n#chartMenu li:hover i {\r\n    background: #1ABB9C;\r\n}\r\n\r\n#chartMenu li:last-child {\r\n    margin-bottom: 0;\r\n}\r\n\r\n.jumbotron {\r\n    padding: 15px !important;\r\n}\r\n\r\n.jumbotron p {\r\n    font-size: 17px !important;\r\n}\r\n\r\n.grid {\r\n\ttransform-origin: top center;\r\n\ttransition: transform 0.5s;\r\n\tposition: relative;\r\n}\r\n\r\n.grid-item {\r\n\tbackground-color: #ffffff;\r\n\t-webkit-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\t-moz-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\t-o-transition: width 0.25s, height 0.25s, transform 0.5s;\r\n\ttransition: width 0.25s, height 0.25s, transform 0.5s;\r\n\toverflow: hidden;\r\n\tposition: absolute;\r\n\tbox-shadow: 3px 3px 3px rgba(0,0,0,0.4);\r\n\tborder: 1px solid rgb(42, 63, 84);\r\n    border-radius: 5px;\r\n}\r\n\r\n.grid-item:active, .grid-item.moving {\r\n\tz-index: 2;\r\n\t-webkit-transition: none;\r\n\t-moz-transition: none;\r\n\t-o-transition: none;\r\n\ttransition: none;\r\n}\r\n\r\n.grid-placeholder {\r\n\tbackground-color: rgba(0, 0, 0, 0.3);\r\n}\r\n\r\n.grid-item.moving {\r\n    z-index: z-index + 1;\r\n}\r\n\r\n.placeholder {\r\n    position: absolute;\r\n}\r\n\r\n.nvd3.nv-pie.nv-chart-donut1 .nv-pie-title {\r\n    opacity: 0.4;\r\n    fill: rgba(224, 116, 76, 0.91);\r\n}\r\n\r\n.x_title h2 {\r\n    font-size: inherit !important;\r\n    color: black;\r\n    display: inline;\r\n    max-width: calc(100% - 81px);\r\n}\r\n\r\n.x_title h5 {\r\n    display: inline;\r\n    margin-left: 15px;\r\n}\r\n\r\n.x_title {\r\n    border-bottom: 2px solid #E6E9ED;\r\n    padding: 0 0 7px 0 !important;\r\n    margin-bottom: 0 !important;\r\n    font-style: italic;\r\n}\r\n\r\n.panel_toolbox > li >a {\r\n    display: inline;\r\n}\r\n\r\nul.panel_toolbox i.fa-pause-circle-o {\r\n    color:#ffa3a3;\r\n}\r\n\r\nul.panel_toolbox i.fa-play-circle-o {\r\n    color:#639863;\r\n}\r\n\r\n.tableWrapper {\r\n    position: relative;\r\n    height: 100%;\r\n    overflow: hidden;\r\n}\r\n\r\n.hidedSelect {\r\n    display: none;\r\n}", ""]);
 
 // exports
 
+
+/***/ },
+
+/***/ "./node_modules/rxjs/observable/TimerObservable.js":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var isNumeric_1 = __webpack_require__("./node_modules/rxjs/util/isNumeric.js");
+var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
+var async_1 = __webpack_require__("./node_modules/rxjs/scheduler/async.js");
+var isScheduler_1 = __webpack_require__("./node_modules/rxjs/util/isScheduler.js");
+var isDate_1 = __webpack_require__("./node_modules/rxjs/util/isDate.js");
+/**
+ * We need this JSDoc comment for affecting ESDoc.
+ * @extends {Ignored}
+ * @hide true
+ */
+var TimerObservable = (function (_super) {
+    __extends(TimerObservable, _super);
+    function TimerObservable(dueTime, period, scheduler) {
+        if (dueTime === void 0) { dueTime = 0; }
+        _super.call(this);
+        this.period = -1;
+        this.dueTime = 0;
+        if (isNumeric_1.isNumeric(period)) {
+            this.period = Number(period) < 1 && 1 || Number(period);
+        }
+        else if (isScheduler_1.isScheduler(period)) {
+            scheduler = period;
+        }
+        if (!isScheduler_1.isScheduler(scheduler)) {
+            scheduler = async_1.async;
+        }
+        this.scheduler = scheduler;
+        this.dueTime = isDate_1.isDate(dueTime) ?
+            (+dueTime - this.scheduler.now()) :
+            dueTime;
+    }
+    /**
+     * Creates an Observable that starts emitting after an `initialDelay` and
+     * emits ever increasing numbers after each `period` of time thereafter.
+     *
+     * <span class="informal">Its like {@link interval}, but you can specify when
+     * should the emissions start.</span>
+     *
+     * <img src="./img/timer.png" width="100%">
+     *
+     * `timer` returns an Observable that emits an infinite sequence of ascending
+     * integers, with a constant interval of time, `period` of your choosing
+     * between those emissions. The first emission happens after the specified
+     * `initialDelay`. The initial delay may be a {@link Date}. By default, this
+     * operator uses the `async` Scheduler to provide a notion of time, but you
+     * may pass any Scheduler to it. If `period` is not specified, the output
+     * Observable emits only one value, `0`. Otherwise, it emits an infinite
+     * sequence.
+     *
+     * @example <caption>Emits ascending numbers, one every second (1000ms), starting after 3 seconds</caption>
+     * var numbers = Rx.Observable.timer(3000, 1000);
+     * numbers.subscribe(x => console.log(x));
+     *
+     * @example <caption>Emits one number after five seconds</caption>
+     * var numbers = Rx.Observable.timer(5000);
+     * numbers.subscribe(x => console.log(x));
+     *
+     * @see {@link interval}
+     * @see {@link delay}
+     *
+     * @param {number|Date} initialDelay The initial delay time to wait before
+     * emitting the first value of `0`.
+     * @param {number} [period] The period of time between emissions of the
+     * subsequent numbers.
+     * @param {Scheduler} [scheduler=async] The Scheduler to use for scheduling
+     * the emission of values, and providing a notion of "time".
+     * @return {Observable} An Observable that emits a `0` after the
+     * `initialDelay` and ever increasing numbers after each `period` of time
+     * thereafter.
+     * @static true
+     * @name timer
+     * @owner Observable
+     */
+    TimerObservable.create = function (initialDelay, period, scheduler) {
+        if (initialDelay === void 0) { initialDelay = 0; }
+        return new TimerObservable(initialDelay, period, scheduler);
+    };
+    TimerObservable.dispatch = function (state) {
+        var index = state.index, period = state.period, subscriber = state.subscriber;
+        var action = this;
+        subscriber.next(index);
+        if (subscriber.closed) {
+            return;
+        }
+        else if (period === -1) {
+            return subscriber.complete();
+        }
+        state.index = index + 1;
+        action.schedule(state, period);
+    };
+    TimerObservable.prototype._subscribe = function (subscriber) {
+        var index = 0;
+        var _a = this, period = _a.period, dueTime = _a.dueTime, scheduler = _a.scheduler;
+        return scheduler.schedule(TimerObservable.dispatch, dueTime, {
+            index: index, period: period, subscriber: subscriber
+        });
+    };
+    return TimerObservable;
+}(Observable_1.Observable));
+exports.TimerObservable = TimerObservable;
+//# sourceMappingURL=TimerObservable.js.map
+
+/***/ },
+
+/***/ "./node_modules/rxjs/scheduler/async.js":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var AsyncAction_1 = __webpack_require__("./node_modules/rxjs/scheduler/AsyncAction.js");
+var AsyncScheduler_1 = __webpack_require__("./node_modules/rxjs/scheduler/AsyncScheduler.js");
+exports.async = new AsyncScheduler_1.AsyncScheduler(AsyncAction_1.AsyncAction);
+//# sourceMappingURL=async.js.map
+
+/***/ },
+
+/***/ "./node_modules/rxjs/util/isDate.js":
+/***/ function(module, exports) {
+
+"use strict";
+"use strict";
+function isDate(value) {
+    return value instanceof Date && !isNaN(+value);
+}
+exports.isDate = isDate;
+//# sourceMappingURL=isDate.js.map
+
+/***/ },
+
+/***/ "./node_modules/rxjs/util/isNumeric.js":
+/***/ function(module, exports, __webpack_require__) {
+
+"use strict";
+"use strict";
+var isArray_1 = __webpack_require__("./node_modules/rxjs/util/isArray.js");
+function isNumeric(val) {
+    // parseFloat NaNs numeric-cast false positives (null|true|false|"")
+    // ...but misinterprets leading-number strings, particularly hex literals ("0x...")
+    // subtraction forces infinities to NaN
+    // adding 1 corrects loss of precision from parseFloat (#15100)
+    return !isArray_1.isArray(val) && (val - parseFloat(val) + 1) >= 0;
+}
+exports.isNumeric = isNumeric;
+;
+//# sourceMappingURL=isNumeric.js.map
 
 /***/ },
 
@@ -19,7 +177,7 @@ exports.push([module.i, ".thumbnail.with-caption {\r\n    display: inline-block;
 /***/ function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {"use strict";
+/* WEBPACK VAR INJECTION */(function(jQuery, $) {"use strict";
 var core_1 = __webpack_require__("./node_modules/@angular/core/index.js");
 var app_restClient_1 = __webpack_require__("./src/app/services/app.restClient.ts");
 var Observable_1 = __webpack_require__("./node_modules/rxjs/Observable.js");
@@ -32,8 +190,8 @@ var router_1 = __webpack_require__("./node_modules/@angular/router/index.js");
 var resource_group_health_status_1 = __webpack_require__("./src/app/charts/model/charts/resource.group.health.status.ts");
 var abstract_line_based_chart_1 = __webpack_require__("./src/app/charts/model/abstract.line.based.chart.ts");
 var scaling_rate_chart_1 = __webpack_require__("./src/app/charts/model/scaling.rate.chart.ts");
-var abstract_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.chart.attributes.values.ts");
 var abstract_2d_chart_attributes_values_1 = __webpack_require__("./src/app/charts/model/abstract.2d.chart.attributes.values.ts");
+var vex_1 = __webpack_require__("./node_modules/angular2-modal/plugins/vex/index.js");
 __webpack_require__("./node_modules/rxjs/add/operator/publishLast.js");
 __webpack_require__("./node_modules/rxjs/add/operator/cache.js");
 __webpack_require__("./node_modules/rxjs/add/observable/forkJoin.js");
@@ -41,21 +199,27 @@ __webpack_require__("./node_modules/rxjs/add/observable/from.js");
 __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 __webpack_require__("./node_modules/smartwizard/js/jquery.smartWizard.min.js");
 __webpack_require__("./node_modules/select2/dist/js/select2.js");
+var app_user_profile_1 = __webpack_require__("./src/app/services/app.user.profile.ts");
+var util_1 = __webpack_require__("./node_modules/util/util.js");
+var voting_result_chart_1 = __webpack_require__("./src/app/charts/model/charts/voting.result.chart.ts");
+var TimerObservable_1 = __webpack_require__("./node_modules/rxjs/observable/TimerObservable.js");
+var utils_1 = __webpack_require__("./src/app/charts/model/utils.ts");
 var Dashboard = (function () {
-    function Dashboard(http, overlay, vcRef, _chartService, cd, route) {
+    function Dashboard(http, overlay, vcRef, _chartService, cd, modal, route, router, ups) {
         this.http = http;
         this._chartService = _chartService;
         this.cd = cd;
+        this.modal = modal;
         this.route = route;
-        this.timerId = undefined;
+        this.router = router;
+        this.ups = ups;
         this.selectedComponent = "";
         this.selectedInstances = [];
         this.allInstances = [];
-        this.selectedAllInstances = true;
         this.selectedRateMetrics = [];
         this.selectedChartType = "";
         this.chartName = "newChart";
-        this._charts = [];
+        this.allCharts = [];
         this.groupName = "";
         this.intervals = abstract_line_based_chart_1.SeriesBasedChart.generateIntervals();
         this.rateIntervals = abstract_line_based_chart_1.SeriesBasedChart.generateRateIntervals();
@@ -63,6 +227,14 @@ var Dashboard = (function () {
         this.timeInterval = undefined;
         this.rateInterval = undefined;
         this.currentChart = undefined;
+        this.smartWizardInitialized = false;
+        this.subscriberRoute = undefined;
+        this.chartGroupSubscriber = undefined;
+        this.componentSubscriber = undefined;
+        this.instancesSubscriber = undefined;
+        this.metricsSubscriber = undefined;
+        this.useGroup = true;
+        this.isInstancesSupported = true;
         this.gridConfig = {
             'margins': [10],
             'draggable': true,
@@ -87,87 +259,122 @@ var Dashboard = (function () {
             'limit_to_screen': true
         };
         overlay.defaultViewContainer = vcRef;
-        this.timeInterval = this.intervals[0];
-        this.rateInterval = this.rateIntervals[0];
+        this.timeInterval = this.intervals[0].id;
+        this.rateInterval = this.rateIntervals[0].additionalId;
     }
     Dashboard.prototype.appendChartClicked = function (type) {
+        var _this = this;
         this.selectedChartType = type;
+        this.isInstancesSupported = Dashboard.TYPES.find(function (_type) { return _this.selectedChartType == _type.consoleSpecificName; }).instancesSupport;
         this.cd.detectChanges(); // draw the modal html
         this.initNewChart();
     };
     Dashboard.prototype.initNewChart = function () {
+        var _this = this;
+        this.updateComponentsAndInstances();
         // set all elements to the initial state
-        this.selectedAllInstances = true;
         this.allInstances = [];
         this.selectedInstances = [];
         this.selectedMetric = undefined;
-        this.selectedComponent = "";
-        this.timeInterval = this.intervals[0];
+        this.components.subscribe(function (comps) {
+            _this.selectedComponent = comps.length > 0 ? comps[0] : "";
+            _this.useGroup = comps.length > 0;
+            console.debug("Components got: ", comps, " useGroup: ", _this.useGroup);
+            _this.triggerUseGroup(_this.useGroup);
+        });
+        this.timeInterval = this.intervals[0].id;
         this.selectedRateMetrics = [];
-        this.rateInterval = this.rateIntervals[0];
+        this.rateInterval = this.rateIntervals[0].additionalId;
         this.currentChart = undefined;
-        // fill components and selected component
-        this.ngOnInit();
+        this.cd.detectChanges();
         // init modal components and show modal itself
         this.initModal();
     };
-    Dashboard.prototype.modifyChart = function (chart) {
-        // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
-        this.currentChart = chart;
+    Dashboard.prototype.modifyChart = function (chartToModify) {
+        var chart = jQuery.extend(true, {}, chartToModify);
+        this.selectedChartType = Dashboard.TYPES.find(function (key) { return key.mappedTypeName == chart.type; }).consoleSpecificName;
+        this.isInstancesSupported = Dashboard.TYPES.find(function (key) { return key.mappedTypeName == chart.type; }).instancesSupport;
+        this.chartName = chart.name;
         // prefill instances from the existing chart
-        if (chart instanceof abstract_chart_attributes_values_1.ChartOfAttributeValues && chart.resources != undefined && chart.resources.length > 0) {
-            this.selectedAllInstances = false;
-            this.selectedInstances = chart.resources;
+        if (!util_1.isNullOrUndefined(chart["resources"]) && chart["resources"].length > 0) {
+            this.selectedInstances = chart["resources"];
         }
         else {
-            this.selectedAllInstances = true;
             this.selectedInstances = [];
         }
         // fill the group (I used property check because some charts have 'group' property defined in different places - fix@todo)
-        if (chart['group'] != undefined && chart['group'].length > 0) {
+        if (!util_1.isNullOrUndefined(chart['group']) && chart['group'].length > 0) {
             this.selectedComponent = chart['group'];
         }
         else {
             this.selectedComponent = "";
         }
         // fill the rate metric and rate intervals from the chart
-        if (chart instanceof scaling_rate_chart_1.ScalingRateChart) {
-            this.selectedRateMetrics = chart.metrics;
-            this.rateInterval = this.rateIntervals.filter(function (element) { return element.additionalId == chart.interval; })[0];
+        if (!util_1.isNullOrUndefined(chart["metrics"])) {
+            this.selectedRateMetrics = chart["metrics"];
         }
         else {
             this.selectedRateMetrics = [];
-            this.rateInterval = this.intervals[0];
+        }
+        if (!util_1.isNullOrUndefined(chart["interval"])) {
+            this.rateInterval = chart["interval"];
+        }
+        else {
+            this.rateInterval = util_1.isNullOrUndefined(this.intervals[0]) ? undefined : this.intervals[0].additionalId;
         }
         // fill the time interval if the chart belongs to series based charts
-        if (chart instanceof abstract_line_based_chart_1.SeriesBasedChart) {
-            this.timeInterval = this.rateIntervals.filter(function (element) { return element.id == chart.preferences["interval"]; })[0];
+        if (!util_1.isNullOrUndefined(chart.preferences["interval"])) {
+            this.timeInterval = chart.preferences["interval"];
         }
         else {
-            this.timeInterval = this.intervals[0];
+            this.timeInterval = this.intervals[0].id;
         }
-        // fill the selected metric if the chart has metric in one of its axes
-        if (chart instanceof abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues) {
-            this.selectedMetric = chart.getSourceAttribute();
-        }
-        else {
-            this.selectedMetric = undefined;
-        }
+        this.useGroup = this.selectedComponent.length > 0;
+        // make this chart as current (for further saving it, redrawing and switching button to "save the chart")
+        this.currentChart = chart;
         // make sure the front end has received the changes
         this.cd.detectChanges();
+        if (!this.useGroup) {
+            this.triggerUseGroup(false);
+        }
         // init modal components and show the modal
+        console.debug("Modifying chart class name is ", chart.constructor.name);
+        console.debug("Rate interval for chart ", chart.name, " is: ", this.rateInterval);
+        console.debug("Time interval for chart ", chart.name, " is: ", this.timeInterval);
+        console.debug("Selected instances for chart ", chart.name, " are: ", this.selectedInstances);
         this.initModal();
     };
+    Dashboard.prototype.updateComponentsAndInstances = function () {
+        var _this = this;
+        //fill components
+        this.components = this.http.get(app_restClient_1.REST.GROUPS_WEB_API)
+            .map(function (res) { return res.json(); })
+            .publishLast()
+            .refCount();
+        this.componentSubscriber = this.components.subscribe(function (data) {
+            if (data && data.length > 0) {
+                _this.selectedComponent = data[0];
+            }
+        });
+        // fill instances
+        this.instances = this.http.get(app_restClient_1.REST.GROUPS_RESOURCES)
+            .map(function (res) { return res.json(); })
+            .publishLast()
+            .refCount();
+        this.instancesSubscriber = this.instances.subscribe(function (data) {
+            _this.allInstances = data;
+        });
+        this.cd.detectChanges();
+    };
     Dashboard.prototype.initModal = function () {
+        var _this = this;
         // reset wizard
-        $(Dashboard.wizardId).off("showStep");
-        $(Dashboard.wizardId).smartWizard("reset");
-        this.initWizard();
-        if ($(Dashboard.select2Id).data('select2')) {
-            $(Dashboard.select2Id).select2("destroy");
+        if (this.smartWizardInitialized) {
+            $(Dashboard.wizardId).off("showStep");
+            $(Dashboard.wizardId).smartWizard("reset");
         }
+        this.initWizard();
         // reset rate metric select2 component
-        var _thisReference = this;
         if ($(Dashboard.rateMetricSelect2Id).data('select2')) {
             $(Dashboard.rateMetricSelect2Id).select2("destroy");
         }
@@ -177,7 +384,7 @@ var Dashboard = (function () {
             allowClear: true
         });
         $(Dashboard.rateMetricSelect2Id).on('change', function (e) {
-            _thisReference.onRateMetricSelect($(e.target).val());
+            _this.selectedRateMetrics = $(e.target).val();
         });
         // open the modal
         $(Dashboard.chartModalId).modal("show");
@@ -185,50 +392,36 @@ var Dashboard = (function () {
     Dashboard.prototype.updateChartName = function () {
         this.chartName = this.selectedChartType + "." +
             (this.selectedComponent != "" ? this.selectedComponent + "." : "") +
-            ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" +
-            this._charts.length;
-    };
-    Dashboard.prototype.ngOnInit = function () {
-        var _this = this;
-        this.components = this.http.get(app_restClient_1.REST.GROUPS_WEB_API)
-            .map(function (res) { return res.json(); })
-            .publishLast().refCount(); // http://stackoverflow.com/questions/36271899/what-is-the-correct-way-to-share-the-result-of-an-angular-2-http-network-call-in
-        this.components.subscribe(function (data) {
-            if (data && data.length > 0) {
-                _this.selectedComponent = data[0];
-                // load instances as well - if we autoselect a component
-                _this.instances = _this.http.get(app_restClient_1.REST.GROUPS_RESOURCE_BY_COMPONENT_NAME(_this.selectedComponent))
-                    .map(function (res) { return res.json(); }).publishLast().refCount();
-                _this.instances.subscribe(function (data) { _this.allInstances = data; });
-            }
-            else {
-                _this.selectedComponent = "";
-                _this.instances = _this.http.get(app_restClient_1.REST.GROUPS_RESOURCES)
-                    .map(function (res) { return res.json(); }).publishLast().refCount();
-                _this.instances.subscribe(function (data) { _this.allInstances = data; });
-            }
-        });
+            ((this.selectedMetric != undefined) ? this.selectedMetric.name : "") + "_" + this.allCharts.length;
     };
     Dashboard.prototype.ngAfterViewInit = function () {
         var _this = this;
-        var _thisReference = this;
-        this.route.params
+        this.subscription = TimerObservable_1.TimerObservable.create(2000, 1000).subscribe(function () {
+            if (_this.allCharts.length > 0)
+                _this._chartService.receiveDataForCharts(_this.allCharts);
+        });
+        this.subscriberRoute = this.route.params
             .map(function (params) { return params['groupName']; })
             .subscribe(function (gn) {
+            _this.cd.reattach();
+            _this.updateComponentsAndInstances();
+            // fill dashboard name (group that charts here belong to)
             _this.groupName = gn;
-            _this._charts = _this._chartService.getChartsByGroupName(_this.groupName);
-            _this.cd.detectChanges();
-            for (var i = 0; i < _this._charts.length; i++) {
-                _this._charts[i].draw();
+            if (!util_1.isNullOrUndefined(_this._chartService.activeSubscriber)) {
+                _this._chartService.activeSubscriber.unsubscribe();
+                _this._chartService.activeSubscriber = undefined;
             }
-            _this.timerId = setInterval(function () {
-                _thisReference._chartService.receiveChartDataForGroupName(gn);
-            }, 1500);
+            _this.chartGroupSubscriber = _this._chartService.getChartsByGroupName(gn).subscribe(function (chs) {
+                _this.allCharts = chs;
+                chs.forEach(function (chart) { return chart.reinitialize(); });
+                _this.cd.markForCheck(); // process template
+            });
+            _this._chartService.activeSubscriber = _this.chartGroupSubscriber;
         });
     };
     Dashboard.prototype.initWizard = function () {
-        var _thisReference = this;
-        var _hidden = _thisReference.getHiddenSteps();
+        var _this = this;
+        var _hidden = this.getHiddenSteps();
         $(Dashboard.wizardId).smartWizard({
             theme: 'arrows',
             hiddenSteps: _hidden,
@@ -246,156 +439,132 @@ var Dashboard = (function () {
             }
         }
         $(Dashboard.wizardId).on("showStep", function (e, anchorObject, stepNumber, stepDirection) {
-            _thisReference.cd.detectChanges();
-            if (stepNumber == 3 && _thisReference.isNewChart()) {
-                _thisReference.updateChartName();
+            _this.cd.detectChanges();
+            if (stepNumber == 2 && _this.isNewChart() && stepDirection == "forward") {
+                _this.updateChartName();
             }
-            else if (stepNumber == 2 && stepDirection == "forward") {
-                _thisReference.loadMetricsOnInstancesSelected();
-            }
-            else if (stepNumber == 1) {
-                if (stepDirection == "forward" && _thisReference.isNewChart()) {
-                    _thisReference.selectedAllInstances = true;
-                    _thisReference.selectedInstances = [];
+            else if (stepNumber == 1 && stepDirection == "forward") {
+                if (_this.useGroup) {
+                    _this.loadMetricsByComponents();
                 }
-                _thisReference.triggerShowInstances(_thisReference.selectedAllInstances);
-            }
-        });
-    };
-    Dashboard.prototype.onComponentSelect = function (event) {
-        var _this = this;
-        var _endpoint = event == "" ? app_restClient_1.REST.GROUPS_RESOURCES : app_restClient_1.REST.GROUPS_RESOURCE_BY_COMPONENT_NAME(event);
-        this.instances = this.http.get(_endpoint)
-            .map(function (res) { return res.json(); })
-            .publishLast()
-            .refCount();
-        this.instances.subscribe(function (data) { _this.allInstances = data; });
-    };
-    Dashboard.prototype.onInstanceSelect = function (event) {
-        this.selectedInstances = event;
-    };
-    Dashboard.prototype.onRateMetricSelect = function (event) {
-        this.selectedRateMetrics = event;
-    };
-    Dashboard.prototype.loadMetricsOnInstancesSelected = function () {
-        var _this = this;
-        $('#overlay').fadeIn();
-        var _instanceForSearchMetrics = ((this.selectedAllInstances) ? this.allInstances[0] : this.selectedInstances[0]);
-        var _obsComponents = this.selectedComponent == "" ? Observable_1.Observable.of([]) : this.http.get(app_restClient_1.REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
-            .map(function (res) {
-            var _data = res.json();
-            var _values = [];
-            for (var i in _data) {
-                _values.push(new attribute_1.AttributeInformation(_data[i]));
-            }
-            return _values;
-        }).catch(function (res) { return Observable_1.Observable.of([]); }).cache();
-        var _obsInstances = this.http.get(app_restClient_1.REST.CHART_METRICS_BY_INSTANCE(_instanceForSearchMetrics))
-            .map(function (res) {
-            var _data = res.json();
-            var _values = [];
-            for (var i in _data) {
-                _values.push(new attribute_1.AttributeInformation(_data[i]));
-            }
-            return _values;
-        }).catch(function (res) { return Observable_1.Observable.of([]); }).cache();
-        this.metrics = Observable_1.Observable.forkJoin([_obsComponents, _obsInstances])
-            .map(function (_data) {
-            var _returnData = [];
-            // if one of input arrays is empty - return another one
-            if (_data[1].length == 0 && _data[0].length > 0) {
-                return _data[0];
-            }
-            if (_data[0].length == 0 && _data[1].length > 0) {
-                return _data[1];
-            }
-            for (var i = 0; i < _data[0].length; i++) {
-                var _currentValue = _data[0][i];
-                for (var j = 0; j < _data[1].length; j++) {
-                    if (_currentValue.name == _data[1][j].name) {
-                        if (_currentValue.description == undefined) {
-                            _currentValue.description = _data[1][j].description;
-                        }
-                        if (_currentValue.type == undefined) {
-                            _currentValue.type = _data[1][j].type;
-                        }
-                        if (_currentValue.unitOfMeasurement == undefined) {
-                            _currentValue.unitOfMeasurement = _data[1][j].unitOfMeasurement;
-                        }
-                    }
+                else {
+                    _this.loadMetricsByInstances();
                 }
-                _returnData.push(_currentValue);
-            }
-            return _returnData;
-        });
-        // set auto selected first metric if the array is not empty
-        this.metrics.subscribe(function (data) {
-            if (data && data.length > 0) {
-                _this.selectedMetric = data[0];
             }
         });
-        $('#overlay').fadeOut();
+        this.smartWizardInitialized = true;
     };
-    Dashboard.prototype.triggerShowInstances = function (event) {
-        var _select = $(Dashboard.select2Id);
-        var _thisReference = this;
-        if (event == false) {
-            _select.select2({
+    Dashboard.prototype.triggerUseGroup = function (useGroupStatus) {
+        var _this = this;
+        this.cd.detectChanges();
+        console.debug("Triggered. UseGroupStatus is ", useGroupStatus);
+        // if we show the select for instances - reinitialize the select2 component
+        if (!useGroupStatus) {
+            if ($(Dashboard.select2Id).data('select2')) {
+                $(Dashboard.select2Id).select2("destroy");
+            }
+            $(Dashboard.select2Id).select2({
                 placeholder: "Select instances from the dropdown",
+                width: '100%',
                 allowClear: true
             });
-            _select.on('change', function (e) {
-                _thisReference.onInstanceSelect($(e.target).val()); // no native actions on the selec2 componentс
+            $(Dashboard.select2Id).on('change', function (e) {
+                _this.selectedInstances = $(e.target).val(); // no native actions on the selec2 componentс
             });
-            _select.fadeIn("fast");
-        }
-        else {
-            if (_select.data('select2')) {
-                _select.fadeOut("fast", function () {
-                    _select.select2("destroy");
-                });
-            }
         }
     };
-    Dashboard.prototype.addChartToDashboard = function () {
-        var _instances = ((this.selectedAllInstances) ? this.allInstances : this.selectedInstances);
-        var chart = objectFactory_1.Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.selectedComponent, _instances, this.selectedMetric);
+    Dashboard.prototype.fillMetrics = function (obs) {
+        var _this = this;
+        this.metrics = obs;
+        // set auto selected first metric if the array is not empty
+        this.metricsSubscriber = this.metrics.subscribe(function (data) {
+            if (data && data.length > 0) {
+                if (_this.isNewChart()) {
+                    _this.selectedMetric = data[0];
+                }
+                else if (typeof _this.currentChart["getSourceAttribute"] != undefined) {
+                    console.debug("Chart after metrics received: ", _this.currentChart, " instanceof: ", _this.currentChart instanceof abstract_2d_chart_attributes_values_1.TwoDimensionalChartOfAttributeValues, " or ", typeof _this.currentChart["getSourceAttribute"] != undefined);
+                    var _attr_1 = _this.currentChart["getSourceAttribute"]();
+                    _this.selectedMetric = data.find(function (metric) { return metric.name == _attr_1.name && metric.type == _attr_1.type; });
+                    console.debug("Attr was ", _attr_1, " metric is ", _this.selectedMetric);
+                }
+            }
+        });
+    };
+    Dashboard.prototype.loadMetricsByInstances = function () {
+        this.fillMetrics(this.http.post(app_restClient_1.REST.CHART_METRICS_BY_INSTANCES, this.selectedInstances)
+            .map(function (res) {
+            var _data = res.json();
+            var _values = [];
+            for (var i in _data) {
+                _values.push(new attribute_1.AttributeInformation(_data[i]));
+            }
+            return _values;
+        }).catch(function (res) { return Observable_1.Observable.of([]); }).cache());
+    };
+    Dashboard.prototype.loadMetricsByComponents = function () {
+        this.fillMetrics(this.selectedComponent == "" ? Observable_1.Observable.of([]) : this.http.get(app_restClient_1.REST.CHART_METRICS_BY_COMPONENT(this.selectedComponent))
+            .map(function (res) {
+            var _data = res.json();
+            var _values = [];
+            for (var i in _data) {
+                _values.push(new attribute_1.AttributeInformation(_data[i]));
+            }
+            return _values;
+        }).catch(function (res) { return Observable_1.Observable.of([]); }).cache());
+    };
+    Dashboard.prototype.generateChart = function () {
+        var _instances = this.selectedInstances;
+        var chart = objectFactory_1.Factory.create2dChart(this.selectedChartType, this.chartName, this.groupName, this.useGroup ? this.selectedComponent : "", this.useGroup ? [] : _instances, this.selectedMetric);
         // if this is a line chart - add time interval
         if (chart instanceof abstract_line_based_chart_1.SeriesBasedChart) {
-            chart.preferences["interval"] = this.timeInterval.id;
+            chart.preferences["interval"] = this.timeInterval;
         }
         if (chart instanceof scaling_rate_chart_1.ScalingRateChart) {
             chart.metrics = this.selectedRateMetrics;
-            chart.interval = this.rateInterval.additionalId;
+            chart.interval = this.rateInterval;
         }
-        this._chartService.newChart(chart);
-        this._charts = this._chartService.getChartsByGroupName(this.groupName);
+        return chart;
+    };
+    Dashboard.prototype.addChartToDashboard = function () {
+        this._chartService.newChart(this.generateChart());
         $(Dashboard.chartModalId).modal("hide");
-        this.cd.detectChanges();
-        var _thisReference = this;
-        setTimeout(function () {
-            chart.draw();
-            _thisReference._chartService.saveDashboard();
-        }, 400);
     };
     Dashboard.prototype.saveChart = function () {
-        this._chartService.modifyChart(this.currentChart);
+        var _this = this;
+        this._chartService.removeChart(this.currentChart.name, false);
+        this.allCharts = this.allCharts.filter(function (as) { return as.name != _this.currentChart.name; });
         this.cd.detectChanges();
-        this.currentChart.draw();
+        this.addChartToDashboard();
     };
     Dashboard.prototype.onChangeStop = function (index, event) {
-        if (index != undefined && this._charts[index] != undefined) {
-            this._charts[index].preferences["gridcfg"] = event;
-            this._chartService.saveDashboard();
-            this._charts[index].resize();
+        if (this.isAllowed() && !util_1.isNullOrUndefined(index) && !util_1.isNullOrUndefined(this.allCharts[index])) {
+            this._chartService.saveChartsPreferences(this.allCharts[index].name, event);
+            this.allCharts[index].resize();
         }
     };
     Dashboard.prototype.removeChart = function (chartName) {
-        this._chartService.removeChart(chartName);
-        this._charts = this._chartService.getChartsByGroupName(this.groupName);
+        this._chartService.removeChart(chartName, true);
     };
     Dashboard.prototype.ngOnDestroy = function () {
-        clearInterval(this.timerId);
+        console.debug("DESTROING CHART FOR GROUP ", this.groupName);
+        if (!util_1.isNullOrUndefined(this.subscription))
+            this.subscription.unsubscribe();
+        if (!util_1.isNullOrUndefined(this.subscriberRoute)) {
+            this.subscriberRoute.unsubscribe();
+        }
+        if (!util_1.isNullOrUndefined(this.chartGroupSubscriber)) {
+            this.chartGroupSubscriber.unsubscribe();
+        }
+        if (!util_1.isNullOrUndefined(this.componentSubscriber)) {
+            this.componentSubscriber.unsubscribe();
+        }
+        if (!util_1.isNullOrUndefined(this.instancesSubscriber)) {
+            this.instancesSubscriber.unsubscribe();
+        }
+        if (!util_1.isNullOrUndefined(this.metricsSubscriber)) {
+            this.metricsSubscriber.unsubscribe();
+        }
     };
     Dashboard.prototype.isInstanceSelected = function (instance) {
         return (this.selectedInstances.indexOf(instance) >= 0);
@@ -419,37 +588,82 @@ var Dashboard = (function () {
     Dashboard.prototype.isNewChart = function () {
         return this.currentChart == undefined;
     };
+    Dashboard.prototype.isResetable = function (chart) {
+        return chart instanceof scaling_rate_chart_1.ScalingRateChart || chart instanceof voting_result_chart_1.VotingResultChart || chart instanceof resource_group_health_status_1.ResourceGroupHealthStatusChart;
+    };
+    Dashboard.prototype.resetChart = function (chart) {
+        var _this = this;
+        this.modal.confirm()
+            .className('default')
+            .message('Chart will be reset for all dashboards and users. Proceed?')
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this._chartService.resetChart(chart);
+                return response;
+            })
+                .catch(function () {
+                console.debug("user preferred to decline dashboard removing");
+            });
+        }).catch(function () { });
+    };
     Dashboard.prototype.getHiddenSteps = function () {
         switch (this.selectedChartType) {
             case "statuses":
             case "resources":
             case "voting":
-                return [1, 2];
-            case "scaleIn":
-            case "scaleOut":
                 return [1];
             default:
                 return [];
         }
     };
+    Dashboard.prototype.removeDashboard = function () {
+        var _this = this;
+        this.modal.confirm()
+            .className('default')
+            .message('Dashboard will be removed. Proceed?')
+            .open()
+            .then(function (resultPromise) {
+            return resultPromise.result
+                .then(function (response) {
+                _this._chartService.removeChartsByGroupName(_this.groupName);
+                var _arr = _this._chartService.getSimpleGroupName();
+                if (_arr.length > 0) {
+                    _this.router.navigate(['charts', _arr[0]]);
+                }
+                else {
+                    _this.router.navigate(['charts']);
+                }
+                return response;
+            })
+                .catch(function () {
+                console.debug("user preferred to decline dashboard removing");
+            });
+        }).catch(function () { });
+    };
+    Dashboard.prototype.isAllowed = function () {
+        return this.ups.isUserHasManagerOrAdminRole();
+    };
     Dashboard.select2Id = "#instancesSelect";
     Dashboard.chartModalId = "#addChartModal";
     Dashboard.wizardId = "#smartwizardForChart";
     Dashboard.rateMetricSelect2Id = "#rateMetricSelect";
+    Dashboard.TYPES = utils_1.ChartTypeDescription.generateType();
     Dashboard = __decorate([
         core_1.Component({
             moduleId: module.i,
             template: __webpack_require__("./src/app/charts/templates/dashboard.html"),
             styles: [__webpack_require__("./src/app/charts/templates/css/dashboard.css")]
         }), 
-        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _f) || Object])
+        __metadata('design:paramtypes', [(typeof (_a = typeof app_restClient_1.ApiClient !== 'undefined' && app_restClient_1.ApiClient) === 'function' && _a) || Object, (typeof (_b = typeof angular2_modal_1.Overlay !== 'undefined' && angular2_modal_1.Overlay) === 'function' && _b) || Object, (typeof (_c = typeof core_1.ViewContainerRef !== 'undefined' && core_1.ViewContainerRef) === 'function' && _c) || Object, (typeof (_d = typeof app_chartService_1.ChartService !== 'undefined' && app_chartService_1.ChartService) === 'function' && _d) || Object, (typeof (_e = typeof core_1.ChangeDetectorRef !== 'undefined' && core_1.ChangeDetectorRef) === 'function' && _e) || Object, (typeof (_f = typeof vex_1.Modal !== 'undefined' && vex_1.Modal) === 'function' && _f) || Object, (typeof (_g = typeof router_1.ActivatedRoute !== 'undefined' && router_1.ActivatedRoute) === 'function' && _g) || Object, (typeof (_h = typeof router_1.Router !== 'undefined' && router_1.Router) === 'function' && _h) || Object, (typeof (_j = typeof app_user_profile_1.UserProfileService !== 'undefined' && app_user_profile_1.UserProfileService) === 'function' && _j) || Object])
     ], Dashboard);
     return Dashboard;
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 }());
 exports.Dashboard = Dashboard;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js")))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__("./node_modules/jquery/dist/jquery.js"), __webpack_require__("./node_modules/jquery/dist/jquery.js")))
 
 /***/ },
 
@@ -572,14 +786,14 @@ exports.TemplateView = TemplateView;
 /***/ "./src/app/charts/templates/dashboard.html":
 /***/ function(module, exports) {
 
-module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"addChartModal\" role=\"dialog\" aria-labelledby=\"addChartLabel\" *ngIf=\"selectedChartType != ''\">\r\n  <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n    <div class=\"modal-content\">\r\n      <div class=\"modal-header\">\r\n        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n        <h4 class=\"modal-title leftAlign\" id=\"addChartLabel\">Visualization wizard</h4>\r\n      </div>\r\n      <br/>\r\n      <div class=\"modal-body\">\r\n        <div id=\"smartwizardForChart\" style=\"height: 95%\">\r\n          <ul>\r\n            <li>\r\n              <a [attr.href]=\"'#component'\">\r\n                Group<br />\r\n                <small>Select group</small>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <a [attr.href]=\"'#instances'\">\r\n                Resources<br />\r\n                <small>Mark resources</small>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <a [attr.href]=\"'#metric'\">\r\n                Metric<br />\r\n                <small>Choose metric</small>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <a [attr.href]=\"'#save'\">\r\n                Save<br />\r\n                <small>Add to dashboard</small>\r\n              </a>\r\n            </li>\r\n          </ul>\r\n\r\n          <div style=\"height:100%\">\r\n            <div id=\"component\" class=\"row\" style=\"margin-top: 100px;\">\r\n              <div class=\"item form-group\">\r\n                <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"componentSelect\"\r\n                        style=\"margin-top: 7px;\">\r\n                  Group\r\n                </label>\r\n                <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                  <select class=\"form-control\" [(ngModel)]=\"selectedComponent\" (ngModelChange)=\"onComponentSelect($event)\" id=\"componentSelect\">\r\n                    <option value=\"\" *ngIf=\"selectedChartType != 'statuses' && selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut' && selectedChartType != 'voting' \">NO GROUP</option>\r\n                    <option *ngFor=\"let component of components | async\" [ngValue]=\"component\">{{component}}</option>\r\n                  </select>\r\n                </div>\r\n              </div>\r\n            </div>\r\n\r\n            <div id=\"instances\" class=\"row\" style=\"margin-top: 100px;\">\r\n              <div class=\"col-md-12 col-sm-12 col-xs-12 text-center\" *ngIf=\"(instances | async) == undefined\">\r\n                <strong>No resources are found - cannot proceed</strong>\r\n              </div>\r\n\r\n              <div class=\"item form-group\" *ngIf=\"instances | async\">\r\n                <label\r\n                        class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                        for=\"instancesSelect\"\r\n                        style=\"margin-top: 7px;\">\r\n                  Resources\r\n                </label>\r\n\r\n                <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                  Select all\r\n                  <ui-switch\r\n                          [(ngModel)]=\"selectedAllInstances\"\r\n                          (change)=\"triggerShowInstances($event)\"\r\n                          [size]=\"'small'\">\r\n                  </ui-switch>\r\n                  <br/>\r\n                  <select class=\"select2_multiple form-control\" id=\"instancesSelect\" style=\"display: none;\" multiple=\"multiple\">\r\n                    <option *ngFor=\"let instance of instances | async\" [attr.selected]=\"isInstanceSelected(instance) ? true : null\">{{instance}}</option>\r\n                  </select>\r\n                </div>\r\n              </div>\r\n            </div>\r\n\r\n            <div id=\"metric\" class=\"row\" style=\"margin-top: 10px;\">\r\n              <div *ngIf=\"selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut'\">\r\n                <div class=\"col-md-12 col-sm-12 col-xs-12 text-center\" style=\"margin-top:100px\" *ngIf=\"(metrics | async) == undefined || (metrics | async).length == 0\">\r\n                  <strong>No metrics are found - cannot proceed</strong>\r\n                </div>\r\n                <div  *ngIf=\"(metrics | async) != undefined && (metrics | async).length > 0\">\r\n                <div class=\"bs-example\" data-example-id=\"simple-jumbotron\" *ngIf=\"selectedMetric != undefined\">\r\n                  <div class=\"jumbotron\">\r\n                    <p>\r\n                      <strong>Name: </strong>{{selectedMetric.name}}\r\n                    </p>\r\n                    <p *ngIf=\"selectedMetric.type != undefined && selectedMetric.type.length > 0\">\r\n                      <strong>Type: </strong>{{selectedMetric.type}}\r\n                    </p>\r\n                    <p *ngIf=\"selectedMetric.unitOfMeasurement != undefined && selectedMetric.unitOfMeasurement.length > 0\">\r\n                      <strong>Unit of measurement: </strong>{{selectedMetric.unitOfMeasurement}}\r\n                    </p>\r\n                    <p *ngIf=\"selectedMetric.description != undefined && selectedMetric.description.length > 0\">\r\n                      <strong>Description: </strong>{{selectedMetric.description}}\r\n                    </p>\r\n                  </div>\r\n                </div>\r\n                <div class=\"item form-group\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"metricSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Select metric <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"form-control\" [(ngModel)]=\"selectedMetric\" id=\"metricSelect\">\r\n                      <option [tooltip]=\"metric.type\" *ngFor=\"let metric of metrics | async\" [ngValue]=\"metric\">{{metric.name}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n              </div>\r\n              <div *ngIf=\"selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'\" style=\"margin-top:100px\">\r\n                <div class=\"item form-group\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"rateMetricSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Select rate metrics (multiple selection) <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"select2_multiple form-control\" id=\"rateMetricSelect\"  multiple=\"multiple\">\r\n                      <option *ngFor=\"let rateMetric of rateMetrics\" [attr.selected]=\"isRateMetricSelected(rateMetric.id) ? true : null\">{{rateMetric.id}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n\r\n            <div id=\"save\" style=\"margin-top: 40px;\">\r\n\r\n              <div class=\"row\" *ngIf=\"selectedChartType == 'line' || selectedChartType == 'resources' || selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'\">\r\n                <div class=\"item form-group col-md-offset-3\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"lineChartIntervalSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Select time interval <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"form-control\" [(ngModel)]=\"timeInterval\" id=\"lineChartIntervalSelect\">\r\n                      <option *ngFor=\"let interval of intervals\" [ngValue]=\"interval\">{{interval.description}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n              <div class=\"row\" *ngIf=\"selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'\" style=\"margin-top: 15px;\">\r\n                <div class=\"item form-group col-md-offset-3\" >\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"rateIntervalSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Select rate interval <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"form-control\" [(ngModel)]=\"rateInterval\" id=\"rateIntervalSelect\">\r\n                      <option *ngFor=\"let interval of rateIntervals\" [ngValue]=\"interval\">{{interval.description}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n              <br/>\r\n\r\n              <div class=\"row\">\r\n                <div class=\"item form-group col-md-offset-3\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          style=\"margin-top: 7px;\"\r\n                          for=\"chartNameInput\">\r\n                    Chart name <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <input type=\"text\" class=\"form-control\" id=\"chartNameInput\" placeholder=\"Chart name\" [(ngModel)]=\"chartName\" [disabled]=\"!isNewChart()\">\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n              <div class=\"row\" style=\"margin-top: 15px\">\r\n                <button\r\n                        *ngIf=\"isNewChart()\"\r\n                        type=\"button\"\r\n                        class=\"btn btn-primary col-md-4 col-md-offset-4\"\r\n                        (click)=\"addChartToDashboard()\">\r\n                  Append to dashboard\r\n                </button>\r\n\r\n                <button\r\n                        *ngIf=\"!isNewChart()\"\r\n                        type=\"button\"\r\n                        class=\"btn btn-primary col-md-4 col-md-offset-4\"\r\n                        (click)=\"saveChart()\">\r\n                  Save the chart\r\n                </button>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n<img src=\"/snamp/assets/img/add.png\" *ngIf=\"!_charts || _charts.length == 0\" class=\"chartMenuImage\"/>\r\n<ul id=\"chartMenu\">\r\n  <li [tooltip]=\"'Pie chart'\" (click)=\"appendChartClicked('doughnut')\"><i class=\"fa fa-pie-chart\" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Horizontal bar chart'\" (click)=\"appendChartClicked('horizontalBar')\"><i class=\"fa fa-align-left \" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Vertical bar chart'\" (click)=\"appendChartClicked('bar')\"><i class=\"fa fa-bar-chart\" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Simple line chart'\" (click)=\"appendChartClicked('line')\"><i class=\"fa fa-line-chart\" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Panel with values'\" (click)=\"appendChartClicked('panel')\"><i class=\"fa fa-columns\" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Resource group health status'\" (click)=\"appendChartClicked('statuses')\"><i class=\"fa fa-lightbulb-o\" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Resources count in a group'\" (click)=\"appendChartClicked('resources')\"><i class=\"fa fa-sitemap\" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Rate of downscale'\" (click)=\"appendChartClicked('scaleIn')\"><i class=\"fa fa-arrow-circle-down\" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Rate of upscale'\" (click)=\"appendChartClicked('scaleOut')\"><i class=\"fa fa-arrow-circle-up\" aria-hidden=\"true\"></i></li>\r\n  <li [tooltip]=\"'Voting chart'\" (click)=\"appendChartClicked('voting')\"><i class=\"fa fa-arrows-v\" aria-hidden=\"true\"></i></li>\r\n</ul>\r\n\r\n<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n  <div class=\"\">\r\n    <div class=\"page-title\">\r\n      <div class=\"title_left\">\r\n        <h3>{{groupName}}</h3>\r\n      </div>\r\n    </div>\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <div class='container col-md-12' [ngGrid]=\"gridConfig\"  style=\"min-height: 900px; width: calc(100% - 45px) !important;\">\r\n\r\n          <div class=\"x_panel\"\r\n               *ngFor=\"let chart of _charts; let i = index\"\r\n               [(ngGridItem)]=\"chart.preferences['gridcfg']\"\r\n               (onChangeStop)=\"onChangeStop(i, $event)\"\r\n               [attr.chartPanelId]=\"chart.id\">\r\n\r\n              <div class=\"x_title title handle\">\r\n                <h2>{{chart.name}}</h2>\r\n                <h5 *ngIf=\"chart.updateStopped\">(Paused at {{chart.pausedTime | date:'dd/MM/y HH:mm:ss'}})</h5>\r\n                <ul class=\"nav navbar-right panel_toolbox\">\r\n                  <li>\r\n                    <a (click)=\"modifyChart(chart)\"><i class=\"fa fa-wrench\"></i></a>\r\n                    <a [attr.id]=\"'toggleDraw' + chart.id\" class=\"toggle-link\" (click)=\"toggleDrawingChart(chart)\"><i class=\"fa fa-pause-circle-o\"></i></a>\r\n                    <a class=\"close-link\" (click)=\"removeChart(chart.name)\"><i class=\"fa fa-close\"></i></a>\r\n                  </li>\r\n                </ul>\r\n                <div class=\"clearfix\"></div>\r\n              </div>\r\n              <div *ngIf=\"isSvgType(chart)\"\r\n                      class=\"x_content\"\r\n                      style=\"position: relative; width: 100%; height: calc(100% - 10px) !important;\">\r\n                <svg [attr.id]=\"chart.id\"></svg>\r\n              </div>\r\n              <div *ngIf=\"isCanvasType(chart)\"\r\n                   class=\"x_content\"\r\n                   style=\"position: relative; width: 100%; height: calc(100% - 30px) !important;\">\r\n                <canvas [attr.id]=\"chart.id\" height=\"80\"></canvas>\r\n              </div>\r\n              <div *ngIf=\"isDivType(chart)\"\r\n                 class=\"x_content\"\r\n                 style=\"position: relative; width: 100%; height: calc(100% - 30px) !important;\">\r\n                  <div [attr.id]=\"chart.id\" class=\"tableWrapper\"></div>\r\n               </div>\r\n            </div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>"
+module.exports = "<!-- Modal for entity appending -->\r\n<div class=\"modal fade\" id=\"addChartModal\" role=\"dialog\" aria-labelledby=\"addChartLabel\" *ngIf=\"selectedChartType != ''\">\r\n  <div class=\"modal-dialog modal-xlg modal-lg\" role=\"document\">\r\n    <div class=\"modal-content\">\r\n      <div class=\"modal-header\">\r\n        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\"><span aria-hidden=\"true\">&times;</span></button>\r\n        <h4 class=\"modal-title leftAlign\" id=\"addChartLabel\">Visualization wizard</h4>\r\n      </div>\r\n      <br/>\r\n      <div class=\"modal-body\">\r\n        <div id=\"smartwizardForChart\" style=\"height: 95%\">\r\n          <ul>\r\n            <li>\r\n              <a [attr.href]=\"'#component'\">\r\n                Chart data object<br />\r\n                <small>Select group or instances</small>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <a [attr.href]=\"'#metric'\">\r\n                Metric<br />\r\n                <small>Choose metric</small>\r\n              </a>\r\n            </li>\r\n            <li>\r\n              <a [attr.href]=\"'#save'\">\r\n                Save<br />\r\n                <small>Add to dashboard</small>\r\n              </a>\r\n            </li>\r\n          </ul>\r\n\r\n          <div style=\"height:100%\">\r\n            <div id=\"component\" class=\"row\" style=\"margin-top: 70px;\">\r\n              <div class=\"row\" *ngIf=\"isInstancesSupported && (instances | async)?.length > 0\">\r\n                <div class=\"item form-group\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"componentSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Build chart on resource group\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <ui-switch\r\n                            [(ngModel)]=\"useGroup\"\r\n                            (ngModelChange)=\"triggerUseGroup($event)\"\r\n                            [disabled]=\"isInstancesSupported && (components | async)?.length == 0\"\r\n                            [size]=\"'small'\">\r\n                    </ui-switch>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n              <div class=\"row\" *ngIf=\"useGroup\" style=\"margin-top: 15px;\">\r\n                <div class=\"item form-group\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"componentSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Group\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"form-control\" [(ngModel)]=\"selectedComponent\" id=\"componentSelect\">\r\n                      <option *ngFor=\"let component of components | async\" [ngValue]=\"component\">{{component}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n              <div class=\"row\" *ngIf=\"!useGroup\" style=\"margin-top: 15px;\">\r\n                <div class=\"item form-group\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"instancesSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Instances\r\n                  </label>\r\n\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\" >\r\n                    <select class=\"select2_multiple form-control\" id=\"instancesSelect\" multiple=\"multiple\">\r\n                      <option *ngFor=\"let instance of instances | async\" [attr.selected]=\"isInstanceSelected(instance) ? true : null\">{{instance}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n            </div>\r\n\r\n            <div id=\"metric\" class=\"row\" style=\"margin-top: 10px;\">\r\n              <div *ngIf=\"selectedChartType != 'scaleIn' && selectedChartType != 'scaleOut'\">\r\n                <div class=\"col-md-12 col-sm-12 col-xs-12 text-center\" style=\"margin-top:100px\" *ngIf=\"(metrics | async) == undefined || (metrics | async).length == 0\">\r\n                  <strong>No metrics are found - cannot proceed</strong>\r\n                </div>\r\n                <div  *ngIf=\"(metrics | async) != undefined && (metrics | async).length > 0\">\r\n                <div class=\"bs-example\" data-example-id=\"simple-jumbotron\" *ngIf=\"selectedMetric != undefined\">\r\n                  <div class=\"jumbotron\">\r\n                    <p>\r\n                      <strong>Name: </strong>{{selectedMetric.name}}\r\n                    </p>\r\n                    <p *ngIf=\"selectedMetric.type != undefined && selectedMetric.type.length > 0\">\r\n                      <strong>Type: </strong>{{selectedMetric.type}}\r\n                    </p>\r\n                    <p *ngIf=\"selectedMetric.unitOfMeasurement != undefined && selectedMetric.unitOfMeasurement.length > 0\">\r\n                      <strong>Unit of measurement: </strong>{{selectedMetric.unitOfMeasurement}}\r\n                    </p>\r\n                    <p *ngIf=\"selectedMetric.description != undefined && selectedMetric.description.length > 0\">\r\n                      <strong>Description: </strong>{{selectedMetric.description}}\r\n                    </p>\r\n                  </div>\r\n                </div>\r\n                <div class=\"item form-group\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"metricSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Select metric <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"form-control\" [(ngModel)]=\"selectedMetric\" id=\"metricSelect\">\r\n                      <option *ngFor=\"let metric of metrics | async\" [ngValue]=\"metric\">{{metric.name}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n              </div>\r\n              <div *ngIf=\"selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'\" style=\"margin-top:100px\">\r\n                <div class=\"item form-group\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"rateMetricSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Select rate metrics (multiple selection) <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"select2_multiple form-control\" id=\"rateMetricSelect\"  multiple=\"multiple\">\r\n                      <option *ngFor=\"let rateMetric of rateMetrics\" [attr.selected]=\"isRateMetricSelected(rateMetric.id) ? true : null\">{{rateMetric.id}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n            </div>\r\n\r\n            <div id=\"save\" style=\"margin-top: 40px;\">\r\n\r\n              <div class=\"row\" *ngIf=\"selectedChartType == 'line' || selectedChartType == 'resources' || selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'\">\r\n                <div class=\"item form-group col-md-offset-3\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"lineChartIntervalSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Select time interval <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"form-control\" [(ngModel)]=\"timeInterval\" id=\"lineChartIntervalSelect\">\r\n                      <option *ngFor=\"let interval of intervals\" [ngValue]=\"interval.id\">{{interval.description}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n              <div class=\"row\" *ngIf=\"selectedChartType == 'scaleIn' || selectedChartType == 'scaleOut'\" style=\"margin-top: 15px;\">\r\n                <div class=\"item form-group col-md-offset-3\" >\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          for=\"rateIntervalSelect\"\r\n                          style=\"margin-top: 7px;\">\r\n                    Select rate interval <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <select class=\"form-control\" [(ngModel)]=\"rateInterval\" id=\"rateIntervalSelect\">\r\n                      <option *ngFor=\"let interval of rateIntervals\" [ngValue]=\"interval.additionalId\">{{interval.description}}</option>\r\n                    </select>\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n              <br/>\r\n\r\n              <div class=\"row\">\r\n                <div class=\"item form-group col-md-offset-3\">\r\n                  <label\r\n                          class=\"control-label col-md-3 col-sm-3 col-xs-12\"\r\n                          style=\"margin-top: 7px;\"\r\n                          for=\"chartNameInput\">\r\n                    Chart name <span class=\"required\">*</span>\r\n                  </label>\r\n                  <div class=\"col-md-6 col-sm-6 col-xs-12\">\r\n                    <input type=\"text\" class=\"form-control\" id=\"chartNameInput\" placeholder=\"Chart name\" [(ngModel)]=\"chartName\" [disabled]=\"!isNewChart()\">\r\n                  </div>\r\n                </div>\r\n              </div>\r\n\r\n              <div class=\"row\" style=\"margin-top: 15px\">\r\n                <button\r\n                        *ngIf=\"isNewChart()\"\r\n                        type=\"button\"\r\n                        class=\"btn btn-primary col-md-4 col-md-offset-4\"\r\n                        (click)=\"addChartToDashboard()\">\r\n                  Append to dashboard\r\n                </button>\r\n\r\n                <button\r\n                        *ngIf=\"!isNewChart()\"\r\n                        type=\"button\"\r\n                        class=\"btn btn-primary col-md-4 col-md-offset-4\"\r\n                        (click)=\"saveChart()\">\r\n                  Save the chart\r\n                </button>\r\n              </div>\r\n            </div>\r\n          </div>\r\n        </div>\r\n      </div>\r\n    </div>\r\n  </div>\r\n</div>\r\n\r\n<div *ngIf=\"isAllowed() && ((components | async)?.length > 0 || (instances | async)?.length > 0)\">\r\n  <img src=\"/snamp/assets/img/add.png\" *ngIf=\"!allCharts || allCharts.length == 0\" class=\"chartMenuImage\"/>\r\n  <ul id=\"chartMenu\" *ngIf=\"isAllowed()\">\r\n    <li [tooltip]=\"'Pie chart'\" (click)=\"appendChartClicked('doughnut')\"><i class=\"fa fa-pie-chart\" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Horizontal bar chart'\" (click)=\"appendChartClicked('horizontalBar')\"><i class=\"fa fa-align-left \" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Vertical bar chart'\" (click)=\"appendChartClicked('bar')\"><i class=\"fa fa-bar-chart\" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Simple line chart'\" (click)=\"appendChartClicked('line')\"><i class=\"fa fa-line-chart\" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Panel with values'\" (click)=\"appendChartClicked('panel')\"><i class=\"fa fa-columns\" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Resource group health status'\" (click)=\"appendChartClicked('statuses')\"><i class=\"fa fa-lightbulb-o\" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Resources count in a group'\" (click)=\"appendChartClicked('resources')\"><i class=\"fa fa-sitemap\" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Rate of downscale'\" (click)=\"appendChartClicked('scaleIn')\"><i class=\"fa fa-arrow-circle-down\" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Rate of upscale'\" (click)=\"appendChartClicked('scaleOut')\"><i class=\"fa fa-arrow-circle-up\" aria-hidden=\"true\"></i></li>\r\n    <li [tooltip]=\"'Voting chart'\" (click)=\"appendChartClicked('voting')\"><i class=\"fa fa-arrows-v\" aria-hidden=\"true\"></i></li>\r\n  </ul>\r\n</div>\r\n\r\n<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n\r\n    <div class=\"row\" style=\"padding-right: 10px;\">\r\n      <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n        <h3>{{groupName}}</h3>\r\n      </div>\r\n\r\n      <div class=\"col-md-6\"></div>\r\n\r\n      <div class=\"col-md-2\" style=\"padding-top: 20px;\">\r\n\r\n        <div class=\"row\" style=\"float: right\" *ngIf=\"isAllowed()\">\r\n          <button class=\"btn btn-danger\" (click)=\"removeDashboard()\"><i class=\"fa fa-trash\"></i></button>\r\n        </div>\r\n      </div>\r\n    </div>\r\n\r\n    <hr/>\r\n\r\n\r\n    <div class=\"clearfix\"></div>\r\n\r\n    <div class=\"row\" style=\"margin-top: 30px\">\r\n\r\n      <div class='container col-md-12' [ngGrid]=\"gridConfig\"  style=\"min-height: 900px; width: calc(100% - 45px) !important;\">\r\n\r\n          <div class=\"x_panel\"\r\n               *ngFor=\"let chart of allCharts; let i = index;\"\r\n               [(ngGridItem)]=\"chart.preferences['gridcfg']\"\r\n               (onChangeStop)=\"onChangeStop(i, $event)\"\r\n               [attr.chartPanelId]=\"chart.id\">\r\n\r\n              <div class=\"x_title title handle\">\r\n                <h2>{{chart.name}}</h2>\r\n                <h5 *ngIf=\"chart.updateStopped\">(Paused at {{chart.pausedTime | date:'dd/MM/y HH:mm:ss'}})</h5>\r\n                <ul class=\"nav navbar-right panel_toolbox\">\r\n                  <li>\r\n                    <a (click)=\"resetChart(chart)\" *ngIf=\"isAllowed() && isResetable(chart)\"><i class=\"fa fa-refresh\"></i></a>\r\n                    <a (click)=\"modifyChart(chart)\" *ngIf=\"isAllowed()\"><i class=\"fa fa-wrench\"></i></a>\r\n                    <a [attr.id]=\"'toggleDraw' + chart.id\" class=\"toggle-link\" (click)=\"toggleDrawingChart(chart)\"><i class=\"fa fa-pause-circle-o\"></i></a>\r\n                    <a class=\"close-link\" *ngIf=\"isAllowed()\" (click)=\"removeChart(chart.name)\"><i class=\"fa fa-close\"></i></a>\r\n                  </li>\r\n                </ul>\r\n                <div class=\"clearfix\"></div>\r\n              </div>\r\n              <div *ngIf=\"isSvgType(chart)\"\r\n                      class=\"x_content\"\r\n                      style=\"position: relative; width: 100%; height: calc(100% - 10px) !important;\">\r\n                <svg [attr.id]=\"chart.id\"></svg>\r\n              </div>\r\n              <div *ngIf=\"isCanvasType(chart)\"\r\n                   class=\"x_content\"\r\n                   style=\"position: relative; width: 100%; height: calc(100% - 30px) !important;\">\r\n                <canvas [attr.id]=\"chart.id\" height=\"80\"></canvas>\r\n              </div>\r\n              <div *ngIf=\"isDivType(chart)\"\r\n                 class=\"x_content\"\r\n                 style=\"position: relative; width: 100%; height: calc(100% - 30px) !important;\">\r\n                  <div [attr.id]=\"chart.id\" class=\"tableWrapper\"></div>\r\n               </div>\r\n            </div>\r\n      </div>\r\n    </div>\r\n</div>"
 
 /***/ },
 
 /***/ "./src/app/charts/templates/empty.html":
 /***/ function(module, exports) {
 
-module.exports = "<h5>There are no active dashboards - you can create one with the corresponding menu item</h5>"
+module.exports = "<div class=\"right_col\" role=\"main\" style=\"min-height: 949px;\">\r\n\r\n    <div class=\"row\" style=\"padding-right: 10px;\">\r\n        <div class=\"col-md-4\" style=\"padding-top: 20px;\">\r\n            <h3>Dashboards settings</h3>\r\n        </div>\r\n\r\n        <div class=\"col-md-8\"></div>\r\n    </div>\r\n\r\n    <hr/>\r\n\r\n    <div style=\"float: left !important;\" >\r\n        <div>\r\n            <h5>There are no active dashboards - you can create one with the corresponding menu item</h5>\r\n        </div>\r\n    </div>\r\n</div>\r\n"
 
 /***/ },
 

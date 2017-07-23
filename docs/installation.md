@@ -204,10 +204,10 @@ feature:install cellar
 ```
 
 in the shell console to enable clustering. If everything went well - Cellar cluster commands are now available:
-
 ```
 cluster:<TAB>
 ```
+Please note that all your saved dashboards will not be migrated automatically into cluster. If you have plan to use clustered configuration initially please enabled clusteing after installation.
 
 If you want to manage SNAMP cluster located in the cloud then install _cellar-cloud_ feature using `feature:install cellar-cloud` shell command.
 

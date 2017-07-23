@@ -1,7 +1,7 @@
 package com.bytex.snamp.configuration.impl;
 
 import com.bytex.snamp.SingletonMap;
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.io.IOUtils;
@@ -25,12 +25,12 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
     private static final String SUPERVISOR_PID_TEMPLATE = CAPABILITY_NAMESPACE + ".%s";
     private static final String GROUP_NAME_PROPERTY = "$groupName$";
     private static final String HEALTH_CHECK_PROPERTY = "$healthCheck$";
-    private static final String DISCOVERY_PROPERTY = "$discoveryConfig";
+    private static final String DISCOVERY_PROPERTY = "$discoveryConfig$";
     private static final String AUTO_SCALING_PROPERTY = "$autoScaling$";
     private static final String ALL_SUPERVISORS_QUERY = String.format("(%s=%s)", SERVICE_PID, String.format(SUPERVISOR_PID_TEMPLATE, "*"));
     private static final Pattern SUPERVISOR_PID_REPLACEMENT = Pattern.compile(String.format(SUPERVISOR_PID_TEMPLATE, ""), Pattern.LITERAL);
 
-    private static final LazySoftReference<DefaultSupervisorParser> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<DefaultSupervisorParser> INSTANCE = LazyReference.soft();
 
     private DefaultSupervisorParser() {
         super(GROUP_NAME_PROPERTY, SerializableAgentConfiguration::getSupervisors);

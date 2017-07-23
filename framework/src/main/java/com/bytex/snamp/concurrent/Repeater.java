@@ -52,7 +52,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
         /**
          * The timer is closed.
          */
-        CLOSED;
+        CLOSED
     }
 
     private static final AtomicLong THREAD_COUNTER = new AtomicLong(0L);

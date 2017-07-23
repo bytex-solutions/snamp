@@ -26,7 +26,6 @@ import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.*;
 import java.lang.reflect.Array;
-import java.text.ParseException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -642,11 +641,7 @@ final class SnmpTableObject extends DefaultMOTable<DefaultMOMutableRow2PC, MONam
 
     @Override
     public boolean equals(final MBeanAttributeInfo metadata) {
-        try {
-            return Objects.equals(getID(), new OID(parseOID(metadata, getOidGenerator())));
-        } catch (final ParseException ignored) {
-            return false;
-        }
+        return Objects.equals(getID(), new OID(parseOID(metadata, getOidGenerator())));
     }
 
     @Override

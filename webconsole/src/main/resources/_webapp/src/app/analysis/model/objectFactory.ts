@@ -3,11 +3,13 @@ import { AbstractComponentSpecificView } from './abstract.component.specific.vie
 import { ChildComponentsView } from './child.components.view';
 import { ComponentModulesView } from './component.modules.view';
 import { LandscapeView } from './landscape.view';
+import { isNullOrUndefined } from "util";
+import {SnampUtils} from "../../services/app.utils";
 
 // Factory to create appropriate objects from json
 export class Factory {
 
-    public static createView(viewName:string, viewType:string, rootComponent?:string):E2EView {
+    public static createView(viewName:string, viewType:string, rootComponent?:string, shelfLife?:number):E2EView {
         let _view:E2EView;
         switch(viewType) {
             case E2EView.CHILD_COMPONENT:
@@ -23,12 +25,16 @@ export class Factory {
                 throw new Error("Type " + viewType + " is unknown and cannot be parsed correctly");
         }
         _view.name = viewName;
-        if (rootComponent) {
+        if (!isNullOrUndefined(rootComponent)) {
             if (_view instanceof AbstractComponentSpecificView) {
                 (<AbstractComponentSpecificView>_view).rootComponent = rootComponent;
              } else {
-                console.log("Attempt to set rootComponent for non component specific view. Will be ignored");
+                console.debug("Attempt to set rootComponent for non component specific view. Will be ignored");
              }
+        }
+        if (!isNullOrUndefined(shelfLife)) {
+            _view.shelfLife = shelfLife;
+            _view.isShelfLifeSet = true;
         }
         // default values for the view
         _view.setDisplayedMetadata([]);
@@ -74,13 +80,18 @@ export class Factory {
                 }
             }
 
+            if (_json["shelfLife"] != undefined) {
+                _view.shelfLife = SnampUtils.parseDuration(_json["shelfLife"]) / 1000;
+                _view.isShelfLifeSet = true;
+            }
+
             if (_json["name"] != undefined) {
                 _view.name = _json["name"];
             }
             if (_json["preferences"] != undefined) {
                 _view.preferences = _json["preferences"];
             }
-            console.log("New view has been instantiated from the json data object: ", _view);
+            console.debug("New view has been instantiated from the json data object: ", _view);
             return _view;
         }
     }

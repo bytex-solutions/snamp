@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>integration</artifactId>
-        <groupId>com.bytex.snamp.integration</groupId>
+        <groupId>io.snamp.integration</groupId>
         <version>2.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -12,6 +12,7 @@
     <artifactId>discovery-over-http</artifactId>
     <description>Exposes SNAMP Resource Discovery functionality through HTTP</description>
     <packaging>bundle</packaging>
+    <version>${snamp.discovery.http.version}</version>
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -22,7 +23,7 @@
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
             <scope>provided</scope>
@@ -62,9 +63,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-                        <Export-Package>
-                            com.bytex.snamp.supervision.discovery.http
-                        </Export-Package>
+                        <Export-Package>com.bytex.snamp.supervision.discovery.http</Export-Package>
                         <Bundle-Activator>com.bytex.snamp.supervision.discovery.http.RESTDiscoveryServiceActivator</Bundle-Activator>
                     </instructions>
                 </configuration>

@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.bytex.snamp</groupId>
+        <groupId>io.snamp</groupId>
         <artifactId>snamp</artifactId>
         <version>2.0.0</version>
     </parent>
@@ -22,13 +22,13 @@
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>framework</artifactId>
             <version>${snamp.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>security</artifactId>
             <version>${snamp.security.version}</version>
             <scope>provided</scope>
@@ -60,19 +60,19 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>json-helpers</artifactId>
             <version>2.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp</groupId>
+            <groupId>io.snamp</groupId>
             <artifactId>e2e-analyzer</artifactId>
             <version>${snamp.e2e_analyzer.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.bytex.snamp.instrumentation</groupId>
+            <groupId>io.snamp.instrumentation</groupId>
             <artifactId>core</artifactId>
             <version>${snamp.instrumentation.version}</version>
             <scope>provided</scope>
@@ -96,9 +96,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-SymbolicName>snamp-${project.artifactId}</Bundle-SymbolicName>
-                        <Export-Package>
-                            com.bytex.snamp.web.serviceModel.*
-                        </Export-Package>
+                        <Export-Package>com.bytex.snamp.web.serviceModel.*</Export-Package>
                         <Bundle-Activator>com.bytex.snamp.web.WebConsoleActivator</Bundle-Activator>
                         <Web-ContextPath>snamp</Web-ContextPath>
                         <Webapp-Context>snamp</Webapp-Context>

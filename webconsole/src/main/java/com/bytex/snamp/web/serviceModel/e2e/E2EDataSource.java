@@ -10,7 +10,6 @@ import javax.annotation.Nonnull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -23,7 +22,7 @@ import java.util.function.Function;
 public final class E2EDataSource extends ComputingService<E2EView, Object, Dashboard> implements RESTController {
     private static final String URL_CONTEXT = "/e2e";
 
-    public E2EDataSource() throws IOException {
+    public E2EDataSource() {
         super(Dashboard.class);
     }
 

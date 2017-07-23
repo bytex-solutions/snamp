@@ -10,10 +10,10 @@
 
     <div class="row" style="margin-top: 30px">
         <panel [header]="'Configuration'" [column]="'12'">
-          <pre class="row limitedCodeBlock"><code>{{currentConfiguration}}</code></pre>
+          <pre class="row limitedCodeBlock normalspace" ><code [innerHtml]="currentConfiguration"></code></pre>
           <br/>
           <div class="row">
-            <button class="btn" (click)="save()">Download current configuration as JSON file</button>
+            <button class="btn btn-primary" (click)="save()">Download current configuration as JSON file</button>
           </div>
           <br/>
           <div class="row">

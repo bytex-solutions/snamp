@@ -1,7 +1,7 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -61,7 +61,7 @@ final class LocalMember implements ClusterMember {
 
     //in-memory services should be stored as soft-reference. This strategy helps to avoid memory
     //leaks in long-running scenarios
-    private static final LazySoftReference<LocalMember> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<LocalMember> INSTANCE = LazyReference.soft();
     private final LoadingCache<LocalServiceKey<?>, SharedObject> localServices;
 
     private LocalMember(){

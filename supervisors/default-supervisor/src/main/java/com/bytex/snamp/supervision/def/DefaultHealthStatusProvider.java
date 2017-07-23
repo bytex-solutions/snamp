@@ -10,6 +10,7 @@ import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
 import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 import com.bytex.snamp.supervision.health.triggers.HealthStatusTrigger;
+import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
@@ -59,13 +60,16 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
         }
 
         boolean like(final DefaultResourceGroupHealthStatus other) {
-            if (other.keySet().equals(keySet()) && other.groupStatus.like(groupStatus)) {
-                for (final Entry<String, HealthStatus> thisEntry : entrySet())
-                    if (!thisEntry.getValue().like(other.get(thisEntry.getKey())))
-                        return false;
-                return true;
-            } else
+            if (!groupStatus.like(other.groupStatus))
                 return false;
+            final OkStatus OK = new OkStatus();
+            for (final String resourceName : Sets.union(keySet(), other.keySet())) {
+                final HealthStatus thisStatus = getOrDefault(resourceName, OK),
+                        otherStatus = other.getOrDefault(resourceName, OK);
+                if (!thisStatus.like(otherStatus))
+                    return false;
+            }
+            return true;
         }
 
         void setResourceStatus(final String resourceName,
@@ -122,8 +126,9 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
 
     private synchronized void updateStatus(final DefaultResourceGroupHealthStatus newStatus, final HealthStatusTrigger trigger) {
         final DefaultResourceGroupHealthStatus prevStatus = status;
+        status = newStatus;
         if (!prevStatus.like(newStatus))    //if status was not changed then exit without any notifications.
-            trigger.statusChanged(prevStatus, status = newStatus);
+            trigger.statusChanged(prevStatus, newStatus);
     }
 
     /**

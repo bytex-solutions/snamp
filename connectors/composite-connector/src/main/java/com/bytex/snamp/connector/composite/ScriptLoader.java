@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
@@ -11,7 +10,7 @@ import java.util.Properties;
  */
 final class ScriptLoader extends OSGiGroovyScriptEngine<AggregationAttributeScriptlet> {
 
-    ScriptLoader(final ClassLoader rootClassLoader, final URL... paths) throws IOException {
+    ScriptLoader(final ClassLoader rootClassLoader, final URL... paths) {
         super(rootClassLoader, new Properties(), AggregationAttributeScriptlet.class, paths);
     }
 

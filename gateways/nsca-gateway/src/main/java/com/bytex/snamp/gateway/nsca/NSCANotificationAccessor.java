@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.nsca;
 
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.gateway.NotificationListener;
 import com.bytex.snamp.gateway.modeling.NotificationRouter;
@@ -16,9 +15,9 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
  * Provides transformation between notification of the resource and NSCA protocol.
  */
 final class NSCANotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {
-    <L extends ThreadSafeObject & NotificationListener> NSCANotificationAccessor(final String resourceName,
+    NSCANotificationAccessor(final String resourceName,
                                                                                  final MBeanNotificationInfo metadata,
-                                                                                 final L listener) {
+                                                                                 final NotificationListener listener) {
         super(resourceName, metadata, listener);
     }
 

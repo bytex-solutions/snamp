@@ -1,6 +1,6 @@
 package com.bytex.snamp.gateway.influx;
 
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.GatewayConfiguration;
 import com.bytex.snamp.configuration.ResourceBasedConfigurationEntityDescription;
@@ -26,7 +26,7 @@ final class InfluxGatewayConfigurationDescriptionProvider extends ConfigurationE
     private static final String DB_NAME_PARAM = "databaseName";
     private static final String PERIOD_PARAM = "uploadPeriod";
 
-    private static final LazySoftReference<InfluxGatewayConfigurationDescriptionProvider> INSTANCE = new LazySoftReference<>();
+    private static final LazyReference<InfluxGatewayConfigurationDescriptionProvider> INSTANCE = LazyReference.soft();
 
     private static final class GatewayConfigurationDescriptionProvider extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
 

@@ -22,15 +22,6 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
                 .orElseThrow(AssertionError::new);
         try {
             admin.get().processConfiguration(currentConfig -> {
-                //resource without group
-                ManagedResourceConfiguration resource = currentConfig.getResources().getOrAdd("resource1");
-                resource.overrideProperties(ImmutableSet.of("key1"));
-                resource.put("key1", "value1");
-                resource.setType("jmx");
-                //resource with group
-                resource = currentConfig.getResources().getOrAdd("resource2");
-                resource.setGroupName("group1");
-                resource.put("key2", "value2");
                 //group
                 ManagedResourceGroupConfiguration group = currentConfig.getResourceGroups().getOrAdd("group1");
                 group.put("key1", "valueFromGroup");
@@ -41,6 +32,18 @@ public final class PersistentConfigurationTest extends AbstractSnampIntegrationT
                     attr.put("param1", "value1");
                     attr.setOverridden(true);
                 }));
+                return true;
+            });
+            admin.get().processConfiguration(currentConfig -> {
+                //resource without group
+                ManagedResourceConfiguration resource = currentConfig.getResources().getOrAdd("resource1");
+                resource.overrideProperties(ImmutableSet.of("key1"));
+                resource.put("key1", "value1");
+                resource.setType("jmx");
+                //resource with group
+                resource = currentConfig.getResources().getOrAdd("resource2");
+                resource.setGroupName("group1");
+                resource.put("key2", "value2");
                 return true;
             });
             //verify first and second resources

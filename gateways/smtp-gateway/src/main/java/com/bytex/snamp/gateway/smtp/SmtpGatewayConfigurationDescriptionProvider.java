@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.smtp;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.concurrent.LazySoftReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProviderImpl;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.GatewayConfiguration;
@@ -52,11 +52,11 @@ final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEnt
     private static final String EMAIL_TEMPLATE_PARAM = "mailTemplate";
 
 
-    private static final LazySoftReference<SmtpGatewayConfigurationDescriptionProvider> INSTANCE;
+    private static final LazyReference<SmtpGatewayConfigurationDescriptionProvider> INSTANCE;
     private static final CompiledST DEFAULT_NOTIFICATION_TEMPLATE;
 
     static {
-        INSTANCE = new LazySoftReference<>();
+        INSTANCE = LazyReference.soft();
         DEFAULT_NOTIFICATION_TEMPLATE = callUnchecked(DefaultMailTemplate.NOTIFICATION);
     }
 

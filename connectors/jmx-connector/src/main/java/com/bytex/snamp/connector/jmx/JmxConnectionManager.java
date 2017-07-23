@@ -2,9 +2,8 @@ package com.bytex.snamp.connector.jmx;
 
 import com.bytex.snamp.Internal;
 import com.bytex.snamp.SafeCloseable;
-import com.bytex.snamp.concurrent.LockManager;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.concurrent.Repeater;
-import com.bytex.snamp.concurrent.ThreadSafeObject;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.util.concurrent.UncheckedTimeoutException;
 
@@ -23,6 +22,8 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,9 +35,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 @Internal
-final class JmxConnectionManager extends ThreadSafeObject implements AutoCloseable {
-    private static final SingleResourceGroup CONNECTION_RESOURCE = SingleResourceGroup.INSTANCE;
-
+final class JmxConnectionManager implements AutoCloseable {
     private static class ConnectionHolder implements Closeable {
         private final JmxConnectionFactory factory;
         private volatile JMXConnector connection;
@@ -74,7 +73,7 @@ final class JmxConnectionManager extends ThreadSafeObject implements AutoCloseab
      * This class cannot be inherited.
      */
     private static final class ConnectionWatchDog extends Repeater {
-        private final LockManager writeLock;
+        private final LockDecorator writeLock;
         private final ConnectionHolder connectionHolder;
         private final List<ConnectionEstablishedEventHandler> reconnectionHandlers;
         private final AtomicReference<IOException> problem;
@@ -82,7 +81,7 @@ final class JmxConnectionManager extends ThreadSafeObject implements AutoCloseab
 
         private ConnectionWatchDog(final Duration period,
                                    final ConnectionHolder connection,
-                                   final LockManager writeLock,
+                                   final LockDecorator writeLock,
                                    final Logger logger) {
             super(period);
             this.logger = Objects.requireNonNull(logger);
@@ -123,7 +122,7 @@ final class JmxConnectionManager extends ThreadSafeObject implements AutoCloseab
 
         @Override
         protected void doAction() throws InterruptedException, TimeoutException {
-            try (final SafeCloseable ignored = writeLock.acquireLock(CONNECTION_RESOURCE, null)) {
+            try (final SafeCloseable ignored = writeLock.acquireLock(null)) {
                 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
                 final IOException problem = this.problem.get();
                 final MBeanServerConnection server;
@@ -154,12 +153,15 @@ final class JmxConnectionManager extends ThreadSafeObject implements AutoCloseab
 
     private final ConnectionHolder connectionHolder;
     private ConnectionWatchDog watchDog;
+    private final LockDecorator readLock;
 
     JmxConnectionManager(final JmxConnectionFactory connectionString,
                          final long watchDogPeriod,
                          final Logger logger) {
-        super(SingleResourceGroup.class);
         connectionHolder = new ConnectionHolder(connectionString);
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        final LockDecorator writeLock = LockDecorator.writeLock(rwLock);
         watchDog = new ConnectionWatchDog(Duration.ofMillis(watchDogPeriod), connectionHolder, writeLock, logger);
         //staring the watch dog
         watchDog.run();
@@ -171,7 +173,7 @@ final class JmxConnectionManager extends ThreadSafeObject implements AutoCloseab
     }
 
     <T> T handleConnection(final MBeanServerConnectionHandler<T> handler) throws InterruptedException, JMException, IOException {
-        try (final SafeCloseable ignored = readLock.acquireLock(CONNECTION_RESOURCE, null)) {
+        try (final SafeCloseable ignored = readLock.acquireLock(null)) {
             if (connectionHolder.isInitialized()) {
                 final JMXConnector connector = connectionHolder.getConnection();
                 return handler.handle(connector.getMBeanServerConnection());

@@ -14,7 +14,7 @@ public final class InfluxGatewayActivator extends GatewayActivator<InfluxGateway
     }
 
     private static InfluxGateway newGateway(final String gatewayInstance,
-                                      final DependencyManager dependencies) throws Exception{
+                                      final DependencyManager dependencies) {
         return new InfluxGateway(gatewayInstance);
     }
 }

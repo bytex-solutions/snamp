@@ -1,7 +1,7 @@
 package com.bytex.snamp.gateway.groovy.dsl;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.concurrent.LazyStrongReference;
+import com.bytex.snamp.concurrent.LazyReference;
 import groovy.lang.GroovyObjectSupport;
 
 import javax.management.*;
@@ -17,7 +17,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
     private final AttributesView attributes;
     private final String attributeName;
     private final String resourceName;
-    private final LazyStrongReference<GroovyFeatureMetadata<MBeanAttributeInfo>> metadataCache;
+    private final LazyReference<GroovyFeatureMetadata<MBeanAttributeInfo>> metadataCache;
 
     GroovyResourceAttribute(final AttributesView attributes,
                             final String resourceName,
@@ -25,7 +25,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
         this.attributes = attributes;
         this.attributeName = attributeName;
         this.resourceName = resourceName;
-        this.metadataCache = new LazyStrongReference<>();
+        this.metadataCache = LazyReference.strong();
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
@@ -43,7 +43,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
                         .filter(metadata -> attributeName.equals(metadata.getName()))
                         .map(GroovyFeatureMetadata::new)
                         .findFirst()
-                        .orElseGet(() -> null);
+                        .orElse(null);
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)

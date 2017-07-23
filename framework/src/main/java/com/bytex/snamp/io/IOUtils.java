@@ -12,6 +12,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
+import static com.bytex.snamp.internal.Utils.wrapException;
+
 /**
  * @author Roman Sakno
  * @version 2.0
@@ -230,9 +232,7 @@ public final class IOUtils {
             serialize(obj, os);
             return (T) deserialize(os.getInputStream(), TypeToken.of(obj.getClass()), obj.getClass().getClassLoader());
         } catch (final IOException e) {
-            final CloneNotSupportedException exception = new CloneNotSupportedException(e.getMessage());
-            exception.initCause(e);
-            throw exception;
+            throw wrapException(e.getMessage(), e, CloneNotSupportedException::new);
         }
     }
 

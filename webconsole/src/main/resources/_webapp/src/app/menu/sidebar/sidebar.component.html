@@ -14,13 +14,13 @@
         <ul class="nav side-menu">
           <li><a id="chartli" class="clickableAnchor"><i class="fa fa-newspaper-o"></i> Charts<span id="chartchevron" class="fa fa-chevron-down"></span></a>
             <ul class="nav child_menu">
-              <li *ngFor="let name of groupNames"
+              <li *ngFor="let name of groupNames | async"
                   routerLinkActive="activeLi">
                 <a [routerLink]="['charts', name]" routerLinkActive="active">
                   {{name}}
                 </a>
               </li>
-              <li><a (click)="newDashboard()">+ New dashboard</a></li>
+              <li *ngIf="isAllowed()"><a (click)="newDashboard()">+ New dashboard</a></li>
             </ul>
           </li>
           <li><a id="homeli" class="clickableAnchor"><i class="fa fa-home"></i> Configure<span id="homechevron" class="fa fa-chevron-down"></span></a>
@@ -28,10 +28,10 @@
               <li routerLinkActive="activeLi"><a routerLink="gateways" routerLinkActive="active">Gateways</a></li>
               <li routerLinkActive="activeLi"><a routerLink="resources" routerLinkActive="active">Resources</a></li>
               <li routerLinkActive="activeLi"><a routerLink="rgroups" routerLinkActive="active">Resource groups</a></li>
+              <li routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Supervisors</a></li>
               <li routerLinkActive="activeLi"><a routerLink="snampcfg" routerLinkActive="active">SNAMP components</a></li>
               <li routerLinkActive="activeLi"><a routerLink="thread-pools" routerLinkActive="active">Thread pools</a></li>
               <li routerLinkActive="activeLi"><a routerLink="configuration" routerLinkActive="active">Save/restore</a></li>
-              <li routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Supervisor - Health statuses</a></li>
             </ul>
           </li>
           <li><a id="logsli" class="clickableAnchor"><i class="fa fa-commenting-o"></i> Notifications<span id="logschevron" class="fa fa-chevron-down"></span></a>
@@ -43,13 +43,13 @@
           <li><a id="analysisli" class="clickableAnchor"><i class="fa fa-search "></i> Analysis<span id="analysischevron" class="fa fa-chevron-down"></span></a>
             <ul class="nav child_menu">
               <!--<li routerLinkActive="activeLi"  [routerLinkActiveOptions]="{exact: true}"><a routerLink="watchers/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Health statuses</a></li>-->
-              <li *ngFor="let _view of views"
+              <li *ngFor="let _view of views | async"
                   routerLinkActive="activeLi">
                 <a [routerLink]="['view', _view]" routerLinkActive="active">
                   {{_view}}
                 </a>
               </li>
-              <li routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="view" [routerLinkActiveOptions]="{exact: true}" routerLinkActive="active">+ Add view</a></li>
+              <li *ngIf="isAllowed()" routerLinkActive="activeLi" [routerLinkActiveOptions]="{exact: true}"><a routerLink="view" [routerLinkActiveOptions]="{exact: true}" routerLinkActive="active">+ Add view</a></li>
             </ul>
           </li>
         </ul>

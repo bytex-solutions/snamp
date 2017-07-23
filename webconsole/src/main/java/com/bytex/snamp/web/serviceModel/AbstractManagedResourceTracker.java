@@ -2,7 +2,7 @@ package com.bytex.snamp.web.serviceModel;
 
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.ManagedResourceFilterBuilder;
+import com.bytex.snamp.connector.ManagedResourceSelector;
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.ServiceReference;
@@ -68,7 +68,7 @@ public abstract class AbstractManagedResourceTracker<V> extends AbstractStateful
      */
     @Nonnull
     @Override
-    protected ManagedResourceFilterBuilder createServiceFilter() {
-        return ManagedResourceConnectorClient.filterBuilder();
+    protected ManagedResourceSelector createServiceFilter() {
+        return ManagedResourceConnectorClient.selector();
     }
 }

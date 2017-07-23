@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.composite.functions;
 
-import com.bytex.snamp.jmx.DefaultValues;
+import com.bytex.snamp.jmx.OpenTypes;
 import com.bytex.snamp.jmx.WellKnownType;
 import com.google.common.collect.ImmutableList;
 
@@ -71,6 +71,6 @@ final class ExtractFunction extends AggregationFunction {
             arg = arg instanceof CompositeData ? extract((CompositeData) arg, path.iterator()) : arg;
             return targetType.convert(arg);
         }
-        return DefaultValues.get(targetType.getOpenType());
+        return OpenTypes.defaultValue(targetType.getOpenType());
     }
 }

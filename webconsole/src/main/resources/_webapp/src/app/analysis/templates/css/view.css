@@ -12,15 +12,16 @@
   overflow-y: scroll;
   overflow-x: hidden;
   height: 500px;
+  max-height: 700px;
   color: rgb(115, 135, 156);
-  width: 450px;
-  position: fixed;
+  width: 500px;
+  position: absolute;
   right: 7px;
-  top: 35%;
   margin-top: -10em !important;
   z-index: 3;
   padding: 9px;
   border-radius: 5px;
+  opacity: 0.9;
 }
 
 #viewMenu .row {
@@ -41,4 +42,8 @@
 
 .middleVertical {
     margin-top: 7px;
+}
+
+.hided {
+    display: none;
 }

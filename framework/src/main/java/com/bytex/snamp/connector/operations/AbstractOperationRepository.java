@@ -1,6 +1,7 @@
 package com.bytex.snamp.connector.operations;
 
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.metrics.OperationMetric;
@@ -19,6 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -205,12 +208,16 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     private final KeyedObjects<String, M> operations;
     private final OperationMetricRecorder metrics;
+    private final LockDecorator readLock, writeLock;
 
     protected AbstractOperationRepository(final String resourceName,
                                           final Class<M> metadataType) {
         super(resourceName, metadataType);
         operations = AbstractKeyedObjects.create(MBeanOperationInfo::getName);
         metrics = new OperationMetricRecorder();
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
     }
 
     private void operationAdded(final M metadata){
@@ -244,7 +251,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final Optional<M> remove(final String operationID) {
-        final M metadata = writeLock.apply(SingleResourceGroup.INSTANCE, this, operationID, AbstractOperationRepository<M>::removeImpl);
+        final M metadata = writeLock.apply(this, operationID, AbstractOperationRepository<M>::removeImpl);
         if (metadata == null)
             return Optional.empty();
         else {
@@ -319,7 +326,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     public final Optional<M> enableOperation(final String operationName, final OperationDescriptor descriptor) {
         M result;
         try{
-            result = writeLock.call(SingleResourceGroup.INSTANCE, () -> enableOperationImpl(operationName, descriptor), null);
+            result = writeLock.call(() -> enableOperationImpl(operationName, descriptor), null);
         } catch (final Exception e) {
             getLogger().log(Level.WARNING, String.format("Failed to enable operation '%s'", operationName), e);
             result = null;
@@ -338,7 +345,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final M[] getOperationInfo() {
-        return readLock.supply(SingleResourceGroup.INSTANCE, () -> toArray(operations.values()));
+        return readLock.apply(this, operations.values(), AbstractOperationRepository<M>::toArray);
     }
 
     /**
@@ -349,7 +356,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final Optional<M> getOperationInfo(final String operationID) {
-        return Optional.ofNullable(readLock.apply(SingleResourceGroup.INSTANCE, operations, operationID, Map::get));
+        return Optional.ofNullable(readLock.apply(operations, operationID, Map::get));
     }
 
     /**
@@ -384,7 +391,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
                          final Object[] params,
                          final String[] signature) throws MBeanException, ReflectionException {
         try {
-            return readLock.call(SingleResourceGroup.INSTANCE, () -> {
+            return readLock.call(() -> {
                 final M holder = operations.get(operationName);
                 if (holder != null)
                     return invoke(holder, params, signature);
@@ -415,7 +422,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final void clear() {
-        writeLock.run(SingleResourceGroup.INSTANCE, this::clearImpl);
+        writeLock.run(this::clearImpl);
     }
 
     /**
@@ -425,7 +432,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      */
     @Override
     public final ImmutableSet<String> getIDs() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, operations, ops -> ImmutableSet.copyOf(ops.keySet()));
+        return readLock.apply(operations, ops -> ImmutableSet.copyOf(ops.keySet()));
     }
 
     @Override
@@ -435,18 +442,18 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     @Override
     public final int size() {
-        return readLock.supplyInt(SingleResourceGroup.INSTANCE, operations::size);
+        return readLock.supplyInt(operations::size);
     }
 
     @Override
     @Nonnull
     public final Iterator<M> iterator() {
-        return readLock.apply(SingleResourceGroup.INSTANCE, operations.values(), Collection::iterator);
+        return readLock.apply(operations.values(), Collection::iterator);
     }
 
     @Override
     public final void forEach(final Consumer<? super M> action) {
-        readLock.accept(SingleResourceGroup.INSTANCE, operations.values(), action, Iterable::forEach);
+        readLock.accept(operations.values(), action, Iterable::forEach);
     }
 
     protected final void failedToExpand(final Level level, final Exception e){

@@ -1,9 +1,10 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.Box;
+import com.bytex.snamp.core.SharedBox;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicReference;
 
+import java.io.Serializable;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -16,14 +17,14 @@ import java.util.function.UnaryOperator;
  * @version 2.0
  * @since 2.0
  */
-final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>> implements Box<Object> {
+final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Serializable>> implements SharedBox {
 
     HazelcastBox(final HazelcastInstance hazelcast, final String boxName){
         super(hazelcast, boxName, HazelcastInstance::getAtomicReference);
     }
 
     @Override
-    public Object get() {
+    public Serializable get() {
         return getDistributedObject().get();
     }
 
@@ -33,13 +34,13 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
     }
 
     @Override
-    public void set(final Object value) {
+    public void set(final Serializable value) {
         getDistributedObject().set(value);
     }
 
     @Override
-    public Object setIfAbsent(final Supplier<?> valueProvider) {
-        Object current;
+    public Serializable setIfAbsent(final Supplier<? extends Serializable> valueProvider) {
+        Serializable current;
         do {
             current = get();
             if (current == null)
@@ -51,8 +52,8 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
     }
 
     @Override
-    public Object accumulateAndGet(final Object right, final BinaryOperator<Object> operator) {
-        Object prev, next;
+    public Serializable accumulateAndGet(final Serializable right, final BinaryOperator<Serializable> operator) {
+        Serializable prev, next;
         do{
             next = operator.apply(prev = getDistributedObject().get(), right);
         } while (!getDistributedObject().compareAndSet(prev, next));
@@ -60,8 +61,8 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
     }
 
     @Override
-    public Object updateAndGet(final UnaryOperator<Object> operator) {
-        Object prev, next;
+    public Serializable updateAndGet(final UnaryOperator<Serializable> operator) {
+        Serializable prev, next;
         do{
             next = operator.apply(prev = getDistributedObject().get());
         } while (!getDistributedObject().compareAndSet(prev, next));
@@ -69,18 +70,18 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
     }
 
     @Override
-    public Object getAndSet(final Object newValue) {
+    public Serializable getAndSet(final Serializable newValue) {
         return getDistributedObject().getAndSet(newValue);
     }
 
     @Override
-    public Object getOrDefault(final Supplier<?> defaultProvider) {
+    public Serializable getOrDefault(final Supplier<? extends Serializable> defaultProvider) {
         final Object current = get();
         return current == null ? defaultProvider.get() : get();
     }
 
     @Override
-    public <R> Optional<R> map(final Function<? super Object, ? extends R> mapper) {
+    public <R> Optional<R> map(final Function<? super Serializable, ? extends R> mapper) {
         return Optional.ofNullable(get()).map(mapper);
     }
 
@@ -95,7 +96,7 @@ final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Object>>
     }
 
     @Override
-    public void accept(final Object value) {
+    public void accept(final Serializable value) {
         getDistributedObject().set(value);
     }
 }

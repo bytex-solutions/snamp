@@ -52,7 +52,7 @@ export class ThreadPoolsComponent implements OnInit {
                 if (this.threadPools.length > 0) {
                     this.setActiveThreadPool(this.threadPools[0]);
                 }
-                console.log("Thread pool has been removed");
+                console.debug("Thread pool has been removed");
                 break;
             }
         }
@@ -113,7 +113,7 @@ export class ThreadPoolsComponent implements OnInit {
                         return response;
                     })
                     .catch(() => {
-                        console.log("User preferred to decline thread pool removing");
+                        console.debug("User preferred to decline thread pool removing");
                     });
             });
     }
@@ -157,7 +157,7 @@ export class ThreadPoolsComponent implements OnInit {
                             return response;
                         })
                         .catch(() => {
-                            console.log("User preferred to decline thread pool saving");
+                            console.debug("User preferred to decline thread pool saving");
                         });
                 });
         } else {

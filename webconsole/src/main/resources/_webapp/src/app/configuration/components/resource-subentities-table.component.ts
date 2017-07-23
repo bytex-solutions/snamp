@@ -5,7 +5,6 @@ import { KeyValue } from '../model/model.entity';
 import { SubEntity } from '../model/model.subEntity';
 import { Attribute } from '../model/model.attribute';
 import { Event } from '../model/model.event';
-import { ParamDescriptor } from '../model/model.paramDescriptor';
 import { Operation } from '../model/model.operation';
 import { Response } from '@angular/http';
 
@@ -30,12 +29,11 @@ import { EntityWithSub } from "../model/model.entityWithSub";
 export class ResourceEntitiesTable implements OnInit {
     @Input() resource:EntityWithSub;
     @Input() entityType:string;
-    readyForSave:boolean = false;
-    paramDescriptors:ParamDescriptor[] = [];
     @Input() entities: SubEntity[];
+
     activeEntity:SubEntity;
+    readyForSave:boolean = false;
     currentNewParam:KeyValue = new KeyValue("", "");
-    customKey:string = "";
 
     discoveredEntities:SubEntity[] = undefined;
     selectedEntity:SubEntity = undefined;
@@ -131,8 +129,8 @@ export class ResourceEntitiesTable implements OnInit {
 
     addNewParameter():void {
          let _thisReference = this;
-         $(_thisReference.PARAM_TABLE_DIV()).slideToggle("fast", function(){
-             $(_thisReference.PARAM_APPEND_DIV()).slideToggle("fast");
+         $(_thisReference.PARAM_TABLE_DIV()).toggle("fast", function(){
+             $(_thisReference.PARAM_APPEND_DIV()).toggle("fast");
          });
 
          this.currentNewParam = new KeyValue("", "");
@@ -145,7 +143,6 @@ export class ResourceEntitiesTable implements OnInit {
              templateResult: function(param){
                     if (param.loading) return param.text;
                     if (param.element.nodeName == "OPTGROUP") return param.text;
-                    if (param.id == "custom") return param.text;
                     let markup = "<div class='select2-result-repository clearfix'>" +
                       "<div class='select2-result-repository__meta'>" +
                         "<div class='select2-result-repository__title'>" + param.element.value + "</div>";
@@ -193,23 +190,29 @@ export class ResourceEntitiesTable implements OnInit {
 
     cancelAppendingParam():void {
         let _thisReference = this;
-         $(_thisReference.PARAM_TABLE_DIV()).slideToggle("fast", function(){
-              $(_thisReference.PARAM_APPEND_DIV()).slideToggle("fast");
+         $(_thisReference.PARAM_TABLE_DIV()).toggle("fast", function(){
+              $(_thisReference.PARAM_APPEND_DIV()).toggle("fast");
           });
          $(this.PARAM_SELECT_ID()).select2("destroy");
     }
 
     appendParameter():void {
-        let key:string = "";
-        let value:string = this.currentNewParam.value;
-        if (this.currentNewParam.key == "custom") {
-          key = this.customKey;
-        } else {
-          key = this.currentNewParam.key;
-        }
-        let finalValue:KeyValue = new KeyValue(key, value);
-        this.saveParameter(finalValue);
+        this.saveParameter(new KeyValue(this.currentNewParam.key, this.currentNewParam.value));
         this.cancelAppendingParam();
+    }
+
+    addNewParameterManually():void {
+        this.modal.prompt()
+            .className(<VEXBuiltInThemes>'default')
+            .message('New manual parameter')
+            .placeholder('Please set the name for a new parameter')
+            .open()
+            .then(dialog => dialog.result)
+            .then(result => {
+                this.saveParameter(new KeyValue(result, "value"));
+                this.cd.markForCheck();
+            })
+            .catch(() => {});
     }
 
     htmlViewForEntity():any {
@@ -225,8 +228,8 @@ export class ResourceEntitiesTable implements OnInit {
             .open()
             .then((resultPromise) => {
                 return (<Promise<boolean>>resultPromise.result)
-                  .then((response) => {
-                    this.http.delete(REST.RESOURCE_ENTITY_BY_TYPE_AND_NAME(entity.getName() + "s", this.resource.name, entity.name))
+                  .then(() => {
+                    this.http.delete(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", entity.name))
                         .subscribe(() => {
                             for (let i = 0; i < this.entities.length; i++) {
                                 if (this.entities[i].name == entity.name) {
@@ -273,15 +276,19 @@ export class ResourceEntitiesTable implements OnInit {
     saveEntity():void {
         this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.activeEntity.name), this.activeEntity.stringifyFullObject())
             .map((res:Response) => res.text())
-            .subscribe((data) => {
-                console.log("Entity " + this.activeEntity.name + " has been saved");
+            .subscribe(() => {
+                console.debug("Entity " + this.activeEntity.name + " has been saved");
                 switch (this.entityType) {
                     case "attribute":
                         if (this.isNewEntity) {
-                            this.resource.attributes.push(<Attribute>this.selectedEntity);
+                            this.resource.attributes.push(<Attribute>this.activeEntity);
                         } else {
                             for (let i = 0; i < this.resource.attributes.length; i++) {
-                                if (this.resource.attributes[i].name == this.activeEntity.name) {
+                                if (this.resource.attributes[i].guid == this.activeEntity.guid) {
+                                    if (this.resource.attributes[i].name != this.activeEntity.name) {
+                                        // if we rename the entity - remove the original one
+                                        this.http.delete(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.resource.attributes[i].name)).subscribe(() => {});
+                                    }
                                     this.resource.attributes[i] = <Attribute>this.activeEntity;
                                     break;
                                 }
@@ -290,10 +297,14 @@ export class ResourceEntitiesTable implements OnInit {
                         break;
                     case "event":
                         if (this.isNewEntity) {
-                            this.resource.events.push(<Event>this.selectedEntity);
+                            this.resource.events.push(<Event>this.activeEntity);
                         } else {
                             for (let i = 0; i < this.resource.events.length; i++) {
-                                if (this.resource.events[i].name == this.activeEntity.name) {
+                                if (this.resource.events[i].guid == this.activeEntity.guid) {
+                                    if (this.resource.events[i].name != this.activeEntity.name) {
+                                        // if we rename the entity - remove the original one
+                                        this.http.delete(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.resource.events[i].name)).subscribe(() => {});
+                                    }
                                     this.resource.events[i] = <Event>this.activeEntity;
                                     break;
                                 }
@@ -302,10 +313,14 @@ export class ResourceEntitiesTable implements OnInit {
                         break;
                     case "operation":
                         if (this.isNewEntity) {
-                            this.resource.operations.push(<Operation>this.selectedEntity);
+                            this.resource.operations.push(<Operation>this.activeEntity);
                         } else {
                             for (let i = 0; i < this.resource.operations.length; i++) {
-                                if (this.resource.operations[i].name == this.activeEntity.name) {
+                                if (this.resource.operations[i].guid == this.activeEntity.guid) {
+                                    if (this.resource.operations[i].name != this.activeEntity.name) {
+                                        // if we rename the entity - remove the original one
+                                        this.http.delete(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.resource.operations[i].name)).subscribe(() => {});
+                                    }
                                     this.resource.operations[i] = <Operation>this.activeEntity;
                                     break;
                                 }
@@ -392,7 +407,7 @@ export class ResourceEntitiesTable implements OnInit {
         this.selectedEntity.name = this.selectedEntityName;
         this.http.put(REST.RESOURCE_ENTITY_BY_NAME(this.resource.getName(), this.resource.name, this.entityType + "s", this.selectedEntityName), this.selectedEntity.stringifyFullObject())
             .map((res:Response) => res.text())
-            .subscribe((data) => {
+            .subscribe(() => {
                 switch (this.entityType) {
                     case "attribute":
                         this.resource.attributes.push(<Attribute>this.selectedEntity);
@@ -409,6 +424,7 @@ export class ResourceEntitiesTable implements OnInit {
                 this.cd.detectChanges();
                 $('#addExistentEntity' + this.entityType).modal("hide");
                 this.selectedEntity.override = true;
+                this.isNewEntity = false;
                 this.prepareEditEntityModal(this.selectedEntity);
             });
 
@@ -420,5 +436,3 @@ export class ResourceEntitiesTable implements OnInit {
         $('#addExistentEntity' + this.entityType).modal("hide");
     }
 }
-
-
