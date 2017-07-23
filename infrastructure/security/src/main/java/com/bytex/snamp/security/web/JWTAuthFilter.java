@@ -1,5 +1,6 @@
 package com.bytex.snamp.security.web;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.ImmutableList;
@@ -141,16 +142,9 @@ public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestF
     public final ContainerResponse filter(final ContainerRequest containerRequest, final ContainerResponse containerResponse) {
         // if user goes to auth method - we do not apply this filter
         if (authenticationRequired(containerRequest)) {
-            final JwtPrincipal principal;
-            if (containerRequest.getSecurityContext() instanceof JwtSecurityContext) {
-                principal = ((JwtSecurityContext)
-                        containerRequest.getSecurityContext()).getUserPrincipal();
-            } else {
-                logger.fine(() -> String.format("RequestContext has Security context but not JwtSecurityContext. " +
-                                "Actual class is %s. Trying to create security context from token...",
-                        containerRequest.getSecurityContext().getClass()));
-                principal = createSecurityContext(containerRequest).getUserPrincipal();
-            }
+            final JwtPrincipal principal = Convert.toType(containerRequest.getSecurityContext(), JwtSecurityContext.class)
+                    .orElseGet(() -> createSecurityContext(containerRequest))
+                    .getUserPrincipal();
             logger.fine(() -> String.format("TokenRefreshFilter is being applied. JWT principle is %s.", principal.getName()));
             // check if the token requires to be updated
             if (principal.isRefreshRequired()) {
