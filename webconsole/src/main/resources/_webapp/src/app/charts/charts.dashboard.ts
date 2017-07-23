@@ -287,10 +287,16 @@ export class Dashboard implements OnDestroy {
                 this.updateComponentsAndInstances();
                 // fill dashboard name (group that charts here belong to)
                 this.groupName = gn;
+                if (!isNullOrUndefined(this._chartService.activeSubscriber)) {
+                    this._chartService.activeSubscriber.unsubscribe();
+                    this._chartService.activeSubscriber = undefined;
+                }
                 this.chartGroupSubscriber = this._chartService.getChartsByGroupName(gn).subscribe((chs:AbstractChart[]) => {
                     this.allCharts = chs;
+                    chs.forEach((chart:AbstractChart) => chart.reinitialize());
                     this.cd.markForCheck(); // process template
                 });
+                this._chartService.activeSubscriber = this.chartGroupSubscriber;
             });
     }
 

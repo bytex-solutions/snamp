@@ -7,7 +7,7 @@ import { HealthStatusChartData } from "../data/health.status.chart.data";
 import { ChartWithGroupName } from "./group.name.based.chart";
 
 import 'jstree';
-import {isNullOrUndefined} from "util";
+import { isNullOrUndefined } from "util";
 
 
 export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implements ChartWithGroupName {
@@ -192,6 +192,12 @@ export class ResourceGroupHealthStatusChart extends TwoDimensionalChart implemen
             this._chartObject.refresh(true);
         } else {
             this.draw();
+        }
+    }
+
+    public reinitialize() {
+        if (!isNullOrUndefined(this._chartObject)) {
+            this._chartObject = undefined;
         }
     }
 }

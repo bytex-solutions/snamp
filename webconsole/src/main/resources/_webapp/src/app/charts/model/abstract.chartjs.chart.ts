@@ -10,7 +10,7 @@ export abstract class ChartJsChart extends TwoDimensionalChartOfAttributeValues 
     private static hslFromValue(i:number, count:number, opacity:any):string {
         let clr:any = 360 * i / count;
         return 'hsl(' + clr + ', 100%, 50%)';
-}
+    }
     // for chartJS purposes
     private static borderColor:string = "#536980";
 
@@ -37,7 +37,7 @@ export abstract class ChartJsChart extends TwoDimensionalChartOfAttributeValues 
 
     public newValues(_data:AttributeChartData[]):void {
         if (document.hidden || isNullOrUndefined(_data)) return;
-            if (!isNullOrUndefined(this._chartObject)) {
+        if (!isNullOrUndefined(this._chartObject)) {
             for (let i = 0; i < _data.length; i++) {
                 let _index:number = -1;
                 for (let j = 0; j < this.chartData.length; j++) {
@@ -61,6 +61,13 @@ export abstract class ChartJsChart extends TwoDimensionalChartOfAttributeValues 
             this._chartObject.update();
         } else {
             this.draw()
+        }
+    }
+
+    public reinitialize() {
+        if (!isNullOrUndefined(this._chartObject)) {
+            this._chartObject.destroy();
+            this._chartObject = undefined;
         }
     }
 }

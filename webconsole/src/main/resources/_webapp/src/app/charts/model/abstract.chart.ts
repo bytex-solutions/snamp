@@ -98,6 +98,8 @@ export abstract class AbstractChart {
             }
         });
     }
+
+    public reinitialize():void {}
 }
 
 class GUID {

@@ -407,10 +407,16 @@ var Dashboard = (function () {
             _this.updateComponentsAndInstances();
             // fill dashboard name (group that charts here belong to)
             _this.groupName = gn;
+            if (!util_1.isNullOrUndefined(_this._chartService.activeSubscriber)) {
+                _this._chartService.activeSubscriber.unsubscribe();
+                _this._chartService.activeSubscriber = undefined;
+            }
             _this.chartGroupSubscriber = _this._chartService.getChartsByGroupName(gn).subscribe(function (chs) {
                 _this.allCharts = chs;
+                chs.forEach(function (chart) { return chart.reinitialize(); });
                 _this.cd.markForCheck(); // process template
             });
+            _this._chartService.activeSubscriber = _this.chartGroupSubscriber;
         });
     };
     Dashboard.prototype.initWizard = function () {

@@ -4,8 +4,8 @@ import { Axis } from "../axis/abstract.axis";
 import { VotingData } from "../data/voting.data";
 
 import { RadialGauge } from 'canvas-gauges';
-import {ChartWithGroupName} from "./group.name.based.chart";
-import {isNullOrUndefined} from "util";
+import { ChartWithGroupName } from "./group.name.based.chart";
+import { isNullOrUndefined } from "util";
 
 export class VotingResultChart extends AbstractChart implements ChartWithGroupName {
 
@@ -25,7 +25,7 @@ export class VotingResultChart extends AbstractChart implements ChartWithGroupNa
     }
 
     draw(): void {
-        if (this.chartData == undefined || this.chartData.length == 0) return;
+        if (isNullOrUndefined(this.chartData) || this.chartData.length == 0) return;
         let _voteIntervalTick:any = (<VotingData>this.chartData[0]).castingVote;
         let _currentValue:any = (<VotingData>this.chartData[0]).votingResult;
 
@@ -56,7 +56,7 @@ export class VotingResultChart extends AbstractChart implements ChartWithGroupNa
     newValues(_data: VotingData[]) {
         this.chartData = _data;
         if (!isNullOrUndefined(this._chart) && !document.hidden) {
-           this._chart.value = _data[0].votingResult;
+            this._chart.value = _data[0].votingResult;
         } else {
             this.draw();
         }
@@ -95,5 +95,12 @@ export class VotingResultChart extends AbstractChart implements ChartWithGroupNa
             _value["preferences"] = this.preferences;
         }
         return _value;
+    }
+
+    public reinitialize() {
+        if (!isNullOrUndefined(this._chart)) {
+            this._chart.destroy();
+            this._chart = undefined;
+        }
     }
 }

@@ -16457,6 +16457,9 @@ module.exports = convert;
 /***/ "./node_modules/color-name/index.js":
 /***/ function(module, exports) {
 
+"use strict";
+'use strict'
+
 module.exports = {
 	"aliceblue": [240, 248, 255],
 	"antiquewhite": [250, 235, 215],
@@ -16607,6 +16610,7 @@ module.exports = {
 	"yellow": [255, 255, 0],
 	"yellowgreen": [154, 205, 50]
 };
+
 
 /***/ },
 
@@ -44469,7 +44473,7 @@ module.exports = util;
 /***/ "./node_modules/cytoscape/src/version.json":
 /***/ function(module, exports) {
 
-module.exports = "2.7.14";
+module.exports = "2.7.14"
 
 /***/ },
 
@@ -104293,6 +104297,7 @@ var AbstractChart = (function () {
             }
         });
     };
+    AbstractChart.prototype.reinitialize = function () { };
     AbstractChart.VBAR = "verticalBarChartOfAttributeValues";
     AbstractChart.PIE = "pieChartOfAttributeValues";
     AbstractChart.HBAR = "horizontalBarChartOfAttributeValues";
@@ -104383,6 +104388,12 @@ var ChartJsChart = (function (_super) {
         }
         else {
             this.draw();
+        }
+    };
+    ChartJsChart.prototype.reinitialize = function () {
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
+            this._chartObject.destroy();
+            this._chartObject = undefined;
         }
     };
     // for chartJS purposes
@@ -105310,6 +105321,11 @@ var ResourceGroupHealthStatusChart = (function (_super) {
             this.draw();
         }
     };
+    ResourceGroupHealthStatusChart.prototype.reinitialize = function () {
+        if (!util_1.isNullOrUndefined(this._chartObject)) {
+            this._chartObject = undefined;
+        }
+    };
     return ResourceGroupHealthStatusChart;
 }(two_dimensional_chart_1.TwoDimensionalChart));
 exports.ResourceGroupHealthStatusChart = ResourceGroupHealthStatusChart;
@@ -105485,7 +105501,7 @@ var VotingResultChart = (function (_super) {
         configurable: true
     });
     VotingResultChart.prototype.draw = function () {
-        if (this.chartData == undefined || this.chartData.length == 0)
+        if (util_1.isNullOrUndefined(this.chartData) || this.chartData.length == 0)
             return;
         var _voteIntervalTick = this.chartData[0].castingVote;
         var _currentValue = this.chartData[0].votingResult;
@@ -105550,6 +105566,12 @@ var VotingResultChart = (function (_super) {
             _value["preferences"] = this.preferences;
         }
         return _value;
+    };
+    VotingResultChart.prototype.reinitialize = function () {
+        if (!util_1.isNullOrUndefined(this._chart)) {
+            this._chart.destroy();
+            this._chart = undefined;
+        }
     };
     return VotingResultChart;
 }(abstract_chart_1.AbstractChart));
@@ -108621,6 +108643,7 @@ __webpack_require__("./node_modules/rxjs/add/observable/of.js");
 var ChartService = (function () {
     function ChartService(_http) {
         this._http = _http;
+        this.activeSubscriber = undefined;
         this.chartSubjects = {};
         this.computeSubscriber = undefined;
         this.saveSubscriber = undefined;

@@ -20,6 +20,7 @@ import 'rxjs/add/operator/cache';
 import 'rxjs/add/observable/forkJoin';
 import 'rxjs/add/observable/from';
 import 'rxjs/add/observable/of';
+import {Subscription} from "rxjs/Subscription";
 
 @Injectable()
 export class ChartService implements OnDestroy {
@@ -36,6 +37,7 @@ export class ChartService implements OnDestroy {
         }
     }
 
+    public activeSubscriber:Subscription = undefined;
     private _dashboard:Dashboard;
     private chartSubjects:{ [key:string]: BehaviorSubject<ChartData[]> } = {};
     private computeSubscriber:any = undefined;
