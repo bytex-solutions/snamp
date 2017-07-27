@@ -47,11 +47,6 @@ public final class Utils {
         default Object apply(final Callable<?> callable) {
             return invoke(callable);
         }
-
-        @SpecialUse({SpecialUse.Case.REFLECTION, SpecialUse.Case.JVM})
-        static <V> V call(final Callable<V> callable) throws Exception {
-            return callable.call();
-        }
     }
 
     private static final SilentInvoker SILENT_INVOKER;
@@ -63,7 +58,7 @@ public final class Utils {
                     "invoke",
                     MethodType.methodType(SilentInvoker.class),
                     SilentInvoker.SIGNATURE,
-                    lookup.findStatic(SilentInvoker.class, "call", SilentInvoker.SIGNATURE),
+                    lookup.findVirtual(Callable.class, "call", MethodType.methodType(Object.class)),
                     SilentInvoker.SIGNATURE);
             SILENT_INVOKER = (SilentInvoker) site.getTarget().invokeExact();
         } catch (final Throwable e) {
