@@ -2,10 +2,8 @@ package com.bytex.snamp;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -42,6 +40,11 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
         @Override
         public void remove() {
             throw new UnsupportedOperationException("Not supported for empty iterator.");
+        }
+
+        @Override
+        public void forEachRemaining(final Consumer action) {
+
         }
 
         @SuppressWarnings("unchecked")
@@ -81,6 +84,12 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
         @Override
         public final void remove() {
             throw new UnsupportedOperationException("Array element cannot be removed");
+        }
+
+        @Override
+        public final void forEachRemaining(final Consumer<? super T> action) {
+            while (position < length)
+                action.accept(get(position++));
         }
 
         @Override
@@ -131,23 +140,30 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
      * @return A new instance of resettable iterator.
      */
     public static <T> ResettableIterator<T> of(final Iterable<T> iterable){
-        return new ResettableIterator<T>(){
+        return of(iterable, false);
+    }
+
+    /**
+     * Constructs iterator for the specified collection.
+     * @param iterable A collection to wrap. Cannot be {@literal null}.
+     * @param readOnly {@literal true}
+     * @param <T> Type of the element in the collection.
+     * @return A new instance of resettable iterator.
+     * @since 2.1
+     */
+    public static <T> ResettableIterator<T> of(final Iterable<T> iterable, final boolean readOnly) {
+        class DefaultIterator extends ResettableIterator<T> {
             private static final long serialVersionUID = 8372425179207081157L;
             private Iterator<T> iterator = iterable.iterator();
 
             @Override
-            public void reset() {
+            public final void reset() {
                 iterator = iterable.iterator();
             }
 
             @Override
-            public boolean hasNext() {
+            public final boolean hasNext() {
                 return iterator.hasNext();
-            }
-
-            @Override
-            public T next() {
-                return iterator.next();
             }
 
             @Override
@@ -156,10 +172,31 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
             }
 
             @Override
+            public final T next() {
+                return iterator.next();
+            }
+
+            @Override
+            public final void forEachRemaining(final Consumer<? super T> action) {
+                iterator.forEachRemaining(action);
+            }
+
+            @Override
             public String toString() {
                 return iterable.toString();
             }
-        };
+        }
+
+        final class ReadOnlyIterator extends DefaultIterator{
+            private static final long serialVersionUID = 1531437949993154268L;
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("Iterator is read-only");
+            }
+        }
+
+        return readOnly ? new ReadOnlyIterator() : new DefaultIterator();
     }
 
     /**
@@ -191,11 +228,6 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
                 }
                 else throw new NoSuchElementException();
             }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException("This collection is singleton");
-            }
         };
     }
 
@@ -221,6 +253,8 @@ public abstract class ResettableIterator<T> implements Iterator<T>, Serializable
         switch (len = items.length) {
             case 0:
                 return EmptyIterator.getInstance();
+            case 1:
+                return of(items[0]);
             default:
                 return new ArrayIterator<T>(len) {
                     private static final long serialVersionUID = -1849965276230507239L;

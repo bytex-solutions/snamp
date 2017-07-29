@@ -133,7 +133,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         @SafeVarargs
         protected ProvidedService(@Nonnull final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super T>... subContracts){
             this.contract = ImmutableSet.<Class<? super T>>builder().add(mainContract).add(subContracts).build();
-            this.dependencies = new DependencyManager(dependencies);
+            this.dependencies = new DependencyManager(dependencies).freeze();
             registration = null;
             properties = EMPTY_ACTIVATION_PROPERTY_READER;
         }

@@ -3,6 +3,7 @@ package com.bytex.snamp.core;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.MethodStub;
+import com.bytex.snamp.ResettableIterator;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.reflect.TypeToken;
 import org.osgi.framework.*;
@@ -12,6 +13,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -478,13 +480,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @since 2.0
      * @version 2.0
      */
-    protected static final class DependencyManager extends LinkedList<RequiredService<?>>{
-        private static final long serialVersionUID = -41349119870370641L;
+    protected static final class DependencyManager implements Iterable<RequiredService<?>> {
         private boolean frozen;
+        private final Collection<RequiredService<?>> dependencies;
 
         DependencyManager(final RequiredService<?>... dependencies) {
-            super(Arrays.asList(dependencies));
             frozen = false;
+            this.dependencies = new LinkedList<>(Arrays.asList(dependencies));
         }
 
         /**
@@ -496,7 +498,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         @SuppressWarnings("unchecked")
         public <S> Optional<RequiredService<S>> getDependency(@Nonnull final Class<S> serviceContract,
                                                     @Nonnull final Predicate<? super RequiredService<S>> filter) {
-            return stream()
+            return dependencies.stream()
                     .filter(dependency -> dependency.dependencyContract.equals(serviceContract))
                     .map(dependency -> (RequiredService<S>) dependency)
                     .filter(filter)
@@ -504,7 +506,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         }
 
         public <S, D extends RequiredService<S>> Optional<D> getDependency(@Nonnull final Class<D> dependencyType) {
-            return stream()
+            return dependencies.stream()
                     .filter(dependencyType::isInstance)
                     .map(dependencyType::cast)
                     .findFirst();
@@ -522,22 +524,58 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                     .flatMap(RequiredServiceAccessor::getService);
         }
 
-
-
-        public boolean add(@Nonnull final Class<?> serviceType, @Nonnull final BundleContext context) {
+        public DependencyManager add(@Nonnull final Class<?> serviceType, @Nonnull final BundleContext context) {
             return add(new SimpleDependency<>(serviceType, context));
         }
 
-        void unbind(){
-            forEach(RequiredService::unbind);
+        public DependencyManager add(@Nonnull final RequiredService<?> dependency){
+            if(frozen)
+                throw new IllegalStateException("New dependencies cannot be added");
+            dependencies.add(Objects.requireNonNull(dependency));
+            return this;
         }
 
-        void freeze(){
+        DependencyManager unbind(){
+            dependencies.forEach(RequiredService::unbind);
+            return this;
+        }
+
+        DependencyManager freeze(){
             frozen = true;
+            return this;
         }
 
-        void defrost(){
+        DependencyManager defrost(){
             frozen = false;
+            return this;
+        }
+
+        @Override
+        @Nonnull
+        public ResettableIterator<RequiredService<?>> iterator() {
+            return ResettableIterator.of(dependencies, frozen);
+        }
+
+        @Override
+        public void forEach(final Consumer<? super RequiredService<?>> action) {
+            dependencies.forEach(action);
+        }
+
+        @Override
+        public Spliterator<RequiredService<?>> spliterator() {
+            return dependencies.spliterator();
+        }
+
+        int size(){
+            return dependencies.size();
+        }
+
+        void clear(){
+            dependencies.clear();
+        }
+
+        boolean isEmpty(){
+            return dependencies.isEmpty();
         }
     }
 
@@ -669,6 +707,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             }
             //attach bundle-level dependencies as service listeners
             filter.applyServiceListener(context, this);
+        } finally {
+            bundleLevelDependencies.freeze();
         }
     }
 
@@ -692,7 +732,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                 shutdown(context);
             } finally {
                 //unbind all dependencies
-                bundleLevelDependencies.clear();
+                bundleLevelDependencies.defrost().unbind().clear();
                 properties.clear();
             }
         } finally {
