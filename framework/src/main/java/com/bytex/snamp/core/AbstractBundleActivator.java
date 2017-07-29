@@ -480,9 +480,11 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      */
     protected static final class DependencyManager extends LinkedList<RequiredService<?>>{
         private static final long serialVersionUID = -41349119870370641L;
+        private boolean frozen;
 
         DependencyManager(final RequiredService<?>... dependencies) {
             super(Arrays.asList(dependencies));
+            frozen = false;
         }
 
         /**
@@ -520,6 +522,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
                     .flatMap(RequiredServiceAccessor::getService);
         }
 
+
+
         public boolean add(@Nonnull final Class<?> serviceType, @Nonnull final BundleContext context) {
             return add(new SimpleDependency<>(serviceType, context));
         }
@@ -528,7 +532,13 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
             forEach(RequiredService::unbind);
         }
 
+        void freeze(){
+            frozen = true;
+        }
 
+        void defrost(){
+            frozen = false;
+        }
     }
 
     /**

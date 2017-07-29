@@ -8,11 +8,15 @@ import java.security.Principal;
  * @version 2.1
  * @since 2.1
  */
-public interface PrincipalBoundedService extends WebConsoleService {
+public interface PrincipalBoundedService<USERDATA> extends WebConsoleService {
     /**
      * Extracts user settings associated with this service.
      * @param principal User identity. Cannot be {@literal null}.
      * @return User settings associated with this service.
      */
-    Object getUserData(final Principal principal);
+    USERDATA getUserData(final Principal principal);
+
+    void setUserData(final Principal principal, final USERDATA data);
+
+    Class<USERDATA> getUserDataType();
 }

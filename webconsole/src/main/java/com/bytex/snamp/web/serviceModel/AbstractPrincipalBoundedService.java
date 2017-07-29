@@ -25,7 +25,7 @@ import static com.bytex.snamp.core.KeyValueStorage.JsonRecordView;
  * @version 2.0
  * @since 2.0
  */
-public abstract class AbstractPrincipalBoundedService<USERDATA> extends AbstractWebConsoleService implements PrincipalBoundedService {
+public abstract class AbstractPrincipalBoundedService<USERDATA> extends AbstractWebConsoleService implements PrincipalBoundedService<USERDATA> {
     private final KeyValueStorage userDataStorage;
     private final ObjectMapper mapper;
     private final Class<USERDATA> userDataType;
@@ -38,6 +38,11 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
                 storageName,
                 SharedObjectType.PERSISTENT_KV_STORAGE)
                 .orElseThrow(AssertionError::new);
+    }
+
+    @Override
+    public final Class<USERDATA> getUserDataType() {
+        return userDataType;
     }
 
     @Path("/settings")
@@ -92,7 +97,8 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
         return session.getUserData(userDataType).orElseGet(() -> getUserData(session.getPrincipal()));
     }
 
-    protected final void setUserData(final Principal principal, final USERDATA data) {
+    @Override
+    public final void setUserData(final Principal principal, final USERDATA data) {
         userDataStorage.updateOrCreateRecord(principal.getName(), JsonRecordView.class, record -> setUserData(data, record));
     }
 }

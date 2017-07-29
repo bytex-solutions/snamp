@@ -2,7 +2,6 @@ package com.bytex.snamp.web;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.core.DefaultServiceSelector;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.security.web.JWTAuthFilter;
@@ -36,12 +35,6 @@ final class DefaultWebConsoleEngine extends WebSocketServlet implements WebConso
         securityFilter = WebConsoleSecurityFilter.forWebSocket(clusterMember);
     }
 
-    private ServiceReference<WebConsoleService>[] getServices() {
-        return new DefaultServiceSelector()
-                .setServiceType(WebConsoleService.class)
-                .getServiceReferences(getBundleContext(), WebConsoleService.class);
-    }
-
     private WebSocketChannel sendError(final ServletUpgradeResponse resp,
                                        final Response.Status status,
                                        final String message) {
@@ -68,7 +61,7 @@ final class DefaultWebConsoleEngine extends WebSocketServlet implements WebConso
         } else {
             //attach web socket channel to each service
             final WebSocketChannel channel = new WebSocketChannel(principal);
-            for (final ServiceReference<WebConsoleService> serviceRef : getServices()) {
+            for (final ServiceReference<WebConsoleService> serviceRef : WebConsoleService.createSelector().getServiceReferences(getBundleContext(), WebConsoleService.class)) {
                 final WebConsoleService service = getBundleContext().getService(serviceRef);
                 if (service != null)
                     try {

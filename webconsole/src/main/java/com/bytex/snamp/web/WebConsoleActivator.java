@@ -5,10 +5,12 @@ import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.web.serviceModel.PrincipalBoundedService;
 import com.bytex.snamp.web.serviceModel.RESTController;
 import com.bytex.snamp.web.serviceModel.WebConsoleService;
 import com.bytex.snamp.web.serviceModel.charts.ChartDataSource;
 import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationService;
+import com.bytex.snamp.web.serviceModel.commons.UserProfileService;
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
@@ -45,7 +47,6 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     private static abstract class WebConsoleServiceProvider<S extends WebConsoleService, T extends S> extends ProvidedService<S, T>{
-        private static final String SERVICE_NAME_PROPERTY = "webConsoleServiceName";
         private final String serviceName;
 
         WebConsoleServiceProvider(@Nonnull final Class<S> mainContract,
@@ -63,12 +64,21 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
             this.serviceName = serviceName;
         }
 
+        WebConsoleServiceProvider(@Nonnull final Class<S> mainContract,
+                                  @Nonnull final String serviceName,
+                                  final RequiredService<?>[] dependencies,
+                                  final Class<? super T> subContract1,
+                                  final Class<? super T> subContract2) {
+            super(mainContract, dependencies, WebConsoleService.class, subContract1, subContract2);
+            this.serviceName = serviceName;
+        }
+
         @Nonnull
         abstract T activateService();
 
         @OverridingMethodsMustInvokeSuper
-        void fillIdentity(final ServiceIdentityBuilder identity){
-            identity.accept(SERVICE_NAME_PROPERTY, serviceName);
+        void fillIdentity(final ServiceIdentityBuilder identity) {
+            identity.accept(WebConsoleService.SERVICE_NAME_PROPERTY, serviceName);
         }
 
         @Nonnull
@@ -94,7 +104,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
         @Override
         protected boolean match(final ServiceReference<RESTController> reference) {
-            return name.equals(reference.getProperty(WebConsoleServiceProvider.SERVICE_NAME_PROPERTY));
+            return WebConsoleService.getServiceName(reference).map(name::equals).orElse(false);
         }
     }
 
@@ -126,7 +136,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         private static final String SERVICE_NAME = "notifications";
 
         private NotificationServiceProvider() {
-            super(RESTController.class, SERVICE_NAME);
+            super(RESTController.class, SERVICE_NAME, noRequiredServices(), PrincipalBoundedService.class);
         }
 
         @Nonnull
@@ -154,7 +164,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         private static final String SERVICE_NAME = "E2E";
 
         private E2EDataSourceProvider() {
-            super(RESTController.class, SERVICE_NAME);
+            super(RESTController.class, SERVICE_NAME, noRequiredServices(), PrincipalBoundedService.class);
         }
 
         @Nonnull
@@ -168,7 +178,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         private static final String SERVICE_NAME = "chartDataProvider";
 
         private ChartDataSourceProvider(){
-            super(RESTController.class, SERVICE_NAME, requiredBy(ChartDataSource.class).require(ThreadPoolRepository.class));
+            super(RESTController.class, SERVICE_NAME, requiredBy(ChartDataSource.class).require(ThreadPoolRepository.class), PrincipalBoundedService.class);
         }
 
         @Nonnull
@@ -214,7 +224,8 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
             super(RESTController.class,
                     SERVICE_NAME,
                     requiredBy(LogNotifier.class).require(ThreadPoolRepository.class),
-                    PaxAppender.class);
+                    PaxAppender.class,
+                    PrincipalBoundedService.class);
         }
 
         @Override
@@ -228,6 +239,20 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         LogNotifier activateService() {
             final ThreadPoolRepository repository = dependencies.getService(ThreadPoolRepository.class).orElseThrow(AssertionError::new);
             return new LogNotifier(repository.getThreadPool(THREAD_POOL_NAME, true));
+        }
+    }
+
+    private static final class UserProfileServiceProvider extends WebConsoleServiceProvider<RESTController, UserProfileService>{
+        private static final String SERVICE_NAME = "userProfile";
+
+        private UserProfileServiceProvider(){
+            super(RESTController.class, SERVICE_NAME);
+        }
+
+        @Nonnull
+        @Override
+        UserProfileService activateService() {
+            return new UserProfileService();
         }
     }
 
@@ -253,7 +278,10 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
                 new WebConsoleServiceServletProvider(GroupWatcherServiceProvider.SERVICE_NAME),
 
                 new NotificationServiceProvider(),
-                new WebConsoleServiceServletProvider(NotificationServiceProvider.SERVICE_NAME));
+                new WebConsoleServiceServletProvider(NotificationServiceProvider.SERVICE_NAME),
+
+                new UserProfileServiceProvider(),
+                new WebConsoleServiceServletProvider(UserProfileServiceProvider.SERVICE_NAME));
     }
 
     @Override

@@ -44,6 +44,11 @@ public class DefaultServiceSelector extends HashMap<String, String> implements S
         return result.append(')').toString();
     }
 
+    public final DefaultServiceSelector property(final String name, final String value){
+        put(name, value);
+        return this;
+    }
+
     /**
      * Constructs OSGi filter.
      *
