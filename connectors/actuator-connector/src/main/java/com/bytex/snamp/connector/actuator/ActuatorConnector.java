@@ -24,7 +24,7 @@ import java.util.function.Predicate;
 /**
  * Collects information from Spring Actuator endpoints including health information and metrics.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class ActuatorConnector extends AbstractManagedResourceConnector implements HealthCheckSupport {

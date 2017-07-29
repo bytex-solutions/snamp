@@ -9,7 +9,7 @@ import java.time.Duration;
  * Represents script-based periodic analyzer of attributes.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class ScriptAttributesAnalyzer extends ResourceAttributesAnalyzer<ScriptAttributeAccessor> {

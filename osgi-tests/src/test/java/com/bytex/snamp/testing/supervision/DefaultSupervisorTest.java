@@ -41,7 +41,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @SnampDependencies({SnampFeature.STANDARD_TOOLS, SnampFeature.INTEGRATION_TOOLS})

@@ -9,7 +9,7 @@ import java.nio.IntBuffer;
 /**
  * Provides deserialization of {@link IntBuffer} from JSON.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class IntBufferDeserializer extends AbstractBufferDeserializer<IntBuffer> {

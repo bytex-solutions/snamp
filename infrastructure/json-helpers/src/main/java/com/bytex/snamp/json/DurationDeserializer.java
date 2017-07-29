@@ -10,7 +10,7 @@ import java.time.Duration;
 /**
  * Deserializes {@link Duration} from JSON.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class DurationDeserializer extends JsonDeserializer<Duration> {

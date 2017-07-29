@@ -11,7 +11,7 @@ import java.util.function.DoubleSupplier;
 /**
  * Represents time-constrained accumulator for {@code double} numbers.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @ThreadSafe
 public abstract class TimeLimitedDouble extends Timeout implements DoubleSupplier, DoubleConsumer, Cloneable {

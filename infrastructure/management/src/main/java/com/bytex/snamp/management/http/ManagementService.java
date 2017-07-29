@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * ManagedResourceConfigurationDTO
  *
  * @author Evgeniy Kirichenko
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Path("/")

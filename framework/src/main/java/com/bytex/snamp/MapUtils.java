@@ -8,7 +8,7 @@ import java.util.function.*;
 /**
  * Represents utility methods for working with {@link java.util.Map} and {@link java.util.Dictionary}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class MapUtils {

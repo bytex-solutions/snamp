@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Represents attribute as point of measurement that can be stored in InfluxDB.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class AttributePoint extends AttributeAccessor {
     AttributePoint(final MBeanAttributeInfo metadata) {

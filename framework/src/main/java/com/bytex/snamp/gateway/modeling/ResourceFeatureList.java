@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 /**
  * Represents a collection of managed resource features.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class ResourceFeatureList<M extends MBeanFeatureInfo, TAccessor extends FeatureAccessor<M>> extends AbstractKeyedObjects<String, TAccessor> {

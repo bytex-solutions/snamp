@@ -27,7 +27,7 @@ import static com.bytex.snamp.configuration.ConfigurationManager.ConfigurationPr
 /**
  * Represents an abstract class for all SNAMP-based integration tests.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.PLATFORM})

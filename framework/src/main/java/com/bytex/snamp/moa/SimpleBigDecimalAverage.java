@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Represents simple average computation service based on {@link BigDecimal} data type at its core.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class SimpleBigDecimalAverage extends SimpleAverage implements BigDecimalAverage {

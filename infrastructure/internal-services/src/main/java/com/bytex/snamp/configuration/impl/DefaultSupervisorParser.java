@@ -18,7 +18,7 @@ import static com.bytex.snamp.supervision.Supervisor.CAPABILITY_NAMESPACE;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<SerializableSupervisorConfiguration> implements CMSupervisorParser {

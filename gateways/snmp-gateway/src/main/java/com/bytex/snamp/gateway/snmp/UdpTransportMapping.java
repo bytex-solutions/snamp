@@ -10,7 +10,7 @@ import java.net.DatagramSocket;
 /**
  * Fixed version of {@link DefaultUdpTransportMapping}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class UdpTransportMapping extends DefaultUdpTransportMapping {

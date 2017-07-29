@@ -25,7 +25,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class DatabaseNode extends OServer {

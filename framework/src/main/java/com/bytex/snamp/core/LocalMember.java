@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Represents information about local cluster member.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class LocalMember implements ClusterMember {

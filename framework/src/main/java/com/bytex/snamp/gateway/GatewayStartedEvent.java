@@ -3,7 +3,7 @@ package com.bytex.snamp.gateway;
 /**
  * Represents an event indicating that the gateway instance is started.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class GatewayStartedEvent extends GatewayEvent {

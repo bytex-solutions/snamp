@@ -11,7 +11,7 @@ import java.util.Map;
  * Represents filtered graph of components.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class FilteredGraphOfComponents extends GraphOfComponents {
     private static final long serialVersionUID = -2367174795240931165L;

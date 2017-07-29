@@ -11,7 +11,7 @@ import java.util.function.*;
  * Represents simple data container.
  * @param <T> Type of the data encapsulated inside of container.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface Box<T> extends Serializable, Supplier<T>, Consumer<T>, Acceptor<T, ExceptionPlaceholder>, Stateful {

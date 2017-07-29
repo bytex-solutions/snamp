@@ -13,7 +13,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.parseStringField;
 /**
  * Represents {@link org.snmp4j.smi.OID} conversion format.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 enum OidConversionFormat implements SnmpObjectConverter<OID> {

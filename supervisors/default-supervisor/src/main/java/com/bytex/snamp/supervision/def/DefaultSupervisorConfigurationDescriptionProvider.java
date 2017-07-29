@@ -17,7 +17,7 @@ import static com.bytex.snamp.MapUtils.getValue;
 /**
  * Represents description of configuration properties related to default supervisor.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class DefaultSupervisorConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements SupervisorDescriptionProvider {

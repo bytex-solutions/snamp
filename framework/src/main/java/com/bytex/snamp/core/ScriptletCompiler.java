@@ -5,7 +5,7 @@ import com.bytex.snamp.configuration.ScriptletConfiguration;
 /**
  * Provides compilation of {@link com.bytex.snamp.configuration.ScriptletConfiguration} into executable entity.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface ScriptletCompiler<O> {

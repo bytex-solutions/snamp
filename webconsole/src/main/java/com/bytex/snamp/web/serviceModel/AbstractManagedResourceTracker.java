@@ -17,7 +17,7 @@ import java.util.Map;
  * @param <V> Type of configuration values.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class AbstractManagedResourceTracker<V> extends AbstractStatefulFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient, Map<String, V>> {
     protected AbstractManagedResourceTracker() {

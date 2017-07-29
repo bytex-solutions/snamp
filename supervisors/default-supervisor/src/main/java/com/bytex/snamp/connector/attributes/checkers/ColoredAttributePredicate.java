@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 /**
  * Represents predicate used to detect color of the attribute value.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)

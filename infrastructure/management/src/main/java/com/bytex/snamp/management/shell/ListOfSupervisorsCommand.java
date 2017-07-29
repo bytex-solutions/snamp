@@ -11,7 +11,7 @@ import java.io.PrintWriter;
  * Provides list of configured supervisors.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         name = "supervisors",

@@ -15,7 +15,7 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRatedGauge64;
 /**
  * Holds {@link com.bytex.snamp.connector.metrics.RatedGauge64} as attribute.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class Gauge64Attribute extends MetricHolderAttribute<RatedGauge64Recorder, ValueMeasurementNotification> {
     static final CompositeType TYPE = RATED_GAUGE_64_TYPE;

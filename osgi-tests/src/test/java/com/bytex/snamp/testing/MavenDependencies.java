@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Represents a set of Maven dependencies used to resolve required features.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @Retention(RetentionPolicy.RUNTIME)

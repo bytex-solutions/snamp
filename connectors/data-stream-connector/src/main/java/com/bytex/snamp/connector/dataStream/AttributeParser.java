@@ -9,7 +9,7 @@ import javax.management.openmbean.CompositeType;
 /**
  * Represents parser of attributes.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class AttributeParser extends Tokenizer {
     private static final NameToken FROM_KEYWORD = new NameToken("from");

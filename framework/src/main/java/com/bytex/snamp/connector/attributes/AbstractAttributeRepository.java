@@ -39,7 +39,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @param <M> Type of the attribute metadata.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport {
     private static abstract class AttributeTask<M extends MBeanAttributeInfo> extends WeakReference<AbstractAttributeRepository<M>> implements Callable<Attribute>{

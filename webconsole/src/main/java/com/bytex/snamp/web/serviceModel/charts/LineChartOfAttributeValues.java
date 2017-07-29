@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 /**
  * Represents line chart where X is a timestamp of attribute values; Y is an attribute value.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeName("lineChartOfAttributeValues")

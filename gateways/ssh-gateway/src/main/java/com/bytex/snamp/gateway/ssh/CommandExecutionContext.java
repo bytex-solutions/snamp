@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 interface CommandExecutionContext extends Aggregator {

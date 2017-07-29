@@ -5,7 +5,7 @@ import java.util.EventObject;
 /**
  * The root class from which all gateway-related event state objects shall be derived.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class GatewayEvent extends EventObject {

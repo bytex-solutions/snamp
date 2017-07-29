@@ -33,7 +33,7 @@ import static com.bytex.snamp.Convert.toDouble;
 /**
  * Represents scaling policy based on value of attributes.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPolicy implements com.bytex.snamp.supervision.elasticity.AttributeBasedScalingPolicy {

@@ -10,7 +10,7 @@ import java.util.EventObject;
  * <p>
  *     These events will be propagated through WebSocket to the browser-based application.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@messageType")

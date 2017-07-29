@@ -20,7 +20,7 @@ import java.util.Objects;
 /**
  * Represents repository of attributes reflected from JavaBean properties.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class JavaBeanAttributeRepository extends AbstractAttributeRepository<JavaBeanAttributeInfo> {

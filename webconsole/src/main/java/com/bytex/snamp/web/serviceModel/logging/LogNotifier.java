@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Provides notification about logs.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Path("/")

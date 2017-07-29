@@ -8,7 +8,7 @@ import javax.management.openmbean.SimpleType;
 /**
  * JMX attribute with SNAMP platform version.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class PlatformVersionAttribute extends OpenMBean.OpenAttribute<String, SimpleType<String>> {

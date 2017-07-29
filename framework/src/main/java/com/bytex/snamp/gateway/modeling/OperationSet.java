@@ -6,7 +6,7 @@ import com.bytex.snamp.EntryReader;
  * Represents reader for a set of events stored inside of the gateway instance.
  * @param <TAccessor> Type of the operation accessor.
  * @author Evgeniy Kirichenko
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface OperationSet<TAccessor extends OperationAccessor> {

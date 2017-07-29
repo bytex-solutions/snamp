@@ -10,7 +10,7 @@ import java.util.Map;
  * supports {@link java.net.URI} as one of the initialization parameters.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface URICommandExecutionChannelSpi extends CommandExecutionChannelSpi {
     /**

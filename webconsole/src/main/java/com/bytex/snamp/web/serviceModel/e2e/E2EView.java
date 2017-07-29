@@ -12,7 +12,7 @@ import java.util.Map;
  * Represents definition of E2E View.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({

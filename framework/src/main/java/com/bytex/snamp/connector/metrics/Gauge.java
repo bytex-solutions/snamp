@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.metrics;
 /**
  * Represents generic gauge.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 interface Gauge<V extends Comparable<V>> extends Metric {

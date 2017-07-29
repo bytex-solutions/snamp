@@ -8,7 +8,7 @@ import java.util.Collection;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class ModelOfNotifications<TAccessor extends NotificationAccessor> extends ModelOfFeatures<MBeanNotificationInfo, TAccessor, ResourceNotificationList<TAccessor>> implements NotificationSet<TAccessor> {

@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 /**
  * Represents bar chart with horizontal bars where X-axis contains attribute value and Y-axis contains instance names.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeName("horizontalBarChartOfAttributeValues")

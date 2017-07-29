@@ -44,7 +44,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
  * </p>
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class AbstractAggregator implements Aggregator {
     @FunctionalInterface
@@ -301,7 +301,7 @@ public abstract class AbstractAggregator implements Aggregator {
      * Identifies that the parameterless method or field holds the aggregated object.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})

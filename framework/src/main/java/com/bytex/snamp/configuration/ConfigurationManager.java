@@ -17,7 +17,7 @@ import java.util.function.Function;
  *     {@link CMGatewayParser} when {@link com.bytex.snamp.Aggregator#queryObject(Class)} is called
  *     with suitable arguments.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface ConfigurationManager extends FrameworkService {

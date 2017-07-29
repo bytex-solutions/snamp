@@ -21,7 +21,7 @@ import java.util.Arrays;
  * Provides configuration of attribute checkers.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         description = "Configure health check trigger",

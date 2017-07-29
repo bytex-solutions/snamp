@@ -11,7 +11,7 @@ import javax.management.*;
  * This class cannot be inherited directly from your code.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public final class GroovyResourceAttribute extends GroovyObjectSupport {
     private final AttributesView attributes;

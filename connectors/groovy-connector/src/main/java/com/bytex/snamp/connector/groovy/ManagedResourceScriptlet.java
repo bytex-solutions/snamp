@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * Represents an abstract class for initialization script.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class ManagedResourceScriptlet extends Scriptlet implements ManagedResourceInfo, TypeDeclarationDSL {

@@ -20,7 +20,7 @@ import java.util.function.Function;
  *         <li>{@link Communicator} for sending messages between actors</li>
  *     </ul>
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  * @see SharedCounter
  */

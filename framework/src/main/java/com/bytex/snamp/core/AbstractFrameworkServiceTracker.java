@@ -22,7 +22,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @param <C> Type of service client.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class AbstractFrameworkServiceTracker<S extends FrameworkService, C extends ServiceHolder<S> & SafeCloseable> extends AbstractAggregator implements ServiceListener {
     private static final class TrackerLoggingScope extends LoggingScope {

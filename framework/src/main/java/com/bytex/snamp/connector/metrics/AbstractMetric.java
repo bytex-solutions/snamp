@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * Represents abstract class for all metrics.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class AbstractMetric implements Metric, Serializable {

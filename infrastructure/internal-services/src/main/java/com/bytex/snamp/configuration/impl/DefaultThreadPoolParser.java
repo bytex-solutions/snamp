@@ -7,7 +7,7 @@ import static com.bytex.snamp.concurrent.ThreadPoolRepository.DEFAULT_POOL;
 /**
  * Represents parser of {@link SerializableThreadPoolConfiguration}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class DefaultThreadPoolParser extends SerializableConfigurationParser<SerializableThreadPoolConfiguration> {

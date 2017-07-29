@@ -12,7 +12,7 @@ import java.math.BigInteger;
 /**
  * Represents access to the advanced properties for many objects using in the string template.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class CommonAdaptors implements ModelAdaptor {

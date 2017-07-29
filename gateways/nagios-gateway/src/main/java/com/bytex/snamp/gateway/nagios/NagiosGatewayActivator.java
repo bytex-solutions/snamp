@@ -8,7 +8,7 @@ import static com.bytex.snamp.ArrayUtils.toArray;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class NagiosGatewayActivator extends GatewayActivator<NagiosGateway> {

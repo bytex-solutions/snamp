@@ -27,7 +27,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents attribute descriptor.
  * with attribute metadata.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class AttributeDescriptor extends ImmutableDescriptor implements FeatureDescriptor<AttributeConfiguration> {

@@ -20,7 +20,7 @@ import java.util.function.Predicate;
  * @param <M> Type of metric recorder
  * @param <N> Type of notifications that can be handled by this attribute
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 abstract class MetricHolderAttribute<M extends AbstractMetric, N extends Notification> extends DistributedAttribute<CompositeData, N> implements AutoCloseable, Stateful {

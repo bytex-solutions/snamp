@@ -8,7 +8,7 @@ import java.util.Properties;
 /**
  * Instantiates {@link GroovyProvisioningEngine} in Groovy sandbox.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class GroovyProvisioningEngineFactory extends FileBasedGroovyScriptEngine<GroovyProvisioningEngine> {

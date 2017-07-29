@@ -10,7 +10,7 @@ import java.util.Objects;
  * <p>
  *     Subsystem of some service may be represented as connected distributed cache, database, storage etc.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class ResourceSubsystemDownStatus extends ResourceMalfunctionStatus {

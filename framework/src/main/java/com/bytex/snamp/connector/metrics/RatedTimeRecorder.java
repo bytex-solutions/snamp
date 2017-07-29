@@ -6,7 +6,7 @@ import java.time.Duration;
 /**
  * Represents implementation of {@link RatedTimer}.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @ThreadSafe
 public class RatedTimeRecorder extends TimeRecorder implements RatedTimer {

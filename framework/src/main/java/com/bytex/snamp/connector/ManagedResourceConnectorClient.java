@@ -26,7 +26,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents a client of resource connector that can be used by resource consumers.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector, SafeCloseable, HealthCheckSupport {

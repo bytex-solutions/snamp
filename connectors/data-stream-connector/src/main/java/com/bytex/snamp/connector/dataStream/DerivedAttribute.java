@@ -10,7 +10,7 @@ import javax.management.openmbean.OpenType;
 /**
  * Represents attribute which value is derived from the value of another attribute in repository.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  * @implNote By default, this attribute doesn't respond to the received measurement notifications.
  */

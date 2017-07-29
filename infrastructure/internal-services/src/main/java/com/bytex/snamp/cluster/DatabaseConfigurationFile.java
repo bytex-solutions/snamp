@@ -11,7 +11,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Represents database configuration file.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 enum DatabaseConfigurationFile {

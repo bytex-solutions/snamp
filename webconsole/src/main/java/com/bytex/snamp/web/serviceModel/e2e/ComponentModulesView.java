@@ -8,7 +8,7 @@ import java.time.Duration;
 /**
  * Represents communications scheme between modules in the component.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeName("componentModules")

@@ -3,7 +3,7 @@ package com.bytex.snamp.core;
 /**
  * Represents state of the framework service.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public enum FrameworkServiceState {

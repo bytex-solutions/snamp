@@ -11,7 +11,7 @@ import java.util.List;
  * Represents dashboard with E2E views.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @JsonTypeName("E2EDashboard")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)

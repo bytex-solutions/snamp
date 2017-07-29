@@ -13,7 +13,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Provides collection of attributes wrapped into measurement points.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class InfluxModelOfAttributes extends ModelOfAttributes<AttributePoint> {
     @Override

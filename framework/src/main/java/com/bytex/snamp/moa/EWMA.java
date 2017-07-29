@@ -9,7 +9,7 @@ import java.util.function.DoubleSupplier;
 /**
  * Represents base class for all exponential moving average implementations.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 abstract class EWMA extends Average {

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Represents special annotation to help maven-bundle-plugin construct correct entries
  * in section Import-Package.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Retention(RetentionPolicy.RUNTIME)

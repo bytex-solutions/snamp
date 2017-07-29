@@ -9,7 +9,7 @@ import java.util.Locale;
 /**
  * Indicates that the cluster is resizing.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class ClusterResizingStatus extends ClusterMalfunctionStatus {

@@ -6,7 +6,7 @@ import java.util.EventListener;
 /**
  * Represents a listener for all system events raised by gateway instance.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @FunctionalInterface

@@ -27,7 +27,7 @@ import static com.bytex.snamp.internal.Utils.*;
  * Describes a well-known type that should be supported by
  * resource connector and understood by gateway.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public enum  WellKnownType implements Serializable, Type, Predicate<Object> {

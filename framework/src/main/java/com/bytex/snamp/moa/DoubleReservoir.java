@@ -17,7 +17,7 @@ import java.util.function.ToDoubleFunction;
 /**
  * Provides reservoir of {@code double} values.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class DoubleReservoir  implements DoubleConsumer, Reservoir, SerializableSnapshotSupport<DoubleReservoir>, ToDoubleFunction<ReduceOperation> {

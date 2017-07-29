@@ -20,7 +20,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class NRDPGatewayConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl implements GatewayDescriptionProvider {

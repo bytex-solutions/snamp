@@ -16,7 +16,7 @@ import static com.google.common.base.Strings.nullToEmpty;
  * Represents configuration of the management information provider. This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.2
- * @version 2.0
+ * @version 2.1
  */
 final class SerializableManagedResourceConfiguration extends AbstractManagedResourceTemplate implements ManagedResourceConfiguration {
     private static final long serialVersionUID = 5044050385424748355L;

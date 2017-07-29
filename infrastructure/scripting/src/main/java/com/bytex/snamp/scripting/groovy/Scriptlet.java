@@ -31,7 +31,7 @@ import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
 /**
  * Represents implementation of {@link Scriptlet}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class Scriptlet extends Script implements ScriptingAPI {

@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 /**
  * Represents chart for visualization of {@link Rate} metrics.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class RateChart extends AbstractChart implements TwoDimensionalChart<ChronoAxis, NumericAxis> {

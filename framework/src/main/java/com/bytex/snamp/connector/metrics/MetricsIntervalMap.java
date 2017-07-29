@@ -6,7 +6,7 @@ import java.util.function.*;
 /**
  * Represents highly optimized immutable map with {@link MetricsInterval} keys.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class MetricsIntervalMap<V> extends EnumMap<MetricsInterval, V> {

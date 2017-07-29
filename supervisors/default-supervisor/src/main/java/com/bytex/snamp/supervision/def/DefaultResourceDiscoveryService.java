@@ -23,7 +23,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 /**
  * Represents default resource discovery service
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class DefaultResourceDiscoveryService implements ResourceDiscoveryService {

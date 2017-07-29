@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * Represents repository of notifications metadata.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public class SyntheticNotificationRepository extends AbstractNotificationRepository<SyntheticNotificationInfo> implements Consumer<Notification> {
     private DataStreamConnectorConfigurationDescriptionProvider configurationParser;

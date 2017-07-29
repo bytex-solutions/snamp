@@ -22,7 +22,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * Represents web console service which must be hosted as REST service.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @ImportClass(JerseyServletContainerInitializer.class)
 final class WebConsoleServiceServlet extends ServletContainer {

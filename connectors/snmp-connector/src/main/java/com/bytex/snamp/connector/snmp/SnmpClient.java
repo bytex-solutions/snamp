@@ -29,7 +29,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
 /**
  * Represents SNMP client.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 abstract class SnmpClient extends Snmp implements Closeable, Aggregator {

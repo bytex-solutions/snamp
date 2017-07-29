@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Component

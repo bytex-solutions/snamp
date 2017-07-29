@@ -7,7 +7,7 @@ import java.util.Map;
  * Represents immutable descriptor that can be modified
  * through cloning.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface CopyOnWriteDescriptor extends Descriptor {

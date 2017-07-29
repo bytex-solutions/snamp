@@ -64,7 +64,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  *     Please note that the derived class should be public
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector implements HealthCheckSupport {
 
@@ -73,7 +73,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param <T> Well-known type of the user data to be associated with each notification.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     protected interface ManagementNotificationType<T> extends Localizable {
         /**

@@ -13,7 +13,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents builder for {@link GroovyEvent}.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public final class GroovyEventBuilder extends GroovyFeatureBuilder<EventConfiguration> {
     private String name;

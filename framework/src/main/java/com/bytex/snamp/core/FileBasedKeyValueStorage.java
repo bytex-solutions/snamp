@@ -26,7 +26,7 @@ import static com.bytex.snamp.internal.Utils.staticInit;
  * Represents file-based key/value storage.
  * This storage is used for non-clustered installation of SNAMP.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @ThreadSafe

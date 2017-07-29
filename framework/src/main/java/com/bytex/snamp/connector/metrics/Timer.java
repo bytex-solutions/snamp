@@ -5,7 +5,7 @@ import java.time.Duration;
 /**
  * Measures timing of actions.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface Timer extends Gauge<Duration> {

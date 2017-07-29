@@ -10,7 +10,7 @@ import java.util.Optional;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 abstract class ConfigurationCommand<E extends EntityConfiguration> extends SnampShellCommand implements EntityMapResolver<AgentConfiguration, E> {

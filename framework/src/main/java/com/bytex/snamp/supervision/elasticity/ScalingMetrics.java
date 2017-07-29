@@ -6,7 +6,7 @@ import com.bytex.snamp.connector.metrics.Rate;
 /**
  * Gets metrics associated with scaling operations.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface ScalingMetrics extends Metric {

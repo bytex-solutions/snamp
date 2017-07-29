@@ -9,7 +9,7 @@ import java.util.function.Function;
 /**
  * Represents serialization mode.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class SerializationMode {

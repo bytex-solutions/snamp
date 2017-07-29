@@ -17,7 +17,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 /**
  * Provides analysis of topology between components based on stream of {@link Span}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class GraphOfComponents extends ConcurrentHashMap<ComponentVertexIdentity, ComponentVertex> implements Consumer<Span>, Stateful {//key in map is a component name

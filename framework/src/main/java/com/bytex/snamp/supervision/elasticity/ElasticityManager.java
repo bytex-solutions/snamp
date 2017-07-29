@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Represents elasticity manager for group of resources.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  * @author Roman Sakno
  */
 public interface ElasticityManager extends SupervisorAggregatedService, Stateful, MetricsSupport {

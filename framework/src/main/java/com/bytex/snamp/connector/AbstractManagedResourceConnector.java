@@ -37,7 +37,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class AbstractManagedResourceConnector extends AbstractAggregator implements ManagedResourceConnector, Localizable {
     private final LazyReference<MetricsSupport> metrics;

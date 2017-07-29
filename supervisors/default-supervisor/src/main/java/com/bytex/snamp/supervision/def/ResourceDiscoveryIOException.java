@@ -7,7 +7,7 @@ import java.io.IOException;
 /**
  * Indicates that underlying configuration system is crashed.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class ResourceDiscoveryIOException extends ResourceDiscoveryException {

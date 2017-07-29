@@ -13,7 +13,7 @@ import java.util.Objects;
 /**
  * Represents serializable scriptlet configuration.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class SerializableScriptletConfiguration implements ScriptletConfiguration, Externalizable, Modifiable, Stateful {

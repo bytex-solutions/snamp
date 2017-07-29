@@ -9,7 +9,7 @@ import com.bytex.snamp.configuration.GatewayConfiguration;
  *     This interface is intended to use from your code directly. Any future release of SNAMP may change
  *     configuration storage provided and this interface will be deprecated.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.2
  */
 @Internal

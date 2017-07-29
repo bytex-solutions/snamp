@@ -11,7 +11,7 @@ import java.util.Objects;
 /**
  * Represents attribute that transforms value of another attribute in read-only manner.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  * @author Roman Sakno
  */
 public abstract class UnaryFunctionAttribute<T> extends DerivedAttribute<T> {

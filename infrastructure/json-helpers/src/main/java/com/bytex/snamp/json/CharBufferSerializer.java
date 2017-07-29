@@ -7,7 +7,7 @@ import java.nio.CharBuffer;
 /**
  * Provides serialization of {@link java.nio.CharBuffer} into JSON.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class CharBufferSerializer extends AbstractBufferSerializer<CharBuffer> {

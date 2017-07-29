@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
  * Indicates that the resource cannot be registered because its group doesn't exist
  * in SNAMP configuration.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class ResourceGroupNotFoundException extends ResourceDiscoveryException {

@@ -7,7 +7,7 @@ import javax.annotation.Nonnull;
 /**
  * Provides support for health checks.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface HealthCheckSupport extends ManagedResourceAggregatedService {

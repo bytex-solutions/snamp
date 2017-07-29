@@ -26,7 +26,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Represents integration test for OpenStack supervisor.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @SnampDependencies({SnampFeature.STUB_CONNECTOR, SnampFeature.OS_SUPERVISOR})

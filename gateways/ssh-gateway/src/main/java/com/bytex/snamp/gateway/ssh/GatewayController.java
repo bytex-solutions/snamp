@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * Represents mediation layer between SNAMP infrastructure and Secure Shell Interpreter.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface GatewayController {

@@ -13,7 +13,7 @@ import static com.bytex.snamp.moa.Q.getAvailability;
  * Represents a gauge for queuing system with denials where
  * arrivals are determined by a Poisson process and job service times have an exponential distribution.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/M/M/1_queue">M/M/1 queue</a>
  */

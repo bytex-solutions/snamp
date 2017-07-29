@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
 /**
  * Represents distributed Box service.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Serializable>> implements SharedBox {

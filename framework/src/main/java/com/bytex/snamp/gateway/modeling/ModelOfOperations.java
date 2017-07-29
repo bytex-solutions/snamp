@@ -8,7 +8,7 @@ import java.util.Collection;
 
 /**
  * @author Evgeniy Kirichenko
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class ModelOfOperations<TAccessor extends OperationAccessor> extends ModelOfFeatures<MBeanOperationInfo, TAccessor, ResourceOperationList<TAccessor>> implements OperationSet<TAccessor> {

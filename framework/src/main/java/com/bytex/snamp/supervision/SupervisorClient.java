@@ -32,7 +32,7 @@ import static com.bytex.snamp.concurrent.SpinWait.untilNull;
 /**
  * Represents client for {@link Supervisor}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class SupervisorClient extends ServiceHolder<Supervisor> implements Supervisor, SafeCloseable {

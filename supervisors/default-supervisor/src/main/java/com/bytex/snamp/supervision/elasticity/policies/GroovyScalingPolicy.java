@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * Represents Groovy-based voter for scaling process.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class GroovyScalingPolicy extends Scriptlet implements ScalingPolicy, Aggregator {

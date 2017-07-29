@@ -13,7 +13,7 @@ import java.time.Duration;
 /**
  * Represents view which data can be constructed as adjacency matrix.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class MatrixBasedView extends E2EView {

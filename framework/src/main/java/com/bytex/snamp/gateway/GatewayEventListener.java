@@ -5,7 +5,7 @@ import java.util.EventListener;
 /**
  * Represents listener for events related to gateway instance.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  * @see GatewayClient#addEventListener(String, GatewayEventListener)
  * @see GatewayClient#removeEventListener(String, GatewayEventListener)

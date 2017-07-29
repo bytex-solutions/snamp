@@ -7,7 +7,7 @@ import java.util.Set;
 /**
  * Represents command execution channel.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface CommandExecutionChannel extends Closeable {

@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 /**
  * Represents health check service used to supervise groups of managed resources.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface HealthStatusProvider extends SupervisorAggregatedService, Stateful {

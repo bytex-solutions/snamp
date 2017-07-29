@@ -14,7 +14,7 @@ import java.util.Map;
  *     or apply different validations. Also, different protocol adaptors may expose
  *     discovery functionality through HTTP or AMQP.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface ResourceDiscoveryService extends SupervisorAggregatedService {

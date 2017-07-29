@@ -27,7 +27,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Filter for JWT based auth - refreshes token in case it has 1/3 time to live.
  * @author Evgeniy Kirichenko
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class JWTAuthFilter implements ContainerResponseFilter, ContainerRequestFilter {

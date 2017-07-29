@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * Represents specialized version of {@link Map} in which set of keys are fixed and immutable;
  * and access to the values associated with these keys provided by functions dynamically.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Immutable

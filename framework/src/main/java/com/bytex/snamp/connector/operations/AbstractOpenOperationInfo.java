@@ -10,7 +10,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 /**
  * Represents abstract class for OpenData-enabled JMX operation.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class AbstractOpenOperationInfo<T, R extends OpenType<T>> extends OpenMBeanOperationInfoSupport implements OperationDescriptorRead {

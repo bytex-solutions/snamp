@@ -38,7 +38,7 @@ import static com.bytex.snamp.configuration.SupervisorInfo.HealthCheckInfo;
 /**
  * Represents default supervisor with health check support and without elasticity management.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class DefaultSupervisor extends AbstractSupervisor implements HealthStatusTrigger, ScalingPolicyEvaluationContext {

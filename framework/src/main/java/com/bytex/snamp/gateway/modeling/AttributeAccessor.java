@@ -29,14 +29,14 @@ import static com.bytex.snamp.internal.Utils.wrapException;
  *     This accessor can be used for retrieving and changing value of the attribute.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> implements AttributeValueReader, Acceptor<Object, JMException> {
     /**
      * Represents an exception that can be produced by attribute interceptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     public static class InterceptionException extends ReflectionException{
         private static final long serialVersionUID = 8373399508228810347L;

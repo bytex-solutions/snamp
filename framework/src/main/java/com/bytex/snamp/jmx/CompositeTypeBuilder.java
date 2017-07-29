@@ -12,7 +12,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
 /**
  * Represents builder of {@link javax.management.openmbean.CompositeType} instances.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  * @see javax.management.openmbean.CompositeType
  */

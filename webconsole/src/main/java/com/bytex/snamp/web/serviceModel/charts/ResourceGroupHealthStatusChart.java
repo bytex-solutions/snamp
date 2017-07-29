@@ -20,7 +20,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Provides health status of managed resource group.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeName("groupHealthStatus")

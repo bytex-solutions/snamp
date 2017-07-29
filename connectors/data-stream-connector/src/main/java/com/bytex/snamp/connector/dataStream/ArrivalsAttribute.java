@@ -15,7 +15,7 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromArrivals;
 /**
  * Holds {@link com.bytex.snamp.connector.metrics.Arrivals} as attribute.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class ArrivalsAttribute extends MetricHolderAttribute<ArrivalsRecorder, TimeMeasurementNotification> {
     static final CompositeType TYPE = ARRIVALS_TYPE;

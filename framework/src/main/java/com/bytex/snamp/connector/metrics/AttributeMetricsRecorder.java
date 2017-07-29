@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.metrics;
 /**
  * Represents default implementation of interface {@link AttributeMetrics}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class AttributeMetricsRecorder extends AbstractMetric implements AttributeMetrics {

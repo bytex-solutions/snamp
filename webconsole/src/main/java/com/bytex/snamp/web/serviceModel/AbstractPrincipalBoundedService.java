@@ -22,7 +22,7 @@ import static com.bytex.snamp.core.KeyValueStorage.JsonRecordView;
 /**
  * Represents abstract service for SNAMP Web Console which is bounded to the user's profile data.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class AbstractPrincipalBoundedService<USERDATA> extends AbstractWebConsoleService implements PrincipalBoundedService<USERDATA> {

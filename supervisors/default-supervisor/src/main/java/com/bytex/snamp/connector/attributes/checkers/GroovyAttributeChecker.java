@@ -11,7 +11,7 @@ import java.util.function.Function;
 /**
  * Represents attribute checker implemented as Groovy script.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class GroovyAttributeChecker extends Scriptlet implements AttributeChecker {

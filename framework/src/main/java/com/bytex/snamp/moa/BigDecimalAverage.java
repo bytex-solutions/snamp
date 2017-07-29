@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 /**
  * Represents common interface for average implementation based on {@link BigDecimal} value.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 interface BigDecimalAverage extends DoubleConsumer, Consumer<BigDecimal>, Stateful, Cloneable, Serializable, Supplier<BigDecimal> {

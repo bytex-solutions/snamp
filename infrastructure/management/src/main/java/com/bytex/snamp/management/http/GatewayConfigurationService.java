@@ -13,7 +13,7 @@ import java.util.Map;
  * Provides API for SNAMP gateway.
  *
  * @author Evgeniy Kirichenko
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Path("/configuration/gateway")

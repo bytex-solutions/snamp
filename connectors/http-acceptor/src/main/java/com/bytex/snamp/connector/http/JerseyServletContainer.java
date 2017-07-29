@@ -12,7 +12,7 @@ import java.util.Optional;
 /**
  * Represents customized servlet container.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class JerseyServletContainer extends ServletContainer implements ServletSupportService {

@@ -10,7 +10,7 @@ import java.util.function.*;
  * Represents simple container that holds mutable typed value.
  * @param <T> Type of the value in the container.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @NotThreadSafe

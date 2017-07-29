@@ -17,7 +17,7 @@ import java.time.Duration;
 /**
  * Test for {@link AttributeBasedScalingPolicy} and {@link HealthStatusBasedScalingPolicy}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class WeightedScalingPolicyTest extends Assert {

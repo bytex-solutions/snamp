@@ -24,7 +24,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Provides gateway that dumps attributes into InfluxDB for further analysis via Grafana.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class InfluxGateway extends AbstractGateway {
     private static final class PointsUploader extends WeakRepeater<InfluxGateway>{

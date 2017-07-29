@@ -5,7 +5,7 @@ import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
 /**
  * Indicates that the {@link com.bytex.snamp.configuration.ConfigurationManager} service is not available
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class ConfigurationManagerIsNotAvailable extends ResourceDiscoveryException {

@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 /**
  * Represents utility methods for working with {@link javax.management.Descriptor} instances.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class DescriptorUtils {

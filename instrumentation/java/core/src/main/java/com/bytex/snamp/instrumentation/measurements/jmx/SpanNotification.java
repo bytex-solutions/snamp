@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Represents event with description of span occurred in program.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public final class SpanNotification extends TimeMeasurementNotification {
     public static final String TYPE = "com.bytex.snamp.measurement.span";

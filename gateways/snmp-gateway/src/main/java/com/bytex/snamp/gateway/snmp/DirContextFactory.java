@@ -7,7 +7,7 @@ import java.util.Hashtable;
 /**
  * Represents local factory for JNDI context.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 interface DirContextFactory {

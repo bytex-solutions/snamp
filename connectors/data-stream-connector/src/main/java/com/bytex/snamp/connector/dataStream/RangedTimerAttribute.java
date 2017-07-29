@@ -15,7 +15,7 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRangedTimer;
 /**
  * Holds {@link com.bytex.snamp.connector.metrics.RangedTimer} as attribute.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class RangedTimerAttribute extends MetricHolderAttribute<RangedTimerRecorder, TimeMeasurementNotification> {
     static final CompositeType TYPE = RANGED_TIMER_TYPE;

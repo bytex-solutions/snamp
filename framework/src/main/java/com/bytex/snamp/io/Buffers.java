@@ -9,7 +9,7 @@ import static com.bytex.snamp.ArrayUtils.emptyByteArray;
 /**
  * Represents a set of methods to work with {@link java.nio.Buffer}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class Buffers {

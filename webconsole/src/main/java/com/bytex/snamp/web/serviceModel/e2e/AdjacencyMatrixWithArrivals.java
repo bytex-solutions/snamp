@@ -20,7 +20,7 @@ public abstract class AdjacencyMatrixWithArrivals extends AdjacencyMatrix {
      * Represents information about component and its statistics about arrivals of input requests.
      * @author Roman Sakno
      * @since 2.0
-     * @version 2.0
+     * @version 2.1
      */
     public static final class ComponentArrivals extends AbstractComponentStatistics {
         @JsonProperty("channels")

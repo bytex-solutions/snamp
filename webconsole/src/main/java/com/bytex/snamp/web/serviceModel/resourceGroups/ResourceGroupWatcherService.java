@@ -34,7 +34,7 @@ import java.util.logging.Level;
  * Represents operations to work with resource groups.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @Path("/")
 public final class ResourceGroupWatcherService extends AbstractWebConsoleService implements RESTController, SupervisionEventListener {

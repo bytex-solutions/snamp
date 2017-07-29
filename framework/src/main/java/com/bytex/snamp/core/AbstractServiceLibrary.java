@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 /**
  * Represents an activator for SNAMP-specific bundle which exposes a set of services.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
@@ -598,7 +598,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * Represents a holder of a collection of provided services.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     protected interface ProvidedServices{
         /**

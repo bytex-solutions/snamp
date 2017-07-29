@@ -5,7 +5,7 @@ import org.influxdb.dto.Point;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 interface Reporter {

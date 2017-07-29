@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Identifies the method without any implementation code.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @Retention(RetentionPolicy.SOURCE)

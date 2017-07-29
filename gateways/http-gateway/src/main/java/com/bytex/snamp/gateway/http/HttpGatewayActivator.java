@@ -9,7 +9,7 @@ import static com.bytex.snamp.ArrayUtils.toArray;
 /**
  * Represents bundle activator for HTTP gateway.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class HttpGatewayActivator extends GatewayActivator<HttpGateway> {

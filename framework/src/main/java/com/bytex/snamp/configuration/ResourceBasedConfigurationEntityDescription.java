@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Represents resource-based configuration entity descriptor.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class ResourceBasedConfigurationEntityDescription<T extends EntityConfiguration> extends ResourceReader implements ConfigurationEntityDescription<T> {
@@ -134,7 +134,7 @@ public class ResourceBasedConfigurationEntityDescription<T extends EntityConfigu
      * Represents parameter descriptor.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     protected class ParameterDescriptionImpl implements ParameterDescription{
         private final String parameterName;

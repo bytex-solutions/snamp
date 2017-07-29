@@ -7,7 +7,7 @@ import java.io.Serializable;
  * Describes managed resource attribute specifier.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public enum  AttributeSpecifier implements Serializable {

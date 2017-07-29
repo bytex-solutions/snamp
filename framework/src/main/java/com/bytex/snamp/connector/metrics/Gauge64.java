@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.metrics;
 /**
  * Represents specialized version of 64-bit signed gauge.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface Gauge64 extends NumericGauge {

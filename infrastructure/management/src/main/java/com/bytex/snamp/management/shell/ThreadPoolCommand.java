@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
  * Provides abstract class for all thread pool management commands.
  * @author Roman Sakno
  * @since 1.2
- * @version 2.0
+ * @version 2.1
  */
 abstract class ThreadPoolCommand extends ConfigurationCommand<ThreadPoolConfiguration> {
     @Nonnull

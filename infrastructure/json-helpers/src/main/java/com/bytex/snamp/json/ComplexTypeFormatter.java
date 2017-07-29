@@ -16,7 +16,7 @@ import java.util.Map;
  * Represents converter from {@link javax.management.openmbean.CompositeData} to JSON Object
  * and vice versa. This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class ComplexTypeFormatter {

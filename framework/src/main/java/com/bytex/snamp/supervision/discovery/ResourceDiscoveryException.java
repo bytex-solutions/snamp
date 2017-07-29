@@ -4,7 +4,7 @@ package com.bytex.snamp.supervision.discovery;
  * Indicates that the resource cannot be registered or removed
  * using discovery service.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class ResourceDiscoveryException extends Exception {

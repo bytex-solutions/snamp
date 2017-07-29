@@ -10,7 +10,7 @@ import java.io.Serializable;
  *     Underlying class should have {@code Object writeReplace() throws ObjectStreamException} method.
  * @param <T> Type of underlying object that can be constructed after deserialization of this class.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class SerializedState<T extends Serializable> implements SerializableSupplier<T> {
     private static final long serialVersionUID = 1581137873005537765L;

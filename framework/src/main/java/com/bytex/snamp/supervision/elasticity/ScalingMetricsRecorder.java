@@ -7,7 +7,7 @@ import com.bytex.snamp.connector.metrics.RateRecorder;
 /**
  * Represents default implementation of interface {@link ScalingMetrics}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class ScalingMetricsRecorder extends AbstractMetric implements ScalingMetrics {

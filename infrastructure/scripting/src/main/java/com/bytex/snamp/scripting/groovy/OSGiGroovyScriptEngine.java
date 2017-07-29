@@ -27,7 +27,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents base class for Groovy script engine.
  * @param <B> Type of base script class.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class OSGiGroovyScriptEngine<B extends Script> extends GroovyScriptEngine {

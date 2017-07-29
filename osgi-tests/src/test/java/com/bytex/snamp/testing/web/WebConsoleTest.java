@@ -358,6 +358,8 @@ public final class WebConsoleTest extends AbstractWebTest {
         assertEquals(attributes, otherAttributes);
     }
 
+
+
     @Test
     public void recommendationTest() throws IOException{
         final String authenticationToken = authenticator.authenticateTestUser().getValue();

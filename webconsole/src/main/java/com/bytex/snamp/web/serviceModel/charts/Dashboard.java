@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Represents data model of dashboard with charts.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeName("dashboardOfCharts")

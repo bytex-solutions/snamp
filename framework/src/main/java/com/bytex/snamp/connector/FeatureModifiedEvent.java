@@ -6,7 +6,7 @@ import javax.management.MBeanFeatureInfo;
 /**
  * Indicates that the feature provided by managed resource was modified.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class FeatureModifiedEvent<F extends MBeanFeatureInfo> extends ResourceEvent {

@@ -17,7 +17,7 @@ import static com.bytex.snamp.MapUtils.getValueAsLong;
 /**
  * Describes configuration schema of InfluxDB Gateway.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class InfluxGatewayConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl {
     private static final String DB_URL_PARAM = "databaseLocation";

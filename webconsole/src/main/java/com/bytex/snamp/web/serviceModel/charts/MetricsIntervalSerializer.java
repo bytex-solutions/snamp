@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Provides serialization of {@link MetricsInterval} into JSON.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class MetricsIntervalSerializer extends JsonSerializer<MetricsInterval> {

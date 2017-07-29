@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class AttributeRequestProcessor implements Consumer<NagiosAttributeAccessor>, Acceptor<NagiosAttributeAccessor, ExceptionPlaceholder>, Supplier<NagiosPluginOutput> {

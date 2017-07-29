@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
  * Represents a root interface for all agent configuration entities.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface EntityConfiguration extends Map<String, String> {
     /**

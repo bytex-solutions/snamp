@@ -12,7 +12,7 @@ import java.util.Objects;
 /**
  * Represents attribute which value can be computed using Groovy script.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class GroovyAttribute extends ProcessingAttribute {

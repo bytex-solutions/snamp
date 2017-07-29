@@ -5,7 +5,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Represents default implementation of interface {@link NotificationMetric}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @ThreadSafe

@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Represents a root interface for all SNAMP framework services.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @Internal

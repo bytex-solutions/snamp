@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Represents default implementation of {@link HealthStatusProvider}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCloseable {

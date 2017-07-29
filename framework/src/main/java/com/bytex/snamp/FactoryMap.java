@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 /**
  * Represents a map that can create values as a factory.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface FactoryMap<K, V> extends Map<K, V> {

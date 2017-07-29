@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Represents JSON serializer for {@link Severity}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class SeveritySerializer extends JsonSerializer<Severity> {

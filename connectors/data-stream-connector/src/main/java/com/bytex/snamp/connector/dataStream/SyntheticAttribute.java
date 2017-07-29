@@ -15,7 +15,7 @@ import java.util.Optional;
 /**
  * Represents attribute which value can be inferred from the input stream of notifications.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  * @see DistributedAttribute
  * @see DerivedAttribute

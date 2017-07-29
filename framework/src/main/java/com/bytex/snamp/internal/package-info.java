@@ -3,6 +3,6 @@
  * directly from your code.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 package com.bytex.snamp.internal;

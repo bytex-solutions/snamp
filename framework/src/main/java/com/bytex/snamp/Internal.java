@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Indicates that the annotated element is for internal purposes only and not intended to use directly from
  * your code.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @Retention(RetentionPolicy.SOURCE)

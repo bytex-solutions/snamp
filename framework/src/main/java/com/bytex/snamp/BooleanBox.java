@@ -5,7 +5,7 @@ import java.util.function.BooleanSupplier;
 /**
  * Represents mutable container for {@code boolean}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface BooleanBox extends Box<Boolean>, BooleanSupplier, Comparable<BooleanSupplier> {

@@ -5,7 +5,7 @@ import javax.management.InvalidAttributeValueException;
 /**
  * Indicates that the attribute cannot be converted into measurement point.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class UnsupportedAttributeTypeException extends InvalidAttributeValueException {
     private static final long serialVersionUID = -5024532506793495367L;

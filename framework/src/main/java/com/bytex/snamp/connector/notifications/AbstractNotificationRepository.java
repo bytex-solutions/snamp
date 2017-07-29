@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  * @param <M> Notification metadata.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, Aggregator {
     /**

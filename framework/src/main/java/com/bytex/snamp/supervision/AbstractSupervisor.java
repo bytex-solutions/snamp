@@ -25,7 +25,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 /**
  * Represents basic infrastructure for custom supervisors.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient, SupervisorInfo> implements Supervisor {

@@ -9,7 +9,7 @@ import java.io.IOException;
  * Represents client (master) of Modbus protocol.
  * @author  Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface ModbusMaster extends CoilAccess, Closeable, InputDiscreteAccess, InputRegisterAccess, HoldingRegisterAccess, FileAccess {
     void setRetryCount(final int value);

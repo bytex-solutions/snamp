@@ -5,7 +5,7 @@ import javax.management.DescriptorRead;
 /**
  * Interface to read the Descriptor of a management attribute.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface AttributeDescriptorRead extends DescriptorRead {

@@ -23,7 +23,7 @@ import static com.google.common.collect.Iterators.forEnumeration;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 abstract class AbstractTypedConfigurationParser<E extends SerializableEntityConfiguration & TypedEntityConfiguration> extends AbstractConfigurationParser<E> {

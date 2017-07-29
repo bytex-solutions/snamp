@@ -17,7 +17,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
 /**
  * Represents lightweight timer that is used to repeat some action in time.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @ThreadSafe
@@ -25,7 +25,7 @@ public abstract class Repeater implements AutoCloseable, Runnable {
     /**
      * Represents state of this timer.
      * @author Roman Sakno
-     * @version 2.0
+     * @version 2.1
      * @since 1.0
      */
     public enum RepeaterState {

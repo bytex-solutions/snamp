@@ -19,7 +19,7 @@ import static com.bytex.snamp.MapUtils.*;
 /**
  * Represents execution channel that uses rexec protocol.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class RExecExecutionChannel extends HashMap<String, String> implements CommandExecutionChannel, SafeCloseable {

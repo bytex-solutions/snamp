@@ -10,7 +10,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * Represents builder of {@link javax.management.openmbean.TabularType} instances.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  * @see javax.management.openmbean.TabularType
  */

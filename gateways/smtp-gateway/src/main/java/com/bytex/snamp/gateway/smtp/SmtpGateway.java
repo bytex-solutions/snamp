@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 /**
  * Represents SMTP gateway.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class SmtpGateway extends AbstractGateway {

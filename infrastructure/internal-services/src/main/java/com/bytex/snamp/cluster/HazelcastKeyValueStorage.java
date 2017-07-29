@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 /**
  * Represents non-persistent high-performance key/value storage backed by Hazelcast.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparable<?>, Serializable>> implements KeyValueStorage {

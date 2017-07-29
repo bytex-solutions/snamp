@@ -17,7 +17,7 @@ import java.util.Objects;
 /**
  * Represents repository of attributes reflected from JavaBean methods.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class JavaBeanOperationRepository extends AbstractOperationRepository<JavaBeanOperationInfo> {

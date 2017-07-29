@@ -7,7 +7,7 @@ import com.bytex.snamp.internal.ImmutableEmptyMap;
 /**
  * Represents empty and immutable configuration.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class EmptyManagedResourceInfo extends ImmutableEmptyMap<String, String> implements ManagedResourceInfo {

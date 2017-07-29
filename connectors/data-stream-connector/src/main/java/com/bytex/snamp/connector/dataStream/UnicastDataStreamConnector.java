@@ -14,7 +14,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * Represents abstract class for stream-driven resources connector which accepts notifications only at single SNAMP
  * node and distribute this notification across cluster nodes.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  * @see com.bytex.snamp.connector.notifications.AccurateNotificationRepository
  */

@@ -9,7 +9,7 @@ import java.util.Optional;
  * Used to extract JWT from HTTP request.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 interface JWTokenExtractor {
     Optional<String> extract(final HttpRequestContext request);

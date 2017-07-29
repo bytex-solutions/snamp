@@ -10,7 +10,7 @@ import javax.xml.parsers.SAXParser;
 /**
  * Provides correct wiring to {@link groovy.util.XmlSlurper}
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class XmlSlurperSlim extends XmlSlurper {

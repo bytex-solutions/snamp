@@ -30,7 +30,7 @@ import java.util.stream.Stream;
  * Represents a base class for constructing custom gateway.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient, Map<String, String>> implements Gateway, ResourceEventListener{
     @FunctionalInterface

@@ -4,7 +4,7 @@ import com.ghgande.j2mod.modbus.net.ModbusTCPListener;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class TcpModbusSlave extends AbstractModbusSlave<ModbusTCPListener> {

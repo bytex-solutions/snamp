@@ -9,7 +9,7 @@ import static com.bytex.snamp.io.IOUtils.contentAreEqual;
 /**
  * Represents abstract class for all tokens.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class Token implements CharSequence, Serializable {

@@ -8,7 +8,7 @@ import javax.management.Notification;
  * Represents notification with measurement of some value.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class MeasurementNotification<M extends Measurement> extends Notification {
     private static final long serialVersionUID = 3373809208171833571L;

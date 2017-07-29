@@ -17,7 +17,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @param <R> Type of the thread-unsafe resource to hold.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 @ThreadSafe
 public abstract class AbstractConcurrentResourceAccessor<R> implements Serializable {
@@ -29,7 +29,7 @@ public abstract class AbstractConcurrentResourceAccessor<R> implements Serializa
      * @param <V> Type of the result of reading operation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     @FunctionalInterface
     public interface Action<R, V, E extends Throwable>{

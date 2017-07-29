@@ -11,7 +11,7 @@ import java.io.IOException;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @SnampDependencies({SnampFeature.JMX_CONNECTOR, SnampFeature.STANDARD_TOOLS})

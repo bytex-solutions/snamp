@@ -14,7 +14,7 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRatedGaugeFP;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class GaugeFPAttribute extends MetricHolderAttribute<RatedGaugeFPRecorder, ValueMeasurementNotification> {

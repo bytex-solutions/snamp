@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 /**
  * Represents basic API for scripting.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface ScriptingAPI extends GroovyObject {

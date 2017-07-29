@@ -13,7 +13,7 @@ import java.util.function.BiFunction;
 /**
  * Represents collection with a single element in it.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @NotThreadSafe

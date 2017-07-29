@@ -9,7 +9,7 @@ import java.nio.DoubleBuffer;
 /**
  * Provides deserialization of {@link DoubleBuffer} from JSON.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class DoubleBufferDeserializer extends AbstractBufferDeserializer<DoubleBuffer> {

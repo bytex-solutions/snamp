@@ -32,7 +32,7 @@ import static com.bytex.snamp.internal.Utils.isInstanceOf;
 /**
  * Represents partial implementation of {@link SnampManager} service.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class AbstractSnampManager extends AbstractAggregator implements SnampManager {
@@ -259,7 +259,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * Now public because in case that is protected we received this is defined in an inaccessible class or interface
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     public static abstract class GatewayDescriptor extends TypedComponentDescriptor{
         private static final long serialVersionUID = 5641114150847940779L;
@@ -328,7 +328,7 @@ public abstract class AbstractSnampManager extends AbstractAggregator implements
      * Now public because in case that is protected we received this is defined in an inaccessible class or interface
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     public static abstract class ResourceConnectorDescriptor extends TypedComponentDescriptor {
         private static final long serialVersionUID = -5406342058157943559L;

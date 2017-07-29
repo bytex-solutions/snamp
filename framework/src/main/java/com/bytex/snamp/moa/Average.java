@@ -8,7 +8,7 @@ import java.util.function.DoubleConsumer;
 /**
  * Represents abstract class for all average computations.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class Average extends Number implements DoubleConsumer, Stateful, Cloneable {

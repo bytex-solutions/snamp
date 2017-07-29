@@ -4,7 +4,7 @@ import com.bytex.snamp.core.LoggingScope;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class AttributeRelatedLoggingScope extends LoggingScope {

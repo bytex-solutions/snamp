@@ -9,7 +9,7 @@ import java.time.Duration;
  * Represents E2E view of all components in IT landscape.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @JsonTypeName("landscape")
 public final class LandscapeView extends MatrixBasedView{

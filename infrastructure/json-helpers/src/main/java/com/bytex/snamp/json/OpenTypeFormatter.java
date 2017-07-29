@@ -14,7 +14,7 @@ import java.util.*;
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 final class OpenTypeFormatter {
     private static final class PrimitiveTypeProcessingException extends JsonProcessingException{

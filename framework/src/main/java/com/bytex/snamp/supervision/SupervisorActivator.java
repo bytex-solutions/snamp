@@ -30,7 +30,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Represents activator of {@link Supervisor}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class SupervisorActivator<S extends Supervisor> extends AbstractServiceLibrary {
@@ -136,7 +136,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
      * @param <T> Type of the supervisor-related service implementation.
      * @author Roman Sakno
      * @since 2.0
-     * @version 2.0
+     * @version 2.1
      * @see #configurationDescriptor(Supplier)
      */
     protected final static class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{

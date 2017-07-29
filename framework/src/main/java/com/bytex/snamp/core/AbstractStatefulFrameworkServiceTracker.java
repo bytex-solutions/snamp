@@ -20,7 +20,7 @@ import java.util.Objects;
  * @param <C> Type of service client.
  * @param <F> Configuration scheme
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class AbstractStatefulFrameworkServiceTracker<S extends FrameworkService, C extends ServiceHolder<S> & SafeCloseable, F extends Map<String, ?>> extends AbstractFrameworkServiceTracker<S,C> implements StatefulFrameworkService {
     /**

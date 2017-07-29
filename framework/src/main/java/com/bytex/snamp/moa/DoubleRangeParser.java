@@ -9,7 +9,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Parses interval notation into {@link Range}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class DoubleRangeParser extends Tokenizer {

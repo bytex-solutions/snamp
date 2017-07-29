@@ -15,7 +15,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Shows list of configured managed resources.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,

@@ -9,7 +9,7 @@ import java.nio.ShortBuffer;
 /**
  * Provides deserialization of {@link ShortBuffer} from JSON.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class ShortBufferDeserializer extends AbstractBufferDeserializer<ShortBuffer> {

@@ -10,7 +10,7 @@ import java.time.Duration;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class EmptySupervisorInfo extends ImmutableEmptyMap<String, String> implements SupervisorInfo {

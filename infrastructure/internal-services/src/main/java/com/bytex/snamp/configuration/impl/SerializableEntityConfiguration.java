@@ -9,7 +9,7 @@ import java.io.Externalizable;
  * Represents serializable configuration entity.
  * @author Roman Sakno
  * @since 1.2
- * @version 2.0
+ * @version 2.1
  */
 interface SerializableEntityConfiguration extends EntityConfiguration, Modifiable, Externalizable, Stateful {
 }

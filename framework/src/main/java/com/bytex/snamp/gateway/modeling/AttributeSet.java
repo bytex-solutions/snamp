@@ -9,7 +9,7 @@ import java.util.function.Predicate;
 /**
  * Represents reader for a set of attributes stored inside of the gateway instance.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface AttributeSet<TAccessor extends AttributeAccessor> {

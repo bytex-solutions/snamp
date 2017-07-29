@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
 /**
  * A source of all test requests for simple topology.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Component("dispatcher")

@@ -7,7 +7,7 @@ import javax.management.MBeanAttributeInfo;
 /**
  * Indicates that the attribute provided by managed resource was modified.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class AttributeModifiedEvent extends FeatureModifiedEvent<MBeanAttributeInfo> {

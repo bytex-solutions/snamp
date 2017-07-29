@@ -13,7 +13,7 @@ import java.util.Optional;
 /**
  * Repository of metrics provided by Spring Actuator.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class ActuatorAttributeRepository extends AbstractAttributeRepository<SpringMetric> {

@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 /**
  * Represents local implementation of Box cluster service.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class InMemoryBox extends AtomicReference<Serializable> implements Box<Serializable>, SharedBox {

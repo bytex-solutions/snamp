@@ -12,7 +12,7 @@ import javax.management.openmbean.CompositeType;
 /**
  * Represents attribute computing rate of the input notifications.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class NotificationRateAttribute extends MetricAttribute<RateRecorder> implements NotificationListener {

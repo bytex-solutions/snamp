@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * Represents proxy MBean that is used to expose attributes and notifications
  * via JMX.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class ProxyMBean implements DynamicMBean, NotificationBroadcaster, Closeable {

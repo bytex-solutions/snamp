@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Provides tests for {@link com.bytex.snamp.concurrent.ThreadPoolRepository} service.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.2
  */
 public final class ThreadPoolRepositoryTest extends AbstractSnampIntegrationTest {

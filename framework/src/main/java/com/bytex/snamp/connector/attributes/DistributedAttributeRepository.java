@@ -17,7 +17,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 /**
  * Represents repository for attributes which state can be synchronized across cluster nodes.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class DistributedAttributeRepository<M extends MBeanAttributeInfo> extends AbstractAttributeRepository<M> {

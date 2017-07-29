@@ -17,7 +17,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.DEFAULT_VALUE_FIELD;
  * Describes parameter of the operation.
  * @param <T> Type of the parameter
  * @since 1.1
- * @version 2.0
+ * @version 2.1
  */
 public final class OpenMBeanParameterInfoSupplier<T> implements Supplier<OpenMBeanParameterInfoSupport> {
     static final class OperationArgumentException extends IllegalArgumentException{

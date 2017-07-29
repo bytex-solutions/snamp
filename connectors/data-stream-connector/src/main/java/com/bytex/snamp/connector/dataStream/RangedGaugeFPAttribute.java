@@ -15,7 +15,7 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRangedFP;
 /**
  * Holds {@link com.bytex.snamp.connector.metrics.RangedGaugeFP} as attribute.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class RangedGaugeFPAttribute extends MetricHolderAttribute<RangedGaugeFPRecorder, ValueMeasurementNotification> {
     static final CompositeType TYPE = RANGED_GAUGE_FP_TYPE;

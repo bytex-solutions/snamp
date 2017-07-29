@@ -37,7 +37,7 @@ import static com.bytex.snamp.Convert.toType;
  * Represents RShell resource connector.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class RShellResourceConnector extends AbstractManagedResourceConnector {

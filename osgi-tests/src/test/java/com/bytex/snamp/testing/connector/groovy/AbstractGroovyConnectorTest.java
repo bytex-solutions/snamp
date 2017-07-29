@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.GROOVY_CONNECTOR)

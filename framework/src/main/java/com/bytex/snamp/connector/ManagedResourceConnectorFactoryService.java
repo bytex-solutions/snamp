@@ -6,7 +6,7 @@ import com.bytex.snamp.core.SupportService;
 /**
  * Represents support service allows to create a new instances of {@link ManagedResourceConnector}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface ManagedResourceConnectorFactoryService extends SupportService {

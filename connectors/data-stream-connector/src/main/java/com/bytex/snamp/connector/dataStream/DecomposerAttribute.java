@@ -11,7 +11,7 @@ import javax.management.openmbean.CompositeType;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class DecomposerAttribute extends UnaryFunctionAttribute {

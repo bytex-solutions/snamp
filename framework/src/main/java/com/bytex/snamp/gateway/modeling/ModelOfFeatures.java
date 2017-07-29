@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 abstract class ModelOfFeatures<M extends MBeanFeatureInfo, TAccessor extends FeatureAccessor<M>, L extends ResourceFeatureList<M, TAccessor>> {

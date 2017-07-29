@@ -15,7 +15,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Represents builder for {@link GroovyAttribute}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class GroovyAttributeBuilder extends GroovyFeatureBuilder<AttributeConfiguration> {

@@ -7,7 +7,7 @@ import javax.ws.rs.core.SecurityContext;
 /**
  * Provides role-based access control for Jersey-based services.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class RBAC {

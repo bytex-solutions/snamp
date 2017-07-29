@@ -21,7 +21,7 @@ import static com.bytex.snamp.MapUtils.getValue;
 /**
  * Abstract configuration parser.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 abstract class AbstractConfigurationParser<E extends SerializableEntityConfiguration> implements Constants {

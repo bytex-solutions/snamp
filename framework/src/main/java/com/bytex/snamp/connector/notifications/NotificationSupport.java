@@ -20,7 +20,7 @@ import java.util.Set;
  *     this interface may not be implemented by the management connector.
  * </p>
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface NotificationSupport extends NotificationBroadcaster, ManagedResourceAggregatedService {

@@ -13,7 +13,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.getField;
  * Represents descriptor of HTTP gateway configuration scheme.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class HttpGatewayConfigurationDescriptor extends ConfigurationEntityDescriptionProviderImpl {

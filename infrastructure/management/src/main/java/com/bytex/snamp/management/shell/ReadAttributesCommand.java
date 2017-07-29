@@ -21,7 +21,7 @@ import java.io.PrintWriter;
  * Read attribute value.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 @Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
     name = "read-attributes")

@@ -9,7 +9,7 @@ import java.util.function.LongUnaryOperator;
 /**
  * Represents implementation of {@link Gauge64}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @ThreadSafe

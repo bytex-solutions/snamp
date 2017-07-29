@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Represents tests for distributed services with hazelcast.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class DistributedServicesTest extends Assert {

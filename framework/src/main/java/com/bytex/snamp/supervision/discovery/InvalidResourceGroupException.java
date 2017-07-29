@@ -5,7 +5,7 @@ import javax.annotation.Nonnull;
 /**
  * Attempts to register existing resource with different group name.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class InvalidResourceGroupException extends ResourceDiscoveryException {

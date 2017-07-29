@@ -29,7 +29,7 @@ import java.util.Map;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class XmlCommandLineTemplateTest extends Assert {

@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,

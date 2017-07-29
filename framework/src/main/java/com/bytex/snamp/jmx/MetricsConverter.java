@@ -15,7 +15,7 @@ import static com.bytex.snamp.internal.Utils.staticInit;
  * Provides conversion between SNAMP metrics declared in {@link com.bytex.snamp.connector.metrics} package
  * and JMX open types.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class MetricsConverter {

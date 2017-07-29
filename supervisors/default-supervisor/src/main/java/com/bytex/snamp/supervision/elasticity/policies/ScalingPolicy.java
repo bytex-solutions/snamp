@@ -4,7 +4,7 @@ package com.bytex.snamp.supervision.elasticity.policies;
  * Represents a voter in elasticity management process.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public interface ScalingPolicy extends com.bytex.snamp.supervision.elasticity.ScalingPolicy {
     ScalingPolicy VOICELESS = new ScalingPolicy() {

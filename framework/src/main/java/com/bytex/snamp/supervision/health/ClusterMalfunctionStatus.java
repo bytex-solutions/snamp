@@ -8,7 +8,7 @@ import java.time.Instant;
 /**
  * Indicates that the cluster with resources is in malfunction state.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class ClusterMalfunctionStatus extends MalfunctionStatus {

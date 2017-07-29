@@ -16,7 +16,7 @@ import static com.bytex.snamp.jmx.MetricsConverter.fromRatedStringGauge;
  * Represents attribute which can collect statistical information about receiving string values.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class StringGaugeAttribute extends MetricHolderAttribute<RatedStringGaugeRecorder, ValueMeasurementNotification> {
     static final CompositeType TYPE = RATED_STRING_GAUGE_TYPE;

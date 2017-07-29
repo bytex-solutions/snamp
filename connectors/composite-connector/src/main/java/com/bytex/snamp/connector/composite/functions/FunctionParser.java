@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 /**
  * Represents parser for function expression.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class FunctionParser extends Tokenizer {

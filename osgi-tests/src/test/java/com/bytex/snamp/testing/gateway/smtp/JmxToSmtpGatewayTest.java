@@ -25,7 +25,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 /**
  * Provides integration test for SMTP gateway.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @SnampDependencies({SnampFeature.WRAPPED_LIBS, SnampFeature.SMTP_GATEWAY})

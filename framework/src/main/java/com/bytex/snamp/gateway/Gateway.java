@@ -21,7 +21,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Represents gateway.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface Gateway extends StatefulFrameworkService, Closeable {

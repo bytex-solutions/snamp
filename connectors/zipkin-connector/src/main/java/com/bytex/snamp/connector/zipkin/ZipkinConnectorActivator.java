@@ -12,7 +12,7 @@ import java.net.URISyntaxException;
  * Collects spans compatible with Twitter Zipkin.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public final class ZipkinConnectorActivator extends ManagedResourceActivator<ZipkinConnector> {
     private static final class ZipkinServletProvider extends SupportServiceManager<ServletSupportService, ZipkinServlet>{

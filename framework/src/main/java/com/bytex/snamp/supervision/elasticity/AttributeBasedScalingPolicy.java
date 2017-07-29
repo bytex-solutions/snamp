@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 /**
  * Represents scaling policy based on values of the attribute collected from all members of resource group.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface AttributeBasedScalingPolicy extends WeightedScalingPolicy {

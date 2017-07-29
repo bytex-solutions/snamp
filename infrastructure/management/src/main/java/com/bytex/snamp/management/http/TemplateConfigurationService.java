@@ -14,7 +14,7 @@ import java.util.Map;
  * @param <E>   the type parameter
  * @param <DTO> the type parameter
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class TemplateConfigurationService<E extends ManagedResourceTemplate, DTO extends TemplateDataObject<E>> extends AbstractTypedEntityConfigurationService<E, DTO> {

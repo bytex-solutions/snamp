@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 /**
  * Represents object which state can be captured at any time of its lifecycle and recreated again.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public interface SnapshotSupport<T extends SnapshotSupport<T>> extends Stateful {
     /**

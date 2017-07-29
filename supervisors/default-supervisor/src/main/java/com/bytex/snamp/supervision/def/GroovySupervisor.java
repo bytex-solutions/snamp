@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Represents default supervisor with Groovy-based elasticity manager.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class GroovySupervisor extends DefaultSupervisor {

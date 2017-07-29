@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Abstract two-dimensional chart of attribute values.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class TwoDimensionalChartOfAttributeValues<X extends Axis, Y extends Axis> extends ChartOfAttributeValues implements TwoDimensionalChart<X, Y> {

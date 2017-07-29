@@ -29,7 +29,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 /**
  * Represents cluster-local communicator.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class InMemoryCommunicator implements Communicator {
     private static final class LocalIncomingMessage extends MessageEvent{

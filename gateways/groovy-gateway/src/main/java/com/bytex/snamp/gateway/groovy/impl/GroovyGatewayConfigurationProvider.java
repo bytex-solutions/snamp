@@ -14,7 +14,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * Represents configuration descriptor of Groovy Gateway.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class GroovyGatewayConfigurationProvider extends ConfigurationEntityDescriptionProviderImpl {

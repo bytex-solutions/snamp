@@ -28,7 +28,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  *     </ul>
  * </p>
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class OpenMBean extends NotificationBroadcasterSupport implements DynamicMBean {
@@ -38,7 +38,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param <T> Type of the provided MBean feature.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      * @see OpenMBean.OpenNotification
      * @see OpenMBean.OpenOperation
      * @see OpenMBean.OpenAttribute
@@ -78,7 +78,7 @@ public abstract class OpenMBean extends NotificationBroadcasterSupport implement
      * @param <N> Type of the native notification.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     public static abstract class OpenNotification<N> extends OpenMBeanElement<MBeanNotificationInfo>{
         private final String[] types;

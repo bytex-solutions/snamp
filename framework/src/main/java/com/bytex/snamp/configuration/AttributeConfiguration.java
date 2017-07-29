@@ -8,7 +8,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents attribute configuration.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface AttributeConfiguration extends FeatureConfiguration {
     String UNIT_OF_MEASUREMENT_KEY = "units";

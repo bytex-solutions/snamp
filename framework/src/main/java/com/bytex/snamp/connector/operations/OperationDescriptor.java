@@ -21,7 +21,7 @@ import static com.bytex.snamp.connector.operations.OperationSupport.*;
 /**
  * Represents descriptor of the managed resource operation.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class OperationDescriptor extends ImmutableDescriptor implements FeatureDescriptor<OperationConfiguration> {

@@ -3,7 +3,7 @@ package com.bytex.snamp.parser;
 /**
  * Represents <it>!</it> as punctuation token.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class ExclamationToken extends PunctuationToken implements SingleCharacterToken {

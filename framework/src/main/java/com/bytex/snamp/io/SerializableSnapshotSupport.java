@@ -9,7 +9,7 @@ import java.io.Serializable;
 /**
  * Represents serializable object which state can be captured using serialization.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public interface SerializableSnapshotSupport<T extends SerializableSnapshotSupport<T>> extends SnapshotSupport<T>, Serializable {
     @Override

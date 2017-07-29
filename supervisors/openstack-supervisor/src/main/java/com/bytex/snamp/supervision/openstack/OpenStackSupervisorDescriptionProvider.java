@@ -14,7 +14,7 @@ import static com.bytex.snamp.MapUtils.getValue;
 /**
  * Describes configuration of OpenStack supervisor.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConfigurationDescriptionProvider {

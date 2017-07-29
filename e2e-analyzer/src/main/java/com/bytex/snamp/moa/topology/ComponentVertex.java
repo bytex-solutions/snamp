@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * Represents component as a vertex in graph.
  * This class cannot be inherited or instantiated directly from your code.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class ComponentVertex extends ConcurrentLinkedQueue<ComponentVertex> implements Consumer<Span> {

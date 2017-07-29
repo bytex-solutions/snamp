@@ -7,7 +7,7 @@ import com.bytex.snamp.Stateful;
  * <p>
  *     This viewer can be obtained with method {@link com.bytex.snamp.connector.ManagedResourceConnector#queryObject(Class)}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface MetricsSupport extends Iterable<Metric>, Stateful {

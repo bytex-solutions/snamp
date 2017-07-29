@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 /**
  * Represents token parser that supports basic set of tokens.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  * @see NameToken
  * @see IntegerToken
  * @see CommaToken

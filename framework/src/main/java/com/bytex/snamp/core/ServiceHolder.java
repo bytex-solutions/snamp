@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * Represents a permanent reference to the OSGi service. You should release this service manually
  * when you no longer need it.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class ServiceHolder<S> implements ServiceProvider<S> {

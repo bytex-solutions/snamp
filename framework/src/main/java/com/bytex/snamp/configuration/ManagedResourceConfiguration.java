@@ -6,7 +6,7 @@ import java.util.Set;
  * Represents management target configuration (back-end management information providers).
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface ManagedResourceConfiguration extends ManagedResourceTemplate, ManagedResourceInfo {
     /**

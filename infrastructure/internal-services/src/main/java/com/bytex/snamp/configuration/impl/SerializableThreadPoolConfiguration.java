@@ -13,7 +13,7 @@ import java.util.Objects;
 /**
  * Represents serializable configuration of the thread pool.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class SerializableThreadPoolConfiguration extends AbstractEntityConfiguration implements ThreadPoolConfiguration {
     private static final long serialVersionUID = 8726763924738566197L;

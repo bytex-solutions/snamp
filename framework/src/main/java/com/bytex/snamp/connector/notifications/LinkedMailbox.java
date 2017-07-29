@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 /**
  * Mailbox with unbounded capacity.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.2
  */
 final class LinkedMailbox extends LinkedBlockingQueue<Notification> implements Mailbox {

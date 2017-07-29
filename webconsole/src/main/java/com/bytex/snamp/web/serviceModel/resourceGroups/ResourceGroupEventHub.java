@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class ResourceGroupEventHub extends AbstractStatefulFrameworkServiceTracker<Supervisor, SupervisorClient, Map<String, SupervisionEventListener>> implements SupervisionEventListener {

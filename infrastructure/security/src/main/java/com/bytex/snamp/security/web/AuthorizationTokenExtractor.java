@@ -13,7 +13,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Extracts token from HTTP Authorization header.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class AuthorizationTokenExtractor implements JWTokenExtractor {
 

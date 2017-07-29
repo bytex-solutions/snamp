@@ -15,7 +15,7 @@ import static com.bytex.snamp.core.AbstractServiceLibrary.ProvidedService;
 /**
  * Exposes JMX Bean as OSGi service.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class OpenMBeanServiceProvider<T extends OpenMBean & FrameworkMBean> extends ProvidedService<FrameworkMBean, T> {

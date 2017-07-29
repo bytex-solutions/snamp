@@ -12,7 +12,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 /**
  * Represents in-memory implementation of KV storage.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 final class InMemoryKeyValueStorage extends ConcurrentHashMap<Comparable<?>, InMemoryRecord> implements KeyValueStorage {
     private static final long serialVersionUID = 4077365936278946842L;

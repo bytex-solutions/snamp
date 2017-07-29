@@ -16,7 +16,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @param <S> Type of the OSGi service.
  * @param <I> Type of the user data to be passed into the handler.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class ExposedServiceHandler<S, I, E extends Throwable> {

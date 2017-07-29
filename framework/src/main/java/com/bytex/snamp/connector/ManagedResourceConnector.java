@@ -35,7 +35,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
     /**
@@ -59,7 +59,7 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
      * without it recreation. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     final class UnsupportedUpdateOperationException extends UnsupportedOperationException{
         private static final long serialVersionUID = 8128304831615736668L;

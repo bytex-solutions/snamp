@@ -10,7 +10,7 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * Abstract class for building exponentially weighted moving average.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class DoubleEWMA extends EWMA implements DoubleUnaryOperator {

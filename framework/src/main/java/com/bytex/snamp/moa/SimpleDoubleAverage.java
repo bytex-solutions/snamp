@@ -8,7 +8,7 @@ import java.time.Duration;
 /**
  * Represents simple average computation service based on {@code double} data type at its core.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class SimpleDoubleAverage extends SimpleAverage {

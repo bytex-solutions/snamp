@@ -12,7 +12,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
 /**
  * Responsible for compiling health status triggers from different languages.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class TriggerFactory implements ScriptletCompiler<HealthStatusTrigger> {

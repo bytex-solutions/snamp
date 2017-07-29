@@ -13,7 +13,7 @@ import java.util.Arrays;
 /**
  * Authorizes HTTP request using its HTTP method.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class HttpMethodAuthorizationFilter implements ContainerRequestFilter {

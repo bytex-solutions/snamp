@@ -9,7 +9,7 @@ import java.io.ObjectOutput;
 /**
  * Represents map of configuration parameters.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 class ParametersMap extends ModifiableMap<String, String> {

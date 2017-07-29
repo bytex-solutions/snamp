@@ -9,7 +9,7 @@ import javax.ws.rs.core.Response;
 /**
  * Represents base class for all HTTP-based management API.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 abstract class AbstractManagementService {

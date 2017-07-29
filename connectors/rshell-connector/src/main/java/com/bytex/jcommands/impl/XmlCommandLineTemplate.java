@@ -25,7 +25,7 @@ import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.createRender
 /**
  * Represents XML-serializable template of the command-line tool.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @XmlRootElement(name = "template", namespace = XmlConstants.NAMESPACE)

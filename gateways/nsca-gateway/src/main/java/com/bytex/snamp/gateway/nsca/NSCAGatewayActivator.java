@@ -7,7 +7,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  * Represents activator of Nagios gateway.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public final class NSCAGatewayActivator extends GatewayActivator<NSCAGateway> {
 

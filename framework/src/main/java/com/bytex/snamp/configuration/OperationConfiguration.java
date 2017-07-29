@@ -6,7 +6,7 @@ import java.time.Duration;
  * Represents configuration of the managed resource operation.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface OperationConfiguration extends FeatureConfiguration {
     /**

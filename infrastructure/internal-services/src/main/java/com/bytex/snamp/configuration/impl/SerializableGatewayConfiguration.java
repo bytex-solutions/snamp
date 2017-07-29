@@ -15,7 +15,7 @@ import static com.google.common.base.Strings.nullToEmpty;
  * Represents gateway instance settings. This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.2
- * @version 2.0
+ * @version 2.1
  */
 final class SerializableGatewayConfiguration extends AbstractEntityConfiguration implements GatewayConfiguration {
     private static final long serialVersionUID = 7926704115151740217L;

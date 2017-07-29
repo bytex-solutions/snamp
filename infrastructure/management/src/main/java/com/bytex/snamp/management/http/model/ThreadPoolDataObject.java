@@ -9,7 +9,7 @@ import java.time.Duration;
 /**
  * Represents JSON DTO for {@link ThreadPoolConfiguration}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class ThreadPoolDataObject extends AbstractDataObject<ThreadPoolConfiguration> {

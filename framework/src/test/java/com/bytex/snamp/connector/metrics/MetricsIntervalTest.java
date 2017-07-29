@@ -8,7 +8,7 @@ import java.util.SortedSet;
 /**
  * Provides test for {@link MetricsInterval}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class MetricsIntervalTest extends Assert {

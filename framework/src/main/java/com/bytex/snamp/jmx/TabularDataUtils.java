@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  * Provides helper methods that allows to create and
  * manipulate of {@link javax.management.openmbean.TabularData} instances.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class TabularDataUtils {

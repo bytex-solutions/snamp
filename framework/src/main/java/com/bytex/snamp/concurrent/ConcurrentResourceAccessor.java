@@ -34,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <R> Type of the thread-unsafe resource to hold.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 @ThreadSafe
 public class ConcurrentResourceAccessor<R> extends AbstractConcurrentResourceAccessor<R> {

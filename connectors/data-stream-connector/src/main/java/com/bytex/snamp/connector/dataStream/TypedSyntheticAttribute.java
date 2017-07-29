@@ -12,7 +12,7 @@ import java.util.Objects;
  * @param <N> Type of notification that can be handled by the attribute.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 abstract class TypedSyntheticAttribute<N extends Notification> extends SyntheticAttribute {
     private static final long serialVersionUID = 4061148981437115601L;

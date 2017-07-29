@@ -11,7 +11,7 @@ import static org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation
 /**
  * Represents Groovy-based notification filter.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class GroovyNotificationFilter extends Script implements NotificationFilter {

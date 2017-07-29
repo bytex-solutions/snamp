@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * Represents {@link Box} that can be shared across cluster.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface SharedBox extends Box<Serializable>, SharedObject {

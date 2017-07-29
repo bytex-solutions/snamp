@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.metrics;
 /**
  * Represents metrics that measures deviation from normative range.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface Ranged extends Rate {

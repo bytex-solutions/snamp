@@ -13,7 +13,7 @@ import static com.bytex.snamp.Convert.toDouble;
 /**
  * Represents attribute predicate based on binary operator.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeName("comparator")

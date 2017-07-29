@@ -11,7 +11,7 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class ScriptNotificationAccessor extends NotificationRouter implements FeatureBindingInfo<MBeanNotificationInfo> {

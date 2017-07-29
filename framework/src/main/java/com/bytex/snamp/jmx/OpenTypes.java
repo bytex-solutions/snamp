@@ -25,7 +25,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
 /**
  * Represents binding between {@link OpenType} and {@link Class}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class OpenTypes {

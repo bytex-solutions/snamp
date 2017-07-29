@@ -6,7 +6,7 @@ import static com.bytex.snamp.MapUtils.getValue;
  * Represents a feature of the managed resource.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface FeatureConfiguration extends EntityConfiguration {
     /**

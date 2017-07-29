@@ -16,7 +16,7 @@ import java.util.function.*;
 
 /**
  * Represents decorator for {@link Lock}.
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class LockDecorator implements Serializable {

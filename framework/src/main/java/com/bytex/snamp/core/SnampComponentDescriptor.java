@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Describes SNAMP component.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface SnampComponentDescriptor extends Localizable, Map<String, String> {

@@ -7,7 +7,7 @@ import java.util.EventObject;
 /**
  * Represents resource discovery event.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class SupervisionEvent extends EventObject {

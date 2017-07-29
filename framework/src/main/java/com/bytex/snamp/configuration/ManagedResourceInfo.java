@@ -3,7 +3,7 @@ package com.bytex.snamp.configuration;
 /**
  * Represents general information about managed resource.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  * @author Roman Sakno
  */
 public interface ManagedResourceInfo extends ThreadPoolBounded {

@@ -12,7 +12,7 @@ import static com.bytex.snamp.testing.gateway.snmp.SnmpHelpers.DateTimeFormatter
 /**
  * Represents SNMP notification with attachments.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class SnmpNotification extends HashMap<OID, Variable> {

@@ -32,7 +32,7 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
 /**
  * Represents base support of operations.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> implements OperationSupport {

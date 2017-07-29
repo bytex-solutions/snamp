@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Indicates some malfunction.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class MalfunctionStatus extends HealthStatus {

@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.modbus.slave;
 /**
  * Represents digital output.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface DigitalOutputAccessor extends DigitalInputAccessor {

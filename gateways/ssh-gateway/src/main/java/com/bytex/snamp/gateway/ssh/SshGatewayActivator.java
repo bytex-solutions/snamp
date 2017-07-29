@@ -7,7 +7,7 @@ import com.bytex.snamp.gateway.GatewayActivator;
  * Represents OSGi activator for {@link SshGateway} gateway.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class SshGatewayActivator extends GatewayActivator<SshGateway> {

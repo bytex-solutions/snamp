@@ -8,7 +8,7 @@ import java.util.Locale;
 /**
  * Represents description of the SNAMP plugin configuration model.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface ConfigurationEntityDescription<T extends EntityConfiguration> extends Collection<String> {
@@ -37,7 +37,7 @@ public interface ConfigurationEntityDescription<T extends EntityConfiguration> e
      * Represents description of the configuration parameter.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     interface ParameterDescription extends Localizable {
         /**

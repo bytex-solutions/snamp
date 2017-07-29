@@ -30,7 +30,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Represents an abstract class for all integration tests that checks management connector.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegrationTest {

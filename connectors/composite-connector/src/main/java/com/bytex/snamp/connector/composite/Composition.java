@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * Represents composition of managed resource connectors.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class Composition extends ConcurrentResourceAccessor<Map<String, ManagedResourceConnector>> implements AttributeSupportProvider, NotificationSupportProvider, OperationSupportProvider, HealthCheckSupport, AutoCloseable {

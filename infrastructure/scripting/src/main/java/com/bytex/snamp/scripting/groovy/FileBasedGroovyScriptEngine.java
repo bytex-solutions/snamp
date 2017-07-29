@@ -17,7 +17,7 @@ import java.util.Properties;
 /**
  * Represents file-based script engine that can extract Groovy search path from string delimited with semicolon.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class FileBasedGroovyScriptEngine<B extends Script> extends OSGiGroovyScriptEngine<B> {

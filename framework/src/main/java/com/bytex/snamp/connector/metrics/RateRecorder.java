@@ -11,7 +11,7 @@ import static com.bytex.snamp.connector.metrics.MetricsInterval.ALL_INTERVALS;
 /**
  * Represents rate counter.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @ThreadSafe

@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Represents information about SNAMP cluster member.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public interface ClusterMemberInfo {
     /**

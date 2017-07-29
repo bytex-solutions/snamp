@@ -20,7 +20,7 @@ import static com.bytex.snamp.gateway.snmp.OctetStringHelper.toOctetString;
  * Represents security configuration of the SNMP gateway that is used
  * to setup SNMPv3 settings. This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class SecurityConfiguration {
@@ -115,7 +115,7 @@ final class SecurityConfiguration {
      * Represents SNMPv3 user. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     public static final class User{
         private OID authenticationProtocol;
@@ -256,7 +256,7 @@ final class SecurityConfiguration {
      * Represents MIB access rights.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     enum AccessRights{
         /**
@@ -279,7 +279,7 @@ final class SecurityConfiguration {
      * Represents group of users. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     private static final class UserGroup extends HashMap<String, User>{
         private static final long serialVersionUID = -9033732379101836365L;

@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 /**
  * Represents management operations that can be applied to SNAMP-related software components.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class DefaultSnampManager extends AbstractSnampManager {

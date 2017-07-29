@@ -3,7 +3,7 @@ package com.bytex.snamp.jmx;
 /**
  * Represents tabular data bean.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public interface TabularDataBean<R extends CompositeDataBean> extends Iterable<R> {

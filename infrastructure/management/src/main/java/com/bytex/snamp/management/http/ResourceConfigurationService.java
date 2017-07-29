@@ -23,7 +23,7 @@ import java.util.function.Function;
  * Provides API for SNAMP resources management.
  *
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Path("/configuration/resource")

@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Represents management operation for SNAMP Connector.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 abstract class AbstractConnectorOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> {
     /**

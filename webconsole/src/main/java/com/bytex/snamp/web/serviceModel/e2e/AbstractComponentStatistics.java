@@ -11,7 +11,7 @@ import java.util.function.Function;
 /**
  * Represents JSON-serializable statistics associated with the component.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 abstract class AbstractComponentStatistics {

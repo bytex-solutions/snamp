@@ -22,7 +22,7 @@ import java.util.logging.Level;
 /**
  * Represents SSH gateway shell command.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 abstract class AbstractManagementShellCommand extends BasicParser implements ManagementShellCommand {

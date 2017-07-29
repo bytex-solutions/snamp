@@ -8,7 +8,7 @@ import java.util.function.Function;
  * @param <T> Type of the value to process.
  * @param <E> Type of the exception that occurred in the operation.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.2
  */
 @FunctionalInterface

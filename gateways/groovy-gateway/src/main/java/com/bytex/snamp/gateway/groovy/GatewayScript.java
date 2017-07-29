@@ -13,7 +13,7 @@ import java.util.Optional;
 /**
  * Represents an abstract class for gateway automation script.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class GatewayScript extends Scriptlet implements AutoCloseable, NotificationListener {

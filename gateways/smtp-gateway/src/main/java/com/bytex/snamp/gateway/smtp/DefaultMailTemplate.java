@@ -16,7 +16,7 @@ import static org.stringtemplate.v4.helpers.CompiledTemplateHelpers.createRender
 /**
  * Represents a set of default templates.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 enum DefaultMailTemplate implements Callable<CompiledST> {

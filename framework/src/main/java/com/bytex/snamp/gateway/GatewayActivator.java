@@ -36,7 +36,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * </p>
  * @param <G> Type of the management gateway.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class GatewayActivator<G extends Gateway> extends AbstractServiceLibrary {
@@ -49,7 +49,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      * @param <G> Type of gateway implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     @FunctionalInterface
     protected interface GatewayFactory<G extends Gateway>{
@@ -157,7 +157,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      * @param <T> Type of the gateway-related service implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      * @see #configurationDescriptor(Supplier)
      */
     protected final static class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{

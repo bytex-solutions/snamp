@@ -132,7 +132,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
      * Represents configuration of the managed resource operation. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.2
-     * @version 2.0
+     * @version 2.1
      */
     static final class SerializableOperationConfiguration extends AbstractFeatureConfiguration implements OperationConfiguration {
         private static final long serialVersionUID = 8267389949041604889L;
@@ -226,7 +226,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
      * Represents configuration of the event source. This class cannot be inherited.
      * @author Roman Sakno
      * @since 1.2
-     * @version 2.0
+     * @version 2.1
      */
     static final class SerializableEventConfiguration extends AbstractFeatureConfiguration implements EventConfiguration {
         private static final long serialVersionUID = -6838585011981639479L;
@@ -258,7 +258,7 @@ abstract class AbstractManagedResourceTemplate extends AbstractEntityConfigurati
     /**
      * Represents configuration of the management attribute. This class cannot be inherited.
      * @since 1.2
-     * @version 2.0
+     * @version 2.1
      */
     static final class SerializableAttributeConfiguration extends AbstractFeatureConfiguration implements AttributeConfiguration {
         private static final long serialVersionUID = -2134014000719123759L;

@@ -17,7 +17,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
 /**
  * Represents builder of OSGi filter.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface ServiceSelector extends Supplier<Filter>, Stateful {

@@ -9,7 +9,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 /**
  * Represents severity of the event.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  * @see <a href="https://en.wikipedia.org/wiki/Syslog">Syslog severity levels</a>
  */

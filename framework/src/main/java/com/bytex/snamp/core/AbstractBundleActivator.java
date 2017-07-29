@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * Represents an abstract for all SNAMP-specific bundle activators.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class AbstractBundleActivator implements BundleActivator, ServiceListener {
@@ -50,7 +50,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <T> Type of the activation property.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     protected interface ActivationProperty<T> {
         /**
@@ -77,7 +77,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     protected interface ActivationPropertyPublisher{
         /**
@@ -98,7 +98,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     protected interface ActivationPropertyReader{
         <T> T getProperty(@Nonnull final ActivationProperty<T> propertyDef);
@@ -160,7 +160,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Type of the required service.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     public static abstract class RequiredService<S> {
         final Class<S> dependencyContract;
@@ -289,7 +289,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Contract of the required service.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     protected static abstract class RequiredServiceAccessor<S> extends RequiredService<S>{
         private S serviceInstance;
@@ -360,7 +360,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * @param <S> Type of the required service contract.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
     private static final class SimpleDependency<S> extends RequiredServiceAccessor<S>{
         /**
@@ -396,7 +396,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * </p>
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      */
      protected enum ActivationState {
         /**
@@ -478,7 +478,7 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
      * Represents collection of dependencies.
      * @author Roman Sakno
      * @since 2.0
-     * @version 2.0
+     * @version 2.1
      */
     protected static final class DependencyManager implements Iterable<RequiredService<?>> {
         private boolean frozen;

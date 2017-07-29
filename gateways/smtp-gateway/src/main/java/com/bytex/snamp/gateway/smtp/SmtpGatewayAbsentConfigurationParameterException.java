@@ -4,7 +4,7 @@ import com.bytex.snamp.configuration.AbsentConfigurationParameterException;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class SmtpGatewayAbsentConfigurationParameterException extends AbsentConfigurationParameterException {

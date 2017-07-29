@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * Represents lightweight timer that is used to repeat processing of the specified object using weak reference to it.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @ThreadSafe

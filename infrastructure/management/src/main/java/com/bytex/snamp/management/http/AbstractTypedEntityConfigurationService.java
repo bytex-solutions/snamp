@@ -11,7 +11,7 @@ import javax.ws.rs.core.Response;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class AbstractTypedEntityConfigurationService<E extends TypedEntityConfiguration, DTO extends AbstractTypedDataObject<E>> extends AbstractEntityConfigurationService<E, DTO> {

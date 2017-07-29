@@ -47,7 +47,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  *     1. Metric-based attribute which holds a whole gauge, rate or timer.
  *     2. Scalar-based attribute which extracts a counter from metric attribute
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class DataStreamConnector extends AbstractManagedResourceConnector implements HealthCheckSupport, Consumer<Notification> {
     private static final class HeartbeatTimer extends Timeout implements Consumer<HealthNotification> {

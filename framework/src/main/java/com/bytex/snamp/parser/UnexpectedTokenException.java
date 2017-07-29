@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Represents unexpected token.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public final class UnexpectedTokenException extends ParseException {
     private static final long serialVersionUID = 9134610173169882334L;

@@ -14,7 +14,7 @@ import static com.bytex.snamp.internal.Utils.callAndWrapException;
 /**
  * Provides compilation of scaling policies into voters.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {

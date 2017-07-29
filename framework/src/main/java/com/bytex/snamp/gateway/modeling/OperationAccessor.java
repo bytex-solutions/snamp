@@ -10,7 +10,7 @@ import javax.management.MBeanOperationInfo;
  * Exposes access to the individual operation.
  * @author Evgeniy Kirichenko
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class OperationAccessor extends FeatureAccessor<MBeanOperationInfo> {
     private OperationSupport operationSupport;

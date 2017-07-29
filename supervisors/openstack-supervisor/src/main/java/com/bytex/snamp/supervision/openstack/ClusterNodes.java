@@ -18,7 +18,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  *     Value is a node instance
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public final class ClusterNodes extends AbstractKeyedObjects<String, Node> {
     private static final long serialVersionUID = 4696054938546279494L;

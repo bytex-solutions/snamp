@@ -6,7 +6,7 @@ import com.bytex.snamp.supervision.SupervisorActivator;
 /**
  * Represents activator for {@link DefaultSupervisor}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class DefaultSupervisorActivator extends SupervisorActivator<DefaultSupervisor> {

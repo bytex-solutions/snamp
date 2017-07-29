@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Represents thread factory which spawns a new threads in the same group.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class GroupedThreadFactory extends ThreadGroup implements ThreadFactory, SafeCloseable {

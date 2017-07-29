@@ -5,7 +5,7 @@ import java.time.Instant;
 /**
  * Something wrong with managed resource.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class ResourceMalfunctionStatus extends MalfunctionStatus {

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Marks getter or setter as a management attribute.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

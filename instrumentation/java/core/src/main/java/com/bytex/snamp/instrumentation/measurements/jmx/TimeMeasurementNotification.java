@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Represents measurement of time.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public class TimeMeasurementNotification extends MeasurementNotification<TimeMeasurement> {
     public static final String TYPE = "com.bytex.snamp.measurement.stopwatch";

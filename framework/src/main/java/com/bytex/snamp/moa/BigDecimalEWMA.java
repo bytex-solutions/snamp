@@ -14,7 +14,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 /**
  * Abstract class for building exponentially weighted moving average.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class BigDecimalEWMA extends EWMA implements BigDecimalAverage, UnaryOperator<BigDecimal> {

@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.*;
  * This class cannot be inherited.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 @XmlType(name = "DictionaryEntryParsingRule", namespace = XmlConstants.NAMESPACE)
 @XmlAccessorType(XmlAccessType.PROPERTY)

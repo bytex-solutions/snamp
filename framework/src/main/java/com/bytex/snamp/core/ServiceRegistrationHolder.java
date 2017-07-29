@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 /**
  * Represents point of service registration on OSGi Service Registry.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T>, SafeCloseable {

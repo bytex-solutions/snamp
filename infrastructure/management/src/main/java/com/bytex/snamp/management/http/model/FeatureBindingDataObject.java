@@ -13,7 +13,7 @@ import static com.bytex.snamp.gateway.Gateway.FeatureBindingInfo;
 /**
  * Represents DTO for feature binding.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)

@@ -5,7 +5,7 @@ import javax.management.openmbean.SimpleType;
 /**
  * A function used to resolve named references in formula.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  * @author Roman Sakno
  */
 public interface EvaluationContext {

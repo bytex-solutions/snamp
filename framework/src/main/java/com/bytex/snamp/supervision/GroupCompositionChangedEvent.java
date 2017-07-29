@@ -9,7 +9,7 @@ import javax.management.InstanceNotFoundException;
 /**
  * Indicates that the set of resources inside of the group was changed (removed or added).
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class GroupCompositionChangedEvent extends SupervisionEvent {

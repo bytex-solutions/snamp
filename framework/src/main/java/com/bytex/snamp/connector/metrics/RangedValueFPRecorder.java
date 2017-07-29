@@ -6,7 +6,7 @@ import java.util.function.DoubleConsumer;
 /**
  * Measures normative recorder for floating-point numbers with double precision.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @ThreadSafe

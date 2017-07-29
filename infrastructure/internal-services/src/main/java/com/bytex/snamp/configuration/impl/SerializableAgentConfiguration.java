@@ -18,7 +18,7 @@ import static com.bytex.snamp.configuration.impl.AbstractManagedResourceTemplate
  * Represents in-memory agent configuration that can be stored as serialized Java object.
  * @author Roman Sakno
  * @since 1.2
- * @version 2.0
+ * @version 2.1
  */
 public final class SerializableAgentConfiguration extends AbstractEntityConfiguration implements Externalizable, Modifiable, Stateful, AgentConfiguration {
     private static final long serialVersionUID = 8461144056430141155L;

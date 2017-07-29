@@ -22,7 +22,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public final class JsonUtils extends SimpleModule {

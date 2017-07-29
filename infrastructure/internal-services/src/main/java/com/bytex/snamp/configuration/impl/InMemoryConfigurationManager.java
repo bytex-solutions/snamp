@@ -15,7 +15,7 @@ import java.util.function.Function;
  * Represents in-memory configuration manager.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.2
  */
 public final class InMemoryConfigurationManager extends AbstractAggregator implements ConfigurationManager {

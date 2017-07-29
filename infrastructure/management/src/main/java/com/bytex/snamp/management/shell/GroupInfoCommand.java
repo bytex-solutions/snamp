@@ -16,7 +16,7 @@ import static com.bytex.snamp.management.shell.ResourceInfoCommand.*;
  * Displays full information about managed resource group.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @Command(scope = com.bytex.snamp.shell.SnampShellCommand.SCOPE,
         name = "resource-group",

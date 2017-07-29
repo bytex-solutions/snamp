@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * Represents NSCA gateway.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class NSCAGateway extends AbstractGateway {

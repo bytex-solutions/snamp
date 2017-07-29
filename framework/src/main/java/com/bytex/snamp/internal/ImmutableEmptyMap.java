@@ -15,7 +15,7 @@ import java.util.function.BiFunction;
  * @param <K> Type of keys in the map.
  * @param <V> Type of values in the map.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class ImmutableEmptyMap<K, V> implements Map<K, V> {

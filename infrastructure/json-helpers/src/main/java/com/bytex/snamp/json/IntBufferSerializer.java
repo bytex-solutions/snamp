@@ -7,7 +7,7 @@ import java.nio.IntBuffer;
 /**
  * Provides serialization of {@link java.nio.IntBuffer} into JSON.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class IntBufferSerializer extends AbstractBufferSerializer<IntBuffer> {

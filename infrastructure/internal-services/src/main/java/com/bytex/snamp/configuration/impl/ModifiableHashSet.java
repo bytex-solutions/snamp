@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 /**
  * Represents {@link HashSet} with implemented {@link Modifiable}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 abstract class ModifiableHashSet<E> extends HashSet<E> implements Modifiable, Externalizable, Stateful, SerializableSet<E> {

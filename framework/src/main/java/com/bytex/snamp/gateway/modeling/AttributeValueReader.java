@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
 /**
  * Represents attribute value reader.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 interface AttributeValueReader extends Callable<Object> {

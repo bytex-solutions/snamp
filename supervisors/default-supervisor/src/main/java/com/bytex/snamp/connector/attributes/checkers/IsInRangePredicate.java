@@ -12,7 +12,7 @@ import static com.bytex.snamp.Convert.toDouble;
 /**
  * Tests whether the attribute is in specified range.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeName("isInRange")

@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Represents management operation on SNAMP Gateway.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 abstract class AbstractGatewayOperation extends OpenMBean.OpenOperation<Void, SimpleType<Void>> {
     private static final OpenMBeanParameterInfoSupplier<String> GATEWAY_TYPE_PARAM = new OpenMBeanParameterInfoSupplier<>(

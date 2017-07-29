@@ -22,7 +22,7 @@ import java.util.Set;
 /**
  * Provides information about active managed resources and their attributes.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @Path("/")

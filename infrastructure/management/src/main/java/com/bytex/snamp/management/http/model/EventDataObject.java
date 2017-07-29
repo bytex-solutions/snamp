@@ -8,7 +8,7 @@ import org.codehaus.jackson.annotate.JsonTypeName;
  * EventDTOEntity
  *
  * @author Evgeniy Kirichenko
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @JsonTypeName("event")

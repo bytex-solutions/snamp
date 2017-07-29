@@ -10,7 +10,7 @@ import java.util.function.Function;
 /**
  * Represents reservoir of statistically distributed data.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface Reservoir extends Stateful, Serializable, Function<ReduceOperation, Number> {

@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 /**
  * Represents group of SNAMP artifacts.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 enum SnampGroupId {

@@ -6,7 +6,7 @@ import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 /**
  * Represents scaling policy based on heath status of resource group.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface HealthStatusBasedScalingPolicy extends WeightedScalingPolicy {

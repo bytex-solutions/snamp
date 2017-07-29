@@ -11,7 +11,7 @@ import java.io.Serializable;
 /**
  * Represents a collection of managed resource operations.
  * @author Evgeniy Kirichenko
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public class ResourceOperationList<TAccessor extends OperationAccessor> extends ResourceFeatureList<MBeanOperationInfo, TAccessor> implements Serializable {

@@ -21,7 +21,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.*;
 /**
  * Represents JMX connector configuration descriptor.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
@@ -66,7 +66,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
 
     /**
      * @author Roman Sakno
-     * @version 2.0
+     * @version 2.1
      * @since 1.0
      */
     private static final class AttributeConfigurationInfo extends ResourceBasedConfigurationEntityDescription<AttributeConfiguration> {

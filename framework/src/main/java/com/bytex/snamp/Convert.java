@@ -24,7 +24,7 @@ import java.util.function.*;
 /**
  * Converts a base data type to another base data type.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 @ThreadSafe

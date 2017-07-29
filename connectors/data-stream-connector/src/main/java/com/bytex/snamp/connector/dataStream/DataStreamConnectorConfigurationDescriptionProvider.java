@@ -25,7 +25,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
 /**
  * Represents configuration descriptor for message-driven connectors.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class DataStreamConnectorConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
     private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";

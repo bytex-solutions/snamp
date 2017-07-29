@@ -3,7 +3,7 @@ package com.bytex.snamp.connector.metrics;
 /**
  * Represents a gauge for queuing system.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public interface Arrivals extends RatedTimer {

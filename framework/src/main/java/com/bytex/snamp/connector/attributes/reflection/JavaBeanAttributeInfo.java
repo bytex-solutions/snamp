@@ -20,7 +20,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents an attribute declared as a Java property.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public class JavaBeanAttributeInfo extends AbstractAttributeInfo implements AttributeDescriptorRead {
     private static final long serialVersionUID = -5047097712279607039L;

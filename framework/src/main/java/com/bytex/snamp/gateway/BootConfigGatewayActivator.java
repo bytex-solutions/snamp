@@ -16,7 +16,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Represents activator of a gateway that can be automatically configured at boot time.
  * @author Roman Sakno
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class BootConfigGatewayActivator<G extends Gateway> extends GatewayActivator<G> {
     protected BootConfigGatewayActivator(GatewayFactory<G> factory, SupportServiceManager<?, ?>[] optionalServices) {

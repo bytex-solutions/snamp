@@ -14,7 +14,7 @@ import java.util.concurrent.ForkJoinPool;
  *     This service provides at least one pre-configured thread pool called default thread pool.
  * @author Roman Sakno
  * @since 1.2
- * @version 2.0
+ * @version 2.1
  */
 public interface ThreadPoolRepository extends SupportService, ManagedService, Iterable<String> {
     /**

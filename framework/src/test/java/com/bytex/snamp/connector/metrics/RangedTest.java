@@ -8,7 +8,7 @@ import java.time.Duration;
 /**
  * Represents tests for {@link Ranged} implementors.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class RangedTest extends Assert {

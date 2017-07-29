@@ -19,7 +19,7 @@ import static com.bytex.snamp.connector.notifications.NotificationSupport.*;
 /**
  * Represents notification descriptor.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class NotificationDescriptor extends ImmutableDescriptor implements FeatureDescriptor<EventConfiguration> {

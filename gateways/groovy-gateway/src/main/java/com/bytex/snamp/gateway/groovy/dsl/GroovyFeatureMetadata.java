@@ -13,7 +13,7 @@ import static com.bytex.snamp.jmx.DescriptorUtils.hasField;
 /**
  * Represents Groovy-compliant wrapper for {@link MBeanFeatureInfo} class and its derivatives.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 class GroovyFeatureMetadata<F extends MBeanFeatureInfo> extends GroovyObjectSupport {

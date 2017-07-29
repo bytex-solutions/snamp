@@ -15,7 +15,7 @@ import java.lang.management.PlatformManagedObject;
 /**
  * Represents a base class for JMX management connector tests.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @SnampDependencies(SnampFeature.JMX_CONNECTOR)

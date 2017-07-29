@@ -6,7 +6,7 @@ import java.io.IOException;
 /**
  * Represents JAAS callback handler that provides information about user name and password.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class NamePasswordHandler implements CallbackHandler {

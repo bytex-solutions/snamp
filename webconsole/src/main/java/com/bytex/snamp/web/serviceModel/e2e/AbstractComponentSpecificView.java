@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Represents E2E view based on the specified component.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class AbstractComponentSpecificView extends MatrixBasedView {

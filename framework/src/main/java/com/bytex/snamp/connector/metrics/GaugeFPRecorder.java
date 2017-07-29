@@ -11,7 +11,7 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * Represents implementation of {@link GaugeFP}.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 @ThreadSafe
 public class GaugeFPRecorder extends AbstractNumericGauge implements GaugeFP, DoubleConsumer {

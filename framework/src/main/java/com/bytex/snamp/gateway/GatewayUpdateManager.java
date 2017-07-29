@@ -12,7 +12,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * which cannot modify its internal structure on-the-fly
  * when managed resource connector raises event {@link com.bytex.snamp.connector.ResourceEvent}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class GatewayUpdateManager implements AutoCloseable {

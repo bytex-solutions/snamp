@@ -13,7 +13,7 @@ import java.io.UncheckedIOException;
 /**
  * Represents simple attribute checker based on
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public final class ColoredAttributeChecker implements AttributeChecker, ScriptletConfigurationSupport {

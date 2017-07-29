@@ -11,7 +11,7 @@ import java.util.Map;
  * may be selected from the array of suggested values.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public interface SelectableGatewayParameterDescriptor extends ParameterDescription {
     /**

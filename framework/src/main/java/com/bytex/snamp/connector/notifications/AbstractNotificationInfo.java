@@ -9,7 +9,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 /**
  * Represents simplified version of {@link javax.management.MBeanNotificationInfo}.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 public class AbstractNotificationInfo extends MBeanNotificationInfo implements NotificationDescriptorRead {

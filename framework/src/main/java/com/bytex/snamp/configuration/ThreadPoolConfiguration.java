@@ -7,7 +7,7 @@ import static com.bytex.snamp.internal.Utils.staticInit;
 /**
  * Represents configuration of thread pool.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public interface ThreadPoolConfiguration extends EntityConfiguration {
     /**

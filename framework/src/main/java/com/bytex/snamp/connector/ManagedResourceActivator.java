@@ -43,7 +43,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @param <TConnector> Type of the management connector.
  * @author Roman Sakno
  * @since 1.0
- * @version 2.0
+ * @version 2.1
  */
 public abstract class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
@@ -55,7 +55,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @param <TConnector> Type of the managed resource connector implementation.
      * @author Roman Sakno
      * @since 2.0
-     * @version 2.0
+     * @version 2.1
      */
     protected interface ManagedResourceConnectorFactory<TConnector extends ManagedResourceConnector> {
         /**
@@ -270,7 +270,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @param <T> Type of the gateway-related service implementation.
      * @author Roman Sakno
      * @since 1.0
-     * @version 2.0
+     * @version 2.1
      * @see #configurationDescriptor(Function, RequiredService[])
      */
     protected static abstract class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T> {

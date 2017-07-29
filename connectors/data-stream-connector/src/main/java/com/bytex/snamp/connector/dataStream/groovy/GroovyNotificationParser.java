@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 /**
  * Represents notification parser written in Groovy language.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 public abstract class GroovyNotificationParser extends Scriptlet implements NotificationParserChain {

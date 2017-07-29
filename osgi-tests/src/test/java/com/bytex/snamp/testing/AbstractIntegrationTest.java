@@ -29,7 +29,7 @@ import static org.ops4j.pax.exam.karaf.options.KarafDistributionOption.*;
 /**
  * Represents a base class for all OSGi integration tests.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 1.0
  */
 @RunWith(PaxExam.class)

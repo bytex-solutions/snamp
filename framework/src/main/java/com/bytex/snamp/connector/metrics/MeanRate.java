@@ -11,7 +11,7 @@ import java.util.function.DoubleSupplier;
 /**
  * Computes mean rate using exponential moving average.
  * @author Roman Sakno
- * @version 2.0
+ * @version 2.1
  * @since 2.0
  */
 final class MeanRate extends AtomicLong implements DoubleSupplier, Cloneable, Serializable, Stateful {

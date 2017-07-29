@@ -26,7 +26,7 @@ import static com.bytex.snamp.management.http.AbstractEntityConfigurationService
 /**
  * Represents feature type.
  * @since 2.0
- * @version 2.0
+ * @version 2.1
  */
 public enum FeatureType {
     ATTRIBUTES {
