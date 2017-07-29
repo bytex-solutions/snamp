@@ -61,21 +61,21 @@ public final class UserProfileService extends AbstractPrincipalBoundedService<Us
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/")
+    @Path("/profile")
     public UserProfile getProfile(@Context final SecurityContext context){
         return getUserData(context);
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/")
+    @Path("/profile")
     public void setProfile(final UserProfile profile, @Context final SecurityContext context){
         setUserData(context, profile);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/settings")
+    @Path("/profile/settings")
     public Map<String, ?> getSettings(@Context final SecurityContext security) {
         final BundleContext context = getBundleContext();
         final Map<String, Object> result = new HashMap<>();
@@ -95,7 +95,7 @@ public final class UserProfileService extends AbstractPrincipalBoundedService<Us
     @SuppressWarnings("unchecked")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/settings")
+    @Path("/profile/settings")
     public void setSettings(final ObjectNode settings, @Context final SecurityContext security) {
         final BundleContext context = getBundleContext();
         final ObjectMapper reader = new ObjectMapper();

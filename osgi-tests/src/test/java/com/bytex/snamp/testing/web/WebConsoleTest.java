@@ -358,7 +358,13 @@ public final class WebConsoleTest extends AbstractWebTest {
         assertEquals(attributes, otherAttributes);
     }
 
-
+    @Test
+    public void userProfileTest() throws IOException{
+        final String authenticationToken = authenticator.authenticateTestUser().getValue();
+        final JsonNode settings = httpGet("/user/profile/settings", authenticationToken);
+        assertNotNull(settings);
+        assertEquals(4, settings.size());
+    }
 
     @Test
     public void recommendationTest() throws IOException{

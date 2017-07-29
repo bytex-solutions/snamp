@@ -120,14 +120,16 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private WeakServiceListener dependencyTracker;   //weak reference to avoid leak of service listener inside of OSGi container
         private BundleContext activationContext;
 
+
         /**
          * Initializes a new holder for the provided service.
          * @param contract Contract of the provided service. Cannot be {@literal null}.
          * @param dependencies A collection of service dependencies.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
+        @SuppressWarnings("unchecked")
         protected ProvidedService(@Nonnull final Class<S> contract, final RequiredService<?>... dependencies) {
-            this(contract, dependencies, ArrayUtils.emptyArray(Class.class));
+            this(contract, dependencies, ArrayUtils.emptyArray(Class[].class));
         }
 
         @SafeVarargs
@@ -508,9 +510,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param serviceContract The contract of the dynamic services.
          * @param dependencies A collection of dependencies required for the newly created service.
          */
+        @SuppressWarnings("unchecked")
         protected ServiceSubRegistryManager(final Class<S> serviceContract,
                                             final RequiredService<?>... dependencies){
-            this(serviceContract, dependencies, ArrayUtils.emptyArray(Class.class));
+            this(serviceContract, dependencies, ArrayUtils.emptyArray(Class[].class));
         }
 
         @SafeVarargs
