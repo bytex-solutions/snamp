@@ -7,10 +7,10 @@ import org.osgi.framework.ServiceRegistration;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -23,15 +23,14 @@ final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistra
     private final ServiceRegistration<?> registration;
     private T serviceInstance;
 
-    @SafeVarargs
     ServiceRegistrationHolder(@Nonnull final BundleContext context,
                               @Nonnull final T service,
                               @Nonnull final Dictionary<String, ?> identity,
-                              final Class<? super S>... serviceContracts) {
-        if(serviceContracts.length < 1)
-            throw new IllegalArgumentException("Expecting at least one service contract");
+                              final Set<Class<? super T>> contracts) {
+        if(contracts.isEmpty())
+            throw new IllegalArgumentException("Cannot register service without interfaces");
         serviceInstance = Objects.requireNonNull(service);
-        final String[] serviceContractNames = Arrays.stream(serviceContracts).map(Class::getName).toArray(String[]::new);
+        final String[] serviceContractNames = contracts.stream().map(Class::getName).toArray(String[]::new);
         registration = context.registerService(serviceContractNames, service, identity);
     }
 

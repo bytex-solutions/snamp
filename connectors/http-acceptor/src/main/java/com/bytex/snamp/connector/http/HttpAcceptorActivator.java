@@ -6,7 +6,6 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import javax.annotation.Nonnull;
 import javax.servlet.Servlet;
-import java.util.Map;
 
 /**
  * Represents activator of {@link HttpAcceptor}.
@@ -20,8 +19,8 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
 
         @Nonnull
         @Override
-        protected JerseyServletContainer createService(final Map<String, Object> identity) {
-            identity.put("alias", JerseyServletContainer.CONTEXT);
+        protected JerseyServletContainer createService(final ServiceIdentityBuilder identity) {
+            identity.setServletContext(JerseyServletContainer.CONTEXT);
             return new JerseyServletContainer();
         }
 

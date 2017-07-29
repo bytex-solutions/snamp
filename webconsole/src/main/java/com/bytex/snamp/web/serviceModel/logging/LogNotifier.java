@@ -2,7 +2,9 @@ package com.bytex.snamp.web.serviceModel.logging;
 
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.web.serviceModel.AbstractPrincipalBoundedService;
+import com.bytex.snamp.web.serviceModel.RESTController;
 import com.bytex.snamp.web.serviceModel.WebConsoleSession;
+import org.ops4j.pax.logging.spi.PaxAppender;
 import org.ops4j.pax.logging.spi.PaxLoggingEvent;
 
 import javax.annotation.Nonnull;
@@ -18,7 +20,7 @@ import java.util.concurrent.ExecutorService;
  * @since 2.0
  */
 @Path("/")
-public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements LogNotifierController {
+public final class LogNotifier extends AbstractPrincipalBoundedService<LoggingSettings> implements RESTController, PaxAppender {
     private final ExecutorService executor;
     private final String wcBundleName;
 

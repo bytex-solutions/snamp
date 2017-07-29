@@ -240,10 +240,10 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
         @Override
-        protected TConnector activateService(final BiConsumer<String, Object> identity,
+        protected TConnector activateService(final ServiceIdentityBuilder identity,
                                              final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
-            new ManagedResourceSelector(newConfig.getValue()).setResourceName(newConfig.getKey()).forEach(identity);
+            identity.acceptAll(new ManagedResourceSelector(newConfig.getValue()).setResourceName(newConfig.getKey()));
             final TConnector connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
             updateFeatures(connector, newConfig.getValue());
             getLogger().info(String.format("Connector %s for resource %s is instantiated", getConnectorType(), newConfig.getKey()));
@@ -287,12 +287,12 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         @Nonnull
-        protected abstract T createService(final Map<String, Object> identity) throws Exception;
+        protected abstract T createService(final ServiceIdentityBuilder identity) throws Exception;
 
         @Override
         @Nonnull
-        protected final T activateService(final Map<String, Object> identity) throws Exception {
-            identity.putAll(new ManagedResourceSelector().setConnectorType(getConnectorType()));
+        protected final T activateService(final ServiceIdentityBuilder identity) throws Exception {
+            identity.acceptAll(new ManagedResourceSelector().setConnectorType(getConnectorType()));
             return createService(identity);
         }
 
@@ -315,7 +315,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             return new SupportServiceManager<S, T>(contract, dependencies) {
                 @Nonnull
                 @Override
-                protected T createService(final Map<String, Object> identity) throws Exception {
+                protected T createService(final ServiceIdentityBuilder identity) throws Exception {
                     return activator.apply(super.dependencies);
                 }
             };
@@ -383,7 +383,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
             @Nonnull
             @Override
-            protected ManagedResourceConnectorFactoryServiceImpl createService(final Map<String, Object> identity) {
+            protected ManagedResourceConnectorFactoryServiceImpl createService(final ServiceIdentityBuilder identity) {
                 return new ManagedResourceConnectorFactoryServiceImpl(dependencies);
             }
         }

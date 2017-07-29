@@ -7,7 +7,6 @@ import com.bytex.snamp.connector.ManagedResourceActivator;
 import javax.annotation.Nonnull;
 import javax.servlet.Servlet;
 import java.net.URISyntaxException;
-import java.util.Map;
 
 /**
  * Collects spans compatible with Twitter Zipkin.
@@ -23,8 +22,8 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
 
         @Nonnull
         @Override
-        protected ZipkinServlet createService(final Map<String, Object> identity) {
-            identity.put("alias", ZipkinServlet.CONTEXT);
+        protected ZipkinServlet createService(final ServiceIdentityBuilder identity) {
+            identity.setServletContext(ZipkinServlet.CONTEXT);
             return new ZipkinServlet();
         }
 

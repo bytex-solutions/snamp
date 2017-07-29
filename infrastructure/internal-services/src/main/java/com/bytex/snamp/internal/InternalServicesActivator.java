@@ -11,7 +11,6 @@ import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.security.web.impl.SecurityServlet;
 import com.hazelcast.core.HazelcastInstance;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ManagedService;
 
@@ -20,7 +19,6 @@ import javax.management.JMException;
 import javax.servlet.Servlet;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Represents activator of internal SNAMP services.
@@ -38,7 +36,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
         @Override
         @Nonnull
-        protected PersistentConfigurationManager activateService(final Map<String, Object> identity) {
+        protected PersistentConfigurationManager activateService(final ServiceIdentityBuilder identity) {
             return new PersistentConfigurationManager(dependencies.getService(ConfigurationAdmin.class).orElseThrow(AssertionError::new));
         }
     }
@@ -50,7 +48,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
         @Override
         @Nonnull
-        protected GridMember activateService(final Map<String, Object> identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
+        protected GridMember activateService(final ServiceIdentityBuilder identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
             final HazelcastInstance hazelcast = dependencies.getService(HazelcastInstance.class).orElseThrow(AssertionError::new);
             final GridMember member = new GridMember(hazelcast);
             member.start();
@@ -71,8 +69,8 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
         @Override
         @Nonnull
-        protected ThreadPoolRepositoryImpl activateService(final Map<String, Object> identity) {
-            identity.put(Constants.SERVICE_PID, ThreadPoolRepositoryImpl.PID);
+        protected ThreadPoolRepositoryImpl activateService(final ServiceIdentityBuilder identity) {
+            identity.setServicePID(ThreadPoolRepositoryImpl.PID);
             return new ThreadPoolRepositoryImpl();
         }
 
@@ -89,8 +87,8 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
         @Override
         @Nonnull
-        protected SecurityServlet activateService(final Map<String, Object> identity) {
-            identity.put("alias", SecurityServlet.CONTEXT);
+        protected SecurityServlet activateService(final ServiceIdentityBuilder identity) {
+            identity.setServletContext(SecurityServlet.CONTEXT);
             final ClusterMember clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
             return new SecurityServlet(clusterMember);
         }

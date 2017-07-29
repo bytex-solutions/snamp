@@ -17,7 +17,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -109,10 +108,10 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         }
 
         @Override
-        protected G activateService(final BiConsumer<String, Object> identity,
+        protected G activateService(final ServiceIdentityBuilder identity,
                                     final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends GatewayConfiguration> newConfig = parseConfig(configuration);
-            new GatewaySelector(newConfig.getValue()).setInstanceName(newConfig.getKey()).forEach(identity);
+            identity.acceptAll(new GatewaySelector(newConfig.getValue()).setInstanceName(newConfig.getKey()));
             final G gatewayInstance = gatewayInstanceFactory.createInstance(newConfig.getKey(), dependencies);
             gatewayInstance.update(newConfig.getValue());
             getLogger().info(String.format("Gateway %s is instantiated", gatewayInstance));
@@ -173,8 +172,8 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
         @Override
         @Nonnull
-        protected T activateService(final Map<String, Object> identity) throws Exception {
-            identity.putAll(new GatewaySelector().setGatewayType(getGatewayType()));
+        protected T activateService(final ServiceIdentityBuilder identity) throws Exception {
+            identity.acceptAll(new GatewaySelector().setGatewayType(getGatewayType()));
             return activator.apply(dependencies);
         }
 

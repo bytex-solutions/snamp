@@ -21,7 +21,6 @@ import org.osgi.service.log.LogReaderService;
 import javax.annotation.Nonnull;
 import javax.management.JMException;
 import javax.servlet.Servlet;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -43,7 +42,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
         @Override
         @Nonnull
-        protected DefaultSnampManager activateService(final Map<String, Object> identity) {
+        protected DefaultSnampManager activateService(final ServiceIdentityBuilder identity) {
             return new DefaultSnampManager();
         }
     }
@@ -154,8 +153,8 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
 
         @Nonnull
         @Override
-        protected ManagementServlet activateService(final Map<String, Object> identity) {
-            identity.put("alias", ManagementServlet.CONTEXT);
+        protected ManagementServlet activateService(final ServiceIdentityBuilder identity) {
+            identity.setServletContext(ManagementServlet.CONTEXT);
             final ClusterMember clusterMember = ClusterMember.get(Utils.getBundleContextOfObject(this));
             return new ManagementServlet(clusterMember);
         }

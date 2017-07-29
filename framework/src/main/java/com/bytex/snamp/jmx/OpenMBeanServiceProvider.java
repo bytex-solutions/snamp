@@ -1,12 +1,13 @@
 package com.bytex.snamp.jmx;
 
+import com.bytex.snamp.core.AbstractServiceLibrary;
+
 import javax.annotation.Nonnull;
 import javax.management.JMException;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.Map;
 
 import static com.bytex.snamp.core.AbstractBundleActivator.RequiredService;
 import static com.bytex.snamp.core.AbstractServiceLibrary.ProvidedService;
@@ -56,7 +57,7 @@ public abstract class OpenMBeanServiceProvider<T extends OpenMBean & FrameworkMB
      */
     @Override
     @Nonnull
-    protected T activateService(final Map<String, Object> identity) throws JMException {
+    protected T activateService(final AbstractServiceLibrary.ServiceIdentityBuilder identity) throws JMException {
         final ObjectName objectName = new ObjectName(this.objectName);
         createIdentity(identity, objectName);
         final T mbean = createMBean();
@@ -65,13 +66,13 @@ public abstract class OpenMBeanServiceProvider<T extends OpenMBean & FrameworkMB
         return mbean;
     }
 
-    private static void createIdentity(final Map<String, Object> identity, final ObjectName name){
-        identity.put(FrameworkMBean.OBJECT_NAME_IDENTITY_PROPERTY, name);
+    private static void createIdentity(final AbstractServiceLibrary.ServiceIdentityBuilder identity, final ObjectName name){
+        identity.accept(FrameworkMBean.OBJECT_NAME_IDENTITY_PROPERTY, name);
     }
 
     public static Dictionary<String, Object> createIdentity(final ObjectName name){
         final Hashtable<String, Object> identity = new Hashtable<>(1);
-        createIdentity(identity, name);
+        createIdentity(identity::put, name);
         return identity;
     }
 

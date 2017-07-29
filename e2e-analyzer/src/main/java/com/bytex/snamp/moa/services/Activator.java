@@ -10,7 +10,6 @@ import com.google.common.collect.ImmutableMap;
 import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 
 import static com.bytex.snamp.MapUtils.getValue;
 
@@ -30,12 +29,12 @@ public final class Activator extends AbstractServiceLibrary {
         }
 
         @Nonnull
-        abstract T activateService(final Map<String, Object> identity,
+        abstract T activateService(final ServiceIdentityBuilder identity,
                                     final ImmutableMap<String, String> configuration);
 
         @Override
         @Nonnull
-        protected final T activateService(final Map<String, Object> identity) throws Exception {
+        protected final T activateService(final ServiceIdentityBuilder identity) throws Exception {
             final ConfigurationManager manager = dependencies.getService(ConfigurationManager.class)
                     .orElseThrow(AssertionError::new);
             final ImmutableMap<String, String> configuration = manager.transformConfiguration(ImmutableMap::copyOf);
@@ -50,7 +49,7 @@ public final class Activator extends AbstractServiceLibrary {
 
         @Nonnull
         @Override
-        DefaultTopologyAnalyzer activateService(final Map<String, Object> identity, final ImmutableMap<String, String> configuration) {
+        DefaultTopologyAnalyzer activateService(final ServiceIdentityBuilder identity, final ImmutableMap<String, String> configuration) {
             final long historySize = getValue(configuration, HISTORY_SIZE_PARAM, Long::parseLong).orElse(DEFAULT_HISTORY_SIZE);
             return new DefaultTopologyAnalyzer(historySize);
         }

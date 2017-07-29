@@ -6,7 +6,6 @@ import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
 import javax.servlet.Servlet;
-import java.util.Map;
 
 /**
  * Publishes {@link RESTDiscoveryService} into Servlet container.
@@ -22,13 +21,13 @@ public final class RESTDiscoveryServiceActivator extends AbstractServiceLibrary 
 
         @Override
         @Nonnull
-        protected DiscoveryServiceServlet activateService(final Map<String, Object> identity) throws Exception {
-            identity.put("alias", DiscoveryServiceServlet.CONTEXT);
+        protected DiscoveryServiceServlet activateService(final ServiceIdentityBuilder identity) {
+            identity.setServletContext(DiscoveryServiceServlet.CONTEXT);
             return new DiscoveryServiceServlet();
         }
 
         @Override
-        protected void cleanupService(final DiscoveryServiceServlet servlet, final boolean stopBundle) throws Exception {
+        protected void cleanupService(final DiscoveryServiceServlet servlet, final boolean stopBundle) {
             servlet.destroy();
         }
     }

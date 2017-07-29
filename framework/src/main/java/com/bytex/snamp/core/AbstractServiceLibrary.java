@@ -6,7 +6,7 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.internal.Utils;
-import com.google.common.collect.ObjectArrays;
+import com.google.common.collect.ImmutableSet;
 import org.osgi.framework.*;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
@@ -26,6 +26,24 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
+    /**
+     * Write-only service identity builder.
+     */
+    @FunctionalInterface
+    public interface ServiceIdentityBuilder extends BiConsumer<String, Object>, Constants {
+        default void setServletContext(final String urlContext){
+            accept("alias", urlContext);
+        }
+
+        default void setServicePID(final String servicePID){
+            accept(SERVICE_PID, servicePID);
+        }
+
+        default void acceptAll(final Map<String, ?> identity){
+            identity.forEach(this);
+        }
+    }
+
     private static final class ProvidedServiceLoggingScope extends LoggingScope {
 
         private ProvidedServiceLoggingScope(final ServiceListener requester,
@@ -92,8 +110,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <T> Implementation of the provided service.
      */
     public static abstract class ProvidedService<S, T extends S> implements ServiceListener {
-        private final Class<? super S>[] serviceContracts;
         protected final DependencyManager dependencies;
+        private final Set<Class<? super T>> contract;
 
         private volatile ServiceRegistrationHolder<S, T> registration;
         private volatile ActivationPropertyReader properties;
@@ -102,13 +120,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         private WeakServiceListener dependencyTracker;   //weak reference to avoid leak of service listener inside of OSGi container
         private BundleContext activationContext;
 
-        private ProvidedService(@Nonnull final Class<? super S>[] contracts, final RequiredService<?>... dependencies) {
-            serviceContracts = contracts;
-            this.dependencies = new DependencyManager(dependencies);
-            registration = null;
-            properties = EMPTY_ACTIVATION_PROPERTY_READER;
-        }
-
         /**
          * Initializes a new holder for the provided service.
          * @param contract Contract of the provided service. Cannot be {@literal null}.
@@ -116,21 +127,19 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws IllegalArgumentException contract is {@literal null}.
          */
         protected ProvidedService(@Nonnull final Class<S> contract, final RequiredService<?>... dependencies) {
-            this(ArrayUtils.toArray(contract), dependencies);
+            this(contract, dependencies, ArrayUtils.emptyArray(Class.class));
         }
 
         @SafeVarargs
-        protected ProvidedService(final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super S>... subContracts){
-            this(ObjectArrays.concat(mainContract, subContracts), dependencies);
+        protected ProvidedService(@Nonnull final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super T>... subContracts){
+            this.contract = ImmutableSet.<Class<? super T>>builder().add(mainContract).add(subContracts).build();
+            this.dependencies = new DependencyManager(dependencies);
+            registration = null;
+            properties = EMPTY_ACTIVATION_PROPERTY_READER;
         }
 
-        /**
-         * Gets main service contract.
-         * @return Main service contract.
-         * @since 2.0
-         */
-        protected final Class<? super S> getServiceContract(){
-            return ArrayUtils.getFirst(serviceContracts).orElseThrow(AssertionError::new);
+        private Class<? super T> getServiceContract(){
+            return contract.stream().findFirst().orElseThrow(AssertionError::new);
         }
 
         /**
@@ -206,9 +215,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
 
         private synchronized void activateAndRegisterService(final BundleContext context) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(3);
-            final T serviceInstance = activateService(identity);
+            final T serviceInstance = activateService(identity::put);
             //registration happens after instantiation of the service
-            registration = new ServiceRegistrationHolder<>(context, serviceInstance, identity, serviceContracts);
+            registration = new ServiceRegistrationHolder<>(context, serviceInstance, identity, contract);
         }
 
         synchronized void register(final BundleContext context, final ActivationPropertyReader properties) throws Exception {
@@ -281,7 +290,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @return A new instance of the service.
          */
         @Nonnull
-        protected abstract T activateService(final Map<String, Object> identity) throws Exception;
+        protected abstract T activateService(final ServiceIdentityBuilder identity) throws Exception;
     }
 
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
@@ -405,9 +414,9 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         @Override
         @Nonnull
-        protected final ManagedServiceFactoryImpl<TService> activateService(final Map<String, Object> identity) throws Exception {
+        protected final ManagedServiceFactoryImpl<TService> activateService(final ServiceIdentityBuilder identity) throws Exception {
             final String factoryPID = getCachedFactoryPID();
-            identity.put(Constants.SERVICE_PID, factoryPID);
+            identity.setServicePID(factoryPID);
             return new ManagedServiceFactoryImpl<TService>(){
                 private static final long serialVersionUID = -7596205835324011065L;
 
@@ -492,7 +501,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      */
     @ThreadSafe
     public static abstract class ServiceSubRegistryManager<S, T extends S> extends DynamicServiceManager<ServiceRegistrationHolder<S, T>> {
-        private final Class<? super S>[] serviceContracts;
+        private final Set<Class<? super T>> contract;
 
         /**
          * Initializes a new dynamic service manager.
@@ -501,18 +510,19 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          */
         protected ServiceSubRegistryManager(final Class<S> serviceContract,
                                             final RequiredService<?>... dependencies){
-            super(dependencies);
-            serviceContracts = ArrayUtils.toArray(serviceContract);
+            this(serviceContract, dependencies, ArrayUtils.emptyArray(Class.class));
         }
 
-        protected ServiceSubRegistryManager(final Class<? super S>[] serviceContracts,
-                                            final RequiredService<?>... dependencies) {
+        @SafeVarargs
+        protected ServiceSubRegistryManager(final Class<S> serviceContract,
+                                            final RequiredService<?>[] dependencies,
+                                            final Class<? super T>... subContracts){
             super(dependencies);
-            this.serviceContracts = serviceContracts.clone();
+            contract = ImmutableSet.<Class<? super T>>builder().add(serviceContract).add(subContracts).build();
         }
 
-        private ServiceRegistrationHolder<S, T> createServiceRegistration(final T newService, final Dictionary<String, ?> identity){
-            return new ServiceRegistrationHolder<>(getBundleContext(), newService, identity, serviceContracts);
+        private ServiceRegistrationHolder<S, T> createServiceRegistration(final T newService, final Dictionary<String, ?> identity) {
+            return new ServiceRegistrationHolder<>(getBundleContext(), newService, identity, contract);
         }
 
         /**
@@ -551,7 +561,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws Exception Unable to instantiate a new service.
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
-        protected abstract T activateService(final BiConsumer<String, Object> identity,
+        protected abstract T activateService(final ServiceIdentityBuilder identity,
                                              final Dictionary<String, ?> configuration) throws Exception;
 
         @Override

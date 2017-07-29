@@ -12,7 +12,6 @@ import com.bytex.snamp.web.serviceModel.commons.ManagedResourceInformationServic
 import com.bytex.snamp.web.serviceModel.commons.VersionResource;
 import com.bytex.snamp.web.serviceModel.e2e.E2EDataSource;
 import com.bytex.snamp.web.serviceModel.logging.LogNotifier;
-import com.bytex.snamp.web.serviceModel.logging.LogNotifierController;
 import com.bytex.snamp.web.serviceModel.notifications.NotificationService;
 import com.bytex.snamp.web.serviceModel.resourceGroups.ResourceGroupWatcherService;
 import org.ops4j.pax.logging.PaxLoggingService;
@@ -24,7 +23,6 @@ import org.osgi.framework.ServiceReference;
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.servlet.Servlet;
-import java.util.Map;
 
 /**
  * The type Web console activator.
@@ -39,9 +37,9 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
         @Override
         @Nonnull
-        protected DefaultWebConsoleEngine activateService(final Map<String, Object> identity) throws InvalidSyntaxException {
+        protected DefaultWebConsoleEngine activateService(final ServiceIdentityBuilder identity) throws InvalidSyntaxException {
             final DefaultWebConsoleEngine registry = new DefaultWebConsoleEngine(ClusterMember.get(Utils.getBundleContextOfObject(this)));
-            identity.put("alias", DefaultWebConsoleEngine.CONTEXT);
+            identity.setServletContext(DefaultWebConsoleEngine.CONTEXT);
             return registry;
         }
     }
@@ -60,7 +58,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         WebConsoleServiceProvider(@Nonnull final Class<S> mainContract,
                                   @Nonnull final String serviceName,
                                   final RequiredService<?>[] dependencies,
-                                  final Class<? super S> subContract) {
+                                  final Class<? super T> subContract) {
             super(mainContract, dependencies, WebConsoleService.class, subContract);
             this.serviceName = serviceName;
         }
@@ -69,13 +67,13 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         abstract T activateService();
 
         @OverridingMethodsMustInvokeSuper
-        void fillIdentity(final Map<String, Object> identity){
-            identity.put(SERVICE_NAME_PROPERTY, serviceName);
+        void fillIdentity(final ServiceIdentityBuilder identity){
+            identity.accept(SERVICE_NAME_PROPERTY, serviceName);
         }
 
         @Nonnull
         @Override
-        protected final T activateService(final Map<String, Object> identity) throws Exception {
+        protected final T activateService(final ServiceIdentityBuilder identity) throws Exception {
             fillIdentity(identity);
             return activateService();
         }
@@ -109,11 +107,11 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
         @Nonnull
         @Override
-        protected WebConsoleServiceServlet activateService(final Map<String, Object> identity) {
+        protected WebConsoleServiceServlet activateService(final ServiceIdentityBuilder identity) {
             final RESTController serviceImpl = dependencies.getDependency(WebConsoleServiceDependency.class)
                     .flatMap(WebConsoleServiceDependency::getService)
                     .orElseThrow(AssertionError::new);
-            identity.put("alias", ROOT_CONTEXT + serviceImpl.getUrlContext());
+            identity.setServletContext(ROOT_CONTEXT + serviceImpl.getUrlContext());
             return new WebConsoleServiceServlet(serviceImpl);
         }
 
@@ -209,19 +207,19 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class LogNotifierProvider extends WebConsoleServiceProvider<LogNotifierController, LogNotifier> {
+    private static final class LogNotifierProvider extends WebConsoleServiceProvider<RESTController, LogNotifier> {
         private static final String SERVICE_NAME = "logNotifier";
 
         private LogNotifierProvider() {
-            super(LogNotifierController.class,
+            super(RESTController.class,
                     SERVICE_NAME,
                     requiredBy(LogNotifier.class).require(ThreadPoolRepository.class),
                     PaxAppender.class);
         }
 
         @Override
-        void fillIdentity(final Map<String, Object> identity) {
-            identity.put(PaxLoggingService.APPENDER_NAME_PROPERTY, "SnampWebConsoleLogAppender");
+        void fillIdentity(final ServiceIdentityBuilder identity) {
+            identity.accept(PaxLoggingService.APPENDER_NAME_PROPERTY, "SnampWebConsoleLogAppender");
             super.fillIdentity(identity);
         }
 

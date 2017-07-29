@@ -17,7 +17,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -94,10 +93,10 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
         
         @Override
-        protected S activateService(final BiConsumer<String, Object> identity, final Dictionary<String, ?> configuration) throws Exception {
+        protected S activateService(final ServiceIdentityBuilder identity, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
             final S supervisor = factory.createSupervisor(newConfig.getKey(), dependencies);
-            new SupervisorSelector(newConfig.getValue()).setGroupName(newConfig.getKey()).forEach(identity);
+            identity.acceptAll(new SupervisorSelector(newConfig.getValue()).setGroupName(newConfig.getKey()));
             supervisor.update(newConfig.getValue());
             getLogger().info(String.format("Supervisor %s is instantiated", supervisor));
             return supervisor;
@@ -152,8 +151,8 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
 
         @Override
         @Nonnull
-        protected T activateService(final Map<String, Object> identity) throws Exception {
-            identity.putAll(new SupervisorSelector().setSupervisorType(getSupervisorType()));
+        protected T activateService(final ServiceIdentityBuilder identity) throws Exception {
+            identity.acceptAll(new SupervisorSelector().setSupervisorType(getSupervisorType()));
             return activator.apply(dependencies);
         }
 
