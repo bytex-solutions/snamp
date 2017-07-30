@@ -50,13 +50,8 @@ public final class UtilsTest extends Assert {
     }
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
-    private static BigInteger getBigInteger(){
-        return BigInteger.TEN;
-    }
-
-    @SpecialUse(SpecialUse.Case.REFLECTION)
     private BigInteger sum(final BigInteger v){
-        return getBigInteger().add(v);
+        return BigInteger.TEN.add(v);
     }
 
     @Test
