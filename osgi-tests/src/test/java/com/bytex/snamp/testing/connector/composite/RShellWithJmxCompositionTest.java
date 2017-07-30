@@ -32,7 +32,7 @@ import static com.bytex.snamp.jmx.CompositeDataUtils.getLong;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 @SnampDependencies({SnampFeature.RSHELL_CONNECTOR, SnampFeature.JMX_CONNECTOR})

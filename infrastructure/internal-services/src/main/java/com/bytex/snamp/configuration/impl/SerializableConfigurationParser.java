@@ -13,7 +13,7 @@ import java.util.function.BiConsumer;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 abstract class SerializableConfigurationParser<E extends SerializableEntityConfiguration> extends AbstractConfigurationParser<E> {

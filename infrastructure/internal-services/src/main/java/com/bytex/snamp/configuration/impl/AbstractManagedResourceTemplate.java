@@ -17,7 +17,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 /**
  * Represents template of managed resource.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 abstract class AbstractManagedResourceTemplate extends AbstractEntityConfiguration implements ManagedResourceTemplate {

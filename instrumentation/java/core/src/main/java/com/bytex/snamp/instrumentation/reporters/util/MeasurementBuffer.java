@@ -5,7 +5,7 @@ import com.bytex.snamp.instrumentation.measurements.Measurement;
 /**
  * Represents utility interface for measurements buffer used as temporary store when reporter has connection problems.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public interface MeasurementBuffer {

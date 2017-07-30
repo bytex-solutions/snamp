@@ -85,7 +85,7 @@ import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
  * The type Web console test.
  *
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 @SnampDependencies({

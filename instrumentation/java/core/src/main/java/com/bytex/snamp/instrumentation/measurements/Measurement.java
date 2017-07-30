@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Represents abstract POJO for all measurements.
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  * @author Roman Sakno
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)

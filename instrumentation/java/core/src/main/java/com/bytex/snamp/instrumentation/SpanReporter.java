@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 /**
  * Represents reporter of {@link Span}s.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public class SpanReporter extends MeasurementReporter<Span> {

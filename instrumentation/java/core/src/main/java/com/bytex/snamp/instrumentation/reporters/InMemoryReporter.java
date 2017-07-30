@@ -9,7 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Represents in-memory reporter of measurements that can be used for testing purposes.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public final class InMemoryReporter extends LinkedBlockingQueue<Measurement> implements Reporter {

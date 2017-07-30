@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 abstract class MetricAttribute<M extends AbstractMetric> extends AbstractCompositeAttribute implements DistributedAttribute {

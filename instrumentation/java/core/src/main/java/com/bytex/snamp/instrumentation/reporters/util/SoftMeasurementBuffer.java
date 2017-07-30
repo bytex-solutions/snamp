@@ -13,7 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  *     In this case all buffered measurement will be GCed in respect to program's fault-tolerance.
  *     This happen because the buffer stores soft reference to the list of saved measurements.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public final class SoftMeasurementBuffer implements MeasurementBuffer {

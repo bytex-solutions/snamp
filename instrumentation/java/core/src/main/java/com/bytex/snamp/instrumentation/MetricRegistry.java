@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  *     In OSGi environment it is highly recommended to use {@link OSGiMetricRegistry} class.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  */
 public class MetricRegistry implements Iterable<Reporter>, Closeable {
     //@FunctionalInterface

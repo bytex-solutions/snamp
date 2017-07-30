@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * Represents Java resource reader.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public class ResourceReader implements Closeable, SafeCloseable {

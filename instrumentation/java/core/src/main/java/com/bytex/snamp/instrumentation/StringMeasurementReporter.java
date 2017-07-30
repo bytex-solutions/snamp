@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Represents reporter for measurement of type {@link String}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public class StringMeasurementReporter extends ValueMeasurementReporter<StringMeasurement> {

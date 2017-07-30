@@ -26,7 +26,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements GatewayDescriptionProvider {

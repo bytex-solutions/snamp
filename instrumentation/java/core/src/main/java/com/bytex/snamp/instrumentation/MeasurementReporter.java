@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * Represents abstract reporter for all measurements.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  */
 public abstract class MeasurementReporter<M extends Measurement> {
     /**

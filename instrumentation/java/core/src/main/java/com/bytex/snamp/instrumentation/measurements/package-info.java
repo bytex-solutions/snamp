@@ -7,7 +7,7 @@
  *     <li>{@link com.bytex.snamp.instrumentation.measurements.Span} for internal and external spans</li>
  * </ul>
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  * @see com.bytex.snamp.instrumentation.measurements.Measurement
  */

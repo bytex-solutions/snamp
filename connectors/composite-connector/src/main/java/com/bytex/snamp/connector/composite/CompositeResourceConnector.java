@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Represents resource connector that can combine many resource connectors.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 final class CompositeResourceConnector extends AbstractManagedResourceConnector implements HealthCheckSupport{

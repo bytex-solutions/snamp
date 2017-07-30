@@ -11,7 +11,7 @@ import java.io.ObjectOutput;
 /**
  * Represents measurement of {@link String} data type.
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  * @author Roman Sakno
  */
 @JsonTypeName("string")

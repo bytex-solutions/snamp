@@ -14,7 +14,7 @@ import java.util.Set;
  * Represents serializable version of managed resource group.
  * This class cannot be inherited.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 final class SerializableManagedResourceGroupConfiguration extends AbstractManagedResourceTemplate implements ManagedResourceGroupConfiguration {

@@ -8,7 +8,7 @@ import java.io.IOException;
  * Represents reporter with lazy initialization.
  * @param <R> Type of reporter to be initialized lazily.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public abstract class LazyReporter<R extends Reporter> implements Reporter {

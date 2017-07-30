@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Represents reporter that writes all incoming measurements into print stream.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public final class PrintStreamReporter implements Reporter {

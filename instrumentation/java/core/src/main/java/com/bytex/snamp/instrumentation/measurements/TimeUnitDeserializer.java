@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Represents JSON deserializer for {@link java.util.concurrent.TimeUnit}.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 final class TimeUnitDeserializer extends JsonDeserializer<TimeUnit> {

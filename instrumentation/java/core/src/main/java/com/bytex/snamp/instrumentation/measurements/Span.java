@@ -11,7 +11,7 @@ import java.io.ObjectOutput;
 /**
  * Represents span.
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  * @author Roman Sakno
  */
 @JsonTypeName("span")

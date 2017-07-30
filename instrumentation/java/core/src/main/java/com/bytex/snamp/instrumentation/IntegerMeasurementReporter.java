@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * Represents reporter for measurement of type {@code long}.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  */
 public class IntegerMeasurementReporter extends ValueMeasurementReporter<IntegerMeasurement> {
     protected IntegerMeasurementReporter(final Iterable<Reporter> reporters, final String name, final Map<String, String> userData) {

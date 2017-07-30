@@ -11,7 +11,7 @@ import java.util.Properties;
 /**
  * Represents Provider for HTTP-based reporter.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public final class HttpReporterSpi extends LazyReporter<HttpReporter> {

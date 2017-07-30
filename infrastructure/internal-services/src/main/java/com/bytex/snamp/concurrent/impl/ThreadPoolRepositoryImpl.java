@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * Provides default implementation of {@link ThreadPoolRepository} system service.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  */
 public final class ThreadPoolRepositoryImpl extends ConcurrentResourceAccessor<Map<String, ConfiguredThreadPool>> implements ThreadPoolRepository, SafeCloseable {
     public static final String PID = DefaultThreadPoolParser.PID;

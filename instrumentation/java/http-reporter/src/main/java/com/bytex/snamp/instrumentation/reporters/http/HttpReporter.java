@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  * <p />
  *     This report can be used in conjunction with HTTP Connector.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public final class HttpReporter implements Reporter {

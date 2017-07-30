@@ -11,7 +11,7 @@ import java.io.ObjectOutput;
  * Provides health status.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  */
 @JsonTypeName("healthCheck")
 public final class Health extends Measurement {

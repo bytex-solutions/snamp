@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public final class CompositeResourceActivator extends ManagedResourceActivator<CompositeResourceConnector> {

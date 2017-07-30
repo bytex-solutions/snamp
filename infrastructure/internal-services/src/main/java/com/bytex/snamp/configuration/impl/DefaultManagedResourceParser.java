@@ -21,7 +21,7 @@ import static com.bytex.snamp.connector.ManagedResourceConnector.CAPABILITY_NAME
 
 /**
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 final class DefaultManagedResourceParser extends AbstractTypedConfigurationParser<SerializableManagedResourceConfiguration> implements CMManagedResourceParser {

@@ -8,7 +8,7 @@ import java.io.IOException;
 /**
  * Sends measurements to SNAMP server.
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  * @author Roman Sakno
  */
 public interface Reporter extends Closeable {

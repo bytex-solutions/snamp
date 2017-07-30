@@ -6,7 +6,7 @@ import com.bytex.snamp.instrumentation.measurements.Health;
  * Represents health check wrapped into JMX notification.
  * @author Roman Sakno
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  */
 public final class HealthNotification extends MeasurementNotification<Health> {
     public static final String TYPE = "com.bytex.snamp.measurement.health";

@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Represents measurement of time.
  * @since 1.0
- * @version 1.0
+ * @version 2.1
  * @author Roman Sakno
  */
 @JsonTypeName("timeSpan")

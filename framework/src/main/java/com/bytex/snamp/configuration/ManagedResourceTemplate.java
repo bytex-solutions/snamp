@@ -5,7 +5,7 @@ import javax.annotation.Nonnull;
 /**
  * Represents template of managed resource.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public interface ManagedResourceTemplate extends TypedEntityConfiguration, ThreadPoolConfigurationSupport {

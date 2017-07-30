@@ -15,7 +15,7 @@ import java.util.Iterator;
  * <p />
  *     This class represents an entry point to work with SNAMP instrumentation and measurement reporting in OSGi environment.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public class OSGiMetricRegistry extends MetricRegistry {

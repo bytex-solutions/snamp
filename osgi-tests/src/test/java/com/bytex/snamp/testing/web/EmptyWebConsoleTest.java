@@ -16,7 +16,7 @@ import java.util.concurrent.TimeoutException;
  * The type Web console test.
  *
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 @SnampDependencies({

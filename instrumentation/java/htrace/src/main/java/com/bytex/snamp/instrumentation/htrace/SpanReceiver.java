@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 /**
  * Represents receiver of HTrace spans which are redirected into {@link Reporter}s.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 public class SpanReceiver extends org.apache.htrace.core.SpanReceiver {

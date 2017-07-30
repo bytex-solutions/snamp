@@ -12,7 +12,7 @@ import javax.management.openmbean.OpenType;
 /**
  * Represents single metric exposed by Spring Actuator.
  * @author Roman Sakno
- * @version 1.0
+ * @version 2.1
  * @since 1.0
  */
 abstract class SpringMetric<T> extends AbstractOpenAttributeInfo {
