@@ -1,7 +1,6 @@
 package com.bytex.snamp.internal;
 
 import com.bytex.snamp.ArrayUtils;
-import com.bytex.snamp.Box;
 import com.bytex.snamp.SpecialUse;
 import org.junit.Assert;
 import org.junit.Test;
@@ -9,7 +8,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.security.SecureRandom;
@@ -18,8 +16,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import static com.bytex.snamp.internal.Utils.reflectGetter;
 import static com.bytex.snamp.internal.Utils.reflectSetter;
@@ -30,6 +28,26 @@ import static com.bytex.snamp.internal.Utils.reflectSetter;
  * @since 1.0
  */
 public final class UtilsTest extends Assert {
+    final class TestJavaBean{
+        private BigInteger iValue = BigInteger.ZERO;
+        private float fValue = 0F;
+
+        public BigInteger getBigInteger() {
+            return iValue;
+        }
+
+        public void setBigInteger(final BigInteger value){
+            iValue = value;
+        }
+
+        public float getFloatValue(){
+            return fValue;
+        }
+
+        public void setFloatValue(final float value){
+            fValue = value;
+        }
+    }
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
     private static BigInteger getBigInteger(){
@@ -52,25 +70,25 @@ public final class UtilsTest extends Assert {
 
     @Test
     public void reflectGetterTest() throws ReflectiveOperationException{
-        Supplier<?> sup = reflectGetter(MethodHandles.lookup(), null, getClass().getDeclaredMethod("getBigInteger"));
-        assertEquals(getBigInteger(), sup.get());
-        final Object obj = new Object(){
-            @SpecialUse(SpecialUse.Case.REFLECTION)
-            public BigDecimal getBigDecimal(){
-                return BigDecimal.ONE;
-            }
-        };
-        sup = reflectGetter(MethodHandles.lookup(), obj, obj.getClass().getDeclaredMethod("getBigDecimal"));
-        assertEquals(BigDecimal.ONE, sup.get());
+        final TestJavaBean bean = new TestJavaBean();
+        bean.setBigInteger(BigInteger.TEN);
+        Function sup = reflectGetter(MethodHandles.lookup(), TestJavaBean.class.getDeclaredMethod("getBigInteger"));
+        assertEquals(bean.getBigInteger(), sup.apply(bean));
+        bean.setFloatValue(10F);
+        sup = reflectGetter(MethodHandles.lookup(), TestJavaBean.class.getDeclaredMethod("getFloatValue"));
+        assertEquals(bean.getFloatValue(), sup.apply(bean));
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void reflectSetterTest() throws ReflectiveOperationException{
-        final Box<String> box = Box.of("");
-        final Consumer<String> setter = reflectSetter(MethodHandles.lookup(), box, Box.class.getDeclaredMethod("set", Object.class));
-        setter.accept("Frank Underwood");
-        assertEquals("Frank Underwood", box.get());
+        final TestJavaBean bean = new TestJavaBean();
+        BiConsumer setter = reflectSetter(MethodHandles.lookup(), TestJavaBean.class.getDeclaredMethod("setBigInteger", BigInteger.class));
+        setter.accept(bean, BigInteger.ONE);
+        assertEquals(BigInteger.ONE, bean.getBigInteger());
+        setter = reflectSetter(MethodHandles.lookup(), TestJavaBean.class.getDeclaredMethod("setFloatValue", float.class));
+        setter.accept(bean, 42);
+        assertEquals(42F, bean.getFloatValue(), 0.1F);
     }
 
     @Test(expected = MalformedURLException.class)

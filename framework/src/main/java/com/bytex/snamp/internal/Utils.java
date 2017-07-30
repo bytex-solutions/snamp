@@ -5,6 +5,8 @@ import com.bytex.snamp.Internal;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.SpecialUse;
 import com.google.common.base.Joiner;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -13,15 +15,15 @@ import org.osgi.framework.ServiceReference;
 import javax.annotation.Nonnull;
 import java.io.PrintStream;
 import java.lang.invoke.*;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.Spliterator;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static org.osgi.framework.Constants.OBJECTCLASS;
 
@@ -50,6 +52,10 @@ public final class Utils {
     }
 
     private static final SilentInvoker SILENT_INVOKER;
+    private static final Cache<Method, Function> GETTERS = CacheBuilder.newBuilder().weakValues().build();
+    private static final MethodType GETTER_INVOKED_TYPE = MethodType.methodType(Function.class);
+    private static final Cache<Method, BiConsumer> SETTER = CacheBuilder.newBuilder().weakValues().build();
+    private static final MethodType SETTER_INVOKED_TYPE = MethodType.methodType(BiConsumer.class);
 
     static {
         final MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -157,65 +163,56 @@ public final class Utils {
         return newException;
     }
 
-    private static Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
-                                          final Object owner,
-                                          final MethodHandle getter) throws ReflectiveOperationException {
-        final MethodType invokedType = owner == null ?
-                MethodType.methodType(Supplier.class) :
-                MethodType.methodType(Supplier.class, owner.getClass());
 
+    private static Function createGetter(final MethodHandles.Lookup lookup,
+                                         final MethodHandle getter) throws Exception{
+        final CallSite site = LambdaMetafactory.metafactory(lookup, "apply",
+                GETTER_INVOKED_TYPE,
+                MethodType.methodType(Object.class, Object.class),
+                getter,
+                getter.type());
         try {
-            final CallSite site = LambdaMetafactory.metafactory(lookup, "get",
-                    invokedType,
-                    MethodType.methodType(Object.class),
-                    getter,
-                    MethodType.methodType(getter.type().returnType()));
-            return (Supplier<?>) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
-        } catch (final LambdaConversionException e){
-            throw new ReflectiveOperationException(e);
-        } catch (final Throwable e){
-            throw new InvocationTargetException(e);
-        }
-    }
-
-    public static Supplier<?> reflectGetter(final MethodHandles.Lookup lookup,
-                                                            final Object owner,
-                                                            final Method getter) throws ReflectiveOperationException {
-        return reflectGetter(lookup, owner, lookup.unreflect(getter));
-    }
-
-    private static Consumer reflectSetter(final MethodHandles.Lookup lookup,
-                                                            final Object owner,
-                                                            final MethodHandle setter) throws ReflectiveOperationException {
-        final MethodType invokedType;
-        final MethodType instantiatedMethodType;
-        if(owner == null){
-            invokedType = MethodType.methodType(Consumer.class);
-            instantiatedMethodType = MethodType.methodType(void.class, setter.type().parameterType(0));
-        }
-        else {
-            invokedType = MethodType.methodType(Consumer.class, owner.getClass());
-            instantiatedMethodType = MethodType.methodType(void.class, setter.type().parameterType(1));//zero index points to 'this' reference
-        }
-        try {
-            final CallSite site = LambdaMetafactory.metafactory(lookup,
-                    "accept",
-                    invokedType,
-                    MethodType.methodType(void.class, Object.class),
-                    setter,
-                    instantiatedMethodType);
-            return (Consumer) (owner == null ? site.getTarget().invoke() : site.getTarget().invoke(owner));
-        } catch (final LambdaConversionException e) {
-            throw new ReflectiveOperationException(e);
+            return (Function) site.getTarget().invokeExact();
+        } catch (final Exception e) {
+            throw e;
         } catch (final Throwable e) {
-            throw new InvocationTargetException(e);
+            throw new Exception(e);
         }
     }
 
-    public static Consumer reflectSetter(final MethodHandles.Lookup lookup,
-                                                               final Object owner,
+    public static Function reflectGetter(final MethodHandles.Lookup lookup,
+                                                            final Method getter) throws ReflectiveOperationException {
+        try {
+            return GETTERS.get(getter, () -> createGetter(lookup, lookup.unreflect(getter)));
+        } catch (final ExecutionException e) {
+            throw new ReflectiveOperationException(e.getCause());
+        }
+    }
+
+    private static BiConsumer createSetter(final MethodHandles.Lookup lookup,
+                                           final MethodHandle setter) throws Exception {
+        final CallSite site = LambdaMetafactory.metafactory(lookup,
+                "accept",
+                SETTER_INVOKED_TYPE,
+                MethodType.methodType(void.class, Object.class, Object.class),
+                setter,
+                setter.type());
+        try {
+            return (BiConsumer) site.getTarget().invokeExact();
+        } catch (final Exception e) {
+            throw e;
+        } catch (final Throwable e) {
+            throw new Exception(e);
+        }
+    }
+
+    public static BiConsumer reflectSetter(final MethodHandles.Lookup lookup,
                                                                final Method setter) throws ReflectiveOperationException {
-        return reflectSetter(lookup, owner, lookup.unreflect(setter));
+        try {
+            return SETTER.get(setter, () -> createSetter(lookup, lookup.unreflect(setter)));
+        } catch (final ExecutionException e) {
+            throw new ReflectiveOperationException(e.getCause());
+        }
     }
 
     public static <T> void parallelForEach(final Spliterator<T> spliterator,
