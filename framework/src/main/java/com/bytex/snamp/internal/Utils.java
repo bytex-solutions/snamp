@@ -52,12 +52,13 @@ public final class Utils {
     }
 
     private static final SilentInvoker SILENT_INVOKER;
-    private static final Cache<Method, Function> GETTERS = CacheBuilder.newBuilder().weakValues().build();
-    private static final MethodType GETTER_INVOKED_TYPE = MethodType.methodType(Function.class);
-    private static final Cache<Method, BiConsumer> SETTER = CacheBuilder.newBuilder().weakValues().build();
-    private static final MethodType SETTER_INVOKED_TYPE = MethodType.methodType(BiConsumer.class);
+    private static final Cache<Method, Function> GETTERS;
+    private static final Cache<Method, BiConsumer> SETTERS;
 
     static {
+        GETTERS = CacheBuilder.newBuilder().weakValues().build();
+        SETTERS = CacheBuilder.newBuilder().weakValues().build();
+
         final MethodHandles.Lookup lookup = MethodHandles.lookup();
         try {
             final CallSite site = LambdaMetafactory.metafactory(lookup,
@@ -167,7 +168,7 @@ public final class Utils {
     private static Function createGetter(final MethodHandles.Lookup lookup,
                                          final MethodHandle getter) throws Exception{
         final CallSite site = LambdaMetafactory.metafactory(lookup, "apply",
-                GETTER_INVOKED_TYPE,
+                MethodType.methodType(Function.class),
                 MethodType.methodType(Object.class, Object.class),
                 getter,
                 getter.type());
@@ -193,7 +194,7 @@ public final class Utils {
                                            final MethodHandle setter) throws Exception {
         final CallSite site = LambdaMetafactory.metafactory(lookup,
                 "accept",
-                SETTER_INVOKED_TYPE,
+                MethodType.methodType(BiConsumer.class),
                 MethodType.methodType(void.class, Object.class, Object.class),
                 setter,
                 setter.type());
@@ -209,7 +210,7 @@ public final class Utils {
     public static BiConsumer reflectSetter(final MethodHandles.Lookup lookup,
                                                                final Method setter) throws ReflectiveOperationException {
         try {
-            return SETTER.get(setter, () -> createSetter(lookup, lookup.unreflect(setter)));
+            return SETTERS.get(setter, () -> createSetter(lookup, lookup.unreflect(setter)));
         } catch (final ExecutionException e) {
             throw new ReflectiveOperationException(e.getCause());
         }
