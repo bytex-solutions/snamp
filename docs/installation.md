@@ -5,7 +5,7 @@ This page provides installation instructions and system requirements
 ## System requirements
 Environment:
 
-* Java SE Runtime Environment 7/8. Recommended JVMs:
+* Java SE Runtime Environment 8. Recommended JVMs:
     * OpenJDK JRE
     * Oracle JRE
 * The `JAVA_HOME` environment variable must be set to the directory where the Java runtime is installed
