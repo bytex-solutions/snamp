@@ -76,14 +76,14 @@ public final class UtilsTest extends Assert {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void reflectSetterTest() throws ReflectiveOperationException{
-        final TestJavaBean bean = new TestJavaBean();
-        BiConsumer setter = reflectSetter(MethodHandles.lookup(), TestJavaBean.class.getDeclaredMethod("setBigInteger", BigInteger.class));
-        setter.accept(bean, BigInteger.ONE);
-        assertEquals(BigInteger.ONE, bean.getBigInteger());
-        setter = reflectSetter(MethodHandles.lookup(), TestJavaBean.class.getDeclaredMethod("setFloatValue", float.class));
-        setter.accept(bean, 42);
-        assertEquals(42F, bean.getFloatValue(), 0.1F);
+        public void reflectSetterTest() throws ReflectiveOperationException{
+            final TestJavaBean bean = new TestJavaBean();
+            BiConsumer setter = reflectSetter(MethodHandles.lookup(), TestJavaBean.class.getDeclaredMethod("setBigInteger", BigInteger.class));
+            setter.accept(bean, BigInteger.ONE);
+            assertEquals(BigInteger.ONE, bean.getBigInteger());
+            setter = reflectSetter(MethodHandles.lookup(), TestJavaBean.class.getDeclaredMethod("setFloatValue", float.class));
+            setter.accept(bean, 42);
+            assertEquals(42F, bean.getFloatValue(), 0.1F);
     }
 
     @Test(expected = MalformedURLException.class)
