@@ -14,26 +14,25 @@ Supported operating systems:
 
 * Windows
     * Windows Vista SP2
-    * Windows 7
+    * Windows 7 SP1
     * Windows 8
     * Windows 10
     * Windows Server 2008 R2 SP1 (64-bit)
     * Windows Server 2012 (64-bit)
 * Linux
-    * Red Hat Enterprise Linux 5.5+, 6.x (32-bit), 6.x (64-bit)
-    * Ubuntu Linux 10.04 and above (only LTS versions)
-    * Suse Linux Enterprise Server 10 SP2, 11.x
-    * Debian Linux 8.x
+    * Red Hat Enterprise Linux 6.x or higher
+    * Ubuntu Linux 12.04 or higher (only LTS versions)
+    * Suse Linux Enterprise Server 11.x or higher
+    * Debian Linux 9.x or higher
 
 Hardware:
 
 * Processor architectures:
-    * x86
-    * x64
+    * x86_64
     * ARMv6/ARMv7 (in paid subscription only)
 * 2 Cores (minimum)
 * 250 MB of free disk space
-> Disk space requirement ignores growing of log files
+> Disk space requirement ignores growing of log files and database
 
 * 512 MB RAM (minimum), 2 GB RAM (recommended)
 
@@ -184,6 +183,8 @@ START LEVEL 100 , List Threshold: 50
 175 | Active |  80 | 2.0.0                      | SMTP Gateway
 ```
 > Note that version of the SNAMP components may vary and depends on the installed SNAMP version.
+
+After that, check availability of SNAMP Web Console using the following address: `http://127.0.0.1:3535/snamp`. The port of the Web Console depends on the configuration settings. But by default it is _3535_.
 
 ## Root privileges
 SNAMP doesn't require `root` privileges for running. But if you want to use standard ports in the configured gateways (161 for `SNMP` protocol and 80, 8080, 443 for `HTTP` protocol) then you should have `root` privileges.
