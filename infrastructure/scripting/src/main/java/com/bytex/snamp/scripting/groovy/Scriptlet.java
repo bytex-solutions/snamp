@@ -26,8 +26,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
-import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
-
 /**
  * Represents implementation of {@link Scriptlet}.
  * @author Roman Sakno
@@ -312,6 +310,6 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
 
     @Override
     public final Communicator getCommunicator(final String sessionName) {
-        return clusterMember.getService(sessionName, COMMUNICATOR).orElseThrow(AssertionError::new);
+        return clusterMember.getService(Communicator.ofName(sessionName)).orElseThrow(AssertionError::new);
     }
 }

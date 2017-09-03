@@ -24,7 +24,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
 import static com.bytex.snamp.testing.connector.jmx.TestOpenMBean.BEAN_NAME;
 
 /**
@@ -48,7 +47,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     }
 
     private Communicator getChannel(){
-        return processLocalMember.getService(COMMUNICATION_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        return processLocalMember.getService(Communicator.ofName(COMMUNICATION_CHANNEL)).orElseThrow(AssertionError::new);
     }
 
     @Test

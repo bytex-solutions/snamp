@@ -1,9 +1,7 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.core.LoggerProvider;
-import com.bytex.snamp.core.SharedObject;
-import com.bytex.snamp.core.SharedObjectType;
+import com.bytex.snamp.Internal;
+import com.bytex.snamp.core.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -13,13 +11,11 @@ import com.hazelcast.core.ILock;
 import com.hazelcast.core.Member;
 
 import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
 import javax.management.JMException;
 import javax.management.openmbean.InvalidKeyException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -73,46 +69,9 @@ public final class GridMember implements ClusterMember, AutoCloseable {
         }
     }
 
-    @Immutable
-    private static final class GridServiceKey<S extends SharedObject> extends SharedObjectType<S> {
-        private final String serviceName;
-
-        private GridServiceKey(final String serviceName, final SharedObjectType<S> definition) {
-            super(definition);
-            this.serviceName = serviceName;
-        }
-
-        private boolean represents(final SharedObjectType<?> definition){
-            return Objects.equals(getType(), definition.getType()) && isPersistent() == definition.isPersistent();
-        }
-
-        private boolean equals(final GridServiceKey<?> other){
-            return serviceName.equals(other.serviceName) && Objects.equals(getType(), other.getType()) && isPersistent() == other.isPersistent();
-        }
-
+    private final class GridServiceLoader extends CacheLoader<SharedObject.ID<?>, GridSharedObject> {
         @Override
-        public boolean equals(final Object other) {
-            return other instanceof GridServiceKey<?> && equals((GridServiceKey<?>) other);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(serviceName, getType(), isPersistent());
-        }
-
-        @Override
-        public String toString() {
-            return "LocalServiceKey{" +
-                    "persistent=" + isPersistent() +
-                    ", objectType=" + getType() +
-                    ", serviceName=" + serviceName +
-                    '}';
-        }
-    }
-
-    private final class GridServiceLoader extends CacheLoader<GridServiceKey<?>, GridSharedObject> {
-        @Override
-        public GridSharedObject load(@Nonnull final GridServiceKey<?> key) throws Exception {
+        public GridSharedObject load(@Nonnull final SharedObject.ID<?> key) throws Exception {
             return getOrCreateSharedObject(key, true);
         }
     }
@@ -121,14 +80,14 @@ public final class GridMember implements ClusterMember, AutoCloseable {
     private final DatabaseNode databaseHost;
     private volatile LeaderElectionThread electionThread;
     private final boolean shutdownHazelcast;
-    private final LoadingCache<GridServiceKey<?>, GridSharedObject> sharedObjects;
+    private final LoadingCache<SharedObject.ID<?>, GridSharedObject> sharedObjects;
 
     private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdownHazelcast) throws ReflectiveOperationException, IOException, JMException {
-        databaseHost = new DatabaseNode(hazelcastInstance);
+        databaseHost = new DistributedDatabaseNode(hazelcastInstance);
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
         this.hazelcast = hazelcastInstance;
         this.shutdownHazelcast = shutdownHazelcast;
-        sharedObjects = CacheBuilder.<GridServiceKey<?>, GridSharedObject>newBuilder()
+        sharedObjects = CacheBuilder.<SharedObject.ID<?>, GridSharedObject>newBuilder()
                 .build(new GridServiceLoader());
     }
 
@@ -136,8 +95,9 @@ public final class GridMember implements ClusterMember, AutoCloseable {
         this(hazelcastInstance, false);
     }
 
-    GridMember() throws JMException, ReflectiveOperationException, IOException {
-        this(Hazelcast.newHazelcastInstance(), true);
+    @Internal
+    static GridMember bootstrap() throws JMException, ReflectiveOperationException, IOException{
+        return new GridMember(Hazelcast.newHazelcastInstance(), true);
     }
 
     private Logger getLogger(){
@@ -198,58 +158,44 @@ public final class GridMember implements ClusterMember, AutoCloseable {
         return hazelcast.getName();
     }
 
-    private GridSharedObject getOrCreateSharedObject(final GridServiceKey<?> key, final boolean forceCreate) {
+    private GridSharedObject getOrCreateSharedObject(final SharedObject.ID<?> key, final boolean forceCreate) {
         getLogger().fine(() -> String.format("Querying service %s", key));
-        if (key.represents(SharedObjectType.COUNTER))
-            return new HazelcastCounter(hazelcast, key.serviceName);
-        else if (key.represents(SharedObjectType.COMMUNICATOR))
-            return new HazelcastCommunicator(hazelcast, key.serviceName);
-        else if (key.represents(SharedObjectType.BOX))
-            return new HazelcastBox(hazelcast, key.serviceName);
-        else if (key.represents(SharedObjectType.KV_STORAGE))
-            return new HazelcastKeyValueStorage(hazelcast, key.serviceName);
-        else if (key.represents(SharedObjectType.PERSISTENT_KV_STORAGE))
-            return new OrientKeyValueStorage(databaseHost.getSnampDatabase(), key.serviceName, forceCreate);
+        if (key instanceof SharedCounter.ID)
+            return new HazelcastCounter(hazelcast, key.name);
+        else if (key instanceof Communicator.ID)
+            return new HazelcastCommunicator(hazelcast, key.name);
+        else if (key instanceof SharedBox.ID)
+            return new HazelcastBox(hazelcast, key.name);
+        else if (key instanceof KeyValueStorage.ID)
+            return ((KeyValueStorage.ID) key).persistent ?
+                    new OrientKeyValueStorage(databaseHost.getSnampDatabase(), key.name, forceCreate) :
+                    new HazelcastKeyValueStorage(hazelcast, key.name);
         else {
             getLogger().warning(() -> String.format("Requested service %s is not supported", key));
             throw new InvalidKeyException(String.format("Service %s is not supported", key));
         }
     }
 
-    /**
-     * Gets distributed service.
-     *
-     * @param serviceName Service name.
-     * @param serviceType Service type.
-     * @return Distributed service; or {@literal null}, if service is not supported.
-     */
+    @SuppressWarnings("unchecked")
     @Override
-    public <S extends SharedObject> Optional<S> getService(final String serviceName, final SharedObjectType<S> serviceType) {
-        GridSharedObject result;
+    public <S extends SharedObject> Optional<S> getService(final SharedObject.ID<S> objectID) {
         try {
-            result = sharedObjects.get(new GridServiceKey<>(serviceName, serviceType));
+            final GridSharedObject so = sharedObjects.get(objectID);
+            return so == null ? Optional.empty() : Optional.of((S) so);
         } catch (final ExecutionException e) {
-            getLogger().log(Level.WARNING, String.format("Failed to query service %s with name %s", serviceType, serviceName), e);
-            result = null;
+            getLogger().log(Level.WARNING, String.format("Failed to query service %s", objectID), e);
+            return Optional.empty();
         }
-        return serviceType.cast(result);
     }
 
-    /**
-     * Destroys the specified service
-     *
-     * @param serviceName Name of the service to release.
-     * @param serviceType Type of the service to release.
-     */
     @Override
-    public void releaseService(final String serviceName, final SharedObjectType<?> serviceType) {
-        final GridServiceKey<?> serviceKey = new GridServiceKey<>(serviceName, serviceType);
-        getLogger().info(() -> String.format("Destroying distributed service %s", serviceKey));
-        GridSharedObject sharedObject = sharedObjects.asMap().remove(serviceKey);
+    public void releaseService(final SharedObject.ID<?> objectID) {
+        getLogger().info(() -> String.format("Destroying distributed service %s", objectID));
+        GridSharedObject sharedObject = sharedObjects.asMap().remove(objectID);
         if (sharedObject == null)
-            sharedObject = getOrCreateSharedObject(serviceKey, false);
+            sharedObject = getOrCreateSharedObject(objectID, false);
         sharedObject.destroy();
-        getLogger().info(() -> String.format("Distributed service %s is destroyed", serviceKey));
+        getLogger().info(() -> String.format("Distributed service %s is destroyed", objectID));
     }
 
     /**

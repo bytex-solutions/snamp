@@ -3,7 +3,6 @@ package com.bytex.snamp.cluster;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
-import com.hazelcast.core.HazelcastInstance;
 import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
@@ -24,11 +23,12 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
+ * Represents database node in non-distributed environment.
  * @author Roman Sakno
  * @version 2.1
  * @since 2.0
  */
-final class DatabaseNode extends OServer {
+class DatabaseNode extends OServer {
     private static final String SNAMP_DATABASE = "snamp_storage";
 
     static {
@@ -57,11 +57,11 @@ final class DatabaseNode extends OServer {
     private final File databaseConfigFile;
     private SnampDatabase snampDatabase;
 
-    DatabaseNode(final HazelcastInstance hazelcast) throws ClassNotFoundException, JMException, IOException {
+    DatabaseNode() throws ClassNotFoundException, JMException, IOException {
         super(true);
         databaseConfigFile = DatabaseConfigurationFile.EMBEDDED_CONFIG.toFile(true);
-        updateConfig();
-        distributedManager = new OrientDistributedEnvironment(hazelcast);
+        serverCfg = new OServerConfigurationManager(databaseConfigFile);
+        distributedManager = null;
     }
 
     ODatabaseDocumentTx getSnampDatabase(){
@@ -117,9 +117,5 @@ final class DatabaseNode extends OServer {
         return isNullOrEmpty(dbURL) ?
                 "plocal:" + Paths.get(getDatabaseDirectory(), iName).toFile().getAbsolutePath() :
                 super.getStoragePath(iName);
-    }
-
-    private void updateConfig() throws IOException {
-        serverCfg = new OServerConfigurationManager(databaseConfigFile);
     }
 }

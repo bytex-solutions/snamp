@@ -25,7 +25,7 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void boxTest(){
-        final Box<Serializable> box = ClusterMember.get(null).getService("testBox", SharedObjectType.BOX).orElseThrow(AssertionError::new);
+        final Box<Serializable> box = ClusterMember.get(null).getService(SharedBox.ofName("testBox")).orElseThrow(AssertionError::new);
         Object result = box.setIfAbsent(() -> "Str");
         assertEquals("Str", result);
         result = box.setIfAbsent(() -> "Frank Underwood");
@@ -34,14 +34,14 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void idGeneratorTest(){
-        assertEquals(0L, ClusterMember.get(null).getService("gen1", SharedObjectType.COUNTER).orElseThrow(AssertionError::new).getAsLong());
-        assertEquals(1L, ClusterMember.get(null).getService("gen1", SharedObjectType.COUNTER).orElseThrow(AssertionError::new).getAsLong());
-        assertEquals(0L, ClusterMember.get(null).getService("gen2", SharedObjectType.COUNTER).orElseThrow(AssertionError::new).getAsLong());
+        assertEquals(0L, ClusterMember.get(null).getService(SharedCounter.ofName("gen1")).orElseThrow(AssertionError::new).getAsLong());
+        assertEquals(1L, ClusterMember.get(null).getService(SharedCounter.ofName("gen1")).orElseThrow(AssertionError::new).getAsLong());
+        assertEquals(0L, ClusterMember.get(null).getService(SharedCounter.ofName("gen2")).orElseThrow(AssertionError::new).getAsLong());
     }
 
     @Test
     public void storageTest(){
-        final KeyValueStorage storage = ClusterMember.get(null).getService("localStorage", SharedObjectType.KV_STORAGE).orElseThrow(AssertionError::new);
+        final KeyValueStorage storage = ClusterMember.get(null).getService(KeyValueStorage.nonPersistent("localStorage")).orElseThrow(AssertionError::new);
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("a", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         assertNotNull(record);
         record.setAsText("Hello, world!");
@@ -52,7 +52,7 @@ public final class LocalServicesTest extends Assert {
 
     @Test
     public void communicatorTest() throws InterruptedException, ExecutionException, TimeoutException {
-        final Communicator com = ClusterMember.get(null).getService("localCommunicator", SharedObjectType.COMMUNICATOR).orElseThrow(AssertionError::new);
+        final Communicator com = ClusterMember.get(null).getService(Communicator.ofName("localCommunicator")).orElseThrow(AssertionError::new);
         assertTrue(com instanceof InMemoryCommunicator);//test message box
         try (final Communicator.MessageBox<String> box = com.createMessageBox(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString)) {
             com.sendSignal("First");

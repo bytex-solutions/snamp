@@ -2,7 +2,6 @@ package com.bytex.snamp.web.serviceModel;
 
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.KeyValueStorage;
-import com.bytex.snamp.core.SharedObjectType;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.annotation.Nonnull;
@@ -35,8 +34,7 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
         this.userDataType = Objects.requireNonNull(userDataType);
         final String storageName = userDataType.getName();
         userDataStorage = ClusterMember.get(getBundleContext()).getService(
-                storageName,
-                SharedObjectType.PERSISTENT_KV_STORAGE)
+                KeyValueStorage.persistent(storageName))
                 .orElseThrow(AssertionError::new);
     }
 

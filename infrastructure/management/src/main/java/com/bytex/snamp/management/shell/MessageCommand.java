@@ -2,8 +2,6 @@ package com.bytex.snamp.management.shell;
 
 import com.bytex.snamp.core.Communicator;
 
-import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
-
 /**
  * @author Roman Sakno
  * @version 2.1
@@ -12,6 +10,6 @@ import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
 abstract class MessageCommand extends ClusterMemberCommand  {
 
     final Communicator getCommunicator(){
-        return clusterMember.getService("SnampShellCommunicator", COMMUNICATOR).orElseThrow(AssertionError::new);
+        return clusterMember.getService(Communicator.ofName("SnampShellCommunicator")).orElseThrow(AssertionError::new);
     }
 }

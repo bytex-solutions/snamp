@@ -16,8 +16,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
-import static com.bytex.snamp.core.SharedObjectType.COUNTER;
-
 /**
  * Represents Groovy-based notification.
  */
@@ -33,7 +31,9 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
         this.scriptlet = Objects.requireNonNull(scriptlet);
         this.listenerInvoker = threadPool;
         final BundleContext context = Utils.getBundleContextOfObject(this);
-        this.sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
+        this.sequenceNumberGenerator = ClusterMember.get(context)
+                .getService(SharedCounter.ofName("notifications-".concat(resourceName)))
+                .orElseThrow(AssertionError::new);
         scriptlet.addEventListener(this);
     }
 

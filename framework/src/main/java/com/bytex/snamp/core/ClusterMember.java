@@ -33,25 +33,24 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
     /**
      * Gets distributed service.
      *
-     * @param serviceName Service name.
-     * @param serviceType Service type.
+     * @param objectID Identifier of object.
      * @param <S>         Type of the service contract.
      * @return Distributed service.
      *
-     * @see SharedObjectType#COUNTER
-     * @see SharedObjectType#KV_STORAGE
-     * @see SharedObjectType#COMMUNICATOR
-     * @see SharedObjectType#BOX
+     * @see SharedCounter#ofName(String)
+     * @see SharedBox#ofName(String)
+     * @see Communicator#ofName(String)
+     * @see KeyValueStorage#persistent(String)
+     * @see KeyValueStorage#nonPersistent(String)
      */
-    <S extends SharedObject> Optional<S> getService(final String serviceName, final SharedObjectType<S> serviceType);
+    <S extends SharedObject> Optional<S> getService(final SharedObject.ID<S> objectID);
 
     /**
      * Destroys the specified service
      *
-     * @param serviceName Name of the service to release.
-     * @param serviceType Type of the service to release.
+     * @param objectID Identifier of object to release.
      */
-    void releaseService(final String serviceName, final SharedObjectType<?> serviceType);
+    void releaseService(final SharedObject.ID<?> objectID);
 
     static ClusterMember get(final BundleContext context) {
         if (context == null)
@@ -80,14 +79,14 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
                 }
 
                 @Override
-                public <S extends SharedObject> Optional<S> getService(final String serviceName, final SharedObjectType<S> serviceType) {
-                    return processClusterNode(member -> member.getService(serviceName, serviceType));
+                public <S extends SharedObject> Optional<S> getService(final SharedObject.ID<S> objectID) {
+                    return processClusterNode(member -> member.getService(objectID));
                 }
 
                 @Override
-                public void releaseService(final String serviceName, final SharedObjectType<?> serviceType) {
+                public void releaseService(final SharedObject.ID<?> objectID) {
                     processClusterNode(member -> {
-                        member.releaseService(serviceName, serviceType);
+                        member.releaseService(objectID);
                         return null;
                     });
                 }

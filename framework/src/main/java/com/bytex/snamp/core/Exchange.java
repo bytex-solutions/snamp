@@ -9,8 +9,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
-
 /**
  * Exchange point based on communicator.
  * @author Roman Sakno
@@ -50,7 +48,7 @@ public abstract class Exchange<T extends Serializable> implements Consumer<T>, S
                      final String channelName,
                      final Predicate<? super Communicator.MessageEvent> messageFilter,
                      final Class<T> payloadType) {
-        this(clusterMember.getService(channelName, COMMUNICATOR)
+        this(clusterMember.getService(Communicator.ofName(channelName))
                 .orElseThrow(AssertionError::new), messageFilter, payloadType);
     }
 

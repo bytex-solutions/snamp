@@ -7,8 +7,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.bytex.snamp.core.SharedObjectType.COMMUNICATOR;
-
 /**
  * @author Roman Sakno
  * @version 2.1
@@ -24,7 +22,7 @@ public class InfluxWriteMock extends InfluxMethodMock {
     }
 
     static Communicator getCommunicator(final ClusterMember member){
-        return member.getService(INFLUX_CHANNEL, COMMUNICATOR).orElseThrow(AssertionError::new);
+        return member.getService(Communicator.ofName(INFLUX_CHANNEL)).orElseThrow(AssertionError::new);
     }
 
     @POST

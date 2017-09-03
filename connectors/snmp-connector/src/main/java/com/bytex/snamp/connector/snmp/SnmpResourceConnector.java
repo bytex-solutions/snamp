@@ -49,7 +49,6 @@ import java.util.logging.Logger;
 
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.MESSAGE_OID_PARAM;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
-import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 
 
@@ -93,7 +92,9 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
                     SnmpNotificationInfo.class);
             this.client = client;
             listenerInvoker = client.read(cl -> cl.queryObject(ExecutorService.class)).orElseThrow(AssertionError::new);
-            sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER).orElseThrow(AssertionError::new);
+            sequenceNumberGenerator = ClusterMember.get(context)
+                    .getService(SharedCounter.ofName("notifications-".concat(resourceName)))
+                    .orElseThrow(AssertionError::new);
         }
 
         /**

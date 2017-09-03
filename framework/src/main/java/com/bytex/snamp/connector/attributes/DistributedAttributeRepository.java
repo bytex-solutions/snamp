@@ -10,7 +10,6 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
-import static com.bytex.snamp.core.SharedObjectType.KV_STORAGE;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
@@ -76,7 +75,9 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
                                              final Duration syncPeriod) {
         super(resourceName, attributeMetadataType);
         clusterMember = ClusterMember.get(getBundleContextOfObject(this));
-        storage = clusterMember.getService(getResourceName().concat(STORAGE_NAME_POSTFIX), KV_STORAGE).orElseThrow(AssertionError::new);
+        storage = clusterMember
+                .getService(KeyValueStorage.nonPersistent(getResourceName().concat(STORAGE_NAME_POSTFIX)))
+                .orElseThrow(AssertionError::new);
         syncThread = new SynchronizationJob<>(syncPeriod, this);
         syncThread.run();
         assert storage.isViewSupported(KeyValueStorage.SerializableRecordView.class);

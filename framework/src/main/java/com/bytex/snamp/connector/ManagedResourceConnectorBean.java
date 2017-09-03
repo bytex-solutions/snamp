@@ -24,7 +24,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.util.*;
 
-import static com.bytex.snamp.core.SharedObjectType.COUNTER;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -117,7 +116,8 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final BundleContext context) {
             super(resourceName, AbstractNotificationInfo.class);
             this.notifTypes = Objects.requireNonNull(notifTypes);
-            this.sequenceNumberGenerator = ClusterMember.get(context).getService("notifications-".concat(resourceName), COUNTER)
+            this.sequenceNumberGenerator = ClusterMember.get(context)
+                    .getService(SharedCounter.ofName("notifications-".concat(resourceName)))
                     .orElseThrow(AssertionError::new);
         }
 

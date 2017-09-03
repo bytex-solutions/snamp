@@ -12,7 +12,6 @@ import javax.management.openmbean.InvalidKeyException;
 import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -23,68 +22,23 @@ import java.util.concurrent.ExecutionException;
  * @since 2.0
  */
 final class LocalMember implements ClusterMember {
-    private static final class LocalServiceKey<S extends SharedObject> extends SharedObjectType<S> {
-        private final String serviceName;
-
-        private LocalServiceKey(final String serviceName, final SharedObjectType<S> definition) {
-            super(definition);
-            this.serviceName = serviceName;
-        }
-
-        private boolean represents(final SharedObjectType<?> definition){
-            return Objects.equals(getType(), definition.getType()) && isPersistent() == definition.isPersistent();
-        }
-
-        private boolean equals(final LocalServiceKey<?> other){
-            return serviceName.equals(other.serviceName) && Objects.equals(getType(), other.getType()) && isPersistent() == other.isPersistent();
-        }
-
-        @Override
-        public boolean equals(final Object other) {
-            return other instanceof LocalServiceKey<?> && equals((LocalServiceKey<?>) other);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(serviceName, getType(), isPersistent());
-        }
-
-        @Override
-        public String toString() {
-            return "LocalServiceKey{" +
-                    "persistent=" + isPersistent() +
-                    ", objectType=" + getType() +
-                    ", serviceName=" + serviceName +
-                    '}';
-        }
-    }
 
     //in-memory services should be stored as soft-reference. This strategy helps to avoid memory
     //leaks in long-running scenarios
     private static final LazyReference<LocalMember> INSTANCE = LazyReference.soft();
-    private final LoadingCache<LocalServiceKey<?>, SharedObject> localServices;
+    private final LoadingCache<SharedObject.ID<?>, SharedObject> localServices;
 
     private LocalMember(){
         localServices = createServiceCache();
     }
 
-    private static LoadingCache<LocalServiceKey<?>, SharedObject> createServiceCache() {
+    private static LoadingCache<SharedObject.ID<?>, SharedObject> createServiceCache() {
         return CacheBuilder.newBuilder()
-                .build(new CacheLoader<LocalServiceKey<?>, SharedObject>() {
+                .build(new CacheLoader<SharedObject.ID<?>, SharedObject>() {
 
                     @Override
-                    public SharedObject load(@Nonnull final LocalServiceKey<?> key) throws InvalidKeyException {
-                        if (key.represents(SharedObjectType.COUNTER))
-                            return new InMemoryCounter(key.serviceName);
-                        else if (key.represents(SharedObjectType.COMMUNICATOR))
-                            return new InMemoryCommunicator(key.serviceName);
-                        else if (key.represents(SharedObjectType.BOX))
-                            return new InMemoryBox(key.serviceName);
-                        else if (key.represents(SharedObjectType.KV_STORAGE))
-                            return new InMemoryKeyValueStorage(key.serviceName);
-                        else if (key.represents(SharedObjectType.PERSISTENT_KV_STORAGE))
-                            return new FileBasedKeyValueStorage(key.serviceName);
-                        else throw new InvalidKeyException(String.format("Service %s is not supported", key));
+                    public SharedObject load(@Nonnull final SharedObject.ID<?> key) throws InvalidKeyException {
+                        return key.createDefaultImplementation();
                     }
                 });
     }
@@ -121,38 +75,25 @@ final class LocalMember implements ClusterMember {
 
     }
 
-    /**
-     * Gets distributed service.
-     *
-     * @param serviceName Service name.
-     * @param serviceType Service type.
-     * @return Distributed service.
-     * @see SharedObjectType#COUNTER
-     * @see SharedObjectType#KV_STORAGE
-     * @see SharedObjectType#COMMUNICATOR
-     * @see SharedObjectType#BOX
-     */
+    @SuppressWarnings("unchecked")
     @Override
-    public <S extends SharedObject> Optional<S> getService(final String serviceName, final SharedObjectType<S> serviceType) {
-        final LocalServiceKey<S> key = new LocalServiceKey<>(serviceName, serviceType);
-        SharedObject obj;
+    public <S extends SharedObject> Optional<S> getService(final SharedObject.ID<S> objectID) {
         try {
-            obj = localServices.get(key);
+            final SharedObject so = localServices.get(objectID);
+            return so == null ? Optional.empty() : Optional.of((S) so);
         } catch (final ExecutionException e) {
-            obj = null;
+            return Optional.empty();
         }
-        return serviceType.cast(obj);
     }
 
     /**
      * Destroys the specified service
      *
-     * @param serviceName Name of the service to release.
-     * @param serviceType Type of the service to release.
+     * @param objectID Identifier of object to release.
      */
     @Override
-    public void releaseService(final String serviceName, final SharedObjectType<?> serviceType) {
-        localServices.invalidate(new LocalServiceKey<>(serviceName, serviceType));
+    public void releaseService(final SharedObject.ID<?> objectID) {
+        localServices.invalidate(objectID);
     }
 
     /**

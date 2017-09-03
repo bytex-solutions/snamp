@@ -9,8 +9,6 @@ import java.security.SecureRandom;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import static com.bytex.snamp.core.SharedObjectType.BOX;
-
 /**
  * Provides access to secret used to verify and sign JWT token.
  */
@@ -36,7 +34,7 @@ final class TokenSecretHolder extends SecureRandom implements Supplier<BigIntege
     }
 
     String getSecret(final ClusterMember member) {
-        final Optional<SharedBox> secretHolder = member.getService(JWT_SECRET_BOX_NAME, BOX);
+        final Optional<SharedBox> secretHolder = member.getService(SharedBox.ofName(JWT_SECRET_BOX_NAME));
         return String.valueOf(secretHolder.map(box -> box.setIfAbsent(this)).orElseGet(this::get));
     }
 }
