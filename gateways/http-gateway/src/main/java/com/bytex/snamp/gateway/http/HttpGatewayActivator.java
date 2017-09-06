@@ -24,6 +24,6 @@ public final class HttpGatewayActivator extends GatewayActivator<HttpGateway> {
     @SuppressWarnings("unchecked")
     private static HttpGateway newGateway(final String instanceName,
                                           final DependencyManager dependencies) {
-        return new HttpGateway(instanceName, dependencies.getService(HttpService.class).orElseThrow(AssertionError::new));
+        return new HttpGateway(instanceName, dependencies.getService(HttpService.class));
     }
 }

@@ -11,5 +11,5 @@ import java.util.function.Supplier;
  * @version 2.1
  * @since 1.0
  */
-public interface ServiceProvider<S> extends ServiceReference<S>, Supplier<S> {
+interface ServiceProvider<S> extends ServiceReference<S>, Supplier<S> {
 }

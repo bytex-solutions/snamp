@@ -20,7 +20,7 @@ public class ServiceHolder<S> implements ServiceProvider<S> {
     private final ServiceReference<S> serviceRef;
     private S serviceImpl;
 
-    private ServiceHolder(@Nonnull final LocalServiceReference<S> localRef){
+    private ServiceHolder(@Nonnull final ServiceProvider<S> localRef){
         serviceRef = localRef;
         serviceImpl = localRef.get();
     }

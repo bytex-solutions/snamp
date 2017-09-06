@@ -10,6 +10,6 @@ import com.bytex.snamp.core.Communicator;
 abstract class MessageCommand extends ClusterMemberCommand  {
 
     final Communicator getCommunicator(){
-        return clusterMember.getService(Communicator.ofName("SnampShellCommunicator")).orElseThrow(AssertionError::new);
+        return clusterMember.getCommunicators().getSharedObject("SnampShellCommunicator");
     }
 }

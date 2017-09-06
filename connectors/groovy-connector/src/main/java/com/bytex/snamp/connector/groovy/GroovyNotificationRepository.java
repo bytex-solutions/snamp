@@ -32,8 +32,8 @@ final class GroovyNotificationRepository extends AccurateNotificationRepository<
         this.listenerInvoker = threadPool;
         final BundleContext context = Utils.getBundleContextOfObject(this);
         this.sequenceNumberGenerator = ClusterMember.get(context)
-                .getService(SharedCounter.ofName("notifications-".concat(resourceName)))
-                .orElseThrow(AssertionError::new);
+                .getCounters()
+                .getSharedObject("notifications-".concat(resourceName));
         scriptlet.addEventListener(this);
     }
 

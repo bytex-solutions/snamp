@@ -9,11 +9,11 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 final class InMemoryCounter extends AtomicLong implements SharedCounter {
     private static final long serialVersionUID = 498408165929062468L;
-    private final String counterName;
+    private final String name;
 
-    InMemoryCounter(final String name) {
+    InMemoryCounter(final String name){
         super(0L);
-        counterName = name;
+        this.name = name;
     }
 
     @Override
@@ -23,6 +23,6 @@ final class InMemoryCounter extends AtomicLong implements SharedCounter {
 
     @Override
     public String getName() {
-        return counterName;
+        return name;
     }
 }

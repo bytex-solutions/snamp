@@ -2,12 +2,10 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.ArrayUtils;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceReference;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
-import java.util.function.Supplier;
 import java.util.stream.StreamSupport;
 
 /**
@@ -16,7 +14,7 @@ import java.util.stream.StreamSupport;
  * @version 2.1
  * @since 1.2
  */
-final class LocalServiceReference<S> implements ServiceReference<S>, Supplier<S> {
+final class LocalServiceReference<S> implements ServiceProvider<S> {
     private final S serviceImpl;
 
     private LocalServiceReference(final S service){

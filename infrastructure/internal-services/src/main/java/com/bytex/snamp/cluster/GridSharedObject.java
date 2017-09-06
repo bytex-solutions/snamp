@@ -8,9 +8,20 @@ import com.bytex.snamp.core.SharedObject;
  * @since 2.0
  */
 abstract class GridSharedObject implements SharedObject {
+    private final String name;
+
+    GridSharedObject(final String name){
+        this.name = name;
+    }
+
+    @Override
+    public final String getName() {
+        return name;
+    }
+
     abstract void destroy();
 
     final IllegalStateException objectIsDestroyed() {
-        return new IllegalStateException(String.format("Shared object %s is destroyed", this));
+        return new IllegalStateException(String.format("Shared object %s is destroyed", getName()));
     }
 }

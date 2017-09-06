@@ -2,6 +2,7 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.cluster.GridMember;
+import com.bytex.snamp.cluster.ServerNode;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.concurrent.impl.ThreadPoolRepositoryImpl;
 import com.bytex.snamp.configuration.ConfigurationManager;
@@ -15,10 +16,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ManagedService;
 
 import javax.annotation.Nonnull;
-import javax.management.JMException;
 import javax.servlet.Servlet;
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
 
 /**
  * Represents activator of internal SNAMP services.
@@ -37,27 +35,51 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         @Override
         @Nonnull
         protected PersistentConfigurationManager activateService(final ServiceIdentityBuilder identity) {
-            return new PersistentConfigurationManager(dependencies.getService(ConfigurationAdmin.class).orElseThrow(AssertionError::new));
+            return new PersistentConfigurationManager(dependencies.getService(ConfigurationAdmin.class));
         }
     }
 
-    private static final class ClusterMemberProvider extends ProvidedService<ClusterMember, GridMember>{
-        private ClusterMemberProvider(){
+    private static final class GridMemberProvider extends ProvidedService<ClusterMember, GridMember>{
+        private GridMemberProvider(){
             super(ClusterMember.class, requiredBy(GridMember.class).require(HazelcastInstance.class));
         }
 
         @Override
         @Nonnull
-        protected GridMember activateService(final ServiceIdentityBuilder identity) throws ReflectiveOperationException, JAXBException, IOException, JMException {
-            final HazelcastInstance hazelcast = dependencies.getService(HazelcastInstance.class).orElseThrow(AssertionError::new);
+        protected GridMember activateService(final ServiceIdentityBuilder identity) throws Exception {
+            //GridMember is very likely to be returned as the default implementation of ClusterMember
+            identity.setRank(Integer.MAX_VALUE);
+            final HazelcastInstance hazelcast = dependencies.getService(HazelcastInstance.class);
             final GridMember member = new GridMember(hazelcast);
             member.start();
             return member;
         }
 
         @Override
-        protected void cleanupService(final GridMember node, final boolean stopBundle) throws InterruptedException {
+        protected void cleanupService(final GridMember node, final boolean stopBundle) throws Exception {
             node.close();
+        }
+    }
+
+    private static final class LocalMemberProvider extends ProvidedService<ClusterMember, ServerNode> {
+        private LocalMemberProvider() {
+            super(ClusterMember.class);
+        }
+
+        @Nonnull
+        @Override
+        protected ServerNode activateService(final ServiceIdentityBuilder identity) throws Exception {
+            //ServerNode is unlikely to be returned as the default implementation.
+            //This is because it can be replaced by GridMember after activation of HazelcastInstance
+            identity.setRank(Integer.MIN_VALUE);
+            final ServerNode member = new ServerNode();
+            member.start();
+            return member;
+        }
+
+        @Override
+        protected void cleanupService(final ServerNode serviceInstance, final boolean stopBundle) throws Exception {
+            serviceInstance.close();
         }
     }
 
@@ -101,7 +123,8 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
 
     @SpecialUse(SpecialUse.Case.OSGi)
     public InternalServicesActivator(){
-        super(new ClusterMemberProvider(),
+        super(new GridMemberProvider(),
+                new LocalMemberProvider(),
                 new ThreadPoolRepositoryProvider(),
                 new ConfigurationServiceManager(),
                 new SecurityServletProvider());

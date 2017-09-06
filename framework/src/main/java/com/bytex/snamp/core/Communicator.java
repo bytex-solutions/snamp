@@ -2,8 +2,6 @@ package com.bytex.snamp.core;
 
 import com.bytex.snamp.SafeCloseable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.EventListener;
@@ -22,20 +20,6 @@ import java.util.function.Predicate;
  * @version 2.1
  */
 public interface Communicator extends SharedObject {
-    @Immutable
-    final class ID extends SharedObject.ID<Communicator>{
-        private static final long serialVersionUID = -3492387514344027428L;
-
-        private ID(final String name) {
-            super(name);
-        }
-
-        @Nonnull
-        @Override
-        protected InMemoryCommunicator createDefaultImplementation() {
-            return new InMemoryCommunicator(name);
-        }
-    }
     Predicate<? super MessageEvent> ANY_MESSAGE = msg -> true;
     Predicate<MessageEvent> REMOTE_MESSAGE = MessageEvent::isRemote;
 
@@ -182,14 +166,5 @@ public interface Communicator extends SharedObject {
 
     static Predicate<MessageEvent> responseWithPayload(final Serializable expected){
         return MessageType.RESPONSE.and(msg -> Objects.equals(msg.getPayload(), expected));
-    }
-
-    /**
-     * Creates identifier of communicator based on its name.
-     * @param name Name of communicator.
-     * @return Identifier of communicator.
-     */
-    static ID ofName(final String name){
-        return new ID(name);
     }
 }

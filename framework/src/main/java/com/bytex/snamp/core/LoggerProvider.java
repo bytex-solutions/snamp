@@ -26,7 +26,8 @@ public final class LoggerProvider {
         return context == null ? Logger.getAnonymousLogger() : Logger.getLogger(context.getBundle().getSymbolicName());
     }
 
-    public static Logger getLoggerForObject(final Object requester){
-        return getLoggerForBundle(Utils.getBundleContextOfObject(requester));
+    public static Logger getLoggerForObject(final Object requester) {
+        final BundleContext context = Utils.getBundleContextOfObject(requester);
+        return context == null ? Logger.getLogger(requester.getClass().getName()) : getLoggerForBundle(context);
     }
 }

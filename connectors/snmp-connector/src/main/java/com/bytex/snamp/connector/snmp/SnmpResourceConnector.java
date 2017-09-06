@@ -93,8 +93,8 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
             this.client = client;
             listenerInvoker = client.read(cl -> cl.queryObject(ExecutorService.class)).orElseThrow(AssertionError::new);
             sequenceNumberGenerator = ClusterMember.get(context)
-                    .getService(SharedCounter.ofName("notifications-".concat(resourceName)))
-                    .orElseThrow(AssertionError::new);
+                    .getCounters()
+                    .getSharedObject("notifications-".concat(resourceName));
         }
 
         /**

@@ -1,6 +1,8 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.ArrayUtils;
+import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.core.SharedObjectRepository;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.ImmutableMap;
 import com.orientechnologies.orient.core.Orient;
@@ -13,6 +15,7 @@ import com.orientechnologies.orient.server.plugin.OServerPlugin;
 import com.orientechnologies.orient.server.plugin.OServerPluginInfo;
 import org.osgi.framework.BundleContext;
 
+import javax.annotation.Nonnull;
 import javax.management.JMException;
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +31,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.1
  * @since 2.0
  */
-class DatabaseNode extends OServer {
+class DatabaseNode extends OServer implements SharedObjectRepository<KeyValueStorage> {
     private static final String SNAMP_DATABASE = "snamp_storage";
 
     static {
@@ -42,11 +45,7 @@ class DatabaseNode extends OServer {
         else if (System.getProperties().containsKey(KARAF_DATA_DIR))
             databaseHome = Paths.get(System.getProperty(KARAF_DATA_DIR), "snamp").toFile();
         else
-            try {
-                databaseHome = Files.createTempDirectory("orientdb").toFile();
-            } catch (final IOException e) {
-                throw new ExceptionInInitializerError(e);
-            }
+            databaseHome = Utils.callAndWrapException(() -> Files.createTempDirectory("orientdb").toFile(), ExceptionInInitializerError::new);
         if (!databaseHome.exists()) {
             final boolean created = databaseHome.mkdir();
             assert created;
@@ -62,6 +61,17 @@ class DatabaseNode extends OServer {
         databaseConfigFile = DatabaseConfigurationFile.EMBEDDED_CONFIG.toFile(true);
         serverCfg = new OServerConfigurationManager(databaseConfigFile);
         distributedManager = null;
+    }
+
+    @Nonnull
+    @Override
+    public final OrientKeyValueStorage getSharedObject(@Nonnull final String collectionName) {
+        return new OrientKeyValueStorage(snampDatabase, collectionName);
+    }
+
+    @Override
+    public final void releaseSharedObject(@Nonnull final String collectionName) {
+        OrientKeyValueStorage.destroy(snampDatabase, collectionName);
     }
 
     ODatabaseDocumentTx getSnampDatabase(){
@@ -117,5 +127,9 @@ class DatabaseNode extends OServer {
         return isNullOrEmpty(dbURL) ?
                 "plocal:" + Paths.get(getDatabaseDirectory(), iName).toFile().getAbsolutePath() :
                 super.getStoragePath(iName);
+    }
+
+    void dropDatabases(){
+        snampDatabase.drop(); 
     }
 }

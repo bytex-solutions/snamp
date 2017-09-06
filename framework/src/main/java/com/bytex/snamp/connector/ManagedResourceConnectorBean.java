@@ -116,9 +116,7 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
                                                final BundleContext context) {
             super(resourceName, AbstractNotificationInfo.class);
             this.notifTypes = Objects.requireNonNull(notifTypes);
-            this.sequenceNumberGenerator = ClusterMember.get(context)
-                    .getService(SharedCounter.ofName("notifications-".concat(resourceName)))
-                    .orElseThrow(AssertionError::new);
+            this.sequenceNumberGenerator = ClusterMember.get(context).getCounters().getSharedObject("notifications-".concat(resourceName));
         }
 
         @Override

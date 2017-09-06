@@ -496,8 +496,8 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * @return Search result; or {@literal null} if dependency not found.
          */
         @SuppressWarnings("unchecked")
-        public <S> Optional<RequiredService<S>> getDependency(@Nonnull final Class<S> serviceContract,
-                                                    @Nonnull final Predicate<? super RequiredService<S>> filter) {
+        <S> Optional<RequiredService<S>> getDependency(@Nonnull final Class<S> serviceContract,
+                                                       @Nonnull final Predicate<? super RequiredService<S>> filter) {
             return dependencies.stream()
                     .filter(dependency -> dependency.dependencyContract.equals(serviceContract))
                     .map(dependency -> (RequiredService<S>) dependency)
@@ -516,12 +516,16 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
          * Obtains a service from the collection of dependencies.
          * @param serviceContract The service contract required by dependency.
          * @param <S> Type of the service contract.
-         * @return The resolved service; or {@literal null} if it is not available.
+         * @return Resolved dependency.
+         * @throws IllegalArgumentException Dependency with the specified service contract was not declared.
          */
-        public <S> Optional<S> getService(final Class<S> serviceContract) {
+        @Nonnull
+        public <S> S getService(final Class<S> serviceContract) {
             return getDependency(serviceContract, rs -> rs instanceof RequiredServiceAccessor<?>)
                     .map(RequiredServiceAccessor.class::cast)
-                    .flatMap(RequiredServiceAccessor::getService);
+                    .flatMap(RequiredServiceAccessor::getService)
+                    .map(serviceContract::cast)
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Service %s was not declared in the list of dependencies", serviceContract)));
         }
 
         public DependencyManager add(@Nonnull final Class<?> serviceType, @Nonnull final BundleContext context) {

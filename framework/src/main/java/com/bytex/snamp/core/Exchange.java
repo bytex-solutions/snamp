@@ -48,8 +48,7 @@ public abstract class Exchange<T extends Serializable> implements Consumer<T>, S
                      final String channelName,
                      final Predicate<? super Communicator.MessageEvent> messageFilter,
                      final Class<T> payloadType) {
-        this(clusterMember.getService(Communicator.ofName(channelName))
-                .orElseThrow(AssertionError::new), messageFilter, payloadType);
+        this(clusterMember.getCommunicators().getSharedObject(channelName), messageFilter, payloadType);
     }
 
     @Override

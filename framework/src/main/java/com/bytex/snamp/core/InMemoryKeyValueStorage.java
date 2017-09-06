@@ -24,6 +24,11 @@ final class InMemoryKeyValueStorage extends ConcurrentHashMap<Comparable<?>, InM
     }
 
     @Override
+    public boolean isPersistent() {
+        return false;
+    }
+
+    @Override
     public String getName() {
         return name;
     }

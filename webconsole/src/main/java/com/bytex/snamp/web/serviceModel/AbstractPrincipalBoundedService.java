@@ -15,6 +15,7 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.security.Principal;
 import java.util.Objects;
+import java.util.logging.Level;
 
 import static com.bytex.snamp.core.KeyValueStorage.JsonRecordView;
 
@@ -33,9 +34,11 @@ public abstract class AbstractPrincipalBoundedService<USERDATA> extends Abstract
         mapper = new ObjectMapper();
         this.userDataType = Objects.requireNonNull(userDataType);
         final String storageName = userDataType.getName();
-        userDataStorage = ClusterMember.get(getBundleContext()).getService(
-                KeyValueStorage.persistent(storageName))
-                .orElseThrow(AssertionError::new);
+        userDataStorage = ClusterMember.get(getBundleContext())
+                .getKeyValueDatabases(true)
+                .getSharedObject(storageName);
+        if (!userDataStorage.isPersistent())
+            getLogger().log(Level.WARNING, String.format("Storage %s is not persistent. All user preferences will be lost after reboot", storageName));
     }
 
     @Override

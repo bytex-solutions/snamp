@@ -42,6 +42,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         default void acceptAll(final Map<String, ?> identity){
             identity.forEach(this);
         }
+
+        default void setRank(final int value){
+            accept(SERVICE_RANKING, value);
+        }
     }
 
     private static final class ProvidedServiceLoggingScope extends LoggingScope {

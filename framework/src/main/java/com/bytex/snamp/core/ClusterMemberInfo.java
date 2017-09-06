@@ -32,8 +32,8 @@ public interface ClusterMemberInfo {
     InetSocketAddress getAddress();
 
     /**
-     * Gets attributes associated with the cluster member.
-     * @return Attributes of the cluster member.
+     * Gets configuration of cluster member.
+     * @return Configuration of cluster member.
      */
-    Map<String, ?> getAttributes();
+    Map<String, ?> getConfiguration();
 }

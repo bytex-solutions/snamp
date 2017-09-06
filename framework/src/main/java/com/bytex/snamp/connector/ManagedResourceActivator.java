@@ -415,7 +415,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         activationProperties.publish(LOGGER_HOLDER, logger);
         {
             final CMManagedResourceParser parser = dependencies.getService(ConfigurationManager.class)
-                    .flatMap(manager -> manager.queryObject(CMManagedResourceParser.class))
+                    .queryObject(CMManagedResourceParser.class)
                     .orElseThrow(AssertionError::new);
             activationProperties.publish(MANAGED_RESOURCE_PARSER_HOLDER, parser);
         }

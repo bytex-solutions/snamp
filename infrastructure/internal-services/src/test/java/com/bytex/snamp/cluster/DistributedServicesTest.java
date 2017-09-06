@@ -36,7 +36,7 @@ public final class DistributedServicesTest extends Assert {
     }
 
     @After
-    public void shutdownHazelcastNodes() throws InterruptedException {
+    public void shutdownHazelcastNodes() throws Exception {
         instance1.destroyLocalServices();
         instance1.close();
         instance2.destroyLocalServices();
@@ -47,13 +47,13 @@ public final class DistributedServicesTest extends Assert {
 
     @Test
     public void storageTest() throws InterruptedException {
-        final KeyValueStorage storage = instance1.getService(KeyValueStorage.nonPersistent("testStorage")).orElseThrow(AssertionError::new);
+        final KeyValueStorage storage = instance1.getKeyValueDatabases(false).getSharedObject("testStorage");
         KeyValueStorage.TextRecordView textRecord = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         textRecord.setAsText("Hello, world");
         textRecord = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).get();
         assertNotNull(textRecord);
         assertEquals("Hello, world", textRecord.getAsText());
-        final KeyValueStorage storage2 = instance2.getService(KeyValueStorage.nonPersistent("testStorage")).orElseThrow(AssertionError::new);
+        final KeyValueStorage storage2 = instance2.getKeyValueDatabases(false).getSharedObject("testStorage");
         KeyValueStorage.MapRecordView mapRecord = storage2.getOrCreateRecord("NewMap", KeyValueStorage.MapRecordView.class, KeyValueStorage.MapRecordView.INITIALIZER);
         mapRecord.setAsMap(ImmutableMap.of("key1", "value1", "key2", "value2"));
         mapRecord = storage.getRecord("NewMap", KeyValueStorage.MapRecordView.class).get();
@@ -63,32 +63,32 @@ public final class DistributedServicesTest extends Assert {
 
     @Test
     public void counterTest() throws InterruptedException {
-        final SharedCounter counter1 = instance1.getService(SharedCounter.ofName("testCounter")).orElseThrow(AssertionError::new);
-        final SharedCounter counter2 = instance2.getService(SharedCounter.ofName("testCounter")).orElseThrow(AssertionError::new);
+        final SharedCounter counter1 = instance1.getCounters().getSharedObject("testCounter");
+        final SharedCounter counter2 = instance2.getCounters().getSharedObject("testCounter");
         counter1.getAsLong();
         counter1.getAsLong();
         counter2.getAsLong();
         Thread.sleep(300);
         assertEquals(3L, counter1.getAsLong());
-        instance1.releaseService(SharedCounter.ofName("testCounter"));
+        instance1.getCounters().releaseSharedObject("testCounter");
     }
 
     @Test
     public void dialogTest() throws InterruptedException, ExecutionException, TimeoutException {
-        final Communicator com1 = instance1.getService(Communicator.ofName("hzCommunicator")).orElseThrow(AssertionError::new);
-        final Communicator com2 = instance2.getService(Communicator.ofName("hzCommunicator")).orElseThrow(AssertionError::new);
+        final Communicator com1 = instance1.getCommunicators().getSharedObject("hzCommunicator");
+        final Communicator com2 = instance2.getCommunicators().getSharedObject("hzCommunicator");
         assertTrue(com1 instanceof HazelcastCommunicator);
         assertTrue(com2 instanceof HazelcastCommunicator);
         final Future<String> receiver2 = com2.receiveMessage(Communicator.MessageType.SIGNAL, Communicator::getPayloadAsString);
         com1.sendSignal("Request");
         assertEquals("Request", receiver2.get(1, TimeUnit.SECONDS));
-        instance1.releaseService(Communicator.ofName("hzCommunicator"));
+        instance1.getCommunicators().releaseSharedObject("hzCommunicator");
     }
 
     @Test
     public void communicatorTest() throws InterruptedException, TimeoutException, ExecutionException {
-        final Communicator communicator1 = instance1.getService(Communicator.ofName("hzCommunicator")).orElseThrow(AssertionError::new);
-        final Communicator communicator2 = instance2.getService(Communicator.ofName("hzCommunicator")).orElseThrow(AssertionError::new);
+        final Communicator communicator1 = instance1.getCommunicators().getSharedObject("hzCommunicator");
+        final Communicator communicator2 = instance2.getCommunicators().getSharedObject("hzCommunicator");
         assertTrue(communicator1 instanceof HazelcastCommunicator);
         //test message box
         try (final Communicator.MessageBox<String> box = communicator1.createMessageBox(Communicator.ANY_MESSAGE, Communicator::getPayloadAsString)) {
@@ -121,6 +121,6 @@ public final class DistributedServicesTest extends Assert {
             final String response = communicator2.sendRequest("Request", Communicator::getPayloadAsString, Duration.ofSeconds(1L));
             assertEquals(EXPECTED_RESPONSE, response);
         }
-        instance1.releaseService(Communicator.ofName("hzCommunicator"));
+        instance1.getCommunicators().releaseSharedObject("hzCommunicator");
     }
 }

@@ -4,6 +4,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.core.Communicator;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IAtomicLong;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 
@@ -167,19 +168,19 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
         }
     }
 
-    private final HazelcastInstance hazelcast;
-    private final String localMember;
+    private final IAtomicLong messageID;
+    private final HazelcastNodeInfo localMember;
 
     HazelcastCommunicator(final HazelcastInstance hazelcast,
-                          final String communicatorName){
-        super(hazelcast, communicatorName, HazelcastInstance::getTopic);
-        this.hazelcast = Objects.requireNonNull(hazelcast);
-        localMember = hazelcast.getCluster().getLocalMember().getUuid();
+                          final String name){
+        super(hazelcast, name, HazelcastInstance::getTopic);
+        localMember = new HazelcastNodeInfo(hazelcast);
+        messageID = hazelcast.getAtomicLong("MSGID-" + name);
     }
 
     @Override
     public long newMessageID() {
-        return hazelcast.getAtomicLong("MSGID-".concat(getName())).getAndIncrement();
+        return messageID.getAndIncrement();
     }
 
     @Override
@@ -194,7 +195,7 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
 
     @Override
     public void sendMessage(final Serializable payload, final MessageType type, final long messageID) {
-        getDistributedObject().publish(new TransferObject(new HazelcastNodeInfo(hazelcast), payload, type, messageID));
+        getDistributedObject().publish(new TransferObject(localMember, payload, type, messageID));
     }
 
     @Override
@@ -211,22 +212,22 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
 
     @Override
     public <V> MessageReceiver<V> receiveMessage(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
-        return new MessageReceiver<>(getDistributedObject(), localMember, filter, messageParser);
+        return new MessageReceiver<>(getDistributedObject(), localMember.getNodeID(), filter, messageParser);
     }
 
     @Override
     public TransferObjectListener addMessageListener(final MessageListener listener, final Predicate<? super MessageEvent> filter) {
-        return new TransferObjectListener(getDistributedObject(), localMember, filter, listener);
+        return new TransferObjectListener(getDistributedObject(), localMember.getNodeID(), filter, listener);
     }
 
     @Override
     public <V> FixedSizeMessageBox<V> createMessageBox(final int capacity, final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
-        return new FixedSizeMessageBox<>(capacity, getDistributedObject(), localMember, filter, messageParser);
+        return new FixedSizeMessageBox<>(capacity, getDistributedObject(), localMember.getNodeID(), filter, messageParser);
     }
 
     @Override
     public <V> LinkedMessageBox<V> createMessageBox(final Predicate<? super MessageEvent> filter, final Function<? super MessageEvent, ? extends V> messageParser) {
-        return new LinkedMessageBox<>(getDistributedObject(), localMember, filter, messageParser);
+        return new LinkedMessageBox<>(getDistributedObject(), localMember.getNodeID(), filter, messageParser);
     }
 
     @Override
@@ -249,5 +250,11 @@ final class HazelcastCommunicator extends HazelcastSharedObject<ITopic<TransferO
         final MessageReceiver<V> receiver = receiveMessage(Communicator.responseWithMessageID(messageID), messageParser);
         sendMessage(request, MessageType.REQUEST, messageID);
         return receiver;
+    }
+
+    @Override
+    void destroy() {
+        super.destroy();
+        messageID.destroy();
     }
 }

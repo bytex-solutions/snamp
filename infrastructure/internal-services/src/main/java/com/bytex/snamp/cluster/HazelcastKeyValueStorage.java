@@ -153,6 +153,11 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
         super(hazelcast, name, HazelcastInstance::getMap);
     }
 
+    @Override
+    public boolean isPersistent() {
+        return false;
+    }
+
     /**
      * Gets record associated with the specified key.
      *

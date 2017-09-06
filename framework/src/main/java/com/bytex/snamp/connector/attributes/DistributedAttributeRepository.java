@@ -75,9 +75,7 @@ public abstract class DistributedAttributeRepository<M extends MBeanAttributeInf
                                              final Duration syncPeriod) {
         super(resourceName, attributeMetadataType);
         clusterMember = ClusterMember.get(getBundleContextOfObject(this));
-        storage = clusterMember
-                .getService(KeyValueStorage.nonPersistent(getResourceName().concat(STORAGE_NAME_POSTFIX)))
-                .orElseThrow(AssertionError::new);
+        storage = clusterMember.getKeyValueDatabases(false).getSharedObject(STORAGE_NAME_POSTFIX);
         syncThread = new SynchronizationJob<>(syncPeriod, this);
         syncThread.run();
         assert storage.isViewSupported(KeyValueStorage.SerializableRecordView.class);

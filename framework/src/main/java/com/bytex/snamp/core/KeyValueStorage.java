@@ -6,11 +6,11 @@ import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.SafeCloseable;
 import com.google.common.collect.ImmutableMap;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.*;
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.*;
 
 /**
@@ -20,41 +20,6 @@ import java.util.function.*;
  * @since 2.0
  */
 public interface KeyValueStorage extends SharedObject {
-    @Immutable
-    final class ID extends SharedObject.ID<KeyValueStorage>{
-        private static final long serialVersionUID = -660526904093803106L;
-        public final boolean persistent;
-
-        private ID(final String name, final boolean persistent) {
-            super(name);
-            this.persistent = persistent;
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() + ", persistent=" + persistent;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(getClass(), name, persistent);
-        }
-
-        private boolean equals(final ID other) {
-            return name.equals(other.name) && persistent == other.persistent;
-        }
-
-        @Override
-        public boolean equals(final Object other) {
-            return other instanceof ID && equals((ID) other);
-        }
-
-        @Nonnull
-        @Override
-        protected KeyValueStorage createDefaultImplementation() {
-            return persistent ? new FileBasedKeyValueStorage(name) : new InMemoryKeyValueStorage(name);
-        }
-    }
     /**
      * Represents entry stored in this storage.
      */
@@ -238,6 +203,13 @@ public interface KeyValueStorage extends SharedObject {
     boolean isTransactional();
 
     /**
+     * Determines whether this storage is persistent.
+     * @return {@literal true}, if this storage is persistent; otherwise, {@literal false}.
+     * @since 2.1
+     */
+    boolean isPersistent();
+
+    /**
      * Gets all keys in this storage.
      * @return All keys in this storage.
      */
@@ -252,12 +224,4 @@ public interface KeyValueStorage extends SharedObject {
     TransactionScope beginTransaction(final IsolationLevel level) throws UnsupportedOperationException;
 
     boolean isViewSupported(final Class<? extends Record> recordView);
-
-    static ID persistent(final String name){
-        return new ID(name, true);
-    }
-
-    static ID nonPersistent(final String name){
-        return new ID(name, false);
-    }
 }

@@ -22,7 +22,7 @@ public final class PlatformVersion extends Version {
         super(version);
     }
 
-    private static PlatformVersion getChecked(){
+    private static PlatformVersion getImpl(){
         try (final InputStream versionStream = PlatformVersion.class.getClassLoader().getResourceAsStream("PlatformVersion")) {
             String version = IOUtils.toString(versionStream);
             /*
@@ -41,6 +41,6 @@ public final class PlatformVersion extends Version {
      * @return Version of SNAMP platform.
      */
     public static PlatformVersion get() {
-        return CURRENT_VERSION.lazyGet(PlatformVersion::getChecked);
+        return CURRENT_VERSION.lazyGet(PlatformVersion::getImpl);
     }
 }

@@ -225,7 +225,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         activationProperties.publish(LOGGER_HOLDER, logger);
         {
             final CMSupervisorParser parser = dependencies.getService(ConfigurationManager.class)
-                    .flatMap(manager -> manager.queryObject(CMSupervisorParser.class))
+                    .queryObject(CMSupervisorParser.class)
                     .orElseThrow(AssertionError::new);
             activationProperties.publish(SUPERVISOR_PARSER_HOLDER, parser);
         }

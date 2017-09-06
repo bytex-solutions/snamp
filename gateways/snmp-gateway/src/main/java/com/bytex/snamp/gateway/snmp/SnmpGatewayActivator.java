@@ -29,8 +29,7 @@ public final class SnmpGatewayActivator extends GatewayActivator<SnmpGateway> {
     }
 
     private static SnmpGateway newGateway(final String instanceName, final DependencyManager dependencies) {
-        final JNDIContextManager contextManager = dependencies.getService(JNDIContextManager.class)
-                .orElseThrow(AssertionError::new);
+        final JNDIContextManager contextManager = dependencies.getService(JNDIContextManager.class);
         return new SnmpGateway(instanceName, contextManager);
     }
 }

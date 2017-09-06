@@ -18,9 +18,8 @@ import java.util.function.UnaryOperator;
  * @since 2.0
  */
 final class HazelcastBox extends HazelcastSharedObject<IAtomicReference<Serializable>> implements SharedBox {
-
-    HazelcastBox(final HazelcastInstance hazelcast, final String boxName){
-        super(hazelcast, boxName, HazelcastInstance::getAtomicReference);
+    HazelcastBox(final HazelcastInstance hazelcast, final String name){
+        super(hazelcast, name, HazelcastInstance::getAtomicReference);
     }
 
     @Override

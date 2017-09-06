@@ -129,8 +129,8 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
         sequenceNumberProvider = ClusterMember.get(getBundleContextOfObject(this))
-                .getService(SharedCounter.ofName("SequenceGenerator-".concat(resourceName)))
-                .orElseThrow(AssertionError::new);
+                .getCounters()
+                .getSharedObject("SequenceGenerator-".concat(resourceName));
     }
 
     protected final String getInstanceName(){

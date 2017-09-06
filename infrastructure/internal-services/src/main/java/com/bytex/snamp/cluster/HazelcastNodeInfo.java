@@ -69,7 +69,7 @@ final class HazelcastNodeInfo implements ClusterMemberInfo, Serializable {
     }
 
     @Override
-    public ImmutableMap<String, ?> getAttributes() {
+    public ImmutableMap<String, ?> getConfiguration() {
         return attributes;
     }
 

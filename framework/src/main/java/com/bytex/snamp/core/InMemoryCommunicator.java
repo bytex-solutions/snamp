@@ -40,7 +40,7 @@ final class InMemoryCommunicator implements Communicator {
         private final MessageType messageType;
 
         private LocalIncomingMessage(final Serializable payload, final long messageID, final MessageType type){
-            super(LocalMember.getInstance());
+            super(ClusterMember.get(null));
             this.messageID = messageID;
             this.payload = Objects.requireNonNull(payload);
             this.timeStamp = System.currentTimeMillis();

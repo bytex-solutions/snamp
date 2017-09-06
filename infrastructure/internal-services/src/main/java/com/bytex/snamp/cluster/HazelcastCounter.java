@@ -12,8 +12,8 @@ import com.hazelcast.core.IAtomicLong;
  */
 final class HazelcastCounter extends HazelcastSharedObject<IAtomicLong> implements SharedCounter {
 
-    HazelcastCounter(final HazelcastInstance hazelcast, final String counterName){
-        super(hazelcast, counterName, HazelcastInstance::getAtomicLong);
+    HazelcastCounter(final HazelcastInstance hazelcast, final String name){
+        super(hazelcast, name, HazelcastInstance::getAtomicLong);
     }
 
     @Override

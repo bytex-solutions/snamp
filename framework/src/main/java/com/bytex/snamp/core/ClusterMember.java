@@ -6,7 +6,6 @@ import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * Represents SNAMP service that represents single SNAMP member in the cluster.
@@ -31,94 +30,89 @@ public interface ClusterMember extends ClusterMemberInfo, SupportService {
     void resign();
 
     /**
-     * Gets distributed service.
-     *
-     * @param objectID Identifier of object.
-     * @param <S>         Type of the service contract.
-     * @return Distributed service.
-     *
-     * @see SharedCounter#ofName(String)
-     * @see SharedBox#ofName(String)
-     * @see Communicator#ofName(String)
-     * @see KeyValueStorage#persistent(String)
-     * @see KeyValueStorage#nonPersistent(String)
+     * Gets repository of counters.
+     * @return Repository of counters.
      */
-    <S extends SharedObject> Optional<S> getService(final SharedObject.ID<S> objectID);
+    @Nonnull
+    default SharedObjectRepository<? extends SharedCounter> getCounters() {
+        return LocalMember.getCounters();
+    }
 
     /**
-     * Destroys the specified service
-     *
-     * @param objectID Identifier of object to release.
+     * Gets repository of boxes.
+     * @return Repository of boxes.
      */
-    void releaseService(final SharedObject.ID<?> objectID);
+    @Nonnull
+    default SharedObjectRepository<? extends SharedBox> getBoxes(){
+        return LocalMember.getBoxes();
+    }
 
+    /**
+     * Gets repository of communicators.
+     * @return Repository of communicators.
+     */
+    @Nonnull
+    default SharedObjectRepository<? extends Communicator> getCommunicators(){
+        return LocalMember.getCommunicators();
+    }
+
+    /**
+     * Gets repository of key/value data stores.
+     * @param persistent {@literal true} to request repository of persistent databases; {@literal false} to request repository of in-memory databases.
+     * @return Repository of databases.
+     * @implNote This method may return non-persistent database even if {@code persistent} parameter is specified to {@literal true}.
+     *          It can be happened because cluster member doesn't support persistent database. Please use {@link KeyValueStorage#isPersistent()}
+     *          to check persistence of the database after calling this method.
+     */
+    @Nonnull
+    default SharedObjectRepository<? extends KeyValueStorage> getKeyValueDatabases(final boolean persistent) {
+        return LocalMember.getNonPersistentStores();
+    }
+
+    @Override
+    default boolean isActive(){
+        return true;
+    }
+
+    @Override
+    default String getName() {
+        return LocalMember.getName();
+    }
+
+    @Override
+    default InetSocketAddress getAddress() {
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    @Nonnull
+    default Map<String, ?> getConfiguration() {
+        return (Map) System.getProperties();
+    }
+
+    /**
+     * Retrieves the aggregated object.
+     *
+     * @param objectType Type of the requested object.
+     * @return An instance of the aggregated object.
+     */
+    @Override
+    default <T> Optional<T> queryObject(@Nonnull final Class<T> objectType){
+        return Optional.of(this).filter(objectType::isInstance).map(objectType::cast);
+    }
+
+    /**
+     * Gets cluster member that executes the calling code.
+     * @param context Bundle context of the calling code. Use {@literal null} to obtain local cluster member.
+     * @return Information about cluster member.
+     */
+    @Nonnull
     static ClusterMember get(final BundleContext context) {
-        if (context == null)
-            return LocalMember.getInstance();
-        else
-            return new ClusterMember() {
-                private <S> S processClusterNode(final Function<? super ClusterMember, S> processor) {
-                    final Optional<ServiceHolder<ClusterMember>> memberRef = ServiceHolder.tryCreate(context, ClusterMember.class);
-                    if (memberRef.isPresent()) {
-                        final ServiceHolder<ClusterMember> member = memberRef.get();
-                        try {
-                            return processor.apply(member.get());
-                        } finally {
-                            member.release(context);
-                        }
-                    } else
-                        return processor.apply(LocalMember.getInstance());
-                }
-
-                @Override
-                public void resign() {
-                    processClusterNode(member -> {
-                        member.resign();
-                        return null;
-                    });
-                }
-
-                @Override
-                public <S extends SharedObject> Optional<S> getService(final SharedObject.ID<S> objectID) {
-                    return processClusterNode(member -> member.getService(objectID));
-                }
-
-                @Override
-                public void releaseService(final SharedObject.ID<?> objectID) {
-                    processClusterNode(member -> {
-                        member.releaseService(objectID);
-                        return null;
-                    });
-                }
-
-                @Override
-                public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
-                    return processClusterNode(member -> member.queryObject(objectType));
-                }
-
-                @Override
-                public boolean isActive() {
-                    return processClusterNode(ClusterMember::isActive);
-                }
-
-                @Override
-                public String getName() {
-                    return processClusterNode(ClusterMember::getName);
-                }
-
-                @Override
-                public InetSocketAddress getAddress() {
-                    return processClusterNode(ClusterMember::getAddress);
-                }
-
-                @Override
-                public Map<String, ?> getAttributes() {
-                    return processClusterNode(ClusterMember::getAttributes);
-                }
-            };
+        return context == null ? () -> { } : new ProxyClusterMember(context);
     }
 
     static boolean isInCluster(final BundleContext context) {
-        return !get(context).queryObject(LocalMember.class).isPresent();
+        return get(context).getAddress() != null;
     }
 }

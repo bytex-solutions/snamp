@@ -2,11 +2,9 @@ package com.bytex.snamp.security.web;
 
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.core.ClusterMember;
-import com.bytex.snamp.core.SharedBox;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -34,7 +32,9 @@ final class TokenSecretHolder extends SecureRandom implements Supplier<BigIntege
     }
 
     String getSecret(final ClusterMember member) {
-        final Optional<SharedBox> secretHolder = member.getService(SharedBox.ofName(JWT_SECRET_BOX_NAME));
-        return String.valueOf(secretHolder.map(box -> box.setIfAbsent(this)).orElseGet(this::get));
+        return member.getBoxes()
+                .getSharedObject(JWT_SECRET_BOX_NAME)
+                .setIfAbsent(this)
+                .toString();
     }
 }

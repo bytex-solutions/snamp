@@ -59,7 +59,7 @@ public abstract class BootConfigGatewayActivator<G extends Gateway> extends Gate
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void activate(final BundleContext context, final ActivationPropertyPublisher activationProperties, final DependencyManager dependencies) throws Exception {
-        dependencies.getService(ConfigurationManager.class).ifPresent(this::bootConfiguration);
+        bootConfiguration(dependencies.getService(ConfigurationManager.class));
         super.activate(context, activationProperties, dependencies);
     }
 }

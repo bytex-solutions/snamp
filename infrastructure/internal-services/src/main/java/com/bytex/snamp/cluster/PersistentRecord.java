@@ -1,6 +1,7 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.Convert;
+import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.orientechnologies.orient.core.db.ODatabaseDocumentInternal;
@@ -15,6 +16,7 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.Map;
 import java.util.Objects;
+import static com.bytex.snamp.cluster.DBUtils.withDatabase;
 
 /**
  * Represents record in document-oriented database OrientDB.
@@ -36,9 +38,10 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         super(prototype.getIdentity());
     }
 
-    void setDatabase(final ODatabaseDocumentInternal value) {
+    PersistentRecord setDatabase(final ODatabaseDocumentInternal value) {
         this.database = Objects.requireNonNull(value);
         _recordFormat = value.getSerializer();
+        return this;
     }
 
     Comparable<?> getKey(){
@@ -80,7 +83,9 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
      */
     @Override
     public void refresh() {
-        DBUtils.runWithDatabase(database, this::reload);
+        try(final SafeCloseable ignored = withDatabase(database)){
+            reload();
+        }
     }
 
     /**
@@ -91,7 +96,9 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
      */
     @Override
     public boolean detach() {
-        return detached = DBUtils.supplyWithDatabase(database, super::detach);
+        try(final SafeCloseable ignored = withDatabase(database)){
+            return super.detach();
+        }
     }
 
     /**
@@ -110,10 +117,12 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
     }
 
     private void saveField(final PersistentFieldDefinition field, final Object value) {
-        if (!field.setField(value, this))
-            throw new IllegalArgumentException(String.format("Value %s is incompatible with field %s", value, field));
+        if (field.setField(value, this))
+            try (final SafeCloseable ignored = withDatabase(database)) {
+                save();
+            }
         else
-            DBUtils.runWithDatabase(database, this::save);
+            throw new IllegalArgumentException(String.format("Value %s is incompatible with field %s", value, field));
     }
 
     @Override

@@ -310,6 +310,6 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
 
     @Override
     public final Communicator getCommunicator(final String sessionName) {
-        return clusterMember.getService(Communicator.ofName(sessionName)).orElseThrow(AssertionError::new);
+        return clusterMember.getCommunicators().getSharedObject(sessionName);
     }
 }

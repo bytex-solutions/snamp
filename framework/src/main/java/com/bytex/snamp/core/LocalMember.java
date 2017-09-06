@@ -1,19 +1,9 @@
 package com.bytex.snamp.core;
 
-import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.LazyReference;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
-import javax.management.openmbean.InvalidKeyException;
 import java.lang.management.ManagementFactory;
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Represents information about local cluster member.
@@ -21,89 +11,74 @@ import java.util.concurrent.ExecutionException;
  * @version 2.1
  * @since 2.0
  */
-final class LocalMember implements ClusterMember {
+final class LocalMember {
 
-    //in-memory services should be stored as soft-reference. This strategy helps to avoid memory
-    //leaks in long-running scenarios
-    private static final LazyReference<LocalMember> INSTANCE = LazyReference.soft();
-    private final LoadingCache<SharedObject.ID<?>, SharedObject> localServices;
+    private static final class InMemoryCounterRepository extends AbstractSharedObjectRepository<InMemoryCounter> {
+        private static final long serialVersionUID = 3523031113716415788L;
 
-    private LocalMember(){
-        localServices = createServiceCache();
-    }
-
-    private static LoadingCache<SharedObject.ID<?>, SharedObject> createServiceCache() {
-        return CacheBuilder.newBuilder()
-                .build(new CacheLoader<SharedObject.ID<?>, SharedObject>() {
-
-                    @Override
-                    public SharedObject load(@Nonnull final SharedObject.ID<?> key) throws InvalidKeyException {
-                        return key.createDefaultImplementation();
-                    }
-                });
-    }
-
-    static LocalMember getInstance(){
-        return INSTANCE.lazyGet(LocalMember::new);
-    }
-
-    @Override
-    public boolean isActive() {
-        return true;
-    }
-
-    @Override
-    public String getName() {
-        return ManagementFactory.getRuntimeMXBean().getName();
-    }
-
-    @Override
-    public InetSocketAddress getAddress() {
-        return null;
-    }
-
-    @Override
-    public Map<String, ?> getAttributes() {
-        return ImmutableMap.of();
-    }
-
-    /**
-     * Marks this node as passive and execute leader election.
-     */
-    @Override
-    public void resign() {
-
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <S extends SharedObject> Optional<S> getService(final SharedObject.ID<S> objectID) {
-        try {
-            final SharedObject so = localServices.get(objectID);
-            return so == null ? Optional.empty() : Optional.of((S) so);
-        } catch (final ExecutionException e) {
-            return Optional.empty();
+        @Nonnull
+        @Override
+        protected InMemoryCounter createSharedObject(final String name) {
+            return new InMemoryCounter(name);
         }
     }
 
-    /**
-     * Destroys the specified service
-     *
-     * @param objectID Identifier of object to release.
-     */
-    @Override
-    public void releaseService(final SharedObject.ID<?> objectID) {
-        localServices.invalidate(objectID);
+    private static final class InMemoryBoxRepository extends AbstractSharedObjectRepository<InMemoryBox> {
+        private static final long serialVersionUID = 8067873729210156851L;
+
+        @Nonnull
+        @Override
+        protected InMemoryBox createSharedObject(final String name) {
+            return new InMemoryBox(name);
+        }
     }
 
-    /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the requested object.
-     * @return An instance of the aggregated object.
-     */
-    @Override
-    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
-        return Convert.toType(this, objectType);
+    private static final class InMemoryCommunicatorRepository extends AbstractSharedObjectRepository<InMemoryCommunicator> {
+        private static final long serialVersionUID = 2054285825771659407L;
+
+        @Nonnull
+        @Override
+        protected InMemoryCommunicator createSharedObject(final String name) {
+            return new InMemoryCommunicator(name);
+        }
+    }
+
+    private static final class InMemoryKeyValueStorageRepository extends AbstractSharedObjectRepository<InMemoryKeyValueStorage> {
+        private static final long serialVersionUID = -1811858060915829040L;
+
+        @Nonnull
+        @Override
+        protected InMemoryKeyValueStorage createSharedObject(final String name) {
+            return new InMemoryKeyValueStorage(name);
+        }
+    }
+
+    private static final LazyReference<InMemoryCounterRepository> COUNTERS = LazyReference.soft();
+    private static final LazyReference<InMemoryBoxRepository> BOXES = LazyReference.soft();
+    private static final LazyReference<InMemoryCommunicatorRepository> COMMUNICATORS = LazyReference.soft();
+    private static final LazyReference<InMemoryKeyValueStorageRepository> STORES = LazyReference.soft();
+
+    private LocalMember(){
+        throw new InstantiationError();
+    }
+
+    static InMemoryKeyValueStorageRepository getNonPersistentStores(){
+        return STORES.lazyGet(InMemoryKeyValueStorageRepository::new);
+    }
+
+    static InMemoryCounterRepository getCounters() {
+        return COUNTERS.lazyGet(InMemoryCounterRepository::new);
+    }
+
+    static InMemoryBoxRepository getBoxes(){
+        return BOXES.lazyGet(InMemoryBoxRepository::new);
+    }
+
+    static InMemoryCommunicatorRepository getCommunicators(){
+        return COMMUNICATORS.lazyGet(InMemoryCommunicatorRepository::new);
+    }
+
+    static String getName() {
+        return ManagementFactory.getRuntimeMXBean().getName();
     }
 }
