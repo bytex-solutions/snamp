@@ -177,24 +177,24 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         }
     }
 
-    static boolean destroy(final ODatabase<?> database, final String collectionName) {
+    private static void destroy(final ODatabase<?> database, final OClass documentClass){
+        final Set<String> indexes = documentClass.getIndexes().stream().map(OIndex::getName).collect(Collectors.toSet());
+        database.command(new OCommandSQL(String.format("drop class %s", documentClass.getName()))).execute(); //remove class
+        //remove indexes
+        for (final String indexName : indexes)
+            database.command(new OCommandSQL(String.format("drop index %s", indexName))).execute();
+    }
+
+    static void destroy(final ODatabase<?> database, final String collectionName) {
         final OClass documentClass = database.getMetadata().getSchema().getClass(collectionName);
-        if (documentClass == null)
-            return false;
-        else {
-            final Set<String> indexes = documentClass.getIndexes().stream().map(OIndex::getName).collect(Collectors.toSet());
-            database.command(new OCommandSQL(String.format("drop class %s", documentClass.getName()))).execute(); //remove class
-            //remove indexes
-            for (final String indexName : indexes)
-                database.command(new OCommandSQL(String.format("drop index %s", indexName))).execute();
-            return true;
-        }
+        if(documentClass != null)
+            destroy(database, documentClass);
     }
 
     @Override
     void destroy() {
         try (final SafeCloseable ignored = withDatabase(database)) {
-            destroy(database, documentClass.getName());
+            destroy(database, documentClass);
         }
     }
 
