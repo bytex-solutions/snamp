@@ -1,5 +1,6 @@
 package com.bytex.snamp.cluster;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableSortedSet;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
@@ -7,9 +8,6 @@ import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 import java.io.*;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,20 +16,7 @@ import java.util.stream.Collectors;
  * Represents field definition of the persistent record.
  */
 enum PersistentFieldDefinition {
-    DECIMAL_KEY(OType.DECIMAL, "nKey", key -> {
-        BigDecimal result;
-        if(key instanceof BigDecimal)
-            result = (BigDecimal) key;
-        else if(key instanceof BigInteger)
-            result = new BigDecimal((BigInteger) key);
-        else if(key instanceof Long)
-            result = BigDecimal.valueOf((Long) key);
-        else if(key instanceof Number)
-            result = BigDecimal.valueOf(((Number) key).doubleValue());
-        else
-            result = null;
-        return Optional.ofNullable(result);
-    }),
+    DECIMAL_KEY(OType.DECIMAL, "nKey", Convert::toBigDecimal),
     STRING_KEY(OType.STRING, "sKey", key -> {
         if (key instanceof String)
             return Optional.of(key.toString());
@@ -40,16 +25,7 @@ enum PersistentFieldDefinition {
         else
             return Optional.empty();
     }),
-    DATE_KEY(OType.DATE, "dKey", key -> {
-        Date result;
-        if(key instanceof Date)
-            result = (Date) key;
-        else if(key instanceof Instant)
-            result = Date.from((Instant) key);
-        else
-            result = null;
-        return Optional.ofNullable(result);
-    }),
+    DATE_KEY(OType.DATE, "dKey", Convert::toDate),
     RAW_VALUE(OType.CUSTOM, "serializedObject"){
         @Override
         boolean setField(final Object fieldValue, final ODocument document) {
@@ -175,7 +151,7 @@ enum PersistentFieldDefinition {
     static Comparable<?> getKey(final ODocument document){
         for(final PersistentFieldDefinition field: INDEX_FIELDS)
             if(document.containsField(field.fieldName))
-                return field.getField(document);
+                return (Comparable<?>) field.getField(document);
         throw new IllegalArgumentException(String.format("Document %s has no index field", document));
     }
 
@@ -200,7 +176,7 @@ enum PersistentFieldDefinition {
         return false;
     }
 
-    <RET> RET getField(final ODocument document) {
+    Object getField(final ODocument document) {
         return document.field(fieldName, fieldType);
     }
 
