@@ -237,6 +237,13 @@ public interface KeyValueStorage extends SharedObject {
     Set<? extends Comparable<?>> keySet();
 
     /**
+     * Gets number of entries in this storage.
+     * @return Number of entries in this storage.
+     * @since 2.1
+     */
+    long getSize();
+
+    /**
      * Starts transaction.
      * @param level The required level of transaction.
      * @return A new transaction scope.

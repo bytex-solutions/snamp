@@ -98,6 +98,15 @@ final class InMemoryKeyValueStorage extends ConcurrentHashMap<Comparable<?>, InM
         return containsKey(key);
     }
 
+    /**
+     * Gets number of entries in this storage.
+     *
+     * @return Number of entries in this storage.
+     */
+    @Override
+    public long getSize() {
+        return size();
+    }
 
     /**
      * Iterates over records.

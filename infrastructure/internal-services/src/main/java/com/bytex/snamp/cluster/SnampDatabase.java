@@ -49,13 +49,16 @@ final class SnampDatabase extends ODatabaseDocumentTx {
     }
 
     OrientKeyValueStorage getKeyValueStorage(final String collectionName) {
-        final OClass collectionClass = getMetadata().getSchema().getOrCreateClass(collectionName, getParentClass());
+        final OClass collectionClass;
         final String indexName = collectionName + "_INDEX";
-        final OIndexManager indexManager = getMetadata().getIndexManager();
-        final OIndex<?> index = getMetadata().getIndexManager().existsIndex(indexName) ?
-                getMetadata().getIndexManager().getClassIndex(collectionClass.getName(), indexName) :
-                RecordKey.defineIndex(collectionClass, indexName);
-        return new OrientKeyValueStorage(this, collectionClass.getName(), index.getName());
+        try(final SafeCloseable ignored = withDatabase(this)) {
+            collectionClass = getMetadata().getSchema().getOrCreateClass(collectionName, getParentClass());
+            final OIndexManager indexManager = getMetadata().getIndexManager();
+            final OIndex<?> index = getMetadata().getIndexManager().existsIndex(indexName) ?
+                    getMetadata().getIndexManager().getClassIndex(collectionClass.getName(), indexName) :
+                    RecordKey.defineIndex(collectionClass, indexName);
+        }
+        return new OrientKeyValueStorage(this, collectionClass.getName(), indexName);
     }
 
     void dropKeyValueStorage(final String collectionName) {

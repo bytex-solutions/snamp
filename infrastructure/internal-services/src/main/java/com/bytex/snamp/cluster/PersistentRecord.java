@@ -114,8 +114,11 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         return detached;
     }
 
-    private void saveValue(final Object fieldValue){
-        field(VALUE_FIELD, Objects.requireNonNull(fieldValue)).save();
+    private void saveValue(final Object fieldValue) {
+        field(VALUE_FIELD, Objects.requireNonNull(fieldValue));
+        try(final SafeCloseable ignored = withDatabase(database)){
+            save();
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.bytex.snamp.cluster;
 
+import com.bytex.snamp.IntBox;
 import com.bytex.snamp.core.KeyValueStorage;
 import com.bytex.snamp.io.IOUtils;
 import com.google.common.collect.ImmutableMap;
@@ -64,6 +65,8 @@ public final class PersistentStorageTest extends Assert {
         record = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).orElse(null);
         assertNotNull(record);
         assertEquals("Barry Burton", record.getAsText());
+        storage.clear();
+        assertEquals(0, storage.getSize());
     }
 
     @Test
@@ -149,7 +152,10 @@ public final class PersistentStorageTest extends Assert {
         storage1.updateOrCreateRecord("1", KeyValueStorage.TextRecordView.class, record -> record.setAsText("Frank Underwood"));
         storage1.updateOrCreateRecord("2", KeyValueStorage.TextRecordView.class, record -> record.setAsText("Barry Burton"));
         Thread.sleep(10_000);
+        assertEquals(2, storage1.getSize());
+        final IntBox count = IntBox.of(0);
         storage1.forEachRecord(KeyValueStorage.TextRecordView.class, k -> k instanceof String, (key, record) -> {
+            count.incrementAndGet();
             if(key.equals("1"))
                 assertEquals("Frank Underwood", record.getAsText());
             else if(key.equals("2"))
@@ -158,5 +164,10 @@ public final class PersistentStorageTest extends Assert {
                 fail("Unexpected key " + key);
             return true;
         });
+        assertEquals(2, count.getAsInt());
+        final Set<?> keys = storage1.keySet();
+        assertTrue(keys.contains("1"));
+        assertTrue(keys.contains("2"));
+        assertEquals(2, keys.size());
     }
 }

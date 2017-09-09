@@ -173,6 +173,16 @@ final class HazelcastKeyValueStorage extends HazelcastSharedObject<IMap<Comparab
     }
 
     /**
+     * Gets number of entries in this storage.
+     *
+     * @return Number of entries in this storage.
+     */
+    @Override
+    public long getSize() {
+        return getDistributedObject().size();
+    }
+
+    /**
      * Gets record associated with the specified key.
      *
      * @param key         The key of the record.

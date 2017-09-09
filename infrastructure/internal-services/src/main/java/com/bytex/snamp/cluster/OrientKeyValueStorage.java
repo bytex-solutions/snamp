@@ -40,20 +40,24 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     }
 
     private final ODatabaseDocumentTx database;
-    private final OIndex<?> index;
+    private final String indexName;
 
     OrientKeyValueStorage(final ODatabaseDocumentTx database,
                           final String className,
                           final String indexName) {
         super(className);
         this.database = Objects.requireNonNull(database);
-        index = database.getMetadata().getIndexManager().getClassIndex(className, indexName);
+        this.indexName = indexName;
+    }
+
+    private OIndex<?> getIndex(){
+        return database.getMetadata().getIndexManager().getClassIndex(getName(), indexName);
     }
 
     private <I, V> Optional<V> getRecord(final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
         final OIdentifiable recordId;
         try (final SafeCloseable ignored = withDatabase(database)) {
-            recordId = RecordKey.create(indexKey).getRecordFromIndex(index);
+            recordId = RecordKey.create(indexKey).getRecordFromIndex(getIndex());
         }
         return Optional.ofNullable(recordId).map(transform);
     }
@@ -122,6 +126,13 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         updater.accept(recordView.cast(record));
     }
 
+    private boolean delete(final OIdentifiable id){
+        try(final SafeCloseable ignored = withDatabase(database)){
+            database.delete(id.getIdentity(), ODatabase.OPERATION_MODE.SYNCHRONOUS);
+        }
+        return true;
+    }
+
     /**
      * Deletes the record associated with key.
      *
@@ -130,10 +141,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
      */
     @Override
     public boolean delete(final Comparable<?> key) {
-        return getRecord(key, id -> {
-            database.delete(id.getIdentity(), ODatabase.OPERATION_MODE.SYNCHRONOUS);
-            return true;
-        }).orElse(false);
+        return getRecord(key, this::delete).orElse(false);
     }
 
     /**
@@ -144,7 +152,17 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
      */
     @Override
     public boolean exists(final Comparable<?> key) {
-        return getRecord(key, id -> true).orElse(false);
+        return getRecord(key, Objects::nonNull).orElse(false);
+    }
+
+    /**
+     * Gets number of entries in this storage.
+     *
+     * @return Number of entries in this storage.
+     */
+    @Override
+    public long getSize() {
+        return database.countClass(getName(), false);
     }
 
     /**
@@ -220,7 +238,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     @Override
     public Set<? extends Comparable<?>> keySet() {
         try (final SafeCloseable ignored = withDatabase(database)) {
-            final OIndexKeyCursor cursor = index.keyCursor();
+            final OIndexKeyCursor cursor = getIndex().keyCursor();
             Object key;
             final Set<Comparable<?>> result = new HashSet<>(15);
             while ((key = cursor.next(5)) instanceof OCompositeKey)
