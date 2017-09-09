@@ -22,31 +22,24 @@ import java.util.concurrent.Future;
  * @since 2.0
  */
 public final class PersistentStorageTest extends Assert {
-    private GridMember instance1;
-
-//    @BeforeClass
-//    public static void setupDatabaseHome(){
-//        final String userHome = StandardSystemProperty.USER_HOME.value();
-//        assertFalse(Strings.isNullOrEmpty(userHome));
-//        System.setProperty(Orient.ORIENTDB_HOME, userHome);
-//    }
+    private DatabaseNode database;
 
     @Before
-    public void setupHazelcastNodes() throws Exception {
-        instance1 = GridMember.bootstrap();
-        instance1.start();
+    public void setupDatabaseNode() throws Exception {
+        database = new DatabaseNode();
+        database.startupFromConfiguration().activate();
     }
 
     @After
-    public void shutdownHazelcastNodes() throws Exception {
-        instance1.destroyLocalServices();
-        instance1.close();
-        instance1 = null;
+    public void shutdownDatabaseNode() throws Exception {
+        database.dropDatabases();
+        database.shutdown();
+        database = null;
     }
 
     @Test
     public void indexTest() {
-        final KeyValueStorage storage = instance1.getKeyValueDatabases(true).getSharedObject("$testStorage");
+        final KeyValueStorage storage = database.getSharedObject("$testStorage");
         assertTrue(storage.isPersistent());
         for(int i = 0; i < 100; i++) {
             assertNotNull(storage.getOrCreateRecord(i, KeyValueStorage.TextRecordView.class, record -> record.setAsText("Hello, world")));
@@ -54,26 +47,30 @@ public final class PersistentStorageTest extends Assert {
         final Set<? extends Comparable<?>> keys = storage.keySet();
         assertFalse(keys.isEmpty());
         assertEquals(100, keys.size());
-        keys.contains(1);
-        keys.contains(99);
+        assertTrue(keys.contains(1));
+        assertTrue(keys.contains(99));
     }
 
     @Test
     public void getOrCreateRecordTest() {
-        final KeyValueStorage storage = instance1.getKeyValueDatabases(true).getSharedObject("$testStorage");
+        final KeyValueStorage storage = database.getSharedObject("$testStorage");
         assertTrue(storage.isPersistent());
         KeyValueStorage.TextRecordView record = storage.getOrCreateRecord("String Key", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         record.setAsText("Hello, world");
-        record = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).get();
+        record = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).orElse(null);
         assertNotNull(record);
         assertEquals("Hello, world", record.getAsText());
+        record.setAsText("Barry Burton");
+        record = storage.getRecord("String Key", KeyValueStorage.TextRecordView.class).orElse(null);
+        assertNotNull(record);
+        assertEquals("Barry Burton", record.getAsText());
     }
 
     @Test
     public void differentCollectionsTest(){
-        final KeyValueStorage storage1 = instance1.getKeyValueDatabases(true).getSharedObject("$testStorage1");
+        final KeyValueStorage storage1 = database.getSharedObject("$testStorage1");
         assertTrue(storage1.isPersistent());
-        final KeyValueStorage storage2 = instance1.getKeyValueDatabases(true).getSharedObject("$testStorage2");
+        final KeyValueStorage storage2 = database.getSharedObject("$testStorage2");
         assertTrue(storage2.isPersistent());
         KeyValueStorage.TextRecordView record1 = storage1.getOrCreateRecord(100500, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         KeyValueStorage.TextRecordView record2 = storage2.getOrCreateRecord(100500, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
@@ -89,7 +86,7 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void theSameCollectionTest(){
-        final KeyValueStorage storage1 = instance1.getKeyValueDatabases(true).getSharedObject("$testStorage1");
+        final KeyValueStorage storage1 = database.getSharedObject("$testStorage1");
         assertTrue(storage1.isPersistent());
         KeyValueStorage.TextRecordView record1 = storage1.getOrCreateRecord("Frank Underwood", KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
         record1.setAsText("Hello, world!");
@@ -103,7 +100,7 @@ public final class PersistentStorageTest extends Assert {
         final ExecutorService executor = Executors.newFixedThreadPool(2);
         final Future<Boolean> task = executor.submit(() -> {
             final KeyValueStorage storage1 =
-                    executor.submit(() -> instance1.getKeyValueDatabases(true).getSharedObject("$testStorage1")).get();
+                    executor.submit(() -> database.getSharedObject("$testStorage1")).get();
             assertNotNull(storage1);
             assertTrue(storage1.isPersistent());
             storage1.getOrCreateRecord(KEY, KeyValueStorage.TextRecordView.class, KeyValueStorage.TextRecordView.INITIALIZER);
@@ -147,7 +144,7 @@ public final class PersistentStorageTest extends Assert {
 
     @Test
     public void readAllRecordsTest() throws InterruptedException {
-        final KeyValueStorage storage1 = instance1.getKeyValueDatabases(true).getSharedObject("$testStorage1");
+        final KeyValueStorage storage1 = database.getSharedObject("$testStorage1");
         assertTrue(storage1.isPersistent());
         storage1.updateOrCreateRecord("1", KeyValueStorage.TextRecordView.class, record -> record.setAsText("Frank Underwood"));
         storage1.updateOrCreateRecord("2", KeyValueStorage.TextRecordView.class, record -> record.setAsText("Barry Burton"));

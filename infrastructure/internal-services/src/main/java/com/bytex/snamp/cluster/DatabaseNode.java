@@ -66,12 +66,12 @@ class DatabaseNode extends OServer implements SharedObjectRepository<KeyValueSto
     @Nonnull
     @Override
     public final OrientKeyValueStorage getSharedObject(@Nonnull final String collectionName) {
-        return new OrientKeyValueStorage(snampDatabase, collectionName);
+        return snampDatabase.getKeyValueStorage(collectionName);
     }
 
     @Override
     public final void releaseSharedObject(@Nonnull final String collectionName) {
-        OrientKeyValueStorage.destroy(snampDatabase, collectionName);
+        snampDatabase.dropKeyValueStorage(collectionName);
     }
 
     ODatabaseDocumentTx getSnampDatabase(){
@@ -104,21 +104,23 @@ class DatabaseNode extends OServer implements SharedObjectRepository<KeyValueSto
         if (!snampDatabase.exists()) {
             snampDatabase.create();
             credentials.createUser(snampDatabase);
+            snampDatabase.init();
             snampDatabase.close();
-
         }
         credentials.login(snampDatabase);
         return this;
     }
 
     @Override
-    public boolean shutdown() {
+    public final boolean shutdown() {
         if (snampDatabase != null)
             snampDatabase.close();
         snampDatabase = null;
-        final boolean success = super.shutdown();
-        distributedManager = null;
-        return success;
+        try {
+            return super.shutdown();
+        } finally {
+            distributedManager = null;
+        }
     }
 
     @Override

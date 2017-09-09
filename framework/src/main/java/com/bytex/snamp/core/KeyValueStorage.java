@@ -68,7 +68,11 @@ public interface KeyValueStorage extends SharedObject {
      * Represents entry as JSON document.
      */
     interface JsonRecordView extends Record {
-        Acceptor<JsonRecordView, IOException> INITIALIZER = record -> record.setAsJson(new StringReader("{}"));
+        Acceptor<JsonRecordView, IOException> INITIALIZER = record -> {
+            try(final StringReader reader = new StringReader("{}")){
+                record.setAsJson(reader);
+            }
+        };
         Reader getAsJson();
         void setAsJson(final Reader value) throws IOException;
         Writer createJsonWriter();
@@ -133,6 +137,23 @@ public interface KeyValueStorage extends SharedObject {
 
     /**
      * Gets record associated with the specified key.
+     * <p>
+     *     List of supported key types:
+     *     <ul>
+     *         <li>{@link java.util.UUID}</li>
+     *         <li>{@link String}</li>
+     *         <li>{@link Byte}</li>
+     *         <li>{@link Short}</li>
+     *         <li>{@link Integer}</li>
+     *         <li>{@link Long}</li>
+     *         <li>{@link java.math.BigInteger}</li>
+     *         <li>{@link java.math.BigDecimal}</li>
+     *         <li>{@link Character}</li>
+     *         <li>{@link Double}</li>
+     *         <li>{@link Float}</li>
+     *         <li>{@link java.util.Date}</li>
+     *         <li>{@link java.time.Instant}</li>
+     *     </ul>
      * @param key The key of the record. Cannot be {@literal null}.
      * @param recordView Type of the record representation.
      * @param <R> Type of the record view.
@@ -219,7 +240,7 @@ public interface KeyValueStorage extends SharedObject {
      * Starts transaction.
      * @param level The required level of transaction.
      * @return A new transaction scope.
-     * @throws UnsupportedOperationException Transactions are not supported by this storage.
+     * @throws UnsupportedOperationException Transactions are not supported by this storage; or isolation level is not supported.
      */
     TransactionScope beginTransaction(final IsolationLevel level) throws UnsupportedOperationException;
 

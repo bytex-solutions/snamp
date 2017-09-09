@@ -1,21 +1,21 @@
 package com.bytex.snamp.cluster;
 
-import com.bytex.snamp.Convert;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.core.KeyValueStorage;
+import com.bytex.snamp.io.IOUtils;
 import com.orientechnologies.orient.core.db.ODatabaseDocumentInternal;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
 import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.db.record.ORecordElement;
+import com.orientechnologies.orient.core.metadata.schema.OClass;
+import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Serializable;
-import java.io.StringWriter;
+import java.io.*;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.bytex.snamp.cluster.DBUtils.withDatabase;
 
 /**
@@ -26,12 +26,17 @@ import static com.bytex.snamp.cluster.DBUtils.withDatabase;
  */
 final class PersistentRecord extends ODocument implements KeyValueStorage.Record, KeyValueStorage.MapRecordView, KeyValueStorage.JsonRecordView, KeyValueStorage.TextRecordView, KeyValueStorage.LongRecordView, KeyValueStorage.DoubleRecordView, KeyValueStorage.SerializableRecordView {
     private static final long serialVersionUID = -7040180709722600847L;
+    private static final String VALUE_FIELD = "value";
 
-    private volatile transient boolean detached;
+    private transient boolean detached;
     private transient ODatabaseDocumentInternal database;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
     public PersistentRecord() {
+    }
+
+    PersistentRecord(final Comparable<?> key) {
+        RecordKey.create(key).setKey(this);
     }
 
     PersistentRecord(final OIdentifiable prototype) {
@@ -44,8 +49,8 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         return this;
     }
 
-    Comparable<?> getKey(){
-        return PersistentFieldDefinition.getKey(this);
+    Comparable<?> getKey() {
+        return new RecordKey(this).get();
     }
 
     @Override
@@ -74,10 +79,6 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
             reload(null, true);
     }
 
-    void setKey(final Comparable<?> key) {
-        PersistentFieldDefinition.setKey(key, this);
-    }
-
     /**
      * Synchronize record stored at server with local version of this record.
      */
@@ -96,8 +97,10 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
      */
     @Override
     public boolean detach() {
-        try(final SafeCloseable ignored = withDatabase(database)){
+        try (final SafeCloseable ignored = withDatabase(database)) {
             return super.detach();
+        } finally {
+            detached = true;
         }
     }
 
@@ -111,44 +114,39 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         return detached;
     }
 
-    @Override
-    public Serializable getValue() {
-        return (Serializable) PersistentFieldDefinition.RAW_VALUE.getField(this);
+    private void saveValue(final Object fieldValue){
+        field(VALUE_FIELD, Objects.requireNonNull(fieldValue)).save();
     }
 
-    private void saveField(final PersistentFieldDefinition field, final Object value) {
-        if (field.setField(value, this))
-            try (final SafeCloseable ignored = withDatabase(database)) {
-                save();
-            }
-        else
-            throw new IllegalArgumentException(String.format("Value %s is incompatible with field %s", value, field));
+    @Override
+    public Serializable getValue() {
+        return field(VALUE_FIELD);
     }
 
     @Override
     public void setValue(final Serializable value) {
-        saveField(PersistentFieldDefinition.RAW_VALUE, value);
+        saveValue(value);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Map<String, ?> getAsMap() {
-        return (Map<String, ?>) PersistentFieldDefinition.MAP_VALUE.getField(this);
+        return field(VALUE_FIELD, Map.class);
     }
 
     @Override
     public void setAsMap(final Map<String, ?> values) {
-        saveField(PersistentFieldDefinition.MAP_VALUE, values);
+        saveValue(values);
     }
 
     @Override
     public Reader getAsJson() {
-        return (Reader) PersistentFieldDefinition.JSON_DOCUMENT_VALUE.getField(this);
+        return new StringReader(this.<ODocument>field(VALUE_FIELD, ODocument.class).toJSON("prettyPrint"));
     }
 
     @Override
     public void setAsJson(final Reader value) throws IOException {
-        saveField(PersistentFieldDefinition.JSON_DOCUMENT_VALUE, value);
+        final ODocument jsonDocument = new ODocument().fromJSON(IOUtils.toString(value));
+        saveValue(jsonDocument);
     }
 
     @Override
@@ -156,7 +154,7 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
         return new StringWriter(512) {
             @Override
             public void close() throws IOException {
-                saveField(PersistentFieldDefinition.JSON_DOCUMENT_VALUE, getBuffer());
+                saveValue(getBuffer());
                 super.close();
             }
         };
@@ -164,33 +162,39 @@ final class PersistentRecord extends ODocument implements KeyValueStorage.Record
 
     @Override
     public String getAsText() {
-        return (String) PersistentFieldDefinition.TEXT_VALUE.getField(this);
+        return field(VALUE_FIELD, String.class);
     }
 
     @Override
     public void setAsText(final String value) {
-        saveField(PersistentFieldDefinition.TEXT_VALUE, value);
+        saveValue(value);
     }
 
     @Override
     public long getAsLong() {
-        return Convert.toLong(PersistentFieldDefinition.LONG_VALUE.getField(this))
-                .orElseThrow(NumberFormatException::new);
+        return field(VALUE_FIELD, long.class);
     }
 
     @Override
     public void accept(final long value) {
-        saveField(PersistentFieldDefinition.LONG_VALUE, value);
+        saveValue(value);
     }
 
     @Override
     public double getAsDouble() {
-        return Convert.toDouble(PersistentFieldDefinition.DOUBLE_VALUE.getField(this))
-                .orElseThrow(NumberFormatException::new);
+        return field(VALUE_FIELD, double.class);
     }
 
     @Override
     public void accept(final double value) {
-        saveField(PersistentFieldDefinition.DOUBLE_VALUE, value);
+        saveValue(value);
+    }
+
+    static void defineFields(final OClass documentClass) {
+        RecordKey.defineFields(documentClass);
+        if (!documentClass.existsProperty(VALUE_FIELD))
+            documentClass.createProperty(VALUE_FIELD, OType.ANY)
+                    .setNotNull(false)
+                    .setDescription("Field with value");
     }
 }

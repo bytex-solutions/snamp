@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.*;
 
 /**
@@ -29,31 +30,39 @@ import java.util.function.*;
  */
 @ThreadSafe
 public final class Convert {
-    private static abstract class TypeConverter<C> extends ConcurrentHashMap<Class<?>, C> {
-        private static final long serialVersionUID = -2745877310143387409L;
+    /**
+     * A framework class for building type converters with O(1) lookup.
+     * @param <C> Functional interface representing converter.
+     * @since 2.1
+     */
+    public static abstract class TypeConverter<C> {
+        private final ConcurrentMap<Class<?>, C> converters = new ConcurrentHashMap<>();
 
         private C getOrAdd(final Class<?> key) {
             for (Class<?> lookup = key; lookup != null; lookup = lookup.getSuperclass()) {
-                final C value = get(lookup);
+                final C value = converters.get(lookup);
                 if (value != null) {
                     //cache converter for the origin key, not for current inheritance frame
-                    putIfAbsent(key, value);
+                    converters.putIfAbsent(key, value);
                     return value;
                 }
             }
             return null;
         }
 
-        final C getConverter(final Object value) {
+        protected final void addConverter(@Nonnull final Class<?> type, @Nonnull final C converter){
+            converters.put(type, converter);
+        }
+
+        public final C getConverter(final Object value) {
             return value == null ? null : getOrAdd(value.getClass());
         }
     }
 
     private static final class ToIntConverter extends TypeConverter<ToIntFunction> {
-        private static final long serialVersionUID = -7571891959758237238L;
 
         private <T> ToIntConverter addConverter(final Class<T> type, final ToIntFunction<? super T> converter) {
-            put(type, converter);
+            super.addConverter(type, converter);
             return this;
         }
 
@@ -67,10 +76,9 @@ public final class Convert {
     }
 
     private static final class ToLongConverter extends TypeConverter<ToLongFunction>{
-        private static final long serialVersionUID = 1973865787305278420L;
 
         <T> ToLongConverter addConverter(final Class<T> type, final ToLongFunction<? super T> converter){
-            put(type, converter);
+            super.addConverter(type, converter);
             return this;
         }
 
@@ -84,10 +92,8 @@ public final class Convert {
     }
 
     private static final class ToDoubleConverter extends TypeConverter<ToDoubleFunction>{
-        private static final long serialVersionUID = 7425665427678455939L;
-
         <T> ToDoubleConverter addConverter(final Class<T> type, final ToDoubleFunction<? super T> converter){
-            put(type, converter);
+            super.addConverter(type, converter);
             return this;
         }
 
@@ -101,15 +107,14 @@ public final class Convert {
     }
 
     private static final class ToTypeConverter<O> extends TypeConverter<Function> {
-        private static final long serialVersionUID = 3279547883268029767L;
         private final Class<O> outputType;
 
-        ToTypeConverter(@Nonnull final Class<O> type){
+        private ToTypeConverter(@Nonnull final Class<O> type){
             outputType = type;
         }
 
-        private <I> ToTypeConverter<O> addConverter(final Class<I> type, final Function<? super I, ? extends O> converter) {
-            put(type, converter);
+        <I> ToTypeConverter<O> addConverter(final Class<I> type, final Function<? super I, ? extends O> converter) {
+            super.addConverter(type, converter);
             return this;
         }
 

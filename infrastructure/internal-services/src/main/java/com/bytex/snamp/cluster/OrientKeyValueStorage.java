@@ -10,22 +10,19 @@ import com.orientechnologies.orient.core.db.record.OIdentifiable;
 import com.orientechnologies.orient.core.index.OCompositeKey;
 import com.orientechnologies.orient.core.index.OIndex;
 import com.orientechnologies.orient.core.index.OIndexKeyCursor;
-import com.orientechnologies.orient.core.iterator.ORecordIteratorClass;
-import com.orientechnologies.orient.core.metadata.schema.OClass;
-import com.orientechnologies.orient.core.metadata.schema.OSchema;
+import com.orientechnologies.orient.core.iterator.OIdentifiableIterator;
 import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.orientechnologies.orient.core.tx.OTransaction;
 import com.orientechnologies.orient.core.tx.OTransactionOptimistic;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static com.bytex.snamp.cluster.DBUtils.withDatabase;
 
@@ -42,31 +39,21 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
         }
     }
 
-    private final OClass documentClass;
     private final ODatabaseDocumentTx database;
-    private final String indexName;
+    private final OIndex<?> index;
 
     OrientKeyValueStorage(final ODatabaseDocumentTx database,
-                          final String collectionName) {
-        super(collectionName);
-        indexName = collectionName + "Index";
-        try (final SafeCloseable ignored = withDatabase(this.database = database)) {
-            //init class
-            final OSchema schema = database.getMetadata().getSchema();
-            if (schema.existsClass(collectionName))
-                documentClass = schema.getClass(collectionName);
-            else {
-                documentClass = schema.createClass(collectionName);
-                PersistentFieldDefinition.defineFields(documentClass);
-                PersistentFieldDefinition.createIndex(documentClass, indexName);
-            }
-        }
+                          final String className,
+                          final String indexName) {
+        super(className);
+        this.database = Objects.requireNonNull(database);
+        index = database.getMetadata().getIndexManager().getClassIndex(className, indexName);
     }
 
     private <I, V> Optional<V> getRecord(final Comparable<?> indexKey, final Function<? super OIdentifiable, ? extends V> transform) {
         final OIdentifiable recordId;
         try (final SafeCloseable ignored = withDatabase(database)) {
-            recordId = (OIdentifiable) documentClass.getClassIndex(indexName).get(PersistentFieldDefinition.getCompositeKey(indexKey));
+            recordId = RecordKey.create(indexKey).getRecordFromIndex(index);
         }
         return Optional.ofNullable(recordId).map(transform);
     }
@@ -87,7 +74,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     @Override
     public <R extends Record> Optional<R> getRecord(final Comparable<?> key, final Class<R> recordView) {
         final Optional<PersistentRecord> record = getRecord(key, PersistentRecord::new);
-        record.ifPresent(rec -> rec.setDatabase(database).setClassName(documentClass.getName()));
+        record.ifPresent(rec -> rec.setDatabase(database).setClassName(getName()));
         return record.map(database::load).map(recordView::cast);
     }
 
@@ -104,16 +91,13 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     public <R extends Record, E extends Throwable> R getOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> initializer) throws E {
         PersistentRecord record = getRecord(key, PersistentRecord::new).orElse(null);
         final boolean isNew;
-        if (isNew = record == null) {
-            record = new PersistentRecord();
-            record.setKey(key);
-        }
-        record.setDatabase(database).setClassName(documentClass.getName());
-        if (isNew) {
+        if (isNew = record == null)
+            record = new PersistentRecord(key);
+        record.setDatabase(database).setClassName(getName());
+        if (isNew)
             //new record detected
             initializer.accept(recordView.cast(record));
-            record.save();
-        } else
+        else
             database.reload(record);
         return recordView.cast(record);
     }
@@ -130,11 +114,9 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     public <R extends Record, E extends Throwable> void updateOrCreateRecord(final Comparable<?> key, final Class<R> recordView, final Acceptor<? super R, E> updater) throws E {
         PersistentRecord record = getRecord(key, PersistentRecord::new).orElse(null);
         final boolean isNew;
-        if (isNew = record == null) {
-            record = new PersistentRecord();
-            record.setKey(key);
-        }
-        record.setDatabase(database).setClassName(documentClass.getName());
+        if (isNew = record == null)
+            record = new PersistentRecord(key);
+        record.setDatabase(database).setClassName(getName());
         if (!isNew)
             database.reload(record);
         updater.accept(recordView.cast(record));
@@ -171,30 +153,16 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     @Override
     public void clear() {
         try (final SafeCloseable ignored = withDatabase(database)) {
-            documentClass.truncate();
+            database.getMetadata().getSchema().getClass(getName()).truncate();
         } catch (final IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private static void destroy(final ODatabase<?> database, final OClass documentClass){
-        final Set<String> indexes = documentClass.getIndexes().stream().map(OIndex::getName).collect(Collectors.toSet());
-        database.command(new OCommandSQL(String.format("drop class %s", documentClass.getName()))).execute(); //remove class
-        //remove indexes
-        for (final String indexName : indexes)
-            database.command(new OCommandSQL(String.format("drop index %s", indexName))).execute();
-    }
-
-    static void destroy(final ODatabase<?> database, final String collectionName) {
-        final OClass documentClass = database.getMetadata().getSchema().getClass(collectionName);
-        if(documentClass != null)
-            destroy(database, documentClass);
-    }
-
     @Override
     void destroy() {
         try (final SafeCloseable ignored = withDatabase(database)) {
-            destroy(database, documentClass);
+            database.getMetadata().getSchema().dropClass(getName());
         }
     }
 
@@ -221,7 +189,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
                                                                       final Predicate<? super Comparable<?>> filter,
                                                                       final EntryReader<? super Comparable<?>, ? super R, E> reader) throws E {
         try (final SafeCloseable ignored = withDatabase(database)) {
-            final ORecordIteratorClass<ODocument> records = database.browseClass(documentClass.getName());
+            final OIdentifiableIterator<ODocument> records = database.browseClass(getName());
             while (records.hasNext()) {
                 final ODocument document = records.next();
                 final PersistentRecord record;
@@ -252,18 +220,15 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
     @Override
     public Set<? extends Comparable<?>> keySet() {
         try (final SafeCloseable ignored = withDatabase(database)) {
-            final OIndex<?> index = documentClass.getClassIndex(indexName);
             final OIndexKeyCursor cursor = index.keyCursor();
             Object key;
             final Set<Comparable<?>> result = new HashSet<>(15);
-            while ((key = cursor.next(5)) instanceof OCompositeKey) {
-                final OCompositeKey compositeKey = (OCompositeKey) key;
-                compositeKey.getKeys().stream()
+            while ((key = cursor.next(5)) instanceof OCompositeKey)
+                ((OCompositeKey) key).getKeys().stream()
                         .filter(k -> k instanceof Comparable<?>)
                         .map(k -> (Comparable<?>) k)
                         .findFirst()
                         .ifPresent(result::add);
-            }
             return result;
         }
     }
