@@ -184,7 +184,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         @Nonnull
         @Override
         ChartDataSource activateService() {
-            final ThreadPoolRepository repository = dependencies.getService(ThreadPoolRepository.class).orElseThrow(AssertionError::new);
+            final ThreadPoolRepository repository = dependencies.getService(ThreadPoolRepository.class);
             return new ChartDataSource(repository.getThreadPool(THREAD_POOL_NAME, true));
         }
     }
@@ -237,7 +237,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         @Nonnull
         @Override
         LogNotifier activateService() {
-            final ThreadPoolRepository repository = dependencies.getService(ThreadPoolRepository.class).orElseThrow(AssertionError::new);
+            final ThreadPoolRepository repository = dependencies.getService(ThreadPoolRepository.class);
             return new LogNotifier(repository.getThreadPool(THREAD_POOL_NAME, true));
         }
     }

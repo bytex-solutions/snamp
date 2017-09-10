@@ -245,8 +245,7 @@ final class OrientKeyValueStorage extends GridSharedObject implements KeyValueSt
                 ((OCompositeKey) key).getKeys().stream()
                         .filter(k -> k instanceof Comparable<?>)
                         .map(k -> (Comparable<?>) k)
-                        .findFirst()
-                        .ifPresent(result::add);
+                        .forEach(result::add);
             return result;
         }
     }

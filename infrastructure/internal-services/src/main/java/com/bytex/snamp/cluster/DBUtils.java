@@ -11,11 +11,12 @@ import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
  */
 final class DBUtils {
     static SafeCloseable withDatabase(final ODatabase<?> database) {
-        if(database.isActiveOnCurrentThread())
-            return () -> {};
+        if (database.isActiveOnCurrentThread())
+            return () -> {
+            };
         else {
             database.activateOnCurrentThread();
-            return ODatabaseRecordThreadLocal.INSTANCE::remove;
+            return () -> ODatabaseRecordThreadLocal.INSTANCE.remove();
         }
     }
 }
