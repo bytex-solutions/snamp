@@ -22,7 +22,7 @@ public class InfluxWriteMock extends InfluxMethodMock {
     }
 
     static Communicator getCommunicator(final ClusterMember member){
-        return member.getService(Communicator.ofName(INFLUX_CHANNEL)).orElseThrow(AssertionError::new);
+        return member.getCommunicators().getSharedObject(INFLUX_CHANNEL);
     }
 
     @POST

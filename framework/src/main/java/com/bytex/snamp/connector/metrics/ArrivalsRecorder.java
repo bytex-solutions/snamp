@@ -17,7 +17,7 @@ import static com.bytex.snamp.moa.Q.getAvailability;
  * @since 2.0
  * @see <a href="https://en.wikipedia.org/wiki/M/M/1_queue">M/M/1 queue</a>
  */
-public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrivals {
+public class ArrivalsRecorder extends RatedTimeRecorder implements Arrivals {
     private static final double NANOS_IN_SECOND = Duration.ofSeconds(1L).toNanos();
     private static final long serialVersionUID = 6146322787615499495L;
     private final Correlation rpsAndTimeCorrelation;  //correlation between rps and response time.
@@ -35,18 +35,18 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
         this(name, AbstractNumericGauge.DEFAULT_SAMPLING_SIZE);
     }
 
-    private ArrivalsRecorder(final ArrivalsRecorder source){
+    protected ArrivalsRecorder(final ArrivalsRecorder source){
         super(source);
         rpsAndTimeCorrelation = source.rpsAndTimeCorrelation.clone();
         startTime = source.startTime;
     }
 
     @Override
-    public int getChannels() {
+    public final int getChannels() {
         return channels;
     }
 
-    public void setChannels(final int value){
+    public final void setChannels(final int value){
         if(value < 1)
             throw new IllegalArgumentException("Number of channels cannot be less than 1");
         channels = value;
@@ -69,12 +69,12 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
     }
 
     @Override
-    public double getLastMeanAvailability(final MetricsInterval interval) {
+    public final double getLastMeanAvailability(final MetricsInterval interval) {
         return getAvailability(getLastRate(interval), toSeconds(getMeanValue(interval)), channels);
     }
 
     @Override
-    public double getInstantAvailability(){
+    public final double getInstantAvailability(){
         return getAvailability(getLastRate(MetricsInterval.SECOND), toSeconds(getLastValue()), channels);
     }
 
@@ -83,13 +83,13 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
      * @return Utilization of server uptime, in percents.
      */
     @Override
-    public double getEfficiency(){
+    public final double getEfficiency(){
         final double summaryDuration = toSeconds(getSummaryValue());
         final double uptime = toSeconds(Duration.between(startTime, Instant.now()));
         return Double.min(summaryDuration / uptime, 1D);
     }
 
-    public void setStartTime(@Nonnull final Instant value){
+    public final void setStartTime(@Nonnull final Instant value){
         startTime = Objects.requireNonNull(value);
     }
 
@@ -98,7 +98,7 @@ public final class ArrivalsRecorder extends RatedTimeRecorder implements Arrival
      * @return The correlation between arrivals and response time.
      */
     @Override
-    public double getCorrelation(){
+    public final double getCorrelation(){
         return rpsAndTimeCorrelation.getAsDouble();
     }
 

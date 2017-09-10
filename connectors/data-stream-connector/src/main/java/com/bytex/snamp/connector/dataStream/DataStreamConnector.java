@@ -7,6 +7,7 @@ import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.health.*;
+import com.bytex.snamp.connector.metrics.ArrivalsRecorder;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
@@ -16,6 +17,7 @@ import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.instrumentation.measurements.Health;
 import com.bytex.snamp.instrumentation.measurements.jmx.HealthNotification;
+import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -89,6 +91,32 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         }
     }
 
+    /**
+     * Represents name of the metric represents information collected from input {@link com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification}.
+     */
+    public static final String ARRIVALS_METRIC = "Arrivals";
+
+    private static final class SpanArrivalsRecorder extends ArrivalsRecorder{
+        private static final long serialVersionUID = 4061075096831015800L;
+
+        SpanArrivalsRecorder(final int samplingSize) {
+            super(ARRIVALS_METRIC, samplingSize);
+        }
+
+        private SpanArrivalsRecorder(final SpanArrivalsRecorder recorder){
+            super(recorder);
+        }
+
+        void accept(final SpanNotification notification){
+            accept(notification.getMeasurement().convertTo(Duration.class));
+        }
+
+        @Override
+        public SpanArrivalsRecorder clone() {
+            return new SpanArrivalsRecorder(this);
+        }
+    }
+
     @Aggregation(cached = true)
     protected final SyntheticAttributeRepository attributes;
     @Aggregation(cached = true)
@@ -99,6 +127,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     private final JavaBeanOperationRepository operations;
     private final SharedCounter sequenceNumberProvider;
     private final HeartbeatTimer heartbeat;
+    private final SpanArrivalsRecorder arrivals;
 
     /**
      * Represents thread pool for parallel operations.
@@ -110,6 +139,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
                                   final ManagedResourceInfo configuration,
                                   final DataStreamConnectorConfigurationDescriptionProvider descriptor) {
         super(configuration);
+        arrivals = new SpanArrivalsRecorder(descriptor.getSamplingSize(configuration));
         this.heartbeat = descriptor.getHeartbeat(configuration).map(HeartbeatTimer::new).orElse(null);
         instanceName = resourceName;
         threadPool = descriptor.parseThreadPool(configuration);
@@ -144,7 +174,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
 
     @Override
     protected final MetricsSupport createMetricsReader() {
-        return assembleMetricsReader(attributes, notifications, operations);
+        return assembleMetricsReader(attributes.getMetrics(), notifications.getMetrics(), operations.getMetrics(), arrivals);
     }
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
@@ -188,6 +218,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
         notifications.accept(notification);
         if (heartbeat != null)                 //update heartbeat if it is enabled
             Convert.toType(notification, HealthNotification.class).ifPresent(heartbeat);
+        Convert.toType(notification, SpanNotification.class).ifPresent(arrivals::accept);
     }
 
     /**

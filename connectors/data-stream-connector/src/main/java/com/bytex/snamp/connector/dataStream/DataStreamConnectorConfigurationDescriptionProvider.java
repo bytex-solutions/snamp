@@ -35,6 +35,7 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
     private static final String FILTER_PARAM = "filter";
     private static final String GAUGE_TYPE_PARAM = "gauge";
     private static final String HEARTBEAT_PARAM = "heartbeat";
+    private static final String SAMPLING_SIZE_PARAM = "arrivalsSamplingSize";
 
     protected static class ConnectorConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorConfiguration";
@@ -205,5 +206,9 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
 
     protected Optional<Duration> getHeartbeat(final Map<String, String> parameters) {
         return getValue(parameters, HEARTBEAT_PARAM, Long::parseLong).map(Duration::ofMillis);
+    }
+
+    int getSamplingSize(final Map<String, String> parameters) {
+        return getValue(parameters, SAMPLING_SIZE_PARAM, Integer::parseInt).orElse(4096);
     }
 }

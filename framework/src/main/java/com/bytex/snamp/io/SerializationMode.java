@@ -16,9 +16,9 @@ public class SerializationMode {
     /**
      * Default serialization mode without customization.
      */
-    public static final SerializationMode DEFAULT = new SerializationMode();
+    static final SerializationMode DEFAULT = new SerializationMode();
 
-    private SerializationMode(){
+    protected SerializationMode(){
 
     }
 
@@ -45,13 +45,13 @@ public class SerializationMode {
 
         return new SerializationMode() {
             @Override
-            ObjectOutputStream createStream(final OutputStream output) throws IOException {
+            public ObjectOutputStream createStream(final OutputStream output) throws IOException {
                 return new CustomObjectOutputStream(output);
             }
         };
     }
 
-    ObjectOutputStream createStream(final OutputStream output) throws IOException{
+    public ObjectOutputStream createStream(final OutputStream output) throws IOException{
         return new ObjectOutputStream(output);
     }
 }

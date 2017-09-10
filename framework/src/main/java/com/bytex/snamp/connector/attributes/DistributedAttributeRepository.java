@@ -18,7 +18,9 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @author Roman Sakno
  * @version 2.1
  * @since 2.0
+ * @deprecated Please use replication infrastructure provided by {@link com.bytex.snamp.core.ReplicationSupport} and {@link AttributeRepositoryReplica}.
  */
+@Deprecated
 public abstract class DistributedAttributeRepository<M extends MBeanAttributeInfo> extends AbstractAttributeRepository<M> {
     private static final String STORAGE_NAME_POSTFIX = "-attributes";
     private static final double ACTIVE_SYNC_TIME_FACTOR = Math.sqrt(2);

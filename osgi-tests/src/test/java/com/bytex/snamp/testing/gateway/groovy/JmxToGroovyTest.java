@@ -47,7 +47,7 @@ public class JmxToGroovyTest extends AbstractJmxConnectorTest<TestOpenMBean> {
     }
 
     private Communicator getChannel(){
-        return processLocalMember.getService(Communicator.ofName(COMMUNICATION_CHANNEL)).orElseThrow(AssertionError::new);
+        return processLocalMember.getCommunicators().getSharedObject(COMMUNICATION_CHANNEL);
     }
 
     @Test

@@ -70,6 +70,11 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         TConnector createConnector(final String resourceName,
                                    final ManagedResourceInfo configuration,
                                    final DependencyManager dependencies) throws Exception;
+
+        @SuppressWarnings("unchecked")
+        default Class<? super TConnector>[] getInterfaces(){
+            return ArrayUtils.emptyArray(Class[].class);
+        }
     }
 
     private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
@@ -78,7 +83,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
         private ManagedResourceConnectorRegistry(@Nonnull final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
-            super(ManagedResourceConnector.class, dependencies);
+            super(ManagedResourceConnector.class, dependencies, controller.getInterfaces());
             this.factory = controller;
             this.logger = LazyReference.strong();
         }

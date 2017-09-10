@@ -20,7 +20,7 @@ import java.util.function.ToDoubleFunction;
  * @version 2.1
  * @since 2.0
  */
-public final class DoubleReservoir  implements DoubleConsumer, Reservoir, SerializableSnapshotSupport<DoubleReservoir>, ToDoubleFunction<ReduceOperation> {
+public final class DoubleReservoir  implements DoubleConsumer, Reservoir, SerializableSnapshotSupport, ToDoubleFunction<ReduceOperation> {
     private static final class DoubleReservoirSnapshot extends SerializedState<DoubleReservoir>{
         private static final long serialVersionUID = -6080572664395210068L;
         private final double[] values;

@@ -77,6 +77,10 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
         return new ImmutableMetrics(metrics, Supplier::get);
     }
 
+    protected static MetricsSupport assembleMetricsReader(final Metric... metrics){
+        return new ImmutableMetrics(metrics);
+    }
+
     /**
      * Releases all resources associated with this connector.
      * @throws Exception Unable to release resources associated with this connector.

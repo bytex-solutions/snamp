@@ -11,9 +11,13 @@ import java.io.Serializable;
  * @since 2.0
  * @version 2.1
  */
-public interface SerializableSnapshotSupport<T extends SerializableSnapshotSupport<T>> extends SnapshotSupport<T>, Serializable {
+public interface SerializableSnapshotSupport extends SnapshotSupport, Serializable {
+    /**
+     * Captures state of this object in serialized form that can be used to recreate instance of this object in the future.
+     * @return Serialized state of this object.
+     */
     @Override
-    SerializedState<? extends T> takeSnapshot();
+    SerializedState<? extends SerializableSnapshotSupport> takeSnapshot();
 
     /**
      * Special method required by {@link Serializable} specification.
@@ -22,5 +26,7 @@ public interface SerializableSnapshotSupport<T extends SerializableSnapshotSuppo
      * @implSpec This method should always call method {@link #takeSnapshot()}.
      */
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    Object writeReplace() throws ObjectStreamException;
+    default Object writeReplace() throws ObjectStreamException{
+        return takeSnapshot();
+    }
 }

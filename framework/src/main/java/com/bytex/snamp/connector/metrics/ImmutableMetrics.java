@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.metrics;
 
-import com.bytex.snamp.ResettableIterator;
 import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.concurrent.Immutable;
@@ -11,6 +10,7 @@ import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Represents immutable implementation of {@link MetricsSupport}.
@@ -23,21 +23,18 @@ import java.util.function.Function;
 public class ImmutableMetrics implements MetricsSupport {
     private final ImmutableMap<String, Metric> metrics;
 
-    private ImmutableMetrics(final Iterator<? extends Metric> metrics){
+    private ImmutableMetrics(final Stream<? extends Metric> metrics) {
         final ImmutableMap.Builder<String, Metric> metricBuilder = ImmutableMap.builder();
-        while (metrics.hasNext()) {
-            final Metric m = metrics.next();
-            metricBuilder.put(m.getName(), m);
-        }
+        metrics.forEach(m -> metricBuilder.put(m.getName(), m));
         this.metrics = metricBuilder.build();
     }
 
     public ImmutableMetrics(final Metric... metrics) {
-        this(ResettableIterator.of(metrics));
+        this(Arrays.stream(metrics));
     }
 
-    public <I> ImmutableMetrics(final I[] metrics, final Function<? super I, ? extends Metric> converter){
-        this(Arrays.stream(metrics).map(converter).iterator());
+    public <I> ImmutableMetrics(final I[] metrics, final Function<? super I, ? extends Metric> converter) {
+        this(Arrays.stream(metrics).map(converter));
     }
 
     private <M extends Metric> Iterable<M> getMetrics(final Collection<? extends Metric> metrics, final Class<M> metricType) {

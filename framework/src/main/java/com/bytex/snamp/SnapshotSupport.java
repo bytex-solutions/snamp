@@ -7,10 +7,10 @@ import java.util.function.Supplier;
  * @since 2.0
  * @version 2.1
  */
-public interface SnapshotSupport<T extends SnapshotSupport<T>> extends Stateful {
+public interface SnapshotSupport extends Stateful {
     /**
      * Captures the state of this object.
      * @return A function that can be used to recreate object in its captured state.
      */
-    Supplier<? extends T> takeSnapshot();
+    Supplier<? extends SnapshotSupport> takeSnapshot();
 }
