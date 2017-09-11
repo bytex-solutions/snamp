@@ -15,11 +15,12 @@ import java.util.function.Supplier;
 
 /**
  * Represents point of service registration on OSGi Service Registry.
+ * @param <T> Type of service implementation.
  * @author Roman Sakno
  * @version 2.1
  * @since 2.0
  */
-final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistration<S>, Supplier<T>, SafeCloseable {
+final class ServiceRegistrationHolder<T> implements ServiceRegistration, Supplier<T>, SafeCloseable {
     private final ServiceRegistration<?> registration;
     private T serviceInstance;
 
@@ -34,8 +35,9 @@ final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistra
         registration = context.registerService(serviceContractNames, service, identity);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void setProperties(final Dictionary<String, ?> properties) {
+    public void setProperties(final Dictionary properties) {
         registration.setProperties(properties);
     }
 
@@ -52,10 +54,9 @@ final class ServiceRegistrationHolder<S, T extends S> implements ServiceRegistra
         return serviceInstance;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public ServiceReference<S> getReference() {
-        return (ServiceReference<S>) registration.getReference();
+    public ServiceReference<?> getReference() {
+        return registration.getReference();
     }
 
     @Override

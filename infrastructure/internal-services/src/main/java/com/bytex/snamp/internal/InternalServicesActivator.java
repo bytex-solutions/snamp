@@ -2,7 +2,7 @@ package com.bytex.snamp.internal;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.cluster.GridMember;
-import com.bytex.snamp.cluster.ServerNode;
+import com.bytex.snamp.cluster.NonGridMember;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
 import com.bytex.snamp.concurrent.impl.ThreadPoolRepositoryImpl;
 import com.bytex.snamp.configuration.ConfigurationManager;
@@ -26,7 +26,7 @@ import javax.servlet.Servlet;
  * @version 2.1.0
  */
 public final class InternalServicesActivator extends AbstractServiceLibrary {
-    private static final class ConfigurationServiceManager extends ProvidedService<ConfigurationManager, PersistentConfigurationManager>{
+    private static final class ConfigurationServiceManager extends ProvidedService<PersistentConfigurationManager>{
 
         private ConfigurationServiceManager() {
             super(ConfigurationManager.class, requiredBy(PersistentConfigurationManager.class).require(ConfigurationAdmin.class));
@@ -39,7 +39,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class GridMemberProvider extends ProvidedService<ClusterMember, GridMember>{
+    private static final class GridMemberProvider extends ProvidedService<GridMember>{
         private GridMemberProvider(){
             super(ClusterMember.class, requiredBy(GridMember.class).require(HazelcastInstance.class));
         }
@@ -61,29 +61,29 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class LocalMemberProvider extends ProvidedService<ClusterMember, ServerNode> {
+    private static final class LocalMemberProvider extends ProvidedService<NonGridMember> {
         private LocalMemberProvider() {
             super(ClusterMember.class);
         }
 
         @Nonnull
         @Override
-        protected ServerNode activateService(final ServiceIdentityBuilder identity) throws Exception {
+        protected NonGridMember activateService(final ServiceIdentityBuilder identity) throws Exception {
             //ServerNode is unlikely to be returned as the default implementation.
             //This is because it can be replaced by GridMember after activation of HazelcastInstance
             identity.setRank(Integer.MIN_VALUE);
-            final ServerNode member = new ServerNode();
+            final NonGridMember member = new NonGridMember();
             member.start();
             return member;
         }
 
         @Override
-        protected void cleanupService(final ServerNode serviceInstance, final boolean stopBundle) throws Exception {
+        protected void cleanupService(final NonGridMember serviceInstance, final boolean stopBundle) throws Exception {
             serviceInstance.close();
         }
     }
 
-    private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepository, ThreadPoolRepositoryImpl> {
+    private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepositoryImpl> {
 
         private ThreadPoolRepositoryProvider() {
             super(ThreadPoolRepository.class, noRequiredServices(), ManagedService.class);
@@ -102,7 +102,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class SecurityServletProvider extends ProvidedService<Servlet, SecurityServlet>{
+    private static final class SecurityServletProvider extends ProvidedService<SecurityServlet>{
         private SecurityServletProvider(){
             super(Servlet.class);
         }

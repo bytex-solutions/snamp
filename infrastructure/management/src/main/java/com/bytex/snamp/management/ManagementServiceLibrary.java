@@ -34,7 +34,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
     private static final String USE_PLATFORM_MBEAN_FRAMEWORK_PROPERTY = "com.bytex.snamp.management.usePlatformMBean";
     private static final ActivationProperty<Boolean> USE_PLATFORM_MBEAN_ACTIVATION_PROPERTY = defineActivationProperty(Boolean.class, false);
 
-    private static final class SnampManagerProvider extends ProvidedService<SnampManager, DefaultSnampManager>{
+    private static final class SnampManagerProvider extends ProvidedService<DefaultSnampManager>{
 
         private SnampManagerProvider() {
             super(SnampManager.class);
@@ -146,7 +146,7 @@ public final class ManagementServiceLibrary extends AbstractServiceLibrary {
         }
     }
 
-    private static final class ManagementServletProvider extends ProvidedService<Servlet, ManagementServlet>{
+    private static final class ManagementServletProvider extends ProvidedService<ManagementServlet>{
         private ManagementServletProvider(){
             super(Servlet.class);
         }

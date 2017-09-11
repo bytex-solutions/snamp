@@ -153,17 +153,16 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
     /**
      * Represents superclass for all optional gateway-related service factories.
      * You cannot derive from this class directly.
-     * @param <S> Type of the gateway-related service contract.
      * @param <T> Type of the gateway-related service implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 2.1
      * @see #configurationDescriptor(Supplier)
      */
-    protected final static class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{
+    protected final static class SupportServiceManager<T extends SupportService> extends ProvidedService<T>{
         private final Function<DependencyManager, T> activator;
 
-        private SupportServiceManager(final Class<S> contract,
+        private SupportServiceManager(final Class<? super T> contract,
                                       final Function<DependencyManager, T> activator,
                                       final RequiredService<?>... dependencies) {
             super(contract, dependencies);
@@ -195,7 +194,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      * @param optionalServices Additional services exposed by gateway.
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
-                               final SupportServiceManager<?, ?>... optionalServices){
+                               final SupportServiceManager<?>... optionalServices){
         this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
@@ -207,7 +206,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
                                final RequiredService<?>[] gatewayDependencies,
-                               final SupportServiceManager<?, ?>[] optionalServices) {
+                               final SupportServiceManager<?>[] optionalServices) {
         super(serviceProvider(factory, gatewayDependencies, optionalServices));
         gatewayType = Gateway.getGatewayType(getBundleContextOfObject(this).getBundle());
         logger = LoggerProvider.getLoggerForObject(this);
@@ -215,19 +214,19 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
     private static <G extends Gateway> ProvidedServices serviceProvider(final GatewayFactory<G> factory,
                                                                         final RequiredService<?>[] gatewayDependencies,
-                                                    final SupportServiceManager<?, ?>[] optionalServices){
+                                                    final SupportServiceManager<?>[] optionalServices){
         return (services, activationProperties, bundleLevelDependencies) -> {
             services.add(new GatewayInstances<>(factory, gatewayDependencies));
             Collections.addAll(services, optionalServices);
         };
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Function<DependencyManager, T> factory,
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<T> configurationDescriptor(final Function<DependencyManager, T> factory,
                                                                                                                                                                  final RequiredService<?>... dependencies) {
         return new SupportServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory) {
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<T> configurationDescriptor(final Supplier<T> factory) {
         return configurationDescriptor(dependencies -> factory.get());
     }
 

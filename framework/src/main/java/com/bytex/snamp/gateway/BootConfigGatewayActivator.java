@@ -19,11 +19,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.1
  */
 public abstract class BootConfigGatewayActivator<G extends Gateway> extends GatewayActivator<G> {
-    protected BootConfigGatewayActivator(GatewayFactory<G> factory, SupportServiceManager<?, ?>[] optionalServices) {
+    protected BootConfigGatewayActivator(GatewayFactory<G> factory, SupportServiceManager<?>[] optionalServices) {
         super(factory, optionalServices);
     }
 
-    protected BootConfigGatewayActivator(GatewayFactory<G> factory, RequiredService<?>[] gatewayDependencies, SupportServiceManager<?, ?>[] optionalServices) {
+    protected BootConfigGatewayActivator(GatewayFactory<G> factory, RequiredService<?>[] gatewayDependencies, SupportServiceManager<?>[] optionalServices) {
         super(factory, gatewayDependencies, optionalServices);
     }
 

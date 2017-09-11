@@ -7,7 +7,7 @@ package com.bytex.snamp.cluster;
  * @since 2.1
  * @see GridMember
  */
-public final class ServerNode extends AbstractClusterMember {
+public final class NonGridMember extends AbstractClusterMember {
     @Override
     public void resign() {
 

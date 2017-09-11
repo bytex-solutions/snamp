@@ -17,7 +17,7 @@ public abstract class AbstractConfigurationBundleActivator extends AbstractServi
      * @since 1.0
      * @version 2.1
      */
-    protected static abstract class ConfigurationManagerProvider<T extends ConfigurationManager> extends ProvidedService<ConfigurationManager, T>{
+    protected static abstract class ConfigurationManagerProvider<T extends ConfigurationManager> extends ProvidedService<T>{
         /**
          * Initializes a new holder for the configuration manager service.
          *

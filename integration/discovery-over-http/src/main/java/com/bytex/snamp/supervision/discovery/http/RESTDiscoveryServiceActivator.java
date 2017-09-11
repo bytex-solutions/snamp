@@ -14,7 +14,7 @@ import javax.servlet.Servlet;
  * @since 2.0
  */
 public final class RESTDiscoveryServiceActivator extends AbstractServiceLibrary {
-    private static final class DiscoveryServiceProvider extends ProvidedService<Servlet, DiscoveryServiceServlet>{
+    private static final class DiscoveryServiceProvider extends ProvidedService<DiscoveryServiceServlet>{
         private DiscoveryServiceProvider(){
             super(Servlet.class);
         }

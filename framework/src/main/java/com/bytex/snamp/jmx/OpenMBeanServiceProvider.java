@@ -18,7 +18,7 @@ import static com.bytex.snamp.core.AbstractServiceLibrary.ProvidedService;
  * @version 2.1
  * @since 1.0
  */
-public abstract class OpenMBeanServiceProvider<T extends OpenMBean & FrameworkMBean> extends ProvidedService<FrameworkMBean, T> {
+public abstract class OpenMBeanServiceProvider<T extends OpenMBean & FrameworkMBean> extends ProvidedService<T> {
     private final String objectName;
 
     /**

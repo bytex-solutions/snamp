@@ -110,14 +110,13 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * <p>
      *     The derived class must have parameterless constructor.
      * </p>
-     * @param <S> Contract of the provided service.
      * @param <T> Implementation of the provided service.
      */
-    public static abstract class ProvidedService<S, T extends S> implements ServiceListener {
+    public static abstract class ProvidedService<T> implements ServiceListener {
         protected final DependencyManager dependencies;
         private final Set<Class<? super T>> contract;
 
-        private volatile ServiceRegistrationHolder<S, T> registration;
+        private volatile ServiceRegistrationHolder<T> registration;
         private volatile ActivationPropertyReader properties;
 
         //fields as a part of tuple because it has the same lifecycle in this instance
@@ -132,12 +131,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws IllegalArgumentException contract is {@literal null}.
          */
         @SuppressWarnings("unchecked")
-        protected ProvidedService(@Nonnull final Class<S> contract, final RequiredService<?>... dependencies) {
+        protected ProvidedService(@Nonnull final Class<? super T> contract, final RequiredService<?>... dependencies) {
             this(contract, dependencies, ArrayUtils.emptyArray(Class[].class));
         }
 
         @SafeVarargs
-        protected ProvidedService(@Nonnull final Class<S> mainContract, final RequiredService<?>[] dependencies, final Class<? super T>... subContracts){
+        protected ProvidedService(@Nonnull final Class<? super T> mainContract, final RequiredService<?>[] dependencies, final Class<? super T>... subContracts){
             this.contract = ImmutableSet.<Class<? super T>>builder().add(mainContract).add(subContracts).build();
             this.dependencies = new DependencyManager(dependencies).freeze();
             registration = null;
@@ -215,7 +214,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @return The state of this service provider.
          */
         public final boolean isPublished() {
-            final ServiceRegistrationHolder<?, ?> registration = this.registration;
+            final ServiceRegistrationHolder<?> registration = this.registration;
             return registration != null && registration.isPublished();
         }
 
@@ -315,7 +314,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * </p>
      * @param <TService> Type of the dynamic service.
      */
-    public static abstract class DynamicServiceManager<TService> extends ProvidedService<ManagedServiceFactory, ManagedServiceFactoryImpl<TService>>{
+    public static abstract class DynamicServiceManager<TService> extends ProvidedService<ManagedServiceFactoryImpl<TService>>{
         private final LazyReference<String> factoryPID;
 
         /**
@@ -506,7 +505,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
      * @param <T> The implementation of the dynamic service.
      */
     @ThreadSafe
-    public static abstract class ServiceSubRegistryManager<S, T extends S> extends DynamicServiceManager<ServiceRegistrationHolder<S, T>> {
+    public static abstract class ServiceSubRegistryManager<S, T extends S> extends DynamicServiceManager<ServiceRegistrationHolder<T>> {
         private final Set<Class<? super T>> contract;
 
         /**
@@ -528,7 +527,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             contract = ImmutableSet.<Class<? super T>>builder().add(serviceContract).add(subContracts).build();
         }
 
-        private ServiceRegistrationHolder<S, T> createServiceRegistration(final T newService, final Dictionary<String, ?> identity) {
+        private ServiceRegistrationHolder<T> createServiceRegistration(final T newService, final Dictionary<String, ?> identity) {
             return new ServiceRegistrationHolder<>(getBundleContext(), newService, identity, contract);
         }
 
@@ -544,8 +543,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                            final Dictionary<String, ?> configuration) throws Exception;
 
         @Override
-        protected final ServiceRegistrationHolder<S, T> updateService(final String servicePID,
-                                                                      ServiceRegistrationHolder<S, T> registration,
+        protected final ServiceRegistrationHolder<T> updateService(final String servicePID,
+                                                                      ServiceRegistrationHolder<T> registration,
                                                                       final Dictionary<String, ?> configuration) throws Exception {
             final T oldService = registration.get();
             final T newService = updateService(oldService, configuration);
@@ -572,7 +571,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                              final Dictionary<String, ?> configuration) throws Exception;
 
         @Override
-        protected final ServiceRegistrationHolder<S, T> activateService(final String servicePID,
+        protected final ServiceRegistrationHolder<T> activateService(final String servicePID,
                                                                         final Dictionary<String, ?> configuration) throws Exception {
             final Hashtable<String, Object> identity = new Hashtable<>(4);
             identity.put(Constants.SERVICE_PID, servicePID);
@@ -583,7 +582,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         protected abstract void disposeService(final T service,
                                                final Map<String, ?> identity) throws Exception;
 
-        private void disposeService(final ServiceRegistrationHolder<S, T> registration) throws Exception {
+        private void disposeService(final ServiceRegistrationHolder<T> registration) throws Exception {
             final T serviceInstance = registration.get();
             assert serviceInstance != null;
             final Hashtable<String, ?> properties = registration.dumpProperties();
@@ -596,7 +595,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @throws Exception Unable to dispose the service.
          */
         @Override
-        protected final void disposeService(final ServiceRegistrationHolder<S, T> registration, final boolean bundleStop) throws Exception {
+        protected final void disposeService(final ServiceRegistrationHolder<T> registration, final boolean bundleStop) throws Exception {
             disposeService(registration);
         }
     }
@@ -614,20 +613,20 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param activationProperties A collection of activation properties to read.
          * @param bundleLevelDependencies A collection of resolved bundle-level dependencies.
          */
-        void provide(final Collection<ProvidedService<?, ?>> services,
+        void provide(final Collection<ProvidedService<?>> services,
                      final ActivationPropertyReader activationProperties,
                      final DependencyManager bundleLevelDependencies);
     }
 
-    private static final class ListOfProvidedServices extends ArrayList<ProvidedService<?, ?>> implements ProvidedServices{
+    private static final class ListOfProvidedServices extends ArrayList<ProvidedService<?>> implements ProvidedServices{
         private static final long serialVersionUID = 341418339520679799L;
 
-        private ListOfProvidedServices(final ProvidedService<?, ?>... services){
+        private ListOfProvidedServices(final ProvidedService<?>... services){
             super(Arrays.asList(services));
         }
 
         @Override
-        public void provide(final Collection<ProvidedService<?, ?>> services,
+        public void provide(final Collection<ProvidedService<?>> services,
                             final ActivationPropertyReader activationProperties,
                             final DependencyManager bundleLevelDependencies) {
             services.addAll(this);
@@ -635,13 +634,13 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     }
 
     private final ProvidedServices serviceRegistry;
-    private final List<ProvidedService<?, ?>> providedServices;
+    private final List<ProvidedService<?>> providedServices;
 
     /**
      * Initializes a new bundle with the specified collection of provided services.
      * @param providedServices A collection of provided services.
      */
-    protected AbstractServiceLibrary(final ProvidedService<?, ?>... providedServices){
+    protected AbstractServiceLibrary(final ProvidedService<?>... providedServices){
         this(new ListOfProvidedServices(providedServices));
     }
 
@@ -669,12 +668,12 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                                   final ActivationPropertyPublisher activationProperties,
                                                final DependencyManager dependencies) throws Exception {
         serviceRegistry.provide(providedServices, getActivationProperties(), dependencies);
-        for (final ProvidedService<?, ?> service : providedServices)
+        for (final ProvidedService<?> service : providedServices)
             service.register(context, getActivationProperties());
     }
 
-    private static void unregister(final BundleContext context, final Collection<ProvidedService<?, ?>> providedServices) throws Exception {
-        for (final ProvidedService<?, ?> service : providedServices)
+    private static void unregister(final BundleContext context, final Collection<ProvidedService<?>> providedServices) throws Exception {
+        for (final ProvidedService<?> service : providedServices)
             service.unregister(context);
         providedServices.clear();
     }
@@ -704,7 +703,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void shutdown(final BundleContext context) throws Exception {
-        for(final ProvidedService<?, ?> providedService: providedServices)
+        for(final ProvidedService<?> providedService: providedServices)
             providedService.unregister(context);
     }
 }

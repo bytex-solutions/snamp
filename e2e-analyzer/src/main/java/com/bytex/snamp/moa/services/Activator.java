@@ -22,8 +22,8 @@ public final class Activator extends AbstractServiceLibrary {
     private static final String HISTORY_SIZE_PARAM = "topologyAnalyzerHistorySize";
     private static final long DEFAULT_HISTORY_SIZE = 10_000L;
 
-    private static abstract class AnalyticalServiceProvider<S extends DataAnalyzer, T extends S> extends ProvidedService<S, T>{
-        AnalyticalServiceProvider(final Class<S> serviceType, final RequiredService<?>... dependencies){
+    private static abstract class AnalyticalServiceProvider<T extends DataAnalyzer> extends ProvidedService<T>{
+        AnalyticalServiceProvider(final Class<? super T> serviceType, final RequiredService<?>... dependencies){
             super(serviceType, dependencies, DataAnalyzer.class);
             super.dependencies.add(ConfigurationManager.class, Utils.getBundleContextOfObject(this));
         }
@@ -41,7 +41,7 @@ public final class Activator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class TopologyAnalyzerProvider extends AnalyticalServiceProvider<TopologyAnalyzer, DefaultTopologyAnalyzer> {
+    private static final class TopologyAnalyzerProvider extends AnalyticalServiceProvider<DefaultTopologyAnalyzer> {
         TopologyAnalyzerProvider() {
             super(TopologyAnalyzer.class);
         }

@@ -271,23 +271,23 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
     /**
      * Represents superclass for all-optional resource connector service providers.
      * You cannot derive from this class directly.
-     * @param <S> Type of the gateway-related service contract.
      * @param <T> Type of the gateway-related service implementation.
      * @author Roman Sakno
      * @since 1.0
      * @version 2.1
      * @see #configurationDescriptor(Function, RequiredService[])
      */
-    protected static abstract class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T> {
+    protected static abstract class SupportServiceManager<T extends SupportService> extends ProvidedService<T> {
 
-        private SupportServiceManager(final Class<S> contract,
+        private SupportServiceManager(final Class<? super T> contract,
                                       final RequiredService<?>... dependencies) {
             super(contract, dependencies);
         }
 
-        protected SupportServiceManager(final Class<S> contract,
+        @SafeVarargs
+        protected SupportServiceManager(final Class<? super T> contract,
                                         final RequiredService<?>[] dependencies,
-                                        final Class<? super S> contracts){
+                                        final Class<? super T>... contracts){
             super(contract, dependencies, contracts);
         }
 
@@ -314,10 +314,10 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             return getActivationPropertyValue(CONNECTOR_TYPE_HOLDER);
         }
 
-        static <S extends SupportService, T extends S> SupportServiceManager<S, T> create(final Class<S> contract,
+        static <T extends SupportService> SupportServiceManager<T> create(final Class<? super T> contract,
                                                                                                   final Function<DependencyManager, T> activator,
                                                                                                   final RequiredService<?>... dependencies){
-            return new SupportServiceManager<S, T>(contract, dependencies) {
+            return new SupportServiceManager<T>(contract, dependencies) {
                 @Nonnull
                 @Override
                 protected T createService(final ServiceIdentityBuilder identity) throws Exception {
@@ -327,12 +327,11 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Function<DependencyManager, T> factory,
-                                                                                                                                                                 final RequiredService<?>... dependencies) {
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<T> configurationDescriptor(final Function<DependencyManager, T> factory, final RequiredService<?>... dependencies) {
         return SupportServiceManager.create(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory){
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<T> configurationDescriptor(final Supplier<T> factory) {
         return configurationDescriptor(dependencies -> factory.get());
     }
 
@@ -345,7 +344,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @param optionalServices Additional set of supporting services.
      */
     protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
-                                       final SupportServiceManager<?, ?>... optionalServices) {
+                                       final SupportServiceManager<?>... optionalServices) {
         this(factory,
                 emptyArray(RequiredService[].class),
                 optionalServices);
@@ -359,7 +358,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      */
     protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
                                        final RequiredService<?>[] connectorDependencies,
-                                       final SupportServiceManager<?, ?>[] optionalServices) {
+                                       final SupportServiceManager<?>[] optionalServices) {
         super(serviceProvider(factory, connectorDependencies, optionalServices));
         connectorType = ManagedResourceConnector.getConnectorType(getBundleContextOfObject(this).getBundle());
         logger = LoggerProvider.getLoggerForObject(this);
@@ -367,7 +366,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
     private static <TConnector extends ManagedResourceConnector> ProvidedServices serviceProvider(final ManagedResourceConnectorFactory<TConnector> controller,
                                                                                                   final RequiredService<?>[] connectorDependencies,
-                                                                                                  final SupportServiceManager<?, ?>[] optionalServices){
+                                                                                                  final SupportServiceManager<?>[] optionalServices){
         final class ManagedResourceConnectorFactoryServiceImpl extends AbstractAggregator implements ManagedResourceConnectorFactoryService {
             private final DependencyManager dependencies;
 
@@ -381,7 +380,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             }
         }
 
-        final class ManagedResourceConnectorFactoryServiceManager extends SupportServiceManager<ManagedResourceConnectorFactoryService, ManagedResourceConnectorFactoryServiceImpl> {
+        final class ManagedResourceConnectorFactoryServiceManager extends SupportServiceManager<ManagedResourceConnectorFactoryServiceImpl> {
             private ManagedResourceConnectorFactoryServiceManager(){
                 super(ManagedResourceConnectorFactoryService.class, connectorDependencies);
             }

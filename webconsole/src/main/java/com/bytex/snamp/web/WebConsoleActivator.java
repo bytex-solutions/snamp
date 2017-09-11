@@ -32,7 +32,7 @@ import javax.servlet.Servlet;
 public final class WebConsoleActivator extends AbstractServiceLibrary {
     private static final String THREAD_POOL_NAME = "WebConsoleThreadPool";
 
-    private static final class WebConsoleServletProvider extends ProvidedService<WebConsoleEngine, DefaultWebConsoleEngine>{
+    private static final class WebConsoleServletProvider extends ProvidedService<DefaultWebConsoleEngine>{
         private WebConsoleServletProvider(){
             super(WebConsoleEngine.class, noRequiredServices(), Servlet.class);
         }
@@ -46,17 +46,17 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static abstract class WebConsoleServiceProvider<S extends WebConsoleService, T extends S> extends ProvidedService<S, T>{
+    private static abstract class WebConsoleServiceProvider<T extends WebConsoleService> extends ProvidedService<T>{
         private final String serviceName;
 
-        WebConsoleServiceProvider(@Nonnull final Class<S> mainContract,
+        WebConsoleServiceProvider(@Nonnull final Class<? super T> mainContract,
                                   @Nonnull final String serviceName,
                                   final RequiredService<?>... dependencies) {
             super(mainContract, dependencies, WebConsoleService.class);
             this.serviceName = serviceName;
         }
 
-        WebConsoleServiceProvider(@Nonnull final Class<S> mainContract,
+        WebConsoleServiceProvider(@Nonnull final Class<? super T> mainContract,
                                   @Nonnull final String serviceName,
                                   final RequiredService<?>[] dependencies,
                                   final Class<? super T> subContract) {
@@ -64,7 +64,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
             this.serviceName = serviceName;
         }
 
-        WebConsoleServiceProvider(@Nonnull final Class<S> mainContract,
+        WebConsoleServiceProvider(@Nonnull final Class<? super T> mainContract,
                                   @Nonnull final String serviceName,
                                   final RequiredService<?>[] dependencies,
                                   final Class<? super T> subContract1,
@@ -108,7 +108,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class WebConsoleServiceServletProvider extends ProvidedService<Servlet, WebConsoleServiceServlet> {
+    private static final class WebConsoleServiceServletProvider extends ProvidedService<WebConsoleServiceServlet> {
         private static final String ROOT_CONTEXT = "/snamp/web/api";
 
         WebConsoleServiceServletProvider(@Nonnull final String serviceName) {
@@ -132,7 +132,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     }
 
     //=============Predefined services for WebConsole======
-    private static final class NotificationServiceProvider extends WebConsoleServiceProvider<RESTController, NotificationService>{
+    private static final class NotificationServiceProvider extends WebConsoleServiceProvider<NotificationService>{
         private static final String SERVICE_NAME = "notifications";
 
         private NotificationServiceProvider() {
@@ -146,7 +146,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class GroupWatcherServiceProvider extends WebConsoleServiceProvider<RESTController, ResourceGroupWatcherService>{
+    private static final class GroupWatcherServiceProvider extends WebConsoleServiceProvider<ResourceGroupWatcherService>{
         private static final String SERVICE_NAME = "resourceGroupWatcher";
 
         private GroupWatcherServiceProvider(){
@@ -160,7 +160,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class E2EDataSourceProvider extends WebConsoleServiceProvider<RESTController, E2EDataSource> {
+    private static final class E2EDataSourceProvider extends WebConsoleServiceProvider<E2EDataSource> {
         private static final String SERVICE_NAME = "E2E";
 
         private E2EDataSourceProvider() {
@@ -174,7 +174,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class ChartDataSourceProvider extends WebConsoleServiceProvider<RESTController, ChartDataSource>{
+    private static final class ChartDataSourceProvider extends WebConsoleServiceProvider<ChartDataSource>{
         private static final String SERVICE_NAME = "chartDataProvider";
 
         private ChartDataSourceProvider(){
@@ -189,7 +189,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class ManagedResourceInformationServiceProvider extends WebConsoleServiceProvider<RESTController, ManagedResourceInformationService>{
+    private static final class ManagedResourceInformationServiceProvider extends WebConsoleServiceProvider<ManagedResourceInformationService>{
         private static final String SERVICE_NAME = "managedResourceInformationProvider";
 
         private ManagedResourceInformationServiceProvider(){
@@ -203,7 +203,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class VersionResourceProvider extends WebConsoleServiceProvider<RESTController, VersionResource>{
+    private static final class VersionResourceProvider extends WebConsoleServiceProvider<VersionResource>{
         private static final String SERVICE_NAME = "versionInformation";
 
         private VersionResourceProvider(){
@@ -217,7 +217,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class LogNotifierProvider extends WebConsoleServiceProvider<RESTController, LogNotifier> {
+    private static final class LogNotifierProvider extends WebConsoleServiceProvider<LogNotifier> {
         private static final String SERVICE_NAME = "logNotifier";
 
         private LogNotifierProvider() {
@@ -242,7 +242,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         }
     }
 
-    private static final class UserProfileServiceProvider extends WebConsoleServiceProvider<RESTController, UserProfileService>{
+    private static final class UserProfileServiceProvider extends WebConsoleServiceProvider<UserProfileService>{
         private static final String SERVICE_NAME = "userProfile";
 
         private UserProfileServiceProvider(){

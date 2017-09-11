@@ -132,17 +132,16 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     /**
      * Represents superclass for all optional supervisor-related service factories.
      * You cannot derive from this class directly.
-     * @param <S> Type of the supervisor-related service contract.
      * @param <T> Type of the supervisor-related service implementation.
      * @author Roman Sakno
      * @since 2.0
      * @version 2.1
      * @see #configurationDescriptor(Supplier)
      */
-    protected final static class SupportServiceManager<S extends SupportService, T extends S> extends ProvidedService<S, T>{
+    protected final static class SupportServiceManager<T extends SupportService> extends ProvidedService<T>{
         private final Function<DependencyManager, T> activator;
 
-        private SupportServiceManager(final Class<S> contract,
+        private SupportServiceManager(final Class<? super T> contract,
                                       final Function<DependencyManager, T> activator,
                                       final RequiredService<?>... dependencies) {
             super(contract, dependencies);
@@ -161,12 +160,11 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Function<DependencyManager, T> factory,
-                                                                                                                                                                 final RequiredService<?>... dependencies) {
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<T> configurationDescriptor(final Function<DependencyManager, T> factory, final RequiredService<?>... dependencies) {
         return new SupportServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<ConfigurationEntityDescriptionProvider, T> configurationDescriptor(final Supplier<T> factory) {
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<T> configurationDescriptor(final Supplier<T> factory) {
         return configurationDescriptor(dependencies -> factory.get());
     }
 
@@ -176,13 +174,13 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     protected final String supervisorType;
     private final Logger logger;
 
-    protected SupervisorActivator(final SupervisorFactory<S> factory, final SupportServiceManager<?, ?>... optionalServices) {
+    protected SupervisorActivator(final SupervisorFactory<S> factory, final SupportServiceManager<?>... optionalServices) {
         this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
     protected SupervisorActivator(final SupervisorFactory<S> factory,
                                   final RequiredService<?>[] dependencies,
-                                  final SupportServiceManager<?, ?>[] optionalServices){
+                                  final SupportServiceManager<?>[] optionalServices){
         super(serviceProvider(factory, dependencies, optionalServices));
         supervisorType = Supervisor.getSupervisorType(getBundleContextOfObject(this).getBundle());
         logger = LoggerProvider.getLoggerForObject(this);
@@ -190,7 +188,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
 
     private static  <S extends Supervisor> ProvidedServices serviceProvider(final SupervisorFactory<S> factory,
                                                                             final RequiredService<?>[] dependencies,
-                                                                            final SupportServiceManager<?, ?>[] optionalServices) {
+                                                                            final SupportServiceManager<?>[] optionalServices) {
         return (services, activationProperties, supervisorDependencies) -> {
             services.add(new SupervisorInstances<>(factory, dependencies));
             Collections.addAll(services, optionalServices);

@@ -12,7 +12,7 @@ import javax.servlet.Servlet;
  */
 public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> {
 
-    private static final class HttpAcceptorServletProvider extends SupportServiceManager<ServletSupportService, JerseyServletContainer>{
+    private static final class HttpAcceptorServletProvider extends SupportServiceManager<JerseyServletContainer>{
         private HttpAcceptorServletProvider(){
             super(ServletSupportService.class, noRequiredServices(), Servlet.class);
         }
