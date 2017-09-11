@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeRepositoryReplica;
 
 import java.io.*;
@@ -13,7 +12,7 @@ import java.util.Optional;
  * @version 2.1
  * @since 2.1
  */
-final class CompositeResourceConnectorReplica implements Externalizable {
+final class Replica implements Externalizable {
     private static final long serialVersionUID = -5497518397507394190L;
 
     private static final class AttributeCompositionReplica extends AttributeRepositoryReplica<AbstractCompositeAttribute>{
@@ -39,15 +38,15 @@ final class CompositeResourceConnectorReplica implements Externalizable {
     private final AttributeCompositionReplica attributes;
 
     @SpecialUse(SpecialUse.Case.SERIALIZATION)
-    public CompositeResourceConnectorReplica() {
+    public Replica() {
         attributes = new AttributeCompositionReplica();
     }
 
-    void init(final AbstractAttributeRepository<AbstractCompositeAttribute> attributes){
+    void addToReplica(final Iterable<AbstractCompositeAttribute> attributes){
         this.attributes.init(attributes);
     }
 
-    void restore(final AbstractAttributeRepository<AbstractCompositeAttribute> attributes){
+    void restoreFromReplica(final Iterable<AbstractCompositeAttribute> attributes){
         this.attributes.restore(attributes);
     }
 

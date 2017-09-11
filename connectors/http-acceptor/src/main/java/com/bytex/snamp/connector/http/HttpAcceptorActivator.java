@@ -3,6 +3,8 @@ package com.bytex.snamp.connector.http;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.core.ReplicationSupport;
+import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nonnull;
 import javax.servlet.Servlet;
@@ -11,6 +13,20 @@ import javax.servlet.Servlet;
  * Represents activator of {@link HttpAcceptor}.
  */
 public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAcceptor> {
+
+    private static final class HttpAcceptorFactory implements ManagedResourceConnectorFactory<HttpAcceptor>{
+
+        @Nonnull
+        @Override
+        public HttpAcceptor createConnector(final String resourceName, final ManagedResourceInfo configuration, final DependencyManager dependencies) throws Exception {
+            return new HttpAcceptor(resourceName, configuration);
+        }
+
+        @Override
+        public ImmutableSet<Class<? super HttpAcceptor>> getInterfaces() {
+            return ImmutableSet.of(ReplicationSupport.class);
+        }
+    }
 
     private static final class HttpAcceptorServletProvider extends SupportServiceManager<JerseyServletContainer>{
         private HttpAcceptorServletProvider(){
@@ -32,14 +48,8 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
 
     @SpecialUse(SpecialUse.Case.OSGi)
     public HttpAcceptorActivator() {
-        super(HttpAcceptorActivator::newResourceConnector,
+        super(new HttpAcceptorFactory(),
                 configurationDescriptor(HttpConnectorConfigurationDescriptionProvider::getInstance),
                 new HttpAcceptorServletProvider());
-    }
-
-    private static HttpAcceptor newResourceConnector(final String resourceName,
-                                                     final ManagedResourceInfo configuration,
-                                              final DependencyManager dependencies) {
-        return new HttpAcceptor(resourceName, configuration);
     }
 }

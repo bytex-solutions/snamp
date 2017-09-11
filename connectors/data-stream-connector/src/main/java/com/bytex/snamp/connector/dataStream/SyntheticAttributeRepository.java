@@ -1,17 +1,14 @@
 package com.bytex.snamp.connector.dataStream;
 
-import com.bytex.snamp.Convert;
+import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.DistributedAttributeRepository;
 import com.bytex.snamp.core.LoggerProvider;
 
 import javax.management.AttributeList;
 import javax.management.MBeanException;
 import javax.management.Notification;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
@@ -23,15 +20,14 @@ import java.util.logging.Logger;
  * @version 2.1
  * @since 2.0
  */
-public class SyntheticAttributeRepository extends DistributedAttributeRepository<SyntheticAttribute> {
+public class SyntheticAttributeRepository extends AbstractAttributeRepository<SyntheticAttribute> {
     private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
 
     private ExecutorService threadPool;
     private DataStreamConnectorConfigurationDescriptionProvider configurationParser;
 
-    public SyntheticAttributeRepository(final String resourceName,
-                                        final Duration syncPeriod) {
-        super(resourceName, SyntheticAttribute.class, syncPeriod);
+    public SyntheticAttributeRepository(final String resourceName) {
+        super(resourceName, SyntheticAttribute.class);
     }
 
     final void init(final ExecutorService threadPool, final DataStreamConnectorConfigurationDescriptionProvider parser) {
@@ -76,29 +72,6 @@ public class SyntheticAttributeRepository extends DistributedAttributeRepository
         final SyntheticAttribute attribute = gaugeFactory.createAttribute(attributeName, descriptor);
         attribute.setupFilter(configurationParser);
         return attribute;
-    }
-
-    /**
-     * Takes snapshot of the attribute to distribute it across cluster.
-     *
-     * @param attribute The attribute that should be synchronized across cluster.
-     * @return Serializable state of the attribute; or {@literal null}, if attribute doesn't support synchronization across cluster.
-     */
-    @Override
-    protected final Optional<? extends Serializable> takeSnapshot(final SyntheticAttribute attribute) {
-        return Convert.toType(attribute, DistributedAttribute.class).map(DistributedAttribute::takeSnapshot);
-    }
-
-    /**
-     * Initializes state of the attribute using its serializable snapshot.
-     *
-     * @param attribute The attribute to initialize.
-     * @param snapshot  Serializable snapshot used for initialization.
-     */
-    @Override
-    protected final void loadFromSnapshot(final SyntheticAttribute attribute, final Serializable snapshot) {
-        if (attribute instanceof DistributedAttribute<?, ?>)
-            ((DistributedAttribute<?, ?>) attribute).loadFromSnapshot(snapshot);
     }
 
     /**

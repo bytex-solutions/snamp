@@ -116,11 +116,7 @@ public final class GridMember extends AbstractClusterMember {
     static GridMember bootstrap() throws JMException, ReflectiveOperationException, IOException{
         return new GridMember(Hazelcast.newHazelcastInstance(), true);
     }
-
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForObject(this);
-    }
-
+    
     @Override
     public void start() {
         super.start();

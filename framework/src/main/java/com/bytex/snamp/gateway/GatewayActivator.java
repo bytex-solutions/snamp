@@ -57,8 +57,8 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         G createInstance(final String gatewayInstance,
                          final DependencyManager dependencies);
 
-        default Collection<Class<? super G>> getInterfaces(){
-            return Collections.emptyList();
+        default Set<Class<? super G>> getInterfaces(){
+            return Collections.emptySet();
         }
     }
 

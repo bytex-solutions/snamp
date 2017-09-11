@@ -2,6 +2,7 @@ package com.bytex.snamp.concurrent;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
  * Represents advanced version of {@link AtomicReference} that can be used for implementation of Initialization-On-Demand pattern
@@ -36,5 +37,16 @@ final class LazyStrongReference<V> extends AtomicReference<V> implements LazyRef
     @Override
     public V getValue() {
         return get();
+    }
+
+    @Override
+    public boolean reset(final Consumer<? super V> consumer) {
+        final V value = getAndSet(null);
+        if (value == null)
+            return false;
+        else {
+            consumer.accept(value);
+            return true;
+        }
     }
 }

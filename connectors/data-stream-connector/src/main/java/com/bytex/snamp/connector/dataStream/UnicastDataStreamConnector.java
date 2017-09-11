@@ -33,10 +33,10 @@ public abstract class UnicastDataStreamConnector extends DataStreamConnector {
         return getBundleContextOfObject(this);
     }
 
-    protected final void accept(final Notification notification, final boolean broadcast){
+    protected final void accept(final Notification notification, final boolean broadcast) {
         super.accept(notification);
         if (broadcast && clusterMember.isActive()) {
-            notification.setSource(attributes.getResourceName());
+            notification.setSource(getInstanceName());
             exchange.send(notification);
         }
     }

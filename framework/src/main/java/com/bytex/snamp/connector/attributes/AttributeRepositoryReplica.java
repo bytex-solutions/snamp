@@ -33,7 +33,7 @@ public abstract class AttributeRepositoryReplica<M extends MBeanAttributeInfo> i
      * Initializes this replica from the attributes stored in repository.
      * @param repository Repository of attributes.
      */
-    public final void init(@Nonnull final AbstractAttributeRepository<M> repository){
+    public final void init(@Nonnull final Iterable<M> repository){
         repository.forEach(attribute -> takeSnapshot(attribute).ifPresent(snapshot -> attributes.put(getStorageKey(attribute), snapshot)));
     }
 
@@ -41,7 +41,7 @@ public abstract class AttributeRepositoryReplica<M extends MBeanAttributeInfo> i
      * Restores the state of all attributes inside of repository using this replica.
      * @param repository Repository with attributes to be restored from replica.
      */
-    public final void restore(@Nonnull final AbstractAttributeRepository<M> repository) {
+    public final void restore(@Nonnull final Iterable<M> repository) {
         repository.forEach(attribute -> {
             final Serializable snapshot = attributes.get(getStorageKey(attribute));
             if (snapshot != null)

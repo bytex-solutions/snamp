@@ -3,6 +3,7 @@ package com.bytex.snamp.concurrent;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.Reference;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
  * Represents advanced version of {@link AtomicReference} that can be used for implementation of soft- or weak- referenced singletons.
@@ -20,6 +21,18 @@ abstract class AbstractLazyReference<V> extends AtomicReference<Reference<V>> im
     public final V getValue() {
         final Reference<V> ref = get();
         return ref == null ? null : ref.get();
+    }
+
+    @Override
+    public final boolean reset(final Consumer<? super V> consumer) {
+        final Reference<V> ref = getAndSet(null);
+        final V value;
+        if (ref == null || (value = ref.get()) == null)
+            return false;
+        else {
+            consumer.accept(value);
+            return true;
+        }
     }
 
     /**

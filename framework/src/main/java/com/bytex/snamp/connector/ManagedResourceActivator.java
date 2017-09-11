@@ -73,8 +73,8 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                                    final ManagedResourceInfo configuration,
                                    final DependencyManager dependencies) throws Exception;
 
-        default Collection<Class<? super TConnector>> getInterfaces(){
-            return Collections.emptyList();
+        default Set<Class<? super TConnector>> getInterfaces(){
+            return Collections.emptySet();
         }
     }
 

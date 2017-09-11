@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutorService;
  * @version 2.1
  * @since 1.0
  */
-final class CompositeResourceConnector extends AbstractManagedResourceConnector implements HealthCheckSupport, ReplicationSupport<CompositeResourceConnectorReplica>{
+final class CompositeResourceConnector extends AbstractManagedResourceConnector implements HealthCheckSupport, ReplicationSupport<Replica>{
     private final Composition connectors;
     @Aggregation(cached = true)
     private final AttributeComposition attributes;
@@ -56,15 +56,15 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
 
     @Nonnull
     @Override
-    public CompositeResourceConnectorReplica createReplica() throws ReplicationException {
-        final CompositeResourceConnectorReplica replica = new CompositeResourceConnectorReplica();
-        replica.init(attributes);
+    public Replica createReplica() throws ReplicationException {
+        final Replica replica = new Replica();
+        replica.addToReplica(attributes);
         return replica;
     }
 
     @Override
-    public void loadFromReplica(@Nonnull final CompositeResourceConnectorReplica replica) throws ReplicationException {
-        replica.restore(attributes);
+    public void loadFromReplica(@Nonnull final Replica replica) throws ReplicationException {
+        replica.restoreFromReplica(attributes);
     }
 
     @Override

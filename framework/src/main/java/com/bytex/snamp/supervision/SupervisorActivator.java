@@ -42,6 +42,10 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     protected interface SupervisorFactory<S extends Supervisor>{
         @Nonnull
         S createSupervisor(final String groupName, final DependencyManager dependencies);
+
+        default Collection<Class<? super S>> getInterfaces(){
+            return Collections.emptyList();
+        }
     }
 
     private static final class SupervisorInstances<S extends Supervisor> extends ServiceSubRegistryManager<Supervisor ,S>{
@@ -50,7 +54,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
 
         private SupervisorInstances(@Nonnull final SupervisorFactory<S> factory,
                                     final RequiredService<?>... dependencies){
-            super(Supervisor.class, dependencies);
+            super(Supervisor.class, factory.getInterfaces(), dependencies);
             this.factory = factory;
             this.logger = LazyReference.strong();
         }

@@ -67,6 +67,8 @@ public interface LazyReference<V> extends Consumer<V>, Stateful {
      */
     V getValue();
 
+    boolean reset(final Consumer<? super V> consumer);
+
     /**
      * Creates a new container with lazy initialization which stores strong reference to the object in container.
      * @param <V> Type of object in container.

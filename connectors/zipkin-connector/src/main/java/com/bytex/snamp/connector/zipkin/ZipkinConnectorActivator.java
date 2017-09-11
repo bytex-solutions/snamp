@@ -3,10 +3,11 @@ package com.bytex.snamp.connector.zipkin;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
+import com.bytex.snamp.core.ReplicationSupport;
+import com.google.common.collect.ImmutableSet;
 
 import javax.annotation.Nonnull;
 import javax.servlet.Servlet;
-import java.net.URISyntaxException;
 
 /**
  * Collects spans compatible with Twitter Zipkin.
@@ -33,17 +34,24 @@ public final class ZipkinConnectorActivator extends ManagedResourceActivator<Zip
         }
     }
 
+    private static final class ZipkinConnectorFactory implements ManagedResourceConnectorFactory<ZipkinConnector>{
+        @Nonnull
+        @Override
+        public ZipkinConnector createConnector(final String resourceName, final ManagedResourceInfo configuration, final DependencyManager dependencies) throws Exception {
+            return new ZipkinConnector(resourceName, configuration);
+        }
+
+        @Override
+        public ImmutableSet<Class<? super ZipkinConnector>> getInterfaces() {
+            return ImmutableSet.of(ReplicationSupport.class);
+        }
+    }
+
 
     @SpecialUse(SpecialUse.Case.OSGi)
     public ZipkinConnectorActivator(){
-        super(ZipkinConnectorActivator::createConnector,
+        super(new ZipkinConnectorFactory(),
                 configurationDescriptor(ZipkinConnectorConfigurationDescriptionProvider::getInstance),
                 new ZipkinServletProvider());
-    }
-
-    private static ZipkinConnector createConnector(final String resourceName,
-                                                   final ManagedResourceInfo configuration,
-                                                   final DependencyManager dependencies) throws URISyntaxException {
-        return new ZipkinConnector(resourceName, configuration);
     }
 }

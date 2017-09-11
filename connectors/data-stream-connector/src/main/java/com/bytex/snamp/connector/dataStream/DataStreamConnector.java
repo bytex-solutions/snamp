@@ -2,18 +2,20 @@ package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.concurrent.Timeout;
 import com.bytex.snamp.configuration.ManagedResourceInfo;
+import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.health.*;
-import com.bytex.snamp.connector.metrics.ArrivalsRecorder;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.core.ReplicationSupport;
 import com.bytex.snamp.core.SharedCounter;
 import com.bytex.snamp.instrumentation.measurements.Health;
 import com.bytex.snamp.instrumentation.measurements.jmx.HealthNotification;
@@ -50,7 +52,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 2.0
  * @version 2.1
  */
-public abstract class DataStreamConnector extends AbstractManagedResourceConnector implements HealthCheckSupport, Consumer<Notification> {
+public abstract class DataStreamConnector extends AbstractManagedResourceConnector implements HealthCheckSupport, Consumer<Notification>, ReplicationSupport<Replica> {
     private static final class HeartbeatTimer extends Timeout implements Consumer<HealthNotification> {
         private static final long serialVersionUID = -9146452762715540071L;
         private volatile HealthStatus status;
@@ -94,73 +96,75 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     /**
      * Represents name of the metric represents information collected from input {@link com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification}.
      */
-    public static final String ARRIVALS_METRIC = "Arrivals";
+    public static final String ARRIVALS_METRIC = SpanArrivalsRecorder.NAME;
 
-    private static final class SpanArrivalsRecorder extends ArrivalsRecorder{
-        private static final long serialVersionUID = 4061075096831015800L;
+    private final LazyReference<SyntheticAttributeRepository> attributes;
+    private final LazyReference<SyntheticNotificationRepository> notifications;
+    private final LazyReference<NotificationParser> notificationParser;
 
-        SpanArrivalsRecorder(final int samplingSize) {
-            super(ARRIVALS_METRIC, samplingSize);
-        }
-
-        private SpanArrivalsRecorder(final SpanArrivalsRecorder recorder){
-            super(recorder);
-        }
-
-        void accept(final SpanNotification notification){
-            accept(notification.getMeasurement().convertTo(Duration.class));
-        }
-
-        @Override
-        public SpanArrivalsRecorder clone() {
-            return new SpanArrivalsRecorder(this);
-        }
-    }
-
-    @Aggregation(cached = true)
-    protected final SyntheticAttributeRepository attributes;
-    @Aggregation(cached = true)
-    protected final SyntheticNotificationRepository notifications;
-    @Aggregation(cached = true)
-    private final NotificationParser notificationParser;
-    @Aggregation(cached = true)
     private final JavaBeanOperationRepository operations;
     private final SharedCounter sequenceNumberProvider;
     private final HeartbeatTimer heartbeat;
-    private final SpanArrivalsRecorder arrivals;
-
-    /**
-     * Represents thread pool for parallel operations.
-     */
-    protected final ExecutorService threadPool;
+    private final DataStreamConnectorConfigurationDescriptionProvider descriptionProvider;
+    private volatile SpanArrivalsRecorder arrivals;
+    private final ExecutorService threadPool;
     private final String instanceName;
 
     protected DataStreamConnector(final String resourceName,
                                   final ManagedResourceInfo configuration,
                                   final DataStreamConnectorConfigurationDescriptionProvider descriptor) {
         super(configuration);
+        descriptionProvider = Objects.requireNonNull(descriptor);
+        attributes = LazyReference.strong();
+        notifications = LazyReference.strong();
+        notificationParser = LazyReference.strong();
         arrivals = new SpanArrivalsRecorder(descriptor.getSamplingSize(configuration));
         this.heartbeat = descriptor.getHeartbeat(configuration).map(HeartbeatTimer::new).orElse(null);
         instanceName = resourceName;
         threadPool = descriptor.parseThreadPool(configuration);
-        //init parser
-        notificationParser = createNotificationParser();
-        assert notificationParser != null;
-        //init attributes
-        attributes = createAttributeRepository(resourceName, descriptor.parseSyncPeriod(configuration));
-        assert attributes != null;
-        attributes.init(threadPool, descriptor);
-        //init notifications
-        notifications = createNotificationRepository(resourceName);
-        assert notifications != null;
-        notifications.init(threadPool, descriptor);
-        notifications.setSource(this);
-
         final BeanInfo info = callUnchecked(() -> Introspector.getBeanInfo(getClass(), AbstractManagedResourceConnector.class));
         operations = JavaBeanOperationRepository.create(resourceName, this, info);
         sequenceNumberProvider = ClusterMember.get(getBundleContextOfObject(this))
                 .getCounters()
                 .getSharedObject("SequenceGenerator-".concat(resourceName));
+    }
+
+    /**
+     * Creates a new instance of repository for attributes.
+     * @param resourceName Resource name.
+     * @return A new instance of repository.
+     */
+    @Nonnull
+    protected SyntheticAttributeRepository createAttributeRepository(final String resourceName){
+        return new SyntheticAttributeRepository(resourceName);
+    }
+
+    private SyntheticAttributeRepository createAttributeRepositoryImpl(){
+        final SyntheticAttributeRepository repository = createAttributeRepository(instanceName);
+        repository.init(threadPool, descriptionProvider);
+        return repository;
+    }
+
+    @Aggregation
+    protected final SyntheticAttributeRepository getAttributes() {
+        return attributes.lazyGet(this, DataStreamConnector::createAttributeRepositoryImpl);
+    }
+
+    @Nonnull
+    protected SyntheticNotificationRepository createNotificationRepository(final String resourceName){
+        return new SyntheticNotificationRepository(resourceName);
+    }
+
+    private SyntheticNotificationRepository createNotificationRepositoryImpl(){
+        final SyntheticNotificationRepository repository = createNotificationRepository(instanceName);
+        repository.init(threadPool, descriptionProvider);
+        repository.setSource(this);
+        return repository;
+    }
+
+    @Aggregation
+    protected final SyntheticNotificationRepository getNotifications() {
+        return notifications.lazyGet(this, DataStreamConnector::createNotificationRepositoryImpl);
     }
 
     protected final String getInstanceName(){
@@ -173,20 +177,46 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     }
 
     @Override
+    public final String getReplicaName() {
+        return instanceName;
+    }
+
+    @Nonnull
+    @Override
+    @OverridingMethodsMustInvokeSuper
+    public Replica createReplica() throws ReplicationException {
+        final Replica replica = new Replica();
+        replica.addToReplica(getAttributes());
+        replica.addToReplica(arrivals);
+        return replica;
+    }
+
+    /**
+     * Loads replica.
+     *
+     * @param replica Replica to load. Cannot be {@literal null}.
+     */
+    @Override
+    public void loadFromReplica(@Nonnull final Replica replica) throws ReplicationException {
+        replica.restoreFromReplica(getAttributes());
+        arrivals = replica.restoreFromReplica();
+    }
+
+    @Override
     protected final MetricsSupport createMetricsReader() {
-        return assembleMetricsReader(attributes.getMetrics(), notifications.getMetrics(), operations.getMetrics(), arrivals);
+        return assembleMetricsReader(getAttributes().getMetrics(), getNotifications().getMetrics(), operations.getMetrics(), arrivals);
     }
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @ManagementOperation(description = "Resets all metrics")
     public void resetAllMetrics() {
-        attributes.resetAllMetrics();
+        getAttributes().resetAllMetrics();
     }
 
     @SpecialUse(SpecialUse.Case.REFLECTION)
     @ManagementOperation(description = "Resets the specified metrics")
     public boolean resetMetric(@OperationParameter(name = "attributeName", description = "The name of the attribute to reset") final String attributeName) {
-        return attributes.getAttributeInfo(attributeName)
+        return getAttributes().getAttributeInfo(attributeName)
                 .flatMap(Convert.toType(MetricHolderAttribute.class))
                 .map(attribute -> {
                     attribute.reset();
@@ -196,6 +226,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     }
 
     public final void dispatch(final Map<String, ?> headers, final Object body) throws Exception {
+        final NotificationParser notificationParser = this.notificationParser.lazyGet(this, DataStreamConnector::createNotificationParser);
         try (final Stream<Notification> notifications = notificationParser.parse(headers, body).filter(Objects::nonNull)) {
             notifications.forEach(this);
         }
@@ -214,8 +245,8 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
 
     final void acceptRaw(final Notification notification) {
         notification.setSource(this);
-        attributes.handleNotification(notification, this::attributeProcessed);
-        notifications.accept(notification);
+        getAttributes().handleNotification(notification, this::attributeProcessed);
+        getNotifications().accept(notification);
         if (heartbeat != null)                 //update heartbeat if it is enabled
             Convert.toType(notification, HealthNotification.class).ifPresent(heartbeat);
         Convert.toType(notification, SpanNotification.class).ifPresent(arrivals::accept);
@@ -256,7 +287,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
                         attribute.getType(),
                         newAttributeValue,
                         newAttributeValue);
-                notifications.accept(notification);
+                getNotifications().accept(notification);
             });
         }
     }
@@ -267,28 +298,14 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
      */
     protected abstract NotificationParser createNotificationParser();
 
-    /**
-     * Creates a new instance of repository for attributes.
-     * @param resourceName Resource name.
-     * @param syncPeriod Cluster-wide synchronization period. Cannot be {@literal null}.
-     * @return A new instance of repository.
-     */
-    protected SyntheticAttributeRepository createAttributeRepository(final String resourceName, final Duration syncPeriod){
-        return new SyntheticAttributeRepository(resourceName, syncPeriod);
-    }
-
-    protected SyntheticNotificationRepository createNotificationRepository(final String resourceName){
-        return new SyntheticNotificationRepository(resourceName);
-    }
-
     @Override
     public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, notifications, operations);
+        addResourceEventListener(listener, getAttributes(), getNotifications(), operations);
     }
 
     @Override
     public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes, notifications, operations);
+        removeResourceEventListener(listener, getAttributes(), getNotifications(), operations);
     }
 
     /**
@@ -298,8 +315,10 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     @Override
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
-        attributes.close();
-        notifications.close();
+        attributes.reset(AbstractFeatureRepository::close);
+        notifications.reset(AbstractFeatureRepository::close);
+        notificationParser.reset();
+        arrivals = null;
         operations.close();
         super.close();
     }

@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.getValueAsLong;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
 
@@ -28,7 +27,6 @@ import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
  * @version 2.1
  */
 public abstract class DataStreamConnectorConfigurationDescriptionProvider extends ConfigurationEntityDescriptionProviderImpl implements ManagedResourceDescriptionProvider {
-    private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
     private static final String RANGE_START_PARAM = "from";
     private static final String RANGE_END_PARAM = "to";
     private static final String CHANNELS_PARAM = "channels";
@@ -40,7 +38,7 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
     protected static class ConnectorConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private static final String RESOURCE_NAME = "ConnectorConfiguration";
         private final ResourceReader fallbackReader;
-        private static final String[] DEFAULT_PARAMS = {SYNC_PERIOD_PARAM, HEARTBEAT_PARAM};
+        private static final String[] DEFAULT_PARAMS = {HEARTBEAT_PARAM};
 
         /**
          * Initializes a new resource-based descriptor.
@@ -144,11 +142,6 @@ public abstract class DataStreamConnectorConfigurationDescriptionProvider extend
 
     private static GroovyNotificationFilterFactory createNotificationFilterFactory(final ClassLoader loader) {
         return new GroovyNotificationFilterFactory(loader);
-    }
-
-    protected Duration parseSyncPeriod(final Map<String, String> parameters) {
-        final long period = getValueAsLong(parameters, SYNC_PERIOD_PARAM, Long::parseLong).orElse(5000L);
-        return Duration.ofMillis(period);
     }
 
     private static Double objToDouble(final Object value){
