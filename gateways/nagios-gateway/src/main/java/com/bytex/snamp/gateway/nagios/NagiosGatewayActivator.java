@@ -4,8 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.service.http.HttpService;
 
-import static com.bytex.snamp.ArrayUtils.toArray;
-
 /**
  * @author Roman Sakno
  * @version 2.1
@@ -16,8 +14,8 @@ public final class NagiosGatewayActivator extends GatewayActivator<NagiosGateway
     @SpecialUse(SpecialUse.Case.OSGi)
     public NagiosGatewayActivator() {
         super(NagiosGatewayActivator::newGateway,
-                requiredBy(NagiosGateway.class).require(HttpService.class),
-                toArray(configurationDescriptor(NagiosGatewayConfigurationDescriptor::new)));
+                configurationDescriptor(NagiosGatewayConfigurationDescriptor::new),
+                requiredBy(NagiosGateway.class).require(HttpService.class));
     }
 
     @SuppressWarnings("unchecked")

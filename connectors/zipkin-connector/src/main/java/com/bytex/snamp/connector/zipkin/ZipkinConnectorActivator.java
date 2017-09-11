@@ -17,7 +17,7 @@ import java.net.URISyntaxException;
 public final class ZipkinConnectorActivator extends ManagedResourceActivator<ZipkinConnector> {
     private static final class ZipkinServletProvider extends SupportServiceManager<ZipkinServlet>{
         private ZipkinServletProvider(){
-            super(ServletSupportService.class, noRequiredServices(), Servlet.class);
+            super(ServletSupportService.class, Servlet.class);
         }
 
         @Nonnull

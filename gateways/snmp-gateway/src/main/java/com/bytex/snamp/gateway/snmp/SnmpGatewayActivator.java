@@ -6,8 +6,6 @@ import com.bytex.snamp.gateway.GatewayActivator;
 import org.osgi.service.jndi.JNDIContextManager;
 import org.snmp4j.log.OSGiLogFactory;
 
-import static com.bytex.snamp.ArrayUtils.toArray;
-
 /**
  * @author Roman Sakno
  * @version 2.1
@@ -24,8 +22,8 @@ public final class SnmpGatewayActivator extends GatewayActivator<SnmpGateway> {
     @SpecialUse(SpecialUse.Case.OSGi)
     public SnmpGatewayActivator() {
         super(SnmpGatewayActivator::newGateway,
-                requiredBy(SnmpGateway.class).require(JNDIContextManager.class, ThreadPoolRepository.class),
-                toArray(configurationDescriptor(SnmpGatewayDescriptionProvider::getInstance)));
+                configurationDescriptor(SnmpGatewayDescriptionProvider::getInstance),
+                requiredBy(SnmpGateway.class).require(JNDIContextManager.class, ThreadPoolRepository.class));
     }
 
     private static SnmpGateway newGateway(final String instanceName, final DependencyManager dependencies) {

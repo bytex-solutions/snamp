@@ -34,7 +34,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
     private static final class WebConsoleServletProvider extends ProvidedService<DefaultWebConsoleEngine>{
         private WebConsoleServletProvider(){
-            super(WebConsoleEngine.class, noRequiredServices(), Servlet.class);
+            super(WebConsoleEngine.class, Servlet.class);
         }
 
         @Override
@@ -52,24 +52,24 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         WebConsoleServiceProvider(@Nonnull final Class<? super T> mainContract,
                                   @Nonnull final String serviceName,
                                   final RequiredService<?>... dependencies) {
-            super(mainContract, dependencies, WebConsoleService.class);
+            super(mainContract, WebConsoleService.class, dependencies);
             this.serviceName = serviceName;
         }
 
         WebConsoleServiceProvider(@Nonnull final Class<? super T> mainContract,
+                                  @Nonnull final Class<? super T> subContract,
                                   @Nonnull final String serviceName,
-                                  final RequiredService<?>[] dependencies,
-                                  final Class<? super T> subContract) {
-            super(mainContract, dependencies, WebConsoleService.class, subContract);
+                                  final RequiredService<?>... dependencies) {
+            super(mainContract, WebConsoleService.class, subContract, dependencies);
             this.serviceName = serviceName;
         }
 
         WebConsoleServiceProvider(@Nonnull final Class<? super T> mainContract,
+                                  @Nonnull final Class<? super T> subContract1,
+                                  @Nonnull final Class<? super T> subContract2,
                                   @Nonnull final String serviceName,
-                                  final RequiredService<?>[] dependencies,
-                                  final Class<? super T> subContract1,
-                                  final Class<? super T> subContract2) {
-            super(mainContract, dependencies, WebConsoleService.class, subContract1, subContract2);
+                                  final RequiredService<?>... dependencies) {
+            super(mainContract, WebConsoleService.class, subContract1, subContract2, dependencies);
             this.serviceName = serviceName;
         }
 
@@ -136,7 +136,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         private static final String SERVICE_NAME = "notifications";
 
         private NotificationServiceProvider() {
-            super(RESTController.class, SERVICE_NAME, noRequiredServices(), PrincipalBoundedService.class);
+            super(RESTController.class, PrincipalBoundedService.class, SERVICE_NAME);
         }
 
         @Nonnull
@@ -164,7 +164,7 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
         private static final String SERVICE_NAME = "E2E";
 
         private E2EDataSourceProvider() {
-            super(RESTController.class, SERVICE_NAME, noRequiredServices(), PrincipalBoundedService.class);
+            super(RESTController.class, PrincipalBoundedService.class, SERVICE_NAME);
         }
 
         @Nonnull
@@ -177,8 +177,8 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
     private static final class ChartDataSourceProvider extends WebConsoleServiceProvider<ChartDataSource>{
         private static final String SERVICE_NAME = "chartDataProvider";
 
-        private ChartDataSourceProvider(){
-            super(RESTController.class, SERVICE_NAME, requiredBy(ChartDataSource.class).require(ThreadPoolRepository.class), PrincipalBoundedService.class);
+        private ChartDataSourceProvider() {
+            super(RESTController.class, PrincipalBoundedService.class, SERVICE_NAME, requiredBy(ChartDataSource.class).require(ThreadPoolRepository.class));
         }
 
         @Nonnull
@@ -222,10 +222,10 @@ public final class WebConsoleActivator extends AbstractServiceLibrary {
 
         private LogNotifierProvider() {
             super(RESTController.class,
-                    SERVICE_NAME,
-                    requiredBy(LogNotifier.class).require(ThreadPoolRepository.class),
                     PaxAppender.class,
-                    PrincipalBoundedService.class);
+                    PrincipalBoundedService.class,
+                    SERVICE_NAME,
+                    requiredBy(LogNotifier.class).require(ThreadPoolRepository.class));
         }
 
         @Override

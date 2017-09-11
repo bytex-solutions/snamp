@@ -23,8 +23,10 @@ public abstract class BootConfigGatewayActivator<G extends Gateway> extends Gate
         super(factory, optionalServices);
     }
 
-    protected BootConfigGatewayActivator(GatewayFactory<G> factory, RequiredService<?>[] gatewayDependencies, SupportServiceManager<?>[] optionalServices) {
-        super(factory, gatewayDependencies, optionalServices);
+    protected BootConfigGatewayActivator(final GatewayFactory<G> factory,
+                                         final SupportServiceManager<?>[] optionalServices,
+                                         final RequiredService<?>... gatewayDependencies) {
+        super(factory, optionalServices, gatewayDependencies);
     }
 
     protected abstract String bootInstanceName();

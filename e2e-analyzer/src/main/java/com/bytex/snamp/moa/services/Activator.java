@@ -24,7 +24,7 @@ public final class Activator extends AbstractServiceLibrary {
 
     private static abstract class AnalyticalServiceProvider<T extends DataAnalyzer> extends ProvidedService<T>{
         AnalyticalServiceProvider(final Class<? super T> serviceType, final RequiredService<?>... dependencies){
-            super(serviceType, dependencies, DataAnalyzer.class);
+            super(serviceType, DataAnalyzer.class, dependencies);
             super.dependencies.add(ConfigurationManager.class, Utils.getBundleContextOfObject(this));
         }
 

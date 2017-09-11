@@ -11,8 +11,6 @@ import org.snmp4j.util.DefaultThreadFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
-import static com.bytex.snamp.ArrayUtils.toArray;
-
 
 /**
  * Represents SNMP connector activator.
@@ -30,8 +28,8 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     @SpecialUse(SpecialUse.Case.OSGi)
     public SnmpResourceConnectorActivator() {
         super(SnmpResourceConnectorActivator::createConnector,
-                requiredBy(SnmpResourceConnector.class).require(ThreadPoolRepository.class),
-                toArray(configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance)));
+                configurationDescriptor(SnmpConnectorDescriptionProvider::getInstance),
+                requiredBy(SnmpResourceConnector.class).require(ThreadPoolRepository.class));
     }
 
     @Nonnull

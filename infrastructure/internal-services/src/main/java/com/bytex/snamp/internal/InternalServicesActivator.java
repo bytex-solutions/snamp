@@ -86,7 +86,7 @@ public final class InternalServicesActivator extends AbstractServiceLibrary {
     private static final class ThreadPoolRepositoryProvider extends ProvidedService<ThreadPoolRepositoryImpl> {
 
         private ThreadPoolRepositoryProvider() {
-            super(ThreadPoolRepository.class, noRequiredServices(), ManagedService.class);
+            super(ThreadPoolRepository.class, ManagedService.class);
         }
 
         @Override

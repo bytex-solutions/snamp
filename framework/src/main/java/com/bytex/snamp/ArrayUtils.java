@@ -528,11 +528,4 @@ public final class ArrayUtils {
             result[index] = transformer.apply(array[index]);
         return result;
     }
-
-    public static <T> T[] toArray(final T item) {
-        @SuppressWarnings("unchecked")
-        final T[] array = (T[]) Array.newInstance(item.getClass(), 1);
-        array[0] = item;
-        return array;
-    }
 }

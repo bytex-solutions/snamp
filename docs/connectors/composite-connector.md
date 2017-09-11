@@ -32,7 +32,6 @@ Composite Connector recognizes the following parameters:
 Parameter | Type | Required | Meaning | Example
 ---- | ---- | ---- | ---- | ----
 separator | String | No | Separator used to split connection strings of composed connectors | `_`
-synchronizationPeriod | Integer | No | A period of time (in millis) used to synchronize accumulators with aggregated metrics across cluster. Default is `5000` | `3000`
 groovyPath | String | Yes if use `groovy()` as formula for accumulators; otherwise, no | Semicolon-separated list of URL paths that point to directories with Groovy scripts | `file:/opt/snamp/groovy/composition`
 
 ## Configuring attributes

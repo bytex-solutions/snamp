@@ -1,7 +1,6 @@
 package com.bytex.snamp.core;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.concurrent.LazyReference;
@@ -130,17 +129,36 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param dependencies A collection of service dependencies.
          * @throws IllegalArgumentException contract is {@literal null}.
          */
-        @SuppressWarnings("unchecked")
         protected ProvidedService(@Nonnull final Class<? super T> contract, final RequiredService<?>... dependencies) {
-            this(contract, dependencies, ArrayUtils.emptyArray(Class[].class));
+            this(contract, Collections.emptyList(), dependencies);
         }
 
-        @SafeVarargs
-        protected ProvidedService(@Nonnull final Class<? super T> mainContract, final RequiredService<?>[] dependencies, final Class<? super T>... subContracts){
-            this.contract = ImmutableSet.<Class<? super T>>builder().add(mainContract).add(subContracts).build();
+        private ProvidedService(@Nonnull final Class<? super T> mainContract, final Iterable<Class<? super T>> subContracts, final RequiredService<?>... dependencies){
+            this.contract = ImmutableSet.<Class<? super T>>builder().add(mainContract).addAll(subContracts).build();
             this.dependencies = new DependencyManager(dependencies).freeze();
             registration = null;
             properties = EMPTY_ACTIVATION_PROPERTY_READER;
+        }
+
+        protected ProvidedService(@Nonnull final Class<? super T> mainContract,
+                                  @Nonnull final Class<? super T> secondaryContract,
+                                  final RequiredService<?>... dependencies) {
+            this(mainContract, Collections.singleton(secondaryContract), dependencies);
+        }
+
+        protected ProvidedService(@Nonnull final Class<? super T> mainContract,
+                                  @Nonnull final Class<? super T> secondContract,
+                                  @Nonnull final Class<? super T> thirdContract,
+                                  final RequiredService<?>... dependencies) {
+            this(mainContract, Arrays.<Class<? super T>>asList(mainContract, secondContract, thirdContract), dependencies);
+        }
+
+        protected ProvidedService(@Nonnull final Class<? super T> mainContract,
+                                  @Nonnull final Class<? super T> secondContract,
+                                  @Nonnull final Class<? super T> thirdContract,
+                                  @Nonnull final Class<? super T> fourthContract,
+                                  final RequiredService<?>... dependencies) {
+            this(mainContract, Arrays.<Class<? super T>>asList(mainContract, secondContract, thirdContract, fourthContract), dependencies);
         }
 
         private Class<? super T> getServiceContract(){
@@ -513,18 +531,16 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
          * @param serviceContract The contract of the dynamic services.
          * @param dependencies A collection of dependencies required for the newly created service.
          */
-        @SuppressWarnings("unchecked")
         protected ServiceSubRegistryManager(final Class<S> serviceContract,
                                             final RequiredService<?>... dependencies){
-            this(serviceContract, dependencies, ArrayUtils.emptyArray(Class[].class));
+            this(serviceContract, Collections.emptyList(), dependencies);
         }
 
-        @SafeVarargs
         protected ServiceSubRegistryManager(final Class<S> serviceContract,
-                                            final RequiredService<?>[] dependencies,
-                                            final Class<? super T>... subContracts){
+                                            final Iterable<Class<? super T>> subtracts,
+                                            final RequiredService<?>... dependencies){
             super(dependencies);
-            contract = ImmutableSet.<Class<? super T>>builder().add(serviceContract).add(subContracts).build();
+            contract = ImmutableSet.<Class<? super T>>builder().add(serviceContract).addAll(subtracts).build();
         }
 
         private ServiceRegistrationHolder<T> createServiceRegistration(final T newService, final Dictionary<String, ?> identity) {

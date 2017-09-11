@@ -14,7 +14,7 @@ public final class HttpAcceptorActivator extends ManagedResourceActivator<HttpAc
 
     private static final class HttpAcceptorServletProvider extends SupportServiceManager<JerseyServletContainer>{
         private HttpAcceptorServletProvider(){
-            super(ServletSupportService.class, noRequiredServices(), Servlet.class);
+            super(ServletSupportService.class, Servlet.class);
         }
 
         @Nonnull

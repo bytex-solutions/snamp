@@ -26,12 +26,14 @@ import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanOperationInfo;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 /**
@@ -71,9 +73,8 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                                    final ManagedResourceInfo configuration,
                                    final DependencyManager dependencies) throws Exception;
 
-        @SuppressWarnings("unchecked")
-        default Class<? super TConnector>[] getInterfaces(){
-            return ArrayUtils.emptyArray(Class[].class);
+        default Collection<Class<? super TConnector>> getInterfaces(){
+            return Collections.emptyList();
         }
     }
 
@@ -83,7 +84,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
         private ManagedResourceConnectorRegistry(@Nonnull final ManagedResourceConnectorFactory<TConnector> controller,
                                                  final RequiredService<?>... dependencies) {
-            super(ManagedResourceConnector.class, dependencies, controller.getInterfaces());
+            super(ManagedResourceConnector.class, controller.getInterfaces(), dependencies);
             this.factory = controller;
             this.logger = LazyReference.strong();
         }
@@ -284,11 +285,17 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
             super(contract, dependencies);
         }
 
-        @SafeVarargs
-        protected SupportServiceManager(final Class<? super T> contract,
-                                        final RequiredService<?>[] dependencies,
-                                        final Class<? super T>... contracts){
-            super(contract, dependencies, contracts);
+        protected SupportServiceManager(@Nonnull final Class<? super T> mainContract,
+                                        @Nonnull final Class<? super T> secondaryContract,
+                                        final RequiredService<?>... dependencies) {
+            super(mainContract, secondaryContract, dependencies);
+        }
+
+        protected SupportServiceManager(@Nonnull final Class<? super T> mainContract,
+                                        @Nonnull final Class<? super T> secondContract,
+                                        @Nonnull final Class<? super T> thirdContract,
+                                        final RequiredService<?>... dependencies) {
+            super(mainContract, secondContract, thirdContract, dependencies);
         }
 
         @Nonnull
@@ -345,9 +352,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      */
     protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
                                        final SupportServiceManager<?>... optionalServices) {
-        this(factory,
-                emptyArray(RequiredService[].class),
-                optionalServices);
+        this(factory, optionalServices, ArrayUtils.emptyArray(RequiredService[].class));
     }
 
     /**
@@ -357,11 +362,22 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @param optionalServices Additional set of supporting services.
      */
     protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
-                                       final RequiredService<?>[] connectorDependencies,
-                                       final SupportServiceManager<?>[] optionalServices) {
+                                       final SupportServiceManager<?>[] optionalServices,
+                                       final RequiredService<?>... connectorDependencies) {
         super(serviceProvider(factory, connectorDependencies, optionalServices));
         connectorType = ManagedResourceConnector.getConnectorType(getBundleContextOfObject(this).getBundle());
         logger = LoggerProvider.getLoggerForObject(this);
+    }
+
+    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
+                                       final SupportServiceManager<?> optionalService,
+                                       final RequiredService<?>... connectorDependencies) {
+        this(factory, new SupportServiceManager<?>[]{optionalService}, connectorDependencies);
+    }
+
+    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
+                                       final SupportServiceManager<?> optionalService) {
+        this(factory, new SupportServiceManager<?>[]{optionalService});
     }
 
     private static <TConnector extends ManagedResourceConnector> ProvidedServices serviceProvider(final ManagedResourceConnectorFactory<TConnector> controller,

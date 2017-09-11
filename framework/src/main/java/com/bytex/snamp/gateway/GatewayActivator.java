@@ -56,6 +56,10 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         @Nonnull
         G createInstance(final String gatewayInstance,
                          final DependencyManager dependencies);
+
+        default Collection<Class<? super G>> getInterfaces(){
+            return Collections.emptyList();
+        }
     }
 
     private static final class GatewayInstances<G extends Gateway> extends ServiceSubRegistryManager<Gateway, G>{
@@ -64,7 +68,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
         private GatewayInstances(@Nonnull final GatewayFactory<G> factory,
                                  final RequiredService<?>... dependencies) {
-            super(Gateway.class, dependencies);
+            super(Gateway.class, factory.getInterfaces(), dependencies);
             this.gatewayInstanceFactory = factory;
             this.logger = LazyReference.strong();
         }
@@ -195,7 +199,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
                                final SupportServiceManager<?>... optionalServices){
-        this(factory, emptyArray(RequiredService[].class), optionalServices);
+        this(factory, optionalServices, emptyArray(RequiredService[].class));
     }
 
     /**
@@ -205,11 +209,22 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
      * @param optionalServices Additional services exposed by gateway.
      */
     protected GatewayActivator(final GatewayFactory<G> factory,
-                               final RequiredService<?>[] gatewayDependencies,
-                               final SupportServiceManager<?>[] optionalServices) {
+                               final SupportServiceManager<?>[] optionalServices,
+                               final RequiredService<?>[] gatewayDependencies) {
         super(serviceProvider(factory, gatewayDependencies, optionalServices));
         gatewayType = Gateway.getGatewayType(getBundleContextOfObject(this).getBundle());
         logger = LoggerProvider.getLoggerForObject(this);
+    }
+
+    protected GatewayActivator(final GatewayFactory<G> factory,
+                               final SupportServiceManager<?> optionalService,
+                               final RequiredService<?>[] gatewayDependencies) {
+        this(factory, new SupportServiceManager<?>[]{optionalService}, gatewayDependencies);
+    }
+
+    protected GatewayActivator(final GatewayFactory<G> factory,
+                               final SupportServiceManager<?> optionalService) {
+        this(factory, new SupportServiceManager<?>[]{optionalService});
     }
 
     private static <G extends Gateway> ProvidedServices serviceProvider(final GatewayFactory<G> factory,
@@ -226,7 +241,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
         return new SupportServiceManager<>(ConfigurationEntityDescriptionProvider.class, factory, dependencies);
     }
 
-    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<T> configurationDescriptor(final Supplier<T> factory) {
+    protected static <T extends ConfigurationEntityDescriptionProvider> SupportServiceManager<T> configurationDescriptor(final Supplier<? extends T> factory) {
         return configurationDescriptor(dependencies -> factory.get());
     }
 

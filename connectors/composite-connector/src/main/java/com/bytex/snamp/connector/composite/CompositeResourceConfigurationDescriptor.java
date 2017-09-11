@@ -11,14 +11,12 @@ import com.google.common.base.Splitter;
 
 import javax.management.Descriptor;
 import java.net.URL;
-import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.bytex.snamp.MapUtils.getValue;
-import static com.bytex.snamp.MapUtils.getValueAsInt;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
 import static com.bytex.snamp.jmx.DescriptorUtils.getField;
 import static com.bytex.snamp.jmx.DescriptorUtils.getFieldIfPresent;
@@ -37,14 +35,13 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     private static final String FORMULA_PARAM = "formula";
     private static final String RATE_FORMULA_PARAM = "rate()";
     private static final String GROOVY_FORMULA_PARAM = "groovy()";
-    private static final String SYNC_PERIOD_PARAM = "synchronizationPeriod";
     private static final String GROOVY_PATH_PARAM = "groovyPath";
 
     private static final LazyReference<CompositeResourceConfigurationDescriptor> INSTANCE = LazyReference.soft();
 
     private static final class ResourceConfigurationDescription extends ResourceBasedConfigurationEntityDescription<ManagedResourceConfiguration>{
         private ResourceConfigurationDescription(){
-            super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM, SYNC_PERIOD_PARAM, GROOVY_PATH_PARAM);
+            super("ConnectorParameters", ManagedResourceConfiguration.class, SEPARATOR_PARAM, GROOVY_PATH_PARAM);
         }
     }
 
@@ -79,11 +76,6 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
 
     String parseSeparator(final Map<String, String> parameters){
         return getValue(parameters, SEPARATOR_PARAM, Function.identity()).orElse(";");
-    }
-
-    Duration parseSyncPeriod(final Map<String, String> parameters){
-        final long period = getValueAsInt(parameters, SYNC_PERIOD_PARAM, Integer::parseInt).orElse(5000);
-        return Duration.ofMillis(period);
     }
 
     static String parseSource(final Descriptor descriptor) throws AbsentCompositeConfigurationParameterException {

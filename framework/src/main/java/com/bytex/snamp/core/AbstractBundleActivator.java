@@ -591,14 +591,6 @@ public abstract class AbstractBundleActivator implements BundleActivator, Servic
         RequiredService<?>[] require(final Class<?>... serviceTypes);
     }
 
-    /**
-     * Returns empty or array of required services.
-     * @return Empty array of required services.
-     */
-    protected static RequiredService<?>[] noRequiredServices(){
-        return ArrayUtils.emptyArray(RequiredServiceAccessor[].class);
-    }
-
     private static RequiredService<?>[] requiredServices(final BundleContext context, final Class<?>... dependencies) {
         return ArrayUtils.transform(dependencies, RequiredServiceAccessor.class, contract -> new SimpleDependency<>(contract, context));
     }

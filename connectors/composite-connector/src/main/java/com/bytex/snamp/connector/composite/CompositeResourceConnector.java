@@ -7,10 +7,10 @@ import com.bytex.snamp.connector.ResourceEventListener;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
+import com.bytex.snamp.core.ReplicationSupport;
 
 import javax.annotation.Nonnull;
 import java.net.URL;
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutorService;
  * @version 2.1
  * @since 1.0
  */
-final class CompositeResourceConnector extends AbstractManagedResourceConnector implements HealthCheckSupport{
+final class CompositeResourceConnector extends AbstractManagedResourceConnector implements HealthCheckSupport, ReplicationSupport<CompositeResourceConnectorReplica>{
     private final Composition connectors;
     @Aggregation(cached = true)
     private final AttributeComposition attributes;
@@ -31,11 +31,10 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
 
     private CompositeResourceConnector(final String resourceName,
                                final ExecutorService threadPool,
-                               final Duration syncPeriod,
                                final URL[] groovyPath) {
         connectors = new Composition(resourceName);
         final ScriptLoader scriptLoader = new ScriptLoader(getClass().getClassLoader(), groovyPath);
-        attributes = new AttributeComposition(resourceName, connectors, threadPool, syncPeriod, scriptLoader);
+        attributes = new AttributeComposition(resourceName, connectors, threadPool, scriptLoader);
         notifications = new NotificationComposition(resourceName, connectors, threadPool);
         notifications.addNotificationListener(attributes, null, null);
         notifications.setSource(this);
@@ -46,9 +45,26 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
                                final ManagedResourceInfo configuration,
                                final CompositeResourceConfigurationDescriptor parser) {
         this(resourceName, parser.parseThreadPool(configuration),
-                parser.parseSyncPeriod(configuration),
                 parser.parseGroovyPath(configuration));
         setConfiguration(configuration);
+    }
+
+    @Override
+    public String getReplicaName() {
+        return attributes.getResourceName();
+    }
+
+    @Nonnull
+    @Override
+    public CompositeResourceConnectorReplica createReplica() throws ReplicationException {
+        final CompositeResourceConnectorReplica replica = new CompositeResourceConnectorReplica();
+        replica.init(attributes);
+        return replica;
+    }
+
+    @Override
+    public void loadFromReplica(@Nonnull final CompositeResourceConnectorReplica replica) throws ReplicationException {
+        replica.restore(attributes);
     }
 
     @Override

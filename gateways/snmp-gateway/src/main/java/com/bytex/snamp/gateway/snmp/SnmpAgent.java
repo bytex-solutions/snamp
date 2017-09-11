@@ -1,6 +1,5 @@
 package com.bytex.snamp.gateway.snmp;
 
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.gateway.GatewayUpdatedCallback;
 import org.snmp4j.TransportMapping;
@@ -235,7 +234,7 @@ final class SnmpAgent extends BaseAgent implements SnmpNotificationListener, Gat
 	 */
 	protected void initTransportMappings() throws IOException {
         final TransportMapping<?> tm = createTransportMapping(GenericAddress.parse(String.format("%s/%s", hostName, port)), socketTimeout);
-        transportMappings = ArrayUtils.toArray(tm);
+        transportMappings = new TransportMapping<?>[]{tm};
     }
 
     private boolean isDestroyed(){
