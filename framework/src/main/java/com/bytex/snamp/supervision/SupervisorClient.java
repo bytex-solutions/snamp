@@ -28,6 +28,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import static com.bytex.snamp.concurrent.SpinWait.untilNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents client for {@link Supervisor}.
@@ -144,7 +145,8 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
      * @return The version of the supervisor.
      */
     public static Version getVersion(final BundleContext context, final String supervisorType){
-        return new Version(getSupervisorBundleHeader(context, supervisorType, Constants.BUNDLE_VERSION, null));
+        final String version = getSupervisorBundleHeader(context, supervisorType, Constants.BUNDLE_VERSION, null);
+        return isNullOrEmpty(version) ? Version.emptyVersion : new Version(version);
     }
 
     /**

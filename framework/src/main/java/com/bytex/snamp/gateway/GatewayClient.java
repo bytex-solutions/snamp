@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.concurrent.SpinWait.untilNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents a client of resource connector that can be used by gateway consumers.
@@ -163,8 +164,9 @@ public final class GatewayClient extends ServiceHolder<Gateway> implements Gatew
      * @param gatewayType Type of gateway.
      * @return The version of the gateway.
      */
-    public static Version getVersion(final BundleContext context, final String gatewayType){
-        return new Version(getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_VERSION, null));
+    public static Version getVersion(final BundleContext context, final String gatewayType) {
+        final String version = getGatewayBundleHeader(context, gatewayType, Constants.BUNDLE_VERSION, null);
+        return isNullOrEmpty(version) ? Version.emptyVersion : new Version(version);
     }
 
     /**

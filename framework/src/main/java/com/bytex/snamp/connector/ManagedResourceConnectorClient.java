@@ -91,7 +91,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @return The version of the connector.
      */
     public static Version getVersion(final BundleContext context, final String connectorType){
-        return new Version(getConnectorBundleHeader(context, connectorType, Constants.BUNDLE_VERSION, null));
+        final String version = getConnectorBundleHeader(context, connectorType, Constants.BUNDLE_VERSION, null);
+        return isNullOrEmpty(version) ? Version.emptyVersion : new Version(version);
     }
 
     /**
