@@ -1,25 +1,32 @@
 package com.bytex.snamp.web.serviceModel.notifications;
 
 import com.bytex.snamp.Convert;
+import com.bytex.snamp.WeakEventListener;
+import com.bytex.snamp.connector.AbstractManagedResourceTracker;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
-import com.bytex.snamp.web.serviceModel.AbstractManagedResourceTracker;
-import com.google.common.collect.ImmutableMap;
+import org.osgi.framework.BundleContext;
 
-import javax.annotation.Nonnull;
 import javax.management.ListenerNotFoundException;
+import javax.management.MBeanNotificationInfo;
 import javax.management.Notification;
-import java.util.Map;
-import java.util.logging.Level;
+import java.util.Optional;
 
 import static com.bytex.snamp.gateway.modeling.NotificationAccessor.extractFromNotification;
 
 /**
  * Represents notification hub used to listen notifications from all managed resources.
  */
-final class NotificationHub extends AbstractManagedResourceTracker<NotificationListener> implements javax.management.NotificationListener {
+final class NotificationHub extends AbstractManagedResourceTracker implements javax.management.NotificationListener {
+    private final WeakEventListener<NotificationListener, NotificationEvent> destination;
+
+    NotificationHub(final BundleContext context,
+                    final NotificationListener destination) {
+        super(context);
+        this.destination = WeakEventListener.create(destination, NotificationListener::handleNotification);
+    }
 
     @Override
     protected void addResource(final ManagedResourceConnectorClient client) {
@@ -29,27 +36,15 @@ final class NotificationHub extends AbstractManagedResourceTracker<NotificationL
     }
 
     @Override
-    protected void removeResource(final ManagedResourceConnectorClient client) {
-        client.queryObject(NotificationSupport.class).ifPresent(support -> {
-            try {
-                support.removeNotificationListener(this);
-            } catch (final ListenerNotFoundException e) {
-                getLogger().log(Level.WARNING, e.getMessage(), e);
-            }
-        });
+    protected void removeResource(final ManagedResourceConnectorClient client) throws ListenerNotFoundException {
+        final Optional<NotificationSupport> support = client.queryObject(NotificationSupport.class);
+        if (support.isPresent())
+            support.get().removeNotificationListener(this);
     }
 
-    @Override
-    protected void stop() {
-    }
 
-    @Override
-    protected void start(final Map<String, NotificationListener> configuration) {
-
-    }
-
-    private void handleNotification(final NotificationEvent event){
-        getConfiguration().values().forEach(listener -> listener.handleNotification(event));
+    private void handleNotification(final String resourceName, final MBeanNotificationInfo metadata, final Notification notification) {
+        destination.invoke(new NotificationEvent(resourceName, metadata, notification));
     }
 
     @Override
@@ -57,10 +52,12 @@ final class NotificationHub extends AbstractManagedResourceTracker<NotificationL
         final String resourceName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
         extractFromNotification(notification, NotificationSupport.class)
                 .flatMap(support -> support.getNotificationInfo(notification.getType()))
-                .ifPresent(metadata -> handleNotification(new NotificationEvent(resourceName, metadata, notification)));
+                .ifPresent(metadata -> handleNotification(resourceName, metadata, notification));
     }
 
-    void startTracking(@Nonnull final NotificationListener destination) throws Exception {
-        update(ImmutableMap.of("destination", destination));
+    @Override
+    public void close() {
+        destination.clear();
+        super.close();
     }
 }

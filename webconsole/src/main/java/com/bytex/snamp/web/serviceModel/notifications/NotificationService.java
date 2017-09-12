@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.logging.Level;
 
 /**
  * Provides delivery of all notifications to the web console.
@@ -79,7 +78,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
 
     public NotificationService() {
         super(NotificationSettings.class);
-        hub = new NotificationHub();
+        hub = new NotificationHub(getBundleContext(), this);
     }
 
     private void handleNotification(final WebConsoleSession session, final Notification notification, final Severity severity) {
@@ -97,11 +96,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
 
     @Override
     protected void initialize() {
-        try {
-            hub.startTracking(this);
-        } catch (final Exception e) {
-            getLogger().log(Level.SEVERE, "Unable to start notification listener service", e);
-        }
+        hub.open();
     }
 
     /**
