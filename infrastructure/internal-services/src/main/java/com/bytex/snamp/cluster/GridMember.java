@@ -1,7 +1,9 @@
 package com.bytex.snamp.cluster;
 
 import com.bytex.snamp.Internal;
-import com.bytex.snamp.core.*;
+import com.bytex.snamp.core.AbstractSharedObjectRepository;
+import com.bytex.snamp.core.SharedObjectRepository;
+import com.bytex.snamp.internal.Utils;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
@@ -17,7 +19,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Roman Sakno
@@ -30,7 +31,7 @@ public final class GridMember extends AbstractClusterMember {
         private final Member localMember;
 
         LeaderElectionThread(final HazelcastInstance hazelcast) {
-            super("LeaderElection");
+            super("SNAMP-Leader-Election");
             setDaemon(true);
             setPriority(MIN_PRIORITY + 1);
             this.masterLock = hazelcast.getLock("SnampMasterLock");
@@ -91,7 +92,9 @@ public final class GridMember extends AbstractClusterMember {
     private final GridObjectRepository<HazelcastCounter> counters;
     private final GridObjectRepository<HazelcastCommunicator> communicators;
     private final GridObjectRepository<HazelcastKeyValueStorage> nonPersistentDatabases;
-    private volatile LeaderElectionThread electionThread;
+    private LeaderElectionThread electionThread;
+    private final ReplicationJob replicator;
+
     private final boolean shutdownHazelcast;
 
     private GridMember(final HazelcastInstance hazelcastInstance, final boolean shutdownHazelcast) throws ReflectiveOperationException, IOException, JMException {
@@ -101,6 +104,7 @@ public final class GridMember extends AbstractClusterMember {
         communicators = new GridObjectRepository<>(hazelcastInstance, HazelcastCommunicator::new);
         nonPersistentDatabases = new GridObjectRepository<>(hazelcastInstance, HazelcastKeyValueStorage::new);
         this.electionThread = new LeaderElectionThread(hazelcastInstance);
+        this.replicator = new ReplicationJob(this);
         this.shutdownHazelcast = shutdownHazelcast;
     }
 
@@ -121,6 +125,7 @@ public final class GridMember extends AbstractClusterMember {
     public void start() {
         super.start();
         electionThread.start();
+        replicator.run();
     }
 
     @Nonnull
@@ -245,7 +250,7 @@ public final class GridMember extends AbstractClusterMember {
         nonPersistentDatabases.clear();
         super.close();
         try {
-            electionThread.close();
+            Utils.closeAll(electionThread, replicator);
         } finally {
             electionThread = null;
             if (shutdownHazelcast)

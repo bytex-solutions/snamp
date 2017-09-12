@@ -34,9 +34,9 @@ abstract class AbstractClusterMember implements ClusterMember, AutoCloseable {
         }
     }
 
-    private static final class ReplicationJob extends WeakRepeater<AbstractClusterMember>{
+    static final class ReplicationJob extends WeakRepeater<AbstractClusterMember> {
 
-        private ReplicationJob(final AbstractClusterMember input) {
+        ReplicationJob(final AbstractClusterMember input) {
             super(Duration.ofSeconds(10), input);
         }
 
@@ -44,20 +44,27 @@ abstract class AbstractClusterMember implements ClusterMember, AutoCloseable {
         protected void doAction() throws ReplicationSupport.ReplicationException, InterruptedException {
             getReferenceOrTerminate().replicate();
         }
+
+        @Override
+        protected int getPriority() {
+            return Thread.MIN_PRIORITY + 1;
+        }
+
+        @Override
+        protected String generateThreadName() {
+            return "SNAMP-Replication-Thread";
+        }
     }
 
     private static final String REPLICATION_STORAGE_NAME = "SNAMP_REPLICATION_STORAGE";
     private final DatabaseNode database;
-    private final ReplicationJob replicator;
 
     AbstractClusterMember() {
         database = callAndWrapException(DatabaseNode::new, DatabaseBootstrapException::new);
-        replicator = new ReplicationJob(this);
     }
 
     AbstractClusterMember(final HazelcastInstance hazelcast) {
         database = callAndWrapException(() -> new DistributedDatabaseNode(hazelcast), DatabaseBootstrapException::new);
-        replicator = new ReplicationJob(this);
     }
 
     SharedObjectRepository<? extends KeyValueStorage> getNonPersistentDatabases() {
@@ -88,7 +95,7 @@ abstract class AbstractClusterMember implements ClusterMember, AutoCloseable {
         }
     }
 
-    private void replicate() throws ReplicationSupport.ReplicationException {
+    final void replicate() throws ReplicationSupport.ReplicationException {
         final BundleContext context = Utils.getBundleContextOfObject(this);
         final KeyValueStorage replicationStorage = getNonPersistentDatabases().getSharedObject(REPLICATION_STORAGE_NAME);
         for (final ServiceReference<ReplicationSupport> serviceRef : new DefaultServiceSelector().setServiceType(ReplicationSupport.class)
@@ -124,13 +131,11 @@ abstract class AbstractClusterMember implements ClusterMember, AutoCloseable {
     @OverridingMethodsMustInvokeSuper
     public void start(){
         callAndWrapException(() -> database.startupFromConfiguration().activate(), DatabaseBootstrapException::new);
-        replicator.run();
     }
 
     @Override
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
         database.shutdown();
-        replicator.close(replicator.getPeriod());
     }
 }
