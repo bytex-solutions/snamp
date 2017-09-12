@@ -44,7 +44,7 @@ public abstract class AbstractManagedResourceTracker extends ServiceTracker<Mana
     protected abstract void addResource(@WillNotClose final ManagedResourceConnectorClient resource) throws Exception;
 
     @Override
-    public synchronized String addingService(final ServiceReference<ManagedResourceConnector> connectorRef) {
+    public final String addingService(final ServiceReference<ManagedResourceConnector> connectorRef) {
         final String resourceName = ManagedResourceSelector.getManagedResourceName(connectorRef);
         try (final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, connectorRef)) {
             addResource(client);
@@ -67,7 +67,7 @@ public abstract class AbstractManagedResourceTracker extends ServiceTracker<Mana
     protected abstract void removeResource(@WillNotClose final ManagedResourceConnectorClient resource) throws Exception;
 
     @Override
-    public void removedService(final ServiceReference<ManagedResourceConnector> connectorRef, final String resourceName) {
+    public final void removedService(final ServiceReference<ManagedResourceConnector> connectorRef, final String resourceName) {
         try (final ManagedResourceConnectorClient client = new ManagedResourceConnectorClient(context, connectorRef)) {
             removeResource(client);
         } catch (final InstanceNotFoundException e) {
