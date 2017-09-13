@@ -32,6 +32,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  *         management notifications.</li>
  *         <li>{@link com.bytex.snamp.connector.operations.OperationSupport} to provide management
  *         via operations.</li>
+ *         <li>{@link com.bytex.snamp.connector.health.HealthCheckSupport} to provide health status
+ *         of remote component</li>
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
