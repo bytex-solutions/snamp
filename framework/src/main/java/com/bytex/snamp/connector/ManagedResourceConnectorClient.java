@@ -285,7 +285,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      *                                                                      by this resource connector.
      */
     @Override
-    public void update(final ManagedResourceInfo configuration) throws Exception {
+    public void update(@Nonnull final ManagedResourceInfo configuration) throws Exception {
         final Optional<ManagedResourceConnector> connector = getService();
         if (connector.isPresent())
             connector.get().update(configuration);

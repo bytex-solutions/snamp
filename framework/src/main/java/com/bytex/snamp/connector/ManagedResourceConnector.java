@@ -4,7 +4,7 @@ import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.core.FrameworkService;
+import com.bytex.snamp.core.ConfigurableFrameworkService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleRevision;
@@ -37,7 +37,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  * @version 2.1
  */
-public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
+public interface ManagedResourceConnector extends AutoCloseable, ConfigurableFrameworkService<ManagedResourceInfo>, DynamicMBean {
     /**
      * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
      * of Managed Resource Connector.
@@ -53,37 +53,6 @@ public interface ManagedResourceConnector extends AutoCloseable, FrameworkServic
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
 
     ManagedResourceInfo EMPTY_CONFIGURATION = new EmptyManagedResourceInfo();
-
-    /**
-     * Represents an exception indicating that the resource connector cannot be updated
-     * without it recreation. This class cannot be inherited.
-     * @author Roman Sakno
-     * @since 1.0
-     * @version 2.1
-     */
-    final class UnsupportedUpdateOperationException extends UnsupportedOperationException{
-        private static final long serialVersionUID = 8128304831615736668L;
-
-        /**
-         * Initializes a new exception.
-         * @param message A human-readable explanation.
-         * @param args Formatting arguments.
-         */
-        UnsupportedUpdateOperationException(final String message, final Object... args){
-            super(String.format(message, args));
-        }
-    }
-
-    /**
-     * Updates resource connector with a new connection configuration.
-     * @param configuration A new configuration.
-     * @throws Exception Unable to update managed resource connector.
-     * @throws UnsupportedUpdateOperationException This operation is not supported
-     *  by this resource connector.
-     */
-    default void update(final ManagedResourceInfo configuration) throws Exception{
-        throw new UnsupportedUpdateOperationException("Update operation is not supported");
-    }
 
     /**
      * Adds a new listener for the connector-related events.

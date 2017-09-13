@@ -77,7 +77,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
         removeResourceEventListener(listener, attributes, notifications, operations);
     }
 
-    private void update(final Map<String, ManagedResourceInfo> resources) throws Exception {
+    private void updateImpl(final Map<String, ManagedResourceInfo> resources) throws Exception {
         //update supplied connectors
         Acceptor.forEachAccept(resources.entrySet(), entry -> connectors.updateConnector(entry.getKey(), entry.getValue()));
         //dispose connectors that are not specified in the connection string
@@ -85,12 +85,12 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     }
 
     @Override
-    public void update(final ManagedResourceInfo configuration) throws Exception {
+    public void update(@Nonnull final ManagedResourceInfo configuration) throws Exception {
         setConfiguration(configuration);
         final CompositeResourceConfigurationDescriptor parser = CompositeResourceConfigurationDescriptor.getInstance();
         final ComposedConfiguration parsedParams = ComposedConfiguration.parse(configuration, parser.parseSeparator(configuration));
         //do update
-        update(parsedParams);
+        updateImpl(parsedParams);
     }
 
     /**
