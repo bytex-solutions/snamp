@@ -1,8 +1,11 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.SpecialUse;
+
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 /**
  * Represents advanced version of {@link AtomicReference} that can be used for implementation of Initialization-On-Demand pattern
@@ -13,8 +16,13 @@ import java.util.function.Consumer;
  * @see LazySoftReference
  */
 @ThreadSafe
-final class LazyStrongReference<V> extends AtomicReference<V> implements LazyReference<V> {
+final class LazyStrongReference<V> extends AbstractLazyReference<V> {
     private static final long serialVersionUID = 813414681121113370L;
+    private volatile V value;
+
+    @SpecialUse(SpecialUse.Case.SERIALIZATION)
+    public LazyStrongReference() {
+    }
 
     /**
      * Sets to the given value.
@@ -23,30 +31,26 @@ final class LazyStrongReference<V> extends AtomicReference<V> implements LazyRef
      */
     @Override
     public void accept(final V newValue) {
-        set(newValue);
+        value = newValue;
     }
 
-    /**
-     * Resets internal state of the object.
-     */
+    @Nullable
     @Override
-    public void reset() {
-        set(null);
-    }
-
-    @Override
-    public V getValue() {
-        return get();
+    public V getRawValue() {
+        return value;
     }
 
     @Override
-    public boolean reset(final Consumer<? super V> consumer) {
-        final V value = getAndSet(null);
+    public Optional<V> remove() {
         if (value == null)
-            return false;
+            return Optional.empty();
         else {
-            consumer.accept(value);
-            return true;
+            final V previous;
+            synchronized (this) {
+                previous = value;
+                value = null;
+            }
+            return Optional.ofNullable(previous);
         }
     }
 }

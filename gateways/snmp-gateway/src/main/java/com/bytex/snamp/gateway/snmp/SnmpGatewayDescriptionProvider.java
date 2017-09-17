@@ -133,7 +133,7 @@ final class SnmpGatewayDescriptionProvider extends ConfigurationEntityDescriptio
     }
 
     static SnmpGatewayDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(SnmpGatewayDescriptionProvider::new);
+        return INSTANCE.get(SnmpGatewayDescriptionProvider::new);
     }
 
     OID parseContext(final Map<String, String> parameters) throws SnmpGatewayAbsentParameterException {

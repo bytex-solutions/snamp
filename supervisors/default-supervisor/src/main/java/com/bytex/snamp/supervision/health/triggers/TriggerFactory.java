@@ -23,7 +23,7 @@ public class TriggerFactory implements ScriptletCompiler<HealthStatusTrigger> {
     }
 
     private GroovyTrigger createGroovyTrigger(final String scriptBody) {
-        return groovyTriggerFactory.lazyGet(this::createGroovyTriggerFactory).create(scriptBody);
+        return groovyTriggerFactory.get(this::createGroovyTriggerFactory).create(scriptBody);
     }
 
     @Override

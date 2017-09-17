@@ -89,7 +89,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
         //change state of the connector
-        metrics.reset();
+        metrics.remove();
         configuration = null;
         clearCache();
     }
@@ -250,7 +250,7 @@ public abstract class AbstractManagedResourceConnector extends AbstractAggregato
     @Aggregation    //already cached in the field
     @SpecialUse(SpecialUse.Case.REFLECTION)
     public final MetricsSupport getMetrics() {
-        return metrics.lazyGet(this, AbstractManagedResourceConnector::createMetricsReader);
+        return metrics.get(this, AbstractManagedResourceConnector::createMetricsReader);
     }
 
     /**

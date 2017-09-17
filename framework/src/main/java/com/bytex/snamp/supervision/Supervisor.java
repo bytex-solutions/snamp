@@ -1,7 +1,6 @@
 package com.bytex.snamp.supervision;
 
-import com.bytex.snamp.configuration.SupervisorInfo;
-import com.bytex.snamp.core.StatefulFrameworkService;
+import com.bytex.snamp.core.FrameworkService;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryService;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
@@ -11,7 +10,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
-import java.io.Closeable;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -26,7 +24,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.1
  * @author Roman Sakno
  */
-public interface Supervisor extends StatefulFrameworkService, Closeable {
+public interface Supervisor extends FrameworkService, AutoCloseable {
     /**
      * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
      * of Managed Resource Group Supervisor.
@@ -41,24 +39,12 @@ public interface Supervisor extends StatefulFrameworkService, Closeable {
      */
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
 
-    SupervisorInfo EMPTY_CONFIGURATION = new EmptySupervisorInfo();
-
     /**
      * Gets immutable set of group members.
      * @return Immutable set of group members.
      */
     @Nonnull
     Set<String> getResources();
-
-    /**
-     * Gets runtime configuration of this service.
-     *
-     * @return Runtime configuration of this service.
-     * @implSpec Returning map is always immutable.
-     */
-    @Nonnull
-    @Override
-    SupervisorInfo getConfiguration();
 
     void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener);
 
@@ -72,8 +58,6 @@ public interface Supervisor extends StatefulFrameworkService, Closeable {
     void addSupervisionEventListener(@Nonnull final SupervisionEventListener listener, final Object handback);
 
     void removeSupervisionEventListener(@Nonnull final SupervisionEventListener listener);
-
-    void update(@Nonnull final SupervisorInfo configuration) throws Exception;
 
     /**
      * Obtains supervisor service.

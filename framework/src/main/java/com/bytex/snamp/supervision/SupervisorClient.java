@@ -4,14 +4,12 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ManagedResourceSelector;
 import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
@@ -169,16 +167,6 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     }
 
     /**
-     * Gets state of this service.
-     *
-     * @return Service type.
-     */
-    @Override
-    public FrameworkServiceState getState() {
-        return getService().map(Supervisor::getState).orElse(FrameworkServiceState.CLOSED);
-    }
-
-    /**
      * Gets immutable set of group members.
      *
      * @return Immutable set of group members.
@@ -187,18 +175,6 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     @Override
     public Set<String> getResources() {
         return getService().map(Supervisor::getResources).orElseGet(ImmutableSet::of);
-    }
-
-    /**
-     * Gets runtime configuration of this service.
-     *
-     * @return Runtime configuration of this service.
-     * @implSpec Returning map is always immutable.
-     */
-    @Nonnull
-    @Override
-    public SupervisorInfo getConfiguration() {
-        return get().getConfiguration();
     }
 
     @Override
@@ -216,12 +192,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
         getService().ifPresent(supervisor -> supervisor.removeSupervisionEventListener(listener));
     }
 
-    @Override
-    public void update(@Nonnull final SupervisorInfo configuration) throws Exception {
-        get().update(configuration);
-    }
-
-    private static ResourceGroupHealthStatus getStatus(final BundleContext context, final String groupName) {
+    private static ResourceGroupHealthStatus getHealthStatus(final BundleContext context, final String groupName) {
         final class FakeResourceGroupHealthStatus extends HashMap<String, HealthStatus> implements ResourceGroupHealthStatus, Consumer<ManagedResourceConnectorClient> {
             private static final long serialVersionUID = 420503389377659109L;
 
@@ -247,10 +218,10 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
     }
 
     private ResourceGroupHealthStatus getFallbackStatus(){
-        return getStatus(context, getGroupName());
+        return getHealthStatus(context, getGroupName());
     }
 
-    public ResourceGroupHealthStatus getStatus(){
+    public ResourceGroupHealthStatus getHealthStatus(){
         return queryObject(HealthStatusProvider.class)
                 .map(HealthStatusProvider::getStatus)
                 .orElseGet(this::getFallbackStatus);
@@ -260,12 +231,12 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
         return tryCreate(context, groupName)
                 .map(client -> {
                     try {
-                        return client.getStatus();
+                        return client.getHealthStatus();
                     } finally {
                         client.close();
                     }
                 })
-                .orElseGet(() -> getStatus(context, groupName));
+                .orElseGet(() -> getHealthStatus(context, groupName));
     }
 
     /**

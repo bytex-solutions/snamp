@@ -137,7 +137,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Nonnull
     protected ExecutorService getListenerExecutor(){
-        return defaultExecutor.lazyGet(MoreExecutors::newDirectExecutorService);
+        return defaultExecutor.get(MoreExecutors::newDirectExecutorService);
     }
 
     protected final void fire(final BiConsumer<? super M, ? super NotificationCollector> sender){
@@ -519,7 +519,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      */
     @Override
     public void close() {
-        defaultExecutor.reset();
+        defaultExecutor.remove();
         listeners.clear();
         notificationSource = null;
         metrics.reset();

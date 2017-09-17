@@ -40,7 +40,7 @@ final class InfluxGatewayConfigurationDescriptionProvider extends ConfigurationE
     }
 
     static InfluxGatewayConfigurationDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(InfluxGatewayConfigurationDescriptionProvider::new);
+        return INSTANCE.get(InfluxGatewayConfigurationDescriptionProvider::new);
     }
 
     Duration getUploadPeriod(final Map<String, String> parameters) {

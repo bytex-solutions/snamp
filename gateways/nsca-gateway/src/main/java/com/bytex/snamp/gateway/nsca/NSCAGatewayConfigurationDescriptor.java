@@ -81,7 +81,7 @@ final class NSCAGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     static NSCAGatewayConfigurationDescriptor getInstance(){
-        return INSTANCE.lazyGet(NSCAGatewayConfigurationDescriptor::new);
+        return INSTANCE.get(NSCAGatewayConfigurationDescriptor::new);
     }
 
     NagiosSettings parseSettings(final Map<String, String> parameters) throws AbsentNSCAConfigurationParameterException {

@@ -7,6 +7,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,7 +62,11 @@ public final class SupervisorSelector extends DefaultServiceSelector {
                 .collect(Collectors.toSet());
     }
 
-    static String getGroupName(final ServiceReference<Supervisor> gatewayInstance) {
-        return getReferencePropertyAsString(gatewayInstance, GROUP_NAME_PROPERTY).orElse("");
+    static String getGroupName(final ServiceReference<Supervisor> supervisorRef) {
+        return getReferencePropertyAsString(supervisorRef, GROUP_NAME_PROPERTY).orElse("");
+    }
+
+    static String getGroupName(final Map<String, ?> supervisorIdentity){
+        return Objects.toString(supervisorIdentity.get(GROUP_NAME_PROPERTY));
     }
 }

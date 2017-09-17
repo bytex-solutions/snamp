@@ -2,7 +2,7 @@ package com.bytex.snamp.web.serviceModel.notifications;
 
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.WeakEventListener;
-import com.bytex.snamp.connector.AbstractManagedResourceTracker;
+import com.bytex.snamp.connector.ManagedResourceTracker;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.gateway.NotificationEvent;
@@ -19,7 +19,7 @@ import static com.bytex.snamp.gateway.modeling.NotificationAccessor.extractFromN
 /**
  * Represents notification hub used to listen notifications from all managed resources.
  */
-final class NotificationHub extends AbstractManagedResourceTracker implements javax.management.NotificationListener {
+final class NotificationHub extends ManagedResourceTracker implements javax.management.NotificationListener {
     private final WeakEventListener<NotificationListener, NotificationEvent> destination;
 
     NotificationHub(final BundleContext context,

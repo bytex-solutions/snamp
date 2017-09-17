@@ -1,13 +1,16 @@
 package com.bytex.snamp.supervision.def;
 
-import com.bytex.snamp.MapUtils;
-import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.supervision.elasticity.groovy.GroovyProvisioningEngine;
 import com.bytex.snamp.supervision.elasticity.groovy.GroovyProvisioningEngineFactory;
+import groovy.lang.Binding;
+import groovy.util.ResourceException;
+import groovy.util.ScriptException;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Represents default supervisor with Groovy-based elasticity manager.
@@ -16,20 +19,27 @@ import java.util.Map;
  * @since 2.0
  */
 final class GroovySupervisor extends DefaultSupervisor {
+    private final GroovyProvisioningEngine provisioningEngine;
 
-    private static final String GROOVY_MANAGER_PATH = "groovyElasticityManager";
-    private GroovyProvisioningEngine provisioningEngine;
-
-    GroovySupervisor(@Nonnull final String groupName) {
+    GroovySupervisor(@Nonnull final String groupName,
+                     final String scriptPath,
+                     final Properties scriptEnvironment) throws IOException, ResourceException, ScriptException {
         super(groupName);
+        final GroovyProvisioningEngineFactory factory = new GroovyProvisioningEngineFactory(
+                getClass().getClassLoader(),
+                scriptEnvironment,
+                scriptPath);
+        provisioningEngine = factory.createScript(new Binding(scriptEnvironment));
     }
 
-    private void performScaling(final DefaultElasticityManager elastman) {
-        final GroovyProvisioningEngine provisioningEngine = this.provisioningEngine;
-        if (provisioningEngine == null)
-            return;
+    /**
+     * Executes automatically using scheduling time.
+     */
+    @Override
+    protected void supervise() {
+        super.supervise();
         final Map<String, Double> ballotBox = new HashMap<>();
-        switch (elastman.decide(this, ballotBox)) {
+        switch (getElasticityManager().decide(this, ballotBox)) {
             case SCALE_IN:
                 provisioningEngine.scaleIn(this);
                 scaleIn(ballotBox);
@@ -47,49 +57,5 @@ final class GroovySupervisor extends DefaultSupervisor {
                 break;
         }
         ballotBox.clear();
-    }
-
-    /**
-     * Executes automatically using scheduling time.
-     */
-    @Override
-    protected void supervise() {
-        super.supervise();
-        queryObject(DefaultElasticityManager.class).ifPresent(this::performScaling);
-    }
-
-    /**
-     * Starts the tracking resources.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
-     *
-     * @param configuration Tracker startup parameters.
-     * @throws Exception Unable to start tracking.
-     */
-    @Override
-    protected void start(final SupervisorInfo configuration) throws Exception {
-        if (configuration.containsKey(GROOVY_MANAGER_PATH)) {
-            final String path = configuration.get(GROOVY_MANAGER_PATH);
-            final GroovyProvisioningEngineFactory factory = new GroovyProvisioningEngineFactory(getClass().getClassLoader(),
-                    MapUtils.toProperties(configuration),
-                    path);
-            provisioningEngine = factory.createScript(null);
-            overrideElasticityManager(new DefaultElasticityManager());
-        }
-        super.start(configuration);
-    }
-
-    /**
-     * Stops tracking resources.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     *
-     * @throws Exception Unable to stop tracking resources.
-     */
-    @Override
-    protected void stop() throws Exception {
-        provisioningEngine = null;
-        super.stop();
     }
 }

@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 2.0
  */
 @ThreadSafe
-final class LazySoftReference<V> extends AbstractLazyReference<V> {
+final class LazySoftReference<V> extends AbstractLazyIndirectReference<V> {
     private static final long serialVersionUID = 1898537173263220348L;
 
     @Override

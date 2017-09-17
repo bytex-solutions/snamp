@@ -515,7 +515,7 @@ public final class Convert {
     }
 
     private static Convert getInstance() {
-        return INSTANCE.lazyGet(Convert::new);
+        return INSTANCE.get(Convert::new);
     }
 
     private static boolean intToBoolean(final Number value){

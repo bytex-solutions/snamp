@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
 import com.bytex.snamp.scripting.groovy.OSGiGroovyScriptEngine;
+import groovy.lang.Binding;
 
 import java.util.Properties;
 
@@ -20,7 +21,7 @@ final class GroovyScalingPolicyFactory extends OSGiGroovyScriptEngine<GroovyScal
         script.setBundleContext(getBundleContext());
     }
 
-    public GroovyScalingPolicy create(final String text) {
-        return parseScript(text, getGlobalVariables());
+    public GroovyScalingPolicy create(final String text, final Binding binding) {
+        return parseScript(text, binding);
     }
 }

@@ -95,7 +95,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
 
         @Override
         protected Logger getLogger() {
-            return logger.lazyGet(this, ManagedResourceConnectorRegistry::getLoggerImpl);
+            return logger.get(this, ManagedResourceConnectorRegistry::getLoggerImpl);
         }
 
         private String getConnectorType(){
@@ -261,11 +261,6 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
                                       final Map<String, ?> identity) throws Exception {
             getLogger().info(String.format("Connector %s is destroyed", ManagedResourceSelector.getManagedResourceName(identity)));
             service.close();
-        }
-
-        @Override
-        protected void destroyed() {
-            logger.reset();
         }
     }
 

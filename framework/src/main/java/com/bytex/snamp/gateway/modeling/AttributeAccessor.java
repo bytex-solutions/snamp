@@ -119,8 +119,8 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     @OverridingMethodsMustInvokeSuper
     public void close() {
         attributeSupport = null;
-        wellKnownType.reset();
-        openType.reset();
+        wellKnownType.remove();
+        openType.remove();
     }
 
     /**
@@ -136,7 +136,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @return The type of this attribute.
      */
     public final WellKnownType getType() {
-        return wellKnownType.<FeatureAccessor<MBeanAttributeInfo>>lazyGet(this, accessor -> AttributeDescriptor.getType(accessor.getMetadata()));
+        return wellKnownType.<FeatureAccessor<MBeanAttributeInfo>>get(this, accessor -> AttributeDescriptor.getType(accessor.getMetadata()));
     }
 
     /**
@@ -144,7 +144,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      * @return The type of this attribute.
      */
     public final OpenType<?> getOpenType() {
-        return openType.<FeatureAccessor<MBeanAttributeInfo>>lazyGet(this, accessor -> AttributeDescriptor.getOpenType(accessor.getMetadata()));
+        return openType.<FeatureAccessor<MBeanAttributeInfo>>get(this, accessor -> AttributeDescriptor.getOpenType(accessor.getMetadata()));
     }
 
     /**

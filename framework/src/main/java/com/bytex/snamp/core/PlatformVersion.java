@@ -41,6 +41,6 @@ public final class PlatformVersion extends Version {
      * @return Version of SNAMP platform.
      */
     public static PlatformVersion get() {
-        return CURRENT_VERSION.lazyGet(PlatformVersion::getImpl);
+        return CURRENT_VERSION.get(PlatformVersion::getImpl);
     }
 }

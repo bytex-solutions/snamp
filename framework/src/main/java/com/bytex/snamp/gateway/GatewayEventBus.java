@@ -36,7 +36,7 @@ final class GatewayEventBus {
                 return result;
         }
         final Supplier<? extends ExecutorService> DEFAULT_EXECUTOR_FACTORY = () -> newSingleThreadExecutor(new GroupedThreadFactory("GATEWAY_EVENT_BUS"));
-        return LOCAL_EVENT_EXECUTOR.lazyGet(DEFAULT_EXECUTOR_FACTORY);
+        return LOCAL_EVENT_EXECUTOR.get(DEFAULT_EXECUTOR_FACTORY);
     }
 
     private GatewayEventBus(){

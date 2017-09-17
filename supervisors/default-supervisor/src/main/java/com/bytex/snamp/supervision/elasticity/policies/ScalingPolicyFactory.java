@@ -3,9 +3,11 @@ package com.bytex.snamp.supervision.elasticity.policies;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.core.ScriptletCompiler;
+import groovy.lang.Binding;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -25,17 +27,17 @@ public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {
         return new GroovyScalingPolicyFactory(getClass().getClassLoader());
     }
 
-    private GroovyScalingPolicy createGroovyPolicy(final String script) {
+    private GroovyScalingPolicy createGroovyPolicy(final String script, final Map<String, String> properties) {
         final ClassLoader loader = getClass().getClassLoader();
-        return groovyPolicyFactory.lazyGet(this::createGroovyScalingPolicyFactory).create(script);
+        return groovyPolicyFactory.get(this::createGroovyScalingPolicyFactory).create(script, new Binding(properties));
     }
 
     private AttributeBasedScalingPolicy createMetricBasedPolicy(final String json) throws IOException {
-        return AttributeBasedScalingPolicy.parse(json, mapper.lazyGet((Supplier<ObjectMapper>) ObjectMapper::new));
+        return AttributeBasedScalingPolicy.parse(json, mapper.get((Supplier<ObjectMapper>) ObjectMapper::new));
     }
 
     private HealthStatusBasedScalingPolicy createStatusBasedPolicy(final String json) throws IOException{
-        return HealthStatusBasedScalingPolicy.parse(json, mapper.lazyGet((Supplier<ObjectMapper>) ObjectMapper::new));
+        return HealthStatusBasedScalingPolicy.parse(json, mapper.get((Supplier<ObjectMapper>) ObjectMapper::new));
     }
 
     @Override
@@ -49,7 +51,8 @@ public class ScalingPolicyFactory implements ScriptletCompiler<ScalingPolicy> {
         final Function<? super Exception, InvalidScalingPolicyException> exceptionFactory = e -> new InvalidScalingPolicyException(language, scriptBody, e);
         switch (scalingPolicy.getLanguage()) {
             case ScriptletConfiguration.GROOVY_LANGUAGE:
-                return callAndWrapException(() -> createGroovyPolicy(scriptBody), exceptionFactory);
+                final Map<String, String> parameters = scalingPolicy.getParameters();
+                return callAndWrapException(() -> createGroovyPolicy(scriptBody, parameters), exceptionFactory);
             case AttributeBasedScalingPolicy.LANGUAGE_NAME:
                 return callAndWrapException(() -> createMetricBasedPolicy(scriptBody), exceptionFactory);
             case HealthStatusBasedScalingPolicy.LANGUAGE_NAME:

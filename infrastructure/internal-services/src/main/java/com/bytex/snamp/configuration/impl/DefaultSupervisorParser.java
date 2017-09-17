@@ -37,7 +37,7 @@ final class DefaultSupervisorParser extends AbstractTypedConfigurationParser<Ser
     }
 
     static DefaultSupervisorParser getInstance(){
-        return INSTANCE.lazyGet(DefaultSupervisorParser::new);
+        return INSTANCE.get(DefaultSupervisorParser::new);
     }
 
     @Override

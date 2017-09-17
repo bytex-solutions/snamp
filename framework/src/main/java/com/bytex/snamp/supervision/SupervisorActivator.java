@@ -1,10 +1,12 @@
 package com.bytex.snamp.supervision;
 
+import com.bytex.snamp.Internal;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
+import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.LoggerProvider;
@@ -38,46 +40,50 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     private static final ActivationProperty<CMSupervisorParser> SUPERVISOR_PARSER_HOLDER = defineActivationProperty(CMSupervisorParser.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class, Logger.getAnonymousLogger());
 
-    @FunctionalInterface
-    protected interface SupervisorFactory<S extends Supervisor>{
-        @Nonnull
-        S createSupervisor(final String groupName, final DependencyManager dependencies);
+    /**
+     * Represents lifecycle manager of supervisor.
+     * @param <S> Type of supervisor implementation.
+     * @since 2.1
+     */
+    protected static abstract class SupervisorLifecycleManager<S extends Supervisor> extends ServiceSubRegistryManager<Supervisor ,S> {
+        private final LazyReference<Logger> logger = LazyReference.strong();
+        private final ThreadLocal<String> groupName = new ThreadLocal<>();
+        private final Map<String, SupervisorInfo> supervisors = new HashMap<>();
 
-        default Collection<Class<? super S>> getInterfaces(){
-            return Collections.emptyList();
-        }
-    }
-
-    private static final class SupervisorInstances<S extends Supervisor> extends ServiceSubRegistryManager<Supervisor ,S>{
-        private final SupervisorFactory<S> factory;
-        private final LazyReference<Logger> logger;
-
-        private SupervisorInstances(@Nonnull final SupervisorFactory<S> factory,
-                                    final RequiredService<?>... dependencies){
-            super(Supervisor.class, factory.getInterfaces(), dependencies);
-            this.factory = factory;
-            this.logger = LazyReference.strong();
+        protected SupervisorLifecycleManager(final RequiredService<?>... dependencies) {
+            super(Supervisor.class, dependencies);
         }
 
-        private Logger getLoggerImpl(){
+        protected SupervisorLifecycleManager(final Iterable<Class<? super S>> interfaces,
+                                             final RequiredService<?>... dependencies) {
+            super(Supervisor.class, interfaces, dependencies);
+        }
+
+        private Logger getLoggerImpl() {
             return getActivationPropertyValue(LOGGER_HOLDER);
         }
 
+        /**
+         * Gets logger associated with this manager.
+         *
+         * @return Logger.
+         */
         @Override
-        protected Logger getLogger() {
-            return logger.lazyGet(this, SupervisorInstances::getLoggerImpl);
+        protected final Logger getLogger() {
+            return logger.get(this, SupervisorLifecycleManager::getLoggerImpl);
         }
 
-        private String getSupervisorType(){
+        private String getSupervisorType() {
             return getActivationPropertyValue(SUPERVISOR_TYPE_HOLDER);
         }
 
-        private CMSupervisorParser getParser(){
+        private CMSupervisorParser getParser() {
             return getActivationPropertyValue(SUPERVISOR_PARSER_HOLDER);
         }
 
         @Override
-        protected String getFactoryPID() {
+        @Internal
+        protected final String getFactoryPID() {
             return getParser().getFactoryPersistentID(getSupervisorType());
         }
 
@@ -88,35 +94,63 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
             return newConfig;
         }
 
+        /**
+         * Updates existing supervisor instance with new configuration.
+         *
+         * @param supervisor    Existing supervisor instance.
+         * @param configuration A new configuration.
+         * @return Updated instance of supervisor or newly created.
+         * @throws Exception Unable to update supervisor.
+         */
+        @Nonnull
+        protected S updateSupervisor(@Nonnull final S supervisor,
+                                     @Nonnull final SupervisorInfo configuration) throws Exception {
+            final String groupName = this.groupName.get();
+            assert !isNullOrEmpty(groupName);
+            final SupervisorInfo existingConfig = supervisors.get(groupName);
+            return Objects.equals(configuration, existingConfig) ? supervisor : createSupervisor(groupName, configuration);
+        }
+
         @Override
-        protected S updateService(final S supervisor, final Dictionary<String, ?> configuration) throws Exception {
+        protected final S updateService(S supervisor, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
-            supervisor.update(newConfig.getValue());
+            groupName.set(newConfig.getKey());
+            try {
+                supervisor = updateSupervisor(supervisor, newConfig.getValue());
+            } finally {
+                groupName.remove();
+            }
             getLogger().info(String.format("Supervisor %s is updated", supervisor));
             return supervisor;
         }
-        
+
+        @Nonnull
+        protected abstract S createSupervisor(@Nonnull final String groupName,
+                                              @Nonnull final SupervisorInfo configuration) throws Exception;
+
         @Override
-        protected S activateService(final ServiceIdentityBuilder identity, final Dictionary<String, ?> configuration) throws Exception {
+        protected final S activateService(final ServiceIdentityBuilder identity, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
-            final S supervisor = factory.createSupervisor(newConfig.getKey(), dependencies);
+            final S supervisor = createSupervisor(newConfig.getKey(), newConfig.getValue());
             identity.acceptAll(new SupervisorSelector(newConfig.getValue()).setGroupName(newConfig.getKey()));
-            supervisor.update(newConfig.getValue());
+            supervisors.put(newConfig.getKey(), newConfig.getValue());
             getLogger().info(String.format("Supervisor %s is instantiated", supervisor));
             return supervisor;
         }
 
         @Override
-        protected void disposeService(final S supervisor, final Map<String, ?> identity) throws Exception {
-            getLogger().info(String.format("Supervisor %s is destroyed", supervisor));
+        protected final void disposeService(final S supervisor, final Map<String, ?> identity) throws Exception {
+            final String groupName = SupervisorSelector.getGroupName(identity);
+            supervisors.remove(groupName);
             supervisor.close();
+            getLogger().info(String.format("Supervisor %s is destroyed", supervisor));
         }
 
         @Override
-        protected void failedToUpdateService(final Logger logger,
-                                             final String servicePID,
-                                             final Dictionary<String, ?> configuration,
-                                             final Exception e) {
+        protected final void failedToUpdateService(final Logger logger,
+                                                   final String servicePID,
+                                                   final Dictionary<String, ?> configuration,
+                                                   final Exception e) {
             logger.log(Level.SEVERE,
                     String.format("Unable to update supervisor. Type: %s, instance: %s",
                             getSupervisorType(),
@@ -125,9 +159,9 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         }
 
         @Override
-        protected void failedToCleanupService(final Logger logger,
-                                              final String servicePID,
-                                              final Exception e) {
+        protected final void failedToCleanupService(final Logger logger,
+                                                    final String servicePID,
+                                                    final Exception e) {
             logger.log(Level.SEVERE, String.format("Unable to release gateway. Type: %s, instance: %s", getSupervisorType(), servicePID),
                     e);
         }
@@ -178,11 +212,12 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     protected final String supervisorType;
     private final Logger logger;
 
-    protected SupervisorActivator(final SupervisorFactory<S> factory, final SupportServiceManager<?>... optionalServices) {
+    protected SupervisorActivator(final SupervisorLifecycleManager<S> factory,
+                                  final SupportServiceManager<?>... optionalServices) {
         this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
-    protected SupervisorActivator(final SupervisorFactory<S> factory,
+    protected SupervisorActivator(final SupervisorLifecycleManager<S> factory,
                                   final RequiredService<?>[] dependencies,
                                   final SupportServiceManager<?>[] optionalServices){
         super(serviceProvider(factory, dependencies, optionalServices));
@@ -190,11 +225,11 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
         logger = LoggerProvider.getLoggerForObject(this);
     }
 
-    private static  <S extends Supervisor> ProvidedServices serviceProvider(final SupervisorFactory<S> factory,
+    private static  <S extends Supervisor> ProvidedServices serviceProvider(final SupervisorLifecycleManager<S> factory,
                                                                             final RequiredService<?>[] dependencies,
                                                                             final SupportServiceManager<?>[] optionalServices) {
         return (services, activationProperties, supervisorDependencies) -> {
-            services.add(new SupervisorInstances<>(factory, dependencies));
+            services.add(factory);
             Collections.addAll(services, optionalServices);
         };
     }

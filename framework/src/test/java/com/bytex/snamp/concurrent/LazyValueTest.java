@@ -12,24 +12,24 @@ public final class LazyValueTest extends Assert {
     @Test
     public void strongReferenceTest() throws Exception{
         final LazyStrongReference<BigInteger> lazy = new LazyStrongReference<>();
-        assertNull(lazy.get());
-        assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.TEN));
+        assertFalse(lazy.get().isPresent());
+        assertEquals(BigInteger.TEN, lazy.get(() -> BigInteger.TEN));
         assertNotNull(lazy.get());
-        assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.ONE));
-        lazy.reset();
-        assertEquals(BigInteger.ZERO, lazy.lazyGet(() -> BigInteger.ZERO));
-        assertEquals(BigInteger.ZERO, lazy.get());
+        assertEquals(BigInteger.TEN, lazy.get(() -> BigInteger.ONE));
+        lazy.remove();
+        assertEquals(BigInteger.ZERO, lazy.get(() -> BigInteger.ZERO));
+        assertEquals(BigInteger.ZERO, lazy.get().orElseThrow(AssertionError::new));
     }
 
     @Test
     public void softReferenceTest() throws Exception{
         final LazySoftReference<BigInteger> lazy = new LazySoftReference<>();
-        assertNull(lazy.get());
-        assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.TEN));
+        assertFalse(lazy.get().isPresent());
+        assertEquals(BigInteger.TEN, lazy.get(() -> BigInteger.TEN));
         assertNotNull(lazy.get());
-        assertEquals(BigInteger.TEN, lazy.lazyGet(() -> BigInteger.ONE));
-        lazy.reset();
-        assertEquals(BigInteger.ZERO, lazy.lazyGet(() -> BigInteger.ZERO));
-        assertEquals(BigInteger.ZERO, lazy.get().get());
+        assertEquals(BigInteger.TEN, lazy.get(() -> BigInteger.ONE));
+        lazy.remove();
+        assertEquals(BigInteger.ZERO, lazy.get(() -> BigInteger.ZERO));
+        assertEquals(BigInteger.ZERO, lazy.get().orElseThrow(AssertionError::new));
     }
 }

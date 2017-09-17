@@ -1,23 +1,17 @@
 package com.bytex.snamp.supervision;
 
+import com.bytex.snamp.AbstractAggregator;
 import com.bytex.snamp.AbstractWeakEventListenerList;
 import com.bytex.snamp.WeakEventListener;
-import com.bytex.snamp.configuration.SupervisorInfo;
-import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.ManagedResourceSelector;
-import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
-import com.bytex.snamp.core.FrameworkServiceState;
+import com.bytex.snamp.connector.ManagedResourceTracker;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.elasticity.ScalingEvent;
 import com.bytex.snamp.supervision.health.HealthStatusChangedEvent;
-import org.osgi.framework.ServiceReference;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.WillNotClose;
-import javax.management.InstanceNotFoundException;
-import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Strings.nullToEmpty;
@@ -28,7 +22,7 @@ import static com.google.common.base.Strings.nullToEmpty;
  * @version 2.1
  * @since 2.0
  */
-public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient, SupervisorInfo> implements Supervisor {
+public abstract class AbstractSupervisor extends AbstractAggregator implements Supervisor {
     private static final class WeakSupervisionEventListener extends WeakEventListener<SupervisionEventListener, SupervisionEvent> {
         private final Object handback;
 
@@ -49,110 +43,69 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
         }
     }
 
-
-    private static final class SupervisorInternalState extends InternalState<SupervisorInfo>{
-        private SupervisorInternalState(@Nonnull final FrameworkServiceState state, @Nonnull final SupervisorInfo params) {
-            super(state, params);
-        }
-
-        private SupervisorInternalState() {
-            super(EMPTY_CONFIGURATION);
+    private final class ResourceInGroupTracker extends ManagedResourceTracker {
+        private ResourceInGroupTracker(final String groupName) {
+            super(Utils.getBundleContextOfObject(AbstractSupervisor.this),
+                    ManagedResourceConnectorClient.selector().setGroupName(groupName));
         }
 
         @Override
-        public SupervisorInternalState setConfiguration(@Nonnull final SupervisorInfo value) {
-            return new SupervisorInternalState(state, value);
-        }
-
-        @Override
-        public SupervisorInternalState transition(final FrameworkServiceState value) {
-            switch (value) {
-                case CLOSED:
-                    return null;
-                default:
-                    return new SupervisorInternalState(value, configuration);
+        protected void addResource(final ManagedResourceConnectorClient resource) throws Exception {
+            try {
+                resourceAdded(resource);
+            } finally {
+                resourceAdded(resource.getManagedResourceName());
             }
         }
 
-        private boolean configurationAreEqual(final SupervisorInfo other){
-            return configuration.equals(other);
-        }
-
         @Override
-        protected boolean configurationAreEqual(final Map<String, ?> other) {
-            return other instanceof SupervisorInfo && configurationAreEqual((SupervisorInfo) other);
+        protected void removeResource(final ManagedResourceConnectorClient resource) throws Exception {
+            try {
+                resourceRemoved(resource);
+            } finally {
+                resourceRemoved(resource.getManagedResourceName());
+            }
         }
     }
 
+    /**
+     * Represents group name.
+     */
     protected final String groupName;
+    /**
+     * Represents type of supervisor.
+     */
     protected final String supervisorType;
     private final SupervisionEventListenerList listeners;
+    private final ManagedResourceTracker groupTracker;
 
     protected AbstractSupervisor(final String groupName) {
-        super(ManagedResourceConnector.class, new SupervisorInternalState());
         this.groupName = nullToEmpty(groupName);
         supervisorType = Supervisor.getSupervisorType(getClass());
         listeners = new SupervisionEventListenerList();
+        groupTracker = new ResourceInGroupTracker(groupName);
     }
 
     /**
-     * Returns filter used to query managed resource connectors in the same group.
-     * @return A filter used to query managed resource connectors in the same group.
+     * Executes supervision of the resource group.
+     * @since 2.1
      */
-    @Nonnull
-    @Override
-    protected final ManagedResourceSelector createServiceFilter() {
-        return ManagedResourceConnectorClient.selector().setGroupName(groupName);
-    }
-
-    @Nonnull
-    @Override
-    protected final ManagedResourceConnectorClient createClient(final ServiceReference<ManagedResourceConnector> serviceRef) throws InstanceNotFoundException {
-        return new ManagedResourceConnectorClient(getBundleContext(), serviceRef);
-    }
-
-    @Override
-    protected final String getServiceId(@WillNotClose final ManagedResourceConnectorClient client) {
-        return client.getManagedResourceName();
-    }
-
     @OverridingMethodsMustInvokeSuper
-    protected void addResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
+    protected void start(){
+        groupTracker.open();
+    }
+
+    private void resourceAdded(final String resourceName){
         listeners.fire(new ResourceAddedEvent(this, resourceName, groupName));
     }
 
-    /**
-     * Invoked when new service is detected.
-     *
-     * @param serviceClient Service client.
-     */
-    @Override
-    protected final synchronized void addService(@WillNotClose final ManagedResourceConnectorClient serviceClient) {
-        final String resourceName = getServiceId(serviceClient);
-        if (trackedServices.contains(resourceName))
-            getLogger().info(String.format("Resource %s is already attached to supervisor %s", resourceName, groupName));
-        else
-            addResource(resourceName, serviceClient);
-    }
+    protected abstract void resourceAdded(@WillNotClose final ManagedResourceConnectorClient resourceInGroup) throws Exception;
 
-    @OverridingMethodsMustInvokeSuper
-    protected void removeResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector) {
+    private void resourceRemoved(final String resourceName){
         listeners.fire(new ResourceRemovedEvent(this, resourceName, groupName));
     }
 
-    /**
-     * Invoked when service is removed from OSGi Service registry.
-     *
-     * @param serviceClient Service client.
-     */
-    @Override
-    protected final synchronized void removeService(@WillNotClose final ManagedResourceConnectorClient serviceClient) {
-        final String resourceName = getServiceId(serviceClient);
-        if (trackedServices.contains(resourceName))
-            removeResource(resourceName, serviceClient);
-        else
-            getLogger().info(String.format("Resource %s is already detached from supervisor %s", resourceName, groupName));
-    }
+    protected abstract void resourceRemoved(@WillNotClose final ManagedResourceConnectorClient resourceInGroup) throws Exception;
 
     /**
      * Raises an event indicating that health status of the supervised group was changed.
@@ -193,7 +146,7 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
     @Override
     @Nonnull
     public final Set<String> getResources() {
-        return trackedServices;
+        return groupTracker.getTrackedResources();
     }
 
     @Override
@@ -202,15 +155,9 @@ public abstract class AbstractSupervisor extends AbstractStatefulFrameworkServic
     }
 
     @Override
-    public final void close() throws IOException {
-        try {
-            super.close();
-        } catch (final IOException e) {
-            throw e;
-        } catch (final Exception e) {
-            throw new IOException(String.format("Unable to terminate supervisor %s", toString()), e);
-        } finally {
-            listeners.clear();
-        }
+    @OverridingMethodsMustInvokeSuper
+    public void close() throws Exception {
+        groupTracker.close();
+        clearCache();
     }
 }

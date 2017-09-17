@@ -44,7 +44,7 @@ final class ActuatorConnectorDescriptionProvider extends ConfigurationEntityDesc
     }
 
     static ActuatorConnectorDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(ActuatorConnectorDescriptionProvider::new);
+        return INSTANCE.get(ActuatorConnectorDescriptionProvider::new);
     }
 
     ClientFilter parseAuthentication(final Map<String, String> parameters) {

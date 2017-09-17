@@ -10,7 +10,7 @@ public interface ScalingPolicy extends com.bytex.snamp.supervision.elasticity.Sc
     ScalingPolicy VOICELESS = new ScalingPolicy() {
         @Override
         public double evaluate(final ScalingPolicyEvaluationContext context) {
-            return 0;
+            return 0D;
         }
 
         @Override

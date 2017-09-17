@@ -26,11 +26,11 @@ public class AttributeCheckerFactory implements ScriptletCompiler<AttributeCheck
     }
 
     private GroovyAttributeChecker createGroovyChecker(final String scriptBody) {
-        return groovyAttributeCheckerFactory.lazyGet(this::createGroovyCheckerFactory).create(scriptBody);
+        return groovyAttributeCheckerFactory.get(this::createGroovyCheckerFactory).create(scriptBody);
     }
 
     private ColoredAttributeChecker createColoredChecker(final String scriptBody) throws IOException {
-        return ColoredAttributeChecker.parse(scriptBody, mapper.lazyGet((Supplier<ObjectMapper>) ObjectMapper::new));
+        return ColoredAttributeChecker.parse(scriptBody, mapper.get((Supplier<ObjectMapper>) ObjectMapper::new));
     }
 
     @Override

@@ -79,7 +79,7 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
 
         @Override
         protected Logger getLogger() {
-            return logger.lazyGet(this, GatewayInstances::getLoggerImpl);
+            return logger.get(this, GatewayInstances::getLoggerImpl);
         }
 
         private String getGatewayType(){
@@ -146,11 +146,6 @@ public abstract class GatewayActivator<G extends Gateway> extends AbstractServic
                                               final Exception e) {
             logger.log(Level.SEVERE, String.format("Unable to release gateway. Type: %s, instance: %s", getGatewayType(), servicePID),
                     e);
-        }
-
-        @Override
-        protected void destroyed() {
-            logger.reset();
         }
     }
 

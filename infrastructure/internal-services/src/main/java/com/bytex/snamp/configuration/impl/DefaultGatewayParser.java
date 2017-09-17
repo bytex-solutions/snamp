@@ -33,7 +33,7 @@ final class DefaultGatewayParser extends AbstractTypedConfigurationParser<Serial
     }
 
     static DefaultGatewayParser getInstance(){
-        return INSTANCE.lazyGet(DefaultGatewayParser::new);
+        return INSTANCE.get(DefaultGatewayParser::new);
     }
 
     @Override

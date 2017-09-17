@@ -6,9 +6,7 @@ import com.bytex.snamp.scripting.groovy.Scriptlet;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents Groovy-based voter for scaling process.
@@ -31,13 +29,6 @@ public abstract class GroovyScalingPolicy extends Scriptlet implements ScalingPo
     public final Set<String> getResources() {
         final ScalingPolicyEvaluationContext context = this.context.get();
         return context == null ? Collections.emptySet() : context.getResources();
-    }
-
-    @Override
-    public final Object getProperty(final String property) {
-        final ScalingPolicyEvaluationContext context = this.context.get();
-        Object result = context == null ? null : context.getConfiguration().get(property);
-        return result == null ? super.getProperty(property) : result;
     }
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)

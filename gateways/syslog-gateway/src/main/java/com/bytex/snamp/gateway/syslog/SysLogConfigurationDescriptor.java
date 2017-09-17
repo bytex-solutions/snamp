@@ -82,7 +82,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
     }
 
     static SysLogConfigurationDescriptor getInstance(){
-        return INSTANCE.lazyGet(SysLogConfigurationDescriptor::new);
+        return INSTANCE.get(SysLogConfigurationDescriptor::new);
     }
 
     static String getApplicationName(final Descriptor descr, final String defaultValue){

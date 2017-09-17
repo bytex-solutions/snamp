@@ -28,7 +28,6 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     private static final String PROJECT_DOMAIN_PARAM = "projectDomain";
     private static final String REGION_PARAM = "region";
     private static final String CLUSTER_ID_PARAM = "clusterID";
-    private static final String AUTO_DISCOVERY_PARAM = "autoDiscovery";
     private static final String CHECK_NODES_PARAM = "checkNodes";
 
     private final Identifier defaultDomain;
@@ -50,7 +49,6 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
                     PROJECT_DOMAIN_PARAM,
                     REGION_PARAM,
                     CLUSTER_ID_PARAM,
-                    AUTO_DISCOVERY_PARAM,
                     CHECK_NODES_PARAM);
         }
     }
@@ -62,7 +60,7 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
     }
 
     static OpenStackSupervisorDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(OpenStackSupervisorDescriptionProvider::new);
+        return INSTANCE.get(OpenStackSupervisorDescriptionProvider::new);
     }
 
     String parseUserName(final Map<String, String> configuration) throws OpenStackAbsentConfigurationParameterException {
@@ -109,10 +107,6 @@ final class OpenStackSupervisorDescriptionProvider extends DefaultSupervisorConf
 
     Optional<String> parseRegion(final Map<String, String> configuration){
         return getValue(configuration, REGION_PARAM, Function.identity());
-    }
-
-    boolean isAutoDiscovery(final Map<String, String> configuration){
-        return getValue(configuration, AUTO_DISCOVERY_PARAM, Boolean::parseBoolean).orElse(true);
     }
 
     boolean checkNodes(final Map<String, String> configuration){

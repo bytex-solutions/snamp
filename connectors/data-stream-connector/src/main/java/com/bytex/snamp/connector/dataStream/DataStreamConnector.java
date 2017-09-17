@@ -147,7 +147,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
 
     @Aggregation
     protected final SyntheticAttributeRepository getAttributes() {
-        return attributes.lazyGet(this, DataStreamConnector::createAttributeRepositoryImpl);
+        return attributes.get(this, DataStreamConnector::createAttributeRepositoryImpl);
     }
 
     @Nonnull
@@ -164,7 +164,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
 
     @Aggregation
     protected final SyntheticNotificationRepository getNotifications() {
-        return notifications.lazyGet(this, DataStreamConnector::createNotificationRepositoryImpl);
+        return notifications.get(this, DataStreamConnector::createNotificationRepositoryImpl);
     }
 
     protected final String getInstanceName(){
@@ -226,7 +226,7 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     }
 
     public final void dispatch(final Map<String, ?> headers, final Object body) throws Exception {
-        final NotificationParser notificationParser = this.notificationParser.lazyGet(this, DataStreamConnector::createNotificationParser);
+        final NotificationParser notificationParser = this.notificationParser.get(this, DataStreamConnector::createNotificationParser);
         try (final Stream<Notification> notifications = notificationParser.parse(headers, body).filter(Objects::nonNull)) {
             notifications.forEach(this);
         }
@@ -315,9 +315,9 @@ public abstract class DataStreamConnector extends AbstractManagedResourceConnect
     @Override
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
-        attributes.reset(AbstractFeatureRepository::close);
-        notifications.reset(AbstractFeatureRepository::close);
-        notificationParser.reset();
+        attributes.remove().ifPresent(AbstractFeatureRepository::close);
+        notifications.remove().ifPresent(AbstractFeatureRepository::close);
+        notificationParser.remove();
         arrivals = null;
         operations.close();
         super.close();

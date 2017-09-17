@@ -63,19 +63,19 @@ final class LocalMember {
     }
 
     static InMemoryKeyValueStorageRepository getNonPersistentStores(){
-        return STORES.lazyGet(InMemoryKeyValueStorageRepository::new);
+        return STORES.get(InMemoryKeyValueStorageRepository::new);
     }
 
     static InMemoryCounterRepository getCounters() {
-        return COUNTERS.lazyGet(InMemoryCounterRepository::new);
+        return COUNTERS.get(InMemoryCounterRepository::new);
     }
 
     static InMemoryBoxRepository getBoxes(){
-        return BOXES.lazyGet(InMemoryBoxRepository::new);
+        return BOXES.get(InMemoryBoxRepository::new);
     }
 
     static InMemoryCommunicatorRepository getCommunicators(){
-        return COMMUNICATORS.lazyGet(InMemoryCommunicatorRepository::new);
+        return COMMUNICATORS.get(InMemoryCommunicatorRepository::new);
     }
 
     static String getName() {

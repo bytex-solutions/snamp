@@ -76,7 +76,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
 
         OID getNotificationID(){
-            return notificationID.lazyGet(this, metadata -> new OID(NotificationDescriptor.getName(metadata)));
+            return notificationID.get(this, metadata -> new OID(NotificationDescriptor.getName(metadata)));
         }
     }
 
@@ -268,7 +268,7 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
 
         OID getAttributeID() {
-            return attributeID.lazyGet(this, metadata -> new OID(AttributeDescriptor.getName(metadata)));
+            return attributeID.get(this, metadata -> new OID(AttributeDescriptor.getName(metadata)));
         }
     }
 

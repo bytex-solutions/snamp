@@ -1,8 +1,9 @@
 package com.bytex.snamp.concurrent;
 
 import com.bytex.snamp.Acceptor;
-import com.bytex.snamp.Stateful;
 
+import java.io.Serializable;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -14,60 +15,28 @@ import java.util.function.Supplier;
  * @version 2.1
  * @since 2.0
  */
-public interface LazyReference<V> extends Consumer<V>, Stateful {
-    default V lazyGet(final Supplier<? extends V> initializer){
-        V result = getValue();
-        if(result == null)
-            synchronized (this){
-                result = getValue();
-                if(result == null)
-                    accept(result = initializer.get());
-            }
-        return result;
-    }
+public interface LazyReference<V> extends Serializable {
+    V get(final Supplier<? extends V> initializer);
 
-    default <I> V lazyGet(final I input, final Function<? super I, ? extends V> initializer){
-        V result = getValue();
-        if(result == null)
-            synchronized (this){
-                result = getValue();
-                if(result == null)
-                    accept(result = initializer.apply(input));
-            }
-        return result;
-    }
+    <I> V get(final I input, final Function<? super I, ? extends V> initializer);
 
-    default <I1, I2> V lazyGet(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends V> initializer){
-        V result = getValue();
-        if(result == null)
-            synchronized (this){
-                result = getValue();
-                if(result == null)
-                    accept(result = initializer.apply(input1, input2));
-            }
-        return result;
-    }
+    <I1, I2> V get(final I1 input1, final I2 input2, final BiFunction<? super I1, ? super I2, ? extends V> initializer);
 
-    default <E extends Throwable> V lazyGet(final Acceptor<? super Consumer<V>, E> initializer) throws E {
-        V result = getValue();
-        if (result == null)
-            synchronized (this) {
-                result = getValue();
-                if (result == null) {
-                    initializer.accept(this);
-                    result = getValue();
-                }
-            }
-        return result;
-    }
+    <E extends Throwable> V get(final Acceptor<? super Consumer<V>, E> initializer) throws E;
 
     /**
      * Gets value stored in this container.
      * @return A value stored in this container.
+     * @since 2.1
      */
-    V getValue();
+    Optional<V> get();
 
-    boolean reset(final Consumer<? super V> consumer);
+    /**
+     * Removes value stored in the lazy reference.
+     * @return Value stored in the lazy reference.
+     * @since 2.1
+     */
+    Optional<V> remove();
 
     /**
      * Creates a new container with lazy initialization which stores strong reference to the object in container.

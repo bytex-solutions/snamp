@@ -34,7 +34,7 @@ final class HttpConnectorConfigurationDescriptionProvider extends DataStreamConn
     }
 
     static HttpConnectorConfigurationDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(HttpConnectorConfigurationDescriptionProvider::new);
+        return INSTANCE.get(HttpConnectorConfigurationDescriptionProvider::new);
     }
 
     URL[] parseScriptPath(final Map<String, String> parameters){

@@ -109,7 +109,7 @@ final class SmtpGatewayConfigurationDescriptionProvider extends ConfigurationEnt
     }
 
     static SmtpGatewayConfigurationDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(SmtpGatewayConfigurationDescriptionProvider::new);
+        return INSTANCE.get(SmtpGatewayConfigurationDescriptionProvider::new);
     }
 
     PasswordAuthentication parseCredentials(final Map<String, String> parameters) throws SmtpGatewayAbsentConfigurationParameterException{

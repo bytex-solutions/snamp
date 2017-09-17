@@ -1,6 +1,7 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
 import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.supervision.health.ResourceGroupHealthStatus;
 
 import java.util.Map;
 import java.util.Set;
@@ -19,8 +20,15 @@ public interface ScalingPolicyEvaluationContext extends Aggregator {
     Set<String> getResources();
 
     /**
-     * Gets configuration of the supervisor.
-     * @return Configuration of the supervisor.
+     * Gets all values of the specified attribute in the resource group.
+     * @param attributeName Name of the requested attribute.
+     * @return Immutable map of attribute values where keys are names of resources in the group.
      */
-    Map<String, String> getConfiguration();
+    Map<String, ?> getAttributes(final String attributeName);
+
+    /**
+     * Gets health status of the resource group.
+     * @return Health status of the resource group.
+     */
+    ResourceGroupHealthStatus getHealthStatus();
 }

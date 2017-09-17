@@ -71,7 +71,7 @@ final class CompositeResourceConfigurationDescriptor extends ConfigurationEntity
     }
 
     static CompositeResourceConfigurationDescriptor getInstance(){
-        return INSTANCE.lazyGet(CompositeResourceConfigurationDescriptor::new);
+        return INSTANCE.get(CompositeResourceConfigurationDescriptor::new);
     }
 
     String parseSeparator(final Map<String, String> parameters){

@@ -85,7 +85,7 @@ final class CompositeResourceConnector extends AbstractManagedResourceConnector 
     }
 
     @Override
-    public void update(@Nonnull final ManagedResourceInfo configuration) throws Exception {
+    public synchronized void update(@Nonnull final ManagedResourceInfo configuration) throws Exception {
         setConfiguration(configuration);
         final CompositeResourceConfigurationDescriptor parser = CompositeResourceConfigurationDescriptor.getInstance();
         final ComposedConfiguration parsedParams = ComposedConfiguration.parse(configuration, parser.parseSeparator(configuration));

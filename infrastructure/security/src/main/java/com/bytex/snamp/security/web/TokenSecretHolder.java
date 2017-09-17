@@ -28,7 +28,7 @@ final class TokenSecretHolder extends SecureRandom implements Supplier<BigIntege
     }
 
     static TokenSecretHolder getInstance() {
-        return INSTANCE.lazyGet(TokenSecretHolder::new);
+        return INSTANCE.get(TokenSecretHolder::new);
     }
 
     String getSecret(final ClusterMember member) {

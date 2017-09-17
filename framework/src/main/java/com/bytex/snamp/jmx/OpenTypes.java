@@ -103,7 +103,7 @@ public final class OpenTypes {
      * @return {@literal true}, if the specified type is primitive type in Java language; otherwise, {@literal false}.
      */
     public static boolean isPrimitive(@Nonnull final SimpleType<?> type) {
-        return PRIMITIVE_TYPES.lazyGet(OpenTypes::loadPrimitiveTypes).contains(type);
+        return PRIMITIVE_TYPES.get(OpenTypes::loadPrimitiveTypes).contains(type);
     }
 
     /**
@@ -136,7 +136,7 @@ public final class OpenTypes {
         else if (type instanceof ArrayType<?>)
             return ArrayUtils.emptyArray(getType(type));
         else if (type instanceof SimpleType<?>)
-            result = DEFAULT_VALUES.lazyGet(OpenTypes::loadDefaultValues).get(type);
+            result = DEFAULT_VALUES.get(OpenTypes::loadDefaultValues).get(type);
         else
             result = null;
         return convert(result, type).orElse(null);

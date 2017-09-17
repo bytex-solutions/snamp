@@ -53,7 +53,6 @@ project | String | No | OpenStack [Project](https://docs.openstack.org/mitaka/in
 projectDomain | String | No | [Domain](https://docs.openstack.org/mitaka/install-guide-obs/common/glossary.html#term-domain) of project. Default is `default` (suitable for DevStack) | `default`
 region | String | No | A discrete OpenStack environment with dedicated API endpoints that typically shares only the Identity (keystone) with other regions | `US`
 clusterID | GUID | No | GUID of cluster in OpenStack Senlin. Should be used if group name in SNAMP doesn't match to cluster name in Senlin | `java-apps`
-autoDiscovery | Boolean | No | `true` for automatic synchronization cluster nodes in Senlin with managed resources in SNAMP. Default is `true` | `false`
 checkNodes | Boolean | No | Invoke [CHECK action](https://docs.openstack.org/developer/senlin/user/actions.html) on cluster nodes periodically. Default is `false` | `true`
 
 ### Elasticity management

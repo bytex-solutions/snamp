@@ -1,9 +1,10 @@
 package com.bytex.snamp.supervision.openstack;
 
-import com.bytex.snamp.Convert;
-import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.SafeCloseable;
+import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.supervision.def.DefaultElasticityManager;
-import com.bytex.snamp.supervision.def.DefaultHealthStatusProvider;
 import com.bytex.snamp.supervision.def.DefaultResourceDiscoveryService;
 import com.bytex.snamp.supervision.def.DefaultSupervisor;
 import com.bytex.snamp.supervision.discovery.ResourceDiscoveryException;
@@ -13,17 +14,19 @@ import com.bytex.snamp.supervision.openstack.elasticity.OpenStackScalingEvaluati
 import com.bytex.snamp.supervision.openstack.health.OpenStackHealthStatusProvider;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.exceptions.OS4JException;
-import org.openstack4j.api.senlin.SenlinClusterService;
 import org.openstack4j.api.senlin.SenlinService;
 import org.openstack4j.api.types.ServiceType;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.model.senlin.Cluster;
 import org.openstack4j.openstack.OSFactory;
+import org.osgi.framework.BundleContext;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents supervisor for OpenStack.
@@ -32,97 +35,97 @@ import java.util.logging.Level;
  * @since 2.0
  */
 final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackScalingEvaluationContext {
-    private final AtomicReference<Token> openStackClientToken;
+    private static final class OSClientFactory extends AtomicReference<Token> implements SafeCloseable {
+        private static final long serialVersionUID = -1142857437167027233L;
 
-    OpenStackSupervisor(final String groupName) {
+        OSClientFactory(final OSClientV3 client) {
+            super(client.getToken());
+        }
+
+        OSClientV3 createClient() {
+            final Token token = get();
+            return token == null ? null : OSFactory.clientFromToken(token);
+        }
+
+        @Override
+        public void close() {
+            set(null);
+        }
+    }
+
+    private final OSClientFactory openStackClientFactory;
+    private final String clusterID;
+    private final Logger logger;
+    private final OpenStackHealthStatusProvider healthStatusProvider;
+    private OpenStackDiscoveryService discoveryService;
+    private OpenStackElasticityManager elasticityManager;
+
+    OpenStackSupervisor(final String groupName,
+                        final OSClientV3 openStackClient,
+                        final String clusterID) {
         super(groupName);
-        openStackClientToken = new AtomicReference<>();
+        openStackClientFactory = new OSClientFactory(openStackClient);
+        this.clusterID = clusterID;
+        logger = LoggerProvider.getLoggerForObject(this);
+        healthStatusProvider = new OpenStackHealthStatusProvider(clusterID);
+    }
+
+    void enableAutoDiscovery(final String connectionStringTemplate) {
+        if(isNullOrEmpty(connectionStringTemplate))
+            throw new IllegalStateException("Connection string template cannot be empty");
+        else if(discoveryService == null)
+            discoveryService = new OpenStackDiscoveryService(groupName, clusterID, connectionStringTemplate);
+        else
+            throw new IllegalStateException("Automatic discovery is already enabled");
     }
 
     @Override
-    protected OpenStackSupervisorDescriptionProvider getDescriptionProvider() {
-        return OpenStackSupervisorDescriptionProvider.getInstance();
+    @Aggregation
+    protected DefaultResourceDiscoveryService getDiscoveryService() {
+        return discoveryService == null ? super.getDiscoveryService() : discoveryService;
+    }
+
+    void enableAutoScaling(){
+        if(elasticityManager == null)
+            elasticityManager = new OpenStackElasticityManager(clusterID);
+        else
+            throw new IllegalStateException("Automatic scaling is already enabled");
+    }
+
+    @Override
+    @Aggregation
+    protected DefaultElasticityManager getElasticityManager() {
+        return elasticityManager == null ? super.getElasticityManager() : elasticityManager;
+    }
+
+    @Override
+    @Aggregation
+    protected OpenStackHealthStatusProvider getHealthStatusProvider() {
+        return healthStatusProvider;
     }
 
     private static boolean isClusteringSupported(final OSClientV3 client){
         return client.getSupportedServices().contains(ServiceType.CLUSTERING);
     }
 
-    private static String getClusterIdByName(final SenlinClusterService clusterService,
-                                             final String clusterName) {
-        return clusterService.list()
-                .stream()
-                .filter(cluster -> cluster.getName().equals(clusterName))
-                .map(Cluster::getId)
-                .findFirst()
-                .orElseThrow(() -> new OS4JException(String.format("Cluster with name %s is not registered in Senlin", clusterName)));
-    }
-
-    /**
-     * Starts the tracking resources.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     * </p>
-     *
-     * @param configuration Tracker startup parameters.
-     * @throws Exception Unable to start tracking.
-     */
     @Override
-    protected void start(final SupervisorInfo configuration) throws Exception {
-        final OpenStackSupervisorDescriptionProvider parser = getDescriptionProvider();
-        final OSClientV3 openStackClient = OSFactory.builderV3()
-                .provider(parser.parseCloudProvider(configuration))
-                .endpoint(parser.parseApiEndpoint(configuration))
-                .scopeToProject(parser.parseProject(configuration), parser.parseProjectDomain(configuration))
-                .credentials(parser.parseUserName(configuration), parser.parsePassword(configuration), parser.parseUserDomain(configuration))
-                .authenticate();
+    protected void start() {
+        final OSClientV3 openStackClient = openStackClientFactory.createClient();
+        assert openStackClient != null;
         if (!isClusteringSupported(openStackClient)) {    //Compute is not supported. Shutting down.
             final String message = String.format("OpenStack installation %s doesn't support clustering via Senlin. Supervisor for group %s is not started", openStackClient.getEndpoint(), groupName);
             throw new OS4JException(message);
         }
-        //Obtain cluster ID
-        final String clusterID = parser.parseClusterID(configuration)
-                .orElseGet(() -> getClusterIdByName(openStackClient.senlin().cluster(), groupName));
         final Cluster cluster = openStackClient.senlin().cluster().get(clusterID);
         if (cluster == null)
             throw new OS4JException(String.format("Cluster with ID %s is not registered in Senlin", clusterID));
         else
-            getLogger().info(String.format("Cluster %s is associated with group %s. Cluster status: %s(%s)",
+            logger.info(String.format("Cluster %s is associated with group %s. Cluster status: %s(%s)",
                     clusterID,
                     groupName,
                     cluster.getStatus(),
                     cluster.getStatusReason()));
-        //setup supervisor
-        openStackClientToken.set(openStackClient.getToken());  //according with http://openstack4j.com/learn/threads/
-        overrideHealthStatusProvider(new OpenStackHealthStatusProvider(clusterMember, clusterID, parser.checkNodes(configuration)));
-        //setup discovery service
-        if (parser.isAutoDiscovery(configuration))
-            overrideDiscoveryService(new OpenStackDiscoveryService(groupName, clusterID, configuration.getDiscoveryConfig().getConnectionStringTemplate()));
-        //setup elasticity manager
-        if(configuration.getAutoScalingConfig().isEnabled())
-            overrideElasticityManager(new OpenStackElasticityManager(clusterID));
-        super.start(configuration);
-    }
-
-    private void updateHealthStatus(@Nonnull final SenlinService senlin, @Nonnull final OpenStackHealthStatusProvider provider){
-        provider.updateStatus(getBundleContext(), senlin, getResources(), this);
-    }
-
-    private boolean synchronizeNodes(@Nonnull final SenlinService senlin, @Nonnull final OpenStackDiscoveryService discoveryService) {
-        boolean synchronizationOccurs = false;
-        if (clusterMember.isActive()) {  //synchronization nodes available only at active server node
-            try {
-                synchronizationOccurs = discoveryService.synchronizeNodes(senlin.node(), getResources());
-            } catch (final ResourceDiscoveryException e) {
-                getLogger().log(Level.SEVERE, "Failed to synchronize cluster nodes between OpenStack and SNAMP", e);
-            }
-        }
-        return !synchronizationOccurs; //false to break supervision pipeline
-    }
-
-    private void autoScaling(@Nonnull final SenlinService senlin, @Nonnull final OpenStackElasticityManager manager) {
-        if (clusterMember.isActive())//scaling available only at active server node
-            manager.performScaling(this, senlin);
+        super.start();
     }
 
     /**
@@ -130,32 +133,31 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
      */
     @Override
     protected void supervise() {
-        final Token openStackClientToken = this.openStackClientToken.get();
-        if (openStackClientToken == null) {
-            getLogger().warning(String.format("OpenStack client for group %s is signed out", groupName));
+        final OSClientV3 openStackClient = openStackClientFactory.createClient();
+        if (openStackClient == null) {
+            logger.warning(String.format("OpenStack client for group %s is signed out", groupName));
             return;
         }
-        final OSClientV3 openStackClient = OSFactory.clientFromToken(openStackClientToken);
         final SenlinService senlin = openStackClient.senlin();
+        final BundleContext context = Utils.getBundleContextOfObject(this);
         assert senlin != null;
-
-        //the first, update nodes
-        if (queryObject(DefaultResourceDiscoveryService.class)
-                .flatMap(Convert.toType(OpenStackDiscoveryService.class))
-                .map(discovery -> synchronizeNodes(senlin, discovery)).orElse(true)) {
-            //only after updating node we should collect health checks
-            queryObject(DefaultHealthStatusProvider.class)
-                    .flatMap(Convert.toType(OpenStackHealthStatusProvider.class))
-                    .ifPresent(provider -> updateHealthStatus(senlin, provider));
-
-            //force scaling
-            queryObject(DefaultElasticityManager.class)
-                    .flatMap(Convert.toType(OpenStackElasticityManager.class))
-                    .ifPresent(manager -> autoScaling(senlin, manager));
-        }
-
+        final boolean activeNode = ClusterMember.get(context).isActive();
+        //synchronization nodes available only at active server node
+        if (activeNode && discoveryService != null)
+            try {
+                if (!discoveryService.synchronizeNodes(senlin.node(), getResources()))
+                    return;
+            } catch (final ResourceDiscoveryException e) {
+                logger.log(Level.SEVERE, "Failed to synchronize cluster nodes between OpenStack and SNAMP", e);
+                return;
+            }
+        //only after updating node we should collect health checks
+        healthStatusProvider.updateStatus(context, senlin, getResources(), this);
+        //and then perform scaling
+        if (activeNode && elasticityManager != null)
+            elasticityManager.performScaling(this, senlin);
         //OSAuthenticator.reAuthenticate();
-        this.openStackClientToken.compareAndSet(openStackClientToken, openStackClient.getToken()); //if re-authentication forced
+        openStackClientFactory.set(openStackClient.getToken()); //if re-authentication forced
     }
 
     @Override
@@ -173,16 +175,9 @@ final class OpenStackSupervisor extends DefaultSupervisor implements OpenStackSc
         maxClusterSizeReached(policyEvaluation);
     }
 
-    /**
-     * Stops tracking resources.
-     * <p>
-     * This method will be called by SNAMP infrastructure automatically.
-     *
-     * @throws Exception Unable to stop tracking resources.
-     */
     @Override
-    protected void stop() throws Exception {
-        openStackClientToken.set(null);
-        super.stop();
+    public void close() throws Exception {
+        openStackClientFactory.close();
+        super.close();
     }
 }

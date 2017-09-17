@@ -17,6 +17,6 @@ final class DefaultManagedResourceGroupParser extends SerializableConfigurationP
     }
 
     static DefaultManagedResourceGroupParser getInstance(){
-        return INSTANCE.lazyGet(DefaultManagedResourceGroupParser::new);
+        return INSTANCE.get(DefaultManagedResourceGroupParser::new);
     }
 }

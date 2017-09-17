@@ -1,18 +1,15 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
 import com.bytex.snamp.configuration.ScriptletConfiguration;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.MalfunctionStatus;
-import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.connector.health.ResourceMalfunctionStatus;
 import com.bytex.snamp.json.DurationDeserializer;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.osgi.framework.BundleContext;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -56,7 +53,7 @@ public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalin
         configureScriptlet(scriptlet, LANGUAGE_NAME);
     }
 
-    private double vote(final MalfunctionStatus status) {
+    private double vote(final ResourceMalfunctionStatus status) {
         if (status.getLevel().compareTo(level) >= 0) {
             startIfNotStarted();
             return computeVoteWeight();
@@ -67,8 +64,8 @@ public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalin
     }
 
     synchronized double vote(final HealthStatus status) {
-        if (status instanceof MalfunctionStatus) {
-            return vote((MalfunctionStatus) status);
+        if (status instanceof ResourceMalfunctionStatus) {  //ignore cluster status
+            return vote((ResourceMalfunctionStatus) status);
         } else {
             reset();
             return 0D;
@@ -83,16 +80,7 @@ public final class HealthStatusBasedScalingPolicy extends AbstractWeightedScalin
      */
     @Override
     public double evaluate(final ScalingPolicyEvaluationContext context) {
-        final BundleContext bc = Utils.getBundleContextOfObject(context);
-        assert bc != null;
-        HealthStatus summary = new OkStatus();
-        for (final String resourceName : context.getResources()) {
-            final HealthStatus status = ManagedResourceConnectorClient
-                    .getStatus(bc, resourceName)
-                    .orElseGet(OkStatus::new);
-            summary = summary.worst(status);
-        }
-        return vote(summary);
+        return vote(context.getHealthStatus().getSummaryStatus());
     }
 
     static HealthStatusBasedScalingPolicy parse(final String json, final ObjectMapper mapper) throws IOException {

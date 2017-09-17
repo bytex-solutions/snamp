@@ -49,7 +49,7 @@ final class DefaultManagedResourceParser extends AbstractTypedConfigurationParse
     }
 
     static DefaultManagedResourceParser getInstance(){
-        return INSTANCE.lazyGet(DefaultManagedResourceParser::new);
+        return INSTANCE.get(DefaultManagedResourceParser::new);
     }
 
     /**

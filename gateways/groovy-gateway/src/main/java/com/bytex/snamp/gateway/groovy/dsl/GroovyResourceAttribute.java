@@ -48,7 +48,7 @@ public final class GroovyResourceAttribute extends GroovyObjectSupport {
 
     @SpecialUse(SpecialUse.Case.SCRIPTING)
     public GroovyFeatureMetadata<MBeanAttributeInfo> getMetadata() {
-        return metadataCache.lazyGet(this, GroovyResourceAttribute::detectMetadata);
+        return metadataCache.get(this, GroovyResourceAttribute::detectMetadata);
     }
 
     @Override

@@ -1,10 +1,8 @@
 package com.bytex.snamp.supervision.elasticity.policies;
 
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
-import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.core.LoggerProvider;
-import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.json.DurationDeserializer;
 import com.bytex.snamp.json.DurationSerializer;
 import com.bytex.snamp.json.RangeSerializer;
@@ -16,19 +14,13 @@ import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.osgi.framework.BundleContext;
 
 import javax.annotation.Nonnull;
-import javax.management.JMException;
 import java.io.IOException;
 import java.math.MathContext;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.OptionalDouble;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static com.bytex.snamp.Convert.toDouble;
 
 /**
  * Represents scaling policy based on value of attributes.
@@ -161,26 +153,6 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
         previousObservation = 0;
     }
 
-    private static void putAttributeIntoReservoir(final ManagedResourceConnectorClient connector,
-                                                  final String attributeName,
-                                                  final DoubleReservoir reservoir,
-                                                  final Logger logger) {
-        final Object attributeValue;
-        try {
-            attributeValue = connector.getAttribute(attributeName);
-        } catch (final JMException e) {
-            logger.log(Level.SEVERE, String.format("Scaling policy for attribute %s cannot be evaluated", attributeName), e);
-            return;
-        } finally {
-            connector.close();
-        }
-        final OptionalDouble convertedValue = toDouble(attributeValue);
-        if (convertedValue.isPresent())
-            reservoir.add(convertedValue.getAsDouble());
-        else
-            logger.warning(String.format("Scaling policy for attribute %s cannot be evaluated. Value %s cannot be converted to floating-point number", attributeName, attributeValue));
-    }
-
     /**
      * Performs voting.
      *
@@ -189,19 +161,19 @@ public final class AttributeBasedScalingPolicy extends AbstractWeightedScalingPo
      */
     @Override
     public double evaluate(final ScalingPolicyEvaluationContext context) {
-        final BundleContext bc = Utils.getBundleContextOfObject(context);
-        assert bc != null;
-
         final int resources = context.getResources().size();
         switch (resources) {
             case 0:
                 return 0D;
             default:
                 final DoubleReservoir reservoir = new DoubleReservoir(resources);
-                final String attributeName = this.attributeName;
-                final Logger logger = LoggerProvider.getLoggerForObject(context);
-                for (final String resourceName : context.getResources())
-                    ManagedResourceConnectorClient.tryCreate(bc, resourceName).ifPresent(client -> putAttributeIntoReservoir(client, attributeName, reservoir, logger));
+                context.getAttributes(attributeName)
+                        .values()
+                        .stream()
+                        .map(Convert::toDouble)
+                        .filter(OptionalDouble::isPresent)
+                        .mapToDouble(OptionalDouble::getAsDouble)
+                        .forEach(reservoir);
                 return reservoir.getSize() == 0 ? 0D : vote(reservoir);
         }
     }

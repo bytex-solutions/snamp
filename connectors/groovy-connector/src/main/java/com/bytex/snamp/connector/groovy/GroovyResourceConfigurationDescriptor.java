@@ -35,6 +35,6 @@ final class GroovyResourceConfigurationDescriptor extends ConfigurationEntityDes
     }
 
     static GroovyResourceConfigurationDescriptor getInstance(){
-        return INSTANCE.lazyGet(GroovyResourceConfigurationDescriptor::new);
+        return INSTANCE.get(GroovyResourceConfigurationDescriptor::new);
     }
 }

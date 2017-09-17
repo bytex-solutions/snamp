@@ -29,15 +29,14 @@ import java.util.Set;
  */
 public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProvider {
     private final String clusterID;
-    private final boolean checkNodes;
-    private final ClusterMember clusterMember;
+    private boolean checkNodes;
 
-    public OpenStackHealthStatusProvider(@Nonnull final ClusterMember clusterMember,
-                                         @Nonnull final String clusterID,
-                                         final boolean checkNodes) {
+    public OpenStackHealthStatusProvider(@Nonnull final String clusterID) {
         this.clusterID = clusterID;
-        this.checkNodes = checkNodes;
-        this.clusterMember = clusterMember;
+    }
+
+    public void setCheckNodes(final boolean value){
+        checkNodes = value;
     }
 
     private static HealthStatus getClusterStatus(final Cluster cluster) { //this method can be called inside batch update only
@@ -107,7 +106,7 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         if (cluster == null)
             throw new OS4JException(String.format("Cluster %s doesn't exist", clusterID));
         final ClusterNodes nodes = ClusterNodes.discover(senlin.node(), clusterID);
-        try(final HealthStatusBuilder builder = statusBuilder()) {
+        try (final HealthStatusBuilder builder = statusBuilder()) {
             //update health status using resources in the group and status of the cluster
             builder.updateGroupStatus(getClusterStatus(cluster)).updateResourcesStatuses(context, resources);
             //extract health status for every cluster node
@@ -119,7 +118,7 @@ public final class OpenStackHealthStatusProvider extends DefaultHealthStatusProv
         }
         nodes.clear();  //help GC
         //force check nodes only at active cluster node
-        if (checkNodes && clusterMember.isActive()) {
+        if (checkNodes && ClusterMember.get(context).isActive()) {
             final ClusterActionCreate checkAction = SenlinClusterActionCreate.build().check(ImmutableMap.of()).build();
             senlin.cluster().action(clusterID, checkAction);
         }

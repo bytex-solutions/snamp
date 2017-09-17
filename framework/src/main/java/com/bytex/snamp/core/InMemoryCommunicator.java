@@ -415,7 +415,7 @@ final class InMemoryCommunicator implements Communicator {
                 return result;
         }
         final Supplier<ExecutorService> DEFAULT_SENDER_FACTORY = () -> newSingleThreadExecutor(new GroupedThreadFactory("LocalCommunicator"));
-        return LOCAL_MESSAGE_SENDER.lazyGet(DEFAULT_SENDER_FACTORY);
+        return LOCAL_MESSAGE_SENDER.get(DEFAULT_SENDER_FACTORY);
     }
 
     @Override

@@ -20,16 +20,16 @@ import java.util.logging.Logger;
  * @since 2.1
  * @version 2.1
  */
-public abstract class AbstractManagedResourceTracker extends ServiceTracker<ManagedResourceConnector, String> implements SafeCloseable {
+public abstract class ManagedResourceTracker extends ServiceTracker<ManagedResourceConnector, String> implements SafeCloseable {
     private final Logger logger;
 
-    protected AbstractManagedResourceTracker(final BundleContext context,
-                                             final ManagedResourceSelector selector) {
+    protected ManagedResourceTracker(final BundleContext context,
+                                     final ManagedResourceSelector selector) {
         super(context, selector.get(), null);
         logger = LoggerProvider.getLoggerForBundle(context);
     }
 
-    protected AbstractManagedResourceTracker(final BundleContext context){
+    protected ManagedResourceTracker(final BundleContext context){
         this(context, ManagedResourceConnectorClient.selector());
     }
 

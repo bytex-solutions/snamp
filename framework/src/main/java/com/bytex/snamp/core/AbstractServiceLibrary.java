@@ -319,7 +319,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
     private static abstract class ManagedServiceFactoryImpl<TService> extends HashMap<String, TService> implements ManagedServiceFactory{
         private static final long serialVersionUID = 6353271076932722292L;
 
-        private synchronized <E extends Throwable> void synchronizedInvoke(final Acceptor<? super ManagedServiceFactoryImpl<TService>, E> action) throws E{
+        final synchronized <E extends Throwable> void synchronizedInvoke(final Acceptor<? super ManagedServiceFactoryImpl<TService>, E> action) throws E{
             action.accept(this);
         }
     }
@@ -347,7 +347,7 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         private String getCachedFactoryPID() {
-            return factoryPID.lazyGet(this, DynamicServiceManager::getFactoryPID);
+            return factoryPID.get(this, DynamicServiceManager::getFactoryPID);
         }
 
         /**
@@ -485,15 +485,8 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
             };
         }
 
-        protected void destroyed(){
-
-        }
-
         /**
          * Provides service cleanup operations.
-         * <p>
-         * In the default implementation this method does nothing.
-         * </p>
          *
          * @param serviceInstance An instance of the hosted service to cleanup.
          * @param stopBundle      {@literal true}, if this method calls when the owner bundle is stopping;
@@ -509,7 +502,6 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
                     si.clear();
                 }
             });
-            destroyed();
         }
     }
 

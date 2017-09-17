@@ -302,5 +302,6 @@ public class DefaultElasticityManager implements ElasticityManager, AutoCloseabl
     @OverridingMethodsMustInvokeSuper
     public void close() throws Exception {
         policies.clear();
+        cooldownTimer = null;
     }
 }

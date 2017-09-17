@@ -101,6 +101,6 @@ final class OSGiScriptEngineFactory implements ScriptEngineFactory{
 
     @Override
     public ForwardingScriptEngine getScriptEngine() {
-        return cachedScriptEngine.lazyGet(this, OSGiScriptEngineFactory::createScriptEngine);
+        return cachedScriptEngine.get(this, OSGiScriptEngineFactory::createScriptEngine);
     }
 }

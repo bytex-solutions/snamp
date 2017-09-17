@@ -79,7 +79,7 @@ final class NRDPGatewayConfigurationDescriptor extends ConfigurationEntityDescri
     }
 
     static NRDPGatewayConfigurationDescriptor getInstance(){
-        return INSTANCE.lazyGet(NRDPGatewayConfigurationDescriptor::new);
+        return INSTANCE.get(NRDPGatewayConfigurationDescriptor::new);
     }
 
     NRDPServerConnectionSettings parseSettings(final Map<String, String> parameters) throws AbsentNRDPConfigurationParameterException {

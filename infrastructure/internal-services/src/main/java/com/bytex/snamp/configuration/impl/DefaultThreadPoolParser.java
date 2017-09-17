@@ -20,6 +20,6 @@ public final class DefaultThreadPoolParser extends SerializableConfigurationPars
     }
 
     public static DefaultThreadPoolParser getInstance(){
-        return INSTANCE.lazyGet(DefaultThreadPoolParser::new);
+        return INSTANCE.get(DefaultThreadPoolParser::new);
     }
 }

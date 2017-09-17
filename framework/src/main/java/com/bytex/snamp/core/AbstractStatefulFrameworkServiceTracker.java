@@ -156,7 +156,7 @@ public abstract class AbstractStatefulFrameworkServiceTracker<S extends Framewor
                 } finally {
                     mutableState = currentState.transition(FrameworkServiceState.STOPPED);
                     trackedServices.clear();
-                    resourceFilterCache.reset();
+                    resourceFilterCache.remove();
                 }
                 stopped();
         }
@@ -179,7 +179,7 @@ public abstract class AbstractStatefulFrameworkServiceTracker<S extends Framewor
     @Nonnull
     @Override
     protected final Filter getServiceFilter() {
-        return resourceFilterCache.lazyGet(this, tracker -> tracker.createServiceFilter().get());
+        return resourceFilterCache.get(this, tracker -> tracker.createServiceFilter().get());
     }
 
     private synchronized void doStart(final F newConfiguration) throws Exception {

@@ -100,7 +100,7 @@ final class SnmpConnectorDescriptionProvider extends ConfigurationEntityDescript
     }
 
     static SnmpConnectorDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(SnmpConnectorDescriptionProvider::new);
+        return INSTANCE.get(SnmpConnectorDescriptionProvider::new);
     }
 
     static Duration getResponseTimeout(final AttributeDescriptor attributeParams){

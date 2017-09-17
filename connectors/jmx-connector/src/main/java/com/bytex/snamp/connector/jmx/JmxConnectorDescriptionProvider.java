@@ -122,7 +122,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
     }
 
     static JmxConnectorDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(JmxConnectorDescriptionProvider::new);
+        return INSTANCE.get(JmxConnectorDescriptionProvider::new);
     }
 
     static boolean useRegexpOption(final Descriptor options) {

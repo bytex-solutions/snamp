@@ -43,7 +43,7 @@ final class ZipkinConnectorConfigurationDescriptionProvider extends DataStreamCo
     }
 
     static ZipkinConnectorConfigurationDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(ZipkinConnectorConfigurationDescriptionProvider::new);
+        return INSTANCE.get(ZipkinConnectorConfigurationDescriptionProvider::new);
     }
 
     private static CollectorComponent createKafkaCollector(final URI connectionString, final StorageComponent storage){

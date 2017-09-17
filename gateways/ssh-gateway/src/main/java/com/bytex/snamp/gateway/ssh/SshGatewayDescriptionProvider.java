@@ -94,7 +94,7 @@ final class SshGatewayDescriptionProvider extends ConfigurationEntityDescription
     }
 
     static SshGatewayDescriptionProvider getInstance(){
-        return INSTANCE.lazyGet(SshGatewayDescriptionProvider::new);
+        return INSTANCE.get(SshGatewayDescriptionProvider::new);
     }
 
     String getHost(final Map<String, String> parameters){
