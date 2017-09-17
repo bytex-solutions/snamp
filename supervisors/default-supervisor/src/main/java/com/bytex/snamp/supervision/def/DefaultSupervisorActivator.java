@@ -3,7 +3,7 @@ package com.bytex.snamp.supervision.def;
 import com.bytex.snamp.*;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
-import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
 import com.bytex.snamp.connector.attributes.checkers.InvalidAttributeCheckerException;
 import com.bytex.snamp.core.ScriptletCompilationException;
@@ -71,7 +71,7 @@ public class DefaultSupervisorActivator<S extends DefaultSupervisor> extends Sup
                                               @Nonnull final Map<String, String> configuration) throws Exception;
 
         protected void configureElasticity(final S supervisor,
-                                         final SupervisorInfo.AutoScalingInfo configuration) throws InvalidScalingPolicyException {
+                                         final SupervisorConfiguration.AutoScalingConfiguration configuration) throws InvalidScalingPolicyException {
             final DefaultElasticityManager manager = supervisor.getElasticityManager();
             final ScalingPolicyFactory policyFactory = this.policyFactory.get(this, DefaultSupervisorLifecycleManager::createScalingPolicyFactory);
             manager.setCooldownTime(configuration.getCooldownTime());
@@ -86,7 +86,7 @@ public class DefaultSupervisorActivator<S extends DefaultSupervisor> extends Sup
         }
 
         protected void configureHealthChecks(final S supervisor,
-                                           final SupervisorInfo.HealthCheckInfo configuration) throws ScriptletCompilationException {
+                                           final SupervisorConfiguration.HealthCheckConfiguration configuration) throws ScriptletCompilationException {
             final TriggerFactory triggerFactory = this.triggerFactory.get(this, DefaultSupervisorLifecycleManager::createTriggerFactory);
             supervisor.setHealthStatusTrigger(triggerFactory.compile(configuration.getTrigger()));
             final AttributeCheckerFactory checkerFactory = this.checkerFactory.get(this, DefaultSupervisorLifecycleManager::createAttributeCheckerFactory);
@@ -101,13 +101,13 @@ public class DefaultSupervisorActivator<S extends DefaultSupervisor> extends Sup
 
         @MethodStub
         protected void configureDiscovery(final S supervisor,
-                                          final SupervisorInfo.ResourceDiscoveryInfo configuration){
+                                          final SupervisorConfiguration.ResourceDiscoveryConfiguration configuration){
             
         }
 
         @Nonnull
         @Override
-        protected final S createSupervisor(@Nonnull final String groupName, @Nonnull final SupervisorInfo configuration) throws Exception {
+        protected final S createSupervisor(@Nonnull final String groupName, @Nonnull final SupervisorConfiguration configuration) throws Exception {
             final S supervisor = createSupervisor(groupName, (Map<String, String>) configuration);
             configureElasticity(supervisor, configuration.getAutoScalingConfig());
             configureHealthChecks(supervisor, configuration.getHealthCheckConfig());

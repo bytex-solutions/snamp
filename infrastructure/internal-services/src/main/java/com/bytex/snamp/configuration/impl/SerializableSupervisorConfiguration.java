@@ -4,7 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.configuration.SupervisorInfo;
 
 import javax.annotation.Nonnull;
 import java.io.Externalizable;
@@ -42,7 +41,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             modified = true;
         }
 
-        void load(final ResourceDiscoveryInfo other){
+        void load(final ResourceDiscoveryConfiguration other){
             setConnectionStringTemplate(other.getConnectionStringTemplate());
         }
 
@@ -219,7 +218,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             policies.clear();
         }
 
-        void load(final AutoScalingInfo autoScalingConfig) {
+        void load(final AutoScalingConfiguration autoScalingConfig) {
             enabled = autoScalingConfig.isEnabled();
             cooldownTime = autoScalingConfig.getCooldownTime();
             scalingSize = autoScalingConfig.getScalingSize();
@@ -245,7 +244,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
             return checkers.isModified() || trigger.isModified();
         }
 
-        void load(final HealthCheckInfo configuration){
+        void load(final HealthCheckConfiguration configuration){
             trigger.load(configuration.getTrigger());
             checkers.load(configuration.getAttributeCheckers());
         }
@@ -435,7 +434,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
         super.putAll(parameters);
     }
 
-    private void load(final SupervisorInfo other) {
+    private void load(final SupervisorConfiguration other) {
         healthCheckConfig.load(other.getHealthCheckConfig());
         discoveryConfig.load(other.getDiscoveryConfig());
         autoScalingConfig.load(other.getAutoScalingConfig());
@@ -444,13 +443,13 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
 
     @Override
     public void load(final Map<String, String> parameters) {
-        if(parameters instanceof SupervisorInfo)
-            load((SupervisorInfo) parameters);
+        if(parameters instanceof SupervisorConfiguration)
+            load((SupervisorConfiguration) parameters);
         else
             loadParameters(parameters);
     }
 
-    private boolean equals(final SupervisorInfo other) {
+    private boolean equals(final SupervisorConfiguration other) {
         return other.getHealthCheckConfig().equals(healthCheckConfig) &&
                 other.getDiscoveryConfig().equals(discoveryConfig) &&
                 other.getAutoScalingConfig().equals(autoScalingConfig) &&
@@ -459,7 +458,7 @@ final class SerializableSupervisorConfiguration extends AbstractEntityConfigurat
 
     @Override
     public boolean equals(final Object other) {
-        return other instanceof SupervisorInfo && equals((SupervisorInfo) other);
+        return other instanceof SupervisorConfiguration && equals((SupervisorConfiguration) other);
     }
 
     @Override

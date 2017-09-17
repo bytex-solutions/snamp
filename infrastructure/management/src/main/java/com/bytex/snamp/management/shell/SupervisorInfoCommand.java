@@ -4,7 +4,6 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.configuration.SupervisorInfo;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -45,7 +44,7 @@ public final class SupervisorInfoCommand extends SupervisorConfigurationCommand 
         output.format("\tScript: %s", scriptlet.getScript()).println();
     }
 
-    private static void printHealthCheckConfig(final SupervisorInfo.HealthCheckInfo healthCheckInfo, final PrintWriter output){
+    private static void printHealthCheckConfig(final SupervisorConfiguration.HealthCheckConfiguration healthCheckInfo, final PrintWriter output){
         output.println("Health check trigger:");
         printScriptletConfig(healthCheckInfo.getTrigger(), output);
         output.println("Attribute checkers:");
@@ -56,11 +55,11 @@ public final class SupervisorInfoCommand extends SupervisorConfigurationCommand 
         });
     }
 
-    private static void printDiscoveryConfig(final SupervisorInfo.ResourceDiscoveryInfo discoveryInfo, final PrintWriter output){
+    private static void printDiscoveryConfig(final SupervisorConfiguration.ResourceDiscoveryConfiguration discoveryInfo, final PrintWriter output){
         output.format("\tConnection String Template: %s", discoveryInfo.getConnectionStringTemplate()).println();
     }
 
-    private static void printAutoScalingConfig(final SupervisorInfo.AutoScalingInfo scalingInfo, final PrintWriter output) {
+    private static void printAutoScalingConfig(final SupervisorConfiguration.AutoScalingConfiguration scalingInfo, final PrintWriter output) {
         output.format("Enabled: %s", scalingInfo.isEnabled()).println();
         output.format("Maximum cluster size: %s", scalingInfo.getMaxClusterSize()).println();
         output.format("Minimum cluster size: %s", scalingInfo.getMinClusterSize()).println();

@@ -1,7 +1,7 @@
 package com.bytex.snamp.supervision.openstack;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.SupervisorInfo;
+import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.supervision.def.DefaultSupervisorActivator;
 import com.bytex.snamp.supervision.elasticity.policies.InvalidScalingPolicyException;
 import org.openstack4j.api.OSClient;
@@ -38,14 +38,14 @@ public final class OpenStackSupervisorActivator extends DefaultSupervisorActivat
         }
 
         @Override
-        protected void configureDiscovery(final OpenStackSupervisor supervisor, final SupervisorInfo.ResourceDiscoveryInfo configuration) {
+        protected void configureDiscovery(final OpenStackSupervisor supervisor, final SupervisorConfiguration.ResourceDiscoveryConfiguration configuration) {
             final String connectionStringTemplate = configuration.getConnectionStringTemplate();
             if (!isNullOrEmpty(connectionStringTemplate))
                 supervisor.enableAutoDiscovery(configuration.getConnectionStringTemplate());
         }
 
         @Override
-        protected void configureElasticity(final OpenStackSupervisor supervisor, final SupervisorInfo.AutoScalingInfo configuration) throws InvalidScalingPolicyException {
+        protected void configureElasticity(final OpenStackSupervisor supervisor, final SupervisorConfiguration.AutoScalingConfiguration configuration) throws InvalidScalingPolicyException {
             if (configuration.isEnabled())
                 supervisor.enableAutoScaling();
             super.configureElasticity(supervisor, configuration);

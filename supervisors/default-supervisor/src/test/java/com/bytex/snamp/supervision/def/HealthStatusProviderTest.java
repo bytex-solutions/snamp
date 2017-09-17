@@ -4,7 +4,6 @@ import com.bytex.snamp.BooleanBox;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.connector.ManagedResourceConnectorBean;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSupport;
@@ -36,7 +35,7 @@ public class HealthStatusProviderTest extends Assert {
         private final AttributeCheckerFactory checkerFactory = new AttributeCheckerFactory();
         private final TriggerFactory triggerFactory = new TriggerFactory();
 
-        HealthStatusTrigger setupHealthCheck(@Nonnull final SupervisorInfo.HealthCheckInfo healthCheckInfo) throws ScriptletCompilationException {
+        HealthStatusTrigger setupHealthCheck(@Nonnull final SupervisorConfiguration.HealthCheckConfiguration healthCheckInfo) throws ScriptletCompilationException {
             removeCheckers();
             for (final Map.Entry<String, ? extends ScriptletConfiguration> attributeChecker : healthCheckInfo.getAttributeCheckers().entrySet())
                 addChecker(attributeChecker.getKey(), checkerFactory.compile(attributeChecker.getValue()));

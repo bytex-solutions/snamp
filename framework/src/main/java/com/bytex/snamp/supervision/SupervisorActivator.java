@@ -6,7 +6,6 @@ import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
-import com.bytex.snamp.configuration.SupervisorInfo;
 import com.bytex.snamp.configuration.internal.CMSupervisorParser;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.LoggerProvider;
@@ -48,7 +47,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     protected static abstract class SupervisorLifecycleManager<S extends Supervisor> extends ServiceSubRegistryManager<Supervisor ,S> {
         private final LazyReference<Logger> logger = LazyReference.strong();
         private final ThreadLocal<String> groupName = new ThreadLocal<>();
-        private final Map<String, SupervisorInfo> supervisors = new HashMap<>();
+        private final Map<String, SupervisorConfiguration> supervisors = new HashMap<>();
 
         protected SupervisorLifecycleManager(final RequiredService<?>... dependencies) {
             super(Supervisor.class, dependencies);
@@ -104,10 +103,10 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
          */
         @Nonnull
         protected S updateSupervisor(@Nonnull final S supervisor,
-                                     @Nonnull final SupervisorInfo configuration) throws Exception {
+                                     @Nonnull final SupervisorConfiguration configuration) throws Exception {
             final String groupName = this.groupName.get();
             assert !isNullOrEmpty(groupName);
-            final SupervisorInfo existingConfig = supervisors.get(groupName);
+            final SupervisorConfiguration existingConfig = supervisors.get(groupName);
             return Objects.equals(configuration, existingConfig) ? supervisor : createSupervisor(groupName, configuration);
         }
 
@@ -126,7 +125,7 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
 
         @Nonnull
         protected abstract S createSupervisor(@Nonnull final String groupName,
-                                              @Nonnull final SupervisorInfo configuration) throws Exception;
+                                              @Nonnull final SupervisorConfiguration configuration) throws Exception;
 
         @Override
         protected final S activateService(final ServiceIdentityBuilder identity, final Dictionary<String, ?> configuration) throws Exception {
