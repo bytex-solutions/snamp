@@ -20,7 +20,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.1
  * @since 2.0
  */
-public final class OpenStackSupervisorActivator extends DefaultSupervisorActivator<OpenStackSupervisor> {
+public final class OpenStackSupervisorActivator extends DefaultSupervisorActivator {
     private static final class OpenStackSupervisorLifecycleManager extends DefaultSupervisorLifecycleManager<OpenStackSupervisor>{
         @Override
         protected OpenStackSupervisorDescriptionProvider getDescriptionProvider() {

@@ -23,7 +23,7 @@ import java.util.Properties;
  * @version 2.1
  * @since 2.0
  */
-public class DefaultSupervisorActivator<S extends DefaultSupervisor> extends SupervisorActivator<S> {
+public class DefaultSupervisorActivator extends SupervisorActivator {
 
     /**
      * Provides lifecycle management for custom supervisor based on {@link DefaultSupervisor}.
@@ -117,16 +117,15 @@ public class DefaultSupervisorActivator<S extends DefaultSupervisor> extends Sup
         }
     }
 
-    private static final class GroovySupervisorLifecycleManager extends DefaultSupervisorLifecycleManager {
+    private static final class GroovySupervisorLifecycleManager extends DefaultSupervisorLifecycleManager<DefaultSupervisor> {
         private static final String GROOVY_MANAGER_PATH = "groovyElasticityManager";
 
         @Nonnull
         @Override
-        protected DefaultSupervisor createSupervisor(@Nonnull final String groupName, @Nonnull final Map configuration) throws Exception {
+        protected DefaultSupervisor createSupervisor(@Nonnull final String groupName, @Nonnull final Map<String, String> configuration) throws Exception {
             final DefaultSupervisor result;
             if (configuration.containsKey(GROOVY_MANAGER_PATH)) {
                 final String scriptPath = Objects.toString(configuration.get(GROOVY_MANAGER_PATH));
-                @SuppressWarnings("unchecked")
                 final Properties environment = MapUtils.toProperties(configuration);
                 result = new GroovySupervisor(groupName, scriptPath, environment);
             } else
@@ -139,20 +138,18 @@ public class DefaultSupervisorActivator<S extends DefaultSupervisor> extends Sup
      * Activates default implementation of supervisor.
      * @deprecated This constructor should not be used directly from your code.
      */
-    @SuppressWarnings("unchecked")
     @SpecialUse(SpecialUse.Case.OSGi)
     @Internal
-    @Deprecated
     public DefaultSupervisorActivator() {
         super(new GroovySupervisorLifecycleManager());
     }
 
-    protected DefaultSupervisorActivator(final DefaultSupervisorLifecycleManager<S> factory,
+    protected DefaultSupervisorActivator(final DefaultSupervisorLifecycleManager<?> factory,
                                          final SupportServiceManager<?>... optionalServices) {
         super(factory, optionalServices);
     }
 
-    protected DefaultSupervisorActivator(final DefaultSupervisorLifecycleManager<S> factory,
+    protected DefaultSupervisorActivator(final DefaultSupervisorLifecycleManager<?> factory,
                                          final RequiredService<?>[] dependencies,
                                          final SupportServiceManager<?>[] optionalServices) {
         super(factory, dependencies, optionalServices);

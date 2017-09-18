@@ -34,7 +34,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.1
  * @since 2.0
  */
-public abstract class SupervisorActivator<S extends Supervisor> extends AbstractServiceLibrary {
+public abstract class SupervisorActivator extends AbstractServiceLibrary {
     private static final ActivationProperty<String> SUPERVISOR_TYPE_HOLDER = defineActivationProperty(String.class, "");
     private static final ActivationProperty<CMSupervisorParser> SUPERVISOR_PARSER_HOLDER = defineActivationProperty(CMSupervisorParser.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class, Logger.getAnonymousLogger());
@@ -211,12 +211,12 @@ public abstract class SupervisorActivator<S extends Supervisor> extends Abstract
     protected final String supervisorType;
     private final Logger logger;
 
-    protected SupervisorActivator(final SupervisorLifecycleManager<S> factory,
+    protected SupervisorActivator(final SupervisorLifecycleManager<?> factory,
                                   final SupportServiceManager<?>... optionalServices) {
         this(factory, emptyArray(RequiredService[].class), optionalServices);
     }
 
-    protected SupervisorActivator(final SupervisorLifecycleManager<S> factory,
+    protected SupervisorActivator(final SupervisorLifecycleManager<?> factory,
                                   final RequiredService<?>[] dependencies,
                                   final SupportServiceManager<?>[] optionalServices){
         super(serviceProvider(factory, dependencies, optionalServices));
