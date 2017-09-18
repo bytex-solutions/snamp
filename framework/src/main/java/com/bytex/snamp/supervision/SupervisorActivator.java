@@ -106,20 +106,25 @@ public abstract class SupervisorActivator extends AbstractServiceLibrary {
                                      @Nonnull final SupervisorConfiguration configuration) throws Exception {
             final String groupName = this.groupName.get();
             assert !isNullOrEmpty(groupName);
-            final SupervisorConfiguration existingConfig = supervisors.get(groupName);
-            return Objects.equals(configuration, existingConfig) ? supervisor : createSupervisor(groupName, configuration);
+            return createSupervisor(groupName, configuration);
         }
 
         @Override
         protected final S updateService(S supervisor, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
-            groupName.set(newConfig.getKey());
-            try {
-                supervisor = updateSupervisor(supervisor, newConfig.getValue());
-            } finally {
-                groupName.remove();
+            if (!Objects.equals(supervisors.get(newConfig.getKey()), newConfig.getValue())) {
+                groupName.set(newConfig.getKey());
+                try {
+                    supervisor = updateSupervisor(supervisor, newConfig.getValue());
+                } catch (final Exception e) {
+                    supervisors.remove(newConfig.getKey());
+                    throw e;
+                } finally {
+                    groupName.remove();
+                }
+                supervisors.put(newConfig.getKey(), newConfig.getValue());
+                getLogger().info(String.format("Supervisor %s is updated", supervisor));
             }
-            getLogger().info(String.format("Supervisor %s is updated", supervisor));
             return supervisor;
         }
 
@@ -130,11 +135,15 @@ public abstract class SupervisorActivator extends AbstractServiceLibrary {
         @Override
         protected final S activateService(final ServiceIdentityBuilder identity, final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends SupervisorConfiguration> newConfig = parseConfig(configuration);
-            final S supervisor = createSupervisor(newConfig.getKey(), newConfig.getValue());
-            identity.acceptAll(new SupervisorSelector(newConfig.getValue()).setGroupName(newConfig.getKey()));
-            supervisors.put(newConfig.getKey(), newConfig.getValue());
-            getLogger().info(String.format("Supervisor %s is instantiated", supervisor));
-            return supervisor;
+            if (supervisors.containsKey(newConfig.getKey()))
+                throw new IllegalStateException(String.format("Connector for resource %s is already activated", newConfig.getKey()));
+            else {
+                final S supervisor = createSupervisor(newConfig.getKey(), newConfig.getValue());
+                identity.acceptAll(new SupervisorSelector(newConfig.getValue()).setGroupName(newConfig.getKey()));
+                supervisors.put(newConfig.getKey(), newConfig.getValue());
+                getLogger().info(String.format("Supervisor %s is instantiated", supervisor));
+                return supervisor;
+            }
         }
 
         @Override
@@ -142,7 +151,7 @@ public abstract class SupervisorActivator extends AbstractServiceLibrary {
             final String groupName = SupervisorSelector.getGroupName(identity);
             supervisors.remove(groupName);
             supervisor.close();
-            getLogger().info(String.format("Supervisor %s is destroyed", supervisor));
+            getLogger().info(String.format("Supervisor for group %s is destroyed", groupName));
         }
 
         @Override
