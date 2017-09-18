@@ -24,7 +24,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.bytex.snamp.ArrayUtils.emptyArray;
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -222,21 +221,14 @@ public abstract class SupervisorActivator extends AbstractServiceLibrary {
 
     protected SupervisorActivator(final SupervisorLifecycleManager<?> factory,
                                   final SupportServiceManager<?>... optionalServices) {
-        this(factory, emptyArray(RequiredService[].class), optionalServices);
-    }
-
-    protected SupervisorActivator(final SupervisorLifecycleManager<?> factory,
-                                  final RequiredService<?>[] dependencies,
-                                  final SupportServiceManager<?>[] optionalServices){
-        super(serviceProvider(factory, dependencies, optionalServices));
+        super(serviceProvider(factory, optionalServices));
         supervisorType = Supervisor.getSupervisorType(getBundleContextOfObject(this).getBundle());
         logger = LoggerProvider.getLoggerForObject(this);
     }
 
     private static  <S extends Supervisor> ProvidedServices serviceProvider(final SupervisorLifecycleManager<S> factory,
-                                                                            final RequiredService<?>[] dependencies,
-                                                                            final SupportServiceManager<?>[] optionalServices) {
-        return (services, activationProperties, supervisorDependencies) -> {
+                                                                            final SupportServiceManager<?>... optionalServices) {
+        return (services, activationProperties, bundleDependencies) -> {
             services.add(factory);
             Collections.addAll(services, optionalServices);
         };

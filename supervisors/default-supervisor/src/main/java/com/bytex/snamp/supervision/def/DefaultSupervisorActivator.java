@@ -148,10 +148,4 @@ public class DefaultSupervisorActivator extends SupervisorActivator {
                                          final SupportServiceManager<?>... optionalServices) {
         super(factory, optionalServices);
     }
-
-    protected DefaultSupervisorActivator(final DefaultSupervisorLifecycleManager<?> factory,
-                                         final RequiredService<?>[] dependencies,
-                                         final SupportServiceManager<?>[] optionalServices) {
-        super(factory, dependencies, optionalServices);
-    }
 }
