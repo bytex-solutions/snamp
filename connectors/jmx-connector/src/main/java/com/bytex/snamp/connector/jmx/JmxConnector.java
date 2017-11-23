@@ -290,6 +290,16 @@ final class JmxConnector extends AbstractManagedResourceConnector implements
         return Collections.emptyMap();
     }
 
+    /**
+     * Gets an array of supported notifications.
+     *
+     * @return An array of supported notifications.
+     */
+    @Override
+    public MBeanNotificationInfo[] getNotificationInfo() {
+        return notifications.getNotificationInfo();
+    }
+
     private JmxNotificationInfo createNotification(final String category,
                                                    final NotificationDescriptor metadata,
                                                    final ObjectName owner,
