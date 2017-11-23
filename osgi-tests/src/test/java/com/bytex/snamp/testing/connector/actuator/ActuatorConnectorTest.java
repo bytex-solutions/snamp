@@ -2,7 +2,6 @@ package com.bytex.snamp.testing.connector.actuator;
 
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.connector.health.ResourceSubsystemDownStatus;
 import com.bytex.snamp.testing.SnampDependencies;

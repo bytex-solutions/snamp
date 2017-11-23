@@ -6,6 +6,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
+import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.metrics.AttributeMetrics;
 import com.bytex.snamp.connector.metrics.AttributeMetricsRecorder;
 import com.bytex.snamp.core.LoggerProvider;
@@ -40,8 +41,10 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @author Roman Sakno
  * @since 1.0
  * @version 2.1
+ * @deprecated Use {@link AttributeRepository} instead.
  */
-public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> implements AttributeSupport {
+@Deprecated
+public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> extends AbstractFeatureRepository<M> {
     private static abstract class AttributeTask<M extends MBeanAttributeInfo> extends WeakReference<AbstractAttributeRepository<M>> implements Callable<Attribute>{
         private AttributeTask(final AbstractAttributeRepository<M> repository) {
             super(repository);
@@ -102,6 +105,14 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     private final LockDecorator readLock;
     private final LockDecorator writeLock;
 
+    {
+        attributes = AbstractKeyedObjects.create(MBeanAttributeInfo::getName);
+        metrics = new AttributeMetricsRecorder();
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
+    }
+
     /**
      * Initializes a new support of management attributes.
      *
@@ -111,21 +122,11 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected AbstractAttributeRepository(final String resourceName,
                                           final Class<M> attributeMetadataType) {
         super(resourceName, attributeMetadataType);
-        attributes = AbstractKeyedObjects.create(MBeanAttributeInfo::getName);
-        metrics = new AttributeMetricsRecorder();
-        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-        readLock = LockDecorator.readLock(rwLock);
-        writeLock = LockDecorator.writeLock(rwLock);
     }
 
-    //this method should be called AFTER registering attribute in this manager
-    private void attributeAdded(final M metadata) {
-        fireResourceEvent(AttributeModifiedEvent.attributedAdded(this, getResourceName(), metadata));
-    }
-
-    //this method should be called before removing attribute from this manager
-    private void attributeRemoved(final M metadata) {
-        fireResourceEvent(AttributeModifiedEvent.attributedRemoving(this, getResourceName(), metadata));
+    protected AbstractAttributeRepository(final AbstractManagedResourceConnector source,
+                                          final Class<M> attributeMetadataType){
+        super(source, attributeMetadataType);
     }
 
     /**
@@ -143,7 +144,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      *
      * @return An array of connected attributes.
      */
-    @Override
     public final M[] getAttributeInfo() {
         return readLock.apply(this, attributes.values(), AbstractAttributeRepository<M>::toArray);
     }
@@ -154,7 +154,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param attributeName The name of the attribute.
      * @return The attribute metadata; or {@literal null}, if attribute doesn't exist.
      */
-    @Override
     public final Optional<M> getAttributeInfo(final String attributeName) {
         return Optional.ofNullable(readLock.apply(attributes, attributeName, Map::get));
     }
@@ -199,7 +198,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         return toAttributeList(completedTasks);
     }
 
-    @Override
     public AttributeList getAttributes() throws MBeanException, ReflectionException {
         try (final SafeCloseable ignored = readLock.acquireLock(null)) {
             if(attributes.isEmpty())
@@ -272,7 +270,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return The list of attributes retrieved.
      * @see #getAttributesParallel(ExecutorService, String[], Duration)
      */
-    @Override
     public AttributeList getAttributes(final String[] attributes) {
         if(ArrayUtils.isNullOrEmpty(attributes))
             return new AttributeList();
@@ -343,7 +340,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return The list of attributes that were set, with their new values.
      * @see #setAttributesParallel(ExecutorService, AttributeList, Duration)
      */
-    @Override
     public AttributeList setAttributes(final AttributeList attributes) {
         final AttributeList result = new AttributeList(attributes.size());
         for (final Attribute attr : attributes.asList()) {
@@ -380,7 +376,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
         final M result = connectAttribute(attributeName, descriptor);
         if (result != null) {
             attributes.put(result);
-            attributeAdded(result);
+            featureAdded(result);
         }
         return result;
     }
@@ -395,7 +391,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
                 return holder;
             else {
                 //remove attribute
-                attributeRemoved(holder);
+                removingFeature(holder);
                 holder = attributes.remove(attributeName);
                 disconnectAttribute(holder);
                 //...and register again
@@ -417,7 +413,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param descriptor Descriptor for created attribute.
      * @return Metadata of created attribute.
      */
-    @Override
     public final Optional<M> addAttribute(final String attributeName,
                                 final AttributeDescriptor descriptor) {
         M result;
@@ -456,7 +451,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @throws javax.management.ReflectionException        Wraps any exception associated with Java Reflection.
      * @see #setAttribute
      */
-    @Override
     public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
         try(final SafeCloseable ignored = readLock.acquireLock(null)) {
             return getAttributeImpl(attributeName);
@@ -510,7 +504,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @throws ReflectionException            Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the MBean's setter.
      * @see #getAttribute
      */
-    @Override
     public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
         try {
             readLock.accept(attribute, this::setAttributeImpl, (Duration) null);
@@ -549,7 +542,7 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     private M removeImpl(final String attributeID) {
         final M holder = attributes.get(attributeID);
         if (holder != null)
-            attributeRemoved(holder);
+            removingFeature(holder);
         return attributes.remove(attributeID);
     }
 
@@ -577,7 +570,6 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @return An instance of removed attribute; or {@link Optional#empty()}, if attribute with the specified name doesn't exist.
      * @since 2.0
      */
-    @Override
     public final Optional<M> removeAttribute(final String attributeName) {
         return remove(attributeName);
     }
@@ -588,14 +580,13 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
      * @param attributes A set of attributes which should not be deleted.
      * @since 2.0
      */
-    @Override
     public final void retainAttributes(final Set<String> attributes) {
         retainAll(attributes);
     }
 
     private void clearImpl(){
         attributes.values().forEach(metadata -> {
-            attributeRemoved(metadata);
+            removingFeature(metadata);
             disconnectAttribute(metadata);
         });
         attributes.clear();
@@ -658,5 +649,64 @@ public abstract class AbstractAttributeRepository<M extends MBeanAttributeInfo> 
     protected final AttributeDescriptor createDescriptor() {
         return createDescriptor(config -> {
         });
+    }
+
+    public Map<String, AttributeDescriptor> discoverAttributes() {
+        return null;
+    }
+
+    /**
+     * Converts this repository into {@link AttributeManager}.
+     * @return An instance of manager.
+     * @since 2.1
+     */
+    public AttributeManager createManager(){
+        final class DefaultAttributeManager implements AttributeManager {
+
+            @Override
+            public void addAttribute(final String attributeName, final AttributeDescriptor descriptor) {
+                AbstractAttributeRepository.this.addAttribute(attributeName, descriptor);
+            }
+
+            @Override
+            public boolean removeAttribute(final String attributeName) {
+                return AbstractAttributeRepository.this.removeAttribute(attributeName).isPresent();
+            }
+
+            @Override
+            public void retainAttributes(final Set<String> attributes) {
+                AbstractAttributeRepository.this.retainAttributes(attributes);
+            }
+
+            @Override
+            public Map<String, AttributeDescriptor> discoverAttributes() {
+                return AbstractAttributeRepository.this.discoverAttributes();
+            }
+
+            @Override
+            public int hashCode() {
+                return AbstractAttributeRepository.this.hashCode();
+            }
+
+            private boolean equalsOwner(final AbstractAttributeRepository<?> other){
+                return AbstractAttributeRepository.this.equals(other);
+            }
+
+            private boolean equals(final DefaultAttributeManager other){
+                return other.equalsOwner(AbstractAttributeRepository.this);
+            }
+
+            @Override
+            public boolean equals(final Object other) {
+                return this == other || getClass().isInstance(other) && equals((DefaultAttributeManager) other);
+            }
+
+
+            @Override
+            public String toString() {
+                return AbstractAttributeRepository.this.toString();
+            }
+        }
+        return new DefaultAttributeManager();
     }
 }

@@ -14,7 +14,7 @@ import javax.management.openmbean.OpenType;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.connector.notifications.NotificationSupport.*;
+import static com.bytex.snamp.configuration.EntityConfiguration.DESCRIPTION_KEY;
 
 /**
  * Represents notification descriptor.
@@ -24,10 +24,16 @@ import static com.bytex.snamp.connector.notifications.NotificationSupport.*;
  */
 public class NotificationDescriptor extends ImmutableDescriptor implements FeatureDescriptor<EventConfiguration> {
     /**
-     * Gets name of the parameter in {@link EventConfiguration}
-     * which describes the notification severity.
+     * The name of the field in {@link Descriptor}
+     * which contains the value of the notification severity as {@link Severity} value.
      */
-    public static final String SEVERITY_PARAM = NotificationSupport.SEVERITY_FIELD;
+    public static final String SEVERITY_FIELD = "severity";
+    
+    /**
+     * The name of the field in {@link Descriptor}
+     * which contains type descriptor of {@link javax.management.Notification#getUserData()}.
+     */
+    public static final String USER_DATA_TYPE_FIELD = "openType";
     private static final long serialVersionUID = 6447489441284228878L;
     public static final NotificationDescriptor EMPTY_DESCRIPTOR = new NotificationDescriptor(ImmutableMap.<String, String>of());
 
@@ -37,6 +43,11 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
 
     public NotificationDescriptor(final EventConfiguration eventConfig) {
         this((Map<String, String>) eventConfig);
+    }
+
+    public NotificationDescriptor(final String name,
+                                  final Object value) {
+        this(ImmutableMap.of(name, value));
     }
 
     @Override
@@ -53,17 +64,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
     }
 
     public final NotificationDescriptor setUserDataType(final OpenType<?> type){
-        return type != null ? setFields(ImmutableMap.of(USER_DATA_TYPE, type)) : this;
-    }
-
-    /**
-     * The type of the configuration entity.
-     *
-     * @return The type of the configuration entity.
-     */
-    @Override
-    public final Class<EventConfiguration> getEntityType() {
-        return EventConfiguration.class;
+        return type != null ? setFields(ImmutableMap.of(USER_DATA_TYPE_FIELD, type)) : this;
     }
 
     /**
@@ -87,7 +88,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
     }
 
     public static String getDescription(final Descriptor metadata, final String defval){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(defval);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_KEY, Objects::toString).orElse(defval);
     }
 
     public static String getDescription(final MBeanNotificationInfo metadata){
@@ -114,7 +115,7 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
     }
 
     public static OpenType<?> getUserDataType(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, USER_DATA_TYPE, value -> (OpenType<?>)value).orElse(null);
+        return DescriptorUtils.getField(metadata, USER_DATA_TYPE_FIELD, value -> (OpenType<?>)value).orElse(null);
     }
 
     public static OpenType<?> getUserDataType(final MBeanNotificationInfo metadata){
@@ -137,5 +138,12 @@ public class NotificationDescriptor extends ImmutableDescriptor implements Featu
     public static String getName(final MBeanNotificationInfo metadata) {
         return FeatureDescriptor.getName(metadata.getDescriptor())
                 .orElseGet(() -> ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new));
+    }
+
+    public static boolean hasName(final MBeanNotificationInfo metadata, final String name) {
+        return FeatureDescriptor
+                .getName(metadata.getDescriptor())
+                .map(s -> Objects.equals(name, s))
+                .orElseGet(() -> ArrayUtils.contains(metadata.getNotifTypes(), name));
     }
 }

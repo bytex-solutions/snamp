@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 
 import javax.management.*;
 
@@ -35,11 +35,11 @@ final class AliasAttribute extends AbstractCompositeAttribute implements Composi
         setValue(provider.getAttributeSupport(connectorType).orElseThrow(() -> attributeNotFound(connectorType, getName())), value);
     }
 
-    private Object getValue(final AttributeSupport support) throws AttributeNotFoundException, MBeanException, ReflectionException {
+    private Object getValue(final AttributeManager support) throws AttributeNotFoundException, MBeanException, ReflectionException {
         return support.getAttribute(getName());
     }
 
-    private void setValue(final AttributeSupport support, final Object value) throws AttributeNotFoundException, MBeanException, InvalidAttributeValueException, ReflectionException {
+    private void setValue(final AttributeManager support, final Object value) throws AttributeNotFoundException, MBeanException, InvalidAttributeValueException, ReflectionException {
         support.setAttribute(new Attribute(getName(), value));
     }
 }

@@ -25,6 +25,7 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
      */
     protected WeakEventListener(@Nonnull final L listener) {
         super(listener);
+        hashCode = listener.hashCode();
     }
 
     /**
@@ -61,15 +62,16 @@ public abstract class WeakEventListener<L extends EventListener, E extends Event
     }
 
     @Override
-    public final int hashCode() {
-        if (hashCode == 0)
+    public int hashCode() {
+        if(hashCode == 0)
             hashCode = Objects.hashCode(get());
         return hashCode;
     }
 
     @Override
-    public final boolean equals(final Object other) {
-        return getClass().isInstance(other) && equals(getClass().cast(other));
+    public boolean equals(final Object other) {
+        final Class<? extends WeakEventListener> clazz = getClass();
+        return clazz.isInstance(other) && equals(clazz.cast(other));
     }
 
     @Override

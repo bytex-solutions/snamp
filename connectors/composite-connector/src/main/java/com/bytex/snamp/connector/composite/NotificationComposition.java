@@ -1,8 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.bytex.snamp.core.LoggerProvider;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -21,7 +20,7 @@ import java.util.logging.Logger;
  * @version 2.1
  * @since 1.0
  */
-final class NotificationComposition extends AbstractNotificationRepository<CompositeNotification> implements NotificationListener{
+final class NotificationComposition extends NotificationsRepository<CompositeNotification> implements NotificationListener{
     private final NotificationSupportProvider provider;
     /*
         State of current subscription.
@@ -60,7 +59,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
     @Override
     protected CompositeNotification connectNotifications(final String notifType, final NotificationDescriptor metadata) throws MBeanException, ReflectionException, AbsentCompositeConfigurationParameterException {
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(metadata);
-        final NotificationSupport support = provider.getNotificationSupport(connectorType)
+        final NotificationManager support = provider.getNotificationSupport(connectorType)
                 .orElseThrow(() -> new MBeanException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support notifications", connectorType))));
         final MBeanNotificationInfo underlyingNotif = support.enableNotifications(notifType, metadata)
                 .orElseThrow(() -> new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable notification '%s'", connectorType, notifType))));
@@ -78,7 +77,7 @@ final class NotificationComposition extends AbstractNotificationRepository<Compo
 
     @Override
     protected void disconnectNotifications(final CompositeNotification metadata) {
-        final Optional<NotificationSupport> support = provider.getNotificationSupport(metadata.getConnectorType());
+        final Optional<NotificationManager> support = provider.getNotificationSupport(metadata.getConnectorType());
         for (final String notifType : metadata.getNotifTypes()) {
             support.ifPresent(sup -> sup.disableNotifications(notifType));
             subscription.remove(metadata.getConnectorType(), notifType);

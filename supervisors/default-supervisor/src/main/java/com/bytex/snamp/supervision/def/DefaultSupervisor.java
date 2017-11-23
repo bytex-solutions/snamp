@@ -129,6 +129,10 @@ public class DefaultSupervisor extends AbstractSupervisor implements HealthStatu
         updater = new SupervisionJob(this);
     }
 
+    final String getGroupName(){
+        return groupName;
+    }
+
     public final void setSupervisionPeriod(@Nonnull final Duration value){
         updater.setPeriod(value);
     }

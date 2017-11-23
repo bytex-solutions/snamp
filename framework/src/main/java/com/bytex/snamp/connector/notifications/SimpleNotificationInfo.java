@@ -12,7 +12,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
  * @version 2.1
  * @since 1.0
  */
-public class AbstractNotificationInfo extends MBeanNotificationInfo implements NotificationDescriptorRead {
+public class SimpleNotificationInfo extends MBeanNotificationInfo implements NotificationDescriptorRead {
     private static final long serialVersionUID = 414016119605849730L;
     private final NotificationDescriptor descriptor;
 
@@ -24,17 +24,17 @@ public class AbstractNotificationInfo extends MBeanNotificationInfo implements N
      * @param descriptor  The descriptor for the notifications.  This may be null
      *                    which is equivalent to an empty descriptor.
      */
-    public AbstractNotificationInfo(final String notifType,
-                                    final String description,
-                                    final NotificationDescriptor descriptor) {
+    public SimpleNotificationInfo(final String notifType,
+                                  final String description,
+                                  final NotificationDescriptor descriptor) {
         this(notifType, description, Notification.class, descriptor);
     }
 
 
-    public AbstractNotificationInfo(final String notifType,
-                                    final String description,
-                                    final Class<? extends Notification> notificationType,
-                                    final NotificationDescriptor descriptor) {
+    public SimpleNotificationInfo(final String notifType,
+                                  final String description,
+                                  final Class<? extends Notification> notificationType,
+                                  final NotificationDescriptor descriptor) {
         super(new String[]{notifType}, notificationType.getName(), descriptor.getDescription(description), descriptor);
         this.descriptor = Objects.requireNonNull(descriptor);
     }

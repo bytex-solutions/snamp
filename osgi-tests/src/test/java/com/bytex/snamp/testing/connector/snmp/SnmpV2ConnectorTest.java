@@ -8,8 +8,8 @@ import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
@@ -312,7 +312,7 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void notificationTest() throws Exception {
         final ManagedResourceConnector connector = getManagementConnector();
         try {
-            final NotificationSupport notifications = connector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
+            final NotificationManager notifications = connector.queryObject(NotificationManager.class).orElseThrow(AssertionError::new);
             assertNotNull(notifications.getNotificationInfo("snmp-notif"));
             final CompletableFuture<Notification> trap = new CompletableFuture<>();
             notifications.addNotificationListener((notification, handback) -> trap.complete(notification), null, null);
@@ -442,8 +442,8 @@ public final class SnmpV2ConnectorTest extends AbstractSnmpConnectorTest {
     public void discoveryServiceTest() throws InstanceNotFoundException {
         final ManagedResourceConnector snmpConnector = getManagementConnector();
         try {
-            final Map<String, AttributeDescriptor> attributes = snmpConnector.queryObject(AttributeSupport.class)
-                    .map(AttributeSupport::discoverAttributes)
+            final Map<String, AttributeDescriptor> attributes = snmpConnector.queryObject(AttributeManager.class)
+                    .map(AttributeManager::discoverAttributes)
                     .orElseGet(Collections::emptyMap);
             assertNotNull(attributes);
             assertFalse(attributes.isEmpty());

@@ -3,16 +3,12 @@ package com.bytex.snamp.connector.rshell;
 import com.bytex.jcommands.CommandExecutionChannel;
 import com.bytex.jcommands.impl.TypeTokens;
 import com.bytex.jcommands.impl.XmlCommandLineToolProfile;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
-import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.operations.AbstractOpenOperationInfo;
-import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -270,16 +266,21 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class RShellAttributes extends AbstractAttributeRepository<RShellAttributeInfo> {
+    private static final class RShellAttributes extends AttributesRepository<RShellAttributeInfo> {
         private final CommandExecutionChannel executionChannel;
         private final ScriptEngineManager scriptEngineManager;
 
-        private RShellAttributes(final String resourceName,
+        private RShellAttributes(final AbstractManagedResourceConnector owner,
                                  final CommandExecutionChannel channel,
                                  final ScriptEngineManager engineManager) {
-            super(resourceName, RShellAttributeInfo.class);
+            super(owner);
             this.executionChannel = Objects.requireNonNull(channel);
-            this.scriptEngineManager = engineManager;
+            this.scriptEngineManager = Objects.requireNonNull(engineManager);
+        }
+
+        @Override
+        public RShellAttributeInfo[] getAttributeInfo() {
+            return toArray(RShellAttributeInfo.class);
         }
 
         /**
@@ -335,40 +336,45 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class RShellOperations extends AbstractOperationRepository<RShellOperationInfo> {
-            private final CommandExecutionChannel executionChannel;
-            private final ScriptEngineManager scriptEngineManager;
+    private static final class RShellOperations extends OperationsRepository<RShellOperationInfo> {
+        private final CommandExecutionChannel executionChannel;
+        private final ScriptEngineManager scriptEngineManager;
 
-            private RShellOperations(final String resourceName,
-                                     final CommandExecutionChannel channel,
-                                     final ScriptEngineManager engineManager) {
-                super(resourceName, RShellOperationInfo.class);
-                this.executionChannel = Objects.requireNonNull(channel);
-                this.scriptEngineManager = engineManager;
-            }
+        private RShellOperations(final AbstractManagedResourceConnector owner,
+                                 final CommandExecutionChannel channel,
+                                 final ScriptEngineManager engineManager) {
+            super(owner);
+            this.executionChannel = Objects.requireNonNull(channel);
+            this.scriptEngineManager = Objects.requireNonNull(engineManager);
+        }
 
-            @Override
-            protected RShellOperationInfo connectOperation(final String operationName, final OperationDescriptor descriptor) throws Exception {
-                final String commandProfileFilePath = descriptor.getAlternativeName().orElse(operationName);
-                final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
-                if (profile != null) {
-                    profile.setScriptManager(scriptEngineManager);
-                    switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
-                        case DICTIONARY:
-                            return new DictionaryOperationInfo(operationName, profile, descriptor);
-                        case TABLE:
-                            return new TableOperationInfo(operationName, profile, descriptor);
-                        default:
-                            return new SimpleOperationInfo(operationName, profile, descriptor);
-                    }
-                } else
-                    throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");
-            }
+        @Override
+        public RShellOperationInfo[] getOperationInfo() {
+            return toArray(RShellOperationInfo.class);
+        }
 
-            @Override
-            protected Object invoke(OperationCallInfo<RShellOperationInfo> callInfo) throws Exception {
-                return callInfo.getOperation().invoke(executionChannel, callInfo.toNamedArguments());
-            }
+        @Override
+        protected RShellOperationInfo connectOperation(final String operationName, final OperationDescriptor descriptor) throws Exception {
+            final String commandProfileFilePath = descriptor.getAlternativeName().orElse(operationName);
+            final XmlCommandLineToolProfile profile = XmlCommandLineToolProfile.loadFrom(new File(commandProfileFilePath));
+            if (profile != null) {
+                profile.setScriptManager(scriptEngineManager);
+                switch (profile.getReaderTemplate().getCommandOutputParser().getParsingResultType()) {
+                    case DICTIONARY:
+                        return new DictionaryOperationInfo(operationName, profile, descriptor);
+                    case TABLE:
+                        return new TableOperationInfo(operationName, profile, descriptor);
+                    default:
+                        return new SimpleOperationInfo(operationName, profile, descriptor);
+                }
+            } else
+                throw new FileNotFoundException(commandProfileFilePath + " RShell command profile doesn't exist");
+        }
+
+        @Override
+        protected Object invoke(OperationCallInfo<RShellOperationInfo> callInfo) throws Exception {
+            return callInfo.getOperation().invoke(executionChannel, callInfo.toNamedArguments());
+        }
     }
 
     private final CommandExecutionChannel executionChannel;
@@ -379,45 +385,23 @@ final class RShellResourceConnector extends AbstractManagedResourceConnector {
     private final RShellOperations operations;
 
     RShellResourceConnector(final String resourceName,
-                            final ManagedResourceInfo configuration) throws Exception{
-        super(configuration);
-        final RShellConnectionOptions connectionOptions = new RShellConnectionOptions(configuration.getConnectionString(), configuration);
+                            final RShellConnectionOptions connectionOptions) throws Exception {
+        super(resourceName);
         executionChannel = connectionOptions.createExecutionChannel();
-        if(executionChannel == null)
+        if (executionChannel == null)
             throw new InstantiationException(String.format("Unknown channel: %s", connectionOptions));
-        attributes = new RShellAttributes(resourceName,
+        final OSGiScriptEngineManager manager = new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this));
+        attributes = new RShellAttributes(this,
                 executionChannel,
-                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)));
-        operations = new RShellOperations(resourceName,
+                manager);
+        operations = new RShellOperations(this,
                 executionChannel,
-                new OSGiScriptEngineManager(Utils.getBundleContextOfObject(this)));
+                manager);
     }
 
     @Override
     protected MetricsSupport createMetricsReader() {
         return assembleMetricsReader(attributes, operations);
-    }
-
-    /**
-     * Adds a new listener for the connector-related events.
-     * <p/>
-     * The managed resource connector should holds a weak reference to all added event listeners.
-     *
-     * @param listener An event listener to add.
-     */
-    @Override
-    public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, operations);
-    }
-
-    /**
-     * Removes connector event listener.
-     *
-     * @param listener The listener to remove.
-     */
-    @Override
-    public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes, operations);
     }
 
     /**

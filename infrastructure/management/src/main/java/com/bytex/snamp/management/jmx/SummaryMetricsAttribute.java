@@ -46,11 +46,11 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         output.put(ATTRIBUTES_WRITES_FIELD, fromRate(attributeWrites));
     }
 
-    private static void collectMetrics(final NotificationMetric metrics, final Map<String, CompositeData> output) {
+    private static void collectMetrics(final NotificationMetrics metrics, final Map<String, CompositeData> output) {
         output.put(NOTIFICATIONS_FIELD, fromRate(metrics == null ? Rate.EMPTY : metrics.notifications()));
     }
 
-    private static void collectMetrics(final OperationMetric metrics, final Map<String, CompositeData> output) {
+    private static void collectMetrics(final OperationMetrics metrics, final Map<String, CompositeData> output) {
         output.put(INVOCATIONS_FIELD, fromRate(metrics == null ? Rate.EMPTY : metrics.invocations()));
     }
 
@@ -58,9 +58,9 @@ final class SummaryMetricsAttribute extends OpenAttribute<CompositeData, Composi
         final Map<String, CompositeData> entries = Maps.newHashMapWithExpectedSize(TYPE.keySet().size());
         for(final AttributeMetrics metric: metrics.getMetrics(AttributeMetrics.class))
             collectMetrics(metric, entries);
-        for(final NotificationMetric metric: metrics.getMetrics(NotificationMetric.class))
+        for(final NotificationMetrics metric: metrics.getMetrics(NotificationMetrics.class))
             collectMetrics(metric, entries);
-        for(final OperationMetric metric: metrics.getMetrics(OperationMetric.class))
+        for(final OperationMetrics metric: metrics.getMetrics(OperationMetrics.class))
             collectMetrics(metric, entries);
         return new CompositeDataSupport(TYPE, entries);
     }

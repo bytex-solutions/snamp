@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.modbus;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import javax.annotation.Nonnull;

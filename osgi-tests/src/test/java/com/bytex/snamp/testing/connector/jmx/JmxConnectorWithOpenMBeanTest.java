@@ -5,13 +5,13 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.metrics.*;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.bytex.snamp.internal.Utils;
 import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.TabularDataBuilder;
@@ -117,8 +117,8 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     @Test
     public void notificationTest() throws Exception {
         final ManagedResourceConnector resourceConnector = getManagementConnector();
-        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
-        final AttributeSupport attributeSupport = resourceConnector.queryObject(AttributeSupport.class).orElseThrow(AssertionError::new);
+        final NotificationManager notificationSupport = resourceConnector.queryObject(NotificationManager.class).orElseThrow(AssertionError::new);
+        final AttributeManager attributeSupport = resourceConnector.queryObject(AttributeManager.class).orElseThrow(AssertionError::new);
         try {
             assertEquals(2, notificationSupport.getNotificationInfo().length);
             final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
@@ -148,9 +148,9 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
             ExecutionException,
             JMException {
         final ManagedResourceConnector resourceConnector = getManagementConnector();
-        final NotificationSupport notificationSupport = resourceConnector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
-        final AttributeSupport attributeSupport = resourceConnector.queryObject(AttributeSupport.class).orElseThrow(AssertionError::new);
-        final OperationSupport operationSupport = resourceConnector.queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
+        final NotificationManager notificationSupport = resourceConnector.queryObject(NotificationManager.class).orElseThrow(AssertionError::new);
+        final AttributeManager attributeSupport = resourceConnector.queryObject(AttributeManager.class).orElseThrow(AssertionError::new);
+        final OperationManager operationSupport = resourceConnector.queryObject(OperationManager.class).orElseThrow(AssertionError::new);
         try {
             assertEquals(2, notificationSupport.getNotificationInfo().length);
             final Mailbox listener1 = MailboxFactory.newMailbox("19.1");
@@ -178,7 +178,7 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
 
     @Test
     public void operationTest() throws Exception{
-        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
+        final OperationManager operationSupport = getManagementConnector().queryObject(OperationManager.class).orElseThrow(AssertionError::new);
         try{
             final byte[] array = new byte[]{1, 4, 9};
             final Object result = operationSupport.invoke("res", new Object[]{array}, new String[]{byte[].class.getName()});
@@ -223,8 +223,8 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
         try {
             final MetricsSupport metrics = client.queryObject(MetricsSupport.class).orElseThrow(AssertionError::new);
             assertTrue(metrics.getMetrics(AttributeMetrics.class).iterator().hasNext());
-            assertTrue(metrics.getMetrics(NotificationMetric.class).iterator().hasNext());
-            assertTrue(metrics.getMetrics(OperationMetric.class).iterator().hasNext());
+            assertTrue(metrics.getMetrics(NotificationMetrics.class).iterator().hasNext());
+            assertTrue(metrics.getMetrics(OperationMetrics.class).iterator().hasNext());
             //read and write attributes
             testForStringProperty();
             //verify metrics
@@ -322,8 +322,8 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     public void testForAttributesDiscovery() throws InstanceNotFoundException {
         final ManagedResourceConnector jmxConnector = getManagementConnector();
         try {
-            final Map<String, AttributeDescriptor> discoveredAttributes = jmxConnector.queryObject(AttributeSupport.class)
-                    .map(AttributeSupport::discoverAttributes)
+            final Map<String, AttributeDescriptor> discoveredAttributes = jmxConnector.queryObject(AttributeManager.class)
+                    .map(AttributeManager::discoverAttributes)
                     .orElseGet(Collections::emptyMap);
             assertTrue(discoveredAttributes.size() > 30);
             for (final AttributeDescriptor descriptor : discoveredAttributes.values())
@@ -337,8 +337,8 @@ public final class JmxConnectorWithOpenMBeanTest extends AbstractJmxConnectorTes
     public void testForNotificationsDiscovery() throws InstanceNotFoundException {
         final ManagedResourceConnector jmxConnector = getManagementConnector();
         try {
-            final Map<String, NotificationDescriptor> discoveredEvents = jmxConnector.queryObject(NotificationSupport.class)
-                    .map(NotificationSupport::discoverNotifications)
+            final Map<String, NotificationDescriptor> discoveredEvents = jmxConnector.queryObject(NotificationManager.class)
+                    .map(NotificationManager::discoverNotifications)
                     .orElseGet(Collections::emptyMap);
             assertTrue(discoveredEvents.size() > 2);
             for (final NotificationDescriptor descriptor : discoveredEvents.values())

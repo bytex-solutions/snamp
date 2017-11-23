@@ -20,6 +20,7 @@ import java.util.Objects;
  * @version 2.1
  * @since 2.0
  */
+@Deprecated
 public abstract class JavaBeanOperationRepository extends AbstractOperationRepository<JavaBeanOperationInfo> {
     private Object owner;
 

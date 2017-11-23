@@ -1,13 +1,18 @@
 package com.bytex.snamp.concurrent;
 
+import com.bytex.snamp.Acceptor;
+import com.bytex.snamp.ExceptionPlaceholder;
 import com.bytex.snamp.SafeCloseable;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.Serializable;
+import java.io.Externalizable;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Consumer;
 
 /**
  * Provides a base class for organizing thread-safe access to the thread-unsafe resource.
@@ -20,7 +25,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @version 2.1
  */
 @ThreadSafe
-public abstract class AbstractConcurrentResourceAccessor<R> implements Serializable {
+public abstract class AbstractConcurrentResourceAccessor<R> implements Externalizable {
     private static final long serialVersionUID = -7263363564614921684L;
 
     /**
@@ -40,6 +45,35 @@ public abstract class AbstractConcurrentResourceAccessor<R> implements Serializa
          * @throws E An exception that can be raised by action.
          */
         V apply(final R resource) throws E;
+
+        /**
+         * Converts acceptor into thread-safe action.
+         * @param acceptor Acceptor to be converted into action. Cannot be {@literal null}.
+         * @param <R> Type of consumed resource.
+         * @param <E> Type of exception that can be thrown by acceptor.
+         * @return A new action implementation.
+         * @since 2.1
+         */
+        static <R, E extends Throwable> Action<R, Void, E> fromAcceptor(@Nonnull final Acceptor<? super R, E> acceptor){
+            return resource -> {
+                acceptor.accept(resource);
+                return null;
+            };
+        }
+
+        /**
+         * Converts consumer into thread-safe action.
+         * @param consumer Acceptor to be converted into action. Cannot be {@literal null}.
+         * @param <R> Type of consumed resource.
+         * @return A new action implementation.
+         * @since 2.1
+         */
+        static <R> Action<R, Void, ExceptionPlaceholder> fromConsumer(@Nonnull final Consumer<? super R> consumer){
+            return resource -> {
+                consumer.accept(resource);
+                return null;
+            };
+        }
     }
 
     /**
@@ -78,7 +112,6 @@ public abstract class AbstractConcurrentResourceAccessor<R> implements Serializa
      * @throws E Type of the exception that can be raised by reader.
      */
     public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader) throws E {
-        if (reader == null) return null;
         try (final SafeCloseable ignored = readLock.acquireLock()) {
             return reader.apply(getResource());
         }
@@ -98,10 +131,22 @@ public abstract class AbstractConcurrentResourceAccessor<R> implements Serializa
      * @throws InterruptedException Synchronization interrupted.
      */
     public final <V, E extends Throwable> V read(final Action<? super R, ? extends V, E> reader, final Duration readTimeout) throws E, TimeoutException, InterruptedException {
-        if (reader == null) return null;
         try (final SafeCloseable ignored = readLock.acquireLock(readTimeout)) {
             return reader.apply(getResource());
         }
+    }
+
+    public final <V, E extends Throwable> Optional<V> read(final Action<? super R, ? extends V, E> reader, final Duration readTimeout, final Consumer<? super Throwable> errorHandler){
+        V result;
+        try (final SafeCloseable ignored = readLock.acquireLock(readTimeout)) {
+            result = reader.apply(getResource());
+        } catch (final Error e){
+            throw e;
+        } catch (final Throwable e){
+            errorHandler.accept(e);
+            result = null;
+        }
+        return Optional.ofNullable(result);
     }
 
     /**
@@ -116,11 +161,11 @@ public abstract class AbstractConcurrentResourceAccessor<R> implements Serializa
      * @throws E An exception that can be raised by reader.
      */
     public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer) throws E{
-        if(writer == null) return null;
         try(final SafeCloseable ignored = writeLock.acquireLock()){
             return writer.apply(getResource());
         }
     }
+
     /**
      * Provides inconsistent write on the resource.
      * <p>
@@ -135,9 +180,21 @@ public abstract class AbstractConcurrentResourceAccessor<R> implements Serializa
      * @throws InterruptedException Synchronization interrupted.
      */
     public final <O, E extends Throwable> O write(final Action<? super R, ? extends O, E> writer, final Duration writeTimeout) throws E, TimeoutException, InterruptedException {
-        if(writer == null) return null;
         try(final SafeCloseable ignored = writeLock.acquireLock(writeTimeout)){
             return writer.apply(getResource());
         }
+    }
+
+    public final <O, E extends Throwable> Optional<O> write(final Action<? super R, ? extends O, E> writer, final Duration writeTimeout, final Consumer<? super Throwable> errorHandler) {
+        O result;
+        try (final SafeCloseable ignored = writeLock.acquireLock(writeTimeout)) {
+            result = writer.apply(getResource());
+        } catch (final Error e) {
+            throw e;
+        } catch (final Throwable e) {
+            errorHandler.accept(e);
+            result = null;
+        }
+        return Optional.ofNullable(result);
     }
 }

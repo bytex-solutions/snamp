@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.actuator;
 
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.sun.jersey.api.client.WebResource;
 import org.codehaus.jackson.JsonNode;
@@ -16,7 +15,7 @@ import java.util.Optional;
  * @version 2.1
  * @since 2.0
  */
-final class ActuatorAttributeRepository extends AbstractAttributeRepository<SpringMetric> {
+final class ActuatorAttributeRepository extends AttributesRepository<SpringMetric> {
     private final WebResource metricsResource;
 
         ActuatorAttributeRepository(final String resourceName, final WebResource metricsResource) {

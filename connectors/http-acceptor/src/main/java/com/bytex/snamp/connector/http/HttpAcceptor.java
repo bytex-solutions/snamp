@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.http;
 
 import com.bytex.snamp.ImportClass;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.dataStream.UnicastDataStreamConnector;
 import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParser;
 import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParserLoader;

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.dataStream;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.notifications.NotificationExchange;
 import com.bytex.snamp.core.ClusterMember;
 import org.osgi.framework.BundleContext;

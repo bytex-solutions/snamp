@@ -3,7 +3,6 @@ package com.bytex.snamp.connector.groovy;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import groovy.util.ResourceException;

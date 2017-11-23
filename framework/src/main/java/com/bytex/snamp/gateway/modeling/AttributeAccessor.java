@@ -4,8 +4,8 @@ import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -50,7 +50,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
         }
     }
 
-    private AttributeSupport attributeSupport;
+    private ManagedResourceConnector connector;
     private final LazyReference<WellKnownType> wellKnownType;
     private final LazyReference<OpenType<?>> openType;
 
@@ -60,19 +60,22 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      */
     public AttributeAccessor(final MBeanAttributeInfo metadata) {
         super(metadata);
-        attributeSupport = null;
+        connector = null;
         wellKnownType = LazyReference.strong();
         openType = LazyReference.strong();
     }
 
-    public AttributeAccessor(final String attributeName, final AttributeSupport support) throws AttributeNotFoundException{
+    public AttributeAccessor(final String attributeName, final ManagedResourceConnector support) throws AttributeNotFoundException{
         this(getMetadata(attributeName, support));
-        attributeSupport = Objects.requireNonNull(support);
+        connector = Objects.requireNonNull(support);
     }
 
-    private static MBeanAttributeInfo getMetadata(final String attributeName, final AttributeSupport attributeSupport) throws AttributeNotFoundException {
-        return attributeSupport.getAttributeInfo(attributeName)
-                .orElseThrow(() -> JMExceptionUtils.attributeNotFound(attributeName));
+    private static MBeanAttributeInfo getMetadata(final String attributeName, final ManagedResourceConnector attributeSupport) throws AttributeNotFoundException {
+        for(final MBeanAttributeInfo attributeInfo: attributeSupport.getMBeanInfo().getAttributes()){
+            if(Objects.equals(attributeInfo.getName(), attributeName))
+                return attributeInfo;
+        }
+        throw JMExceptionUtils.attributeNotFound(attributeName);
     }
 
     /**
@@ -83,33 +86,32 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
      */
     @Override
     public final boolean isConnected() {
-        return attributeSupport != null;
+        return connector != null;
     }
 
-    private AttributeSupport ensureConnected() throws AttributeNotFoundException {
-        final AttributeSupport as = attributeSupport;
+    private ManagedResourceConnector ensureConnected() throws AttributeNotFoundException {
+        final ManagedResourceConnector as = connector;
         if(as == null)
             throw new AttributeNotFoundException(String.format("Attribute %s is disconnected", getName()));
         else return as;
     }
 
     @Override
-    public final boolean processEvent(final FeatureModifiedEvent<MBeanAttributeInfo> event) {
-        assert event.getSource() instanceof AttributeSupport;
-        switch (event.getModifier()) {
-            case ADDED:
-                connect((AttributeSupport) event.getSource());
-                return true;
-            case REMOVING:
-                close();
-                return true;
-            default:
-                return false;
-        }
+    public final boolean processEvent(final FeatureModifiedEvent event) {
+        if (event.getFeature() instanceof MBeanAttributeInfo)
+            switch (event.getModifier()) {
+                case ADDED:
+                    connect(event.getSource());
+                    return true;
+                case REMOVING:
+                    close();
+                    return true;
+            }
+        return false;
     }
 
-    private void connect(final AttributeSupport value){
-        this.attributeSupport = value;
+    private void connect(final ManagedResourceConnector value){
+        this.connector = value;
     }
 
     /**
@@ -118,7 +120,7 @@ public class AttributeAccessor extends FeatureAccessor<MBeanAttributeInfo> imple
     @Override
     @OverridingMethodsMustInvokeSuper
     public void close() {
-        attributeSupport = null;
+        connector = null;
         wellKnownType.remove();
         openType.remove();
     }

@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 
 import javax.management.Notification;
 import javax.management.openmbean.OpenType;
@@ -25,7 +25,7 @@ public abstract class DerivedAttribute<T> extends SyntheticAttribute {
         super(name, type, description, specifier, descriptor);
     }
 
-    protected abstract T getValue(final AttributeSupport support) throws Exception;
+    protected abstract T getValue(final AttributeManager support) throws Exception;
 
     @Override
     protected NotificationProcessingResult handleNotification(final Notification notification) {

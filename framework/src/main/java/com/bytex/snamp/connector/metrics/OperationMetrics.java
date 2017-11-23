@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.1
  * @since 1.0
  */
-public interface OperationMetric extends Metric {
+public interface OperationMetrics extends Metric {
     /**
      * Gets rate of all invocations.
      * @return Rate of all invocations.
@@ -14,5 +14,5 @@ public interface OperationMetric extends Metric {
     Rate invocations();
 
     @Override
-    OperationMetric clone();
+    OperationMetrics clone();
 }

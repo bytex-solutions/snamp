@@ -1,9 +1,8 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.EvaluationContext;
 import com.bytex.snamp.core.LoggerProvider;
@@ -24,7 +23,7 @@ import java.util.logging.Logger;
  * @version 2.1
  * @since 2.0
  */
-final class AttributeComposition extends AbstractAttributeRepository<AbstractCompositeAttribute> implements EvaluationContext, NotificationListener {
+final class AttributeComposition extends AttributesRepository<AbstractCompositeAttribute> implements EvaluationContext, NotificationListener {
     private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private final AttributeSupportProvider attributeSupportProvider;
     private final ExecutorService threadPool;
@@ -103,7 +102,7 @@ final class AttributeComposition extends AbstractAttributeRepository<AbstractCom
             return new AggregationAttribute(attributeName, function, this, descriptor);
         //regular attribute
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
-        final AttributeSupport support = attributeSupportProvider.getAttributeSupport(connectorType)
+        final AttributeManager support = attributeSupportProvider.getAttributeSupport(connectorType)
                 .orElseThrow(() -> new ReflectionException(new UnsupportedOperationException(String.format("Connector '%s' doesn't support attributes", connectorType))));
         //process regular attribute
         final MBeanAttributeInfo underlyingAttribute = support.addAttribute(attributeName, descriptor)

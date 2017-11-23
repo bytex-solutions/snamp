@@ -5,7 +5,7 @@ import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
@@ -73,7 +73,7 @@ public final class ListenEventsCommand extends SnampShellCommand {
         return result;
     }
 
-    private static void listenEvents(@Nonnull final NotificationSupport notifSupport,
+    private static void listenEvents(@Nonnull final NotificationManager notifSupport,
                                      final String[] categories,
                                      final int capacity,
                                      final Duration timeout,
@@ -104,7 +104,7 @@ public final class ListenEventsCommand extends SnampShellCommand {
             String[] categories = this.categories;
             if (ArrayUtils.isNullOrEmpty(categories))
                 categories = getNames(client.getMBeanInfo().getNotifications());
-            final Optional<NotificationSupport> support = client.queryObject(NotificationSupport.class);
+            final Optional<NotificationManager> support = client.queryObject(NotificationManager.class);
             if (support.isPresent())
                 listenEvents(support.get(),
                         categories,

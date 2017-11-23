@@ -12,10 +12,22 @@ import java.util.EventObject;
 public abstract class ResourceEvent extends EventObject {
     private static final long serialVersionUID = -5789097108681245831L;
     private final String resourceName;
+    private final ManagedResourceConnector sender;
 
-    ResourceEvent(@Nonnull final Object sender, final String resourceName){
+    ResourceEvent(@Nonnull final ManagedResourceConnector sender, final String resourceName){
         super(sender);
         this.resourceName = resourceName;
+        this.sender = sender;
+    }
+
+    /**
+     * The object on which the Event initially occurred.
+     *
+     * @return The object on which the Event initially occurred.
+     */
+    @Override
+    public final ManagedResourceConnector getSource() {
+        return sender;
     }
 
     /**

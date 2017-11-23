@@ -3,7 +3,7 @@ package com.bytex.snamp.testing.connector.jmx;
 import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.OperationConfiguration;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -62,7 +62,7 @@ public final class JmxConnectorWithMXBeanTest extends AbstractJmxConnectorTest<M
 
     @Test
     public void operationTest() throws JMException {
-        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
+        final OperationManager operationSupport = getManagementConnector().queryObject(OperationManager.class).orElseThrow(AssertionError::new);
         try{
             final Object result = operationSupport.invoke("forceGC", new Object[0], new String[0]);
             assertNull(result);

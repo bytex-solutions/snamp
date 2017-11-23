@@ -6,7 +6,7 @@ package com.bytex.snamp.connector.metrics;
  * @version 2.1
  * @since 1.0
  */
-public interface NotificationMetric extends Metric {
+public interface NotificationMetrics extends Metric {
     /**
      * Gets rate of all emitted notifications.
      * @return Rate of all emitted notifications.
@@ -14,5 +14,5 @@ public interface NotificationMetric extends Metric {
     Rate notifications();
 
     @Override
-    NotificationMetric clone();
+    NotificationMetrics clone();
 }

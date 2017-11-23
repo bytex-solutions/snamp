@@ -4,9 +4,9 @@ import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.FeatureDescriptor;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
+import com.bytex.snamp.connector.notifications.NotificationManager;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.bytex.snamp.management.http.model.*;
 import com.google.common.collect.Maps;
 
@@ -70,7 +70,7 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     public Map<String, AttributeDataObject> discoverAttributes(@PathParam("resourceName") final String resourceName) {
         return discoverFeatures(resourceName,
                 AttributeConfiguration.class,
-                connector -> connector.queryObject(AttributeSupport.class).map(AttributeSupport::discoverAttributes).orElseGet(Collections::emptyMap),
+                connector -> connector.queryObject(AttributeManager.class).map(AttributeManager::discoverAttributes).orElseGet(Collections::emptyMap),
                 AttributeDataObject::new);
     }
 
@@ -80,7 +80,7 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     public Map<String, EventDataObject> discoverEvents(@PathParam("resourceName") final String resourceName) {
         return discoverFeatures(resourceName,
                 EventConfiguration.class,
-                connector -> connector.queryObject(NotificationSupport.class).map(NotificationSupport::discoverNotifications).orElseGet(Collections::emptyMap),
+                connector -> connector.queryObject(NotificationManager.class).map(NotificationManager::discoverNotifications).orElseGet(Collections::emptyMap),
                 EventDataObject::new);
     }
 
@@ -90,7 +90,7 @@ public final class ResourceConfigurationService extends TemplateConfigurationSer
     public Map<String, OperationDataObject> discoverOperations(@PathParam("resourceName") final String resourceName) {
         return discoverFeatures(resourceName,
                 OperationConfiguration.class,
-                connector -> connector.queryObject(OperationSupport.class).map(OperationSupport::discoverOperations).orElseGet(Collections::emptyMap),
+                connector -> connector.queryObject(OperationManager.class).map(OperationManager::discoverOperations).orElseGet(Collections::emptyMap),
                 OperationDataObject::new);
     }
 

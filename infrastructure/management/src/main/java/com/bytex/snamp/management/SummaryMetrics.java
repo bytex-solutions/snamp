@@ -104,28 +104,28 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
     }
 
-    private static final class SummaryNotificationMetric extends SummaryMetric<NotificationMetric> implements NotificationMetric, Supplier<Stream<Rate>> {
+    private static final class SummaryNotificationMetrics extends SummaryMetric<NotificationMetrics> implements NotificationMetrics, Supplier<Stream<Rate>> {
         private static final String NAME = "summaryNotifications";
         private final Rate rate;
 
-        private SummaryNotificationMetric(final BundleContext context) {
-            super(NotificationMetric.class, context);
+        private SummaryNotificationMetrics(final BundleContext context) {
+            super(NotificationMetrics.class, context);
             rate = Summary.summaryRate(NAME, this);
         }
 
-        private SummaryNotificationMetric(final SummaryNotificationMetric source){
+        private SummaryNotificationMetrics(final SummaryNotificationMetrics source){
             super(source);
             rate = source.rate.clone();
         }
 
         @Override
-        public SummaryNotificationMetric clone() {
-            return new SummaryNotificationMetric(this);
+        public SummaryNotificationMetrics clone() {
+            return new SummaryNotificationMetrics(this);
         }
 
         @Override
         public Stream<Rate> get() {
-            return toStream(NotificationMetric::notifications);
+            return toStream(NotificationMetrics::notifications);
         }
 
         @Override
@@ -139,23 +139,23 @@ public final class SummaryMetrics extends ImmutableMetrics {
         }
     }
 
-    private static final class SummaryOperationMetric extends SummaryMetric<OperationMetric> implements OperationMetric, Supplier<Stream<Rate>> {
+    private static final class SummaryOperationMetrics extends SummaryMetric<OperationMetrics> implements OperationMetrics, Supplier<Stream<Rate>> {
         private static final String NAME = "summaryOperations";
         private final Rate rate;
 
-        private SummaryOperationMetric(final BundleContext context) {
-            super(OperationMetric.class, context);
+        private SummaryOperationMetrics(final BundleContext context) {
+            super(OperationMetrics.class, context);
             rate = Summary.summaryRate(NAME, this);
         }
 
-        private SummaryOperationMetric(final SummaryOperationMetric source){
+        private SummaryOperationMetrics(final SummaryOperationMetrics source){
             super(source);
             rate = source.rate.clone();
         }
 
         @Override
-        public SummaryOperationMetric clone() {
-            return new SummaryOperationMetric(this);
+        public SummaryOperationMetrics clone() {
+            return new SummaryOperationMetrics(this);
         }
 
         @Override
@@ -165,7 +165,7 @@ public final class SummaryMetrics extends ImmutableMetrics {
 
         @Override
         public Stream<Rate> get() {
-            return toStream(OperationMetric::invocations);
+            return toStream(OperationMetrics::invocations);
         }
 
         @Override
@@ -175,6 +175,6 @@ public final class SummaryMetrics extends ImmutableMetrics {
     }
 
     public SummaryMetrics(final BundleContext context) {
-        super(new SummaryAttributeMetrics(context), new SummaryNotificationMetric(context), new SummaryOperationMetric(context));
+        super(new SummaryAttributeMetrics(context), new SummaryNotificationMetrics(context), new SummaryOperationMetrics(context));
     }
 }

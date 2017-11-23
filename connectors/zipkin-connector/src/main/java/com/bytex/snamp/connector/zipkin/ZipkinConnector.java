@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.zipkin;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.dataStream.DataStreamConnector;
 import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParser;
 import com.bytex.snamp.connector.dataStream.groovy.GroovyNotificationParserLoader;

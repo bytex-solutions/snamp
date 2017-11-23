@@ -1,5 +1,6 @@
 package com.bytex.snamp.gateway;
 
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.core.FrameworkServiceState;
 import com.bytex.snamp.core.StatefulFrameworkService;
 import com.bytex.snamp.internal.Utils;
@@ -44,7 +45,7 @@ public interface Gateway extends StatefulFrameworkService, Closeable {
      * <p>
      *  Feature binding is an information for external consumers about how the gateway
      *  transforms the feature for its own purposes. For example, {@link javax.management.MBeanAttributeInfo}
-     *  and {@link com.bytex.snamp.connector.attributes.AttributeSupport} are the forms in which
+     *  and {@link AttributeManager} are the forms in which
      *  resource connector representing attribute. {@link com.bytex.snamp.gateway.modeling.AttributeAccessor}
      *  is about representation of the attribute in the internal structure of the gateway.
      *  This interface provides information about how the {@link com.bytex.snamp.gateway.modeling.AttributeAccessor}

@@ -2,7 +2,7 @@ package com.bytex.snamp.testing.connector.composite;
 
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.OperationConfiguration;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
 import com.bytex.snamp.testing.connector.groovy.AbstractGroovyConnectorTest;
@@ -39,7 +39,7 @@ public final class GroovyWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void operationTest() throws JMException {
-        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
+        final OperationManager operationSupport = getManagementConnector().queryObject(OperationManager.class).orElseThrow(AssertionError::new);
         try{
             final Object result = operationSupport.invoke("groovyOp", new Long[]{12L, 2L}, new String[0]);
             assertTrue(result instanceof Long);

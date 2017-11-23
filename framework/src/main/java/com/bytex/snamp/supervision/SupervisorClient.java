@@ -7,9 +7,7 @@ import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.ManagedResourceSelector;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
 import com.bytex.snamp.connector.health.HealthStatus;
-import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.core.ServiceHolder;
 import com.bytex.snamp.core.SupportService;
 import com.bytex.snamp.supervision.elasticity.ElasticityManager;
@@ -197,8 +195,7 @@ public final class SupervisorClient extends ServiceHolder<Supervisor> implements
             private static final long serialVersionUID = 420503389377659109L;
 
             private void putStatus(final String resourceName, final ManagedResourceConnector connector) {
-                put(resourceName,
-                        connector.queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new));
+                put(resourceName, connector.getStatus());
             }
 
             @Override

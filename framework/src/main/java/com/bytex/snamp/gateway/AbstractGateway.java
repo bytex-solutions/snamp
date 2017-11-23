@@ -1,13 +1,7 @@
 package com.bytex.snamp.gateway;
 
-import com.bytex.snamp.Aggregator;
+import com.bytex.snamp.Convert;
 import com.bytex.snamp.connector.*;
-import com.bytex.snamp.connector.attributes.AttributeModifiedEvent;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.notifications.NotificationModifiedEvent;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationModifiedEvent;
-import com.bytex.snamp.connector.operations.OperationSupport;
 import com.bytex.snamp.core.AbstractStatefulFrameworkServiceTracker;
 import com.bytex.snamp.gateway.modeling.*;
 import com.bytex.snamp.jmx.DescriptorUtils;
@@ -22,7 +16,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -33,13 +26,6 @@ import java.util.stream.Stream;
  * @version 2.1
  */
 public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTracker<ManagedResourceConnector, ManagedResourceConnectorClient, Map<String, String>> implements Gateway, ResourceEventListener{
-    @FunctionalInterface
-    private interface FeatureModifiedEventFactory<S, F extends MBeanFeatureInfo>{
-        FeatureModifiedEvent<F> createEvent(final S sender,
-                                            final String resourceName,
-                                            final F feature);
-    }
-
     /**
      * Represents base implementation of {@link Gateway.FeatureBindingInfo} interface.
      * @param <M> Type of the feature.
@@ -144,8 +130,8 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
         gatewayType = Gateway.getGatewayType(getClass()).intern();
     }
 
-    private <F extends MBeanFeatureInfo> void featureModified(final FeatureModifiedEvent<F> event){
-        final FeatureAccessor<F> accessor;
+    private void featureModified(final FeatureModifiedEvent event) {
+        final FeatureAccessor<?> accessor;
         switch (event.getModifier()) {
             case ADDED:
                 accessor = addFeatureImpl(event.getResourceName(), event.getFeature());
@@ -156,7 +142,7 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
             default:
                 return;
         }
-        if(accessor != null)
+        if (accessor != null)
             accessor.processEvent(event);
     }
 
@@ -167,13 +153,9 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
      * @see com.bytex.snamp.connector.FeatureModifiedEvent
      */
     @Override
-    public final void resourceModified(@Nonnull final ResourceEvent event) {
-        if (event instanceof AttributeModifiedEvent)
-            featureModified((AttributeModifiedEvent) event);
-        else if (event instanceof OperationModifiedEvent)
-            featureModified((OperationModifiedEvent) event);
-        else if (event instanceof NotificationModifiedEvent)
-            featureModified((NotificationModifiedEvent) event);
+    @OverridingMethodsMustInvokeSuper
+    public void resourceModified(@Nonnull final ResourceEvent event) {
+        Convert.toType(event, FeatureModifiedEvent.class).ifPresent(this::featureModified);
     }
 
     /**
@@ -293,17 +275,6 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
         beginUpdate(manager, null);
     }
 
-    private <S, F extends MBeanFeatureInfo> void exposeFeatures(final String resourceName,
-                                                                final Aggregator connector,
-                                                                final Class<S> supportType,
-                                                                final Function<? super S, F[]> features,
-                                                                final FeatureModifiedEventFactory<S, F> eventFactory) {
-        connector.queryObject(supportType).ifPresent(support -> {
-            for (final F feature : features.apply(support))
-                featureModified(eventFactory.createEvent(support, resourceName, feature));
-        });
-    }
-
     @Override
     protected final String getServiceId(final ManagedResourceConnectorClient client) {
         return client.getManagedResourceName();
@@ -327,13 +298,17 @@ public abstract class AbstractGateway extends AbstractStatefulFrameworkServiceTr
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected void addResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector){
+    protected void addResource(final String resourceName, @WillNotClose final ManagedResourceConnector connector) {
         //add gateway as a listener
         connector.addResourceEventListener(this);
         //expose all features
-        exposeFeatures(resourceName, connector, AttributeSupport.class, AttributeSupport::getAttributeInfo, AttributeModifiedEvent::attributedAdded);
-        exposeFeatures(resourceName, connector, OperationSupport.class, OperationSupport::getOperationInfo, OperationModifiedEvent::operationAdded);
-        exposeFeatures(resourceName, connector, NotificationSupport.class, NotificationSupport::getNotificationInfo, NotificationModifiedEvent::notificationAdded);
+        final MBeanInfo metadata = connector.getMBeanInfo();
+        for (final MBeanAttributeInfo newAttribute : metadata.getAttributes())
+            featureModified(new FeatureModifiedEvent(connector, resourceName, newAttribute, FeatureModifiedEvent.Modifier.ADDED));
+        for (final MBeanNotificationInfo newNotification : metadata.getNotifications())
+            featureModified(new FeatureModifiedEvent(connector, resourceName, newNotification, FeatureModifiedEvent.Modifier.ADDED));
+        for (final MBeanOperationInfo newOperation : metadata.getOperations())
+            featureModified(new FeatureModifiedEvent(connector, resourceName, newOperation, FeatureModifiedEvent.Modifier.ADDED));
     }
 
     @Override

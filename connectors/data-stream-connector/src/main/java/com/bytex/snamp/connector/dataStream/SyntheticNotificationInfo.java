@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector.dataStream;
 
-import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
+import com.bytex.snamp.connector.notifications.SimpleNotificationInfo;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 
 import javax.management.Notification;
@@ -11,7 +11,7 @@ import javax.management.NotificationFilter;
  * @version 2.1
  * @since 2.0
  */
-public class SyntheticNotificationInfo extends AbstractNotificationInfo implements NotificationFilter {
+public class SyntheticNotificationInfo extends SimpleNotificationInfo implements NotificationFilter {
     private static final long serialVersionUID = -3224023906663012968L;
     private NotificationFilter filter;
 

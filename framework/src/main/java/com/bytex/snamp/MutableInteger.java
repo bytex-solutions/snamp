@@ -25,6 +25,12 @@ final class MutableInteger extends Number implements IntBox {
     }
 
     @Override
+    public void incrementIfTrue(final boolean condition) {
+        if(condition)
+            value += 1;
+    }
+
+    @Override
     public void reset() {
         value = 0;
     }

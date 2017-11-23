@@ -65,7 +65,7 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
         printMetrics(metrics.reads(), output);
     }
 
-    private static void collectMetrics(final NotificationMetric metrics, final PrintWriter output) {
+    private static void collectMetrics(final NotificationMetrics metrics, final PrintWriter output) {
         if(metrics == null) {
             output.println("No metrics for notifications");
             return;
@@ -74,7 +74,7 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
         printMetrics(metrics.notifications(), output);
     }
 
-    private static void collectMetrics(final OperationMetric metrics, final PrintWriter output) {
+    private static void collectMetrics(final OperationMetrics metrics, final PrintWriter output) {
         if(metrics == null) {
             output.println("No metrics for operations");
             return;
@@ -91,9 +91,9 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
         if (showAttributes || showAll())
             collectMetrics(getFirst(metrics.getMetrics(AttributeMetrics.class), (AttributeMetrics)null), output);
         if (showNotifications || showAll())
-            collectMetrics(getFirst(metrics.getMetrics(NotificationMetric.class), (NotificationMetric)null), output);
+            collectMetrics(getFirst(metrics.getMetrics(NotificationMetrics.class), (NotificationMetrics)null), output);
         if (showOperations || showAll())
-            collectMetrics(getFirst(metrics.getMetrics(OperationMetric.class), (OperationMetric)null), output);
+            collectMetrics(getFirst(metrics.getMetrics(OperationMetrics.class), (OperationMetrics)null), output);
     }
 
     private static void resetMetrics(final Iterable<? extends Metric> m){
@@ -104,9 +104,9 @@ public final class ResourceMetricsCommand extends SnampShellCommand {
         if (showAttributes || showAll())
             resetMetrics(metrics.getMetrics(AttributeMetrics.class));
         if (showOperations || showAll())
-            resetMetrics(metrics.getMetrics(OperationMetric.class));
+            resetMetrics(metrics.getMetrics(OperationMetrics.class));
         if (showNotifications || showAll())
-            resetMetrics(metrics.getMetrics(NotificationMetric.class));
+            resetMetrics(metrics.getMetrics(NotificationMetrics.class));
         output.println("Metrics reset");
     }
 

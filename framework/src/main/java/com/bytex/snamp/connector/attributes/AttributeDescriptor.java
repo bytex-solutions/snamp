@@ -1,10 +1,7 @@
 package com.bytex.snamp.connector.attributes;
 
 import com.bytex.snamp.Convert;
-import com.bytex.snamp.configuration.AttributeConfiguration;
-import com.bytex.snamp.configuration.EventConfiguration;
-import com.bytex.snamp.configuration.GatewayConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceConfiguration;
+import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.connector.FeatureDescriptor;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.bytex.snamp.jmx.WellKnownType;
@@ -12,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 
 import javax.management.Descriptor;
 import javax.management.ImmutableDescriptor;
+import javax.management.JMX;
 import javax.management.MBeanAttributeInfo;
 import javax.management.openmbean.OpenMBeanAttributeInfo;
 import javax.management.openmbean.OpenType;
@@ -19,8 +17,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import static com.bytex.snamp.configuration.EntityConfiguration.DESCRIPTION_KEY;
 
-import static com.bytex.snamp.connector.attributes.AttributeSupport.*;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
@@ -31,6 +29,23 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  */
 public class AttributeDescriptor extends ImmutableDescriptor implements FeatureDescriptor<AttributeConfiguration> {
+    /**
+     * The name of field in {@link Descriptor} which contains
+     * the name of the attribute.
+     */
+    public static final String ATTRIBUTE_NAME_FIELD = "attributeName";
+    /**
+     * The name of the field in {@link Descriptor} which
+     * contains {@link Duration} value.
+     */
+    public static final String READ_WRITE_TIMEOUT_FIELD = "readWriteTimeout";
+
+    /**
+     * The name of the field of {@link OpenType} in {@link Descriptor}
+     * which describes the attribute type.
+     */
+    public static final String OPEN_TYPE_FIELD = JMX.OPEN_TYPE_FIELD;
+
     private static final long serialVersionUID = -516459089021572254L;
     public static final AttributeDescriptor EMPTY_DESCRIPTOR = new AttributeDescriptor(ImmutableMap.<String, String>of());
 
@@ -50,6 +65,12 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     public AttributeDescriptor(final Duration readWriteTimeout,
                                final Map<String, String> options){
         this(getFields(readWriteTimeout, options));
+    }
+
+    public AttributeDescriptor(final Duration readWriteTimeout,
+                               final String key,
+                               final String value){
+        this(readWriteTimeout, ImmutableMap.of(key, value));
     }
 
     private AttributeDescriptor(final Map<String, ?> fields){
@@ -87,20 +108,6 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     public final String getDescription(final String defval){
         final String result = getDescription();
         return isNullOrEmpty(result) ? defval : result;
-    }
-
-    /**
-     * Returns a type of the configuration entity.
-     *
-     * @return A type of the configuration entity.
-     * @see GatewayConfiguration
-     * @see ManagedResourceConfiguration
-     * @see EventConfiguration
-     * @see AttributeConfiguration
-     */
-    @Override
-    public final Class<AttributeConfiguration> getEntityType() {
-        return AttributeConfiguration.class;
     }
 
     /**
@@ -148,7 +155,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     public static String getDescription(final Descriptor metadata, final String defVal){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(defVal);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_KEY, Objects::toString).orElse(defVal);
     }
 
     public static String getDescription(final MBeanAttributeInfo metadata) {
@@ -156,7 +163,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     public static OpenType<?> getOpenType(final Descriptor metadata){
-        return DescriptorUtils.getField(metadata, OPEN_TYPE, value -> (OpenType<?>)value).orElse(null);
+        return DescriptorUtils.getField(metadata, OPEN_TYPE_FIELD, value -> (OpenType<?>)value).orElse(null);
     }
 
     public static OpenType<?> getOpenType(final MBeanAttributeInfo metadata) {
@@ -171,7 +178,7 @@ public class AttributeDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     public final AttributeDescriptor setOpenType(final OpenType<?> value){
-        return value != null ? setFields(ImmutableMap.of(OPEN_TYPE, value)) : this;
+        return value != null ? setFields(ImmutableMap.of(OPEN_TYPE_FIELD, value)) : this;
     }
 
     public final OpenType<?> getOpenType(){

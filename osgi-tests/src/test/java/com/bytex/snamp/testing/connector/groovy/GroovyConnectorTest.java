@@ -3,11 +3,11 @@ package com.bytex.snamp.testing.connector.groovy;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
@@ -99,7 +99,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void notificationTest() throws Exception {
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try{
-            final NotificationSupport notificationSupport = groovyConnector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
+            final NotificationManager notificationSupport = groovyConnector.queryObject(NotificationManager.class).orElseThrow(AssertionError::new);
             final Mailbox listener = MailboxFactory.newMailbox(n -> n.getType().equals("GroovyEvent"));
             notificationSupport.addNotificationListener(listener, listener, null);
             final Notification notif = listener.poll(2000000, TimeUnit.SECONDS);
@@ -115,7 +115,7 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void operationTest() throws JMException {
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final OperationSupport operations = groovyConnector.queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
+            final OperationManager operations = groovyConnector.queryObject(OperationManager.class).orElseThrow(AssertionError::new);
             final Object value = operations.invoke("CustomOperation", new Long[]{38L, 90L}, new String[]{Long.class.getName(), Long.class.getName()});
             assertTrue(value instanceof Long);
             assertEquals(128L, value);
@@ -128,8 +128,8 @@ public final class GroovyConnectorTest extends AbstractGroovyConnectorTest {
     public void discoveryTest() throws Exception {
         final ManagedResourceConnector groovyConnector = getManagementConnector();
         try {
-            final Map<String, AttributeDescriptor> attributes = groovyConnector.queryObject(AttributeSupport.class)
-                    .map(AttributeSupport::discoverAttributes)
+            final Map<String, AttributeDescriptor> attributes = groovyConnector.queryObject(AttributeManager.class)
+                    .map(AttributeManager::discoverAttributes)
                     .orElseGet(Collections::emptyMap);
             assertEquals(5, attributes.size());
         } finally {

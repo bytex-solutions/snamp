@@ -39,7 +39,7 @@ public final class JavaBeanOperationTest extends Assert {
 
     private static JavaBeanOperationRepository createTestRepository(final JavaBeanOperationTest owner) throws IntrospectionException {
         final ImmutableList<MethodDescriptor> info = ImmutableList.copyOf(Introspector.getBeanInfo(owner.getClass(), Assert.class).getMethodDescriptors());
-        return new JavaBeanOperationRepository("test", owner) {
+        return new JavaBeanOperationRepository("", owner) {
             @Override
             protected Collection<MethodDescriptor> getMethods() {
                 return info;

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.dataStream;
 
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.core.LoggerProvider;
 
@@ -20,7 +19,7 @@ import java.util.logging.Logger;
  * @version 2.1
  * @since 2.0
  */
-public class SyntheticAttributeRepository extends AbstractAttributeRepository<SyntheticAttribute> {
+public class SyntheticAttributeRepository extends AttributesRepository<SyntheticAttribute> {
     private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
 
     private ExecutorService threadPool;

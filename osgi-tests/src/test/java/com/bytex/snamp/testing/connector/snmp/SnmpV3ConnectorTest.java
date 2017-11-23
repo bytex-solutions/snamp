@@ -6,7 +6,7 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.google.common.reflect.TypeToken;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -317,7 +317,7 @@ public final class SnmpV3ConnectorTest extends AbstractSnmpConnectorTest {
     public void notificationTest() throws Exception {
         final ManagedResourceConnector connector = getManagementConnector();
         try {
-            final NotificationSupport notifications = connector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
+            final NotificationManager notifications = connector.queryObject(NotificationManager.class).orElseThrow(AssertionError::new);
             assertNotNull(notifications.getNotificationInfo("snmp-notif"));
             final CompletableFuture<Notification> trap = new CompletableFuture<>();
             notifications.addNotificationListener((notification, handback) -> trap.complete(notification), null, null);

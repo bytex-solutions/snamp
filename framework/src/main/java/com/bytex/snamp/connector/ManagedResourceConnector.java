@@ -1,20 +1,17 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.core.ConfigurableFrameworkService;
+import com.bytex.snamp.connector.attributes.AttributeManager;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.connector.notifications.NotificationManager;
+import com.bytex.snamp.connector.operations.OperationManager;
+import com.bytex.snamp.core.FrameworkService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
-import javax.management.DynamicMBean;
-import javax.management.MBeanFeatureInfo;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import javax.management.*;
 import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -26,20 +23,20 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  *     The class that implements this interface must implement one or more following interfaces
  *     to provide management mechanisms:
  *     <ul>
- *         <li>{@link com.bytex.snamp.connector.attributes.AttributeSupport} to provide management
+ *         <li>{@link AttributeManager} to provide management
  *         via resource attributes.</li>
- *         <li>{@link com.bytex.snamp.connector.notifications.NotificationSupport} to receiver
+ *         <li>{@link NotificationManager} to receiver
  *         management notifications.</li>
- *         <li>{@link com.bytex.snamp.connector.operations.OperationSupport} to provide management
+ *         <li>{@link OperationManager} to provide management
  *         via operations.</li>
- *         <li>{@link com.bytex.snamp.connector.health.HealthCheckSupport} to provide health status
+ *         <li>{@link #getStatus()} to provide health status
  *         of remote component</li>
  *     </ul>
  * @author Roman Sakno
  * @since 1.0
  * @version 2.1
  */
-public interface ManagedResourceConnector extends AutoCloseable, ConfigurableFrameworkService<ManagedResourceInfo>, DynamicMBean {
+public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
     /**
      * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
      * of Managed Resource Connector.
@@ -53,8 +50,6 @@ public interface ManagedResourceConnector extends AutoCloseable, ConfigurableFra
      * @see #CAPABILITY_NAMESPACE
      */
     String TYPE_CAPABILITY_ATTRIBUTE = "type";
-
-    ManagedResourceInfo EMPTY_CONFIGURATION = new EmptyManagedResourceInfo();
 
     /**
      * Adds a new listener for the connector-related events.
@@ -71,12 +66,33 @@ public interface ManagedResourceConnector extends AutoCloseable, ConfigurableFra
     void removeResourceEventListener(final ResourceEventListener listener);
 
     /**
-     * Gets mutable set of characteristics of this managed resource connector.
-     * @return Characteristics of this managed resource connector.
+     * Gets the values of all attributes.
+     * @return The values of all attributes
+     * @since 2.1
      */
-    @Override
+    default AttributeList getAttributes() throws MBeanException, ReflectionException {
+        final AttributeList result = new AttributeList();
+        for (final MBeanAttributeInfo attribute : getMBeanInfo().getAttributes()) {
+            final Object attributeValue;
+            try {
+                attributeValue = getAttribute(attribute.getName());
+            } catch (final AttributeNotFoundException e) {
+                continue;
+            }
+            result.add(new Attribute(attribute.getName(), attributeValue));
+        }
+        return result;
+    }
+
+    /**
+     * Determines whether the connected managed resource is alive.
+     * @return Status of the remove managed resource.
+     * @since 2.1
+     */
     @Nonnull
-    ManagedResourceInfo getConfiguration();
+    default HealthStatus getStatus() {
+        return new OkStatus();
+    }
 
     static String getConnectorType(final Bundle bnd) {
         final BundleRevision revision = bnd.adapt(BundleRevision.class);
@@ -102,20 +118,5 @@ public interface ManagedResourceConnector extends AutoCloseable, ConfigurableFra
 
     static boolean isResourceConnectorBundle(final Bundle bnd) {
         return bnd != null && !isNullOrEmpty(getConnectorType(bnd));
-    }
-
-    default Collection<? extends MBeanFeatureInfo> expandAll() {
-        final List<MBeanFeatureInfo> result = new LinkedList<>();
-
-        queryObject(AttributeSupport.class)
-                .ifPresent(support -> support.discoverAttributes().forEach((attributeName, descriptor) -> support.addAttribute(attributeName, descriptor).ifPresent(result::add)));
-
-        queryObject(NotificationSupport.class)
-                .ifPresent(support -> support.discoverNotifications().forEach((category, descriptor) -> support.enableNotifications(category, descriptor).ifPresent(result::add)));
-
-        queryObject(OperationSupport.class)
-                .ifPresent(support -> support.discoverOperations().forEach((operationName, descriptor) -> support.enableOperation(operationName, descriptor).ifPresent(result::add)));
-
-        return result;
     }
 }

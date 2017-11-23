@@ -1,9 +1,7 @@
 package com.bytex.snamp.connector.modbus;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.modbus.transport.ModbusMaster;
@@ -25,7 +23,7 @@ import static com.bytex.snamp.connector.modbus.ModbusResourceConnectorConfigurat
  * Represents Modbus connector.
  */
 final class ModbusResourceConnector extends AbstractManagedResourceConnector {
-    private static final class ModbusAttributeRepository extends AbstractAttributeRepository<ModbusAttributeInfo> {
+    private static final class ModbusAttributeRepository extends AttributesRepository<ModbusAttributeInfo> {
         private final ModbusMaster client;
 
         private ModbusAttributeRepository(final String resourceName, final ModbusMaster client) {

@@ -1,10 +1,12 @@
 package com.bytex.snamp.gateway.modeling;
 
 import com.bytex.snamp.connector.FeatureModifiedEvent;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.ManagedResourceConnector;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import javax.management.MBeanException;
 import javax.management.MBeanOperationInfo;
+import javax.management.ReflectionException;
 
 /**
  * Exposes access to the individual operation.
@@ -13,7 +15,7 @@ import javax.management.MBeanOperationInfo;
  * @version 2.1
  */
 public abstract class OperationAccessor extends FeatureAccessor<MBeanOperationInfo> {
-    private OperationSupport operationSupport;
+    private ManagedResourceConnector operationSupport;
 
     /**
      * Initializes a new managed resource notification accessor.
@@ -24,12 +26,13 @@ public abstract class OperationAccessor extends FeatureAccessor<MBeanOperationIn
         this.operationSupport = null;
     }
 
-    public OperationSupport getOperationSupport() {
-        return operationSupport;
+    final Object invoke(final String operationName,
+                        final Object[] arguments,
+                        final String[] signature) throws ReflectionException, MBeanException {
+        return operationSupport.invoke(operationName, arguments, signature);
     }
 
-
-    private void connect(final OperationSupport value) {
+    private void connect(final ManagedResourceConnector value) {
         this.operationSupport = value;
     }
 
@@ -64,17 +67,16 @@ public abstract class OperationAccessor extends FeatureAccessor<MBeanOperationIn
     }
 
     @Override
-    public final boolean processEvent(final FeatureModifiedEvent<MBeanOperationInfo> event) {
-        assert event.getSource() instanceof OperationSupport;
-        switch (event.getModifier()){
-            case ADDED:
-                connect((OperationSupport)event.getSource());
-                return true;
-            case REMOVING:
-                close();
-                return true;
-            default:
-                return false;
-        }
+    public final boolean processEvent(final FeatureModifiedEvent event) {
+        if (event.getFeature() instanceof MBeanOperationInfo)
+            switch (event.getModifier()) {
+                case ADDED:
+                    connect(event.getSource());
+                    return true;
+                case REMOVING:
+                    close();
+                    return true;
+            }
+        return false;
     }
 }

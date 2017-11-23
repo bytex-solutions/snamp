@@ -1,17 +1,16 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.AbstractAggregator;
-import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SingletonMap;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.configuration.*;
 import com.bytex.snamp.configuration.internal.CMManagedResourceParser;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.bytex.snamp.core.AbstractServiceLibrary;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.core.SupportService;
@@ -21,13 +20,9 @@ import org.osgi.framework.BundleException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanFeatureInfo;
-import javax.management.MBeanOperationInfo;
+import javax.management.JMException;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -35,6 +30,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Represents a base class for management connector bundle.
@@ -42,51 +38,26 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  *     This bundle activator represents a factory of {@link ManagedResourceConnector} implementations.
  *     Each connector should be registered as separated service in OSGi environment.
  * </p>
- * @param <TConnector> Type of the management connector.
  * @author Roman Sakno
  * @since 1.0
  * @version 2.1
  */
-public abstract class ManagedResourceActivator<TConnector extends ManagedResourceConnector> extends AbstractServiceLibrary {
+public abstract class ManagedResourceActivator extends AbstractServiceLibrary {
     private static final ActivationProperty<String> CONNECTOR_TYPE_HOLDER = defineActivationProperty(String.class);
     private static final ActivationProperty<CMManagedResourceParser> MANAGED_RESOURCE_PARSER_HOLDER = defineActivationProperty(CMManagedResourceParser.class);
     private static final ActivationProperty<Logger> LOGGER_HOLDER = defineActivationProperty(Logger.class, Logger.getAnonymousLogger());
 
-    /**
-     * Represents an interface responsible for instantiating {@link ManagedResourceConnector}.
-     * @param <TConnector> Type of the managed resource connector implementation.
-     * @author Roman Sakno
-     * @since 2.0
-     * @version 2.1
-     */
-    protected interface ManagedResourceConnectorFactory<TConnector extends ManagedResourceConnector> {
-        /**
-         * Creates a new instance of the managed resource connector.
-         * @param resourceName The name of the managed resource.
-         * @param configuration Configuration of the managed resource.
-         * @param dependencies A collection of connector dependencies.
-         * @return A new instance of the resource connector.
-         * @throws Exception Unable to instantiate managed resource connector.
-         */
-        @Nonnull
-        TConnector createConnector(final String resourceName,
-                                   final ManagedResourceInfo configuration,
-                                   final DependencyManager dependencies) throws Exception;
+    protected static abstract class ManagedResourceLifecycleManager<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
+        private final LazyReference<Logger> logger = LazyReference.strong();
+        private final Map<String, ManagedResourceConfiguration> resources = new HashMap<>();
+        private final ThreadLocal<String> resourceName = new ThreadLocal<>();
 
-        default Set<Class<? super TConnector>> getInterfaces(){
-            return Collections.emptySet();
+        protected ManagedResourceLifecycleManager(final RequiredService<?>... dependencies) {
+            super(ManagedResourceConnector.class, dependencies);
         }
-    }
 
-    private static final class ManagedResourceConnectorRegistry<TConnector extends ManagedResourceConnector> extends ServiceSubRegistryManager<ManagedResourceConnector, TConnector> {
-        private final ManagedResourceConnectorFactory<TConnector> factory;
-        private final LazyReference<Logger> logger;
-
-        private ManagedResourceConnectorRegistry(@Nonnull final ManagedResourceConnectorFactory<TConnector> controller,
-                                                 final RequiredService<?>... dependencies) {
-            super(ManagedResourceConnector.class, controller.getInterfaces(), dependencies);
-            this.factory = controller;
-            this.logger = LazyReference.strong();
+        protected ManagedResourceLifecycleManager(final Iterable<Class<? super TConnector>> subtracts, final RequiredService<?>... dependencies) {
+            super(ManagedResourceConnector.class, subtracts, dependencies);
         }
 
         private Logger getLoggerImpl(){
@@ -94,8 +65,8 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         @Override
-        protected Logger getLogger() {
-            return logger.get(this, ManagedResourceConnectorRegistry::getLoggerImpl);
+        protected final Logger getLogger() {
+            return logger.get(this, ManagedResourceLifecycleManager::getLoggerImpl);
         }
 
         private String getConnectorType(){
@@ -107,73 +78,23 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
         }
 
         @Override
-        protected String getFactoryPID() {
+        protected final String getFactoryPID() {
             return getParser().getFactoryPersistentID(getConnectorType());
         }
-
-        private static <I extends FeatureConfiguration, O extends MBeanFeatureInfo> void updateFeatures(final BiFunction<String, I, Optional<O>> featureAdder,
-                                                                                                        final Function<O, String> nameResolver,
-                                                                                                        final Consumer<Set<String>> retainer,
-                                                                                                        final Map<String, ? extends I> features) {
-            final Set<String> addedFeatures = new HashSet<>(10);
-            features.entrySet().stream()
-                    .map(entry -> featureAdder.apply(entry.getKey(), entry.getValue()))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .map(nameResolver)
-                    .forEach(addedFeatures::add);
-            retainer.accept(addedFeatures);
-        }
-
-        private static void updateAttributes(final AttributeSupport connector,
-                                      final Map<String, ? extends AttributeConfiguration> attributes) {
-            updateFeatures(
-                    (name, config) -> connector.addAttribute(name, new AttributeDescriptor(config)),
-                    MBeanAttributeInfo::getName,
-                    connector::retainAttributes,
-                    attributes
-            );
-        }
-
-        private static void updateOperations(final OperationSupport connector,
-                                      final Map<String, ? extends OperationConfiguration> operations){
-            updateFeatures(
-                    (name, config) -> connector.enableOperation(name, new OperationDescriptor(config)),
-                    MBeanOperationInfo::getName,
-                    connector::retainOperations,
-                    operations
-            );
-        }
-
-        private static void updateEvents(final NotificationSupport connector,
-                                  final Map<String, ? extends EventConfiguration> events){
-            updateFeatures(
-                    (name, config) -> connector.enableNotifications(name, new NotificationDescriptor(config)),
-                    metadata -> ArrayUtils.getFirst(metadata.getNotifTypes()).orElseThrow(AssertionError::new),
-                    connector::retainNotifications,
-                    events
-            );
-        }
-
-        private static void updateFeatures(final ManagedResourceConnector connector,
-                            final ManagedResourceConfiguration configuration) {
-            connector.queryObject(AttributeSupport.class)
-                    .ifPresent(attributeSupport -> updateAttributes(attributeSupport, configuration.getAttributes()));
-            connector.queryObject(NotificationSupport.class)
-                    .ifPresent(notificationSupport -> updateEvents(notificationSupport, configuration.getEvents()));
-            connector.queryObject(OperationSupport.class)
-                    .ifPresent(operationSupport -> updateOperations(operationSupport, configuration.getOperations()));
-            //expansion should be the last instruction in this method because updating procedure
-            //may remove all automatically added attributes
-            if (configuration.isSmartMode())
-                connector.expandAll();
-        }                                           
 
         private SingletonMap<String, ? extends ManagedResourceConfiguration> parseConfig(final Dictionary<String, ?> configuration) throws IOException{
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = getParser().parse(configuration);
             newConfig.getValue().setType(getConnectorType());
             newConfig.getValue().expandParameters();
             return newConfig;
+        }
+
+        protected TConnector updateConnector(@Nonnull TConnector connector,
+                                                   final ManagedResourceConfiguration configuration) throws Exception {
+            final String resourceName = this.resourceName.get();
+            assert !isNullOrEmpty(resourceName);
+            connector = createConnector(resourceName, configuration);
+            return connector;
         }
 
         /**
@@ -186,24 +107,21 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @throws org.osgi.service.cm.ConfigurationException Invalid service configuration.
          */
         @Override
-        protected TConnector updateService(TConnector connector,
+        protected final TConnector updateService(TConnector connector,
                                            final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
-            //we should not update resource connector if connection parameters was not changed
-            if (!connector.getConfiguration().equals(newConfig.getValue())) {
-                //trying to update resource connector on-the-fly
+            if (!Objects.equals(resources.get(newConfig.getKey()), newConfig.getValue())) {
+                resourceName.set(newConfig.getKey());
                 try {
-                    connector.update(newConfig.getValue());
-                } catch (final ManagedResourceConnector.UnsupportedUpdateOperationException ignored) {
-                    //Update operation is not supported -> force recreation
-                    //previous version of connector will be closed automatically using cleanupService
-                    connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
+                    connector = updateConnector(connector, newConfig.getValue());
+                } catch (final Exception e) {
+                    resources.remove(newConfig.getKey());
+                    throw e;
+                } finally {
+                    resourceName.remove();
                 }
-                updateFeatures(connector, newConfig.getValue());
+                resources.put(newConfig.getKey(), newConfig.getValue());
                 getLogger().info(String.format("Connector %s for resource %s is updated", getConnectorType(), newConfig.getKey()));
-            }
-            else{
-                getLogger().info(String.format("Connector %s for resource %s was not changed", getConnectorType(), newConfig.getKey()));
             }
             return connector;
         }
@@ -216,7 +134,7 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @param e             An exception occurred when updating service.
          */
         @Override
-        protected void failedToUpdateService(final Logger logger,
+        protected final void failedToUpdateService(final Logger logger,
                                              final String servicePID,
                                              final Dictionary<String, ?> configuration,
                                              final Exception e) {
@@ -230,11 +148,15 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @param e          An exception occurred when disposing service.
          */
         @Override
-        protected void failedToCleanupService(final Logger logger,
+        protected final void failedToCleanupService(final Logger logger,
                                               final String servicePID,
                                               final Exception e) {
             logger.log(Level.SEVERE, String.format("Unable to dispose connector '%s'", servicePID), e);
         }
+
+        @Nonnull
+        protected abstract TConnector createConnector(final String resourceName,
+                                             final ManagedResourceConfiguration configuration) throws Exception;
 
         /**
          * Creates a new service.
@@ -246,21 +168,112 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
          * @throws org.osgi.service.cm.ConfigurationException Invalid configuration exception.
          */
         @Override
-        protected TConnector activateService(final ServiceIdentityBuilder identity,
+        protected final TConnector activateService(final ServiceIdentityBuilder identity,
                                              final Dictionary<String, ?> configuration) throws Exception {
             final SingletonMap<String, ? extends ManagedResourceConfiguration> newConfig = parseConfig(configuration);
             identity.acceptAll(new ManagedResourceSelector(newConfig.getValue()).setResourceName(newConfig.getKey()));
-            final TConnector connector = factory.createConnector(newConfig.getKey(), newConfig.getValue(), dependencies);
-            updateFeatures(connector, newConfig.getValue());
+            final TConnector connector = createConnector(newConfig.getKey(), newConfig.getValue());
+            resources.put(newConfig.getKey(), newConfig.getValue());
             getLogger().info(String.format("Connector %s for resource %s is instantiated", getConnectorType(), newConfig.getKey()));
             return connector;
         }
 
         @Override
-        protected void disposeService(final TConnector service,
+        protected final void disposeService(final TConnector service,
                                       final Map<String, ?> identity) throws Exception {
-            getLogger().info(String.format("Connector %s is destroyed", ManagedResourceSelector.getManagedResourceName(identity)));
+            final String resourceName = ManagedResourceSelector.getManagedResourceName(identity);
+            resources.remove(resourceName);
             service.close();
+            getLogger().info(String.format("Connector %s is destroyed", resourceName));
+        }
+    }
+
+    protected static abstract class DefaultManagedResourceLifecycleManager<TConnector extends ManagedResourceConnector> extends ManagedResourceLifecycleManager<TConnector>{
+        @FunctionalInterface
+        private interface FeatureAdder<D extends FeatureDescriptor<?>>{
+            void addFeature(final String featureName, final D descriptor) throws JMException;
+        }
+
+        protected DefaultManagedResourceLifecycleManager(final RequiredService<?>... dependencies) {
+            super(dependencies);
+        }
+
+        protected DefaultManagedResourceLifecycleManager(final Iterable<Class<? super TConnector>> subtracts,
+                                                         final RequiredService<?>... dependencies) {
+            super(subtracts, dependencies);
+        }
+
+        @Nonnull
+        protected abstract TConnector createConnector(final String resourceName,
+                                                      final String connectionString,
+                                                      final Map<String, String> configuration) throws Exception;
+
+        private <F extends FeatureConfiguration, D extends FeatureDescriptor<F>> Set<String> configureFeatures(final FeatureAdder<D> adder,
+                                                                                                               final Map<String, D> features) {
+            final Set<String> registeredFeatures = new HashSet<>();
+            for (final Map.Entry<String, D> metadata : features.entrySet()) {
+                boolean success;
+                try {
+                    adder.addFeature(metadata.getKey(), metadata.getValue());
+                    success = true;
+                } catch (final JMException e) {
+                    getLogger().log(Level.SEVERE, "Unable to register feature " + metadata.getKey(), e);
+                    success = false;
+                }
+                if (success)
+                    registeredFeatures.add(metadata.getKey());
+            }
+            return registeredFeatures;
+        }
+
+        private <F extends FeatureConfiguration, D extends FeatureDescriptor<F>> Set<String> configureFeatures(final FeatureAdder<D> adder,
+                                                                                                       final Function<? super F, ? extends D> descriptorFactory,
+                                                                                                       final Map<String, ? extends F> features) {
+            return configureFeatures(adder, features.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> descriptorFactory.apply(entry.getValue()))));
+        }
+
+        protected void configureAttributes(final TConnector connector,
+                                           final Map<String, ? extends AttributeConfiguration> attributes) {
+            connector.queryObject(AttributeManager.class).ifPresent(manager -> {
+                final Set<String> addedAttributes = configureFeatures(manager::addAttribute, AttributeDescriptor::new, attributes);
+                manager.retainAttributes(addedAttributes);
+            });
+        }
+
+        protected void configureEvents(final TConnector connector,
+                                       final Map<String, ? extends EventConfiguration> events) {
+            connector.queryObject(NotificationManager.class).ifPresent(manager -> {
+                final Set<String> addedEvents = configureFeatures(manager::enableNotifications, NotificationDescriptor::new, events);
+                manager.retainNotifications(addedEvents);
+            });
+        }
+
+        protected void configureOperations(final TConnector connector,
+                                           final Map<String, ? extends OperationConfiguration> operations){
+            connector.queryObject(OperationManager.class).ifPresent(manager -> {
+                final Set<String> addedEvents = configureFeatures(manager::enableOperation, OperationDescriptor::new, operations);
+                manager.retainOperations(addedEvents);
+            });
+        }
+
+        protected void enableSmartMode(final TConnector connector){
+            connector.queryObject(AttributeManager.class).ifPresent(manager -> configureFeatures(manager::addAttribute, manager.discoverAttributes()));
+            connector.queryObject(OperationManager.class).ifPresent(manager -> configureFeatures(manager::enableOperation, manager.discoverOperations()));
+            connector.queryObject(NotificationManager.class).ifPresent(manager -> configureFeatures(manager::enableNotifications, manager.discoverNotifications()));
+        }
+
+        @Nonnull
+        @Override
+        protected final TConnector createConnector(final String resourceName, final ManagedResourceConfiguration configuration) throws Exception {
+            final TConnector connector = createConnector(resourceName, configuration.getConnectionString(), configuration);
+            configureAttributes(connector, configuration.getAttributes());
+            configureEvents(connector, configuration.getEvents());
+            configureOperations(connector, configuration.getOperations());
+            //expansion should be the last instruction in this method because updating procedure
+            //may remove all automatically added attributes
+            if (configuration.isSmartMode())
+                enableSmartMode(connector);
+            return connector;
         }
     }
 
@@ -345,66 +358,39 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
      * @param factory Resource connector factory. Cannot be {@literal null}.
      * @param optionalServices Additional set of supporting services.
      */
-    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
+    protected ManagedResourceActivator(final ManagedResourceLifecycleManager<?> factory,
                                        final SupportServiceManager<?>... optionalServices) {
-        this(factory, optionalServices, ArrayUtils.emptyArray(RequiredService[].class));
-    }
-
-    /**
-     * Initializes a new connector factory.
-     * @param factory Resource connector factory. Cannot be {@literal null}.
-     * @param connectorDependencies A collection of connector-level dependencies.
-     * @param optionalServices Additional set of supporting services.
-     */
-    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
-                                       final SupportServiceManager<?>[] optionalServices,
-                                       final RequiredService<?>... connectorDependencies) {
-        super(serviceProvider(factory, connectorDependencies, optionalServices));
+        super(serviceProvider(factory, optionalServices));
         connectorType = ManagedResourceConnector.getConnectorType(getBundleContextOfObject(this).getBundle());
         logger = LoggerProvider.getLoggerForObject(this);
     }
 
-    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
-                                       final SupportServiceManager<?> optionalService,
-                                       final RequiredService<?>... connectorDependencies) {
-        this(factory, new SupportServiceManager<?>[]{optionalService}, connectorDependencies);
-    }
-
-    protected ManagedResourceActivator(final ManagedResourceConnectorFactory<TConnector> factory,
-                                       final SupportServiceManager<?> optionalService) {
-        this(factory, new SupportServiceManager<?>[]{optionalService});
-    }
-
-    private static <TConnector extends ManagedResourceConnector> ProvidedServices serviceProvider(final ManagedResourceConnectorFactory<TConnector> controller,
-                                                                                                  final RequiredService<?>[] connectorDependencies,
-                                                                                                  final SupportServiceManager<?>[] optionalServices){
+    private static ProvidedServices serviceProvider(final ManagedResourceLifecycleManager<?> controller,
+                                                                                                  final SupportServiceManager<?>... optionalServices){
         final class ManagedResourceConnectorFactoryServiceImpl extends AbstractAggregator implements ManagedResourceConnectorFactoryService {
-            private final DependencyManager dependencies;
-
-            ManagedResourceConnectorFactoryServiceImpl(final DependencyManager dependencies){
-                this.dependencies = Objects.requireNonNull(dependencies);
+            ManagedResourceConnectorFactoryServiceImpl(){
             }
 
             @Override
-            public TConnector createConnector(final String resourceName, final ManagedResourceInfo configuration) throws Exception {
-                return controller.createConnector(resourceName, configuration, dependencies);
+            public ManagedResourceConnector createConnector(final String resourceName, final ManagedResourceConfiguration configuration) throws Exception {
+                return controller.createConnector(resourceName, configuration);
             }
         }
 
         final class ManagedResourceConnectorFactoryServiceManager extends SupportServiceManager<ManagedResourceConnectorFactoryServiceImpl> {
             private ManagedResourceConnectorFactoryServiceManager(){
-                super(ManagedResourceConnectorFactoryService.class, connectorDependencies);
+                super(ManagedResourceConnectorFactoryService.class);
             }
 
             @Nonnull
             @Override
             protected ManagedResourceConnectorFactoryServiceImpl createService(final ServiceIdentityBuilder identity) {
-                return new ManagedResourceConnectorFactoryServiceImpl(dependencies);
+                return new ManagedResourceConnectorFactoryServiceImpl();
             }
         }
 
         return (services, activationProperties, bundleLevelDependencies) -> {
-            services.add(new ManagedResourceConnectorRegistry<>(controller, connectorDependencies));
+            services.add(controller);
             services.add(new ManagedResourceConnectorFactoryServiceManager());
             Collections.addAll(services, optionalServices);
         };
@@ -485,34 +471,6 @@ public abstract class ManagedResourceActivator<TConnector extends ManagedResourc
     @Override
     public final String toString(){
         return connectorType;
-    }
-
-    /**
-     * Determines whether the specified factory equals to this factory and produces
-     * the same type of the SNAMP resource connector.
-     * @param factory The factory to compare.
-     * @return {@literal true}, if the specified factory equals to this factory and produces
-     * the same type of the SNAMP resource connector; otherwise, {@literal false}.
-     */
-    public final boolean equals(final ManagedResourceActivator<?> factory){
-        return factory != null && Objects.equals(connectorType, factory.connectorType);
-    }
-
-    /**
-     * Determines whether the specified factory equals to this factory and produces
-     * the same type of the SNAMP resource connector.
-     * @param factory The factory to compare.
-     * @return {@literal true}, if the specified factory equals to this factory and produces
-     * the same type of the SNAMP resource connector; otherwise, {@literal false}.
-     */
-    @Override
-    public final boolean equals(final Object factory){
-        return factory instanceof ManagedResourceActivator && equals((ManagedResourceActivator<?>) factory);
-    }
-
-    @Override
-    public final int hashCode() {
-        return connectorType.hashCode();
     }
 
     private static List<Bundle> getResourceConnectorBundles(final BundleContext context) {

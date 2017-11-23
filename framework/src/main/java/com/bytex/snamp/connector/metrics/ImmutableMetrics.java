@@ -4,10 +4,7 @@ import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -31,6 +28,10 @@ public class ImmutableMetrics implements MetricsSupport {
 
     public ImmutableMetrics(final Metric... metrics) {
         this(Arrays.stream(metrics));
+    }
+
+    public ImmutableMetrics(final List<? extends Metric> metrics) {
+        this(metrics.stream());
     }
 
     public <I> ImmutableMetrics(final I[] metrics, final Function<? super I, ? extends Metric> converter) {

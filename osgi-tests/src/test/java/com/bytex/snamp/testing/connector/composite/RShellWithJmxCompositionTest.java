@@ -7,8 +7,8 @@ import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.testing.SnampDependencies;
 import com.bytex.snamp.testing.SnampFeature;
@@ -181,7 +181,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void operationTest() throws JMException {
-        final OperationSupport operationSupport = getManagementConnector().queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
+        final OperationManager operationSupport = getManagementConnector().queryObject(OperationManager.class).orElseThrow(AssertionError::new);
         try{
             final Object result = operationSupport.invoke("rev", new Object[]{new byte[]{1, 2, 3}}, new String[0]);
             assertTrue(result instanceof byte[]);
@@ -194,7 +194,7 @@ public final class RShellWithJmxCompositionTest extends AbstractCompositeConnect
 
     @Test
     public void notificationTest() throws JMException, InterruptedException {
-        final NotificationSupport notificationSupport = getManagementConnector().queryObject(NotificationSupport.class).orElseThrow(AssertionError::new);
+        final NotificationManager notificationSupport = getManagementConnector().queryObject(NotificationManager.class).orElseThrow(AssertionError::new);
         try{
             final Mailbox mailbox = MailboxFactory.newMailbox();
             notificationSupport.addNotificationListener(mailbox, null, null);

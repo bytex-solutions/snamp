@@ -28,7 +28,7 @@ public class ResourceOperationList<TAccessor extends OperationAccessor> extends 
             if (!operationAccessor.isConnected()) {
                 throw JMExceptionUtils.operationDisconnected(operationName);
             } else {
-                return operationAccessor.getOperationSupport().invoke(operationName, params, signature);
+                return operationAccessor.invoke(operationName, params, signature);
             }
         } else {
             throw JMExceptionUtils.operationNotFound(operationName);

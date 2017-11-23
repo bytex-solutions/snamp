@@ -3,33 +3,33 @@ package com.bytex.snamp.connector.metrics;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represents default implementation of interface {@link OperationMetric}.
+ * Represents default implementation of interface {@link OperationMetrics}.
  * @author Roman Sakno
  * @version 2.1
  * @since 1.0
  */
 @ThreadSafe
-public class OperationMetricRecorder extends AbstractMetric implements OperationMetric {
+public class OperationMetricsRecorder extends AbstractMetric implements OperationMetrics {
     public static final String DEFAULT_NAME = "operations";
     private static final long serialVersionUID = 2944470493827345462L;
     private final RateRecorder invocationsRate;
 
-    public OperationMetricRecorder(final String name){
+    public OperationMetricsRecorder(final String name){
         super(name);
         invocationsRate = new RateRecorder(name);
     }
 
-    protected OperationMetricRecorder(final OperationMetricRecorder source){
+    protected OperationMetricsRecorder(final OperationMetricsRecorder source){
         super(source);
         invocationsRate = source.invocationsRate.clone();
     }
 
     @Override
-    public OperationMetricRecorder clone() {
-        return new OperationMetricRecorder(this);
+    public OperationMetricsRecorder clone() {
+        return new OperationMetricsRecorder(this);
     }
 
-    public OperationMetricRecorder(){
+    public OperationMetricsRecorder(){
         this(DEFAULT_NAME);
     }
 

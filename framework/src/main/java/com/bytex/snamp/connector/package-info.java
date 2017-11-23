@@ -5,7 +5,7 @@
  *     and expose management entities, such as attributes.
  * </p>
  * @see com.bytex.snamp.connector.ManagedResourceConnector
- * @see com.bytex.snamp.connector.attributes.AttributeSupport
- * @see com.bytex.snamp.connector.notifications.NotificationSupport
+ * @see com.bytex.snamp.connector.attributes.AttributeManager
+ * @see com.bytex.snamp.connector.notifications.NotificationManager
  */
 package com.bytex.snamp.connector;

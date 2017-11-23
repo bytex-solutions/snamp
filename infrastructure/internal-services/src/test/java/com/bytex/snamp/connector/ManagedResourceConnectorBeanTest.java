@@ -6,13 +6,13 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.attributes.reflection.ManagementAttribute;
 import com.bytex.snamp.connector.attributes.reflection.ManagementAttributeMarshaller;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 import com.bytex.snamp.connector.operations.reflection.ManagementOperation;
 import com.bytex.snamp.connector.operations.reflection.OperationParameter;
@@ -135,12 +135,12 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
     @Test
     public void discoveryTest() throws IntrospectionException {
         final TestManagementConnectorBean connector = new TestManagementConnectorBean();
-        final Map<String, AttributeDescriptor> attributes = connector.queryObject(AttributeSupport.class)
-                .map(AttributeSupport::discoverAttributes)
+        final Map<String, AttributeDescriptor> attributes = connector.queryObject(AttributeManager.class)
+                .map(AttributeManager::discoverAttributes)
                 .orElseGet(Collections::emptyMap);
         assertEquals(3, attributes.size());
-        final Map<String, NotificationDescriptor> events = connector.queryObject(NotificationSupport.class)
-                .map(NotificationSupport::discoverNotifications)
+        final Map<String, NotificationDescriptor> events = connector.queryObject(NotificationManager.class)
+                .map(NotificationManager::discoverNotifications)
                 .orElseGet(Collections::emptyMap);
         assertEquals(1, events.size());
     }
@@ -175,7 +175,7 @@ public final class ManagedResourceConnectorBeanTest extends Assert {
         //enables notifications
         assertNotNull(connector.getNotificationSupport().enableNotifications("propertyChanged", makeEventConfig("propertyChanged")));
         final Mailbox listener = MailboxFactory.newMailbox();
-        connector.queryObject(NotificationSupport.class).orElseThrow(AssertionError::new).addNotificationListener(listener, listener, null);
+        connector.queryObject(NotificationManager.class).orElseThrow(AssertionError::new).addNotificationListener(listener, listener, null);
         assertEquals(connector.getProperty1(), connector.getAttribute("p1"));
         connector.setAttribute(new AttributeValue("p1", "1234567890", SimpleType.STRING));
         final Notification n = listener.poll(10, TimeUnit.SECONDS);

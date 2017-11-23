@@ -4,11 +4,11 @@ import com.bytex.snamp.configuration.AttributeConfiguration;
 import com.bytex.snamp.configuration.EntityMap;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.metrics.AttributeMetrics;
 import com.bytex.snamp.connector.metrics.MetricsInterval;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.bytex.snamp.internal.OperatingSystem;
 import com.bytex.snamp.jmx.CompositeDataUtils;
 import com.google.common.collect.ImmutableList;
@@ -65,7 +65,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
-            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class).orElseThrow(AssertionError::new);
+            final AttributeManager attributes = connector.queryObject(AttributeManager.class).orElseThrow(AssertionError::new);
             final ExecutorService executor = Executors.newFixedThreadPool(3);
             final Future<?>[] tables = new Future<?>[10];
             for (int i = 0; i < tables.length; i++)
@@ -107,7 +107,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
-            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class).orElseThrow(AssertionError::new);
+            final AttributeManager attributes = connector.queryObject(AttributeManager.class).orElseThrow(AssertionError::new);
             final Object dict = attributes.getAttribute("ms");
             assertNotNull(dict);
             assertTrue(dict instanceof CompositeData);
@@ -126,7 +126,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
-            final AttributeSupport attributes = connector.queryObject(AttributeSupport.class).orElseThrow(AssertionError::new);
+            final AttributeManager attributes = connector.queryObject(AttributeManager.class).orElseThrow(AssertionError::new);
             final Object dict = attributes.getAttribute("ms_win");
             assertNotNull(dict);
             assertTrue(dict instanceof CompositeData);
@@ -145,7 +145,7 @@ public final class RShellStandaloneTest extends AbstractRShellConnectorTest {
         final ManagedResourceConnector connector = getManagementConnector();
         assertNotNull(connector);
         try {
-            final OperationSupport operationSupport = connector.queryObject(OperationSupport.class).orElseThrow(AssertionError::new);
+            final OperationManager operationSupport = connector.queryObject(OperationManager.class).orElseThrow(AssertionError::new);
             Object operationResult = operationSupport.invoke("space_on_disk",
                     ImmutableList.of("c:").toArray(),
                     ImmutableList.of(String.class.getName()).toArray(new String[1]));

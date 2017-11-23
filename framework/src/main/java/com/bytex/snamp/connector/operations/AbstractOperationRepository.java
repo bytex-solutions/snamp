@@ -4,8 +4,9 @@ import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.OperationConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
-import com.bytex.snamp.connector.metrics.OperationMetric;
-import com.bytex.snamp.connector.metrics.OperationMetricRecorder;
+import com.bytex.snamp.connector.AbstractManagedResourceConnector;
+import com.bytex.snamp.connector.metrics.OperationMetrics;
+import com.bytex.snamp.connector.metrics.OperationMetricsRecorder;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
@@ -34,8 +35,10 @@ import static com.bytex.snamp.ArrayUtils.emptyArray;
  * @author Roman Sakno
  * @version 2.1
  * @since 1.0
+ * @deprecated Use {@link OperationRepository} instead.
  */
-public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> implements OperationSupport {
+@Deprecated
+public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> extends AbstractFeatureRepository<M> {
     /**
      * Represents information about operation invocation. This class cannot be inherited or instantiated directly
      * from your code.
@@ -144,7 +147,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
          * @throws IllegalArgumentException Invalid parameter name.
          * @throws ClassCastException Invalid argument type.
          */
-        public <T> Object get(final String parameterName, final Class<T> expectedType) throws IllegalArgumentException, ClassCastException{
+        public <T> T get(final String parameterName, final Class<T> expectedType) throws IllegalArgumentException, ClassCastException{
             return expectedType.cast(get(parameterName));
         }
 
@@ -207,29 +210,29 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     }
 
     private final KeyedObjects<String, M> operations;
-    private final OperationMetricRecorder metrics;
+    private final OperationMetricsRecorder metrics;
     private final LockDecorator readLock, writeLock;
 
-    protected AbstractOperationRepository(final String resourceName,
-                                          final Class<M> metadataType) {
-        super(resourceName, metadataType);
+    {
         operations = AbstractKeyedObjects.create(MBeanOperationInfo::getName);
-        metrics = new OperationMetricRecorder();
+        metrics = new OperationMetricsRecorder();
         final ReadWriteLock rwLock = new ReentrantReadWriteLock();
         readLock = LockDecorator.readLock(rwLock);
         writeLock = LockDecorator.writeLock(rwLock);
     }
 
-    private void operationAdded(final M metadata){
-        fireResourceEvent(OperationModifiedEvent.operationAdded(this, getResourceName(), metadata));
+    protected AbstractOperationRepository(final String resourceName,
+                                          final Class<M> metadataType) {
+        super(resourceName, metadataType);
     }
 
-    private void operationRemoved(final M metadata) {
-        fireResourceEvent(OperationModifiedEvent.operationRemoving(this, getResourceName(), metadata));
+    protected AbstractOperationRepository(final AbstractManagedResourceConnector owner,
+                                        final Class<M> metadataType){
+        super(owner, metadataType);
     }
 
     @Override
-    public final OperationMetric getMetrics() {
+    public final OperationMetrics getMetrics() {
         return metrics;
     }
 
@@ -240,7 +243,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     private M removeImpl(final String operationID) {
         final M holder = operations.get(operationID);
         if (holder != null)
-            operationRemoved(holder);
+            removingFeature(holder);
         return operations.remove(operationID);
     }
 
@@ -267,7 +270,6 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @return An instance of removed operation; or {@link Optional#empty()}, if operation with the specified name doesn't exist.
      * @since 2.0
      */
-    @Override
     public final Optional<M> removeOperation(final String operationName) {
         return remove(operationName);
     }
@@ -278,7 +280,6 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param operations A set of operations which should not be disabled.
      * @since 2.0
      */
-    @Override
     public final void retainOperations(final Set<String> operations) {
         retainAll(operations);
     }
@@ -290,7 +291,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
         final M metadata = connectOperation(operationName, descriptor);
         if (metadata != null) {
             operations.put(metadata);
-            operationAdded(metadata);
+            featureAdded(metadata);
         }
         return metadata;
     }
@@ -305,7 +306,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
             if (equals(holder, operationName, descriptor))
                 return holder;
             else { //remove operation
-                operationRemoved(holder);
+                removingFeature(holder);
                 holder = operations.remove(operationName);
                 disconnectOperation(holder);
                 //and register again
@@ -322,7 +323,6 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param descriptor Operation execution options.
      * @return Metadata of created operation.
      */
-    @Override
     public final Optional<M> enableOperation(final String operationName, final OperationDescriptor descriptor) {
         M result;
         try{
@@ -343,7 +343,6 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      *
      * @return An array of supported operations.
      */
-    @Override
     public final M[] getOperationInfo() {
         return readLock.apply(this, operations.values(), AbstractOperationRepository<M>::toArray);
     }
@@ -354,7 +353,6 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @param operationID The name of the operation.
      * @return The operation metadata; or {@link Optional#empty()}, if operation doesn't exist.
      */
-    @Override
     public final Optional<M> getOperationInfo(final String operationID) {
         return Optional.ofNullable(readLock.apply(operations, operationID, Map::get));
     }
@@ -386,7 +384,6 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
      * @throws MBeanException      Wraps a <CODE>java.lang.Exception</CODE> thrown by the managed resource.
      * @throws ReflectionException Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the method
      */
-    @Override
     public final Object invoke(final String operationName,
                          final Object[] params,
                          final String[] signature) throws MBeanException, ReflectionException {
@@ -409,7 +406,7 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
 
     private void clearImpl() {
         operations.values().forEach(metadata -> {
-            operationRemoved(metadata);
+            removingFeature(metadata);
             disconnectOperation(metadata);
         });
         operations.clear();
@@ -469,5 +466,62 @@ public abstract class AbstractOperationRepository<M extends MBeanOperationInfo> 
     protected final OperationDescriptor createDescriptor() {
         return createDescriptor(config -> {
         });
+    }
+
+    public Map<String, OperationDescriptor> discoverOperations() {
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Converts this repository into {@link OperationManager}.
+     * @return An instance of manager.
+     * @since 2.1
+     */
+    public OperationManager createManager(){
+        final class DefaultOperationManager implements OperationManager {
+            @Override
+            public void enableOperation(final String operationName, final OperationDescriptor descriptor) {
+                AbstractOperationRepository.this.enableOperation(operationName, descriptor);
+            }
+
+            @Override
+            public boolean disableOperation(final String operationName) {
+                return AbstractOperationRepository.this.removeOperation(operationName).isPresent();
+            }
+
+            @Override
+            public void retainOperations(final Set<String> operations) {
+                AbstractOperationRepository.this.retainOperations(operations);
+            }
+
+            @Override
+            public Map<String, OperationDescriptor> discoverOperations() {
+                return AbstractOperationRepository.this.discoverOperations();
+            }
+
+            private boolean equalsOwner(final AbstractOperationRepository<?> other){
+                return AbstractOperationRepository.this.equals(other);
+            }
+
+            private boolean equals(final DefaultOperationManager other){
+                return other.equalsOwner(AbstractOperationRepository.this);
+            }
+
+            @Override
+            public boolean equals(final Object other) {
+                return this == other || getClass().isInstance(other) && equals((DefaultOperationManager) other);
+            }
+
+            @Override
+            public int hashCode() {
+                return AbstractOperationRepository.this.hashCode();
+            }
+
+            @Override
+            public String toString(){
+                return AbstractOperationRepository.this.toString();
+            }
+        }
+        return new DefaultOperationManager();
     }
 }

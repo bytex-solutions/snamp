@@ -2,7 +2,7 @@ package com.bytex.snamp.connector.dataStream;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.gateway.modeling.AttributeAccessor;
 
 import javax.management.openmbean.OpenType;
@@ -30,7 +30,7 @@ public abstract class UnaryFunctionAttribute<T> extends DerivedAttribute<T> {
     protected abstract T getValue(final AttributeAccessor operand) throws Exception;
 
     @Override
-    protected final T getValue(final AttributeSupport support) throws Exception {
+    protected final T getValue(final AttributeManager support) throws Exception {
         try(final AttributeAccessor accessor = new AttributeAccessor(sourceAttribute, support)){
             return getValue(accessor);
         }

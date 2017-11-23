@@ -108,5 +108,5 @@ public abstract class FeatureAccessor<M extends MBeanFeatureInfo> implements Sup
      * @return {@literal true}, if event processed successfully; otherwise, {@literal false}.
      */
     @Internal
-    public abstract boolean processEvent(final FeatureModifiedEvent<M> event);
+    public abstract boolean processEvent(final FeatureModifiedEvent event);
 }

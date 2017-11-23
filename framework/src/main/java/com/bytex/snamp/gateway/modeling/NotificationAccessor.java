@@ -3,7 +3,6 @@ package com.bytex.snamp.gateway.modeling;
 import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.connector.FeatureModifiedEvent;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
 import com.bytex.snamp.connector.notifications.TypeBasedNotificationFilter;
 
 import javax.annotation.Nonnull;
@@ -18,7 +17,7 @@ import java.util.Optional;
  * @version 2.1
  */
 public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotificationInfo> implements NotificationListener {
-    private NotificationSupport notificationSupport;
+    private NotificationBroadcaster notificationSupport;
 
     /**
      * Initializes a new managed resource notification accessor.
@@ -30,23 +29,23 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
     }
 
     @Override
-    public final boolean processEvent(final FeatureModifiedEvent<MBeanNotificationInfo> event) {
-        assert event.getSource() instanceof NotificationSupport;
-        switch (event.getModifier()) {
-            case ADDED:
-                connect((NotificationSupport) event.getSource());
-                return true;
-            case REMOVING:
-                close();
-                return true;
-            default:
-                return false;
-        }
+    public final boolean processEvent(final FeatureModifiedEvent event) {
+        final Optional<NotificationBroadcaster> notificationSupport = event.getSource().queryObject(NotificationBroadcaster.class);
+        if (event.getFeature() instanceof MBeanNotificationInfo && notificationSupport.isPresent())
+            switch (event.getModifier()) {
+                case ADDED:
+                    connect(notificationSupport.get());
+                    return true;
+                case REMOVING:
+                    close();
+                    return true;
+            }
+        return false;
     }
 
-    private void connect(final NotificationSupport value) {
+    private void connect(final NotificationBroadcaster value) {
         this.notificationSupport = value;
-        if(value != null)
+        if (value != null)
             value.addNotificationListener(this, createFilter(), null);
     }
 
@@ -68,7 +67,7 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
     @OverridingMethodsMustInvokeSuper
     public void close() {
         try {
-            final NotificationSupport ns = this.notificationSupport;
+            final NotificationBroadcaster ns = this.notificationSupport;
             if (ns != null)
                 ns.removeNotificationListener(this);
         } catch (final ListenerNotFoundException ignored) {
@@ -110,7 +109,6 @@ public abstract class NotificationAccessor extends FeatureAccessor<MBeanNotifica
      * @param objectType Type of requested object. Cannot be {@literal null}.
      * @param <T> Type of requested object.
      * @return Requested object.
-     * @see NotificationSupport#setSource(Aggregator) 
      */
     public static <T> Optional<T> extractFromNotification(@Nonnull final Notification n, @Nonnull final Class<T> objectType) {
         if (objectType.isInstance(n))

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import org.junit.Assert;
 import org.junit.Test;
 

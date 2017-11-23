@@ -32,7 +32,7 @@ final class SysLogConfigurationDescriptor extends ConfigurationEntityDescription
     private static final String MESSAGE_FORMAT_PARAM = "messageFormat";
     private static final String PROTOCOL_PARAM = "protocol";
     private static final String PASSIVE_CHECK_SEND_PERIOD_PARAM = "passiveCheckSendPeriod";
-    private static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_PARAM;
+    private static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_FIELD;
 
     private static final class GatewayConfigurationInfo extends ResourceBasedConfigurationEntityDescription<GatewayConfiguration>{
         private static final String RESOURCE_NAME = "GatewayParameters";

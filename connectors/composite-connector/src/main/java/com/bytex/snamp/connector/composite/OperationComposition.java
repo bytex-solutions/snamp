@@ -1,8 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.operations.OperationManager;
 
 import javax.management.MBeanException;
 import javax.management.MBeanOperationInfo;
@@ -12,7 +11,7 @@ import java.util.Objects;
 /**
  * Represents composition of operations.
  */
-final class OperationComposition extends AbstractOperationRepository<CompositeOperation> {
+final class OperationComposition extends OperationsRepository<CompositeOperation> {
     private final OperationSupportProvider provider;
 
     OperationComposition(final String resourceName,
@@ -24,7 +23,7 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
     @Override
     protected CompositeOperation connectOperation(final String operationName, final OperationDescriptor descriptor) throws ReflectionException, MBeanException, AbsentCompositeConfigurationParameterException {
         final String connectorType = CompositeResourceConfigurationDescriptor.parseSource(descriptor);
-        final OperationSupport support = provider.getOperationSupport(connectorType)
+        final OperationManager support = provider.getOperationSupport(connectorType)
                 .orElseThrow(() -> operationsNotSupported(connectorType));
         final MBeanOperationInfo underlyingOperation = support.enableOperation(operationName, descriptor)
                 .orElseThrow(() -> new ReflectionException(new IllegalStateException(String.format("Connector '%s' could not enable operation '%s'", connectorType, operationName))));
@@ -37,7 +36,7 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
 
     @Override
     protected Object invoke(final OperationCallInfo<CompositeOperation> callInfo) throws Exception {
-        final OperationSupport support = provider.getOperationSupport(callInfo.getOperation().getConnectorType())
+        final OperationManager support = provider.getOperationSupport(callInfo.getOperation().getConnectorType())
                 .orElseThrow(() -> operationsNotSupported(callInfo.getOperation().getConnectorType()));
         return support.invoke(callInfo.getOperation().getName(), callInfo.toArray(), callInfo.getSignature());
     }
@@ -45,6 +44,6 @@ final class OperationComposition extends AbstractOperationRepository<CompositeOp
     @Override
     protected void disconnectOperation(final CompositeOperation metadata) {
         provider.getOperationSupport(metadata.getConnectorType())
-                .ifPresent(support -> support.removeOperation(metadata.getName()));
+                .ifPresent(support -> support.disableOperation(metadata.getName()));
     }
 }

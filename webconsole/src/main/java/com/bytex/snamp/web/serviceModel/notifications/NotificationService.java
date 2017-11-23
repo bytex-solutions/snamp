@@ -3,7 +3,7 @@ package com.bytex.snamp.web.serviceModel.notifications;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationBuilder;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.bytex.snamp.connector.notifications.Severity;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
@@ -60,7 +60,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         }
     }
 
-    private static final class NotificationTypeAggregator extends HashSet<String> implements Consumer<NotificationSupport> {
+    private static final class NotificationTypeAggregator extends HashSet<String> implements Consumer<NotificationManager> {
         private static final long serialVersionUID = 2963785216575253227L;
 
         NotificationTypeAggregator(){
@@ -68,7 +68,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         }
 
         @Override
-        public void accept(final NotificationSupport notifications) {
+        public void accept(final NotificationManager notifications) {
             for (final MBeanNotificationInfo notificationInfo : notifications.getNotificationInfo())
                 Collections.addAll(this, notificationInfo.getNotifTypes());
         }
@@ -124,7 +124,7 @@ public final class NotificationService extends AbstractPrincipalBoundedService<N
         for (final String resourceName : ManagedResourceConnectorClient.selector().getResources(context))
             ManagedResourceConnectorClient.tryCreate(context, resourceName).ifPresent(client -> {
                 try {
-                    client.queryObject(NotificationSupport.class).ifPresent(notificationTypes);
+                    client.queryObject(NotificationManager.class).ifPresent(notificationTypes);
                 } finally {
                     client.close();
                 }

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.groovy;
 
-import com.bytex.snamp.connector.notifications.AccurateNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.SharedCounter;

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.notifications;
 
-import com.bytex.snamp.Aggregator;
 import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.MethodStub;
 import com.bytex.snamp.SafeCloseable;
@@ -8,17 +7,16 @@ import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.configuration.EventConfiguration;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
-import com.bytex.snamp.connector.metrics.NotificationMetric;
-import com.bytex.snamp.connector.metrics.NotificationMetricRecorder;
+import com.bytex.snamp.connector.AbstractManagedResourceConnector;
+import com.bytex.snamp.connector.metrics.NotificationMetrics;
+import com.bytex.snamp.connector.metrics.NotificationMetricsRecorder;
 import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.AbstractKeyedObjects;
 import com.bytex.snamp.internal.KeyedObjects;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import javax.annotation.Nonnull;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.management.*;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -37,8 +35,10 @@ import java.util.logging.Logger;
  * @author Roman Sakno
  * @since 1.0
  * @version 2.1
+ * @deprecated Use {@link NotificationRepository} instead.
  */
-public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationSupport, Aggregator {
+@Deprecated
+public abstract class AbstractNotificationRepository<M extends MBeanNotificationInfo> extends AbstractFeatureRepository<M> implements NotificationBroadcaster {
     /**
      * Represents batch notification sender.
      * This class cannot be inherited or instantiated directly from your code.
@@ -95,10 +95,19 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     private final KeyedObjects<String, M> notifications;
     private final NotificationListenerList listeners;
-    private final NotificationMetricRecorder metrics;
-    private Aggregator notificationSource;
+    private final NotificationMetricsRecorder metrics;
     private final LazyReference<ExecutorService> defaultExecutor;
     private final LockDecorator readLock, writeLock;
+
+    {
+        notifications = AbstractKeyedObjects.create(AbstractNotificationRepository::extractNotificationType);
+        listeners = new NotificationListenerList();
+        metrics = new NotificationMetricsRecorder();
+        defaultExecutor = LazyReference.strong();
+        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        readLock = LockDecorator.readLock(rwLock);
+        writeLock = LockDecorator.writeLock(rwLock);
+    }
 
     /**
      * Initializes a new notification manager.
@@ -108,13 +117,16 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     protected AbstractNotificationRepository(final String resourceName,
                                              final Class<M> notifMetadataType) {
         super(resourceName, notifMetadataType);
-        notifications = AbstractKeyedObjects.create(AbstractNotificationRepository::extractNotificationType);
-        listeners = new NotificationListenerList();
-        metrics = new NotificationMetricRecorder();
-        defaultExecutor = LazyReference.strong();
-        final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-        readLock = LockDecorator.readLock(rwLock);
-        writeLock = LockDecorator.writeLock(rwLock);
+    }
+
+    /**
+     * Initializes a new notification manager.
+     * @param source Owner of this
+     * @param notifMetadataType Type of the notification metadata.
+     */
+    protected AbstractNotificationRepository(final AbstractManagedResourceConnector source,
+                                             final Class<M> notifMetadataType){
+        super(source, notifMetadataType);
     }
 
     private static String extractNotificationType(final MBeanNotificationInfo metadata) {
@@ -127,7 +139,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return Metrics associated with activity in this repository.
      */
     @Override
-    public final NotificationMetric getMetrics() {
+    public final NotificationMetrics getMetrics() {
         return metrics;
     }
 
@@ -145,22 +157,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         readLock.accept(notifications.values(), collector, (notifications, collector1) -> notifications.forEach(n -> sender.accept(n, collector1)));
         fireListeners(collector.notifications);
         collector.notifications.clear();    //help GC
-    }
-
-    protected final Aggregator getSource(){
-        return MoreObjects.firstNonNull(notificationSource, this);
-    }
-
-    /**
-     * Defines source for all outbound notifications emitted by this object.
-     * @param value A source for all notifications. Cannot be {@literal null}.
-     */
-    @Override
-    public final void setSource(@Nonnull final Aggregator value) {
-        if (value.queryObject(NotificationSupport.class).filter(this::equals).isPresent())
-            notificationSource = value;
-        else
-            throw new IllegalArgumentException("Source object doesn't provide valid object of type NotificationSupport");
     }
 
     /**
@@ -260,14 +256,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         interceptFire(notifications);
     }
 
-    private void notificationAdded(final M metadata){
-        fireResourceEvent(NotificationModifiedEvent.notificationAdded(this, getResourceName(), metadata));
-    }
-
-    private void notificationRemoved(final M metadata) {
-        fireResourceEvent(NotificationModifiedEvent.notificationRemoving(this, getResourceName(), metadata));
-    }
-
     protected abstract M connectNotifications(final String notifType,
                                             final NotificationDescriptor metadata) throws Exception;
 
@@ -279,7 +267,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         final M metadata = connectNotifications(category, descriptor);
         if (metadata != null) {
             notifications.put(metadata);
-            notificationAdded(metadata);
+            featureAdded(metadata);
         }
         return metadata;
     }
@@ -291,7 +279,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
                 return holder;
             else {
                 //remove notification
-                notificationRemoved(holder);
+                removingFeature(holder);
                 holder = notifications.remove(category);
                 disconnectNotifications(holder);
                 //and register again
@@ -309,7 +297,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @param descriptor  Event discovery options.
      * @return Metadata of created notification.
      */
-    @Override
     public final Optional<M> enableNotifications(final String category, final NotificationDescriptor descriptor) {
         M result;
         try {
@@ -324,7 +311,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     private M removeImpl(final String category) {
         final M holder = notifications.get(category);
         if (holder != null)
-            notificationRemoved(holder);
+            removingFeature(holder);
         return notifications.remove(category);
     }
 
@@ -351,7 +338,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @return An instance of disabled notification category; or {@link Optional#empty()}, if notification with the specified category doesn't exist.
      * @since 2.0
      */
-    @Override
     public final Optional<M> disableNotifications(final String category) {
         return remove(category);
     }
@@ -362,7 +348,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
      * @param events A set of subscription lists which should not be disabled.
      * @since 2.0
      */
-    @Override
     public final void retainNotifications(final Set<String> events) {
         retainAll(events);
     }
@@ -443,7 +428,6 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
         return readLock.apply(this, notifications.values(), AbstractNotificationRepository<M>::toArray);
     }
 
-    @Override
     public final Optional<M> getNotificationInfo(final String category) {
         return Optional.ofNullable(readLock.apply(notifications, category, Map::get));
     }
@@ -454,7 +438,7 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     private void clearImpl() {
         notifications.values().forEach(metadata -> {
-            notificationRemoved(metadata);
+            removingFeature(metadata);
             disconnectNotifications(metadata);
         });
         notifications.clear();
@@ -496,32 +480,12 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
     }
 
     /**
-     * Retrieves the aggregated object.
-     *
-     * @param objectType Type of the requested object.
-     * @return An instance of the aggregated object; or {@literal null} if object is not available.
-     */
-    @Override
-    @OverridingMethodsMustInvokeSuper
-    public <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
-        final Optional<?> result;
-        if (objectType.isInstance(this))
-            result = Optional.of(this);
-        else if (objectType.isInstance(metrics))
-            result = Optional.of(metrics);
-        else
-            result = Optional.empty();
-        return result.map(objectType::cast);
-    }
-
-    /**
      * Removes all notifications from this repository.
      */
     @Override
     public void close() {
         defaultExecutor.remove();
         listeners.clear();
-        notificationSource = null;
         metrics.reset();
         super.close();
     }
@@ -532,5 +496,62 @@ public abstract class AbstractNotificationRepository<M extends MBeanNotification
 
     protected final NotificationDescriptor createDescriptor(){
         return createDescriptor(config -> {});
+    }
+
+    public Map<String, NotificationDescriptor> discoverNotifications(){
+        return Collections.emptyMap();
+    }
+
+    /**
+     * Converts this repository into {@link NotificationManager}.
+     * @return An instance of manager.
+     * @since 2.1
+     */
+    public NotificationManager createManager(){
+        final class DefaultNotificationManager implements NotificationManager {
+            @Override
+            public void enableNotifications(final String category, final NotificationDescriptor descriptor) {
+                AbstractNotificationRepository.this.enableNotifications(category, descriptor);
+            }
+
+            @Override
+            public boolean disableNotifications(final String category) {
+                return AbstractNotificationRepository.this.disableNotifications(category).isPresent();
+            }
+
+            @Override
+            public void retainNotifications(final Set<String> events) {
+                AbstractNotificationRepository.this.retainNotifications(events);
+            }
+
+            @Override
+            public Map<String, NotificationDescriptor> discoverNotifications() {
+                return AbstractNotificationRepository.this.discoverNotifications();
+            }
+
+            @Override
+            public int hashCode() {
+                return AbstractNotificationRepository.this.hashCode();
+            }
+
+            private boolean equalsOwner(final AbstractNotificationRepository<?> other){
+                return AbstractNotificationRepository.this.equals(other);
+            }
+
+            private boolean equals(final DefaultNotificationManager other) {
+                return other.equalsOwner(AbstractNotificationRepository.this);
+            }
+
+            @Override
+            public boolean equals(final Object other) {
+                return this == other || getClass().isInstance(other) && equals((DefaultNotificationManager) other);
+            }
+
+            @Override
+            public String toString() {
+                return AbstractNotificationRepository.this.toString();
+            }
+        }
+        return new DefaultNotificationManager();
     }
 }

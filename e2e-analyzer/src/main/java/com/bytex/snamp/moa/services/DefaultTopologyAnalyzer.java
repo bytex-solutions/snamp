@@ -5,7 +5,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.NotificationContainer;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.bytex.snamp.core.AbstractFrameworkServiceTracker;
 import com.bytex.snamp.core.ServiceSelector;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
@@ -83,7 +83,7 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
             getLogger().info(String.format("Resource %s is already attached to the topology analyzer", resourceName));
         } else {
             graph.add(connector.getGroupName());
-            connector.queryObject(NotificationSupport.class).ifPresent(this::addNotificationListener);
+            connector.queryObject(NotificationManager.class).ifPresent(this::addNotificationListener);
         }
     }
 
@@ -91,18 +91,18 @@ final class DefaultTopologyAnalyzer extends AbstractFrameworkServiceTracker<Mana
     protected synchronized void removeService(@WillNotClose final ManagedResourceConnectorClient connector) {
         final String resourceName = getServiceId(connector);
         if (trackedServices.contains(resourceName)) {
-            connector.queryObject(NotificationSupport.class).ifPresent(this::removeNotificationListener);
+            connector.queryObject(NotificationManager.class).ifPresent(this::removeNotificationListener);
             graph.remove(connector.getGroupName());
         } else {
             getLogger().info(String.format("Resource %s is already detached from the topology analyzer", resourceName));
         }
     }
 
-    private void addNotificationListener(final NotificationSupport support){
+    private void addNotificationListener(final NotificationManager support){
         support.addNotificationListener(this, null, null);
     }
 
-    private void removeNotificationListener(final NotificationSupport support) {
+    private void removeNotificationListener(final NotificationManager support) {
         try {
             support.removeNotificationListener(this);
         } catch (final ListenerNotFoundException e) {

@@ -26,6 +26,7 @@ import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
  * @since 2.0
  * @version 2.1
  */
+@Deprecated
 public abstract class AccurateNotificationRepository<M extends MBeanNotificationInfo> extends AbstractNotificationRepository<M> {
     private final NotificationExchange exchange;
     private final ClusterMember clusterMember;

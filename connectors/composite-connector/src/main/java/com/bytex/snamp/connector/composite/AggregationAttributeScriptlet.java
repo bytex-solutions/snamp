@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.scripting.groovy.Scriptlet;
 import com.bytex.snamp.scripting.groovy.TypeDeclarationDSL;
 
@@ -21,15 +21,15 @@ import java.util.Objects;
 public abstract class AggregationAttributeScriptlet extends Scriptlet implements TypeDeclarationDSL {
     private static final String GET_VALUE_METHOD = "getValue";
     private static final String SET_VALUE_METHOD = "setValue";
-    private volatile AttributeSupport attributes;
+    private volatile AttributeManager attributes;
     private OpenType<?> openType = SimpleType.STRING;
 
-    final Object getValue(final AttributeSupport attributes) throws Exception{
+    final Object getValue(final AttributeManager attributes) throws Exception{
         this.attributes = attributes;
         return getValue();
     }
 
-    final Object setValue(final AttributeSupport attributes, final Object value) throws Exception{
+    final Object setValue(final AttributeManager attributes, final Object value) throws Exception{
         this.attributes = attributes;
         return setValue(value);
     }
@@ -108,7 +108,7 @@ public abstract class AggregationAttributeScriptlet extends Scriptlet implements
 
     @Override
     public final void setProperty(final String property, final Object newValue) {
-        final AttributeSupport support = attributes;
+        final AttributeManager support = attributes;
         if (support != null)
             try {
                 support.setAttribute(new Attribute(property, newValue));
@@ -123,7 +123,7 @@ public abstract class AggregationAttributeScriptlet extends Scriptlet implements
 
     @Override
     public final Object getProperty(final String property) {
-        final AttributeSupport support = attributes;
+        final AttributeManager support = attributes;
         if (support != null)
             try{
                 return support.getAttribute(property);

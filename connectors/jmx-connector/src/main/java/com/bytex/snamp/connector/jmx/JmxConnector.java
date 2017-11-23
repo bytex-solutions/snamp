@@ -1,93 +1,56 @@
 package com.bytex.snamp.connector.jmx;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
+import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
-import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeDescriptorRead;
-import com.bytex.snamp.connector.health.*;
+import com.bytex.snamp.connector.attributes.AttributeManager;
+import com.bytex.snamp.connector.attributes.AttributeRepository;
+import com.bytex.snamp.connector.health.ConnectionProblem;
+import com.bytex.snamp.connector.health.HealthStatus;
+import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.connector.health.ResourceConnectorMalfunction;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
-import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationDescriptorRead;
-import com.bytex.snamp.connector.operations.AbstractOperationRepository;
+import com.bytex.snamp.connector.notifications.NotificationManager;
+import com.bytex.snamp.connector.notifications.NotificationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
-import com.bytex.snamp.connector.operations.OperationDescriptorRead;
+import com.bytex.snamp.connector.operations.OperationManager;
+import com.bytex.snamp.connector.operations.OperationRepository;
 import com.bytex.snamp.core.LoggerProvider;
+import com.bytex.snamp.internal.Utils;
+import com.bytex.snamp.jmx.JMExceptionUtils;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 
 import javax.annotation.Nonnull;
 import javax.management.*;
-import javax.management.openmbean.*;
+import javax.management.openmbean.OpenDataException;
+import javax.management.openmbean.SimpleType;
 import java.io.IOException;
-import java.io.Serializable;
-import java.net.MalformedURLException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static com.bytex.snamp.connector.jmx.JmxConnectorDescriptionProvider.*;
-import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Represents JMX connector.
  * @author Roman Sakno
  */
-final class JmxConnector extends AbstractManagedResourceConnector implements HealthCheckSupport {
-    private interface JmxFeatureMetadata extends Serializable, DescriptorRead {
-        ObjectName getOwner();
-        String getName();
-        String getDescription();
-        String getAlias();
-    }
-
-    /**
-     * Represents JMX attribute metadata.
-     */
-    private interface JmxAttributeMetadata extends OpenMBeanAttributeInfo, JmxFeatureMetadata, AttributeDescriptorRead {
-        String getType();
-    }
-
-    private interface JmxNotificationMetadata extends JmxFeatureMetadata, NotificationDescriptorRead{
-        String[] getNotifTypes();
-    }
-
-    private interface JmxOperationMetadata extends JmxFeatureMetadata, OperationDescriptorRead{
-        String getReturnType();
-        MBeanParameterInfo[] getSignature();
-        int getImpact();
-    }
-
-    private static abstract class JmxOperationInfo extends MBeanOperationInfo implements JmxOperationMetadata {
-        private static final long serialVersionUID = 3762430398491875048L;
-        private final OperationDescriptor descriptor;
-
-        private JmxOperationInfo(final String name,
-                                final String description,
-                                final MBeanParameterInfo[] signature,
-                                final String type,
-                                final int impact,
-                                final OperationDescriptor descriptor) {
-            super(name, descriptor.getDescription(description), signature, type, impact, descriptor);
-            this.descriptor = descriptor;
-        }
-
-        @Override
-        public final String getAlias(){
-            return OperationDescriptor.getName(this);
-        }
-
-        @Override
-        public final OperationDescriptor getDescriptor() {
-            return firstNonNull(descriptor, OperationDescriptor.EMPTY_DESCRIPTOR);
-        }
-
-        abstract Object invoke(final JmxConnectionManager connectionManager, final Object[] arguments) throws Exception;
-    }
+final class JmxConnector extends AbstractManagedResourceConnector implements
+        AttributeManager,
+        AttributeRepository.AttributeReader<JmxAttributeInfo>,
+        AttributeRepository.AttributeWriter<JmxAttributeInfo>,
+        OperationManager,
+        OperationRepository.OperationInvoker<JmxOperationInfo>,
+        NotificationManager,
+        NotificationBroadcaster,
+        NotificationListener,
+        ConnectionEstablishedEventHandler{
 
     private static final class JmxSimulateConnectionAbort extends JmxOperationInfo {
         private static final String NAME = "simulateConnectionAbort";
@@ -161,545 +124,438 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
         }
     }
 
-    private final static class JmxOperationRepository extends AbstractOperationRepository<JmxOperationInfo> {
-        private final JmxConnectionManager connectionManager;
-        private final ObjectName globalObjectName;
+    private static final class JmxNotificationRepository extends NotificationRepository<JmxNotificationInfo> {
+        private static final long serialVersionUID = 8002543577613173192L;
+        private final Multiset<ObjectName> listeningContext;
+        private transient final Logger logger;
 
-        private JmxOperationRepository(final String resourceName,
-                                       final ObjectName globalName,
-                                       final JmxConnectionManager connectionManager){
-            super(resourceName, JmxOperationInfo.class);
-            this.globalObjectName = globalName;
-            this.connectionManager = connectionManager;
-        }
-
-        private static JmxOperationInfo connectOperation(final JmxConnectionManager connectionManager,
-                                                         final String operationName,
-                                                         final OperationDescriptor descriptor,
-                                                         final ObjectName owner,
-                                                         final boolean useRegexp) throws Exception{
-            if(useRegexp)
-                return connectOperation(connectionManager, operationName, descriptor, connectionManager.resolveName(owner), false);
-            final MBeanOperationInfo metadata = connectionManager.handleConnection(connection -> {
-                for(final MBeanOperationInfo candidate: connection.getMBeanInfo(owner).getOperations())
-                    if(Objects.equals(descriptor.getAlternativeName().orElse(operationName), candidate.getName()) && checkSignature(descriptor, candidate.getSignature()))
-                        return candidate;
-                return null;
-            });
-            if(metadata != null)
-                return new JmxProxyOperation(operationName, metadata, owner, descriptor);
-            else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist in '%s' object", descriptor.getAlternativeName().orElse(operationName), owner)));
-
-        }
-
-        private JmxOperationInfo connectOperation(final String userDefinedName,
-                                                  final OperationDescriptor descriptor,
-                                                  final ObjectName owner,
-                                                  final boolean useRegexp) throws Exception {
-            return connectOperation(connectionManager, userDefinedName, descriptor, owner, useRegexp);
-        }
-
-        private JmxOperationInfo connectOperation(final String userDefinedName,
-                                                  final OperationDescriptor descriptor,
-                                                  final ObjectName owner) throws Exception{
-            return connectOperation(userDefinedName, descriptor, owner, useRegexpOption(descriptor));
+        @SpecialUse(SpecialUse.Case.SERIALIZATION)
+        public JmxNotificationRepository() {
+            listeningContext = HashMultiset.create();
+            logger = LoggerProvider.getLoggerForObject(this);
         }
 
         @Override
-        protected JmxOperationInfo connectOperation(final String userDefinedName,
-                                                    final OperationDescriptor descriptor) throws Exception {
-            switch (descriptor.getAlternativeName().orElse(userDefinedName)){
-                case JmxSimulateConnectionAbort.NAME:
-                    return new JmxSimulateConnectionAbort(userDefinedName, descriptor);
-                default:
-                    return connectOperation(userDefinedName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
-            }
-        }
-
-        /**
-         * Invokes an operation.
-         *
-         * @param callInfo Operation call information. Cannot be {@literal null}.
-         * @return Invocation result.
-         * @throws Exception Unable to invoke operation.
-         */
-        @Override
-        protected Object invoke(final OperationCallInfo<JmxOperationInfo> callInfo) throws Exception {
-            return callInfo.getOperation().invoke(connectionManager,
-                    callInfo.toArray());
-        }
-
-        private Map<String, OperationDescriptor> discoverOperations(final MBeanServerConnection connection,
-                                                                    final ObjectName objectName) throws JMException, IOException {
-            final Map<String, OperationDescriptor> result = new HashMap<>();
-            for (final MBeanOperationInfo sourceOperation : connection.getMBeanInfo(objectName).getOperations()) {
-                final OperationDescriptor descriptor = createDescriptor(config -> config.put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName()));
-                result.put(sourceOperation.getName(), descriptor);
-            }
-            return result;
-        }
-
-        private Map<String, OperationDescriptor> discoverOperations(final MBeanServerConnection connection) throws IOException, JMException{
-            final Map<String, OperationDescriptor> result = new HashMap<>();
-            for(final ObjectName objectName: connection.queryNames(null, null))
-                result.putAll(discoverOperations(connection, objectName));
-            return result;
+        public void writeExternal(final ObjectOutput out) throws IOException {
+            out.writeInt(listeningContext.size());
+            for(final ObjectName target: listeningContext)
+                out.writeObject(target);
+            super.writeExternal(out);
         }
 
         @Override
-        public Map<String, OperationDescriptor> discoverOperations() {
-            try {
-                return globalObjectName == null ?
-                        connectionManager.handleConnection(this::discoverOperations) :
-                        connectionManager.handleConnection(connection -> discoverOperations(connection, globalObjectName));
-            } catch (final Exception e) {
-                failedToExpand(Level.WARNING, e);
-            }
-            return Collections.emptyMap();
-        }
-    }
-
-    private final static class JmxNotificationInfo extends AbstractNotificationInfo implements JmxNotificationMetadata{
-        private static final long serialVersionUID = -2040203631422591069L;
-
-        /**
-         * Represents owner of this notification metadata.
-         */
-        private final ObjectName eventOwner;
-
-        private JmxNotificationInfo(final String listID,
-                                       final MBeanNotificationInfo nativeNotif,
-                                       final ObjectName eventOwner,
-                                       final NotificationDescriptor descriptor) {
-            super(listID,
-                    descriptor.getDescription(nativeNotif.getDescription()),
-                    descriptor.setFields(nativeNotif.getDescriptor()));
-            this.eventOwner = eventOwner;
+        public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException {
+            for (int size = in.readInt(); size > 0; size--)
+                listeningContext.add((ObjectName) in.readObject());
+            super.readExternal(in);
         }
 
-        @Override
-        public String getAlias() {
-            return NotificationDescriptor.getName(this);
+        //not thread safe
+        private void enableListening(final ObjectName target, final JmxConnectionManager connectionManager, final NotificationListener listener) throws Exception {
+            if (listeningContext.count(target) == 0)
+                connectionManager.handleConnection(connection -> {
+                    connection.addNotificationListener(target, listener, null, null);
+                    return null;
+                });
+            listeningContext.add(target);
         }
 
-        @Override
-        public ObjectName getOwner(){
-            return eventOwner;
-        }
-    }
-
-    private static final class JmxAttributeRepository extends AbstractAttributeRepository<JmxAttributeInfo> {
-        private final JmxConnectionManager connectionManager;
-        private final ObjectName globalObjectName;
-
-        private JmxAttributeRepository(final String resourceName,
-                                       final ObjectName globalName,
-                                       final JmxConnectionManager connectionManager){
-            super(resourceName, JmxAttributeInfo.class);
-            this.globalObjectName = globalName;
-            this.connectionManager = connectionManager;
+        void enableListening(final JmxNotificationMetadata metadata, final JmxConnectionManager connectionManager, final NotificationListener listener) throws Exception{
+            enableListening(metadata.getOwner(), connectionManager, listener);
         }
 
-        private static JmxAttributeInfo createPlainAttribute(final JmxConnectionManager connectionManager,
-                                                             final ObjectName namespace,
-                                                      final String attributeName,
-                                                      final AttributeDescriptor metadata) throws Exception{
-            //extracts JMX attribute metadata
-            final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(connection -> {
-                for (final MBeanAttributeInfo attr : connection.getMBeanInfo(namespace).getAttributes())
-                    if (Objects.equals(attr.getName(), metadata.getAlternativeName().orElse(attributeName))) return attr;
-                return null;
-            });
-            if(targetAttr == null) throw new AttributeNotFoundException(attributeName);
-            else return new JmxAttributeInfo(attributeName, targetAttr, namespace, metadata);
-        }
-
-        private JmxAttributeInfo createPlainAttribute(final ObjectName namespace,
-                                                          final String attributeName,
-                                                          final AttributeDescriptor metadata) throws Exception {
-            return createPlainAttribute(connectionManager, namespace, attributeName, metadata);
-        }
-
-        private JmxAttributeInfo connectAttribute(final String attributeName,
-                                                  final AttributeDescriptor metadata,
-                                                  final boolean useRegexp,
-                                                  final ObjectName namespace) throws Exception{
-            //creates JMX attribute provider based on its metadata and connection options.
-            if(namespace == null) return null;
-            else if(useRegexp) return connectAttribute(attributeName, metadata, false, connectionManager.resolveName(namespace)
-            );
-            else return createPlainAttribute(namespace, attributeName, metadata);
-        }
-
-        private JmxAttributeInfo connectAttribute(final String attributeName,
-                                                  final AttributeDescriptor metadata,
-                                                  final ObjectName namespace) throws Exception{
-            //creates JMX attribute provider based on its metadata and connection options.
-            return connectAttribute(attributeName, metadata, useRegexpOption(metadata), namespace);
-        }
-
-        /**
-         * Connects to the specified attribute.
-         *
-         * @param attributeName The id of the attribute.
-         * @param descriptor  Attribute descriptor.
-         * @return The description of the attribute.
-         * @throws Exception Internal connector error.
-         */
-        @Override
-        protected JmxAttributeInfo connectAttribute(final String attributeName,
-                                                    final AttributeDescriptor descriptor) throws Exception {
-            return connectAttribute(attributeName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
-        }
-
-        private Map<String, AttributeDescriptor> discoverAttributes(final MBeanServerConnection connection,
-                                                                    final ObjectName objectName) throws IOException, JMException {
-            final Map<String, AttributeDescriptor> result = new HashMap<>();
-            for (final MBeanAttributeInfo sourceAttribute : connection.getMBeanInfo(objectName).getAttributes()) {
-                final AttributeDescriptor descriptor = createDescriptor(config -> config.put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName()));
-                result.put(sourceAttribute.getName(), descriptor);
-            }
-            return result;
-        }
-
-        private Map<String, AttributeDescriptor> discoverAttributes(final MBeanServerConnection connection) throws IOException, JMException {
-            final Map<String, AttributeDescriptor> result = new HashMap<>();
-            for (final ObjectName objectName : connection.queryNames(null, null))
-                result.putAll(discoverAttributes(connection, objectName));
-            return result;
-        }
-
-        @Override
-        public Map<String, AttributeDescriptor> discoverAttributes() {
-            try {
-                return globalObjectName == null ?
-                        connectionManager.handleConnection(this::discoverAttributes) :
-                        connectionManager.handleConnection(connection -> discoverAttributes(connection, globalObjectName));
-            } catch (final Exception e) {
-                failedToExpand(Level.WARNING, e);
-            }
-            return Collections.emptyMap();
-        }
-
-        /**
-         * Obtains the value of a specific attribute of the managed resource.
-         *
-         * @param metadata The metadata of the attribute.
-         * @return The value of the attribute retrieved.
-         * @throws Exception Internal connector error.
-         */
-        @Override
-        protected Object getAttribute(final JmxAttributeInfo metadata) throws Exception {
-            return metadata.getValue(connectionManager);
-        }
-
-        /**
-         * Set the value of a specific attribute of the managed resource.
-         *
-         * @param attribute The attribute of to set.
-         * @param value     The value of the attribute.
-         * @throws Exception                                       Internal connector error.
-         * @throws javax.management.InvalidAttributeValueException Incompatible attribute type.
-         */
-        @Override
-        protected void setAttribute(final JmxAttributeInfo attribute, final Object value) throws Exception {
-            attribute.setValue(connectionManager, value);
-        }
-    }
-
-    private static final class JmxNotificationRepository extends AbstractNotificationRepository<JmxNotificationInfo> implements NotificationListener, ConnectionEstablishedEventHandler {
-        private final JmxConnectionManager connectionManager;
-        private final ExecutorService listenerInvoker;
-        private final ObjectName globalObjectName;
-
-        private JmxNotificationRepository(final String resourceName,
-                                          final ObjectName globalName,
-                                          final JmxConnectionManager connectionManager,
-                                          final ExecutorService threadPool) {
-            super(resourceName, JmxNotificationInfo.class);
-            this.connectionManager = connectionManager;
-            this.globalObjectName = globalName;
-            this.connectionManager.addReconnectionHandler(this);
-            listenerInvoker = threadPool;
-        }
-
-        /**
-         * Gets an executor used to execute event listeners.
-         *
-         * @return Executor service.
-         */
-        @Override
-        @Nonnull
-        protected ExecutorService getListenerExecutor() {
-            return listenerInvoker;
-        }
-
-        private Logger getLogger(){
-            return LoggerProvider.getLoggerForObject(this);
-        }
-
-        private Set<ObjectName> getNotificationTargets() {
-            return Arrays.stream(getNotificationInfo())
-                    .map(JmxNotificationInfo::getOwner)
-                    .collect(Collectors.toSet());
-        }
-
-        private void enableListening(final ObjectName target) throws Exception {
-            connectionManager.handleConnection(connection -> {
-                connection.addNotificationListener(target, JmxNotificationRepository.this, null, null);
-                return null;
-            });
-        }
-
-        private void disableListening(final ObjectName target) throws Exception {
-            connectionManager.handleConnection(connection -> {
-                try {
-                    connection.removeNotificationListener(target, JmxNotificationRepository.this);
-                } catch (final ListenerNotFoundException ignored) {
-                }
-                return null;
-            });
-        }
-
-        @Override
-        protected void disconnectNotifications(final JmxNotificationInfo metadata) {
-            final Set<ObjectName> targets = getNotificationTargets();
-            if (!targets.contains(metadata.getOwner()))
-                try {
-                    disableListening(metadata.getOwner());
-                } catch (final Exception e) {
-                    getLogger().log(Level.WARNING, String.format("Unable to unsubscribe from %s", metadata.getOwner()), e);
-                }
-        }
-
-        private JmxNotificationInfo enableNotifications(final String category,
-                                                        final NotificationDescriptor metadata,
-                                                        final ObjectName owner,
-                                                        final boolean useRegexp) throws Exception {
-            if (useRegexp)
-                return enableNotifications(category, metadata, connectionManager.resolveName(owner), false);
-            final JmxNotificationInfo eventData = connectionManager.handleConnection(connection -> {
-                for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(owner).getNotifications())
-                    for (final String notifType : notificationInfo.getNotifTypes())
-                        if (Objects.equals(notifType, metadata.getAlternativeName().orElse(category)))
-                            return new JmxNotificationInfo(category,
-                                    notificationInfo,
-                                    owner,
-                                    metadata);
-                return null;
-            });
-            if (eventData != null) {
-                //checks whether the enabled MBean object already listening
-                final Set<ObjectName> listeningContext = getNotificationTargets();
-                if (!listeningContext.contains(eventData.eventOwner))
-                    enableListening(eventData.eventOwner);
-                return eventData;
-            } else throw new IllegalArgumentException(String.format("%s notification is not supported", category));
-        }
-
-        private JmxNotificationInfo enableNotifications(final String category,
-                                                        final NotificationDescriptor metadata,
-                                                        final ObjectName namespace) throws Exception {
-            return enableNotifications(category, metadata, namespace, useRegexpOption(metadata));
-        }
-
-        @Override
-        protected JmxNotificationInfo connectNotifications(final String category,
-                                                          final NotificationDescriptor metadata) throws Exception {
-            return enableNotifications(category, metadata, globalObjectName == null ? getObjectName(metadata) : globalObjectName);
-        }
-
-        private Map<String, NotificationDescriptor> discoverNotifications(final MBeanServerConnection connection,
-                                                                          final ObjectName objectName) throws IOException, JMException {
-            final Map<String, NotificationDescriptor> result = new HashMap<>();
-            for (final MBeanNotificationInfo sourceNotification : connection.getMBeanInfo(objectName).getNotifications())
-                for (final String notifType : sourceNotification.getNotifTypes()) {
-                    final NotificationDescriptor descriptor = createDescriptor(config -> config.put(OBJECT_NAME_PROPERTY, objectName.getCanonicalName()));
-                    result.put(notifType, descriptor);
-                }
-            return result;
-        }
-
-        private Map<String, NotificationDescriptor> discoverNotifications(final MBeanServerConnection connection) throws IOException, JMException {
-            final Map<String, NotificationDescriptor> result = new HashMap<>();
-            for (final ObjectName objectName : connection.queryNames(null, null))
-                result.putAll(discoverNotifications(connection, objectName));
-            return result;
-        }
-
-        @Override
-        public Map<String, NotificationDescriptor> discoverNotifications() {
-            try {
-                return globalObjectName == null ?
-                        connectionManager.handleConnection(this::discoverNotifications) :
-                        connectionManager.handleConnection(connection -> discoverNotifications(connection, globalObjectName));
-            } catch (final Exception e) {
-                failedToExpand(Level.WARNING, e);
-            }
-            return Collections.emptyMap();
-        }
-
-        @Override
-        public Void handle(final MBeanServerConnection connection) throws IOException, JMException {
+        void enableListening(final MBeanServerConnection connection, final NotificationListener listener) throws IOException, InstanceNotFoundException {
             //for each MBean object assigns notification listener
-            for (final ObjectName target : getNotificationTargets())
-                connection.addNotificationListener(target, this, null, null);
-            return null;
+            for (final ObjectName target : listeningContext.elementSet())
+                connection.addNotificationListener(target, listener, null, null);
         }
 
-        @Override
-        public void handleNotification(final Notification notification, final Object handback) {
-            try {
-                notification.setUserData(UserDataExtractor.getUserData(notification));
-            } catch (final OpenDataException | IllegalArgumentException e) {
-                getLogger().log(Level.SEVERE, String.format("Unable to process user data %s in notification %s",
-                        notification.getUserData(),
-                        notification.getType()), e);
-            }
-            fire(notification, false);
+        private void disableListening(final ObjectName target, final JmxConnectionManager connectionManager, final NotificationListener listener) {
+            if (listeningContext.count(target) > 0)
+                try {
+                    connectionManager.handleConnection(connection -> {
+                        connection.removeNotificationListener(target, listener);
+                        return null;
+                    });
+                } catch (final Exception e) {
+                    logger.log(Level.WARNING, "Failed to unsubscribe from events provided by object " + target, e);
+                } finally {
+                    listeningContext.remove(target);
+                }
         }
 
-        private void unsubscribeAll() throws Exception {
-            for (final ObjectName target : getNotificationTargets())
-                disableListening(target);
-        }
-
-        @Override
-        public void close() {
-            super.close();
-            connectionManager.removeReconnectionHandler(this);
+        void disableListening(final JmxNotificationMetadata metadata,
+                              final JmxConnectionManager connectionManager,
+                              final NotificationListener listener) {
+            disableListening(metadata.getOwner(), connectionManager, listener);
         }
     }
 
-
-    /**
-     * Represents an abstract class for building JMX attribute providers.
-     */
-    private static final class JmxAttributeInfo extends OpenMBeanAttributeInfoSupport implements JmxAttributeMetadata {
-        private static final long serialVersionUID = 3262046901190396737L;
-        private final ObjectName namespace;
-        private final AttributeDescriptor descriptor;
-
-        private JmxAttributeInfo(final String attributeName,
-                                         final MBeanAttributeInfo nativeAttr,
-                                         final boolean isWritable,
-                                         final ObjectName namespace,
-                                         AttributeDescriptor metadata,
-                                         final Function<MBeanAttributeInfo, OpenType<?>> typeResolver) throws OpenDataException{
-            super(attributeName,
-                    metadata.getDescription(nativeAttr.getDescription()),
-                    detectAttributeType(nativeAttr, typeResolver),
-                    nativeAttr.isReadable(),
-                    isWritable,
-                    nativeAttr.isIs(),
-                    metadata = metadata.setFields(nativeAttr.getDescriptor()));
-            this.namespace = namespace;
-            this.descriptor = metadata;
-        }
-
-        private JmxAttributeInfo(final String attributeName,
-                                   final MBeanAttributeInfo nativeAttr,
-                                   final ObjectName namespace,
-                                   final AttributeDescriptor metadata) throws OpenDataException{
-            this(attributeName,
-                    nativeAttr,
-                    nativeAttr.isWritable(),
-                    namespace,
-                    metadata,
-                    AttributeDescriptor::getOpenType);
-        }
-
-        private static OpenType<?> detectAttributeType(final MBeanAttributeInfo nativeAttr,
-                                                       final Function<MBeanAttributeInfo, OpenType<?>> resolver) throws OpenDataException {
-            final OpenType<?> result = resolver.apply(nativeAttr);
-            if (result == null)
-                throw new OpenDataException(String.format("Attribute %s with type %s cannot be mapped to Open Type", nativeAttr.getName(), nativeAttr.getType()));
-            else return result;
-        }
-
-        /**
-         * Returns the descriptor for the feature.  Changing the returned value
-         * will have no affect on the original descriptor.
-         *
-         * @return a descriptor that is either immutable or a copy of the original.
-         * @since 1.6
-         */
-        @Override
-        public AttributeDescriptor getDescriptor() {
-            return firstNonNull(descriptor, AttributeDescriptor.EMPTY_DESCRIPTOR);
-        }
-
-        /**
-         * Returns the attribute owner.
-         * @return An owner of this attribute.
-         */
-        @Override
-        public ObjectName getOwner(){
-            return namespace;
-        }
-
-        @Override
-        public String getAlias(){
-            return AttributeDescriptor.getName(this);
-        }
-
-        private static Object getValue(final JmxConnectionManager connectionManager,
-                                       final String attributeName,
-                                       final ObjectName owner) throws Exception{
-            return connectionManager.handleConnection(connection -> connection.getAttribute(owner, attributeName));
-        }
-
-        private Object getValue(final JmxConnectionManager connectionManager) throws Exception {
-            return getValue(connectionManager, getAlias(), namespace);
-        }
-
-        private static void setValue(final JmxConnectionManager connectionManager,
-                                     final String attributeName,
-                                     final ObjectName owner,
-                                     final Object value) throws Exception{
-            connectionManager.handleConnection(connection -> {
-                connection.setAttribute(owner, new Attribute(attributeName, value));
-                return null;
-            });
-        }
-
-        private void setValue(final JmxConnectionManager connectionManager, final Object value) throws Exception {
-            setValue(connectionManager, getAlias(), namespace, value);
-        }
-    }
-    @Aggregation(cached = true)
+    private final ObjectName globalObjectName;
     private final JmxNotificationRepository notifications;
-    @Aggregation(cached = true)
-    private final JmxAttributeRepository attributes;
+    private final AttributeRepository<JmxAttributeInfo> attributes;
     @Aggregation(cached = true)
     private final JmxConnectionManager connectionManager;
-    @Aggregation(cached = true)
-    private final JmxOperationRepository operations;
-    private final String resourceName;
-    private final boolean canExpand;
-
-    private JmxConnector(final String resourceName,
-                 final JmxConnectionOptions connectionOptions) {
-        this.resourceName = resourceName;
-        this.connectionManager = connectionOptions.createConnectionManager(getLogger());
-        this.notifications = new JmxNotificationRepository(resourceName,
-                connectionOptions.getGlobalObjectName(),
-                connectionManager,
-                connectionOptions.getThreadPool());
-        this.notifications.setSource(this);
-        canExpand = connectionOptions.getGlobalObjectName() != null;
-        this.attributes = new JmxAttributeRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
-        this.operations = new JmxOperationRepository(resourceName, connectionOptions.getGlobalObjectName(), connectionManager);
-    }
+    private final OperationRepository<JmxOperationInfo> operations;
+    private final ExecutorService threadPool;
 
     JmxConnector(final String resourceName,
-                 final ManagedResourceInfo configuration) throws MalformedURLException, MalformedObjectNameException {
-        this(resourceName, new JmxConnectionOptions(configuration.getConnectionString(), configuration));
-        setConfiguration(configuration);
+                 final JmxConnectionOptions connectionOptions) {
+        super(resourceName);
+        this.connectionManager = connectionOptions.createConnectionManager();
+        this.globalObjectName = connectionOptions.getGlobalObjectName();
+        this.threadPool = connectionOptions.getThreadPool();
+        this.notifications = new JmxNotificationRepository();
+        this.attributes = new AttributeRepository<>();
+        this.operations = new OperationRepository<>();
     }
 
     void init() throws IOException {
         connectionManager.connect();
+        connectionManager.addReconnectionHandler(this);
+    }
+
+    @Override
+    public void connectionEstablished(final MBeanServerConnection connection) throws IOException, JMException {
+        notifications.enableListening(connection, this);
+    }
+
+    @Override
+    public void handleNotification(final Notification notification, final Object handback) {
+        notification.setSource(this);
+        try {
+            notification.setUserData(UserDataExtractor.getUserData(notification));
+        } catch (final OpenDataException | IllegalArgumentException e) {
+            logger.log(Level.SEVERE, String.format("Unable to process user data %s in notification %s",
+                    notification.getUserData(),
+                    notification.getType()), e);
+        }
+        notifications.emitSingle(notification.getType(), metadata -> notification);
+    }
+
+    /**
+     * Disables all notifications except specified in the collection.
+     *
+     * @param events A set of subscription lists which should not be disabled.
+     * @since 2.0
+     */
+    @Override
+    public void retainNotifications(final Set<String> events) {
+        retainFeatures(notifications, events);
+    }
+
+    @Override
+    public void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) throws IllegalArgumentException {
+        notifications.addNotificationListener(listener, filter, handback);
+    }
+
+    @Override
+    public void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+        notifications.removeNotificationListener(listener);
+    }
+
+    private static Map<String, NotificationDescriptor> discoverNotifications(final MBeanServerConnection connection,
+                                                                       final ObjectName objectName) throws IOException, JMException {
+        final Map<String, NotificationDescriptor> result = new HashMap<>();
+        for (final MBeanNotificationInfo sourceNotification : connection.getMBeanInfo(objectName).getNotifications())
+            for (final String category : sourceNotification.getNotifTypes()) {
+                final NotificationDescriptor descriptor = new NotificationDescriptor(OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
+                result.put(category, descriptor);
+            }
+        return result;
+    }
+
+    private static Map<String, NotificationDescriptor> discoverNotifications(final MBeanServerConnection connection) throws IOException, JMException {
+        final Map<String, NotificationDescriptor> result = new HashMap<>();
+        for(final ObjectName target: connection.queryNames(null, null))
+            result.putAll(discoverNotifications(connection, target));
+        return result;
+    }
+
+    /**
+     * Discover notifications.
+     *
+     * @return A map of discovered notifications that can be enabled using method {@link #enableNotifications(String, NotificationDescriptor)}.
+     * @since 2.0
+     */
+    @Override
+    public Map<String, NotificationDescriptor> discoverNotifications() {
+        try {
+            return globalObjectName == null ?
+                    connectionManager.handleConnection(JmxConnector::discoverNotifications) :
+                    connectionManager.handleConnection(connection -> discoverNotifications(connection, globalObjectName));
+        } catch (final Exception e) {
+            logger.log(Level.SEVERE, "Unable to discover notifications", e);
+        }
+        return Collections.emptyMap();
+    }
+
+    private JmxNotificationInfo createNotification(final String category,
+                                                   final NotificationDescriptor metadata,
+                                                   final ObjectName owner,
+                                                   final boolean useRegexp) throws Exception {
+        if (useRegexp)
+            return createNotification(category, metadata, connectionManager.resolveName(owner), false);
+        final JmxNotificationInfo eventData = connectionManager.handleConnection(connection -> {
+            for (final MBeanNotificationInfo notificationInfo : connection.getMBeanInfo(owner).getNotifications())
+                for (final String notifType : notificationInfo.getNotifTypes())
+                    if (Objects.equals(notifType, metadata.getAlternativeName().orElse(category)))
+                        return new JmxNotificationInfo(category,
+                                notificationInfo,
+                                owner,
+                                metadata);
+            return null;
+        });
+        if (eventData == null)
+            throw new IllegalArgumentException(String.format("%s notification is not supported", category));
+        else {
+            notifications.enableListening(eventData, connectionManager, this);
+            return eventData;
+        }
+    }
+
+    private JmxNotificationInfo createNotification(final String category,
+                                                    final NotificationDescriptor metadata,
+                                                    final ObjectName namespace) throws Exception {
+        return createNotification(category, metadata, namespace, useRegexpOption(metadata));
+    }
+
+    @Nonnull
+    private JmxNotificationInfo createNotification(final String category, final NotificationDescriptor descriptor) throws Exception {
+        return createNotification(category, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
+    }
+
+    /**
+     * Enables managed resource notification.
+     *
+     * @param category   The notification category.
+     * @param descriptor The notification configuration options.
+     * @since 2.0
+     */
+    @Override
+    public void enableNotifications(final String category, final NotificationDescriptor descriptor) throws JMException {
+        addFeature(notifications, category, descriptor, this::createNotification);
+    }
+
+    @Override
+    protected void removedFeature(final MBeanFeatureInfo feature) {
+        if (feature instanceof JmxNotificationMetadata)
+            notifications.disableListening((JmxNotificationMetadata) feature, connectionManager, this);
+    }
+
+    /**
+     * Disables notifications of the specified category.
+     *
+     * @param category Category of notifications to disable.
+     * @return {@literal true}, if notification is disabled successfully
+     * @since 2.0
+     */
+    @Override
+    public boolean disableNotifications(final String category) {
+        return removeFeature(notifications, category);
+    }
+
+    @Nonnull
+    private static JmxAttributeInfo createPlainAttribute(final JmxConnectionManager connectionManager,
+                                                         final ObjectName namespace,
+                                                         final String attributeName,
+                                                         final AttributeDescriptor metadata) throws JMException, IOException, InterruptedException {
+        //extracts JMX attribute metadata
+        final MBeanAttributeInfo targetAttr = connectionManager.handleConnection(connection -> {
+            for (final MBeanAttributeInfo attr : connection.getMBeanInfo(namespace).getAttributes())
+                if (Objects.equals(attr.getName(), metadata.getAlternativeName().orElse(attributeName))) return attr;
+            return null;
+        });
+        if (targetAttr == null)
+            throw JMExceptionUtils.attributeNotFound(attributeName);
+        else
+            return new JmxAttributeInfo(attributeName, targetAttr, namespace, metadata);
+    }
+
+    @Nonnull
+    private static JmxAttributeInfo createAttribute(final JmxConnectionManager connectionManager,
+                                             final String attributeName,
+                                              final AttributeDescriptor metadata,
+                                              final boolean useRegexp,
+                                              final ObjectName namespace) throws JMException, IOException, InterruptedException {
+        //creates JMX attribute provider based on its metadata and connection options.
+        if (namespace == null)
+            throw new IllegalArgumentException("JMX ObjectName is not specified");
+        else if (useRegexp)
+            return createAttribute(connectionManager, attributeName, metadata, false, connectionManager.resolveName(namespace));
+        else
+            return createPlainAttribute(connectionManager, namespace, attributeName, metadata);
+    }
+
+    @Nonnull
+    private JmxAttributeInfo createAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
+        return createAttribute(connectionManager,
+                attributeName,
+                descriptor,
+                useRegexpOption(descriptor),
+                globalObjectName == null ? getObjectName(descriptor) : globalObjectName);
+    }
+
+    @Override
+    public void addAttribute(final String attributeName, final AttributeDescriptor descriptor) throws JMException {
+        addFeature(attributes, attributeName, descriptor, this::createAttribute);
+    }
+
+    @Override
+    public boolean removeAttribute(final String attributeName) {
+        return removeFeature(attributes, attributeName);
+    }
+
+    @Override
+    public void retainAttributes(final Set<String> attributes) {
+        retainFeatures(this.attributes, attributes);
+    }
+
+    @Override
+    public Object getAttributeValue(final JmxAttributeInfo attribute) throws Exception {
+        return attribute.getValue(connectionManager);
+    }
+
+    @Override
+    public void setAttributeValue(final JmxAttributeInfo attribute, final Object value) throws Exception {
+        attribute.setValue(connectionManager, value);
+    }
+
+    @Override
+    public Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        return attributes.getAttribute(attributeName, this);
+    }
+
+    @Override
+    public void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        attributes.setAttribute(attribute, this);
+    }
+
+    @Override
+    public AttributeList getAttributes() throws MBeanException, ReflectionException {
+        return attributes.getAttributes(this, threadPool, null);
+    }
+
+    @Override
+    public JmxAttributeInfo[] getAttributeInfo() {
+        return getFeatureInfo(attributes, JmxAttributeInfo.class);
+    }
+
+    private static Map<String, AttributeDescriptor> discoverAttributes(final MBeanServerConnection connection,
+                                                                final ObjectName objectName) throws IOException, JMException {
+        final Map<String, AttributeDescriptor> result = new HashMap<>();
+        for (final MBeanAttributeInfo sourceAttribute : connection.getMBeanInfo(objectName).getAttributes()) {
+            final AttributeDescriptor descriptor = new AttributeDescriptor(Duration.ofSeconds(10), OBJECT_NAME_PROPERTY, objectName.getCanonicalName());
+            result.put(sourceAttribute.getName(), descriptor);
+        }
+        return result;
+    }
+
+    private static Map<String, AttributeDescriptor> discoverAttributes(final MBeanServerConnection connection) throws IOException, JMException {
+        final Map<String, AttributeDescriptor> result = new HashMap<>();
+        for (final ObjectName objectName : connection.queryNames(null, null))
+            result.putAll(discoverAttributes(connection, objectName));
+        return result;
+    }
+
+    @Override
+    public Map<String, AttributeDescriptor> discoverAttributes() {
+        try {
+            return globalObjectName == null ?
+                    connectionManager.handleConnection(JmxConnector::discoverAttributes) :
+                    connectionManager.handleConnection(connection -> discoverAttributes(connection, globalObjectName));
+        } catch (final Exception e) {
+            logger.log(Level.SEVERE, "Unable to discover attributes", e);
+        }
+        return Collections.emptyMap();
+    }
+
+    private static JmxOperationInfo createOperation(final JmxConnectionManager connectionManager,
+                                                     final String operationName,
+                                                     final OperationDescriptor descriptor,
+                                                     final ObjectName owner,
+                                                     final boolean useRegexp) throws Exception{
+        if(useRegexp)
+            return createOperation(connectionManager, operationName, descriptor, connectionManager.resolveName(owner), false);
+        final MBeanOperationInfo metadata = connectionManager.handleConnection(connection -> {
+            for(final MBeanOperationInfo candidate: connection.getMBeanInfo(owner).getOperations())
+                if(Objects.equals(descriptor.getAlternativeName().orElse(operationName), candidate.getName()) && checkSignature(descriptor, candidate.getSignature()))
+                    return candidate;
+            return null;
+        });
+        if(metadata != null)
+            return new JmxProxyOperation(operationName, metadata, owner, descriptor);
+        else throw new MBeanException(new IllegalArgumentException(String.format("Operation '%s' doesn't exist in '%s' object", descriptor.getAlternativeName().orElse(operationName), owner)));
+
+    }
+
+    @Nonnull
+    private JmxOperationInfo createOperation(final String userDefinedName,
+                                                final OperationDescriptor descriptor) throws Exception {
+        switch (descriptor.getAlternativeName().orElse(userDefinedName)){
+            case JmxSimulateConnectionAbort.NAME:
+                return new JmxSimulateConnectionAbort(userDefinedName, descriptor);
+            default:
+                return createOperation(connectionManager, userDefinedName, descriptor, globalObjectName == null ? getObjectName(descriptor) : globalObjectName, useRegexpOption(descriptor));
+        }
+    }
+
+    @Override
+    public void enableOperation(final String operationName, final OperationDescriptor descriptor) throws JMException {
+        addFeature(operations, operationName, descriptor, this::createOperation);
+    }
+
+    @Override
+    public boolean disableOperation(final String operationName) {
+        return removeFeature(operations, operationName);
+    }
+
+    @Override
+    public void retainOperations(final Set<String> operations) {
+        retainFeatures(this.operations, operations);
+    }
+
+    @Override
+    public Object invokeOperation(final OperationRepository.OperationCallInfo<JmxOperationInfo> callInfo) throws Exception {
+        return callInfo.getOperation().invoke(connectionManager, callInfo.toArray());
+    }
+
+    @Override
+    public Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
+        return operations.invoke(actionName, params, signature, this);
+    }
+
+    @Override
+    public JmxOperationInfo[] getOperationInfo() {
+        return getFeatureInfo(operations, JmxOperationInfo.class);
+    }
+
+    private static Map<String, OperationDescriptor> discoverOperations(final MBeanServerConnection connection,
+                                                                final ObjectName objectName) throws JMException, IOException {
+        final Map<String, OperationDescriptor> result = new HashMap<>();
+        for (final MBeanOperationInfo sourceOperation : connection.getMBeanInfo(objectName).getOperations()) {
+            result.put(sourceOperation.getName(), new OperationDescriptor(Duration.ofSeconds(10), OBJECT_NAME_PROPERTY, objectName.getCanonicalName()));
+        }
+        return result;
+    }
+
+    private static Map<String, OperationDescriptor> discoverOperations(final MBeanServerConnection connection) throws IOException, JMException{
+        final Map<String, OperationDescriptor> result = new HashMap<>();
+        for(final ObjectName objectName: connection.queryNames(null, null))
+            result.putAll(discoverOperations(connection, objectName));
+        return result;
+    }
+
+    @Override
+    public Map<String, OperationDescriptor> discoverOperations() {
+        try {
+            return globalObjectName == null ?
+                    connectionManager.handleConnection(JmxConnector::discoverOperations) :
+                    connectionManager.handleConnection(connection -> discoverOperations(connection, globalObjectName));
+        } catch (final Exception e) {
+            logger.log(Level.SEVERE, "Unable to discover operations", e);
+        }
+        return Collections.emptyMap();
     }
 
     /**
@@ -724,45 +580,9 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
         }
     }
 
-    private Logger getLogger(){
-        return LoggerProvider.getLoggerForObject(this);
-    }
-
     @Override
     protected MetricsSupport createMetricsReader(){
-        return assembleMetricsReader(attributes, notifications, operations);
-    }
-
-    /**
-     * Adds a new listener for the connector-related events.
-     * <p/>
-     * The managed resource connector should holds a weak reference to all added event listeners.
-     *
-     * @param listener An event listener to add.
-     */
-    @Override
-    public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    /**
-     * Removes connector event listener.
-     *
-     * @param listener The listener to remove.
-     */
-    @Override
-    public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    @Override
-    public Collection<? extends MBeanFeatureInfo> expandAll() {
-        if (canExpand)
-            return super.expandAll();
-        else {
-            getLogger().warning(String.format("Cannot expand resource %s because global MBean name is not specified", resourceName));
-            return Collections.emptyList();
-        }
+        return assembleMetricsReader(attributes.metrics, notifications.metrics, operations.metrics);
     }
 
     /**
@@ -770,12 +590,11 @@ final class JmxConnector extends AbstractManagedResourceConnector implements Hea
      * @throws java.lang.Exception Some I/O error occurs.
      */
     @Override
-    public void close() throws Exception{
-        attributes.close();
-        notifications.unsubscribeAll();
-        notifications.close();
-        operations.close();
-        super.close();
-        connectionManager.close();
+    public void close() throws Exception {
+        connectionManager.removeReconnectionHandler(this);
+        removeFeatures(attributes);
+        removeFeatures(operations);
+        removeFeatures(notifications);
+        Utils.closeAll(super::close, connectionManager);
     }
 }

@@ -1,7 +1,6 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.SpecialUse;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.core.ReplicationSupport;
 import com.google.common.collect.ImmutableSet;

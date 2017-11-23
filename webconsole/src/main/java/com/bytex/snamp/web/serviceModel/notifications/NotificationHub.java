@@ -4,7 +4,7 @@ import com.bytex.snamp.Convert;
 import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.connector.ManagedResourceTracker;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.bytex.snamp.gateway.NotificationEvent;
 import com.bytex.snamp.gateway.NotificationListener;
 import org.osgi.framework.BundleContext;
@@ -31,13 +31,13 @@ final class NotificationHub extends ManagedResourceTracker implements javax.mana
     @Override
     protected void addResource(final ManagedResourceConnectorClient client) {
         final String resourceName = client.getManagedResourceName();
-        client.queryObject(NotificationSupport.class)
+        client.queryObject(NotificationManager.class)
                 .ifPresent(support -> support.addNotificationListener(this, null, resourceName));
     }
 
     @Override
     protected void removeResource(final ManagedResourceConnectorClient client) throws ListenerNotFoundException {
-        final Optional<NotificationSupport> support = client.queryObject(NotificationSupport.class);
+        final Optional<NotificationManager> support = client.queryObject(NotificationManager.class);
         if (support.isPresent())
             support.get().removeNotificationListener(this);
     }
@@ -50,7 +50,7 @@ final class NotificationHub extends ManagedResourceTracker implements javax.mana
     @Override
     public void handleNotification(final Notification notification, final Object handback) {
         final String resourceName = Convert.toType(handback, String.class).orElseThrow(AssertionError::new);
-        extractFromNotification(notification, NotificationSupport.class)
+        extractFromNotification(notification, NotificationManager.class)
                 .flatMap(support -> support.getNotificationInfo(notification.getType()))
                 .ifPresent(metadata -> handleNotification(resourceName, metadata, notification));
     }

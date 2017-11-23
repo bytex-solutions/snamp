@@ -4,6 +4,7 @@ import com.bytex.snamp.Internal;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.LockDecorator;
 import com.bytex.snamp.concurrent.Repeater;
+import com.bytex.snamp.core.LoggerProvider;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.util.concurrent.UncheckedTimeoutException;
 
@@ -81,10 +82,9 @@ final class JmxConnectionManager implements AutoCloseable {
 
         private ConnectionWatchDog(final Duration period,
                                    final ConnectionHolder connection,
-                                   final LockDecorator writeLock,
-                                   final Logger logger) {
+                                   final LockDecorator writeLock) {
             super(period);
-            this.logger = Objects.requireNonNull(logger);
+            this.logger = LoggerProvider.getLoggerForObject(this);
             this.writeLock = Objects.requireNonNull(writeLock);
             this.connectionHolder = connection;
             this.reconnectionHandlers = new Vector<>(4);
@@ -156,13 +156,12 @@ final class JmxConnectionManager implements AutoCloseable {
     private final LockDecorator readLock;
 
     JmxConnectionManager(final JmxConnectionFactory connectionString,
-                         final long watchDogPeriod,
-                         final Logger logger) {
+                         final long watchDogPeriod) {
         connectionHolder = new ConnectionHolder(connectionString);
         final ReadWriteLock rwLock = new ReentrantReadWriteLock();
         readLock = LockDecorator.readLock(rwLock);
         final LockDecorator writeLock = LockDecorator.writeLock(rwLock);
-        watchDog = new ConnectionWatchDog(Duration.ofMillis(watchDogPeriod), connectionHolder, writeLock, logger);
+        watchDog = new ConnectionWatchDog(Duration.ofMillis(watchDogPeriod), connectionHolder, writeLock);
         //staring the watch dog
         watchDog.run();
     }

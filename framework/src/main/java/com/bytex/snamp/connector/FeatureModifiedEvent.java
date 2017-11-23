@@ -9,7 +9,7 @@ import javax.management.MBeanFeatureInfo;
  * @version 2.1
  * @since 1.0
  */
-public abstract class FeatureModifiedEvent<F extends MBeanFeatureInfo> extends ResourceEvent {
+public class FeatureModifiedEvent extends ResourceEvent {
     /**
      * Represents modification type.
      * @since 2.0
@@ -25,12 +25,12 @@ public abstract class FeatureModifiedEvent<F extends MBeanFeatureInfo> extends R
         REMOVING
     }
     private static final long serialVersionUID = -4019967787362487363L;
-    private final F feature;
+    private final MBeanFeatureInfo feature;
     private final Modifier modification;
 
-    protected FeatureModifiedEvent(@Nonnull final Object sender,
+    public FeatureModifiedEvent(@Nonnull final ManagedResourceConnector sender,
                          final String resourceName,
-                         @Nonnull final F feature,
+                         @Nonnull final MBeanFeatureInfo feature,
                          @Nonnull final Modifier type) {
         super(sender, resourceName);
         this.feature = feature;
@@ -45,7 +45,7 @@ public abstract class FeatureModifiedEvent<F extends MBeanFeatureInfo> extends R
         return modification;
     }
 
-    public final F getFeature(){
+    public final MBeanFeatureInfo getFeature(){
         return feature;
     }
 }

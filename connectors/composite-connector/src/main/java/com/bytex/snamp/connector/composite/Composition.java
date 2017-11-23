@@ -2,15 +2,13 @@ package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.Acceptor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
+import com.bytex.snamp.connector.operations.OperationManager;
 import com.bytex.snamp.internal.Utils;
 import com.google.common.collect.Sets;
 import org.osgi.framework.BundleContext;
@@ -106,18 +104,18 @@ final class Composition extends ConcurrentResourceAccessor<Map<String, ManagedRe
     }
 
     @Override
-    public Optional<AttributeSupport> getAttributeSupport(final String connectorType) {
-        return queryObject(connectorType, AttributeSupport.class);
+    public Optional<AttributeManager> getAttributeSupport(final String connectorType) {
+        return queryObject(connectorType, AttributeManager.class);
     }
 
     @Override
-    public Optional<NotificationSupport> getNotificationSupport(final String connectorType) {
-        return queryObject(connectorType, NotificationSupport.class);
+    public Optional<NotificationManager> getNotificationSupport(final String connectorType) {
+        return queryObject(connectorType, NotificationManager.class);
     }
 
     @Override
-    public Optional<OperationSupport> getOperationSupport(final String connectorType) {
-        return queryObject(connectorType, OperationSupport.class);
+    public Optional<OperationManager> getOperationSupport(final String connectorType) {
+        return queryObject(connectorType, OperationManager.class);
     }
 
     private static Void releaseConnectors(final Map<String, ManagedResourceConnector> connectors) throws Exception{

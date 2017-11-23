@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.dataStream;
 
-import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.instrumentation.measurements.jmx.SpanNotification;
 import com.bytex.snamp.instrumentation.measurements.jmx.TimeMeasurementNotification;
@@ -18,7 +17,7 @@ import java.util.function.Consumer;
  * @since 2.0
  * @version 2.1
  */
-public class SyntheticNotificationRepository extends AbstractNotificationRepository<SyntheticNotificationInfo> implements Consumer<Notification> {
+public class SyntheticNotificationRepository extends NotificationsRepository<SyntheticNotificationInfo> implements Consumer<Notification> {
     private DataStreamConnectorConfigurationDescriptionProvider configurationParser;
     private ExecutorService listenerInvoker;
 

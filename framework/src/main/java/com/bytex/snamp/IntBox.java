@@ -18,6 +18,7 @@ public interface IntBox extends Box<Integer>, IntSupplier, IntConsumer, Comparab
     int compareTo(final int newValue);
     long mapToLong(final IntToLongFunction mapper);
     double mapToDouble(final IntToDoubleFunction mapper);
+    void incrementIfTrue(final boolean condition);
 
     static IntBox of(final int initialValue){
         return new MutableInteger(initialValue);

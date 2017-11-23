@@ -4,7 +4,6 @@ import com.bytex.snamp.Convert;
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.LazyReference;
 import com.bytex.snamp.concurrent.Timeout;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractFeatureRepository;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
 import com.bytex.snamp.connector.ResourceEventListener;

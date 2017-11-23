@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.composite;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.configuration.ThreadPoolConfigurationSupport;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

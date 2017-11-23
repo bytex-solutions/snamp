@@ -5,16 +5,12 @@ import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.concurrent.AbstractConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 import com.bytex.snamp.concurrent.LazyReference;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
-import com.bytex.snamp.connector.ResourceEventListener;
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AbstractOpenAttributeInfo;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeSpecifier;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
-import com.bytex.snamp.connector.notifications.AccurateNotificationRepository;
+import com.bytex.snamp.connector.notifications.SimpleNotificationInfo;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.LoggerProvider;
@@ -25,7 +21,6 @@ import com.bytex.snamp.jmx.CompositeDataBuilder;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.osgi.framework.BundleContext;
 import org.snmp4j.CommandResponder;
 import org.snmp4j.CommandResponderEvent;
 import org.snmp4j.PDU;
@@ -50,6 +45,7 @@ import java.util.logging.Logger;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.MESSAGE_OID_PARAM;
 import static com.bytex.snamp.connector.snmp.SnmpConnectorDescriptionProvider.SNMP_CONVERSION_FORMAT_PARAM;
 import static com.bytex.snamp.internal.Utils.callUnchecked;
+import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 
 
 /**
@@ -60,7 +56,7 @@ import static com.bytex.snamp.internal.Utils.callUnchecked;
  * @since 1.0
  */
 final class SnmpResourceConnector extends AbstractManagedResourceConnector {
-    private static final class SnmpNotificationInfo extends AbstractNotificationInfo {
+    private static final class SnmpNotificationInfo extends SimpleNotificationInfo {
         private static final long serialVersionUID = -4792879013459588079L;
         private final LazyReference<OID> notificationID;
 
@@ -85,16 +81,18 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         private final SharedCounter sequenceNumberGenerator;
         private final ExecutorService listenerInvoker;
 
-        private SnmpNotificationRepository(final String resourceName,
+        private SnmpNotificationRepository(final AbstractManagedResourceConnector owner,
                                            final AbstractConcurrentResourceAccessor<SnmpClient> client,
-                                           final BundleContext context){
-            super(resourceName,
-                    SnmpNotificationInfo.class);
+                                           final SharedCounter sequenceNumberGenerator){
+            super(owner);
             this.client = client;
             listenerInvoker = client.read(cl -> cl.queryObject(ExecutorService.class)).orElseThrow(AssertionError::new);
-            sequenceNumberGenerator = ClusterMember.get(context)
-                    .getCounters()
-                    .getSharedObject("notifications-".concat(resourceName));
+            this.sequenceNumberGenerator = sequenceNumberGenerator;
+        }
+
+        @Override
+        public SnmpNotificationInfo[] getNotificationInfo() {
+            return toArray(SnmpNotificationInfo.class);
         }
 
         /**
@@ -499,19 +497,24 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         }
     }
 
-    private static final class SnmpAttributeRepository extends AbstractAttributeRepository<SnmpAttributeInfo> implements Aggregator {
+    private static final class SnmpAttributeRepository extends AttributesRepository<SnmpAttributeInfo> implements Aggregator {
         private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
         private final AbstractConcurrentResourceAccessor<SnmpClient> client;
         private final ExecutorService executor;
         private final Duration discoveryTimeout;
 
-        private SnmpAttributeRepository(final String resourceName,
+        private SnmpAttributeRepository(final AbstractManagedResourceConnector owner,
                                         final AbstractConcurrentResourceAccessor<SnmpClient> client,
                                         final Duration discoveryTimeout){
-            super(resourceName, SnmpAttributeInfo.class);
+            super(owner);
             this.client = client;
             this.discoveryTimeout = Objects.requireNonNull(discoveryTimeout);
             this.executor = client.read(cl -> cl.queryObject(ExecutorService.class)).orElseThrow(AssertionError::new);
+        }
+
+        @Override
+        public SnmpAttributeInfo[] getAttributeInfo() {
+            return toArray(SnmpAttributeInfo.class);
         }
 
         private Address[] getClientAddresses(){
@@ -646,11 +649,10 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
         private Map<String, AttributeDescriptor> expandImpl(final SnmpClient client) throws InterruptedException, ExecutionException, TimeoutException {
             final Map<String, AttributeDescriptor> result = new HashMap<>();
             for (final VariableBinding binding : client.walk(discoveryTimeout)) {
-                final AttributeDescriptor descriptor = createDescriptor(config -> {
-                    if (binding.getVariable() instanceof OctetString)
-                        config.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
-                });
-                result.put(binding.getOid().toDottedString(), descriptor);
+                final Map<String, String> config = new HashMap<>();
+                if (binding.getVariable() instanceof OctetString)
+                    config.put(SNMP_CONVERSION_FORMAT_PARAM, OctetStringConversionFormat.adviceFormat((OctetString) binding.getVariable()));
+                result.put(binding.getOid().toDottedString(), new AttributeDescriptor(Duration.ofSeconds(2), config));
             }
             return result;
         }
@@ -684,52 +686,23 @@ final class SnmpResourceConnector extends AbstractManagedResourceConnector {
     private final SnmpNotificationRepository notifications;
     private final AbstractConcurrentResourceAccessor<SnmpClient> client;
 
-
     SnmpResourceConnector(final String resourceName,
-                          final ManagedResourceInfo configuration) throws IOException {
-        super(configuration);
-        final SnmpConnectorDescriptionProvider parser = SnmpConnectorDescriptionProvider.getInstance();
-        final Duration discoveryTimeout = parser.parseDiscoveryTimeout(configuration);
-        client = new ConcurrentResourceAccessor<>(parser.createSnmpClient(GenericAddress.parse(configuration.getConnectionString()), configuration));
-        attributes = new SnmpAttributeRepository(resourceName, client, discoveryTimeout);
-        notifications = new SnmpNotificationRepository(resourceName,
-                client,
-                Utils.getBundleContextOfObject(this));
-        notifications.setSource(this);
+                          final SnmpClient client,
+                          final Duration discoveryTimeout) throws IOException {
+        super(resourceName);
+        this.client = new ConcurrentResourceAccessor<>(client);
+        attributes = new SnmpAttributeRepository(this, this.client, discoveryTimeout);
+        final SharedCounter sequenceNumberGen = ClusterMember.get(getBundleContextOfObject(this))
+                .getCounters()
+                .getSharedObject("notifications-".concat(resourceName));
+        notifications = new SnmpNotificationRepository(this,
+                this.client,
+                sequenceNumberGen);
     }
 
     @Override
     protected MetricsSupport createMetricsReader() {
         return assembleMetricsReader(attributes, notifications);
-    }
-
-    void listen() throws IOException {
-        client.write(client -> {
-            client.listen();
-            return null;
-        });
-    }
-
-    /**
-     * Adds a new listener for the connector-related events.
-     * <p/>
-     * The managed resource connector should holds a weak reference to all added event listeners.
-     *
-     * @param listener An event listener to add.
-     */
-    @Override
-    public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, notifications);
-    }
-
-    /**
-     * Removes connector event listener.
-     *
-     * @param listener The listener to remove.
-     */
-    @Override
-    public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes, notifications);
     }
 
     private void closeClient() throws IOException {

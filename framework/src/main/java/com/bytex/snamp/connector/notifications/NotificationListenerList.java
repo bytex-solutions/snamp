@@ -1,8 +1,10 @@
 package com.bytex.snamp.connector.notifications;
 
 import com.bytex.snamp.AbstractWeakEventListenerList;
+import com.bytex.snamp.WeakEventListener;
 import com.bytex.snamp.jmx.JMExceptionUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.management.ListenerNotFoundException;
 import javax.management.Notification;
@@ -19,6 +21,30 @@ import javax.management.NotificationListener;
  */
 @ThreadSafe
 public final class NotificationListenerList extends AbstractWeakEventListenerList<NotificationListener, Notification> {
+    private final static class NotificationListenerHolder extends WeakEventListener<NotificationListener, Notification> {
+        private final NotificationFilter filter;
+        private final Object handback;
+
+        NotificationListenerHolder(final NotificationListener listener,
+                                   final NotificationFilter filter,
+                                   final Object handback) throws IllegalArgumentException{
+            super(listener);
+            this.filter = filter;
+            this.handback = handback;
+        }
+
+        /**
+         * Invokes event listener and pass event state object into it.
+         *
+         * @param listener A listener used to handle event. Cannot be {@literal null}.
+         */
+        @Override
+        protected void invoke(@Nonnull final NotificationListener listener, @Nonnull final Notification notification) {
+            if (filter == null || filter.isNotificationEnabled(notification))
+                listener.handleNotification(notification, handback);
+        }
+    }
+
     /**
      * Adds a listener to this MBean.
      *

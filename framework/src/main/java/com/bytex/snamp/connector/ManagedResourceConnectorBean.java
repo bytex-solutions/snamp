@@ -1,30 +1,34 @@
 package com.bytex.snamp.connector;
 
 import com.bytex.snamp.Localizable;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeRepository;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
-import com.bytex.snamp.connector.health.HealthStatus;
-import com.bytex.snamp.connector.health.OkStatus;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.attributes.AttributeManager;
+import com.bytex.snamp.connector.attributes.AttributeRepository;
+import com.bytex.snamp.connector.attributes.reflection.JavaBeanAttributeInfo;
+import com.bytex.snamp.connector.attributes.reflection.JavaBeanOpenAttributeInfo;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
-import com.bytex.snamp.connector.notifications.AbstractNotificationInfo;
-import com.bytex.snamp.connector.notifications.AbstractNotificationRepository;
 import com.bytex.snamp.connector.notifications.NotificationDescriptor;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
-import com.bytex.snamp.connector.operations.OperationSupport;
-import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationRepository;
-import com.bytex.snamp.core.ClusterMember;
+import com.bytex.snamp.connector.notifications.NotificationManager;
+import com.bytex.snamp.connector.notifications.NotificationRepository;
+import com.bytex.snamp.connector.notifications.SimpleNotificationInfo;
+import com.bytex.snamp.connector.operations.OperationDescriptor;
+import com.bytex.snamp.connector.operations.OperationManager;
+import com.bytex.snamp.connector.operations.OperationRepository;
+import com.bytex.snamp.connector.operations.reflection.JavaBeanOperationInfo;
 import com.bytex.snamp.core.SharedCounter;
-import org.osgi.framework.BundleContext;
+import com.bytex.snamp.jmx.JMExceptionUtils;
+import com.google.common.collect.ImmutableSet;
 
-import javax.annotation.Nonnull;
+import javax.management.*;
+import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
-import java.beans.BeanInfo;
+import java.beans.*;
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static com.bytex.snamp.internal.Utils.getBundleContextOfObject;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 
@@ -65,7 +69,14 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @since 1.0
  * @version 2.1
  */
-public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector implements HealthCheckSupport {
+public abstract class ManagedResourceConnectorBean extends AbstractManagedResourceConnector implements AttributeManager,
+        AttributeRepository.AttributeReader<JavaBeanAttributeInfo>,
+        AttributeRepository.AttributeWriter<JavaBeanAttributeInfo>,
+        OperationManager,
+        OperationRepository.OperationInvoker<JavaBeanOperationInfo>,
+        NotificationManager,
+        NotificationBroadcaster{
+
 
     /**
      * Describes management notification type supported by this connector.
@@ -107,57 +118,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         }
     }
 
-    private static final class JavaBeanNotificationRepository extends AbstractNotificationRepository<AbstractNotificationInfo> {
-        private final Set<? extends ManagementNotificationType<?>> notifTypes;
-        private final SharedCounter sequenceNumberGenerator;
-
-        private JavaBeanNotificationRepository(final String resourceName,
-                                               final Set<? extends ManagementNotificationType<?>> notifTypes,
-                                               final BundleContext context) {
-            super(resourceName, AbstractNotificationInfo.class);
-            this.notifTypes = Objects.requireNonNull(notifTypes);
-            this.sequenceNumberGenerator = ClusterMember.get(context).getCounters().getSharedObject("notifications-".concat(resourceName));
-        }
-
-        @Override
-        public Map<String, NotificationDescriptor> discoverNotifications() {
-            final Map<String, NotificationDescriptor> result = new HashMap<>();
-            for (final ManagementNotificationType<?> notificationType : notifTypes)
-                result.put(notificationType.getCategory(), createDescriptor());
-            return result;
-        }
-
-        @Override
-        protected AbstractNotificationInfo connectNotifications(final String category,
-                                                                final NotificationDescriptor metadata) throws IllegalArgumentException {
-            //find the suitable notification type
-            final ManagementNotificationType<?> type = notifTypes.stream()
-                    .filter(type1 -> Objects.equals(type1.getCategory(), metadata.getAlternativeName().orElse(category)))
-                    .findFirst()
-                    .orElseGet(null);
-            if (type != null) {
-                String description = type.toString(Locale.getDefault());
-                if (isNullOrEmpty(description)) {
-                    description = metadata.getDescription();
-                    if (isNullOrEmpty(description))
-                        description = type.getCategory();
-                }
-                return new AbstractNotificationInfo(category, description, metadata.setUserDataType(type.getUserDataType()));
-            } else
-                throw new IllegalArgumentException(String.format("Unsupported notification %s", metadata.getAlternativeName().orElse(category)));
-        }
-
-        private boolean fire(final ManagementNotificationType<?> category, final String message, final Object userData) {
-            return fire(category.getCategory(), message, sequenceNumberGenerator, userData);
-        }
-    }
-
-    @Aggregation(cached = true)
-    private final JavaBeanAttributeRepository attributes;
-    @Aggregation(cached = true)
-    private final JavaBeanNotificationRepository notifications;
-    @Aggregation(cached = true)
-    private final JavaBeanOperationRepository operations;
+    private final AttributeRepository<JavaBeanAttributeInfo> attributes;
+    private final NotificationRepository<SimpleNotificationInfo> notifications;
+    private final ImmutableSet<? extends ManagementNotificationType<?>> notifTypes;
+    private final OperationRepository<JavaBeanOperationInfo> operations;
+    private final SharedCounter sequenceNumberGenerator;
 
     /**
      * Initializes a new managed resource connector that reflects itself.
@@ -177,18 +142,227 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     protected <N extends Enum<N> & ManagementNotificationType<?>> ManagedResourceConnectorBean(final String resourceName,
                                                                                                final EnumSet<N> notifTypes) throws IntrospectionException {
-        final BeanInfo beanInfo = reflectBeanInfo();
-        attributes = JavaBeanAttributeRepository.create(resourceName, this, beanInfo);
-        notifications = new JavaBeanNotificationRepository(resourceName,
-                notifTypes,
-                getBundleContextOfObject(this));
-        notifications.setSource(this);
-        operations = JavaBeanOperationRepository.create(resourceName, this, beanInfo);
+        super(resourceName);
+        attributes = new AttributeRepository<>();
+        operations = new OperationRepository<>();
+        notifications = new NotificationRepository<>();
+        sequenceNumberGenerator = getClusterMembership().getCounters().getSharedObject("notifications-".concat(resourceName));
+        this.notifTypes = ImmutableSet.copyOf(notifTypes);
+    }
+
+    public static JavaBeanAttributeInfo createAttribute(final BeanInfo metadata,
+                                                        final String attributeName,
+                                                        final AttributeDescriptor descriptor) throws ReflectionException, AttributeNotFoundException {
+        for (final PropertyDescriptor property : metadata.getPropertyDescriptors())
+            if (Objects.equals(property.getName(), descriptor.getAlternativeName().orElse(attributeName)) && JavaBeanAttributeInfo.isValidDescriptor(property))
+                try {
+                    //try to connect as Open Type attribute
+                    return new JavaBeanOpenAttributeInfo(attributeName, property, descriptor);
+                } catch (final OpenDataException e) {
+                    //bean property type is not Open Type
+                    return new JavaBeanAttributeInfo(attributeName, property, descriptor);
+                }
+        throw JMExceptionUtils.attributeNotFound(descriptor.getAlternativeName().orElse(attributeName));
+    }
+
+    private JavaBeanAttributeInfo createAttribute(final String attributeName,
+                                                   final AttributeDescriptor descriptor) throws JMException, IntrospectionException {
+        return createAttribute(reflectBeanInfo(), attributeName, descriptor);
     }
 
     @Override
-    protected final MetricsSupport createMetricsReader(){
-        return assembleMetricsReader(attributes, notifications, operations);
+    public final Object getAttributeValue(final JavaBeanAttributeInfo attribute) throws ReflectionException {
+        return attribute.getValue(this);
+    }
+
+    @Override
+    public final void setAttributeValue(final JavaBeanAttributeInfo attribute, final Object value) throws ReflectionException, InvalidAttributeValueException {
+        attribute.setValue(this, value);
+    }
+
+    @Override
+    public final void addAttribute(final String attributeName, final AttributeDescriptor descriptor) throws JMException {
+        addFeature(attributes, attributeName, descriptor, this::createAttribute);
+    }
+
+    @Override
+    public final boolean removeAttribute(final String attributeName) {
+        return removeFeature(attributes, attributeName);
+    }
+
+    @Override
+    public final void retainAttributes(final Set<String> attributes) {
+        retainFeatures(this.attributes, attributes);
+    }
+
+    @Override
+    public final Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        return attributes.getAttribute(attributeName, this);
+    }
+
+    @Override
+    public final void setAttribute(final Attribute attribute) throws AttributeNotFoundException, InvalidAttributeValueException, MBeanException, ReflectionException {
+        attributes.setAttribute(attribute, this);
+    }
+
+    @Override
+    public final JavaBeanAttributeInfo[] getAttributeInfo() {
+        return getFeatureInfo(attributes, JavaBeanAttributeInfo.class);
+    }
+
+    @Override
+    public AttributeList getAttributes() throws MBeanException, ReflectionException {
+        return attributes.getAttributes(this);
+    }
+
+    @Override
+    public final Map<String, AttributeDescriptor> discoverAttributes() {
+        final BeanInfo metadata;
+        try {
+            metadata = reflectBeanInfo();
+        } catch (final IntrospectionException e) {
+            logger.log(Level.SEVERE, "Failed to discover attributes", e);
+            return Collections.emptyMap();
+        }
+        final Map<String, AttributeDescriptor> result = new HashMap<>();
+        for (final PropertyDescriptor property : metadata.getPropertyDescriptors())
+            if (JavaBeanAttributeInfo.isValidDescriptor(property))
+                result.put(property.getName(), AttributeDescriptor.EMPTY_DESCRIPTOR);
+        return result;
+    }
+
+    @Override
+    public final JavaBeanOperationInfo[] getOperationInfo() {
+        return getFeatureInfo(operations, JavaBeanOperationInfo.class);
+    }
+
+    public static JavaBeanOperationInfo createOperation(final BeanInfo metadata,
+                                                        final String operationName,
+                                                  final OperationDescriptor descriptor) throws ReflectionException {
+        for (final MethodDescriptor method : metadata.getMethodDescriptors())
+            if (Objects.equals(method.getName(), descriptor.getAlternativeName().orElse(operationName)) && JavaBeanOperationInfo.isValidDescriptor(method)) {
+                return new JavaBeanOperationInfo(operationName, method, descriptor);
+            }
+        throw new IllegalArgumentException(String.format("Operation '%s' doesn't exist", descriptor.getAlternativeName().orElse(operationName)));
+    }
+
+    private JavaBeanOperationInfo createOperation(final String operationName,
+                                                  final OperationDescriptor descriptor) throws JMException, IntrospectionException{
+        return createOperation(reflectBeanInfo(), operationName, descriptor);
+    }
+
+    /**
+     * Enables management operation.
+     *
+     * @param operationName The name of operation to be executed on managed resource.
+     * @param descriptor    Operation invocation options. Cannot be {@literal null}.
+     * @throws JMException Unable to create operation.
+     * @since 2.0
+     */
+    @Override
+    public final void enableOperation(final String operationName, final OperationDescriptor descriptor) throws JMException {
+        addFeature(operations, operationName, descriptor, this::createOperation);
+    }
+
+    @Override
+    public final boolean disableOperation(final String operationName) {
+        return removeFeature(operations, operationName);
+    }
+
+    @Override
+    public final void retainOperations(final Set<String> operations) {
+        retainFeatures(this.operations, operations);
+    }
+
+    @Override
+    public final Object invokeOperation(final OperationRepository.OperationCallInfo<JavaBeanOperationInfo> callInfo) throws Exception {
+        return callInfo.getOperation().invoke(this, callInfo.toArray());
+    }
+
+    @Override
+    public final Object invoke(final String actionName, final Object[] params, final String[] signature) throws MBeanException, ReflectionException {
+        return operations.invoke(actionName, params, signature, this);
+    }
+
+    /**
+     * Discover operations.
+     *
+     * @return A map of discovered operations that can be enabled using method {@link #enableOperation(String, OperationDescriptor)}.
+     * @since 2.0
+     */
+    @Override
+    public final Map<String, OperationDescriptor> discoverOperations() {
+        final BeanInfo metadata;
+        try {
+            metadata = reflectBeanInfo();
+        } catch (final IntrospectionException e) {
+            logger.log(Level.SEVERE, "Failed to discover operations", e);
+            return Collections.emptyMap();
+        }
+        final Map<String, OperationDescriptor> result = new HashMap<>();
+        for (final MethodDescriptor method : metadata.getMethodDescriptors())
+            if (JavaBeanOperationInfo.isValidDescriptor(method))
+                result.put(method.getName(), OperationDescriptor.EMPTY_DESCRIPTOR);
+        return result;
+    }
+
+    private SimpleNotificationInfo createNotification(final String category, final NotificationDescriptor descriptor) {
+        //find the suitable notification type
+        final ManagementNotificationType<?> type = notifTypes.stream()
+                .filter(t -> descriptor.getAlternativeName().orElse(category).equals(t.getCategory()))
+                .findFirst()
+                .orElseGet(null);
+        if (type != null) {
+            String description = type.toString(Locale.getDefault());
+            if (isNullOrEmpty(description)) {
+                description = descriptor.getDescription();
+                if (isNullOrEmpty(description))
+                    description = type.getCategory();
+            }
+            return new SimpleNotificationInfo(category, description, descriptor.setUserDataType(type.getUserDataType()));
+        } else
+            throw new IllegalArgumentException(String.format("Unsupported notification %s", descriptor.getAlternativeName().orElse(category)));
+    }
+
+    @Override
+    public final void enableNotifications(final String category, final NotificationDescriptor descriptor) throws JMException {
+        addFeature(notifications, category, descriptor, this::createNotification);
+    }
+
+    @Override
+    public final boolean disableNotifications(final String category) {
+        return removeFeature(notifications, category);
+    }
+
+    @Override
+    public final void retainNotifications(final Set<String> events) {
+        retainFeatures(notifications, events);
+    }
+
+    @Override
+    public final void addNotificationListener(final NotificationListener listener, final NotificationFilter filter, final Object handback) {
+        notifications.addNotificationListener(listener, filter, handback);
+    }
+
+    @Override
+    public final void removeNotificationListener(final NotificationListener listener) throws ListenerNotFoundException {
+        notifications.removeNotificationListener(listener);
+    }
+
+    @Override
+    public final Map<String, NotificationDescriptor> discoverNotifications() {
+        return notifTypes.stream()
+                .collect(Collectors.toMap(ManagementNotificationType::getCategory, v -> NotificationDescriptor.EMPTY_DESCRIPTOR));
+    }
+
+    @Override
+    public final SimpleNotificationInfo[] getNotificationInfo() {
+        return getFeatureInfo(notifications, SimpleNotificationInfo.class);
+    }
+
+    @Override
+    protected final MetricsSupport createMetricsReader() {
+        return assembleMetricsReader(attributes.metrics, notifications.metrics, operations.metrics);
     }
 
     /**
@@ -200,55 +374,33 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
         return Introspector.getBeanInfo(getClass(), ManagedResourceConnectorBean.class);
     }
 
-    /**
-     * Adds a new listener for the connector-related events.
-     * <p/>
-     * The managed resource connector should holds a weak reference to all added event listeners.
-     *
-     * @param listener An event listener to add.
-     */
-    @Override
-    public final void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes, notifications, operations);
+    private Stream<Notification> createNotifications(final MBeanNotificationInfo metadata,
+                                                            final String message,
+                                                            final Object userData) {
+        return Arrays.stream(metadata.getNotifTypes())
+                .map(type -> {
+                    final Notification n = new Notification(type, this, sequenceNumberGenerator.getAsLong(), message);
+                    n.setUserData(userData);
+                    return n;
+                });
     }
 
-    /**
-     * Removes connector event listener.
-     *
-     * @param listener The listener to remove.
-     */
-    @Override
-    public final void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes, notifications, operations);
-    }
-
-    final AttributeSupport getAttributeSupport(){
-        return attributes;
-    }
-
-    final NotificationSupport getNotificationSupport(){
-        return notifications;
-    }
-
-    final OperationSupport getOperationSupport(){
-        return operations;
-    }
-
-    private boolean emitNotificationImpl(final ManagementNotificationType<?> category,
+    private void emitNotificationImpl(final ManagementNotificationType<?> category,
                                       final String message,
-                                      final Object userData){
-        return notifications.fire(category, message, userData);
+                                      final Object userData) {
+        notifications.emitStream(category.getCategory(),
+                this,
+                (connector, metadata) -> connector.createNotifications(metadata, message, userData));
     }
 
     /**
      * Emits notification from this Bean.
      * @param category Category of the notification to emit.
      * @param message Human-readable message associated with emitted notification.
-     * @return {@literal true}, if notifications are not suspended for this bean; otherwise, {@literal false}.
      */
-    protected final boolean emitNotification(final ManagementNotificationType<?> category,
-                                          final String message){
-        return emitNotificationImpl(category, message, null);
+    protected final void emitNotification(final ManagementNotificationType<?> category,
+                                          final String message) {
+        emitNotificationImpl(category, message, null);
     }
 
     /**
@@ -256,23 +408,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      * @param category Category of the notification to emit.
      * @param message Human-readable message associated with emitted notification.
      * @param userData An object to be attached.
-     * @return {@literal true}, if notifications are not suspended for this bean; otherwise, {@literal false}.
      */
-    protected final <T> boolean emitNotification(final ManagementNotificationType<T> category,
+    protected final <T> void emitNotification(final ManagementNotificationType<T> category,
                                               final String message,
-                                              final T userData){
-        return emitNotificationImpl(category, message, userData);
-    }
-
-    /**
-     * Determines whether the connected managed resource is alive.
-     *
-     * @return Status of the remove managed resource.
-     */
-    @Override
-    @Nonnull
-    public HealthStatus getStatus() {
-        return new OkStatus();
+                                              final T userData) {
+        emitNotificationImpl(category, message, userData);
     }
 
     /**
@@ -282,9 +422,11 @@ public abstract class ManagedResourceConnectorBean extends AbstractManagedResour
      */
     @Override
     public void close() throws Exception {
-        operations.close();
-        notifications.close();
-        attributes.close();
+        removeFeatures(attributes);
+        removeFeatures(notifications);
+        removeFeatures(operations);
+        notifications.removeNotificationListeners();
+        Introspector.flushFromCaches(getClass());
         super.close();
     }
 }

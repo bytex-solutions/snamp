@@ -20,12 +20,6 @@ import java.util.Optional;
 public interface FeatureDescriptor<F extends FeatureConfiguration> extends CopyOnWriteDescriptor {
 
     /**
-     * The type of the configuration entity.
-     * @return The type of the configuration entity.
-     */
-    Class<F> getEntityType();
-
-    /**
      * Fills the specified configuration entity.
      * @param entity The configuration entity to fill.
      */

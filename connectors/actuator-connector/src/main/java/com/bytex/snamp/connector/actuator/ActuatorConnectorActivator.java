@@ -2,7 +2,6 @@ package com.bytex.snamp.connector.actuator;
 
 import com.bytex.snamp.SpecialUse;
 import com.bytex.snamp.concurrent.ThreadPoolRepository;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 
 import javax.annotation.Nonnull;

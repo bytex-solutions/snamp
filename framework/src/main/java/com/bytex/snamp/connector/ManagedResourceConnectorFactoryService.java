@@ -1,6 +1,6 @@
 package com.bytex.snamp.connector;
 
-import com.bytex.snamp.configuration.ManagedResourceInfo;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.core.SupportService;
 
 /**
@@ -18,5 +18,5 @@ public interface ManagedResourceConnectorFactoryService extends SupportService {
      * @throws Exception An exception occurred by {@link ManagedResourceConnector} constructor.
      * @throws InstantiationException Not enough parameters to instantiate {@link ManagedResourceConnector}.
      */
-    ManagedResourceConnector createConnector(final String resourceName, final ManagedResourceInfo configuration) throws Exception;
+    ManagedResourceConnector createConnector(final String resourceName, final ManagedResourceConfiguration configuration) throws Exception;
 }

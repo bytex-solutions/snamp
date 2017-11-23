@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 
@@ -29,7 +29,7 @@ final class GroovyAttribute extends ProcessingAttribute {
     }
 
     @Override
-    Object getValue(final AttributeSupport support) throws Exception {
+    Object getValue(final AttributeManager support) throws Exception {
         return script.getValue(support);
     }
 

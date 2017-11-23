@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.groovy;
 
-import com.bytex.snamp.connector.attributes.AbstractAttributeRepository;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 
 import javax.management.AttributeNotFoundException;
@@ -13,7 +12,7 @@ import java.util.Objects;
 /**
  * Represents repository of Groovy-based attributes.
  */
-final class GroovyAttributeRepository extends AbstractAttributeRepository<GroovyAttribute> {
+final class GroovyAttributeRepository extends AttributesRepository<GroovyAttribute> {
     private final ManagedResourceScriptlet scriptlet;
 
     GroovyAttributeRepository(final String resourceName,

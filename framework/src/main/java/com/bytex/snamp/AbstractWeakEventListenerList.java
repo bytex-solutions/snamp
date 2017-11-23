@@ -60,7 +60,7 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
     }
 
     public final void parallelForEach(final Consumer<? super L> action, final ExecutorService executor) {
-        Utils.parallelForEach(stream(true).spliterator(), action, executor);
+        Utils.parallelForEach(parallelStream().spliterator(), action, executor);
     }
 
     /**
@@ -335,24 +335,6 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
         listeners = emptyListeners();
     }
 
-    private Stream<L> stream(final boolean parallel) {
-        final WeakEventListener<L, E>[] snapshot = listeners;
-        final Stream<L> result;
-        switch (snapshot.length) {
-            case 0:
-                result = Stream.empty();
-                break;
-            case 1:
-                final L listener = snapshot[0].get();
-                result = listener == null ? Stream.empty() : Stream.of(listener);
-                break;
-            default:
-                result = Arrays.stream(snapshot).map(WeakEventListener::get).filter(Objects::nonNull);
-                break;
-        }
-        return parallel ? result.parallel() : result;
-    }
-
     /**
      * Returns a sequential {@code Stream} with this collection as its source.
      *
@@ -360,7 +342,16 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
      * @since 1.2
      */
     public final Stream<L> stream() {
-        return stream(false);
+        final WeakEventListener<L, E>[] snapshot = listeners;
+        switch (snapshot.length) {
+            case 0:
+                return Stream.empty();
+            case 1:
+                final L listener = snapshot[0].get();
+                return listener == null ? Stream.empty() : Stream.of(listener);
+            default:
+                return Arrays.stream(snapshot).map(WeakEventListener::get).filter(Objects::nonNull);
+        }
     }
 
     /**
@@ -372,7 +363,7 @@ public abstract class AbstractWeakEventListenerList<L extends EventListener, E e
      * @since 1.2
      */
     public final Stream<L> parallelStream() {
-        return stream(true);
+        return stream().parallel();
     }
 
     /**

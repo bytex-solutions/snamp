@@ -3,6 +3,6 @@
  * @author Roman Sakno
  * @since 1.0
  * @version 2.1
- * @see com.bytex.snamp.connector.operations.OperationSupport
+ * @see com.bytex.snamp.connector.operations.OperationManager
  */
 package com.bytex.snamp.connector.operations;

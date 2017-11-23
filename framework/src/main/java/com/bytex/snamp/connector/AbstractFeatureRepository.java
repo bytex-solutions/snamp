@@ -27,8 +27,10 @@ import static com.bytex.snamp.ArrayUtils.arrayConstructor;
  * @author Roman Sakno
  * @since 1.0
  * @version 2.1
+ * @deprecated Replaced by {@link FeatureRepository}.
  */
 @ThreadSafe
+@Deprecated
 public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> implements Iterable<F>, SafeCloseable {
     /**
      * Metadata of the resource feature stored in repository.
@@ -36,12 +38,42 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> impl
     private final Class<F> metadataType;
     private final WeakEventListenerList<ResourceEventListener, ResourceEvent> resourceEventListeners;
     private final String resourceName;
+    private ManagedResourceConnector notificationSource;
 
     protected AbstractFeatureRepository(final String resourceName,
                                                             @Nonnull final Class<F> metadataType) {
         this.metadataType = Objects.requireNonNull(metadataType);
         this.resourceEventListeners = new WeakEventListenerList<>(ResourceEventListener::resourceModified);
         this.resourceName = resourceName;
+    }
+
+    protected AbstractFeatureRepository(@Nonnull final AbstractManagedResourceConnector source,
+                                        @Nonnull final Class<F> metadataType){
+        this(source.resourceName, metadataType);
+        notificationSource = source;
+    }
+
+    /**
+     * Gets source for all outbound notifications emitted by this repository.
+     * @return Source of all outbound notifications.
+     * @throws IllegalStateException Owner is not defined. Please call {@link #setSource(ManagedResourceConnector)}.
+     * @since 2.1
+     */
+    @Nonnull
+    protected final ManagedResourceConnector getSource() {
+        if (notificationSource == null)
+            throw new IllegalStateException("Source is not defined for this repository. Please call setSource.");
+        else
+            return notificationSource;
+    }
+
+    /**
+     * Defines source for all outbound notifications emitted by this repository.
+     * @param value A source for all notifications. Cannot be {@literal null}.
+     * @since 2.1
+     */
+    public final void setSource(@Nonnull final ManagedResourceConnector value) {
+        notificationSource = value;
     }
 
     /**
@@ -72,8 +104,26 @@ public abstract class AbstractFeatureRepository<F extends MBeanFeatureInfo> impl
         return resourceEventListeners.remove(listener);
     }
 
-    protected final void fireResourceEvent(final FeatureModifiedEvent<? super F> event) {
+    protected final void fireResourceEvent(final FeatureModifiedEvent event) {
         resourceEventListeners.fire(event);
+    }
+
+    /**
+     * Notifies about new feature in this repository.
+     * @param feature Added feature.
+     * @since 2.1
+     */
+    protected final void featureAdded(@Nonnull final F feature){
+        fireResourceEvent(new FeatureModifiedEvent(getSource(), resourceName, feature, FeatureModifiedEvent.Modifier.ADDED));
+    }
+
+    /**
+     * Notifies before feature being removed from this repository.
+     * @param feature Feature to be removed.
+     * @since 2.1
+     */
+    protected final void removingFeature(@Nonnull final F feature){
+        fireResourceEvent(new FeatureModifiedEvent(getSource(), resourceName, feature, FeatureModifiedEvent.Modifier.REMOVING));
     }
 
     /**

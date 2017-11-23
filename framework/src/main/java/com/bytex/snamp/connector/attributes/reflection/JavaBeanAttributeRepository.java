@@ -23,6 +23,7 @@ import java.util.Objects;
  * @version 2.1
  * @since 2.0
  */
+@Deprecated
 public abstract class JavaBeanAttributeRepository extends AbstractAttributeRepository<JavaBeanAttributeInfo> {
     private final Object owner;
 

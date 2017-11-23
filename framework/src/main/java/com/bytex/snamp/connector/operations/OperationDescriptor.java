@@ -15,8 +15,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.bytex.snamp.connector.attributes.AttributeSupport.DESCRIPTION_FIELD;
-import static com.bytex.snamp.connector.operations.OperationSupport.*;
+import static com.bytex.snamp.configuration.EntityConfiguration.DESCRIPTION_KEY;
 
 /**
  * Represents descriptor of the managed resource operation.
@@ -25,6 +24,22 @@ import static com.bytex.snamp.connector.operations.OperationSupport.*;
  * @since 1.0
  */
 public class OperationDescriptor extends ImmutableDescriptor implements FeatureDescriptor<OperationConfiguration> {
+    /**
+     * The name of the field in operation descriptor indicating
+     * that the operation is asynchronous and returns {@link com.google.common.util.concurrent.ListenableFuture}
+     * as invocation result.
+     */
+    public static final String ASYNC_FIELD = "async";
+    /**
+     * The name of the field in operation descriptor that holds
+     * name of the managed resource operation as it is declared in the configuration.
+     */
+    public static final String OPERATION_NAME_FIELD = "operationName";
+    /**
+     * The name of the field in {@link Descriptor} which
+     * contains {@link Duration} value.
+     */
+    public static final String INVOCATION_TIMEOUT_FIELD = "invocationTimeout";
     private static final long serialVersionUID = -6350507145892936614L;
     public static final OperationDescriptor EMPTY_DESCRIPTOR = new OperationDescriptor(ImmutableMap.<String, String>of());
 
@@ -41,6 +56,12 @@ public class OperationDescriptor extends ImmutableDescriptor implements FeatureD
         this(getFields(invocationTimeout, options));
     }
 
+    public OperationDescriptor(final Duration invocationTimeout,
+                               final String key,
+                               final String value){
+        this(invocationTimeout, ImmutableMap.of(key, value));
+    }
+
     private static Map<String, ?> getFields(final Duration invocationTimeout,
                                             final Map<String, String> options) {
         return invocationTimeout == null ?
@@ -49,16 +70,6 @@ public class OperationDescriptor extends ImmutableDescriptor implements FeatureD
                         .putAll(options)
                         .put(INVOCATION_TIMEOUT_FIELD, invocationTimeout)
                         .build();
-    }
-
-    /**
-     * The type of the configuration entity.
-     *
-     * @return The type of the configuration entity.
-     */
-    @Override
-    public final Class<OperationConfiguration> getEntityType() {
-        return OperationConfiguration.class;
     }
 
     /**
@@ -138,7 +149,7 @@ public class OperationDescriptor extends ImmutableDescriptor implements FeatureD
     }
 
     public static String getDescription(final Descriptor metadata, final String defval){
-        return DescriptorUtils.getField(metadata, DESCRIPTION_FIELD, Objects::toString).orElse(defval);
+        return DescriptorUtils.getField(metadata, DESCRIPTION_KEY, Objects::toString).orElse(defval);
     }
 
     public String getDescription(final String defval){

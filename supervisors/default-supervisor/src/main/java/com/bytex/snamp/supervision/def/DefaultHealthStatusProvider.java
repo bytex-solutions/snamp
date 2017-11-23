@@ -4,7 +4,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.Stateful;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.attributes.checkers.AttributeChecker;
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.supervision.health.HealthStatusProvider;
@@ -84,7 +84,7 @@ public class DefaultHealthStatusProvider implements HealthStatusProvider, AutoCl
             //2. read attributes from connector
             final AttributeList attributes;
             {
-                final Optional<AttributeSupport> support = connector.queryObject(AttributeSupport.class);
+                final Optional<AttributeManager> support = connector.queryObject(AttributeManager.class);
                 if (support.isPresent())
                     try {
                         attributes = support.get().getAttributes();

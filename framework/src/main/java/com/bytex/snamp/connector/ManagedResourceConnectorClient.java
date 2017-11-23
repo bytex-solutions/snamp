@@ -4,9 +4,7 @@ import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.configuration.ConfigurationEntityDescription;
 import com.bytex.snamp.configuration.ConfigurationEntityDescriptionProvider;
 import com.bytex.snamp.configuration.EntityConfiguration;
-import com.bytex.snamp.configuration.ManagedResourceInfo;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
-import com.bytex.snamp.connector.health.HealthCheckSupport;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.health.HealthStatus;
 import com.bytex.snamp.connector.health.OkStatus;
 import com.bytex.snamp.core.ServiceHolder;
@@ -16,7 +14,9 @@ import org.osgi.framework.*;
 import javax.annotation.Nonnull;
 import javax.management.*;
 import java.time.Duration;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static com.bytex.snamp.concurrent.SpinWait.untilNull;
@@ -29,7 +29,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.1
  * @since 1.0
  */
-public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector, SafeCloseable, HealthCheckSupport {
+public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedResourceConnector> implements ManagedResourceConnector, SafeCloseable {
     private final BundleContext context;
 
     public ManagedResourceConnectorClient(@Nonnull final BundleContext context,
@@ -163,7 +163,7 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     public static ManagedResourceConnector createConnector(final BundleContext context,
                                                            final String connectorType,
                                                            final String resourceName,
-                                                           final ManagedResourceInfo configuration) throws Exception {
+                                                           final ManagedResourceConfiguration configuration) throws Exception {
         ServiceReference<ManagedResourceConnectorFactoryService> ref = null;
         try {
             ref = selector()
@@ -223,8 +223,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
     }
 
     public AttributeList getAttributes() throws ReflectionException, MBeanException {
-        final Optional<AttributeSupport> attributeSupport = queryObject(AttributeSupport.class);
-        return attributeSupport.isPresent()? attributeSupport.get().getAttributes() : new AttributeList();
+        final Optional<ManagedResourceConnector> serviceRef = getService();
+        return serviceRef.isPresent() ? serviceRef.get().getAttributes() : new AttributeList();
     }
 
     /**
@@ -260,40 +260,9 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         getService().ifPresent(connector -> connector.removeResourceEventListener(listener));
     }
 
-    /**
-     * Gets mutable set of characteristics of this managed resource connector.
-     *
-     * @return Characteristics of this managed resource connector.
-     */
-    @Nonnull
-    @Override
-    public ManagedResourceInfo getConfiguration() {
-        return getService().map(ManagedResourceConnector::getConfiguration).orElse(EMPTY_CONFIGURATION);
-    }
-
     @Override
     public void close() {
         release(context);
-    }
-
-    /**
-     * Updates resource connector with a new connection configuration.
-     *
-     * @param configuration A new configuration.
-     * @throws Exception                                                    Unable to update managed resource connector.
-     * @throws UnsupportedUpdateOperationException This operation is not supported
-     *                                                                      by this resource connector.
-     */
-    @Override
-    public void update(@Nonnull final ManagedResourceInfo configuration) throws Exception {
-        final Optional<ManagedResourceConnector> connector = getService();
-        if (connector.isPresent())
-            connector.get().update(configuration);
-    }
-
-    @Override
-    public Collection<? extends MBeanFeatureInfo> expandAll() {
-        return getService().map(ManagedResourceConnector::expandAll).orElse(Collections.emptyList());
     }
 
     /**
@@ -393,8 +362,8 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
 
     @Override
     @Nonnull
-    public HealthStatus getStatus(){
-        return queryObject(HealthCheckSupport.class).map(HealthCheckSupport::getStatus).orElseGet(OkStatus::new);
+    public HealthStatus getStatus() {
+        return getService().map(ManagedResourceConnector::getStatus).orElseGet(OkStatus::new);
     }
 
     /**

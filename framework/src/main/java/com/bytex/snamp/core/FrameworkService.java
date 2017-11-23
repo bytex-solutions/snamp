@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableMap;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Represents a root interface for all SNAMP framework services.
@@ -19,6 +20,11 @@ public interface FrameworkService extends Aggregator {
      * Represents category of the service.
      */
     String CATEGORY_PROPERTY = "category";
+
+    @Override
+    default <T> Optional<T> queryObject(@Nonnull final Class<T> objectType) {
+        return Optional.of(this).filter(objectType::isInstance).map(objectType::cast);
+    }
 
     /**
      * Gets runtime configuration of this service.

@@ -10,7 +10,7 @@ import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
 import com.bytex.snamp.connector.notifications.Mailbox;
 import com.bytex.snamp.connector.notifications.MailboxFactory;
-import com.bytex.snamp.connector.notifications.NotificationSupport;
+import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.bytex.snamp.core.LoggingScope;
 import com.bytex.snamp.testing.AbstractSnampIntegrationTest;
 import com.google.common.collect.ImmutableSet;
@@ -283,7 +283,7 @@ public abstract class AbstractResourceConnectorTest extends AbstractSnampIntegra
         final ManagedResourceConnector connector = getManagementConnector();
         try {
             connector
-                    .queryObject(NotificationSupport.class)
+                    .queryObject(NotificationManager.class)
                     .orElseThrow(AssertionError::new)
                     .addNotificationListener(listener, listener, null);
             sender.accept(connector);

@@ -1,6 +1,5 @@
 package com.bytex.snamp.connector.groovy;
 
-import com.bytex.snamp.connector.operations.AbstractOperationRepository;
 import com.bytex.snamp.connector.operations.OperationDescriptor;
 
 import javax.management.OperationsException;
@@ -14,7 +13,7 @@ import java.util.Objects;
  * @version 2.1
  * @since 2.0
  */
-final class GroovyOperationRepository extends AbstractOperationRepository<GroovyOperation> {
+final class GroovyOperationRepository extends OperationsRepository<GroovyOperation> {
     private final ManagedResourceScriptlet scriptlet;
 
     GroovyOperationRepository(final String resourceName, final ManagedResourceScriptlet scriptlet){

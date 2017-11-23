@@ -32,7 +32,7 @@ final class JmxConnectorDescriptionProvider extends ConfigurationEntityDescripti
      */
     private static final String CONNECTION_CHECK_PERIOD = "connectionCheckPeriod";
     static final String OBJECT_NAME_PROPERTY = "objectName";
-    private static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_PARAM;
+    private static final String SEVERITY_PARAM = NotificationDescriptor.SEVERITY_FIELD;
     private static final String USE_REGEXP_PARAM = "useRegexp";
 
     private static final Splitter SIGNATURE_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();

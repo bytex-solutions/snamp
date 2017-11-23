@@ -6,7 +6,7 @@ import com.bytex.snamp.configuration.ScriptletConfiguration;
 import com.bytex.snamp.configuration.SupervisorConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnectorBean;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.attributes.checkers.AttributeCheckerFactory;
 import com.bytex.snamp.connector.attributes.checkers.ColoredAttributeChecker;
 import com.bytex.snamp.connector.attributes.checkers.IsInRangePredicate;
@@ -111,14 +111,14 @@ public class HealthStatusProviderTest extends Assert {
             //setup first resource
             final String FIRST_RESOURCE_NAME = "resource1";
             final TestResourceConnector connector1 = new TestResourceConnector(FIRST_RESOURCE_NAME);
-            connector1.queryObject(AttributeSupport.class).ifPresent(attributes -> {
+            connector1.queryObject(AttributeManager.class).ifPresent(attributes -> {
                 attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
                 attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
             });
             //setup second resource
             final String SECOND_RESOURCE_NAME = "resource2";
             final TestResourceConnector connector2 = new TestResourceConnector(SECOND_RESOURCE_NAME);
-            connector1.queryObject(AttributeSupport.class).ifPresent(attributes -> {
+            connector1.queryObject(AttributeManager.class).ifPresent(attributes -> {
                 attributes.addAttribute("memory", AttributeDescriptor.EMPTY_DESCRIPTOR);
                 attributes.addAttribute("CPU", AttributeDescriptor.EMPTY_DESCRIPTOR);
             });

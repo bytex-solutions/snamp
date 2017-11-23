@@ -3,6 +3,6 @@
  * @author Roman Sakno
  * @since 1.0
  * @version 2.1
- * @see com.bytex.snamp.connector.attributes.AttributeSupport
+ * @see com.bytex.snamp.connector.attributes.AttributeManager
  */
 package com.bytex.snamp.connector.attributes;

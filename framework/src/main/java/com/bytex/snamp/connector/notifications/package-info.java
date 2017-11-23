@@ -3,6 +3,6 @@
  * @author Roman Sakno
  * @since 1.0
  * @version 2.1
- * @see com.bytex.snamp.connector.notifications.NotificationSupport
+ * @see com.bytex.snamp.connector.notifications.NotificationManager
  */
 package com.bytex.snamp.connector.notifications;

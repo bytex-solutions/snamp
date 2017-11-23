@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.EvaluationContext;
 
@@ -34,7 +34,7 @@ final class AggregationAttribute extends ProcessingAttribute implements OpenMBea
     }
 
     @Override
-    Object getValue(final AttributeSupport support) throws ReflectionException, AttributeNotFoundException, MBeanException {
+    Object getValue(final AttributeManager support) throws ReflectionException, AttributeNotFoundException, MBeanException {
         final Object attributeValue = support.getAttribute(AttributeDescriptor.getName(this));
         return callAndWrapException(() -> function.eval(resolver, attributeValue), ReflectionException::new);
     }

@@ -1,7 +1,7 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
-import com.bytex.snamp.connector.attributes.AttributeSupport;
+import com.bytex.snamp.connector.attributes.AttributeManager;
 import com.bytex.snamp.jmx.DescriptorUtils;
 import com.google.common.collect.ImmutableSet;
 
@@ -28,7 +28,7 @@ abstract class ProcessingAttribute extends AbstractCompositeAttribute implements
         return type;
     }
 
-    abstract Object getValue(final AttributeSupport support) throws Exception;
+    abstract Object getValue(final AttributeManager support) throws Exception;
 
     /**
      * Returns the default value for this parameter, if it has one, or
