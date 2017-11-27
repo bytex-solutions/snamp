@@ -1,7 +1,9 @@
 package com.bytex.snamp.connector.actuator;
 
 import com.bytex.snamp.connector.AbstractManagedResourceConnector;
-import com.bytex.snamp.connector.ResourceEventListener;
+import com.bytex.snamp.connector.attributes.AttributeDescriptor;
+import com.bytex.snamp.connector.attributes.AttributeManager;
+import com.bytex.snamp.connector.attributes.AttributeRepository;
 import com.bytex.snamp.connector.health.*;
 import com.bytex.snamp.connector.metrics.MetricsSupport;
 import com.bytex.snamp.json.JsonUtils;
@@ -11,13 +13,11 @@ import com.sun.jersey.api.client.WebResource;
 import org.codehaus.jackson.JsonNode;
 
 import javax.annotation.Nonnull;
-import javax.management.MBeanException;
+import javax.management.*;
+import javax.management.openmbean.OpenDataException;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.Instant;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -26,24 +26,150 @@ import java.util.function.Predicate;
  * @version 2.1
  * @since 2.0
  */
-final class ActuatorConnector extends AbstractManagedResourceConnector implements HealthCheckSupport {
+final class ActuatorConnector extends AbstractManagedResourceConnector implements AttributeManager {
     private static final String STATUS_FIELD = "status";
     private static final Predicate<String> IGNORE_STATUS_FIELD = Predicate.<String>isEqual(STATUS_FIELD).negate();
 
+    private static final class ActuatorAttributes extends AttributeRepository<SpringMetric> implements AttributeRepository.AttributeReader<SpringMetric>{
+        private final WebResource metricsResource;
+
+        private ActuatorAttributes(final WebResource metricsResource){
+            this.metricsResource = Objects.requireNonNull(metricsResource);
+        }
+
+        Map<String, AttributeDescriptor> discoverAttributes() {
+            final JsonNode metrics = metricsResource.get(JsonNode.class);
+            final Map<String, AttributeDescriptor> result = new HashMap<>();
+            metrics.getFields().forEachRemaining(field -> result.put(field.getKey(), AttributeDescriptor.EMPTY_DESCRIPTOR));
+            return result;
+        }
+
+        @Override
+        public Object getAttributeValue(final SpringMetric attribute) throws Exception {
+            final JsonNode node = metricsResource.get(JsonNode.class);
+            if (node.isObject()) {
+                final JsonNode valueNode = node.get(attribute.getName());
+                if (valueNode.isValueNode())
+                    return attribute.getValue(valueNode);
+                else
+                    throw new OpenDataException(String.format("'%s' is not a scalar value", valueNode));
+            } else
+                throw new OpenDataException(String.format("Unexpected metrics: %s", node));
+        }
+
+        Object getAttributeValue(final String attributeName) throws MBeanException, AttributeNotFoundException, ReflectionException {
+            return getAttribute(attributeName, this);
+        }
+
+        private static Optional<SpringMetric<?>> createAttribute(final String attributeName,
+                                                                 final JsonNode valueNode,
+                                                                 final AttributeDescriptor descriptor) {
+            if (valueNode == null)
+                return Optional.empty();
+            else if (valueNode.isInt() || valueNode.isLong())
+                return Optional.of(new IntegerSpringMetric(attributeName, descriptor));
+            else if (valueNode.isTextual())
+                return Optional.of(new TextSpringMetric(attributeName, descriptor));
+            else if (valueNode.isDouble())
+                return Optional.of(new DoubleSpringMetric(attributeName, descriptor));
+            else if (valueNode.isBigInteger())
+                return Optional.of(new BigIntegerSpringMetric(attributeName, descriptor));
+            else if (valueNode.isBigDecimal())
+                return Optional.of(new DecimalSpringMetric(attributeName, descriptor));
+            else if (valueNode.isBoolean())
+                return Optional.of(new BooleanSpringMetric(attributeName, descriptor));
+            else if (valueNode.isBinary())
+                return Optional.of(new BinarySpringMetric(attributeName, descriptor));
+            else
+                return Optional.empty();
+        }
+
+        @Nonnull
+        SpringMetric<?> createAttribute(final String attributeName, final AttributeDescriptor descriptor) throws Exception {
+            final JsonNode node = metricsResource.get(JsonNode.class);
+            final String metricName = descriptor.getAlternativeName().orElse(attributeName);
+            if (node.isObject())
+                return createAttribute(attributeName, node.get(metricName), descriptor)
+                        .orElseThrow(() -> new OpenDataException(String.format("Unsupported format of metric %s. JSON: %s", metricName, node)));
+            else
+                throw new OpenDataException(String.format("Unexpected metrics: %s", node));
+        }
+    }
+
     private final WebResource healthResource;
-    @Aggregation(cached = true)
-    private final ActuatorAttributeRepository attributes;
+    private final ActuatorAttributes attributes;
 
     ActuatorConnector(final String resourceName,
                               final ActuatorConnectionOptions options) {
+        super(resourceName);
         healthResource = options.getHealthResource();
-        attributes = new ActuatorAttributeRepository(resourceName, options.getMetricsResource());
+        attributes = new ActuatorAttributes(options.getMetricsResource());
     }
 
-    ActuatorConnector(final String resourceName,
-                      final ManagedResourceInfo configuration) throws URISyntaxException {
-        this(resourceName, new ActuatorConnectionOptions(new URI(configuration.getConnectionString()), configuration));
-        setConfiguration(configuration);
+    /**
+     * Registers a new attribute in the managed resource connector.
+     *
+     * @param attributeName The name of the attribute in the managed resource.
+     * @param descriptor    Descriptor of created attribute.
+     * @throws JMException Unable to instantiate attribute.
+     * @since 2.0
+     */
+    @Override
+    public void addAttribute(final String attributeName, final AttributeDescriptor descriptor) throws JMException {
+        addFeature(attributes, attributeName, descriptor, attributes::createAttribute);
+    }
+
+    /**
+     * Removes attribute from the managed resource.
+     *
+     * @param attributeName Name of the attribute to remove.
+     * @return {@literal true}, if attribute is removed successfully; otherwise, {@literal false}.
+     * @since 2.0
+     */
+    @Override
+    public boolean removeAttribute(final String attributeName) {
+        return removeFeature(attributes, attributeName);
+    }
+
+    /**
+     * Removes all attributes except specified in the collection.
+     *
+     * @param attributes A set of attributes which should not be deleted.
+     * @since 2.0
+     */
+    @Override
+    public void retainAttributes(final Set<String> attributes) {
+        retainFeatures(this.attributes, attributes);
+    }
+
+    @Override
+    public Map<String, AttributeDescriptor> discoverAttributes() {
+        return attributes.discoverAttributes();
+    }
+
+    /**
+     * Obtain the value of a specific attribute of the managed resource.
+     *
+     * @param attributeName The name of the attribute to be retrieved
+     * @return The value of the attribute retrieved.
+     * @throws AttributeNotFoundException Attribute doesn't exist.
+     * @throws MBeanException             Wraps a <CODE>java.lang.Exception</CODE> thrown by the MBean's getter.
+     * @throws ReflectionException        Wraps a <CODE>java.lang.Exception</CODE> thrown while trying to invoke the getter.
+     * @see #setAttribute(Attribute)
+     */
+    @Override
+    public Object getAttribute(final String attributeName) throws AttributeNotFoundException, MBeanException, ReflectionException {
+        return attributes.getAttributeValue(attributeName);
+    }
+
+    /**
+     * Gets an array of supported attributes.
+     *
+     * @return An array of supported attributes.
+     */
+    @Override
+    public SpringMetric<?>[] getAttributeInfo() {
+        return getFeatureInfo(attributes, SpringMetric.class);
     }
 
     private static HealthStatus toHealthStatus(final JsonNode healthNode) {
@@ -98,31 +224,9 @@ final class ActuatorConnector extends AbstractManagedResourceConnector implement
         return status;
     }
 
-    /**
-     * Adds a new listener for the connector-related events.
-     * <p>
-     * The managed resource connector should holds a weak reference to all added event listeners.
-     *
-     * @param listener An event listener to add.
-     */
-    @Override
-    public void addResourceEventListener(final ResourceEventListener listener) {
-        addResourceEventListener(listener, attributes);
-    }
-
-    /**
-     * Removes connector event listener.
-     *
-     * @param listener The listener to remove.
-     */
-    @Override
-    public void removeResourceEventListener(final ResourceEventListener listener) {
-        removeResourceEventListener(listener, attributes);
-    }
-
     @Override
     protected MetricsSupport createMetricsReader() {
-        return assembleMetricsReader(attributes);
+        return assembleMetricsReader(attributes.metrics);
     }
 
     /**
@@ -132,7 +236,7 @@ final class ActuatorConnector extends AbstractManagedResourceConnector implement
      */
     @Override
     public void close() throws Exception {
-        attributes.close();
+        removeFeatures(attributes);
         super.close();
     }
 }

@@ -39,7 +39,7 @@ public class NotificationRepository<F extends MBeanNotificationInfo> extends Fea
         metrics = recorder = new NotificationMetricsRecorder();
     }
 
-    protected final <I> Collection<Notification> generateNotifications(final String category,
+    protected final <I> Iterable<Notification> generateNotifications(final String category,
                                                                      final I input,
                                                                      final BiFunction<? super I, ? super F, Stream<Notification>> factory){
         final Collection<Notification> notifs = new LinkedList<>();
