@@ -3,6 +3,7 @@ package com.bytex.snamp.connector.composite;
 import com.bytex.snamp.Convert;
 import com.bytex.snamp.connector.attributes.AttributeDescriptor;
 import com.bytex.snamp.connector.attributes.AttributeManager;
+import com.bytex.snamp.connector.attributes.AttributeRepository;
 import com.bytex.snamp.connector.composite.functions.AggregationFunction;
 import com.bytex.snamp.connector.composite.functions.EvaluationContext;
 import com.bytex.snamp.core.LoggerProvider;
@@ -23,17 +24,15 @@ import java.util.logging.Logger;
  * @version 2.1
  * @since 2.0
  */
-final class AttributeComposition extends AttributesRepository<AbstractCompositeAttribute> implements EvaluationContext, NotificationListener {
+final class AttributeComposition extends AttributeRepository<AbstractCompositeAttribute> implements EvaluationContext, NotificationListener {
     private static final Duration BATCH_READ_WRITE_TIMEOUT = Duration.ofSeconds(30);
     private final AttributeSupportProvider attributeSupportProvider;
     private final ExecutorService threadPool;
     private final ScriptLoader scriptLoader;
 
-    AttributeComposition(final String resourceName,
-                         final AttributeSupportProvider provider,
+    AttributeComposition(final AttributeSupportProvider provider,
                          final ExecutorService threadPool,
                          final ScriptLoader loader){
-        super(resourceName, AbstractCompositeAttribute.class);
         attributeSupportProvider = Objects.requireNonNull(provider);
         this.threadPool = Objects.requireNonNull(threadPool);
         this.scriptLoader = Objects.requireNonNull(loader);

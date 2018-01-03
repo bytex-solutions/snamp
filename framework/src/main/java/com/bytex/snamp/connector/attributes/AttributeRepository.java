@@ -171,4 +171,8 @@ public class AttributeRepository<F extends MBeanAttributeInfo> extends FeatureRe
                 result.add(callAndWrapException(task::get, MBeanException::new));
         return result;
     }
+
+    public static Optional<? extends MBeanAttributeInfo> findAttribute(final String attributeName, final MBeanInfo info) {
+        return findFeature(info, MBeanInfo::getAttributes, attribute -> Objects.equals(attribute.getName(), attributeName));
+    }
 }

@@ -16,7 +16,7 @@ public final class StubConnectorActivator extends ManagedResourceActivator {
 
         @Nonnull
         @Override
-        protected StubConnector createConnector(final String resourceName, final String connectionString, final Map<String, String> configuration) throws Exception {
+        public StubConnector createConnector(final String resourceName, final String connectionString, final Map<String, String> configuration) throws Exception {
             return new StubConnector(resourceName);
         }
     }

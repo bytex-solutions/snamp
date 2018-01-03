@@ -341,4 +341,8 @@ public class OperationRepository<F extends MBeanOperationInfo> extends FeatureRe
         }
         throw new MBeanException(new OperationsException(String.format("Operation %s doesn't exist", actionName)));
     }
+
+    public static Optional<? extends MBeanOperationInfo> findOperation(final String operationName, final MBeanInfo info) {
+        return findFeature(info, MBeanInfo::getOperations, operation -> Objects.equals(operationName, operation.getName()));
+    }
 }

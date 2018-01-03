@@ -6,7 +6,6 @@ import com.bytex.snamp.configuration.ConfigurationManager;
 import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceConnector;
 import com.bytex.snamp.connector.ManagedResourceConnectorClient;
-import com.bytex.snamp.connector.notifications.NotificationManager;
 import com.bytex.snamp.core.ClusterMember;
 import com.bytex.snamp.core.Communicator;
 import com.bytex.snamp.core.LoggerProvider;
@@ -102,11 +101,11 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
     }
 
     private static abstract class NotificationOperation<E extends JMException> implements Acceptor<ManagedResourceConnector, E> {
-        abstract void accept(final NotificationManager connector) throws E;
+        abstract void accept(final NotificationBroadcaster connector) throws E;
 
         @Override
         public final void accept(final ManagedResourceConnector connector) throws E {
-            final Optional<NotificationManager> support = connector.queryObject(NotificationManager.class);
+            final Optional<NotificationBroadcaster> support = connector.queryObject(NotificationBroadcaster.class);
             if(support.isPresent())
                 accept(support.get());
         }
@@ -126,7 +125,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
         }
 
         @Override
-        protected void accept(final NotificationManager connector) throws MBeanException {
+        protected void accept(final NotificationBroadcaster connector) throws MBeanException {
             if (connector == null)
                 throw new MBeanException(new NullPointerException("Managed resource doesn't support notifications"));
             else
@@ -142,7 +141,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
         }
 
         @Override
-        protected void accept(final NotificationManager connector) throws ListenerNotFoundException {
+        protected void accept(final NotificationBroadcaster connector) throws ListenerNotFoundException {
             if (connector == null)
                 throw new ListenerNotFoundException("Managed resource doesn't support notifications");
             else
@@ -159,7 +158,7 @@ public abstract class Scriptlet extends Script implements ScriptingAPI {
         }
 
         @Override
-        protected void accept(final NotificationManager connector) throws MBeanException {
+        protected void accept(final NotificationBroadcaster connector) throws MBeanException {
             if (connector == null)
                 throw new MBeanException(new NullPointerException("Managed resource doesn't support notifications"));
             for (final MBeanNotificationInfo notification : connector.getNotificationInfo())

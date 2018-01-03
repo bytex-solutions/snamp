@@ -529,10 +529,10 @@ public abstract class AbstractServiceLibrary extends AbstractBundleActivator {
         }
 
         protected ServiceSubRegistryManager(final Class<S> serviceContract,
-                                            final Iterable<Class<? super T>> subtracts,
+                                            final Iterable<Class<? super T>> subcontracts,
                                             final RequiredService<?>... dependencies){
             super(dependencies);
-            contract = ImmutableSet.<Class<? super T>>builder().add(serviceContract).addAll(subtracts).build();
+            contract = ImmutableSet.<Class<? super T>>builder().add(serviceContract).addAll(subcontracts).build();
         }
 
         private ServiceRegistrationHolder<T> createServiceRegistration(final T newService, final Dictionary<String, ?> identity) {

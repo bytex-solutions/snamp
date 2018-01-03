@@ -16,6 +16,7 @@ import javax.management.*;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
@@ -148,6 +149,25 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
         }
     }
 
+    public static ManagedResourceConnector createConnector(final BundleContext context,
+                                                           final String connectorType,
+                                                           final String resourceName,
+                                                           final String connectionString,
+                                                           final Map<String, String> parameters) throws Exception{
+        ServiceReference<ManagedResourceConnectorFactoryService> ref = null;
+        try {
+            ref = selector()
+                    .setConnectorType(connectorType)
+                    .setServiceType(ManagedResourceConnectorFactoryService.class)
+                    .getServiceReference(context, ManagedResourceConnectorFactoryService.class)
+                    .orElseThrow(() -> unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class));
+            final ManagedResourceConnectorFactoryService service = context.getService(ref);
+            return service.createConnector(resourceName, connectionString, parameters);
+        } finally {
+            if (ref != null) context.ungetService(ref);
+        }
+    }
+
     /**
      * Creates a new instance of the specified connector using service {@link ManagedResourceConnectorFactoryService}.
      * @param context The context of the caller bundle.
@@ -159,23 +179,14 @@ public final class ManagedResourceConnectorClient extends ServiceHolder<ManagedR
      * @throws InstantiationException Not enough parameters to instantiate {@link ManagedResourceConnector}.
      * @throws UnsupportedOperationException The specified connector type doesn't provide a factory.
      * @since 2.0
+     * @deprecated Use {@link #createConnector(BundleContext, String, String, String, Map)} instead.
      */
+    @Deprecated
     public static ManagedResourceConnector createConnector(final BundleContext context,
                                                            final String connectorType,
                                                            final String resourceName,
                                                            final ManagedResourceConfiguration configuration) throws Exception {
-        ServiceReference<ManagedResourceConnectorFactoryService> ref = null;
-        try {
-            ref = selector()
-                    .setConnectorType(connectorType)
-                    .setServiceType(ManagedResourceConnectorFactoryService.class)
-                    .getServiceReference(context, ManagedResourceConnectorFactoryService.class)
-                    .orElseThrow(() -> unsupportedServiceRequest(connectorType, ManagedResourceConnectorFactoryService.class));
-            final ManagedResourceConnectorFactoryService service = context.getService(ref);
-            return service.createConnector(resourceName, configuration);
-        } finally {
-            if (ref != null) context.ungetService(ref);
-        }
+        return createConnector(context, connectorType, resourceName, configuration.getConnectionString(), configuration);
     }
 
     public String getConnectorType(){

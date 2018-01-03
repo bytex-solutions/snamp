@@ -12,6 +12,7 @@ import org.osgi.framework.wiring.BundleRevision;
 
 import javax.annotation.Nonnull;
 import javax.management.*;
+import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -37,6 +38,17 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * @version 2.1
  */
 public interface ManagedResourceConnector extends AutoCloseable, FrameworkService, DynamicMBean {
+    /**
+     * A service that can be requested using {@link #queryObject(Class)} from managed resource connector
+     * to update its state without re-creating instance of managed resource connector.
+     * @since 2.1
+     */
+    interface Updater{
+        void update(final String connectionString, final Map<String, ?> parameters) throws Exception;
+        void updateConnectionString(final String connectionString) throws Exception;
+        void updateParameters(final Map<String, ?> parameters) throws Exception;
+    }
+
     /**
      * This namespace must be defined in Provide-Capability manifest header inside of the bundle containing implementation
      * of Managed Resource Connector.

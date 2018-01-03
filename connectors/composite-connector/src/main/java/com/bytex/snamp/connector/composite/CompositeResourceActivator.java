@@ -1,32 +1,44 @@
 package com.bytex.snamp.connector.composite;
 
 import com.bytex.snamp.SpecialUse;
+import com.bytex.snamp.configuration.ManagedResourceConfiguration;
 import com.bytex.snamp.connector.ManagedResourceActivator;
 import com.bytex.snamp.core.ReplicationSupport;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nonnull;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author Roman Sakno
  * @version 2.1
  * @since 1.0
  */
-public final class CompositeResourceActivator extends ManagedResourceActivator<CompositeResourceConnector> {
-    private static final class CompositeResourceConnectorFactory implements ManagedResourceConnectorFactory<CompositeResourceConnector>{
+public final class CompositeResourceActivator extends ManagedResourceActivator {
+
+
+    private static final class CompositeResourceConnectorFactory extends ManagedResourceLifecycleManager<CompositeResourceConnector> {
+        private CompositeResourceConnectorFactory() {
+            super(ImmutableList.of(ReplicationSupport.class));
+        }
 
         @Nonnull
         @Override
-        public CompositeResourceConnector createConnector(final String resourceName, final ManagedResourceInfo configuration, final DependencyManager dependencies) throws Exception {
+        protected CompositeResourceConnector createConnector(final String resourceName, final ManagedResourceConfiguration configuration) throws Exception {
             final CompositeResourceConfigurationDescriptor parser = CompositeResourceConfigurationDescriptor.getInstance();
-            final CompositeResourceConnector result = new CompositeResourceConnector(resourceName, configuration, parser);
-            result.update(configuration);
+            final ExecutorService threadPool = parser.parseThreadPool(configuration);
+            final URL[] groovyPath = parser.parseGroovyPath(configuration);
+            final CompositeResourceConnector result = new CompositeResourceConnector(resourceName, threadPool, groovyPath);
+            result.setConnectionStringSeparator(parser.parseSeparator(configuration));
+            updateConnector(result, configuration);
             return result;
         }
 
         @Override
-        public ImmutableSet<Class<? super CompositeResourceConnector>> getInterfaces() {
-            return ImmutableSet.of(ReplicationSupport.class);
+        protected CompositeResourceConnector updateConnector(@Nonnull final CompositeResourceConnector connector, final ManagedResourceConfiguration configuration) throws Exception {
+            connector.update(configuration.getConnectionString(), configuration);
+            return connector;
         }
     }
 

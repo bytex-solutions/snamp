@@ -1,5 +1,6 @@
 package com.bytex.snamp.connector.notifications;
 
+import com.bytex.snamp.ArrayUtils;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.connector.FeatureRepository;
 import com.bytex.snamp.connector.metrics.NotificationMetrics;
@@ -7,10 +8,7 @@ import com.bytex.snamp.connector.metrics.NotificationMetricsRecorder;
 
 import javax.annotation.Nonnull;
 import javax.management.*;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -146,5 +144,9 @@ public class NotificationRepository<F extends MBeanNotificationInfo> extends Fea
     @Override
     public MBeanNotificationInfo[] getNotificationInfo() {
         return read(features -> features.values().toArray(emptyArray(MBeanNotificationInfo[].class)));
+    }
+
+    public static Optional<? extends MBeanNotificationInfo> findNotification(final String type, final MBeanInfo info) {
+        return findFeature(info, MBeanInfo::getNotifications, notif -> ArrayUtils.contains(notif.getNotifTypes(), type));
     }
 }

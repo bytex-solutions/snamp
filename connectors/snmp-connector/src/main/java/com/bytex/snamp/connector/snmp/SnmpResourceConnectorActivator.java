@@ -31,7 +31,7 @@ public final class SnmpResourceConnectorActivator extends ManagedResourceActivat
     private static final class SnmpConnectorLifecycleManager extends DefaultManagedResourceLifecycleManager<SnmpResourceConnector> {
         @Nonnull
         @Override
-        protected SnmpResourceConnector createConnector(final String resourceName,
+        public SnmpResourceConnector createConnector(final String resourceName,
                                                         final String connectionString,
                                                         final Map<String, String> configuration) throws Exception {
             final SnmpConnectorDescriptionProvider parser = SnmpConnectorDescriptionProvider.getInstance();

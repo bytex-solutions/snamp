@@ -16,7 +16,7 @@ public final class RShellResourceConnectorActivator extends ManagedResourceActiv
     private static final class RShellConnectorLifecycleManager extends DefaultManagedResourceLifecycleManager<RShellResourceConnector>{
 
         @Override
-        protected RShellResourceConnector createConnector(final String resourceName, final String connectionString, final Map<String, String> configuration) throws Exception {
+        public RShellResourceConnector createConnector(final String resourceName, final String connectionString, final Map<String, String> configuration) throws Exception {
             return new RShellResourceConnector(resourceName, new RShellConnectionOptions(connectionString, configuration));
         }
     }

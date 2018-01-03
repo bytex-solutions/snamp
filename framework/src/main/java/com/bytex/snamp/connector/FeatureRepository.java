@@ -3,14 +3,20 @@ package com.bytex.snamp.connector;
 import com.bytex.snamp.SafeCloseable;
 import com.bytex.snamp.concurrent.ConcurrentResourceAccessor;
 
+import javax.annotation.Nonnull;
 import javax.management.MBeanFeatureInfo;
+import javax.management.MBeanInfo;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Represents repository of features.
@@ -85,5 +91,13 @@ public class FeatureRepository<F extends MBeanFeatureInfo> extends ConcurrentRes
             features.values().forEach(action);
             return null;
         });
+    }
+
+    protected static <F extends MBeanFeatureInfo> Optional<? extends F> findFeature(@Nonnull final MBeanInfo info,
+                                                                                    @Nonnull final Function<? super MBeanInfo, F[]> resolver,
+                                                                                    @Nonnull final Predicate<? super F> finder){
+        return Arrays.stream(resolver.apply(info))
+            .filter(finder)
+            .findFirst();
     }
 }
